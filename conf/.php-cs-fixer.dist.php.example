@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+// TODO: Decide which option to use
+
+// Option 1
+// -------------------------------------------------------------------------------
+return include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixerConfig.php';
+// -------------------------------------------------------------------------------
+
+// Option 2
+// ------------------------------------
+// use Brnshkr\Config\PhpCsFixerConfig;
+//
+// return PhpCsFixerConfig::get(/* ... */)
+//     // ->setRules([
+//     //     // ...
+//     // ])
+// ;
+// ------------------------------------
+
+// Option 3
+// -------------------------------------------------------------------------------------
+// use PhpCsFixer\Config;
+//
+// /**
+//  * @var Config
+//  */
+// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixerConfig.php';
+//
+// return $config
+//     // ->setRules([
+//     //     //...
+//     // ])
+// ;
+// -------------------------------------------------------------------------------------

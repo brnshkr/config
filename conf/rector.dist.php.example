@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+// TODO: Decide which option to use
+
+// Option 1
+// ---------------------------------------------------------------------------
+return include __DIR__ . '/../vendor/brnshkr/config/src/php/RectorConfig.php';
+// ---------------------------------------------------------------------------
+
+// Option 2
+// -----------------------------
+// use Brnshkr\Config\RectorConfig;
+//
+// return RectorConfig::get(/* ... */)
+//     // ->withSkip([
+//     //     // ...
+//     // ])
+// ;
+// -----------------------------
+
+// Option 3
+// ------------------------------------------------------------------------------
+// use Rector\Configuration\RectorConfigBuilder;
+//
+// /**
+//  * @var RectorConfigBuilder
+//  */
+// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/RectorConfig.php';
+//
+// return $config
+//     // ->withSkip([
+//     //     //...
+//     // ])
+// ;
+// ------------------------------------------------------------------------------

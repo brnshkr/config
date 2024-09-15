@@ -1,0 +1,8 @@
+/.cache/
+/.local/
+/conf/.php-cs-fixer.php
+/conf/phpstan.neon
+/conf/phpunit.xml
+/conf/rector.php
+/node_modules/
+/vendor/

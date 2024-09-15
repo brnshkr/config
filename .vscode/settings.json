@@ -1,0 +1,338 @@
+{
+  ////////////////////////
+  /// Project specific ///
+  ////////////////////////
+
+  // CSS
+  "stylelint.configFile": "./conf/stylelint.config.mjs",
+
+  // JS/TS
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "eslint.options": {
+    "overrideConfigFile": "./conf/eslint.config.ts"
+  },
+
+  // PHP
+  "php-cs-fixer.config": "${workspaceFolder}/conf/.php-cs-fixer.php",
+  "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
+  "php-cs-fixer.executablePathWindows": "${workspaceFolder}\\vendor\\bin\\php-cs-fixer.bat",
+  "phpstan.binPath": "./vendor/bin/phpstan",
+  "phpstan.configFile": "./conf/phpstan.neon",
+
+  ///////////////
+  /// General ///
+  ///////////////
+
+  // Functional
+  "files.trimFinalNewlines": true,
+  "files.associations": {
+    ".env{,.*}": "properties",
+    "*.neon": "yaml",
+    "LICENSE": "plaintext"
+  },
+  "emmet.includeLanguages": {
+    "twig": "html"
+  },
+  "workbench.editorAssociations": {
+    "*.svg": "default"
+  },
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "NOTICE",
+    "TODO"
+  ],
+
+  // Visual
+  "diffEditor.ignoreTrimWhitespace": false,
+  "todo-tree.highlights.defaultHighlight": {
+    "background": "#0000"
+  },
+
+  // Formatters
+  "[css]": {
+    "editor.defaultFormatter": "aeschli.vscode-css-formatter"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
+  "[php]": {
+    "editor.defaultFormatter": "junstyle.php-cs-fixer"
+  },
+  "[twig]": {
+    "editor.defaultFormatter": "mblode.twig-language-2"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+
+  // Telemetry
+  "gitlens.telemetry.enabled": false,
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off", // NOTICE: Can only be turned off in the default settings
+  "intelephense.telemetry.enabled": false,
+
+  // Copilot
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "properties": false,
+    "markdown": false,
+    "scminput": false
+  },
+
+  // Excludes
+  "explorer.autoRevealExclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.example": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/bun.lock": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+  "search.exclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.example": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/bun.lock": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+  "files.watcherExclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.example": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/bun.lock": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+  "todo-tree.filtering.excludeGlobs": [
+    "**/__snapshots__/**",
+    "**/.cache/**",
+    "**/.changeset/**",
+    "**/.git/objects/**",
+    "**/.git/subtree-cache/**",
+    "**/.hg/store/**",
+    "**/.history/**",
+    "**/.idea/**",
+    "**/.next/**",
+    "**/.nuxt/**",
+    "**/.output/**",
+    "**/.svelte-kit/**",
+    "**/.temp/**",
+    "**/.tmp/**",
+    "**/.vercel/**",
+    "**/.vite-inspect/**",
+    "**/.vitepress/cache/**",
+    "**/.vscode/**",
+    "**/.yarn/**",
+    "**/*.code-search",
+    "**/*.example",
+    "**/*.min.*",
+    "**/bower_components/**",
+    "**/bun.lock",
+    "**/composer.lock",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/output/**",
+    "**/package-lock.json",
+    "**/pnpm-lock.yaml",
+    "**/temp/**",
+    "**/tests/**/fixtures/**",
+    "**/tmp/**",
+    "**/vendor/**",
+    "**/vite.config.*.timestamp-*",
+    "**/yarn.lock"
+  ],
+
+  /////////////////////////
+  /// Language specific ///
+  /////////////////////////
+
+  // CSS
+  "css.customData": [
+    "./.vscode/css-custom-data.json"
+  ],
+  "tailwindCSS.emmetCompletions": true,
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "stylelint.validate": [
+    "css",
+    "html",
+    "less",
+    "scss",
+    "svelte",
+    "vue-html",
+    "vue",
+    "xml"
+  ],
+
+  // JS/TS
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  "svelte.enable-ts-plugin": true,
+  "eslint.validate": [
+    "css",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "json5",
+    "jsonc",
+    "markdown",
+    "svelte",
+    "toml",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "xml",
+    "yaml"
+  ],
+
+  // PHP
+  "phpstan.enableStatusBar": false,
+  "phpstan.showTypeOnHover": true,
+  // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
+
+  // Markdown
+  "markdownlint.config": {
+    "no-duplicate-heading": {
+      "siblings_only": true
+    },
+    "no-inline-html": {
+      "allowed_elements": [
+        "a",
+        "br",
+        "dd",
+        "del",
+        "details",
+        "div",
+        "dl",
+        "dt",
+        "h1",
+        "img",
+        "ins",
+        "kbd",
+        "p",
+        "q",
+        "rp",
+        "rt",
+        "ruby",
+        "samp",
+        "sub",
+        "summary",
+        "sup",
+        "var"
+      ]
+    }
+  }
+}

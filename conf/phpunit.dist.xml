@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
+  backupGlobals="false"
+  colors="true"
+  cacheDirectory="../.cache/phpunit.cache"
+>
+  <php>
+    <ini name="display_errors" value="1"/>
+    <ini name="error_reporting" value="-1"/>
+  </php>
+
+  <testsuites>
+    <testsuite name="Brnshkr\Config">
+      <directory>../tests/php</directory>
+    </testsuite>
+  </testsuites>
+
+  <source>
+    <include>
+      <directory suffix=".php">../src/php</directory>
+    </include>
+  </source>
+</phpunit>

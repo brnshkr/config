@@ -1,0 +1,15 @@
+includes:
+  - ./phpstan.dist.neon
+
+  # When using a local baseline
+  # - '%currentWorkingDirectory%/.local/phpstan-baseline.neon'
+
+parameters:
+  paths:
+    # When using a .local directory
+    # - '%currentWorkingDirectory%/.local'
+
+  # VS Code
+  editorUrl: 'vscode://file/%%file%%:%%line%%'
+  # VS Code (WSL)
+  # editorUrl: vscode://vscode-remote/wsl+%env.WSL_DISTRO_NAME%%%file%%:%%line%%

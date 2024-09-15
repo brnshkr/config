@@ -1,0 +1,279 @@
+{
+    "parameters": {
+        "paths": [
+            "%currentWorkingDirectory%",
+            "./.php-cs-fixer.php",
+            "./.php-cs-fixer.dist.php",
+            "%currentWorkingDirectory%/.local"
+        ],
+        "excludePaths": {
+            "analyseAndScan": [
+                "%currentWorkingDirectory%/node_modules/*",
+                "%currentWorkingDirectory%/var/*",
+                "%currentWorkingDirectory%/vendor/*"
+            ],
+            "analyse": []
+        },
+        "level": "max",
+        "editorUrlTitle": "%%relFile%%:%%line%%",
+        "tmpDir": "%currentWorkingDirectory%/.cache/phpstan.cache",
+        "checkBenevolentUnionTypes": true,
+        "checkImplicitMixed": true,
+        "checkMissingCallableSignature": true,
+        "checkMissingOverrideMethodAttribute": true,
+        "checkMissingOverridePropertyAttribute": true,
+        "checkStrictPrintfPlaceholderTypes": true,
+        "checkTooWideReturnTypesInProtectedAndPublicMethods": true,
+        "checkTooWideThrowTypesInProtectedAndPublicMethods": false,
+        "rememberPossiblyImpureFunctionValues": false,
+        "reportAlwaysTrueInLastCondition": true,
+        "reportAnyTypeWideningInVarTag": true,
+        "reportPossiblyNonexistentConstantArrayOffset": true,
+        "reportPossiblyNonexistentGeneralArrayOffset": true,
+        "featureToggles": {
+            "checkParameterCastableToNumberFunctions": true,
+            "reportPreciseLineForUnusedFunctionParameter": true,
+            "stricterFunctionMap": true
+        },
+        "exceptions": {
+            "uncheckedExceptionRegexes": [
+                "/\\\\Exception\\\\UnreachableException$/"
+            ],
+            "check": {
+                "missingCheckedExceptionInThrows": true,
+                "throwTypeCovariance": true,
+                "tooWideImplicitThrowType": true,
+                "tooWideThrowType": true
+            }
+        },
+        "strictRules": {
+            "allRules": true
+        },
+        "type_perfect": {
+            "narrow_return": true,
+            "no_mixed": true,
+            "null_over_false": true
+        },
+        "ignoreErrors": [
+            {
+                "message": "/Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary./",
+                "reportUnmatched": false
+            },
+            {
+                "message": "#^Call to function array_filter\\(\\) requires parameter \\#2 to be passed to avoid loose comparison semantics\\.$#",
+                "identifier": "arrayFilter.strict",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Function \"file_put_contents\\(\\)\" cannot be used/left in the code\\: Use Symfony\\\\Component\\\\Filesystem\\:\\:dumpFile\\(\\) or Symfony\\\\Component\\\\Filesystem\\:\\:appendToFile\\(\\) instead$#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Function \"json_encode\\(\\)\" cannot be used/left in the code\\: Use Symfony\\\\Component\\\\Serializer\\\\Encoder\\\\JsonEncoder\\:\\:encode\\(\\) instead$#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Function \"preg_replace\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:replaceMatches\\(\\) instead$#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Function \"str_contains\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:containsAny\\(\\) instead$#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Function \"str_replace\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:replace\\(\\) instead$#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "count": 1,
+                "path": "php-extensions.php"
+            },
+            {
+                "message": "#^Global constants are forbidden\\. Use enum\\-like class list instead$#",
+                "identifier": "symplify.noGlobalConst",
+                "count": 1,
+                "path": "php-extensions.php"
+            }
+        ],
+        "editorUrl": "vscode://vscode-remote/wsl+%env.WSL_DISTRO_NAME%%%file%%:%%line%%",
+        "errorFormat": "ticketswap"
+    },
+    "rules": [
+        "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
+        "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
+        "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",
+        "Symplify\\PHPStanRules\\Rules\\Complexity\\NoArrayMapWithArrayCallableRule",
+        "Symplify\\PHPStanRules\\Rules\\Complexity\\NoJustPropertyAssignRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoDoctrineListenerWithoutContractRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoGetRepositoryOnServiceRepositoryEntityRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoGetRepositoryOutsideServiceRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoParentRepositoryRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoRepositoryCallInDataFixtureRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\RequireQueryBuilderOnRepositoryRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\RequireServiceRepositoryParentRule",
+        "Symplify\\PHPStanRules\\Rules\\Domain\\RequireAttributeNamespaceRule",
+        "Symplify\\PHPStanRules\\Rules\\Domain\\RequireExceptionNamespaceRule",
+        "Symplify\\PHPStanRules\\Rules\\Enum\\RequireUniqueEnumConstantRule",
+        "Symplify\\PHPStanRules\\Rules\\Explicit\\ExplicitClassPrefixSuffixRule",
+        "Symplify\\PHPStanRules\\Rules\\Explicit\\NoMissingVariableDimFetchRule",
+        "Symplify\\PHPStanRules\\Rules\\Explicit\\NoProtectedClassStmtRule",
+        "Symplify\\PHPStanRules\\Rules\\ForbiddenExtendOfNonAbstractClassRule",
+        "Symplify\\PHPStanRules\\Rules\\ForbiddenMultipleClassLikeInOneFileRule",
+        "Symplify\\PHPStanRules\\Rules\\ForbiddenStaticClassConstFetchRule",
+        "Symplify\\PHPStanRules\\Rules\\NoDynamicNameRule",
+        "Symplify\\PHPStanRules\\Rules\\NoEntityOutsideEntityNamespaceRule",
+        "Symplify\\PHPStanRules\\Rules\\NoGlobalConstRule",
+        "Symplify\\PHPStanRules\\Rules\\NoMissnamedDocTagRule",
+        "Symplify\\PHPStanRules\\Rules\\NoReferenceRule",
+        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\NoAssertFuncCallInTestsRule",
+        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\NoMockObjectAndRealObjectPropertyRule",
+        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\PublicStaticDataProviderRule",
+        "Symplify\\PHPStanRules\\Rules\\PreventParentMethodVisibilityOverrideRule",
+        "Symplify\\PHPStanRules\\Rules\\Rector\\AvoidFeatureSetAttributeInRectorRule",
+        "Symplify\\PHPStanRules\\Rules\\Rector\\PreferDirectIsNameRule",
+        "Symplify\\PHPStanRules\\Rules\\RequireAttributeNameRule",
+        "Symplify\\PHPStanRules\\Rules\\StringFileAbsolutePathExistsRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\AlreadyRegisteredAutodiscoveryServiceRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoBundleResourceConfigRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoDuplicateArgAutowireByTypeRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoDuplicateArgsAutowireByTypeRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoServiceSameNameSetClassRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoSetClassServiceDuplicationRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\PreferAutowireAttributeOverConfigParamRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\ServicesExcludedDirectoryMustExistRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\TaggedIteratorOverRepeatedServiceCallRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoAbstractControllerConstructorRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoBareAndSecurityIsGrantedContentsRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoClassLevelRouteRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoConstructorAndRequiredTogetherRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoControllerMethodInjectionRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoFindTaggedServiceIdsCallRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetDoctrineInControllerRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetInCommandRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetInControllerRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoListenerWithoutContractRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoRouteTrailingSlashPathRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoRoutingPrefixRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoServiceAutowireDuplicateRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoStringInGetSubscribedEventsRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequiredOnlyInAbstractRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequireIsGrantedEnumRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequireRouteNameToGenerateControllerRouteRule",
+        "Symplify\\PHPStanRules\\Rules\\Symfony\\SingleArgEventDispatchRule",
+        "Symplify\\PHPStanRules\\Rules\\UppercaseConstantRule"
+    ],
+    "services": [
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\Rule\\InternalUsageRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "allowedDeclaringNamespaces": [
+                    "/^Symfony\\\\Component\\\\Console\\\\Descriptor/"
+                ],
+                "allowedCallingNamespaces": [
+                    "/^Brnshkr\\\\Config\\\\Tests/"
+                ]
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\ForbiddenNodeRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenNodes": [
+                    "PhpParser\\Node\\Expr\\Empty_",
+                    "PhpParser\\Node\\Expr\\ErrorSuppress",
+                    "PhpParser\\Node\\Expr\\PostDec",
+                    "PhpParser\\Node\\Expr\\PostInc",
+                    "PhpParser\\Node\\Expr\\PreDec",
+                    "PhpParser\\Node\\Expr\\PreInc",
+                    "PhpParser\\Node\\Scalar\\Encapsed",
+                    "PhpParser\\Node\\Scalar\\EncapsedStringPart",
+                    "PhpParser\\Node\\Stmt\\Switch_"
+                ]
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\PreferredClassRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "oldToPreferredClasses": {
+                    "Carbon\\Carbon": "Carbon\\CarbonImmutable",
+                    "DateTime": "DateTimeImmutable",
+                    "PhpCsFixer\\Finder": "Symfony\\Component\\Finder",
+                    "SplFileInfo": "Symfony\\Component\\Finder\\SplFileInfo"
+                }
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\ForbiddenFuncCallRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenFunctions": {
+                    "class_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "compact": "Explictly assign to keys in the array",
+                    "curl_*": "Use Symfony\\Contracts\\HttpClient\\HttpClientInterface instead",
+                    "dd": "Please remove all debug functions. Use a logger if needed",
+                    "dump": "Please remove all debug functions. Use a logger if needed",
+                    "enum_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "eval": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "extract": "Explictly define variables for the entries of the array",
+                    "file_get_contents": "Use Symfony\\Component\\Finder\\SplFileInfo::getContents() instead",
+                    "file_put_contents": "Use Symfony\\Component\\Filesystem::dumpFile() or Symfony\\Component\\Filesystem::appendToFile() instead",
+                    "interface_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "json_decode": "Use Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::decode() instead",
+                    "json_encode": "Use Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::encode() instead",
+                    "ltrim": "Use function Symfony\\Component\\String\\s::trimStart() instead",
+                    "mb_split": "Use function Symfony\\Component\\String\\s::split() instead",
+                    "mb_str_split": "Use function Symfony\\Component\\String\\s::chunk() instead",
+                    "mb_str*": "Use function Symfony\\Component\\String\\s instead",
+                    "mb_strlen": "Use function Symfony\\Component\\String\\s::length() instead",
+                    "mb_strtolower": "Use function Symfony\\Component\\String\\s::lower() instead",
+                    "mb_strtoupper": "Use function Symfony\\Component\\String\\s::upper() instead",
+                    "mb_substr": "Use function Symfony\\Component\\String\\s::slice() instead",
+                    "method_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "preg_match_all": "Use function Symfony\\Component\\String\\s::match() instead",
+                    "preg_match": "Use function Symfony\\Component\\String\\s::match() instead",
+                    "preg_replace_callback": "Use function Symfony\\Component\\String\\s::replaceMatches() instead",
+                    "preg_replace": "Use function Symfony\\Component\\String\\s::replaceMatches() instead",
+                    "property_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "rtrim": "Use function Symfony\\Component\\String\\s::trimEnd() instead",
+                    "spl_autoload": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "spl_autoload_*": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "str_contains": "Use function Symfony\\Component\\String\\s::containsAny() instead",
+                    "str_ends_with": "Use function Symfony\\Component\\String\\s::endsWith() instead",
+                    "str_ireplace": "Use function Symfony\\Component\\String\\s::replace() instead",
+                    "str_pad": "Use function Symfony\\Component\\String\\s::{padBoth,padEnd,padStart}() instead",
+                    "str_repeat": "Use function Symfony\\Component\\String\\s::repeat() instead",
+                    "str_replace": "Use function Symfony\\Component\\String\\s::replace() instead",
+                    "str_split": "Use function Symfony\\Component\\String\\s::split() instead",
+                    "str_starts_with": "Use function Symfony\\Component\\String\\s::startsWith() instead",
+                    "str*": "Use Use function Symfony\\Component\\String\\s instead",
+                    "strlen": "Use function Symfony\\Component\\String\\s::length() instead",
+                    "strtolower": "Use function Symfony\\Component\\String\\s::lower() instead",
+                    "strtoupper": "Use function Symfony\\Component\\String\\s::upper() instead",
+                    "substr_replace": "Use function Symfony\\Component\\String\\s::replace() instead",
+                    "substr": "Use function Symfony\\Component\\String\\s::slice() instead",
+                    "trait_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line",
+                    "trim": "Use function Symfony\\Component\\String\\s::trim() instead",
+                    "ucfirst": "Use function Symfony\\Component\\String\\s::title() instead",
+                    "var_dump": "Please remove all debug functions. Use a logger if needed"
+                }
+            }
+        }
+    ]
+}

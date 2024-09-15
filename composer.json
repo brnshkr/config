@@ -1,0 +1,156 @@
+{
+  "$schema": "https://getcomposer.org/schema.json",
+  "name": "brnshkr/config",
+  "version": "0.0.1-alpha.1",
+  "description": "Centralized collection of configuration and tooling used across all @brnshkr projects",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Patrick Rupp"
+    }
+  ],
+  "homepage": "https://github.com/brnshkr/config",
+  "support": {
+    "issues": "https://github.com/brnshkr/config/issues",
+    "source": "https://github.com/brnshkr/config"
+  },
+  "type": "composer-plugin",
+  "require": {
+    "php": ">=8.5",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "composer-plugin-api": "^2.0.0"
+  },
+  "require-dev": {
+    "ext-ctype": "*",
+    "ext-date": "*",
+    "ext-dom": "*",
+    "ext-filter": "*",
+    "ext-hash": "*",
+    "ext-iconv": "*",
+    "ext-libxml": "*",
+    "ext-openssl": "*",
+    "ext-pcre": "*",
+    "ext-phar": "*",
+    "ext-reflection": "*",
+    "ext-simplexml": "*",
+    "ext-tokenizer": "*",
+    "ext-xml": "*",
+    "ext-xmlwriter": "*",
+    "composer/composer": "2.9.5",
+    "friendsofphp/php-cs-fixer": "3.93.1",
+    "kubawerlos/php-cs-fixer-custom-fixers": "3.36.0",
+    "pestphp/pest": "4.3.2",
+    "phpstan/extension-installer": "1.4.3",
+    "phpstan/phpstan": "2.1.38",
+    "phpstan/phpstan-deprecation-rules": "2.0.3",
+    "phpstan/phpstan-doctrine": "2.0.14",
+    "phpstan/phpstan-phpunit": "2.0.12",
+    "phpstan/phpstan-strict-rules": "2.0.8",
+    "phpstan/phpstan-symfony": "2.0.12",
+    "phpstan/phpstan-webmozart-assert": "2.0.0",
+    "phpunit/phpunit": "12.5.8",
+    "rector/rector": "2.3.5",
+    "rector/type-perfect": "2.1.2",
+    "spatie/phpunit-snapshot-assertions": "5.3.0",
+    "symfony/finder": "8.0.5",
+    "symplify/phpstan-rules": "14.9.11",
+    "ticketswap/phpstan-error-formatter": "1.2.4"
+  },
+  "conflict": {
+    "friendsofphp/php-cs-fixer": "<3.89.1 || >=4",
+    "kubawerlos/php-cs-fixer-custom-fixers": "<3.36.0 || >=4",
+    "phpstan/extension-installer": "<1.4.3 || >=3",
+    "phpstan/phpstan": "<2.1.38 || >=3",
+    "phpstan/phpstan-deprecation-rules": "<2.0.3 || >=3",
+    "phpstan/phpstan-doctrine": "<2.0.14 || >=3",
+    "phpstan/phpstan-phpunit": "<2.0.12 || >=3",
+    "phpstan/phpstan-strict-rules": "<2.0.8 || >=3",
+    "phpstan/phpstan-symfony": "<2.0.12 || >=3",
+    "phpstan/phpstan-webmozart-assert": "<2.0.0 || >=3",
+    "rector/rector": "<2.3.5 || >=3",
+    "rector/type-perfect": "<2.1.2 || >=3",
+    "symfony/finder": "<8.0.5 || >=9",
+    "symplify/phpstan-rules": "<14.9.11 || >=15",
+    "ticketswap/phpstan-error-formatter": "<1.2.4 || >=2"
+  },
+  "suggest": {
+    "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
+    "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
+    "phpstan/extension-installer": "Needed when using PHPStan",
+    "phpstan/phpstan": "Needed for static code analysis",
+    "phpstan/phpstan-deprecation-rules": "Optional PHPStan rules for deprecations",
+    "phpstan/phpstan-doctrine": "Optional additional PHPStan rules for Doctrine (It is recommended to configure parameters.doctrine.objectManagerLoader when using this extension)",
+    "phpstan/phpstan-phpunit": "Optional additional PHPStan rules for PHPUnit",
+    "phpstan/phpstan-strict-rules": "Needed when using PHPStan",
+    "phpstan/phpstan-symfony": "Optional additional PHPStan rules for Symfony (It is recommended to configure parameters.symfony.consoleApplicationLoader when using this extension)",
+    "phpstan/phpstan-webmozart-assert": "Optional additional PHPStan rules for Webmozart\\Assert",
+    "rector/rector": "Needed for automatically applying upgrades and refactorings",
+    "rector/type-perfect": "Needed when using PHPStan",
+    "symfony/finder": "Needed when using PHP CS Fixer or Rector",
+    "symplify/phpstan-rules": "Needed when using PHPStan",
+    "ticketswap/phpstan-error-formatter": "Optional PHPStan error output formatter"
+  },
+  "autoload": {
+    "psr-4": {
+      "Brnshkr\\Config\\": "./src/php/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Brnshkr\\Config\\Tests\\": "./tests/php/"
+    }
+  },
+  "extra": {
+    "class": "Brnshkr\\Config\\Composer\\Plugin"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "archive": {
+    "exclude": [
+      ".*",
+      "conf/",
+      "!conf/.php-cs-fixer.dist.php.example",
+      "!conf/.php-cs-fixer.php.example",
+      "!conf/.gitignore.example",
+      "Makefile",
+      "!conf/Makefile",
+      "!conf/Makefile.example",
+      "!conf/phpstan.dist.neon",
+      "!conf/phpstan.dist.neon.example",
+      "!conf/phpstan.neon.example",
+      "!conf/rector.dist.php.example",
+      "!conf/rector.php.example",
+      "bun.lock",
+      "bunfig.toml",
+      "CHANGELOG.md",
+      "composer.lock",
+      "dist/",
+      ".local/",
+      "node_modules/",
+      "package.json",
+      "scripts/",
+      "src/js/",
+      "tests/",
+      "tsconfig.json",
+      "vendor/"
+    ]
+  },
+  "keywords": [
+    "dev",
+    "brnshkr",
+    "config",
+    "phpstan",
+    "rector",
+    "phpcsfixer",
+    "php-cs-fixer",
+    "static analysis"
+  ]
+}

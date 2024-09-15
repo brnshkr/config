@@ -1,0 +1,74 @@
+{
+  // @see https://www.typescriptlang.org/tsconfig
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "exclude": [
+    "../**/.cache/**",
+    "../**/.changeset/**",
+    "../**/.git/objects/**",
+    "../**/.git/subtree-cache/**",
+    "../**/.hg/store/**",
+    "../**/.history/**",
+    "../**/.idea/**",
+    "../**/.next/**",
+    "../**/.nuxt/**",
+    "../**/.output/**",
+    "../**/.svelte-kit/**",
+    "../**/.temp/**",
+    "../**/.tmp/**",
+    "../**/.vercel/**",
+    "../**/.vite-inspect/**",
+    "../**/.vitepress/cache/**",
+    "../**/.vscode/**",
+    "../**/.yarn/**",
+    "../**/__snapshots__/**",
+    "../**/bower_components/**",
+    "../**/coverage/**",
+    "../**/dist/**",
+    "../**/node_modules/**",
+    "../**/output/**",
+    "../**/temp/**",
+    "../**/tmp/**",
+    "../**/vendor/**"
+  ],
+  "compilerOptions": {
+    // Language and Environment
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "moduleDetection": "force",
+    "target": "esnext",
+
+    // Modules
+    "allowImportingTsExtensions": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noUncheckedSideEffectImports": true,
+    "resolveJsonModule": true,
+
+    // Emit
+    "noEmit": true,
+    "sourceMap": true,
+
+    // Completeness
+    "skipLibCheck": true,
+
+    // JavaScript Support
+    "allowJs": true,
+    "checkJs": true,
+
+    // Interop Constraints
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+
+    // Type Checking
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true
+  }
+}

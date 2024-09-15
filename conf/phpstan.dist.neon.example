@@ -1,0 +1,21 @@
+includes:
+  - '%currentWorkingDirectory%/vendor/brnshkr/config/conf/phpstan.dist.neon'
+
+parameters:
+  paths:
+    # When using PHP CS Fixer
+    # - ./.php-cs-fixer.php
+    # - ./.php-cs-fixer.dist.php
+
+  # When using ticketswap/phpstan-error-formatter
+  # errorFormat: ticketswap
+
+  # When using phpstan/phpstan-symfony
+  # See: https://github.com/phpstan/phpstan-symfony?tab=readme-ov-file#configuration
+  # symfony:
+  #  consoleApplicationLoader: '%currentWorkingDirectory%/tests/bootstrap/console-application.php'
+
+  # When using phpstan/phpstan-doctrine
+  # See: https://github.com/phpstan/phpstan-doctrine?tab=readme-ov-file#configuration
+  # doctrine:
+  #   objectManagerLoader: '%currentWorkingDirectory%/tests/bootstrap/object-manager.php'
