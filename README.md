@@ -200,7 +200,7 @@ For these scripts to work you need to follow the convention of putting your conf
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
 
-Expected configuration file: `./conf/eslint.config.ts`;
+Expected configuration file: `./conf/eslint.config.ts`
 
 ```sh
 bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
@@ -209,7 +209,7 @@ bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
 <!-- omit in toc -->
 ###### Stylelint
 
-Expected configuration file: `./conf/stylelint.config.mjs`;
+Expected configuration file: `./conf/stylelint.config.mjs`
 
 ```sh
 bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
@@ -462,7 +462,7 @@ include ./vendor/brnshkr/config/conf/Makefile
 <!-- omit in toc -->
 ###### PHP CS Fixer
 
-Expected configuration file: `./conf/.php-cs-fixer.php`;
+Expected configuration file: `./conf/.php-cs-fixer.php`
 
 ```sh
 make php-cs-fixer
@@ -471,7 +471,7 @@ make php-cs-fixer
 <!-- omit in toc -->
 ###### Rector
 
-Expected configuration file: `./conf/rector.php`;
+Expected configuration file: `./conf/rector.php`
 
 ```sh
 make rector
@@ -480,7 +480,7 @@ make rector
 <!-- omit in toc -->
 ###### PHPStan
 
-Expected configuration file: `./conf/phpstan.neon`;
+Expected configuration file: `./conf/phpstan.neon`
 
 ```sh
 make phpstan
