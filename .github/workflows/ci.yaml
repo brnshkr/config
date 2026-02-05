@@ -4,121 +4,610 @@ on:
   push:
     branches:
       - master
-      - 'release/**'
+      - release/*
+
   pull_request:
     branches:
       - master
-      - 'release/**'
+      - release/*
 
   workflow_call:
-    inputs:
+    inputs: &inputs
       vendor:
-        required: true
+        description: Vendor name
+        required: false
         type: string
+        default: brnshkr
       package:
-        required: true
+        description: Package name
+        required: false
         type: string
+        default: config
       tag:
-        required: false
-        type: string
-      do_enable_js:
-        required: false
-        type: boolean
-      do_enable_php:
-        required: false
-        type: boolean
-      node_version:
-        required: false
-        type: string
-      bun_version:
-        required: false
-        type: string
-      php_version:
-        required: false
-        type: string
-      dry_run:
-        required: false
-        type: boolean
-
-  workflow_dispatch:
-    inputs:
-      vendor:
-        required: true
-        type: string
-      package:
-        required: true
-        type: string
-      tag:
+        description: Semantic version tag
         required: false
         type: string
         default: ''
-      do_enable_js:
+      is-dry-run:
+        description: If true, skip publishing, releases and uploads
         required: false
         type: boolean
-      do_enable_php:
+        default: true
+      do-ensure-set-secrets:
+        description: If true, fail when expected publishing secrets are missing
         required: false
         type: boolean
-      node_version:
-        required: false
-        type: string
-      bun_version:
-        required: false
-        type: string
-      php_version:
-        required: false
-        type: string
-      dry_run:
+        default: false
+      do-enable-js:
+        description: Enable JS checks and build/publish (requires package.json, bun-version)
         required: false
         type: boolean
+        default: false
+      bun-version:
+        description: Bun version to use when JS is enabled
+        required: false
+        type: string
+        default: 1.3.8
+      do-enable-php:
+        description: Enable PHP checks and build/publish (requires composer.json, php-version)
+        required: false
+        type: boolean
+        default: false
+      php-version:
+        description: PHP version to use when PHP is enabled
+        required: false
+        type: string
+        default: '8.5'
+    secrets:
+      NPM_CONFIG_TOKEN:
+        required: false
+      PACKAGIST_USERNAME:
+        required: false
+      PACKAGIST_TOKEN:
+        required: false
 
-env:
-  VENDOR: ${{ github.event.inputs.vendor || env.VENDOR || 'brnshkr' }}
-  PACKAGE: ${{ github.event.inputs.package || env.PACKAGE || '' }}
-  HAS_PACKAGE: ${{ env.PACKAGE != '' }}
-  DO_ENABLE_JS: ${{ github.event.inputs.do_enable_js || env.DO_ENABLE_JS || 'true' }}
-  DO_ENABLE_PHP: ${{ github.event.inputs.do_enable_php || env.DO_ENABLE_PHP || 'true' }}
-  NODE_VERSION: ${{ github.event.inputs.node_version || env.NODE_VERSION || '24' }}
-  BUN_VERSION: ${{ github.event.inputs.bun_version || env.BUN_VERSION || '1.3.8' }}
-  PHP_VERSION: ${{ github.event.inputs.php_version || env.PHP_VERSION || '8.5' }}
-  DRY_RUN: ${{ github.event.inputs.dry_run || env.DRY_RUN || 'true' }}
-  IS_PUSH_EVENT: ${{ github.event_name == 'push' }}
-  IS_PULL_REQUEST_EVENT: ${{ github.event_name == 'pull_request' }}
-  IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
-  IS_RELEASE_BRANCH: ${{ startsWith(github.ref, 'refs/heads/release/') }}
-  IS_MASTER_BRANCH: ${{ github.ref == 'refs/heads/master' }}
-  RELEASE_TAG: ${{ github.event.inputs.tag }}
-  HAS_RELEASE_TAG: ${{ github.event.inputs.tag != '' }}
+  workflow_dispatch:
+    inputs:
+      <<: *inputs
+      tag:
+        description: Semantic version tag
+        required: true
+        type: string
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'release/') }}
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
+  inputs:
+    name: Validate Inputs and Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      is-dry-run: ${{ steps.validate.outputs.is-dry-run }}
+      do-enable-js: ${{ steps.validate.outputs.do-enable-js }}
+      bun-version: ${{ steps.validate.outputs.bun-version }}
+      do-enable-php: ${{ steps.validate.outputs.do-enable-php }}
+      php-version: ${{ steps.validate.outputs.php-version }}
+      vendor: ${{ steps.validate.outputs.vendor }}
+      package: ${{ steps.validate.outputs.package }}
+      tag: ${{ steps.validate.outputs.tag }}
+    steps:
+      - name: Normalize and Validate Inputs
+        id: validate
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
+        with:
+          script: |
+            const fs = require('fs');
+
+            const isDryRun = core.getBooleanInput('is-dry-run');
+            const doEnsureSetSecrets = core.getBooleanInput('do-ensure-set-secrets');
+            const doEnableJs = core.getBooleanInput('do-enable-js');
+            const bunVersion = core.getInput('bun-version').trim();
+            const doEnablePhp = core.getBooleanInput('do-enable-php');
+            const phpVersion = core.getInput('php-version').trim();
+            let vendor = core.getInput('vendor').trim();
+            let pkg = core.getInput('package').trim();
+            let tag = core.getInput('tag').trim();
+
+            const readJsonFileSafely = (filePath) => {
+              try {
+                if (fs.existsSync(filePath)) {
+                  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                }
+
+                core.info(`File ${filePath} does not exist.`);
+
+                return null;
+              } catch (error) {
+                core.warning(`Failed to read or parse ${filePath}: ${error.message}`);
+
+                return null;
+              }
+            };
+
+            const packageJson = readJsonFileSafely('package.json');
+            const composerJson = readJsonFileSafely('composer.json');
+
+            if (!packageJson || !composerJson) {
+              core.warning('package.json and/or composer.json missing; skipping cross-file checks.');
+
+              return;
+            }
+
+            if (packageJson.version !== composerJson.version) {
+              core.setFailed(`Version mismatch: package.json (${packageJson.version}) != composer.json (${composerJson.version})`);
+
+              return;
+            }
+
+            if (tag === '' || github.context.eventName !== 'workflow_dispatch') {
+              tag = composerJson.version;
+            } else if (tag !== composerJson.version) {
+              core.setFailed(`Tag "${tag}" does not match version in json files "${composerJson.version}".`);
+
+              return;
+            }
+
+            if (tag.startsWith('v')) {
+              core.setFailed('"v"-prefixed tags are not accepted.');
+
+              return;
+            }
+
+            const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+            if (!semverRegex.test(tag)) {
+              core.setFailed(`Tag "${tag}" does not match semantic versioning requirements.`);
+
+              return;
+            }
+
+            if (!packageJson.name.startsWith('@')) {
+              core.setFailed('Vendor name must start with an @ in package.json.');
+
+              return;
+            }
+
+            if (composerJson.name.startsWith('@')) {
+              core.setFailed('Vendor name must not start with an @ in composer.json.');
+
+              return;
+            }
+
+            const composerNameParts = composerJson.name.split('/');
+
+            if (composerNameParts.length !== 2 || !composerNameParts[0] || !composerNameParts[1]) {
+              core.setFailed(`Malformed Composer package name "${composerJson.name}". Expected "vendor/package".`);
+
+              return;
+            }
+
+            for (const property of ['description', 'license', 'homepage']) {
+              if ((packageJson[property] || '') !== (composerJson[property] || '')) {
+                core.setFailed(`Mismatch in property "${property}": package.json (${packageJson[property] || ''}) != composer.json (${composerJson[property] || ''})`);
+
+                return;
+              }
+            }
+
+            const vendor = composerNameParts[0];
+            const package = composerNameParts[1];
+
+            if (doEnableJs) {
+              if (!bunVersion) {
+                core.setFailed('JavaScript is enabled, but `bun-version` was not provided.');
+
+                return;
+              }
+
+              if (doEnsureSetSecrets && !process.env.NPM_CONFIG_TOKEN) {
+                core.setFailed('Secret validation is enabled for JavaScript, but `NPM_CONFIG_TOKEN` is not set.');
+
+                return;
+              }
+            }
+
+            if (doEnablePhp) {
+              if (!phpVersion) {
+                core.setFailed('PHP is enabled, but `php-version` was not provided.');
+
+                return;
+              }
+
+              if (doEnsureSetSecrets && (!process.env.PACKAGIST_USERNAME || !process.env.PACKAGIST_TOKEN)) {
+                core.setFailed('Secret validation is enabled for PHP, but `PACKAGIST_USERNAME` and/or `PACKAGIST_TOKEN` are missing.');
+
+                return;
+              }
+            }
+
+            core.setOutput('is-dry-run', isDryRun);
+            core.setOutput('do-enable-js', doEnableJs);
+            core.setOutput('bun-version', bunVersion);
+            core.setOutput('do-enable-php', doEnablePhp);
+            core.setOutput('php-version', phpVersion);
+            core.setOutput('vendor', vendor);
+            core.setOutput('package', package);
+            core.setOutput('tag', tag);
+
   check:
-    uses: brnshkr/config/.github/workflows/check.yaml@master
-    if: ${{ env.IS_MASTER_BRANCH && (env.IS_PUSH_EVENT || env.IS_PULL_REQUEST_EVENT || env.IS_WORKFLOW_DISPATCH_EVENT) }}
-    with:
-      do_enable_js: ${{ env.DO_ENABLE_JS }}
-      do_enable_php: ${{ env.DO_ENABLE_PHP }}
-      bun_version: ${{ env.BUN_VERSION }}
-      php_version: ${{ env.PHP_VERSION }}
+    name: Check
+    runs-on: &os ubuntu-latest
+    needs: inputs
+    if: needs.inputs.outputs.do-enable-js || needs.inputs.outputs.do-enable-php
+    permissions:
+      contents: read
+    steps:
+      - &checkout
+          name: Checkout Repository
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+          with:
+            fetch-depth: 0
+
+      - name: Run Commitlint
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        with:
+          configFile: ./.conf/commitlint.config.mjs
+
+      - &handle-bun-cache
+          name: Handle Bun Cache
+          if: &do-enable-js needs.inputs.outputs.do-enable-js
+          uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
+          with:
+            path: ~/.bun/install/cache
+            key: ${{ runner.os }}-bun-${{ needs.inputs.outputs.bun-version }}-${{ hashFiles('bun.lock') }}
+            restore-keys: ${{ runner.os }}-bun-${{ needs.inputs.outputs.bun-version }}
+
+      - &install-bun
+          name: Install Bun
+          if: *do-enable-js
+          uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # 2.1.2
+          with:
+            bun-version: ${{ needs.inputs.outputs.bun-version }}
+
+      - &install-js-dependencies
+          name: Install JS Dependencies
+          if: *do-enable-js
+          run: bun install
+
+      - name: Run JS Checks
+        if: *do-enable-js
+        run: bun check
+
+      - &handle-composer-cache
+          name: Handle Composer Cache
+          if: &do-enable-php needs.inputs.outputs.do-enable-php
+          uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
+          with:
+            path: /tmp/composer-cache
+            key: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-${{ hashFiles('composer.lock') }}
+            restore-keys: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-
+
+      - &install-composer-and-dependencies
+          name: Install PHP Dependencies
+          if: *do-enable-php
+          uses: php-actions/composer@8a65f0d3c6a1d17ca4800491a40b5756a4c164f3 # 6.1.2
+          with:
+            php_version: ${{ needs.inputs.outputs.php-version }}
+            args: --no-interaction --no-progress --optimize-autoloader --prefer-dist
+
+      - name: Run PHP Checks
+        if: *do-enable-php
+        run: make check
+
+  build:
+    name: Build
+    runs-on: *os
+    needs:
+      - inputs
+      - check
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    steps:
+      - *checkout
+      - *handle-bun-cache
+      - *install-bun
+      - *install-js-dependencies
+
+      - name: Build JS Package
+        if: *do-enable-js
+        run: bun run build
+
+      - name: Pack JS Package
+        if: *do-enable-js
+        run: bun pm pack --destination ./artifacts
+
+      - *handle-composer-cache
+      - *install-composer-and-dependencies
+
+      - name: Pack PHP Package
+        if: *do-enable-php
+        run: composer archive --dir ./artifacts
+
+      - name: Upload Artifacts
+        if: ${{ !needs.inputs.outputs.is-dry-run }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # 6.0.0
+        with:
+          name: artifacts
+          path: ./artifacts/*
+          if-no-files-found: ignore
 
   release:
-    uses: brnshkr/config/.github/workflows/release.yaml@master
-    if: ${{ env.IS_RELEASE_BRANCH && (env.IS_PUSH_EVENT || (env.IS_WORKFLOW_DISPATCH_EVENT && env.HAS_RELEASE_TAG && env.HAS_PACKAGE)) }}
-    needs: check
-    with:
-      vendor: ${{ env.VENDOR }}
-      package: ${{ env.PACKAGE }}
-      tag: ${{ env.RELEASE_TAG }}
-      do_validate_secrets: 'true'
-      do_enable_js: ${{ env.DO_ENABLE_JS }}
-      do_enable_php: ${{ env.DO_ENABLE_PHP }}
-      node_version: ${{ env.NODE_VERSION }}
-      bun_version: ${{ env.BUN_VERSION }}
-      php_version: ${{ env.PHP_VERSION }}
-      dry_run: ${{ env.DRY_RUN }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
-      PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+    name: Release
+    runs-on: *os
+    needs:
+      - inputs
+      - check
+      - build
+    if: |
+      startsWith(github.ref, 'refs/heads/release/')
+        && (github.event_name == 'push'
+          || (github.event_name == 'workflow_dispatch' && (inputs.tag != '')))
+    permissions:
+      contents: write
+    steps:
+      - *checkout
+      - *handle-bun-cache
+      - *install-bun
+
+      - name: Generate Changelog
+        run: bunx -y conventional-changelog -r 0 -o CHANGELOG.md || echo "No changelog changes"
+
+      - name: Extract Release Notes
+        id: release-notes
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const content = fs.readFileSync('CHANGELOG.md', 'utf8');
+              const lines = content.split('\n');
+              const start = lines.findIndex((line) => line.startsWith('## '));
+              let releaseNotes = '';
+
+              if (start !== -1) {
+                const nextHeaderOffset = lines.slice(start + 1).findIndex((line) => line.startsWith('## '));
+                const end = nextHeaderOffset === -1 ? lines.length : start + 1 + nextHeaderOffset;
+
+                releaseNotes = lines.slice(start, end).join('\n').replace(/^## v/gm, '## ');
+              }
+
+              core.setOutput('release_notes', releaseNotes || 'No release notes available.');
+            } catch (error) {
+              core.setOutput('release_notes', 'No CHANGELOG.md found.');
+            }
+
+      - name: Download Artifacts
+        if: ${{ !needs.inputs.outputs.is-dry-run }}
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # 7.0.0
+        with:
+          name: artifacts
+          merge-multiple: true
+
+      - name: Push Tag
+        id: push-tag
+        uses: actions/github-script@988b7db9950e0d121cde1cece5e3e0cd835be9e2 # v8.1.0
+        env:
+          INPUT_TAG: ${{ needs.inputs.outputs.tag }}
+          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+        with:
+          script: |
+            const gitRevParse = await exec('git', ['rev-parse', tag], {
+              ignoreReturnCode: true,
+            });
+
+            if (gitRevParse.exitCode === 0) {
+              core.setFailed(`Tag "${tag}" already exists.`);
+
+              return;
+            }
+
+            if (github.context.ref.startsWith('refs/heads/release/') && process.env.IS_DRY_RUN !== 'true') {
+              const actor = process.env.GITHUB_ACTOR || 'github-actions[bot]';
+
+              await exec('git', ['config', 'user.name', actor]);
+              await exec('git', ['config', 'user.email', `${actor}@users.noreply.github.com`]);
+              await exec('git', ['tag', '-a', tag, '-m', `Release ${tag}`]);
+              await exec('git', ['push', 'origin', `refs/tags/${tag}`], { timeout: 15000 });
+            } else {
+              core.info(`Skipping creation of tag "${tag}" since \`is_dry_run\` is set to "true".`);
+            }
+
+            core.setOutput('release_tag', tag);
+            core.setOutput('is_prerelease', tag.includes('-'));
+
+      - name: Create GitHub Release
+        if: steps.push-tag.outcome == 'success' && !needs.inputs.outputs.is-dry-run
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # 2.5.0
+        with:
+          tag_name: ${{ steps.push-tag.outputs.release_tag }}
+          body: ${{ steps.release-notes.outputs.release_notes }}
+          draft: false
+          prerelease: ${{ fromJSON(steps.push-tag.outputs.is_prerelease) }}
+          files: ./artifacts/*
+
+      - name: Skip GitHub Release
+        if: needs.inputs.outputs.is-dry-run
+        run: echo 'Skipping GitHub release since `is-dry-run` is set to "true".'
+
+      - name: Publish NPM Package
+        if: *do-enable-js
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
+          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            const retry = async (callback, attempts = 3, delay = 1000, timeout = 15000) => {
+              let lastError;
+
+              for (let i = 1; i <= attempts; i += 1) {
+                try {
+                  return await Promise.race([
+                    callback(i),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
+                  ]);
+                } catch (error) {
+                  lastError = error;
+
+                  core.info(`Attempt ${i} failed. Retrying in ${delay}ms...`);
+                  await sleep(delay);
+
+                  delay *= 2;
+                }
+              }
+
+              throw lastError;
+            };
+
+            if (process.env.IS_DRY_RUN === 'true') {
+              core.info('Skipping publishing of NPM package since `is-dry-run` is set to "true".');
+
+              return;
+            }
+
+            if (!process.env.NPM_CONFIG_TOKEN) {
+              core.setFailed('Skipping publishing of NPM package since `NPM_CONFIG_TOKEN` is not set.');
+
+              return;
+            }
+
+            let files = [];
+
+            try {
+              files = fs.readdirSync('./artifacts').filter((file) => file.endsWith('.tgz'));
+            } catch (error) {
+              core.info('No NPM artifacts found.');
+
+              return;
+            }
+
+            const failures = [];
+
+            for (const file of files) {
+              const path = `./artifacts/${file}`;
+
+              core.info(`Publishing ${path}`);
+
+              try {
+                await retry(async () => {
+                  await exec('bun', [
+                    'publish',
+                    '--access', 'public',
+                    process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
+                    path,
+                  ].filter(Boolean));
+                });
+              } catch (error) {
+                failures.push(path);
+              }
+            }
+
+            if (failures.length > 0) {
+              core.setFailed(`Failed to publish: ${failures.join(', ')}`);
+            }
+
+      - name: Publish Packagist Package
+        if: *do-enable-php
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
+        env:
+          VENDOR: ${{ needs.inputs.outputs.vendor }}
+          PACKAGE: ${{ needs.inputs.outputs.package }}
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+          PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+        with:
+          script: |
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            const retryFetch = async (url, options, attempts = 3, delay = 1000, timeout = 15000) => {
+              let lastResponse;
+
+              for (let i = 1; i <= attempts; i += 1) {
+                try {
+                  const response = await Promise.race([
+                    fetch(url, options),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
+                  ]);
+
+                  if (response.ok
+                    || response.status === 401
+                    || response.status === 403
+                    || response.status === 404) {
+                    return response;
+                  }
+
+                  lastResponse = response;
+
+                  core.info(`Attempt ${i} failed with status ${response.status}. Retrying in ${delay}ms...`);
+                } catch (error) {
+                  core.info(`Attempt ${i} failed. Retrying in ${delay}ms...`);
+                }
+
+                await sleep(delay);
+
+                delay *= 2;
+              }
+
+              return lastResponse;
+            };
+
+            if (process.env.IS_DRY_RUN === 'true') {
+              core.info('Skipping creation of Packagist package since `is-dry-run` is set to "true".');
+
+              return;
+            }
+
+            if (process.env.PACKAGIST_USERNAME === '' || process.env.PACKAGIST_TOKEN === '') {
+              core.setFailed('Skipping publishing of Packagist package since `PACKAGIST_USERNAME` and/or `PACKAGIST_TOKEN` is not set.');
+
+              return;
+            }
+
+            const fullPackageName = `${process.env.VENDOR}/${process.env.PACKAGE}`;
+            const repositoryUrl = `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}`;
+            const checkResponse = await retryFetch(`https://packagist.org/packages/${fullPackageName}.json`);
+
+            const packagistCreateOrUpdateRequest = {
+              method: 'POST',
+              headers: {
+                Authorization: `token ${process.env.PACKAGIST_TOKEN}`,
+                'Content-Type': 'application/json',
+                'User-Agent': 'GitHub-Actions',
+              },
+              body: JSON.stringify({
+                repository: repositoryUrl,
+              }),
+            };
+
+            if (checkResponse?.status !== 200) {
+              core.info(`Package ${fullPackageName} does not exist. Creating...`);
+
+              const createResponse = await retryFetch('https://packagist.org/api/create-package', packagistCreateOrUpdateRequest);
+
+              if (!createResponse || createResponse.status !== 201) {
+                core.setFailed(`Failed to create Packagist package: ${createResponse?.status ?? 'unknown error'}`);
+
+                return;
+              } else {
+                core.info(`Successfully created Packagist package ${fullPackageName}`);
+              }
+            }
+
+            const updateResponse = await retryFetch('https://packagist.org/api/update-package', packagistCreateOrUpdateRequest);
+
+            if (!updateResponse || (updateResponse.status !== 200 && updateResponse.status !== 202)) {
+              core.setFailed(`Failed to update Packagist package: ${updateResponse?.status ?? 'unknown error'}`);
+            } else {
+              core.info(`Successfully notified packagist about update of ${fullPackageName}`);
+            }
