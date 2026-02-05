@@ -12,7 +12,7 @@ on:
       - release/*
 
   workflow_call:
-    inputs: &inputs
+    inputs:
       vendor:
         description: Vendor name
         required: false
@@ -68,11 +68,51 @@ on:
 
   workflow_dispatch:
     inputs:
-      <<: *inputs
+      vendor:
+        description: Vendor name
+        required: false
+        type: string
+        default: brnshkr
+      package:
+        description: Package name
+        required: false
+        type: string
+        default: config
       tag:
         description: Semantic version tag
-        required: true
+        required: false
         type: string
+        default: ''
+      is-dry-run:
+        description: If true, skip publishing, releases and uploads
+        required: false
+        type: boolean
+        default: true
+      do-ensure-set-secrets:
+        description: If true, fail when expected publishing secrets are missing
+        required: false
+        type: boolean
+        default: false
+      do-enable-js:
+        description: Enable JS checks and build/publish (requires package.json, bun-version)
+        required: false
+        type: boolean
+        default: false
+      bun-version:
+        description: Bun version to use when JS is enabled
+        required: false
+        type: string
+        default: 1.3.8
+      do-enable-php:
+        description: Enable PHP checks and build/publish (requires composer.json, php-version)
+        required: false
+        type: boolean
+        default: false
+      php-version:
+        description: PHP version to use when PHP is enabled
+        required: false
+        type: string
+        default: '8.5'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
