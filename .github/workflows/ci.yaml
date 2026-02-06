@@ -289,7 +289,7 @@ jobs:
 
       - name: Run Commitlint
         if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
         with:
           configFile: ./.conf/commitlint.config.mjs
 
@@ -432,7 +432,7 @@ jobs:
 
       - name: Push Tag
         id: push-tag
-        uses: actions/github-script@988b7db9950e0d121cde1cece5e3e0cd835be9e2 # v8.1.0
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         env:
           INPUT_TAG: ${{ needs.inputs.outputs.tag }}
           IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
