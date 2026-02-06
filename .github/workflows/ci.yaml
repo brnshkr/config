@@ -233,8 +233,11 @@ jobs:
               }
             }
 
-            const vendor = composerNameParts[0];
-            const package = composerNameParts[1];
+            if (composerNameParts[0] !== vendor || composerNameParts[1] !== pkg) {
+                core.setFailed(`Mismatch of configured project name and value in composer.json: "${vendor}/${pkg}" != "${composerJson.name}"`);
+
+                return;
+            }
 
             if (doEnableJs) {
               if (!bunVersion) {
@@ -270,7 +273,7 @@ jobs:
             core.setOutput('do-enable-php', doEnablePhp);
             core.setOutput('php-version', phpVersion);
             core.setOutput('vendor', vendor);
-            core.setOutput('package', package);
+            core.setOutput('package', pkg);
             core.setOutput('tag', tag);
 
   check:
