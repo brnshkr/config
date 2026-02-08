@@ -349,8 +349,8 @@ jobs:
             key: ${{ runner.os }}-bun-${{ needs.inputs.outputs.bun-version }}-${{ hashFiles('bun.lock') }}
             restore-keys: ${{ runner.os }}-bun-${{ needs.inputs.outputs.bun-version }}
 
-      - &install-bun
-          name: Install Bun
+      - &setup-bun
+          name: Setup Bun
           if: *do-enable-js
           uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # 2.1.2
           with:
@@ -367,8 +367,7 @@ jobs:
 
       - name: Run JS Checks
         if: *do-enable-js
-        run: touch ./.git/COMMIT_EDITMSG
-      - run: bun check
+        run: touch ./.git/COMMIT_EDITMSG && bun check
 
       - &handle-composer-cache
           name: Handle Composer Cache
@@ -379,13 +378,18 @@ jobs:
             key: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-${{ hashFiles('composer.lock') }}
             restore-keys: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-
 
-      - &install-composer-and-dependencies
+      - &setup-composer
+          name: Setup Composer
+          uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+          with:
+            php-version: ${{ needs.inputs.outputs.php-version }}
+            tools: composer
+            coverage: none
+
+      - &install-php-dependencies
           name: Install PHP Dependencies
           if: *do-enable-php
-          uses: php-actions/composer@8a65f0d3c6a1d17ca4800491a40b5756a4c164f3 # 6.1.2
-          with:
-            php_version: ${{ needs.inputs.outputs.php-version }}
-            args: --no-interaction --no-progress --optimize-autoloader --prefer-dist
+          run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
       - name: Run PHP Checks
         if: *do-enable-php
@@ -403,7 +407,7 @@ jobs:
     steps:
       - *checkout
       - *handle-bun-cache
-      - *install-bun
+      - *setup-bun
       - *install-js-dependencies
 
       - name: Build JS Package
@@ -415,7 +419,8 @@ jobs:
         run: bun pm pack --destination ./artifacts
 
       - *handle-composer-cache
-      - *install-composer-and-dependencies
+      - *setup-composer
+      - *install-php-dependencies
 
       - name: Pack PHP Package
         if: *do-enable-php
@@ -445,7 +450,7 @@ jobs:
     steps:
       - *checkout
       - *handle-bun-cache
-      - *install-bun
+      - *setup-bun
 
       - name: Generate Changelog
         run: bunx -y conventional-changelog -r 0 -o CHANGELOG.md || echo "No changelog changes"
