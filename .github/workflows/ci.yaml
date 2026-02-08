@@ -149,11 +149,11 @@ jobs:
             const fs = require('fs');
 
             const inputs = ${{ toJSON(inputs) }};
-            const isDryRun = Boolean(inputs['is-dry-run'] ?? true);
-            const doEnsureSetSecrets = Boolean(inputs['do-ensure-set-secrets'] ?? false);
-            const doEnableJs = Boolean(inputs['do-enable-js'] ?? false);
+            const isDryRun = Boolean(String(inputs['is-dry-run'] ?? 'true') === 'true');
+            const doEnsureSetSecrets = Boolean(String(inputs['do-ensure-set-secrets'] ?? 'false') === 'true');
+            const doEnableJs = Boolean(String(inputs['do-enable-js'] ?? 'false') === 'true');
             const bunVersion = String(inputs['bun-version'] ?? '1.3.8').trim();
-            const doEnablePhp = Boolean(inputs['do-enable-php'] ?? false);
+            const doEnablePhp = Boolean(String(inputs['do-enable-php'] ?? 'false') === 'true');
             const phpVersion = String(inputs['php-version'] ?? '8.5').trim();
             let vendor = String(inputs['vendor'] ?? 'brnshkr').trim();
             let pkg = String(inputs['package'] ?? 'config').trim();
