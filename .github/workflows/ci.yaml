@@ -298,7 +298,7 @@ jobs:
     name: Check
     runs-on: &os ubuntu-latest
     needs: inputs
-    if: needs.inputs.outputs.do-enable-js || needs.inputs.outputs.do-enable-php
+    if: fromJSON(needs.inputs.outputs.do-enable-js) || fromJSON(needs.inputs.outputs.do-enable-php)
     permissions:
       contents: read
     steps:
@@ -312,7 +312,7 @@ jobs:
 
       - &handle-bun-cache
           name: Handle Bun Cache
-          if: &do-enable-js needs.inputs.outputs.do-enable-js
+          if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)
           uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
           with:
             path: ~/.bun/install/cache
@@ -342,7 +342,7 @@ jobs:
 
       - &handle-composer-cache
           name: Handle Composer Cache
-          if: &do-enable-php needs.inputs.outputs.do-enable-php
+          if: &do-enable-php fromJSON(needs.inputs.outputs.do-enable-php)
           uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
           with:
             path: /tmp/composer-cache
@@ -392,7 +392,7 @@ jobs:
         run: composer archive --dir ./artifacts
 
       - name: Upload Artifacts
-        if: ${{ !needs.inputs.outputs.is-dry-run }}
+        if: ${{ !fromJSON(needs.inputs.outputs.is-dry-run) }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # 6.0.0
         with:
           name: artifacts
@@ -446,7 +446,7 @@ jobs:
             }
 
       - name: Download Artifacts
-        if: ${{ !needs.inputs.outputs.is-dry-run }}
+        if: ${{ !fromJSON(needs.inputs.outputs.is-dry-run) }}
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # 7.0.0
         with:
           name: artifacts
@@ -457,7 +457,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         env:
           INPUT_TAG: ${{ needs.inputs.outputs.tag }}
-          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+          IS_DRY_RUN: ${{ fromJSON(needs.inputs.outputs.is-dry-run) }}
         with:
           script: |
             const gitRevParse = await exec('git', ['rev-parse', tag], {
@@ -485,7 +485,7 @@ jobs:
             core.setOutput('is_prerelease', tag.includes('-'));
 
       - name: Create GitHub Release
-        if: steps.push-tag.outcome == 'success' && !needs.inputs.outputs.is-dry-run
+        if: steps.push-tag.outcome == 'success' && !fromJSON(needs.inputs.outputs.is-dry-run)
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # 2.5.0
         with:
           tag_name: ${{ steps.push-tag.outputs.release_tag }}
@@ -495,7 +495,7 @@ jobs:
           files: ./artifacts/*
 
       - name: Skip GitHub Release
-        if: needs.inputs.outputs.is-dry-run
+        if: fromJSON(needs.inputs.outputs.is-dry-run)
         run: echo 'Skipping GitHub release since `is-dry-run` is set to "true".'
 
       - name: Publish NPM Package
@@ -503,7 +503,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
-          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+          IS_DRY_RUN: ${{ fromJSON(needs.inputs.outputs.is-dry-run) }}
         with:
           script: |
             const fs = require('fs');
@@ -587,7 +587,7 @@ jobs:
           PACKAGE: ${{ needs.inputs.outputs.package }}
           PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
-          IS_DRY_RUN: ${{ needs.inputs.outputs.is-dry-run }}
+          IS_DRY_RUN: ${{ fromJSON(needs.inputs.outputs.is-dry-run) }}
         with:
           script: |
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
