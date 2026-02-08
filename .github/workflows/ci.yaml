@@ -135,6 +135,12 @@ jobs:
       package: ${{ steps.validate.outputs.package }}
       tag: ${{ steps.validate.outputs.tag }}
     steps:
+      - &checkout
+          name: Checkout Repository
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+          with:
+            fetch-depth: 0
+
       - name: Normalize and Validate Inputs
         id: validate
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
@@ -285,11 +291,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - &checkout
-          name: Checkout Repository
-          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-          with:
-            fetch-depth: 0
+      - *checkout
 
       - name: Run Commitlint
         if: github.event_name == 'push' || github.event_name == 'pull_request'
