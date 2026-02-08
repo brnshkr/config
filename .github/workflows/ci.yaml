@@ -142,15 +142,16 @@ jobs:
           script: |
             const fs = require('fs');
 
-            const isDryRun = core.getBooleanInput('is-dry-run');
-            const doEnsureSetSecrets = core.getBooleanInput('do-ensure-set-secrets');
-            const doEnableJs = core.getBooleanInput('do-enable-js');
-            const bunVersion = core.getInput('bun-version').trim();
-            const doEnablePhp = core.getBooleanInput('do-enable-php');
-            const phpVersion = core.getInput('php-version').trim();
-            let vendor = core.getInput('vendor').trim();
-            let pkg = core.getInput('package').trim();
-            let tag = core.getInput('tag').trim();
+            const inputs = ${{ toJSON(inputs) }};
+            const isDryRun = inputs['is-dry-run'] ?? true;
+            const doEnsureSetSecrets = inputs['do-ensure-set-secrets'] ?? false;
+            const doEnableJs = inputs['do-enable-js'] ?? false;
+            const bunVersion = (inputs['bun-version'] ?? '').trim();
+            const doEnablePhp = inputs['do-enable-php'] ?? false;
+            const phpVersion = (inputs['php-version'] ?? '').trim();
+            let vendor = (inputs['vendor'] ?? '').trim();
+            let pkg = (inputs['package'] ?? '').trim();
+            let tag = (inputs['tag'] ?? '').trim();
 
             const readJsonFileSafely = (filePath) => {
               try {
