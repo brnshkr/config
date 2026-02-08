@@ -149,11 +149,11 @@ jobs:
             const fs = require('fs');
 
             const inputs = ${{ toJSON(inputs) }};
-            const isDryRun = Boolean(String(inputs['is-dry-run'] ?? 'true') === 'true');
-            const doEnsureSetSecrets = Boolean(String(inputs['do-ensure-set-secrets'] ?? 'false') === 'true');
-            const doEnableJs = Boolean(String(inputs['do-enable-js'] ?? 'false') === 'true');
+            const isDryRun = String(inputs['is-dry-run'] ?? 'true') === 'true';
+            const doEnsureSetSecrets = String(inputs['do-ensure-set-secrets'] ?? 'false') === 'true';
+            const doEnableJs = String(inputs['do-enable-js'] ?? 'false') === 'true';
             const bunVersion = String(inputs['bun-version'] ?? '1.3.8').trim();
-            const doEnablePhp = Boolean(String(inputs['do-enable-php'] ?? 'false') === 'true');
+            const doEnablePhp = String(inputs['do-enable-php'] ?? 'false') === 'true';
             const phpVersion = String(inputs['php-version'] ?? '8.5').trim();
             let vendor = String(inputs['vendor'] ?? 'brnshkr').trim();
             let pkg = String(inputs['package'] ?? 'config').trim();
@@ -282,6 +282,17 @@ jobs:
             core.setOutput('vendor', vendor);
             core.setOutput('package', pkg);
             core.setOutput('tag', tag);
+
+      - name: Log Inputs
+        run: |
+          echo 'is-dry-run: ${{ steps.validate.outputs.is-dry-run }}'
+          echo 'do-enable-js: ${{ steps.validate.outputs.do-enable-js }}'
+          echo 'bun-version: ${{ steps.validate.outputs.bun-version }}'
+          echo 'do-enable-php: ${{ steps.validate.outputs.do-enable-php }}'
+          echo 'php-version: ${{ steps.validate.outputs.php-version }}'
+          echo 'vendor: ${{ steps.validate.outputs.vendor }}'
+          echo 'package: ${{ steps.validate.outputs.package }}'
+          echo 'tag: ${{ steps.validate.outputs.tag }}'
 
   check:
     name: Check
