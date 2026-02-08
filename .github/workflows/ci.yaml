@@ -326,7 +326,8 @@ jobs:
 
       - name: Run JS Checks
         if: *do-enable-js
-        run: bun check
+        run: touch ./.git/COMMIT_EDITMSG
+      - run: bun check
 
       - &handle-composer-cache
           name: Handle Composer Cache
