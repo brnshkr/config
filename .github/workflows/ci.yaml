@@ -39,7 +39,7 @@ on:
         type: boolean
         default: false
       do-enable-js:
-        description: Enable JS checks and build/publish (requires package.json, bun-version)
+        description: Enable JS checks and build/publish (requires package.json, bun-version, node-version)
         required: false
         type: boolean
         default: false
@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: 1.3.8
+      node-version:
+        description: Node version to use when JS is enabled
+        required: false
+        type: string
+        default: 24.11.0
       do-enable-php:
         description: Enable PHP checks and build/publish (requires composer.json, php-version)
         required: false
@@ -103,6 +108,11 @@ on:
         required: false
         type: string
         default: 1.3.8
+      node-version:
+        description: Node version to use when JS is enabled
+        required: false
+        type: string
+        default: 24.11.0
       do-enable-php:
         description: Enable PHP checks and build/publish (requires composer.json, php-version)
         required: false
@@ -129,6 +139,7 @@ jobs:
       is-dry-run: ${{ steps.validate.outputs.is-dry-run }}
       do-enable-js: ${{ steps.validate.outputs.do-enable-js }}
       bun-version: ${{ steps.validate.outputs.bun-version }}
+      node-version: ${{ steps.validate.outputs.node-version }}
       do-enable-php: ${{ steps.validate.outputs.do-enable-php }}
       php-version: ${{ steps.validate.outputs.php-version }}
       vendor: ${{ steps.validate.outputs.vendor }}
@@ -151,10 +162,11 @@ jobs:
             const inputs = ${{ toJSON(inputs) }};
             const isDryRun = String(inputs['is-dry-run'] ?? 'true') === 'true';
             const doEnsureSetSecrets = String(inputs['do-ensure-set-secrets'] ?? 'false') === 'true';
-            const doEnableJs = String(inputs['do-enable-js'] ?? 'false') === 'true';
             const bunVersion = String(inputs['bun-version'] ?? '1.3.8').trim();
-            const doEnablePhp = String(inputs['do-enable-php'] ?? 'false') === 'true';
+            const nodeVersion = String(inputs['node-version'] ?? '24.11.0').trim();
             const phpVersion = String(inputs['php-version'] ?? '8.5').trim();
+            let doEnableJs = String(inputs['do-enable-js'] ?? 'false') === 'true';
+            let doEnablePhp = String(inputs['do-enable-php'] ?? 'false') === 'true';
             let vendor = String(inputs['vendor'] ?? 'brnshkr').trim();
             let pkg = String(inputs['package'] ?? 'config').trim();
             let tag = String(inputs['tag'] ?? '').trim();
@@ -178,105 +190,116 @@ jobs:
             const packageJson = readJsonFileSafely('package.json');
             const composerJson = readJsonFileSafely('composer.json');
 
-            if (!packageJson || !composerJson) {
-              core.warning('package.json and/or composer.json missing; skipping cross-file checks.');
-
-              return;
+            if (packageJson) {
+              doEnableJs = true;
             }
 
-            if (packageJson.version !== composerJson.version) {
-              core.setFailed(`Version mismatch: package.json (${packageJson.version}) != composer.json (${composerJson.version})`);
-
-              return;
+            if (composerJson) {
+              doEnablePhp = true;
             }
 
-            if (tag === '' || github.context.eventName !== 'workflow_dispatch') {
-              tag = composerJson.version;
-            } else if (tag !== composerJson.version) {
-              core.setFailed(`Tag "${tag}" does not match version in json files "${composerJson.version}".`);
-
-              return;
-            }
-
-            if (tag.startsWith('v')) {
-              core.setFailed('"v"-prefixed tags are not accepted.');
-
-              return;
-            }
-
-            const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
-
-            if (!semverRegex.test(tag)) {
-              core.setFailed(`Tag "${tag}" does not match semantic versioning requirements.`);
-
-              return;
-            }
-
-            if (!packageJson.name.startsWith('@')) {
-              core.setFailed('Vendor name must start with an @ in package.json.');
-
-              return;
-            }
-
-            if (composerJson.name.startsWith('@')) {
-              core.setFailed('Vendor name must not start with an @ in composer.json.');
-
-              return;
-            }
-
-            const composerNameParts = composerJson.name.split('/');
-
-            if (composerNameParts.length !== 2 || !composerNameParts[0] || !composerNameParts[1]) {
-              core.setFailed(`Malformed Composer package name "${composerJson.name}". Expected "vendor/package".`);
-
-              return;
-            }
-
-            for (const property of ['description', 'license', 'homepage']) {
-              if ((packageJson[property] || '') !== (composerJson[property] || '')) {
-                core.setFailed(`Mismatch in property "${property}": package.json (${packageJson[property] || ''}) != composer.json (${composerJson[property] || ''})`);
-
-                return;
-              }
-            }
-
-            if (composerNameParts[0] !== vendor || composerNameParts[1] !== pkg) {
-                core.setFailed(`Mismatch of configured project name and value in composer.json: "${vendor}/${pkg}" != "${composerJson.name}"`);
-
-                return;
-            }
-
-            if (doEnableJs) {
-              if (!bunVersion) {
-                core.setFailed('JavaScript is enabled, but `bun-version` was not provided.');
+            if (packageJson && composerJson) {
+              if (packageJson.version !== composerJson.version) {
+                core.setFailed(`Version mismatch: package.json (${packageJson.version}) != composer.json (${composerJson.version})`);
 
                 return;
               }
 
-              if (doEnsureSetSecrets && !process.env.NPM_CONFIG_TOKEN) {
-                core.setFailed('Secret validation is enabled for JavaScript, but `NPM_CONFIG_TOKEN` is not set.');
-
-                return;
-              }
-            }
-
-            if (doEnablePhp) {
-              if (!phpVersion) {
-                core.setFailed('PHP is enabled, but `php-version` was not provided.');
+              if (tag === '' || github.context.eventName !== 'workflow_dispatch') {
+                tag = composerJson.version;
+              } else if (tag !== composerJson.version) {
+                core.setFailed(`Tag "${tag}" does not match version in json files "${composerJson.version}".`);
 
                 return;
               }
 
-              if (doEnsureSetSecrets && (!process.env.PACKAGIST_USERNAME || !process.env.PACKAGIST_TOKEN)) {
-                core.setFailed('Secret validation is enabled for PHP, but `PACKAGIST_USERNAME` and/or `PACKAGIST_TOKEN` are missing.');
+              if (tag.startsWith('v')) {
+                core.setFailed('"v"-prefixed tags are not accepted.');
 
                 return;
+              }
+
+              const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+              if (!semverRegex.test(tag)) {
+                core.setFailed(`Tag "${tag}" does not match semantic versioning requirements.`);
+
+                return;
+              }
+
+              if (!packageJson.name.startsWith('@')) {
+                core.setFailed('Vendor name must start with an @ in package.json.');
+
+                return;
+              }
+
+              if (composerJson.name.startsWith('@')) {
+                core.setFailed('Vendor name must not start with an @ in composer.json.');
+
+                return;
+              }
+
+              const composerNameParts = composerJson.name.split('/');
+
+              if (composerNameParts.length !== 2 || !composerNameParts[0] || !composerNameParts[1]) {
+                core.setFailed(`Malformed Composer package name "${composerJson.name}". Expected "vendor/package".`);
+
+                return;
+              }
+
+              for (const property of ['description', 'license', 'homepage']) {
+                if ((packageJson[property] || '') !== (composerJson[property] || '')) {
+                  core.setFailed(`Mismatch in property "${property}": package.json (${packageJson[property] || ''}) != composer.json (${composerJson[property] || ''})`);
+
+                  return;
+                }
+              }
+
+              if (composerNameParts[0] !== vendor || composerNameParts[1] !== pkg) {
+                  core.setFailed(`Mismatch of configured project name and value in composer.json: "${vendor}/${pkg}" != "${composerJson.name}"`);
+
+                  return;
+              }
+
+              if (doEnableJs) {
+                if (!bunVersion) {
+                  core.setFailed('JavaScript is enabled, but `bun-version` was not provided.');
+
+                  return;
+                }
+
+                if (!nodeVersion) {
+                  core.setFailed('JavaScript is enabled, but `node-version` was not provided.');
+
+                  return;
+                }
+
+                if (doEnsureSetSecrets && !process.env.NPM_CONFIG_TOKEN) {
+                  core.setFailed('Secret validation is enabled for JavaScript, but `NPM_CONFIG_TOKEN` is not set.');
+
+                  return;
+                }
+              }
+
+              if (doEnablePhp) {
+                if (!phpVersion) {
+                  core.setFailed('PHP is enabled, but `php-version` was not provided.');
+
+                  return;
+                }
+
+                if (doEnsureSetSecrets && (!process.env.PACKAGIST_USERNAME || !process.env.PACKAGIST_TOKEN)) {
+                  core.setFailed('Secret validation is enabled for PHP, but `PACKAGIST_USERNAME` and/or `PACKAGIST_TOKEN` are missing.');
+
+                  return;
+                }
               }
             }
 
             core.setOutput('is-dry-run', isDryRun);
             core.setOutput('do-enable-js', doEnableJs);
             core.setOutput('bun-version', bunVersion);
+            core.setOutput('node-version', nodeVersion);
             core.setOutput('do-enable-php', doEnablePhp);
             core.setOutput('php-version', phpVersion);
             core.setOutput('vendor', vendor);
@@ -288,6 +311,7 @@ jobs:
           echo 'is-dry-run: ${{ steps.validate.outputs.is-dry-run }}'
           echo 'do-enable-js: ${{ steps.validate.outputs.do-enable-js }}'
           echo 'bun-version: ${{ steps.validate.outputs.bun-version }}'
+          echo 'node-version: ${{ steps.validate.outputs.node-version }}'
           echo 'do-enable-php: ${{ steps.validate.outputs.do-enable-php }}'
           echo 'php-version: ${{ steps.validate.outputs.php-version }}'
           echo 'vendor: ${{ steps.validate.outputs.vendor }}'
@@ -310,9 +334,15 @@ jobs:
         with:
           configFile: ./.conf/commitlint.config.mjs
 
+      - name: Setup Node
+        if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # 6.2.0
+        with:
+          node-version: ${{ needs.inputs.outputs.node-version }}
+
       - &handle-bun-cache
           name: Handle Bun Cache
-          if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)
+          if: fromJSON(needs.inputs.outputs.do-enable-js)
           uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
           with:
             path: ~/.bun/install/cache
