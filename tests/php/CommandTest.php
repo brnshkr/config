@@ -20,6 +20,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Filesystem\Filesystem;
 
 use function sprintf;
 use function Symfony\Component\String\s;
@@ -35,6 +36,8 @@ use function Symfony\Component\String\s;
 final class CommandTest extends TestCase
 {
     private Application $application;
+
+    private Filesystem $filesystem;
 
     /**
      * @throws JsonValidationException
@@ -52,6 +55,7 @@ final class CommandTest extends TestCase
         $application->addCommands(CommandProvider::getCommandInstances($composer));
 
         $this->application = $application;
+        $this->filesystem  = new Filesystem();
     }
 
     /**
@@ -155,10 +159,15 @@ EOL;
             '--optional' => true,
         ]);
 
-        $bufferedOutput = new BufferedOutput();
-        $exitCode       = $this->application->run($arrayInput, $bufferedOutput);
-        $outputString   = $bufferedOutput->fetch();
+        $composerJson        = ComposerJson::forThisLibrary();
+        $composerJsonContent = $composerJson->getContent();
+        $composerLockContent = $this->filesystem->readFile($composerJson->lockFilePath);
+        $bufferedOutput      = new BufferedOutput();
+        $exitCode            = $this->application->run($arrayInput, $bufferedOutput);
+        $outputString        = $bufferedOutput->fetch();
 
+        $composerJson->setContent($composerJsonContent);
+        $this->filesystem->dumpFile($composerJson->lockFilePath, $composerLockContent);
         self::assertSame(0, $exitCode);
         self::assertStringContainsString('Setup process completed successfully.', $outputString);
         self::assertStringContainsString('You have installed "ticketswap/phpstan-error-formatter". Ensure that parameters.errorFormat is set to "ticketswap" in the phpstan.dist.neon file.', $outputString);
