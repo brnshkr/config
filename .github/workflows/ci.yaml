@@ -328,36 +328,6 @@ jobs:
     steps:
       - *checkout
 
-      - &handle-composer-cache
-          name: Handle Composer Cache
-          if: &do-enable-php fromJSON(needs.inputs.outputs.do-enable-php)
-          uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
-          with:
-            path: /tmp/composer-cache
-            key: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-${{ hashFiles('composer.lock') }}
-            restore-keys: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-
-
-      - &setup-composer
-          name: Setup Composer
-          uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-          with:
-            php-version: ${{ needs.inputs.outputs.php-version }}
-            tools: composer
-            coverage: none
-
-      - &install-php-dependencies
-          name: Install PHP Dependencies
-          if: *do-enable-php
-          run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
-
-      - name: Run Debug
-        if: *do-enable-php
-        run: make debug-ci
-
-      - name: Run PHP Checks
-        if: *do-enable-php
-        run: make check
-
       - name: Run Commitlint
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
@@ -398,6 +368,36 @@ jobs:
       - name: Run JS Checks
         if: *do-enable-js
         run: touch ./.git/COMMIT_EDITMSG && bun check
+
+      - &handle-composer-cache
+          name: Handle Composer Cache
+          if: &do-enable-php fromJSON(needs.inputs.outputs.do-enable-php)
+          uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
+          with:
+            path: /tmp/composer-cache
+            key: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-${{ hashFiles('composer.lock') }}
+            restore-keys: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-
+
+      - &setup-composer
+          name: Setup Composer
+          uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+          with:
+            php-version: ${{ needs.inputs.outputs.php-version }}
+            tools: composer
+            coverage: none
+
+      - &install-php-dependencies
+          name: Install PHP Dependencies
+          if: *do-enable-php
+          run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
+
+      - name: Run PHP Checks
+        if: *do-enable-php
+        run: |
+          cp ./conf/.php-cs-fixer.php.example ./conf/.php-cs-fixer.php
+          cp ./conf/rector.php.example ./conf/rector.php
+          cp ./conf/phpstan.neon.example ./conf/phpstan.neon
+          make check
 
   build:
     name: Build
