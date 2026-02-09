@@ -1,10 +1,7 @@
 {
     "parameters": {
         "paths": [
-            "%currentWorkingDirectory%",
-            "./.php-cs-fixer.php",
-            "./.php-cs-fixer.dist.php",
-            "%currentWorkingDirectory%/.local"
+            "%currentWorkingDirectory%"
         ],
         "excludePaths": {
             "analyseAndScan": [
@@ -58,52 +55,9 @@
             {
                 "message": "/Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary./",
                 "reportUnmatched": false
-            },
-            {
-                "message": "#^Call to function array_filter\\(\\) requires parameter \\#2 to be passed to avoid loose comparison semantics\\.$#",
-                "identifier": "arrayFilter.strict",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Function \"file_put_contents\\(\\)\" cannot be used/left in the code\\: Use Symfony\\\\Component\\\\Filesystem\\:\\:dumpFile\\(\\) or Symfony\\\\Component\\\\Filesystem\\:\\:appendToFile\\(\\) instead$#",
-                "identifier": "symplify.forbiddenFuncCall",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Function \"json_encode\\(\\)\" cannot be used/left in the code\\: Use Symfony\\\\Component\\\\Serializer\\\\Encoder\\\\JsonEncoder\\:\\:encode\\(\\) instead$#",
-                "identifier": "symplify.forbiddenFuncCall",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Function \"preg_replace\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:replaceMatches\\(\\) instead$#",
-                "identifier": "symplify.forbiddenFuncCall",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Function \"str_contains\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:containsAny\\(\\) instead$#",
-                "identifier": "symplify.forbiddenFuncCall",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Function \"str_replace\\(\\)\" cannot be used/left in the code\\: Use function Symfony\\\\Component\\\\String\\\\s\\:\\:replace\\(\\) instead$#",
-                "identifier": "symplify.forbiddenFuncCall",
-                "count": 1,
-                "path": "php-extensions.php"
-            },
-            {
-                "message": "#^Global constants are forbidden\\. Use enum\\-like class list instead$#",
-                "identifier": "symplify.noGlobalConst",
-                "count": 1,
-                "path": "php-extensions.php"
             }
         ],
-        "editorUrl": "vscode://vscode-remote/wsl+%env.WSL_DISTRO_NAME%%%file%%:%%line%%",
-        "errorFormat": "ticketswap"
+        "editorUrl": "vscode://file/%%file%%:%%line%%"
     },
     "rules": [
         "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
