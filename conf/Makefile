@@ -1,4 +1,5 @@
-ROOT := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+FIRST_MAKEFILE_PATH := $(abspath $(firstword $(MAKEFILE_LIST)))
+ROOT := $(patsubst %/,%,$(dir $(FIRST_MAKEFILE_PATH)))
 
 PHP_STAN := ${ROOT}/vendor/bin/phpstan analyze --memory-limit=-1
 PHP_STAN_CONFIG := --configuration ${ROOT}/conf/phpstan.neon
