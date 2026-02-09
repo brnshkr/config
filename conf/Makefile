@@ -1,16 +1,16 @@
-PWD ?= .
+ROOT := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
-PHP_STAN := ${PWD}/vendor/bin/phpstan analyze --memory-limit=-1
-PHP_STAN_CONFIG := --configuration ${PWD}/conf/phpstan.neon
+PHP_STAN := ${ROOT}/vendor/bin/phpstan analyze --memory-limit=-1
+PHP_STAN_CONFIG := --configuration ${ROOT}/conf/phpstan.neon
 
-PHP_CS_FIXER := ${PWD}/vendor/bin/php-cs-fixer
-PHP_CS_FIXER_CONFIG := --config ${PWD}/conf/.php-cs-fixer.php
+PHP_CS_FIXER := ${ROOT}/vendor/bin/php-cs-fixer
+PHP_CS_FIXER_CONFIG := --config ${ROOT}/conf/.php-cs-fixer.php
 
-RECTOR := ${PWD}/vendor/bin/rector process
-RECTOR_CONFIG := --config ${PWD}/conf/rector.php
+RECTOR := ${ROOT}/vendor/bin/rector process
+RECTOR_CONFIG := --config ${ROOT}/conf/rector.php
 
-PHP_UNIT := ${PWD}/vendor/bin/pest
-PHP_UNIT_CONFIG := --configuration ${PWD}/conf/phpunit.dist.xml
+PHP_UNIT := ${ROOT}/vendor/bin/pest
+PHP_UNIT_CONFIG := --configuration ${ROOT}/conf/phpunit.dist.xml
 
 ARGS := $(wordlist 2,$(words ${MAKECMDGOALS}),${MAKECMDGOALS})
 
@@ -31,7 +31,7 @@ phpstan-raw: ## runs phpstan analyze with raw output
 	@${PHP_STAN} --error-format=raw ${PHP_STAN_CONFIG} ${ARGS}
 
 phpstan-list: ## lists processed phpstan files
-	@make phpstan-raw -- --debug 2>&1 | grep -oP "(?<=${PWD}/).+\.php$$"
+	@make phpstan-raw -- --debug 2>&1 | grep -oP "(?<=${ROOT}/).+\.php$$"
 
 php-cs-fixer: ## runs php-cs-fixer fix
 	@${PHP_CS_FIXER} fix -v --show-progress=dots ${PHP_CS_FIXER_CONFIG} ${ARGS}
@@ -49,7 +49,7 @@ rector-dry-run: ## runs rector process in dry run mode
 	@${RECTOR} ${RECTOR_CONFIG} --dry-run ${ARGS}
 
 rector-list: ## lists processed rector files
-	@${RECTOR} ${RECTOR_CONFIG} --debug --dry-run | grep -oP "(?<=\[file\] ${PWD}/).+\.php"
+	@${RECTOR} ${RECTOR_CONFIG} --debug --dry-run | grep -oP "(?<=\[file\] ${ROOT}/).+\.php"
 
 test: ## runs tests
 	@${PHP_UNIT} ${PHP_UNIT_CONFIG} ${ARGS}
@@ -62,4 +62,4 @@ check: rector php-cs-fixer phpstan test ## runs rector, php-cs-fixer, phpstan an
 %:
 	@:
 
--include ${PWD}/.local/Makefile
+-include ${ROOT}/.local/Makefile
