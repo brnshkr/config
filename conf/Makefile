@@ -19,6 +19,13 @@ $(eval ${ARGS}:;@:)
 
 .PHONY: help
 
+debug-ci:
+	@echo "PWD: '${PWD}'"
+	@echo "ROOT: '${ROOT}'"
+	@echo "MAKEFILE_LIST: '${MAKEFILE_LIST}'"
+	@echo "FIRST_MAKEFILE_PATH: '${FIRST_MAKEFILE_PATH}'"
+	@echo "rector command: '${RECTOR} ${RECTOR_CONFIG} ${ARGS}'"
+
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\033[4;37mUsage\033[0m\n  \033[1;37mmake\033[0m \033[1;35m<target>\033[0m\n\n\033[4;37mTargets\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[1;35m%-20s\033[0m \033[30m%s\033[0m\n", $$1, $$2 }' ${MAKEFILE_LIST}
 
