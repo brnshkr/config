@@ -374,7 +374,9 @@ jobs:
           if: &do-enable-php fromJSON(needs.inputs.outputs.do-enable-php)
           uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # 5.0.3
           with:
-            path: /tmp/composer-cache
+            path: |
+              ~/.composer/cache
+              ~/.cache/composer
             key: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-${{ hashFiles('composer.lock') }}
             restore-keys: ${{ runner.os }}-composer-${{ needs.inputs.outputs.php-version }}-
 
