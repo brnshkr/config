@@ -6,6 +6,9 @@ import { traverseDirectory } from './utils/filesystem';
 
 test('expected stylelint config', () => {
   traverseDirectory(`${process.cwd()}/tests/js/fixtures/stylelint`, (filePath) => {
-    expect(execSync(`bun lint:css --print-config ${filePath}`, { encoding: 'utf8' }).replaceAll(process.cwd(), '.')).toMatchSnapshot();
+    const result = execSync(`bun lint:css --print-config ${filePath}`, { encoding: 'utf8' })
+      .replaceAll(process.cwd(), '.');
+
+    expect(result).toMatchSnapshot();
   });
 });
