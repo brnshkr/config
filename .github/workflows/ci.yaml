@@ -501,6 +501,8 @@ jobs:
           IS_DRY_RUN: ${{ fromJSON(needs.inputs.outputs.is-dry-run) }}
         with:
           script: |
+            const tag = process.env.INPUT_TAG;
+
             const gitRevParse = await exec('git', ['rev-parse', tag], {
               ignoreReturnCode: true,
             });
