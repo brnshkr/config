@@ -696,7 +696,7 @@ jobs:
             const packagistCreateOrUpdateRequest = {
               method: 'POST',
               headers: {
-                Authorization: `token ${process.env.PACKAGIST_TOKEN}`,
+                Authorization: `Bearer ${process.env.PACKAGIST_USERNAME}:${process.env.PACKAGIST_TOKEN}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'GitHub-Actions',
               },
