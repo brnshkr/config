@@ -1,7 +1,7 @@
 {
   "$schema": "https://getcomposer.org/schema.json",
   "name": "brnshkr/config",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.2",
   "description": "Centralized collection of configuration and tooling used across all @brnshkr projects",
   "license": "MIT",
   "authors": [
