@@ -502,12 +502,17 @@ jobs:
         with:
           script: |
             const tag = process.env.INPUT_TAG;
+            let gitRevParse;
 
-            const gitRevParse = await exec.exec('git', ['rev-parse', tag], {
-              ignoreReturnCode: true,
-            });
+            try {
+              gitRevParse = await exec.exec('git', ['rev-parse', tag], {
+                ignoreReturnCode: true,
+              });
+            } catch {
+              // Do nothing
+            }
 
-            if (gitRevParse.exitCode === 0) {
+            if (gitRevParse && gitRevParse.exitCode === 0) {
               core.setFailed(`Tag "${tag}" already exists.`);
 
               return;
