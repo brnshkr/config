@@ -205,7 +205,7 @@ jobs:
                 return;
               }
 
-              if (tag === '' || github.context.eventName !== 'workflow_dispatch') {
+              if (tag === '' || context.eventName !== 'workflow_dispatch') {
                 tag = composerJson.version;
               } else if (tag !== composerJson.version) {
                 core.setFailed(`Tag "${tag}" does not match version in json files "${composerJson.version}".`);
@@ -518,7 +518,7 @@ jobs:
               return;
             }
 
-            if (github.context.ref.startsWith('refs/heads/release/') && process.env.IS_DRY_RUN !== 'true') {
+            if (context.ref.startsWith('refs/heads/release/') && process.env.IS_DRY_RUN !== 'true') {
               const actor = process.env.GITHUB_ACTOR || 'github-actions[bot]';
 
               await exec.exec('git', ['config', 'user.name', actor]);
@@ -685,7 +685,7 @@ jobs:
             }
 
             const fullPackageName = `${process.env.VENDOR}/${process.env.PACKAGE}`;
-            const repositoryUrl = `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}`;
+            const repositoryUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
             const checkResponse = await retryFetch(`https://packagist.org/packages/${fullPackageName}.json`);
 
             const packagistCreateOrUpdateRequest = {
