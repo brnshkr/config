@@ -503,7 +503,7 @@ jobs:
           script: |
             const tag = process.env.INPUT_TAG;
 
-            const gitRevParse = await exec('git', ['rev-parse', tag], {
+            const gitRevParse = await exec.exec('git', ['rev-parse', tag], {
               ignoreReturnCode: true,
             });
 
@@ -516,10 +516,10 @@ jobs:
             if (github.context.ref.startsWith('refs/heads/release/') && process.env.IS_DRY_RUN !== 'true') {
               const actor = process.env.GITHUB_ACTOR || 'github-actions[bot]';
 
-              await exec('git', ['config', 'user.name', actor]);
-              await exec('git', ['config', 'user.email', `${actor}@users.noreply.github.com`]);
-              await exec('git', ['tag', '-a', tag, '-m', `Release ${tag}`]);
-              await exec('git', ['push', 'origin', `refs/tags/${tag}`], { timeout: 15000 });
+              await exec.exec('git', ['config', 'user.name', actor]);
+              await exec.exec('git', ['config', 'user.email', `${actor}@users.noreply.github.com`]);
+              await exec.exec('git', ['tag', '-a', tag, '-m', `Release ${tag}`]);
+              await exec.exec('git', ['push', 'origin', `refs/tags/${tag}`], { timeout: 15000 });
             } else {
               core.info(`Skipping creation of tag "${tag}" since \`is_dry_run\` is set to "true".`);
             }
@@ -606,7 +606,7 @@ jobs:
 
               try {
                 await retry(async () => {
-                  await exec('bun', [
+                  await exec.exec('bun', [
                     'publish',
                     '--access', 'public',
                     process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
