@@ -14,7 +14,7 @@ PHP_UNIT_CONFIG := --configuration ${PWD}/conf/phpunit.dist.xml
 
 ARGS := $(wordlist 2,$(words ${MAKECMDGOALS}),${MAKECMDGOALS})
 
-$(eval ${ARGS}:;@:)
+$(if $(findstring :,${ARGS}),,$(eval ${ARGS}:;@:))
 
 .PHONY: help
 
