@@ -31,6 +31,9 @@ final class PhpFileFinder extends Finder
                 'var',
                 'vendor',
             ])
+            ->notPath([
+                'config/reference.php',
+            ])
         ;
     }
 }
