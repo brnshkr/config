@@ -7,6 +7,7 @@ namespace Brnshkr\Config;
 use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRector;
 use Rector\CodingStyle\Rector\ClassLike\NewlineBetweenClassLikeStmtsRector;
 use Rector\CodingStyle\Rector\ClassMethod\NewlineBeforeNewAssignSetRector;
+use Rector\CodingStyle\Rector\String_\SimplifyQuoteEscapeRector;
 use Rector\Config\RectorConfig as BaseConfig;
 use Rector\Configuration\RectorConfigBuilder;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
@@ -72,6 +73,7 @@ final readonly class RectorConfig
                 NewlineBetweenClassLikeStmtsRector::class,
                 NullToStrictStringFuncCallArgRector::class,
                 PreferPHPUnitThisCallRector::class,
+                SimplifyQuoteEscapeRector::class,
             ])
             ->withPhpSets()
             ->withAttributesSets()
