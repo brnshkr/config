@@ -57,7 +57,6 @@ final readonly class PhpCsFixerConfig
             'date_time_immutable'                    => true,
             'declare_strict_types'                   => true,
             'final_class'                            => true,
-            'final_public_method_for_abstract_class' => true,
             'fully_qualified_strict_types'           => ['import_symbols' => true, 'leading_backslash_in_global_namespace' => true],
             'get_class_to_class_keyword'             => true,
             'global_namespace_import'                => ['import_classes' => true, 'import_constants' => true, 'import_functions' => true],
