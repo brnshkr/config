@@ -104,7 +104,6 @@ rules:
   - Symplify\PHPStanRules\Rules\Symfony\NoClassLevelRouteRule
   - Symplify\PHPStanRules\Rules\Symfony\NoConstructorAndRequiredTogetherRule
   - Symplify\PHPStanRules\Rules\Symfony\NoControllerMethodInjectionRule
-  - Symplify\PHPStanRules\Rules\Symfony\NoFindTaggedServiceIdsCallRule
   - Symplify\PHPStanRules\Rules\Symfony\NoGetDoctrineInControllerRule
   - Symplify\PHPStanRules\Rules\Symfony\NoGetInCommandRule
   - Symplify\PHPStanRules\Rules\Symfony\NoGetInControllerRule
