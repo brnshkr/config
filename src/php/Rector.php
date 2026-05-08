@@ -132,6 +132,8 @@ final readonly class Rector
             ->withCache('.cache/rector.cache')
             ->withRootFiles()
             ->withPaths(FileFinder::getFilePaths($finder))
+            ->withPhpSets()
+            ->withAttributesSets()
             ->withPreparedSets(
                 deadCode: true,
                 codeQuality: true,
@@ -147,6 +149,12 @@ final readonly class Rector
                 symfonyCodeQuality: true,
                 symfonyConfigs: true,
             )
+            ->withImportNames(
+                importNames: false,
+                importDocBlockNames: false,
+                importShortClasses: false,
+                removeUnusedImports: true,
+            )
             ->withSkip([
                 LocallyCalledStaticMethodToNonStaticRector::class,
                 NewlineBeforeNewAssignSetRector::class,
@@ -155,14 +163,6 @@ final readonly class Rector
                 PreferPHPUnitThisCallRector::class,
                 SimplifyQuoteEscapeRector::class,
             ])
-            ->withPhpSets()
-            ->withAttributesSets()
-            ->withImportNames(
-                importNames: false,
-                importDocBlockNames: false,
-                importShortClasses: false,
-                removeUnusedImports: true,
-            )
             ->withConfiguredRule(AddOverrideAttributeToOverriddenMethodsRector::class, [
                 AddOverrideAttributeToOverriddenMethodsRector::ADD_TO_INTERFACE_METHODS    => true,
                 AddOverrideAttributeToOverriddenMethodsRector::ALLOW_OVERRIDE_EMPTY_METHOD => true,
