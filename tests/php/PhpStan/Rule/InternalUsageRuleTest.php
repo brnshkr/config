@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
+use InvalidArgumentException;
 use Override;
 use PHPStan\DependencyInjection\MissingServiceException;
 use PHPStan\Reflection\ReflectionProvider;
@@ -43,6 +44,7 @@ final class InternalUsageRuleTest extends RuleTestCase
     }
 
     /**
+     * @throws InvalidArgumentException
      * @throws MissingServiceException
      */
     #[Override]

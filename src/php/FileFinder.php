@@ -52,7 +52,7 @@ final readonly class FileFinder
                 $finder->in('.');
             }
         } else {
-            $finder = new Finder()->in('.');
+            $finder = (new Finder())->in('.');
         }
 
         $extensions = is_array($extensions) ? $extensions : [$extensions];
@@ -71,7 +71,7 @@ final readonly class FileFinder
 
         if (in_array(self::EXTENSION_PHP, $extensions, true)) {
             try {
-                $finder->append(new Finder()->files()->in('bin')->name('console'));
+                $finder->append((new Finder())->files()->in('bin')->name('console'));
             } catch (DirectoryNotFoundException) {
                 // Ignore
             }
@@ -106,8 +106,6 @@ final readonly class FileFinder
      */
     public static function getFilePaths(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): array
     {
-        return self::get($finder, $extensions)
-            |> iterator_to_array(...)
-            |> array_keys(...);
+        return array_keys(iterator_to_array(self::get($finder, $extensions)));
     }
 }

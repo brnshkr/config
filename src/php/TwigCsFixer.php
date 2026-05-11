@@ -32,7 +32,7 @@ final readonly class TwigCsFixer
      */
     public static function getConfig(?Finder $finder = null): TwigCsFixerConfig
     {
-        $config = new TwigCsFixerConfig()
+        $config = (new TwigCsFixerConfig())
             ->setCacheFile('.cache/twig-cs-fixer.cache.json')
             ->setFinder(FileFinder::get($finder, FileFinder::EXTENSION_TWIG))
             ->allowNonFixableRules()

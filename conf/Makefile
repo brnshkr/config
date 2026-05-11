@@ -87,7 +87,10 @@
 
 help: #~~ show this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)
 	$(DEBUG_PREFIX)$(PRINTF) '%s' "$$_HELP_AWK" > /tmp/brnshkr_config_help.awk
-	$(DEBUG_PREFIX)$(AWK) \
+	$(DEBUG_PREFIX)HEADER_LOGO="$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))')" \
+	HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
+	export HEADER_LOGO HEADER_USAGE; \
+	$(AWK) \
 		-v INDENT="$(INDENT)" \
 		-v NO_ANSI="$(NO_ANSI)" \
 		-v PWD="$(abspath $(PWD))" \
@@ -98,9 +101,7 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 		-v WSL_DISTRO_NAME="$(or $(WSL_DISTRO_NAME),)" \
 		-v SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		-v LIST_SCOPES="$(_HELP_LIST_SCOPES)" \
-		-v HEADER_LOGO="$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))' | sed 's/\\/\\\\/g')" \
 		-v HEADER_TITLE="$$($(PRINTF) '%b' '$(call text,$(call _to_title_case,$(PACKAGE)) ($(strip $(VERSION))),$(COLOR_TITLE))')" \
-		-v HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		-v VERBOSITY=$(or $(V),$(if $(filter -vvv vvv,$(ARGS)) \
 			,3 \
 			,$(if $(filter -vv vv,$(ARGS)) \
@@ -943,9 +944,9 @@ END {
 		}
 		exit 0;
 	}
-	printf "%s", HEADER_LOGO;
+	printf "%s", ENVIRON["HEADER_LOGO"];
 	printf "%s\n\n", HEADER_TITLE;
-	printf "%s\n", HEADER_USAGE;
+	printf "%s\n", ENVIRON["HEADER_USAGE"];
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx];
 		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column;

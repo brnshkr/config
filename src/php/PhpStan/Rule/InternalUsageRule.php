@@ -58,37 +58,37 @@ final class InternalUsageRule implements Rule
     private const string KIND_TRAIT     = 'Trait';
 
     /**
+     * @var list<string>
+     */
+    private array $allowedInternalTargets;
+
+    /**
+     * @var list<string>
+     */
+    private array $allowedDeclaringNamespaces;
+
+    /**
+     * @var list<string>
+     */
+    private array $allowedCallingNamespaces;
+
+    /**
      * @param ?list<string> $allowedInternalTargets
      * @param ?list<string> $allowedDeclaringNamespaces
      * @param ?list<string> $allowedCallingNamespaces
+     *
+     * @throws InvalidArgumentException
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
-        private ?array $allowedInternalTargets = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedInternalTargets) {
-                $this->allowedInternalTargets = self::getValidatedStringList('allowedInternalTargets', $allowedInternalTargets);
-            }
-        },
-        private ?array $allowedDeclaringNamespaces = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedDeclaringNamespaces) {
-                $this->allowedDeclaringNamespaces = self::getValidatedStringList('allowedDeclaringNamespaces', $allowedDeclaringNamespaces);
-            }
-        },
-        private ?array $allowedCallingNamespaces = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedCallingNamespaces) {
-                $this->allowedCallingNamespaces = self::getValidatedStringList('allowedCallingNamespaces', $allowedCallingNamespaces);
-            }
-        },
-    ) {}
+        ?array $allowedInternalTargets = null,
+        ?array $allowedDeclaringNamespaces = null,
+        ?array $allowedCallingNamespaces = null,
+    ) {
+        $this->setAllowedInternalTargets($allowedInternalTargets);
+        $this->setAllowedDeclaringNamespaces($allowedDeclaringNamespaces);
+        $this->setAllowedCallingNamespaces($allowedCallingNamespaces);
+    }
 
     #[Override]
     public function getNodeType(): string
@@ -119,6 +119,36 @@ final class InternalUsageRule implements Rule
             },
             static fn (?IdentifierRuleError $identifierRuleError): bool => $identifierRuleError instanceof IdentifierRuleError,
         );
+    }
+
+    /**
+     * @param ?list<string> $allowedInternalTargets
+     *
+     * @throws InvalidArgumentException
+     */
+    private function setAllowedInternalTargets(?array $allowedInternalTargets): void
+    {
+        $this->allowedInternalTargets = self::getValidatedStringList('allowedInternalTargets', $allowedInternalTargets);
+    }
+
+    /**
+     * @param ?list<string> $allowedDeclaringNamespaces
+     *
+     * @throws InvalidArgumentException
+     */
+    private function setAllowedDeclaringNamespaces(?array $allowedDeclaringNamespaces): void
+    {
+        $this->allowedDeclaringNamespaces = self::getValidatedStringList('allowedDeclaringNamespaces', $allowedDeclaringNamespaces);
+    }
+
+    /**
+     * @param ?list<string> $allowedCallingNamespaces
+     *
+     * @throws InvalidArgumentException
+     */
+    private function setAllowedCallingNamespaces(?array $allowedCallingNamespaces): void
+    {
+        $this->allowedCallingNamespaces = self::getValidatedStringList('allowedCallingNamespaces', $allowedCallingNamespaces);
     }
 
     /**
@@ -398,7 +428,7 @@ final class InternalUsageRule implements Rule
         ];
 
         foreach ($patternsByValue as $value => $patterns) {
-            foreach (($patterns ?? []) as $pattern) {
+            foreach ($patterns as $pattern) {
                 if (Str::match($value, $pattern) !== []) {
                     return true;
                 }

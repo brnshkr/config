@@ -11,6 +11,7 @@ use function array_slice;
 use function array_values;
 use function count;
 use function implode;
+use function is_string;
 use function mb_ltrim;
 use function mb_rtrim;
 use function mb_strlen;
@@ -110,14 +111,20 @@ final readonly class Str
         string $characters = " \t\n\r\0\x0B\x0C\u{A0}\u{FEFF}",
         string $mode = 'default',
     ): string {
-        return match ($mode) {
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        $result = match ($mode) {
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'start' => mb_ltrim($string, $characters),
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'end' => mb_rtrim($string, $characters),
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'default' => mb_trim($string, $characters),
         };
+
+        if (!is_string($result)) {
+            return $string;
+        }
+
+        return $result;
     }
 
     /**

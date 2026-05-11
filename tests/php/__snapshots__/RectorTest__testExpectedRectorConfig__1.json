@@ -73,8 +73,6 @@
         "./vendor/rector/rector/src/Set/ValueObject/../../../config/set/php81.php",
         "./vendor/rector/rector/src/Set/ValueObject/../../../config/set/php82.php",
         "./vendor/rector/rector/src/Set/ValueObject/../../../config/set/php83.php",
-        "./vendor/rector/rector/src/Set/ValueObject/../../../config/set/php84.php",
-        "./vendor/rector/rector/src/Set/ValueObject/../../../config/set/php85.php",
         "./vendor/rector/rector/vendor/rector/rector-symfony/src/Set/../../config/sets/symfony/annotations-to-attributes.php",
         "./vendor/rector/rector/vendor/rector/rector-doctrine/src/Set/../../config/sets/attributes/doctrine.php",
         "./vendor/rector/rector/vendor/rector/rector-doctrine/src/Set/../../config/sets/attributes/mongodb.php",

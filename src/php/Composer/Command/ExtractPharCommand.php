@@ -155,7 +155,7 @@ final class ExtractPharCommand extends AbstractCommand
         }
 
         try {
-            new Phar($pharPath)->extractTo($targetDirectory, overwrite: true);
+            (new Phar($pharPath))->extractTo($targetDirectory, overwrite: true);
         } catch (BadMethodCallException) {
             throw new LogicException('Unreachable.');
         }
