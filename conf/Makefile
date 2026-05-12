@@ -172,7 +172,7 @@ AWK    ?= awk#~~ path to awk binary
 
 #---vv theming
 
-INDENT  ?= 1#~~ indent used in `make help` output
+INDENT ?= 1#~~ indent used in `make help` output
 
 NO_ANSI         ?= #~~ whether ANSI colors are enabled
 _NO_ANSI_OPTION := $(if $(NO_ANSI),--no-ansi)
