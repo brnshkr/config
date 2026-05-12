@@ -118,12 +118,12 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 
 #--- includes
 
-_THIS_FILE := $(abspath $(lastword $(MAKEFILE_LIST)))
-
 define _include_makefiles_in_directory
-$(eval -include $(filter-out $(_THIS_FILE),$(wildcard $1/Makefile $1/*.mk)))
+$(eval -include $(filter-out $(abspath $(MAKEFILE_LIST)),$(wildcard $1/Makefile $1/*.mk)))
 endef
 
+$(call _include_makefiles_in_directory,$(PWD))
+$(call _include_makefiles_in_directory,$(PWD)/make)
 $(call _include_makefiles_in_directory,$(PWD)/conf)
 $(call _include_makefiles_in_directory,$(PWD)/conf/make)
 $(call _include_makefiles_in_directory,$(PWD)/.local)
