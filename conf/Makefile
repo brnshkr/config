@@ -94,8 +94,8 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 	$(DEBUG_PREFIX)NO_ANSI="$(NO_ANSI)" \
 		INDENT="$(INDENT)" \
 		_PWD="$(abspath $(PWD))" \
-		_HEADER_LOGO="$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))')" \
-		_HEADER_TITLE="$$($(PRINTF) '%b' '$(call text,$(call _to_title_case,$(PACKAGE)) ($(strip $(VERSION))),$(COLOR_TITLE))')" \
+		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))'),)" \
+		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_EDITOR="$(_EDITOR)" \
 		_EDITOR_URL_VSCODE="$(_EDITOR_URL_VSCODE)" \
@@ -210,7 +210,6 @@ define LOGO
   / _ )_______  ____/ /  / /__ ____
  / _  / __/ _ \\(_--/ _ \\/  ´_// __/
 /____/_/ /_//_/___/_//_/_/\\_\\/_/
-
 
 endef
 endif
@@ -629,7 +628,7 @@ $(if $(shell command -v code >/dev/null 2>&1 && echo 1),$(EDITOR_VSCODE),$(if \
 endef
 
 define _HELP_AWK
-function trim(string) { gsub(/^[ \t]+|[ \t]+$$/, "", string); return string }
+function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
 function strip_verbosity(text) { sub(/[ \t]*#v{1,3}([ \t]|$$)/, "", text); return text }
 function line_verbosity(verbosity_match) { if (!match($$0, /#v{1,3}([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); return length(verbosity_match) }
@@ -941,8 +940,8 @@ END {
 		}
 		exit 0;
 	}
-	printf "%s", ENVIRON["_HEADER_LOGO"];
-	printf "%s\n\n", ENVIRON["_HEADER_TITLE"];
+	if (length(trim(ENVIRON["_HEADER_LOGO"])) > 0) printf "%s\n", trim(ENVIRON["_HEADER_LOGO"]);
+	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", trim(ENVIRON["_HEADER_TITLE"]);
 	printf "%s\n", ENVIRON["_HEADER_USAGE"];
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx];
