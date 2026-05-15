@@ -85,34 +85,29 @@
 
 #!! Main Makefile of the brnshkr/config package
 
-_HELP_RESERVED_ARGS  := -- v -v vv -vv vvv -vvv list-scopes ls
-_HELP_SCOPES          = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(ARGS)))
-_HELP_LIST_SCOPES     = $(if $(filter list-scopes ls,$(ARGS)),1)
+_HELP_VERBOSITY_ARGS = $(shell $(_AWK) -v args="$(ARGS)" 'BEGIN { n = split(args, words, " "); for (i = 1; i <= n; i++) if (words[i] ~ /^-?v+$$/) printf "%s ", words[i] }')
+_HELP_RESERVED_ARGS  = -- list-scopes ls $(_HELP_VERBOSITY_ARGS)
+_HELP_SCOPES         = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(ARGS)))
+_HELP_LIST_SCOPES    = $(if $(filter list-scopes ls,$(ARGS)),1)
 
 help: #~~ show this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)
 	$(DEBUG_PREFIX)$(PRINTF) '%s' "$$_HELP_AWK" > /tmp/brnshkr_config_help.awk
-	$(DEBUG_PREFIX)NO_ANSI="$(NO_ANSI)" \
-		INDENT="$(INDENT)" \
+	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_PWD="$(abspath $(PWD))" \
 		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))'),)" \
 		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
-		_EDITOR="$(_EDITOR)" \
-		_EDITOR_URL_VSCODE="$(_EDITOR_URL_VSCODE)" \
-		_EDITOR_URL_VSCODE_WSL="$(_EDITOR_URL_VSCODE_WSL)" \
-		_EDITOR_URL_PHPSTORM="$(_EDITOR_URL_PHPSTORM)" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		_LIST_SCOPES="$(_HELP_LIST_SCOPES)" \
-		_VERBOSITY="$(or $(V),$(if $(filter -vvv vvv,$(ARGS)) \
-			,3 \
-			,$(if $(filter -vv vv,$(ARGS)) \
-				,2 \
-				,$(if $(filter -v v,$(ARGS)) \
-					,1 \
-					,0) \
-				) \
-			) \
-		)" \
+		_VERBOSITY="$(or $(V),$(shell $(_AWK) -v args="$(ARGS)" 'BEGIN { \
+			n = split(args, words, " "); \
+			for (i = 1; i <= n; i++) \
+				if (words[i] ~ /^-?v+$$/) { \
+					len = length(words[i]) - (substr(words[i], 1, 1) == "-" ? 1 : 0); \
+					if (len > max) max = len; \
+				} \
+			print max + 0 \
+		}'))" \
 		$(AWK) -f /tmp/brnshkr_config_help.awk \
 		$(MAKEFILE_LIST)
 
@@ -599,6 +594,29 @@ endef
 #*
 define _escape_newlines
 $(subst $(_NEWLINE),\n,$1)
+endef
+
+#**
+#* Builds `NAME="value"` shell assignments for every UPPER_SNAKE_CASE Make
+#* variable. Lowercase macros are skipped to avoid expansion side effects.
+#* Values are escaped for double-quoted shell strings; embedded newlines flattened.
+#*
+#* usage:
+#*   $(call _make_vars_as_env)
+#*
+#* returns: string
+#*
+define _make_vars_as_env
+$(foreach V,$(shell $(_AWK) -v var_names="$(.VARIABLES)" '\
+	BEGIN { \
+		count = split(var_names, names, " "); \
+		for (idx = 1; idx <= count; idx++) \
+			if (names[idx] ~ /^_?[A-Z][A-Z0-9_]*$$/) \
+				print names[idx] \
+	}' \
+),$(if $(filter simple recursive,$(flavor $(V))), \
+	$(V)="$(subst $$,\$$,$(subst ",\",$(subst \,\\,$(subst $(_NEWLINE), ,$($(V))))))" \
+))
 endef
 
 define _NEWLINE
