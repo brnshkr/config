@@ -5,6 +5,16 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule\Architecture;
 
 use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ApplicationNoInterfaceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\DomainEventImmutableTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\DomainNoFrameworkTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\DomainNoInterfaceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\InfrastructureNoInterfaceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\InterfaceNoDomainTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\InterfaceNoInfrastructureTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleApplicationIsolatedTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleDomainIsolatedTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ValueObjectImmutableTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\ApplicationNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoApplicationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoInfrastructureTest;
@@ -12,6 +22,10 @@ use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use Brnshkr\Config\Str;
 use InvalidArgumentException;
 
+use function array_filter;
+use function array_map;
+use function array_values;
+use function count;
 use function sprintf;
 
 /**
@@ -81,6 +95,145 @@ final class Architecture
         ];
     }
 
+    /**
+     * Build Domain-Driven Design architecture rules.
+     *
+     * Extends layered architecture rules with optional DDD-specific constraints:
+     *   - Interface layer isolation
+     *   - Module isolation
+     *   - Immutable value objects
+     *   - Immutable domain events
+     *   - Domain isolation from framework namespaces
+     *
+     * Module isolation rules are only generated when at least two modules exist.
+     *
+     * @example
+     * ```php
+     * $ddd = Architecture::ddd(
+     *     domain: 'Acme\Domain',
+     *     application: 'Acme\Application',
+     *     infrastructure: 'Acme\Infrastructure',
+     *     interface: 'Acme\Interface',
+     *     valueObject: 'Acme\Domain\ValueObject',
+     *     domainEvent: 'Acme\Domain\Event',
+     *     isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
+     *     modules: ['Blog', 'News'],
+     * );
+     * ```
+     *
+     * @param non-empty-string $domain Domain layer namespace
+     * @param non-empty-string $application Application layer namespace
+     * @param non-empty-string $infrastructure Infrastructure layer namespace
+     * @param ?non-empty-string $interface Interface layer namespace
+     * @param ?non-empty-string $valueObject Value object namespace requiring immutability
+     * @param ?non-empty-string $domainEvent Domain event namespace requiring immutability
+     * @param list<non-empty-string> $isolatedFrom Framework namespaces forbidden in the domain layer
+     * @param list<non-empty-string> $modules Module names participating in isolation rules
+     *
+     * @return non-empty-list<PhpAtService> Configured architecture rule services
+     *
+     * @throws InvalidArgumentException When namespaces or module names are invalid
+     */
+    public static function ddd(
+        string $domain = self::DEFAULT_ROOT . '\Domain',
+        string $application = self::DEFAULT_ROOT . '\Application',
+        string $infrastructure = self::DEFAULT_ROOT . '\Infrastructure',
+        ?string $interface = null,
+        ?string $valueObject = null,
+        ?string $domainEvent = null,
+        array $isolatedFrom = [],
+        array $modules = [],
+    ): array {
+        $domain         = self::normalizeNonEmptyNamespace($domain, 'domain');
+        $application    = self::normalizeNonEmptyNamespace($application, 'application');
+        $infrastructure = self::normalizeNonEmptyNamespace($infrastructure, 'infrastructure');
+        $interface      = $interface !== null ? self::normalizeNonEmptyNamespace($interface, 'interface') : null;
+        $valueObject    = $valueObject !== null ? self::normalizeNonEmptyNamespace($valueObject, 'valueObject') : null;
+        $domainEvent    = $domainEvent !== null ? self::normalizeNonEmptyNamespace($domainEvent, 'domainEvent') : null;
+        $modules        = self::normalizeModuleNames($modules);
+
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        $services = self::layered($domain, $application, $infrastructure);
+
+        if ($interface !== null) {
+            $services[] = PhpStan::configurePhpAtTest(DomainNoInterfaceTest::class, [
+                'domain'    => $domain,
+                'interface' => $interface,
+            ]);
+
+            $services[] = PhpStan::configurePhpAtTest(ApplicationNoInterfaceTest::class, [
+                'application' => $application,
+                'interface'   => $interface,
+            ]);
+
+            $services[] = PhpStan::configurePhpAtTest(InfrastructureNoInterfaceTest::class, [
+                'infrastructure' => $infrastructure,
+                'interface'      => $interface,
+            ]);
+
+            $services[] = PhpStan::configurePhpAtTest(InterfaceNoDomainTest::class, [
+                'interface' => $interface,
+                'domain'    => $domain,
+            ]);
+
+            $services[] = PhpStan::configurePhpAtTest(InterfaceNoInfrastructureTest::class, [
+                'interface'      => $interface,
+                'infrastructure' => $infrastructure,
+            ]);
+        }
+
+        if (count($modules) >= 2) {
+            foreach ($modules as $module) {
+                $siblings = self::findSiblingsOf($module, $modules);
+
+                $services[] = PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
+                    'domain'   => $domain,
+                    'module'   => $module,
+                    'siblings' => $siblings,
+                ]);
+
+                $services[] = PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
+                    'application' => $application,
+                    'module'      => $module,
+                    'siblings'    => $siblings,
+                ]);
+            }
+        }
+
+        if ($valueObject !== null) {
+            $services[] = PhpStan::configurePhpAtTest(ValueObjectImmutableTest::class, [
+                'valueObject' => $valueObject,
+            ]);
+        }
+
+        if ($domainEvent !== null) {
+            $services[] = PhpStan::configurePhpAtTest(DomainEventImmutableTest::class, [
+                'domainEvent' => $domainEvent,
+            ]);
+        }
+
+        if ($isolatedFrom !== []) {
+            $services[] = PhpStan::configurePhpAtTest(DomainNoFrameworkTest::class, [
+                'domain'       => $domain,
+                'isolatedFrom' => $isolatedFrom,
+            ]);
+        }
+
+        return $services;
+    }
+
+    /**
+     * @param list<string> $modules
+     *
+     * @return list<string>
+     */
+    private static function findSiblingsOf(string $module, array $modules): array
+    {
+        return array_values(array_filter($modules, static fn (string $candidate): bool => $candidate !== $module));
+    }
+
     private static function normalizeNamespace(string $namespace): string
     {
         $normalized = Str::trim($namespace);
@@ -111,5 +264,55 @@ final class Architecture
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param list<string> $modules
+     *
+     * @return list<string>
+     */
+    private static function normalizeModuleNames(array $modules): array
+    {
+        return array_map(self::normalizeNamespace(...), $modules);
+    }
+
+    /**
+     * @param list<string> $modules
+     *
+     * @phpstan-assert list<non-empty-string> $modules
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertNonEmptyModuleNames(array $modules): void
+    {
+        foreach ($modules as $index => $module) {
+            if ($module === '') {
+                throw new InvalidArgumentException(sprintf(
+                    'Module name at index %d must not be empty.',
+                    $index,
+                ));
+            }
+        }
+    }
+
+    /**
+     * @param list<string> $modules
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertUniqueModuleNames(array $modules): void
+    {
+        $seen = [];
+
+        foreach ($modules as $module) {
+            if (isset($seen[$module])) {
+                throw new InvalidArgumentException(sprintf(
+                    'Duplicate module name "%s".',
+                    $module,
+                ));
+            }
+
+            $seen[$module] = true;
+        }
     }
 }
