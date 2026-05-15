@@ -40,13 +40,14 @@ use function class_exists;
 use function getcwd;
 use function in_array;
 use function interface_exists;
+use function is_array;
 use function is_string;
 use function iterator_to_array;
+use function ksort;
+use function serialize;
 use function sprintf;
 use function Symfony\Component\String\s;
 use function usort;
-
-use const SORT_REGULAR;
 
 Module::warnMissingPackages(Module::MODULE_PHP_STAN);
 
@@ -263,19 +264,43 @@ final class PhpStan
      */
     public function setServices(array $services): self
     {
-        $this->config['services'] = [...array_values(array_unique([...$this->config['services'], ...$services], SORT_REGULAR))];
+        $mergedServices = [];
+
+        foreach ([...$this->config['services'], ...$services] as $service) {
+            $mergedServices[self::getServiceKey($service)] ??= $service;
+        }
+
+        $this->config['services'] = array_values($mergedServices);
 
         return $this;
     }
 
     /**
-     * @param list<class-string> $services
+     * @param list<class-string|Service> $services
      */
     public function removeServices(array $services): self
     {
         $this->config['services'] = array_values(array_filter(
             $this->config['services'],
-            static fn (array $existingService): bool => !in_array($existingService['class'], $services, true),
+            static function (array $existingService) use ($services): bool {
+                $existingKey = self::getServiceKey($existingService);
+
+                foreach ($services as $service) {
+                    if (is_string($service)) {
+                        if ($existingService['class'] === $service) {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    if (self::getServiceKey($service) === $existingKey) {
+                        return false;
+                    }
+                }
+
+                return true;
+            },
         ));
 
         return $this;
@@ -437,6 +462,50 @@ final class PhpStan
         Module::warnMissingPackages(Module::PACKAGE_PHP_STAN_DOCTRINE);
 
         return $this->setParameter('doctrine', $options);
+    }
+
+    /**
+     * @param list<PhpAtService|list<PhpAtService>> $architecture
+     *
+     * @throws RuntimeException
+     */
+    public function setArchitecture(array $architecture): self
+    {
+        Module::warnMissingPackages(Module::PACKAGE_PHP_AT);
+
+        $services = [];
+
+        foreach ($architecture as $value) {
+            if (self::isPhpAtServiceList($value)) {
+                $services = [...$services, ...$value];
+
+                continue;
+            }
+
+            $services[] = $value;
+        }
+
+        return $this->setServices($services);
+    }
+
+    /**
+     * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture
+     */
+    public function removeArchitecture(array $architecture): self
+    {
+        $servicesToRemove = [];
+
+        foreach ($architecture as $value) {
+            if (self::isNestedPhpAtServiceList($value)) {
+                $servicesToRemove = [...$servicesToRemove, ...$value];
+
+                continue;
+            }
+
+            $servicesToRemove[] = $value;
+        }
+
+        return $this->removeServices($servicesToRemove);
     }
 
     /**
@@ -776,6 +845,40 @@ final class PhpStan
             ))
             |> (static fn (array $minimalPaths): array => array_filter($minimalPaths, is_string(...)))
             |> array_values(...);
+    }
+
+    /**
+     * @param Service $service
+     */
+    private static function getServiceKey(array $service): string
+    {
+        $arguments = $service['arguments'] ?? [];
+
+        ksort($arguments);
+
+        return $service['class'] . '|' . serialize($arguments);
+    }
+
+    /**
+     * @param class-string|PhpAtService|list<class-string|PhpAtService> $value
+     *
+     * @phpstan-assert-if-true list<class-string|PhpAtService> $value
+     * @phpstan-assert-if-false class-string|PhpAtService $value
+     */
+    private static function isNestedPhpAtServiceList(string|array $value): bool
+    {
+        return !is_string($value) && self::isPhpAtServiceList($value);
+    }
+
+    /**
+     * @param PhpAtService|list<PhpAtService> $value
+     *
+     * @phpstan-assert-if-true list<PhpAtService> $value
+     * @phpstan-assert-if-false PhpAtService $value
+     */
+    private static function isPhpAtServiceList(array $value): bool
+    {
+        return !isset($value['class']);
     }
 }
 
