@@ -15,6 +15,9 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\InterfaceNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleApplicationIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleDomainIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ValueObjectImmutableTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\EntityAndRepositoryTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\MigrationIsolationTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\RoleFoldersExhaustiveTest as DoctrineRoleFoldersExhaustiveTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CastTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ChannelTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CommandTest as LaravelCommandTest;
@@ -361,6 +364,60 @@ final class Architecture
                 PhpStan::configurePhpAtTest(SymfonyRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
             ],
         );
+    }
+
+    /**
+     * Build Doctrine architecture rules.
+     *
+     * Creates Doctrine-specific architecture tests validating:
+     *   - Migration namespace isolation
+     *   - Entity and repository placement
+     *   - Module role folder structure
+     *
+     * When modules are provided, rules are generated per module root.
+     *
+     * @example
+     * ```php
+     * $doctrineDefault = Architecture::doctrine('Acme', 'Acme\Migrations');
+     * $doctrineModular = Architecture::doctrine('Acme', modules: ['Blog', 'News']);
+     * ```
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param non-empty-string $migrationsNamespace Doctrine migrations namespace
+     * @param list<non-empty-string> $modules Optional module names
+     *
+     * @return non-empty-list<PhpAtService> Configured Doctrine architecture rule services
+     *
+     * @throws InvalidArgumentException When namespaces or module names are invalid
+     */
+    public static function doctrine(
+        string $root = self::DEFAULT_ROOT,
+        string $migrationsNamespace = 'DoctrineMigrations',
+        array $modules = [],
+    ): array {
+        $root                = self::normalizeNonEmptyNamespace($root, 'root');
+        $migrationsNamespace = self::normalizeNonEmptyNamespace($migrationsNamespace, 'migrationsNamespace');
+        $modules             = self::normalizeModuleNames($modules);
+
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        return [
+            PhpStan::configurePhpAtTest(MigrationIsolationTest::class, [
+                'root'                => $root,
+                'migrationsNamespace' => $migrationsNamespace,
+            ]),
+            ...self::buildPresetServices(
+                $root,
+                $modules,
+                static fn (string $namespaceRoot): array => [
+                    PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['root' => $namespaceRoot]),
+                ],
+                static fn (string $module, string $moduleRoot, array $allModules): array => [
+                    PhpStan::configurePhpAtTest(DoctrineRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+                ],
+            ),
+        ];
     }
 
     /**
