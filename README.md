@@ -227,6 +227,11 @@ If you need a VSCode setup and have the specific [`extensions`](https://github.c
 ### 💻 Development
 
 <!-- omit in toc -->
+#### Node version
+
+The required Node version is pinned in [`.nvmrc`](./.nvmrc). We use [nvm](https://github.com/nvm-sh/nvm); with it installed and activated, running `nvm install` from the repo root installs and selects the pinned version.
+
+<!-- omit in toc -->
 #### Setup
 
 Install dependencies and setup git hooks:
@@ -563,6 +568,11 @@ For full usage run `composer help <command>`, `composer <command> --help` or `co
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
 ### 💻 Development
+
+<!-- omit in toc -->
+#### PHP version
+
+The required PHP version and build configuration are pinned in [`mise.toml`](./mise.toml). We use [mise](https://github.com/jdx/mise) with the [verzly/mise-php](https://github.com/verzly/mise-php) plugin; with it installed and activated, running `mise install` from the repo root installs and selects the pinned version.
 
 <!-- omit in toc -->
 #### Setup
