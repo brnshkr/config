@@ -30,6 +30,7 @@ final class Module
 {
     public const string PACKAGE_EXTENSION_INSTALLER        = 'phpstan/extension-installer';
     public const string PACKAGE_FINDER                     = 'symfony/finder';
+    public const string PACKAGE_PHP_AT                     = 'phpat/phpat';
     public const string PACKAGE_PHP_CS_FIXER               = 'friendsofphp/php-cs-fixer';
     public const string PACKAGE_PHP_CS_FIXER_CUSTOM_FIXERS = 'kubawerlos/php-cs-fixer-custom-fixers';
     public const string PACKAGE_PHP_STAN_DEPRECATION_RULES = 'phpstan/phpstan-deprecation-rules';
@@ -78,6 +79,7 @@ final class Module
             ],
             'optional' => [
                 self::PACKAGE_EXTENSION_INSTALLER,
+                self::PACKAGE_PHP_AT,
                 self::PACKAGE_PHP_STAN_DEPRECATION_RULES,
                 self::PACKAGE_PHP_STAN_DOCTRINE,
                 self::PACKAGE_PHP_STAN_ERROR_FORMATTER,

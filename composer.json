@@ -41,6 +41,7 @@
     "friendsofphp/php-cs-fixer": "3.95.1",
     "kubawerlos/php-cs-fixer-custom-fixers": "3.36.1",
     "pestphp/pest": "4.6.1",
+    "phpat/phpat": "0.12.4",
     "phpstan/extension-installer": "1.4.3",
     "phpstan/phpstan": "2.1.47",
     "phpstan/phpstan-deprecation-rules": "2.0.4",
@@ -63,6 +64,7 @@
   "conflict": {
     "friendsofphp/php-cs-fixer": "<3.95.1 || >=4",
     "kubawerlos/php-cs-fixer-custom-fixers": "<3.36.1 || >=4",
+    "phpat/phpat": "<0.12.4 || >=0.13",
     "phpstan/extension-installer": "<1.4.3 || >=3",
     "phpstan/phpstan": "<2.1.47 || >=3",
     "phpstan/phpstan-deprecation-rules": "<2.0.4 || >=3",
@@ -81,6 +83,7 @@
   "suggest": {
     "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
     "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
+    "phpat/phpat": "Optional architecture-related PHPStan rules",
     "phpstan/extension-installer": "Optional for autoloading of additional PHPStan configurations",
     "phpstan/phpstan": "Needed for static code analysis",
     "phpstan/phpstan-deprecation-rules": "Optional PHPStan rules for deprecations",
