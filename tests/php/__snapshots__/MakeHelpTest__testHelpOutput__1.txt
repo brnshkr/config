@@ -1,0 +1,2007 @@
+=== groups ===
+{
+    "default": [
+        "default",
+        "verbosity-V-env-0"
+    ],
+    "verbosity-v": [
+        "verbosity-v",
+        "verbosity-v-alias"
+    ],
+    "verbosity-vv": [
+        "verbosity-vv",
+        "verbosity-vv-alias",
+        "verbosity-V-env-empty"
+    ],
+    "verbosity-vvv": [
+        "verbosity-vvv",
+        "verbosity-vvv-alias",
+        "verbosity-V-env-3",
+        "editor-empty"
+    ],
+    "verbosity-vvvv": [
+        "verbosity-vvvv",
+        "verbosity-V-env-10"
+    ],
+    "list-scopes": [
+        "list-scopes",
+        "list-scopes-alias"
+    ],
+    "scope-filter-single": [
+        "scope-filter-single"
+    ],
+    "scope-filter-group": [
+        "scope-filter-group"
+    ],
+    "scope-filter-multiple": [
+        "scope-filter-multiple"
+    ],
+    "scope-filter-union": [
+        "scope-filter-union"
+    ],
+    "scope-filter-verbosity": [
+        "scope-filter-verbosity"
+    ],
+    "ifdef-defined": [
+        "ifdef-defined"
+    ],
+    "else-ifeq-de": [
+        "else-ifeq-de"
+    ],
+    "else-ifeq-fr": [
+        "else-ifeq-fr"
+    ],
+    "override-logo": [
+        "override-logo"
+    ],
+    "override-package": [
+        "override-package"
+    ],
+    "override-version": [
+        "override-version"
+    ],
+    "no-logo": [
+        "no-logo"
+    ],
+    "no-package": [
+        "no-package"
+    ],
+    "no-version": [
+        "no-version"
+    ],
+    "no-header": [
+        "no-header"
+    ],
+    "theme-brnshkr-explicit": [
+        "theme-brnshkr-explicit",
+        "theme-unknown"
+    ],
+    "theme-symfony": [
+        "theme-symfony"
+    ]
+}
+
+=== base: default ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Description:
+ brnshkr
+  Main Makefile of the brnshkr/config package
+ app
+  Application Makefile of the test fixture
+  Covers all make help AWK features for snapshot testing
+ local
+  Local overrides for the test fixture
+
+Variables:
+ brnshkr
+  phpstan
+   PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+   PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+   PHP_STAN_FLAGS              ?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to phpstan)
+  php-cs-fixer
+   PHP_CS_FIXER                ?=  $(PWD)/vendor/bin/php-cs-fixer              (path to php-cs-fixer binary)
+   PHP_CS_FIXER_CONFIG         ?=  $(PWD)/conf/php-cs-fixer.php                (path to php-cs-fixer config)
+   PHP_CS_FIXER_FLAGS          ?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to php-cs-fixer)
+  rector
+   RECTOR                      ?=  $(PWD)/vendor/bin/rector                    (path to rector binary)
+   RECTOR_CONFIG               ?=  $(PWD)/conf/rector.php                      (path to rector config)
+   RECTOR_FLAGS                ?=  --memory-limit=-1                           (additional flags passed to rector)
+  twig-cs-fixer
+   TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+   TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+   TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
+ app
+  UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
+  variables
+   BASE_URL                    ?=  https://example.com                         (base URL for the application)
+   TIMEOUT                     :=  30                                          (connection timeout in seconds)
+   UNDESCRIBED                 ?=  raw-value
+   CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+   IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                     (macro variable inside ifndef shows ?= operator)
+   IFEQ_ELSE_VARIABLE          :=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+   DEDUP_VARIABLE              :=  branch-b                                    (deduplicated — first branch wins, this is dropped)
+   LANG_GREETING               :=  Hello                                       (greeting selected by else-ifeq chain (default branch))
+   QUOTED_DOUBLE_VARIABLE      :=  matched                                     (quoted condition form (double-quoted operands))
+   QUOTED_BRACE_VARIABLE       :=  default                                     (quoted condition fallthrough (brace expansion form))
+   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                        (first of two sequential ifeq blocks (default branch))
+   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                       (second of two sequential ifeq blocks (default branch))
+   ELSE_IFDEF_VARIABLE         :=  from-else-branch                            (value from else-ifdef chain (default branch))
+   ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+   NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+
+Available commands:
+  root-mk-command              command from root test.mk auto-include
+  make-makefile-command        command from make/Makefile auto-include
+  make-mk-command              command from make/test.mk auto-include
+  conf-makefile-command        command from conf/Makefile auto-include
+  conf-mk-command              command from conf/test.mk auto-include
+  conf-make-makefile-command   command from conf/make/Makefile auto-include
+  conf-make-mk-command         command from conf/make/test.mk auto-include
+  local-makefile-command       command from .local/Makefile auto-include
+  local-make-makefile-command  command from .local/make/Makefile auto-include
+  local-make-mk-command        command from .local/make/test.mk auto-include
+ brnshkr
+  help                         show this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)
+  phpstan
+   phpstan                     runs phpstan analyze
+   phpstan-debug               runs phpstan analyze in debug mode
+   phpstan-raw                 runs phpstan analyze with raw output
+   phpstan-list                lists all files that are processed by phpstan
+  php-cs-fixer
+   php-cs-fixer                runs php-cs-fixer fix
+   php-cs-fixer-debug          displays used php-cs-fixer rules
+   php-cs-fixer-dry-run        runs php-cs-fixer fix in dry run mode
+   php-cs-fixer-list           lists all files that are processed by php-cs-fixer
+  rector
+   rector                      runs rector process
+   rector-debug                runs rector process in debug mode
+   rector-dry-run              runs rector process in dry run mode
+   rector-list                 lists all files that are processed by rector
+  twig-cs-fixer
+   twig-cs-fixer               runs twig-cs-fixer fix
+   twig-cs-fixer-debug         runs twig-cs-fixer in debug mode
+   twig-cs-fixer-dry-run       runs twig-cs-fixer in dry run mode
+ app
+  commands
+   root-makefile-command       command from root Makefile auto-include
+   multi-a/multi-b             multi-target command (appears joined with /)
+   no-desc-command             
+ local
+  local-mk-command             command from .local/test.mk auto-include
+
+=== diff: verbosity-v ===
+@@ @@
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
+   variables
+@@ @@
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text                         wraps a text string with ANSI color and modifier escape codes
++   log                          emits a formatted log message with <VENDOR>/<PACKAGE> prefix
++ app
++  advanced
++   resolve_env                  resolves the environment name from context
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn  inline description overrides the derived one
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: verbosity-vv ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+@@ @@
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: verbosity-vvv ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   PWD                         ?=  .                                           (current working directory)
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
++   DEBUG_PREFIX                ?=  $(if $(DEBUG),,@)                           (prefix for all commands)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                          (the error code for custom errors thrown by this Makefile)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+@@ @@
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++      text: string
++      color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++      color_and_or_modifiers?: @parameters.color & @parameters.modifiers
++
++    returns: string
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++    	 message: string
++    	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++
++    returns: void
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: verbosity-vvvv ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   PWD                         ?=  .                                           (current working directory)
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
++   DEBUG_PREFIX                ?=  $(if $(DEBUG),,@)                           (prefix for all commands)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                          (the error code for custom errors thrown by this Makefile)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+@@ @@
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++      text: string
++      color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++      color_and_or_modifiers?: @parameters.color & @parameters.modifiers
++
++    returns: string
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++    	 message: string
++    	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++
++    returns: void
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
++   ultra-hidden-command        shown at verbosity >= 4 (scope v3 + entry v4 marker)
++  hyper-verbose-group
++   hyper-verbose-command       shown at verbosity >= 4 (arbitrary depth)
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== full: list-scopes ===
+app
+app.advanced
+app.commands
+app.hyper-verbose-group
+app.ultra-verbose-group
+app.variables
+app.verbose-group
+app.very-verbose-group
+app.very-verbose-group.very-verbose-sub
+app.very-verbose-group.very-verbose-sub.depth-three
+app.very-verbose-group.very-verbose-sub.depth-three.depth-four
+brnshkr
+brnshkr.ansi
+brnshkr.arguments
+brnshkr.general
+brnshkr.helpers
+brnshkr.includes
+brnshkr.php-cs-fixer
+brnshkr.phpstan
+brnshkr.rector
+brnshkr.theming
+brnshkr.theming.colors
+brnshkr.theming.modifiers
+brnshkr.tools
+brnshkr.twig-cs-fixer
+local
+
+=== full: scope-filter-single ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Available commands:
+ app
+  commands
+   root-makefile-command  command from root Makefile auto-include
+   multi-a/multi-b        multi-target command (appears joined with /)
+   no-desc-command        
+
+=== full: scope-filter-group ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Description:
+ app
+  Application Makefile of the test fixture
+  Covers all make help AWK features for snapshot testing
+
+Variables:
+ app
+  UPPER_MACRO                  :=  (macro)             (define-based macro variable)
+  variables
+   BASE_URL                    ?=  https://example.com (base URL for the application)
+   TIMEOUT                     :=  30                  (connection timeout in seconds)
+   UNDESCRIBED                 ?=  raw-value
+   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
+   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
+   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
+   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
+   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
+   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
+   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
+   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
+   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
+   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
+   ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
+   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
+
+Available commands:
+ app
+  commands
+   root-makefile-command  command from root Makefile auto-include
+   multi-a/multi-b        multi-target command (appears joined with /)
+   no-desc-command        
+
+=== full: scope-filter-multiple ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Description:
+ local
+  Local overrides for the test fixture
+
+Available commands:
+ app
+  commands
+   root-makefile-command  command from root Makefile auto-include
+   multi-a/multi-b        multi-target command (appears joined with /)
+   no-desc-command        
+ local
+  local-mk-command        command from .local/test.mk auto-include
+
+=== full: scope-filter-union ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Variables:
+ app
+  variables
+   BASE_URL                    ?=  https://example.com (base URL for the application)
+   TIMEOUT                     :=  30                  (connection timeout in seconds)
+   UNDESCRIBED                 ?=  raw-value
+   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
+   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
+   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
+   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
+   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
+   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
+   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
+   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
+   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
+   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
+   ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
+   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
+
+Available commands:
+ app
+  commands
+   root-makefile-command  command from root Makefile auto-include
+   multi-a/multi-b        multi-target command (appears joined with /)
+   no-desc-command        
+
+=== full: scope-filter-verbosity ===
+   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+
+Config (0.0.1-beta.3)
+
+Usage:
+  make <command> [--] [arguments]
+
+Variables:
+ app
+  variables
+   BASE_URL                    ?=  https://example.com (base URL for the application)
+   TIMEOUT                     :=  30                  (connection timeout in seconds)
+   RETRIES                     +=  3                   (retry count)
+   UNDESCRIBED                 ?=  raw-value
+   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
+   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
+   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
+   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
+   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
+   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
+   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
+   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
+   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
+   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
+   ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
+   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
+
+=== diff: ifdef-defined ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   PWD                         ?=  .                                           (current working directory)
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
++   DEBUG_PREFIX                ?=  $(if $(DEBUG),,@)                           (prefix for all commands)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                          (the error code for custom errors thrown by this Makefile)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                     (macro variable inside ifndef shows ?= operator)
++   IFDEF_VARIABLE              :=  from-ifdef-block                            (variable inside ifdef (shown only when IS_DEFINED is set))
+    IFEQ_ELSE_VARIABLE          :=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                    (deduplicated — first branch wins, this is dropped)
+    LANG_GREETING               :=  Hello                                       (greeting selected by else-ifeq chain (default branch))
+@@ @@
+    QUOTED_BRACE_VARIABLE       :=  default                                     (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                        (first of two sequential ifeq blocks (default branch))
+    SEQUENTIAL_SECOND_VARIABLE  :=  delta                                       (second of two sequential ifeq blocks (default branch))
+-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                            (value from else-ifdef chain (default branch))
++   ELSE_IFDEF_VARIABLE         :=  from-ifdef-branch                           (value from else-ifdef chain (primary branch))
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++      text: string
++      color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++      color_and_or_modifiers?: @parameters.color & @parameters.modifiers
++
++    returns: string
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++    	 message: string
++    	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++
++    returns: void
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: else-ifeq-de ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   PWD                         ?=  .                                           (current working directory)
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
++   DEBUG_PREFIX                ?=  $(if $(DEBUG),,@)                           (prefix for all commands)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                          (the error code for custom errors thrown by this Makefile)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+@@ @@
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                     (macro variable inside ifndef shows ?= operator)
+    IFEQ_ELSE_VARIABLE          :=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                    (deduplicated — first branch wins, this is dropped)
+-   LANG_GREETING               :=  Hello                                       (greeting selected by else-ifeq chain (default branch))
++   LANG_GREETING               :=  Hallo                                       (greeting selected by else-ifeq chain (de branch))
+    QUOTED_DOUBLE_VARIABLE      :=  matched                                     (quoted condition form (double-quoted operands))
+    QUOTED_BRACE_VARIABLE       :=  default                                     (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                        (first of two sequential ifeq blocks (default branch))
+-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                       (second of two sequential ifeq blocks (default branch))
+-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                            (value from else-ifdef chain (default branch))
++   SEQUENTIAL_SECOND_VARIABLE  :=  gamma                                       (second of two sequential ifeq blocks (de branch))
++   ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                      (value from else-ifdef chain (LANG branch))
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++      text: string
++      color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++      color_and_or_modifiers?: @parameters.color & @parameters.modifiers
++
++    returns: string
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++    	 message: string
++    	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++
++    returns: void
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: else-ifeq-fr ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+ Variables:
+  brnshkr
++  tools
++   MAKE                        ?=  make                                        (path to make binary)
++   PRINTF                      ?=  printf                                      (path to printf binary)
++   AWK                         ?=  awk                                         (path to awk binary)
++  general
++   PWD                         ?=  .                                           (current working directory)
++   SHELL                       ?=  /bin/sh                                     (shell to use)
++   VENDOR                      ?=  brnshkr                                     (vendor name)
++   PACKAGE                     ?=  config                                      (package name)
++   VERSION                     ?=  0.0.1-beta.3                                (package version)
++   DEBUG                       ?=                                              (whether debug mode is enabled)
++   DEBUG_PREFIX                ?=  $(if $(DEBUG),,@)                           (prefix for all commands)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                          (the error code for custom errors thrown by this Makefile)
+   phpstan
+    PHP_STAN                    ?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)
+    PHP_STAN_CONFIG             ?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)
+@@ @@
+    TWIG_CS_FIXER               ?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)
+    TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
+    TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
++  theming
++   INDENT                      ?=  1                                           (indent used in `make help` output)
++   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
++   THEME                       ?=                                              (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR                      ?=                                              (the editor to use)
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
++  arguments
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
++   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
++   ARG2                        :=  $(word 3,$(MAKECMDGOALS))
++   ARG3                        :=  $(word 4,$(MAKECMDGOALS))
++   ARG4                        :=  $(word 5,$(MAKECMDGOALS))
++   ARG5                        :=  $(word 6,$(MAKECMDGOALS))
++   ARG6                        :=  $(word 7,$(MAKECMDGOALS))
++   ARG7                        :=  $(word 8,$(MAKECMDGOALS))
++   ARG8                        :=  $(word 9,$(MAKECMDGOALS))
++   ARG9                        :=  $(word 10,$(MAKECMDGOALS))
++   ARGS                         =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))
+  app
+   UPPER_MACRO                  :=  (macro)                                     (define-based macro variable)
++  VERBOSE_MACRO                :=  (macro)                                     (macro variable shown at verbosity >= 2)
+   variables
+    BASE_URL                    ?=  https://example.com                         (base URL for the application)
+    TIMEOUT                     :=  30                                          (connection timeout in seconds)
++   RETRIES                     +=  3                                           (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                          (value assembled from continuation lines)
+    IFNDEF_VARIABLE             ?=  default-value                               (variable in ifndef block (operator always shown as ?=))
+@@ @@
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                     (macro variable inside ifndef shows ?= operator)
+    IFEQ_ELSE_VARIABLE          :=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                    (deduplicated — first branch wins, this is dropped)
+-   LANG_GREETING               :=  Hello                                       (greeting selected by else-ifeq chain (default branch))
++   LANG_GREETING               :=  Bonjour                                     (greeting selected by else-ifeq chain (fr branch))
+    QUOTED_DOUBLE_VARIABLE      :=  matched                                     (quoted condition form (double-quoted operands))
+    QUOTED_BRACE_VARIABLE       :=  default                                     (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                        (first of two sequential ifeq blocks (default branch))
+    SEQUENTIAL_SECOND_VARIABLE  :=  delta                                       (second of two sequential ifeq blocks (default branch))
+-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                            (value from else-ifdef chain (default branch))
++   ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                      (value from else-ifdef chain (LANG branch))
+    ELSE_IFNDEF_VARIABLE        :=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                              (ifeq with $(call f) on lhs (default branch))
+ 
++Functions:
++ brnshkr
++  helpers
++   text
++    Wraps a text string with ANSI color and modifier escape codes.
++    Automatically resets terminal formatting after the text.
++    Accepts either explicit color + modifiers or a combined list.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++      text: string
++      color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++      color_and_or_modifiers?: @parameters.color & @parameters.modifiers
++
++    returns: string
++
++   log
++    Emits a formatted log message with <VENDOR>/<PACKAGE> prefix.
++    Applies optional color or modifier styling to the prefix.
++    Output is written through <PRINTF> with <DEBUG_PREFIX> applied.
++
++    usage:
++      $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)
++
++    parameters:
++    	 message: string
++    	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++
++    returns: void
++
++ app
++  advanced
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
++   no_docs_fn                   function without a documentation block
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
++   undescribed_fn
++   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
++
+ Available commands:
+   root-mk-command              command from root test.mk auto-include
+   make-makefile-command        command from make/Makefile auto-include
+@@ @@
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
++   hidden-command              shown at verbosity >= 1
+    multi-a/multi-b             multi-target command (appears joined with /)
+    no-desc-command             
++  verbose-group
++   verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
+  local
+   local-mk-command             command from .local/test.mk auto-include
+
+=== diff: override-logo ===
+@@ @@
+-   ___               __   __
+-  / _ )_______  ____/ /  / /__ ____
+- / _  / __/ _ \(_--/ _ \/  ´_// __/
+-/____/_/ /_//_/___/_//_/_/\_\/_/
+-
++CUSTOM LOGO LINE 1
++CUSTOM LOGO LINE 2
+ Config (0.0.1-beta.3)
+ 
+ Usage:
+
+=== diff: override-package ===
+@@ @@
+  / _  / __/ _ \(_--/ _ \/  ´_// __/
+ /____/_/ /_//_/___/_//_/_/\_\/_/
+ 
+-Config (0.0.1-beta.3)
++Tool Kit (0.0.1-beta.3)
+ 
+ Usage:
+   make <command> [--] [arguments]
+
+=== diff: override-version ===
+@@ @@
+  / _  / __/ _ \(_--/ _ \/  ´_// __/
+ /____/_/ /_//_/___/_//_/_/\_\/_/
+ 
+-Config (0.0.1-beta.3)
++Config (99.0.0-rc.1)
+ 
+ Usage:
+   make <command> [--] [arguments]
+
+=== diff: no-logo ===
+@@ @@
+-   ___               __   __
+-  / _ )_______  ____/ /  / /__ ____
+- / _  / __/ _ \(_--/ _ \/  ´_// __/
+-/____/_/ /_//_/___/_//_/_/\_\/_/
+-
+ Config (0.0.1-beta.3)
+ 
+ Usage:
+
+=== diff: no-package ===
+@@ @@
+  / _  / __/ _ \(_--/ _ \/  ´_// __/
+ /____/_/ /_//_/___/_//_/_/\_\/_/
+ 
+-Config (0.0.1-beta.3)
++(0.0.1-beta.3)
+ 
+ Usage:
+   make <command> [--] [arguments]
+
+=== diff: no-version ===
+@@ @@
+  / _  / __/ _ \(_--/ _ \/  ´_// __/
+ /____/_/ /_//_/___/_//_/_/\_\/_/
+ 
+-Config (0.0.1-beta.3)
++Config
+ 
+ Usage:
+   make <command> [--] [arguments]
+
+=== diff: no-header ===
+@@ @@
+-   ___               __   __
+-  / _ )_______  ____/ /  / /__ ____
+- / _  / __/ _ \(_--/ _ \/  ´_// __/
+-/____/_/ /_//_/___/_//_/_/\_\/_/
+-
+-Config (0.0.1-beta.3)
+-
+ Usage:
+   make <command> [--] [arguments]
+ 
+
+=== full: theme-brnshkr-explicit ===
+[35m   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+[0m
+[;4;36mConfig (0.0.1-beta.3)[0m
+
+[35mUsage:[0m
+  [36mmake[0m [36m<command> [--] [arguments][0m
+
+[35mDescription:[0m
+ [35mbrnshkr[0m
+  [90mMain Makefile of the brnshkr/config package[0m
+ [35mapp[0m
+  [90mApplication Makefile of the test fixture[0m
+  [90mCovers all make help AWK features for snapshot testing[0m
+  [90mshown at verbosity >= 2[0m
+ [35mlocal[0m
+  [90mLocal overrides for the test fixture[0m
+
+[35mVariables:[0m
+ [35mbrnshkr[0m
+  [35mtools[0m
+   [36mMAKE                      [0m  [90m?=  make                                        (path to make binary)[0m
+   [36mPRINTF                    [0m  [90m?=  printf                                      (path to printf binary)[0m
+   [36mAWK                       [0m  [90m?=  awk                                         (path to awk binary)[0m
+  [35mgeneral[0m
+   [36mPWD                       [0m  [90m?=  .                                           (current working directory)[0m
+   [36mSHELL                     [0m  [90m?=  /bin/sh                                     (shell to use)[0m
+   [36mVENDOR                    [0m  [90m?=  brnshkr                                     (vendor name)[0m
+   [36mPACKAGE                   [0m  [90m?=  config                                      (package name)[0m
+   [36mVERSION                   [0m  [90m?=  0.0.1-beta.3                                (package version)[0m
+   [36mDEBUG                     [0m  [90m?=                                              (whether debug mode is enabled)[0m
+   [36mDEBUG_PREFIX              [0m  [90m?=  $(if $(DEBUG),,@)                           (prefix for all commands)[0m
+   [36mBRNSHKR_CONFIG_ERROR_CODE [0m  [90m?=  69                                          (the error code for custom errors thrown by this Makefile)[0m
+  [35mphpstan[0m
+   [36mPHP_STAN                  [0m  [90m?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)[0m
+   [36mPHP_STAN_CONFIG           [0m  [90m?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)[0m
+   [36mPHP_STAN_FLAGS            [0m  [90m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to phpstan)[0m
+  [35mphp-cs-fixer[0m
+   [36mPHP_CS_FIXER              [0m  [90m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to php-cs-fixer binary)[0m
+   [36mPHP_CS_FIXER_CONFIG       [0m  [90m?=  $(PWD)/conf/php-cs-fixer.php                (path to php-cs-fixer config)[0m
+   [36mPHP_CS_FIXER_FLAGS        [0m  [90m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to php-cs-fixer)[0m
+  [35mrector[0m
+   [36mRECTOR                    [0m  [90m?=  $(PWD)/vendor/bin/rector                    (path to rector binary)[0m
+   [36mRECTOR_CONFIG             [0m  [90m?=  $(PWD)/conf/rector.php                      (path to rector config)[0m
+   [36mRECTOR_FLAGS              [0m  [90m?=  --memory-limit=-1                           (additional flags passed to rector)[0m
+  [35mtwig-cs-fixer[0m
+   [36mTWIG_CS_FIXER             [0m  [90m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)[0m
+   [36mTWIG_CS_FIXER_CONFIG      [0m  [90m?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)[0m
+   [36mTWIG_CS_FIXER_FLAGS       [0m  [90m?=  -v                                          (additional flags passed to twig-cs-fixer)[0m
+  [35mtheming[0m
+   [36mINDENT                    [0m  [90m?=  1                                           (indent used in `make help` output)[0m
+   [36mNO_ANSI                   [0m  [90m?=                                              (whether ANSI colors are enabled)[0m
+   [36mTHEME                     [0m  [90m?=                                              (the theme to use)[0m
+   [36mTHEME_BRNSHKR             [0m  [90m:=  brnshkr[0m
+   [36mTHEME_SYMFONY             [0m  [90m:=  symfony[0m
+   [36mEDITOR                    [0m  [90m?=                                              (the editor to use)[0m
+   [36mEDITOR_VSCODE             [0m  [90m:=  vscode[0m
+   [36mEDITOR_PHPSTORM           [0m  [90m:=  phpstorm[0m
+   [35mcolors[0m
+    [36mCOLOR_NORMAL             [0m  [90m:=  normal[0m
+    [36mCOLOR_BLACK              [0m  [90m:=  black[0m
+    [36mCOLOR_RED                [0m  [90m:=  red[0m
+    [36mCOLOR_GREEN              [0m  [90m:=  green[0m
+    [36mCOLOR_YELLOW             [0m  [90m:=  yellow[0m
+    [36mCOLOR_BLUE               [0m  [90m:=  blue[0m
+    [36mCOLOR_MAGENTA            [0m  [90m:=  magenta[0m
+    [36mCOLOR_CYAN               [0m  [90m:=  cyan[0m
+    [36mCOLOR_WHITE              [0m  [90m:=  white[0m
+    [36mCOLOR_PRIMARY            [0m  [90m?=  $(COLOR_CYAN)[0m
+    [36mCOLOR_SECONDARY          [0m  [90m?=  $(COLOR_MAGENTA)[0m
+    [36mCOLOR_TERTIARY           [0m  [90m?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)[0m
+    [36mCOLOR_ERROR              [0m  [90m?=  $(COLOR_RED)[0m
+    [36mCOLOR_WARNING            [0m  [90m?=  $(COLOR_YELLOW)[0m
+    [36mCOLOR_NOTICE             [0m  [90m?=  $(COLOR_MAGENTA)[0m
+    [36mCOLOR_LOGO               [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36mCOLOR_TITLE              [0m  [90m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
+    [36mCOLOR_USAGE_ARGUMENTS    [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36mCOLOR_USAGE_PROGRAM      [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36mCOLOR_SECTION_LABEL      [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36mCOLOR_COMMAND            [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36mCOLOR_DESCRIPTION        [0m  [90m?=  $(COLOR_TERTIARY)[0m
+   [35mmodifiers[0m
+    [36mMODIFIER_NORMAL          [0m  [90m:=  normal[0m
+    [36mMODIFIER_UNDERLINE       [0m  [90m:=  underline[0m
+    [36mMODIFIER_BRIGHT          [0m  [90m:=  bright[0m
+    [36mMODIFIER_BOLD            [0m  [90m:=  bold[0m
+    [36mMODIFIER_REVERSE         [0m  [90m:=  reverse[0m
+  [35marguments[0m
+   [36mTARGET                    [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))[0m
+   [36mARG1                      [0m  [90m:=  $(word 2,$(MAKECMDGOALS))[0m
+   [36mARG2                      [0m  [90m:=  $(word 3,$(MAKECMDGOALS))[0m
+   [36mARG3                      [0m  [90m:=  $(word 4,$(MAKECMDGOALS))[0m
+   [36mARG4                      [0m  [90m:=  $(word 5,$(MAKECMDGOALS))[0m
+   [36mARG5                      [0m  [90m:=  $(word 6,$(MAKECMDGOALS))[0m
+   [36mARG6                      [0m  [90m:=  $(word 7,$(MAKECMDGOALS))[0m
+   [36mARG7                      [0m  [90m:=  $(word 8,$(MAKECMDGOALS))[0m
+   [36mARG8                      [0m  [90m:=  $(word 9,$(MAKECMDGOALS))[0m
+   [36mARG9                      [0m  [90m:=  $(word 10,$(MAKECMDGOALS))[0m
+   [36mARGS                      [0m  [90m =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))[0m
+ [35mapp[0m
+  [36mUPPER_MACRO                [0m  [90m:=  (macro)                                     (define-based macro variable)[0m
+  [36mVERBOSE_MACRO              [0m  [90m:=  (macro)                                     (macro variable shown at verbosity >= 2)[0m
+  [35mvariables[0m
+   [36mBASE_URL                  [0m  [90m?=  https://example.com                         (base URL for the application)[0m
+   [36mTIMEOUT                   [0m  [90m:=  30                                          (connection timeout in seconds)[0m
+   [36mRETRIES                   [0m  [90m+=  3                                           (retry count)[0m
+   [36mUNDESCRIBED               [0m  [90m?=  raw-value[0m
+   [36mCONTINUATION_VARIABLE     [0m  [90m?=  first second third                          (value assembled from continuation lines)[0m
+   [36mIFNDEF_VARIABLE           [0m  [90m?=  default-value                               (variable in ifndef block (operator always shown as ?=))[0m
+   [36mIFNDEF_MACRO_VARIABLE     [0m  [90m?=  (macro)                                     (macro variable inside ifndef shows ?= operator)[0m
+   [36mIFEQ_ELSE_VARIABLE        [0m  [90m:=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))[0m
+   [36mDEDUP_VARIABLE            [0m  [90m:=  branch-b                                    (deduplicated — first branch wins, this is dropped)[0m
+   [36mLANG_GREETING             [0m  [90m:=  Hello                                       (greeting selected by else-ifeq chain (default branch))[0m
+   [36mQUOTED_DOUBLE_VARIABLE    [0m  [90m:=  matched                                     (quoted condition form (double-quoted operands))[0m
+   [36mQUOTED_BRACE_VARIABLE     [0m  [90m:=  default                                     (quoted condition fallthrough (brace expansion form))[0m
+   [36mSEQUENTIAL_FIRST_VARIABLE [0m  [90m:=  beta                                        (first of two sequential ifeq blocks (default branch))[0m
+   [36mSEQUENTIAL_SECOND_VARIABLE[0m  [90m:=  delta                                       (second of two sequential ifeq blocks (default branch))[0m
+   [36mELSE_IFDEF_VARIABLE       [0m  [90m:=  from-else-branch                            (value from else-ifdef chain (default branch))[0m
+   [36mELSE_IFNDEF_VARIABLE      [0m  [90m:=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))[0m
+   [36mNESTED_CALL_VARIABLE      [0m  [90m:=  nested-default                              (ifeq with $(call f) on lhs (default branch))[0m
+
+[35mFunctions:[0m
+ [35mbrnshkr[0m
+  [35mhelpers[0m
+   [36mtext[0m
+    [90mWraps a text string with ANSI color and modifier escape codes.[0m
+    [90mAutomatically resets terminal formatting after the text.[0m
+    [90mAccepts either explicit color + modifiers or a combined list.[0m
+
+    [90musage:[0m
+    [90m  $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)[0m
+
+    [90mparameters:[0m
+    [90m  text: string[0m
+    [90m  color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>[0m
+    [90m  modifiers?: AnyOf<normal | bold | underline | reverse | bright>[0m
+    [90m  color_and_or_modifiers?: @parameters.color & @parameters.modifiers[0m
+
+    [90mreturns: string[0m
+
+   [36mlog[0m
+    [90mEmits a formatted log message with <VENDOR>/<PACKAGE> prefix.[0m
+    [90mApplies optional color or modifier styling to the prefix.[0m
+    [90mOutput is written through <PRINTF> with <DEBUG_PREFIX> applied.[0m
+
+    [90musage:[0m
+    [90m  $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)[0m
+
+    [90mparameters:[0m
+    [90m	 message: string[0m
+    [90m	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
+
+    [90mreturns: void[0m
+
+ [35mapp[0m
+  [35madvanced[0m
+   [36mresolve_env[0m
+    [90mResolves the environment name from context.[0m
+    [90mDefaults to dev when ENV is not set.[0m
+
+    [90mThis paragraph only renders at vvv verbosity.[0m
+
+    [90musage:[0m
+    [90m  $(call resolve_env)[0m
+
+    [90mreturns: string[0m
+   [36mno_docs_fn                 [0m  [90mfunction without a documentation block[0m
+   [36mdocumented_and_described_fn[0m
+    [90mDocumentation block whose first sentence would be derived as a description[0m
+    [90mbut is overridden by the inline #~~ tag below.[0m
+   [36mundescribed_fn[0m
+   [36mverbose_described_fn       [0m  [90mdescribed function shown at verbosity >= 1 (via scope)[0m
+
+[35mAvailable commands:[0m
+  [36mroot-mk-command            [0m  [90mcommand from root test.mk auto-include[0m
+  [36mmake-makefile-command      [0m  [90mcommand from make/Makefile auto-include[0m
+  [36mmake-mk-command            [0m  [90mcommand from make/test.mk auto-include[0m
+  [36mconf-makefile-command      [0m  [90mcommand from conf/Makefile auto-include[0m
+  [36mconf-mk-command            [0m  [90mcommand from conf/test.mk auto-include[0m
+  [36mconf-make-makefile-command [0m  [90mcommand from conf/make/Makefile auto-include[0m
+  [36mconf-make-mk-command       [0m  [90mcommand from conf/make/test.mk auto-include[0m
+  [36mlocal-makefile-command     [0m  [90mcommand from .local/Makefile auto-include[0m
+  [36mlocal-make-makefile-command[0m  [90mcommand from .local/make/Makefile auto-include[0m
+  [36mlocal-make-mk-command      [0m  [90mcommand from .local/make/test.mk auto-include[0m
+ [35mbrnshkr[0m
+  [36mhelp                       [0m  [90mshow this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)[0m
+  [35mphpstan[0m
+   [36mphpstan                   [0m  [90mruns phpstan analyze[0m
+   [36mphpstan-debug             [0m  [90mruns phpstan analyze in debug mode[0m
+   [36mphpstan-raw               [0m  [90mruns phpstan analyze with raw output[0m
+   [36mphpstan-list              [0m  [90mlists all files that are processed by phpstan[0m
+  [35mphp-cs-fixer[0m
+   [36mphp-cs-fixer              [0m  [90mruns php-cs-fixer fix[0m
+   [36mphp-cs-fixer-debug        [0m  [90mdisplays used php-cs-fixer rules[0m
+   [36mphp-cs-fixer-dry-run      [0m  [90mruns php-cs-fixer fix in dry run mode[0m
+   [36mphp-cs-fixer-list         [0m  [90mlists all files that are processed by php-cs-fixer[0m
+  [35mrector[0m
+   [36mrector                    [0m  [90mruns rector process[0m
+   [36mrector-debug              [0m  [90mruns rector process in debug mode[0m
+   [36mrector-dry-run            [0m  [90mruns rector process in dry run mode[0m
+   [36mrector-list               [0m  [90mlists all files that are processed by rector[0m
+  [35mtwig-cs-fixer[0m
+   [36mtwig-cs-fixer             [0m  [90mruns twig-cs-fixer fix[0m
+   [36mtwig-cs-fixer-debug       [0m  [90mruns twig-cs-fixer in debug mode[0m
+   [36mtwig-cs-fixer-dry-run     [0m  [90mruns twig-cs-fixer in dry run mode[0m
+ [35mapp[0m
+  [35mcommands[0m
+   [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
+   [36mhidden-command            [0m  [90mshown at verbosity >= 1[0m
+   [36mmulti-a/multi-b           [0m  [90mmulti-target command (appears joined with /)[0m
+   [36mno-desc-command           [0m  [90m[0m
+  [35mverbose-group[0m
+   [36mverbose-command           [0m  [90mshown at verbosity >= 1[0m
+   [36mverbose-hidden-command    [0m  [90mshown at verbosity >= 2[0m
+  [35mvery-verbose-group[0m
+   [36mvery-verbose-command      [0m  [90mshown at verbosity >= 2[0m
+   [36mvery-hidden-command       [0m  [90mshown at verbosity >= 3 (scope v2 + entry v3 marker)[0m
+   [35mvery-verbose-sub[0m
+    [36mdeep-command             [0m  [90mdepth-2 subsection (inherits vv verbosity from parent scope)[0m
+    [35mdepth-three[0m
+     [36mdepth-three-command     [0m  [90mdepth-3 subsection[0m
+     [35mdepth-four[0m
+      [36mdepth-four-command     [0m  [90mdepth-4 subsection (arbitrary nesting depth)[0m
+  [35multra-verbose-group[0m
+   [36multra-verbose-command     [0m  [90mshown at verbosity >= 3[0m
+ [35mlocal[0m
+  [36mlocal-mk-command           [0m  [90mcommand from .local/test.mk auto-include[0m
+
+=== full: theme-symfony ===
+[33m   ___               __   __
+  / _ )_______  ____/ /  / /__ ____
+ / _  / __/ _ \(_--/ _ \/  ´_// __/
+/____/_/ /_//_/___/_//_/_/\_\/_/
+[0m
+[;4;32mConfig (0.0.1-beta.3)[0m
+
+[33mUsage:[0m
+  [0mmake[0m [0m<command> [--] [arguments][0m
+
+[33mDescription:[0m
+ [33mbrnshkr[0m
+  [0mMain Makefile of the brnshkr/config package[0m
+ [33mapp[0m
+  [0mApplication Makefile of the test fixture[0m
+  [0mCovers all make help AWK features for snapshot testing[0m
+  [0mshown at verbosity >= 2[0m
+ [33mlocal[0m
+  [0mLocal overrides for the test fixture[0m
+
+[33mVariables:[0m
+ [33mbrnshkr[0m
+  [33mtools[0m
+   [32mMAKE                      [0m  [0m?=  make                                        (path to make binary)[0m
+   [32mPRINTF                    [0m  [0m?=  printf                                      (path to printf binary)[0m
+   [32mAWK                       [0m  [0m?=  awk                                         (path to awk binary)[0m
+  [33mgeneral[0m
+   [32mPWD                       [0m  [0m?=  .                                           (current working directory)[0m
+   [32mSHELL                     [0m  [0m?=  /bin/sh                                     (shell to use)[0m
+   [32mVENDOR                    [0m  [0m?=  brnshkr                                     (vendor name)[0m
+   [32mPACKAGE                   [0m  [0m?=  config                                      (package name)[0m
+   [32mVERSION                   [0m  [0m?=  0.0.1-beta.3                                (package version)[0m
+   [32mDEBUG                     [0m  [0m?=                                              (whether debug mode is enabled)[0m
+   [32mDEBUG_PREFIX              [0m  [0m?=  $(if $(DEBUG),,@)                           (prefix for all commands)[0m
+   [32mBRNSHKR_CONFIG_ERROR_CODE [0m  [0m?=  69                                          (the error code for custom errors thrown by this Makefile)[0m
+  [33mphpstan[0m
+   [32mPHP_STAN                  [0m  [0m?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)[0m
+   [32mPHP_STAN_CONFIG           [0m  [0m?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)[0m
+   [32mPHP_STAN_FLAGS            [0m  [0m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to phpstan)[0m
+  [33mphp-cs-fixer[0m
+   [32mPHP_CS_FIXER              [0m  [0m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to php-cs-fixer binary)[0m
+   [32mPHP_CS_FIXER_CONFIG       [0m  [0m?=  $(PWD)/conf/php-cs-fixer.php                (path to php-cs-fixer config)[0m
+   [32mPHP_CS_FIXER_FLAGS        [0m  [0m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to php-cs-fixer)[0m
+  [33mrector[0m
+   [32mRECTOR                    [0m  [0m?=  $(PWD)/vendor/bin/rector                    (path to rector binary)[0m
+   [32mRECTOR_CONFIG             [0m  [0m?=  $(PWD)/conf/rector.php                      (path to rector config)[0m
+   [32mRECTOR_FLAGS              [0m  [0m?=  --memory-limit=-1                           (additional flags passed to rector)[0m
+  [33mtwig-cs-fixer[0m
+   [32mTWIG_CS_FIXER             [0m  [0m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)[0m
+   [32mTWIG_CS_FIXER_CONFIG      [0m  [0m?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)[0m
+   [32mTWIG_CS_FIXER_FLAGS       [0m  [0m?=  -v                                          (additional flags passed to twig-cs-fixer)[0m
+  [33mtheming[0m
+   [32mINDENT                    [0m  [0m?=  1                                           (indent used in `make help` output)[0m
+   [32mNO_ANSI                   [0m  [0m?=                                              (whether ANSI colors are enabled)[0m
+   [32mTHEME                     [0m  [0m?=                                              (the theme to use)[0m
+   [32mTHEME_BRNSHKR             [0m  [0m:=  brnshkr[0m
+   [32mTHEME_SYMFONY             [0m  [0m:=  symfony[0m
+   [32mEDITOR                    [0m  [0m?=                                              (the editor to use)[0m
+   [32mEDITOR_VSCODE             [0m  [0m:=  vscode[0m
+   [32mEDITOR_PHPSTORM           [0m  [0m:=  phpstorm[0m
+   [33mcolors[0m
+    [32mCOLOR_NORMAL             [0m  [0m:=  normal[0m
+    [32mCOLOR_BLACK              [0m  [0m:=  black[0m
+    [32mCOLOR_RED                [0m  [0m:=  red[0m
+    [32mCOLOR_GREEN              [0m  [0m:=  green[0m
+    [32mCOLOR_YELLOW             [0m  [0m:=  yellow[0m
+    [32mCOLOR_BLUE               [0m  [0m:=  blue[0m
+    [32mCOLOR_MAGENTA            [0m  [0m:=  magenta[0m
+    [32mCOLOR_CYAN               [0m  [0m:=  cyan[0m
+    [32mCOLOR_WHITE              [0m  [0m:=  white[0m
+    [32mCOLOR_PRIMARY            [0m  [0m?=  $(COLOR_GREEN)[0m
+    [32mCOLOR_SECONDARY          [0m  [0m?=  $(COLOR_YELLOW)[0m
+    [32mCOLOR_TERTIARY           [0m  [0m?=  $(COLOR_NORMAL)[0m
+    [32mCOLOR_ERROR              [0m  [0m?=  $(COLOR_RED)[0m
+    [32mCOLOR_WARNING            [0m  [0m?=  $(COLOR_YELLOW)[0m
+    [32mCOLOR_NOTICE             [0m  [0m?=  $(COLOR_CYAN)[0m
+    [32mCOLOR_LOGO               [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32mCOLOR_TITLE              [0m  [0m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
+    [32mCOLOR_USAGE_PROGRAM      [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32mCOLOR_USAGE_ARGUMENTS    [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32mCOLOR_SECTION_LABEL      [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32mCOLOR_COMMAND            [0m  [0m?=  $(COLOR_PRIMARY)[0m
+    [32mCOLOR_DESCRIPTION        [0m  [0m?=  $(COLOR_TERTIARY)[0m
+   [33mmodifiers[0m
+    [32mMODIFIER_NORMAL          [0m  [0m:=  normal[0m
+    [32mMODIFIER_UNDERLINE       [0m  [0m:=  underline[0m
+    [32mMODIFIER_BRIGHT          [0m  [0m:=  bright[0m
+    [32mMODIFIER_BOLD            [0m  [0m:=  bold[0m
+    [32mMODIFIER_REVERSE         [0m  [0m:=  reverse[0m
+  [33marguments[0m
+   [32mTARGET                    [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))[0m
+   [32mARG1                      [0m  [0m:=  $(word 2,$(MAKECMDGOALS))[0m
+   [32mARG2                      [0m  [0m:=  $(word 3,$(MAKECMDGOALS))[0m
+   [32mARG3                      [0m  [0m:=  $(word 4,$(MAKECMDGOALS))[0m
+   [32mARG4                      [0m  [0m:=  $(word 5,$(MAKECMDGOALS))[0m
+   [32mARG5                      [0m  [0m:=  $(word 6,$(MAKECMDGOALS))[0m
+   [32mARG6                      [0m  [0m:=  $(word 7,$(MAKECMDGOALS))[0m
+   [32mARG7                      [0m  [0m:=  $(word 8,$(MAKECMDGOALS))[0m
+   [32mARG8                      [0m  [0m:=  $(word 9,$(MAKECMDGOALS))[0m
+   [32mARG9                      [0m  [0m:=  $(word 10,$(MAKECMDGOALS))[0m
+   [32mARGS                      [0m  [0m =  $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))[0m
+ [33mapp[0m
+  [32mUPPER_MACRO                [0m  [0m:=  (macro)                                     (define-based macro variable)[0m
+  [32mVERBOSE_MACRO              [0m  [0m:=  (macro)                                     (macro variable shown at verbosity >= 2)[0m
+  [33mvariables[0m
+   [32mBASE_URL                  [0m  [0m?=  https://example.com                         (base URL for the application)[0m
+   [32mTIMEOUT                   [0m  [0m:=  30                                          (connection timeout in seconds)[0m
+   [32mRETRIES                   [0m  [0m+=  3                                           (retry count)[0m
+   [32mUNDESCRIBED               [0m  [0m?=  raw-value[0m
+   [32mCONTINUATION_VARIABLE     [0m  [0m?=  first second third                          (value assembled from continuation lines)[0m
+   [32mIFNDEF_VARIABLE           [0m  [0m?=  default-value                               (variable in ifndef block (operator always shown as ?=))[0m
+   [32mIFNDEF_MACRO_VARIABLE     [0m  [0m?=  (macro)                                     (macro variable inside ifndef shows ?= operator)[0m
+   [32mIFEQ_ELSE_VARIABLE        [0m  [0m:=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))[0m
+   [32mDEDUP_VARIABLE            [0m  [0m:=  branch-b                                    (deduplicated — first branch wins, this is dropped)[0m
+   [32mLANG_GREETING             [0m  [0m:=  Hello                                       (greeting selected by else-ifeq chain (default branch))[0m
+   [32mQUOTED_DOUBLE_VARIABLE    [0m  [0m:=  matched                                     (quoted condition form (double-quoted operands))[0m
+   [32mQUOTED_BRACE_VARIABLE     [0m  [0m:=  default                                     (quoted condition fallthrough (brace expansion form))[0m
+   [32mSEQUENTIAL_FIRST_VARIABLE [0m  [0m:=  beta                                        (first of two sequential ifeq blocks (default branch))[0m
+   [32mSEQUENTIAL_SECOND_VARIABLE[0m  [0m:=  delta                                       (second of two sequential ifeq blocks (default branch))[0m
+   [32mELSE_IFDEF_VARIABLE       [0m  [0m:=  from-else-branch                            (value from else-ifdef chain (default branch))[0m
+   [32mELSE_IFNDEF_VARIABLE      [0m  [0m:=  from-ifndef-branch                          (value from else-ifndef chain (primary branch))[0m
+   [32mNESTED_CALL_VARIABLE      [0m  [0m:=  nested-default                              (ifeq with $(call f) on lhs (default branch))[0m
+
+[33mFunctions:[0m
+ [33mbrnshkr[0m
+  [33mhelpers[0m
+   [32mtext[0m
+    [0mWraps a text string with ANSI color and modifier escape codes.[0m
+    [0mAutomatically resets terminal formatting after the text.[0m
+    [0mAccepts either explicit color + modifiers or a combined list.[0m
+
+    [0musage:[0m
+    [0m  $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)[0m
+
+    [0mparameters:[0m
+    [0m  text: string[0m
+    [0m  color: OneOf<normal | white | black | red | yellow | green | cyan | blue | magenta>[0m
+    [0m  modifiers?: AnyOf<normal | bold | underline | reverse | bright>[0m
+    [0m  color_and_or_modifiers?: @parameters.color & @parameters.modifiers[0m
+
+    [0mreturns: string[0m
+
+   [32mlog[0m
+    [0mEmits a formatted log message with <VENDOR>/<PACKAGE> prefix.[0m
+    [0mApplies optional color or modifier styling to the prefix.[0m
+    [0mOutput is written through <PRINTF> with <DEBUG_PREFIX> applied.[0m
+
+    [0musage:[0m
+    [0m  $(call text,text,color,?modifiers) | $(call text,text,color_and_or_modifiers)[0m
+
+    [0mparameters:[0m
+    [0m	 message: string[0m
+    [0m	 color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
+
+    [0mreturns: void[0m
+
+ [33mapp[0m
+  [33madvanced[0m
+   [32mresolve_env[0m
+    [0mResolves the environment name from context.[0m
+    [0mDefaults to dev when ENV is not set.[0m
+
+    [0mThis paragraph only renders at vvv verbosity.[0m
+
+    [0musage:[0m
+    [0m  $(call resolve_env)[0m
+
+    [0mreturns: string[0m
+   [32mno_docs_fn                 [0m  [0mfunction without a documentation block[0m
+   [32mdocumented_and_described_fn[0m
+    [0mDocumentation block whose first sentence would be derived as a description[0m
+    [0mbut is overridden by the inline #~~ tag below.[0m
+   [32mundescribed_fn[0m
+   [32mverbose_described_fn       [0m  [0mdescribed function shown at verbosity >= 1 (via scope)[0m
+
+[33mAvailable commands:[0m
+  [32mroot-mk-command            [0m  [0mcommand from root test.mk auto-include[0m
+  [32mmake-makefile-command      [0m  [0mcommand from make/Makefile auto-include[0m
+  [32mmake-mk-command            [0m  [0mcommand from make/test.mk auto-include[0m
+  [32mconf-makefile-command      [0m  [0mcommand from conf/Makefile auto-include[0m
+  [32mconf-mk-command            [0m  [0mcommand from conf/test.mk auto-include[0m
+  [32mconf-make-makefile-command [0m  [0mcommand from conf/make/Makefile auto-include[0m
+  [32mconf-make-mk-command       [0m  [0mcommand from conf/make/test.mk auto-include[0m
+  [32mlocal-makefile-command     [0m  [0mcommand from .local/Makefile auto-include[0m
+  [32mlocal-make-makefile-command[0m  [0mcommand from .local/make/Makefile auto-include[0m
+  [32mlocal-make-mk-command      [0m  [0mcommand from .local/make/test.mk auto-include[0m
+ [33mbrnshkr[0m
+  [32mhelp                       [0m  [0mshow this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)[0m
+  [33mphpstan[0m
+   [32mphpstan                   [0m  [0mruns phpstan analyze[0m
+   [32mphpstan-debug             [0m  [0mruns phpstan analyze in debug mode[0m
+   [32mphpstan-raw               [0m  [0mruns phpstan analyze with raw output[0m
+   [32mphpstan-list              [0m  [0mlists all files that are processed by phpstan[0m
+  [33mphp-cs-fixer[0m
+   [32mphp-cs-fixer              [0m  [0mruns php-cs-fixer fix[0m
+   [32mphp-cs-fixer-debug        [0m  [0mdisplays used php-cs-fixer rules[0m
+   [32mphp-cs-fixer-dry-run      [0m  [0mruns php-cs-fixer fix in dry run mode[0m
+   [32mphp-cs-fixer-list         [0m  [0mlists all files that are processed by php-cs-fixer[0m
+  [33mrector[0m
+   [32mrector                    [0m  [0mruns rector process[0m
+   [32mrector-debug              [0m  [0mruns rector process in debug mode[0m
+   [32mrector-dry-run            [0m  [0mruns rector process in dry run mode[0m
+   [32mrector-list               [0m  [0mlists all files that are processed by rector[0m
+  [33mtwig-cs-fixer[0m
+   [32mtwig-cs-fixer             [0m  [0mruns twig-cs-fixer fix[0m
+   [32mtwig-cs-fixer-debug       [0m  [0mruns twig-cs-fixer in debug mode[0m
+   [32mtwig-cs-fixer-dry-run     [0m  [0mruns twig-cs-fixer in dry run mode[0m
+ [33mapp[0m
+  [33mcommands[0m
+   [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m
+   [32mhidden-command            [0m  [0mshown at verbosity >= 1[0m
+   [32mmulti-a/multi-b           [0m  [0mmulti-target command (appears joined with /)[0m
+   [32mno-desc-command           [0m  [0m[0m
+  [33mverbose-group[0m
+   [32mverbose-command           [0m  [0mshown at verbosity >= 1[0m
+   [32mverbose-hidden-command    [0m  [0mshown at verbosity >= 2[0m
+  [33mvery-verbose-group[0m
+   [32mvery-verbose-command      [0m  [0mshown at verbosity >= 2[0m
+   [32mvery-hidden-command       [0m  [0mshown at verbosity >= 3 (scope v2 + entry v3 marker)[0m
+   [33mvery-verbose-sub[0m
+    [32mdeep-command             [0m  [0mdepth-2 subsection (inherits vv verbosity from parent scope)[0m
+    [33mdepth-three[0m
+     [32mdepth-three-command     [0m  [0mdepth-3 subsection[0m
+     [33mdepth-four[0m
+      [32mdepth-four-command     [0m  [0mdepth-4 subsection (arbitrary nesting depth)[0m
+  [33multra-verbose-group[0m
+   [32multra-verbose-command     [0m  [0mshown at verbosity >= 3[0m
+ [33mlocal[0m
+  [32mlocal-mk-command           [0m  [0mcommand from .local/test.mk auto-include[0m
+

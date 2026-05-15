@@ -62,7 +62,9 @@ final class ComposerJson
         'ext-xmlwriter',
         'pestphp/pest',
         'phpunit/phpunit',
+        'sebastian/diff',
         'spatie/phpunit-snapshot-assertions',
+        'symfony/process',
     ];
 
     public readonly string $lockFilePath;

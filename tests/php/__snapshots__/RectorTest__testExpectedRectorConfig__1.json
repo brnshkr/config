@@ -36,6 +36,7 @@
         "./src/php/Str.php",
         "./src/php/TwigCsFixer.php",
         "./tests/php/CommandTest.php",
+        "./tests/php/MakeHelpTest.php",
         "./tests/php/PhpCsFixerTest.php",
         "./tests/php/PhpStan/Rule/ApiOrInternalTagRuleTest.php",
         "./tests/php/PhpStan/Rule/BoolishPrefixRuleTest.php",
