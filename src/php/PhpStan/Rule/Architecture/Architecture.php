@@ -15,6 +15,24 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\InterfaceNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleApplicationIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ModuleDomainIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ValueObjectImmutableTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CastTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ChannelTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CommandTest as LaravelCommandTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ControllerTest as LaravelControllerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\EventTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\JobTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ListenerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\MiddlewareTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ModelTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\NotificationTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ObserverTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\PolicyTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\RequestTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ResourceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\RoleFoldersExhaustiveTest as LaravelRoleFoldersExhaustiveTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ScopeTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ServiceProviderTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ValidationRuleTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\ApplicationNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoApplicationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoInfrastructureTest;
@@ -346,6 +364,61 @@ final class Architecture
     }
 
     /**
+     * Build Laravel architecture rules.
+     *
+     * Creates framework-specific architecture tests for Laravel applications.
+     * Optionally supports modular Laravel structures by applying rules per module root.
+     *
+     * Generated rules validate conventions for:
+     *   - Controllers
+     *   - Models
+     *   - Requests
+     *   - Resources
+     *   - Middleware
+     *   - Policies
+     *   - Jobs
+     *   - Notifications
+     *   - Validation rules
+     *   - Commands
+     *   - Service providers
+     *   - Events
+     *   - Listeners
+     *   - Observers
+     *   - Channels
+     *   - Scopes
+     *   - Casts
+     *
+     * @example
+     * ```php
+     * $laravelDefault = Architecture::laravel('Acme');
+     * $laravelModular = Architecture::laravel('Acme', ['Blog', 'News']);
+     * ```
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param list<non-empty-string> $modules Optional module names
+     *
+     * @return non-empty-list<PhpAtService> Configured Laravel architecture rule services
+     *
+     * @throws InvalidArgumentException When namespaces or module names are invalid
+     */
+    public static function laravel(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    {
+        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $modules = self::normalizeModuleNames($modules);
+
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        return self::buildPresetServices(
+            $root,
+            $modules,
+            self::laravelBase(...),
+            static fn (string $module, string $moduleRoot, array $allModules): array => [
+                PhpStan::configurePhpAtTest(LaravelRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+            ],
+        );
+    }
+
      * @param non-empty-string $root
      *
      * @return non-empty-list<PhpAtService>
@@ -369,6 +442,34 @@ final class Architecture
             PhpStan::configurePhpAtTest(DataFixtureTest::class, ['root' => $root]),
             PhpStan::configurePhpAtTest(NormalizerTest::class, ['root' => $root]),
             PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => $root]),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $root
+     *
+     * @return non-empty-list<PhpAtService>
+     */
+    private static function laravelBase(string $root): array
+    {
+        return [
+            PhpStan::configurePhpAtTest(LaravelControllerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ModelTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(RequestTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ResourceTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(MiddlewareTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(PolicyTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(JobTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(NotificationTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ValidationRuleTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(LaravelCommandTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ServiceProviderTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(EventTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ListenerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ObserverTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ChannelTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ScopeTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(CastTest::class, ['root' => $root]),
         ];
     }
 
