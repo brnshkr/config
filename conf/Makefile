@@ -57,8 +57,7 @@
 #     VARIABLE ?= value#~~ description  —  annotate a variable with a description
 #     command: #~~ description          —  annotate a command with a description
 #
-#     Append 'v' characters after '#' to make the line itself require higher verbosity
-#     (also arbitrary depth):
+#     Append 'v' characters after '#' to make the line itself require higher verbosity (also arbitrary depth):
 #       command: #~~ description #v  —  hide the command entry unless verbosity >= 1
 #       VARIABLE ?= value#vv #~~ …   —  hide the variable entry unless verbosity >= 2
 #       VARIABLE ?= value#~~ … #vvv  —  hide the variable entry unless verbosity >= 3
@@ -89,6 +88,11 @@
 #     make help ls
 #     make help ls brnshkr
 #     make help ls brnshkr.theming app
+#
+#   Header overrides (LOGO, PACKAGE, VERSION, EDITOR):
+#     <VAR> = <unset>  —  fall back to the default (built-in logo, auto-detected editor)
+#     <VAR> = <value>  —  use the given value (EDITOR rejects values outside the supported list)
+#     <VAR> =          —  disable the feature (no logo, no clickable hyperlinks)
 #==
 
 #-- brnshkr
@@ -104,7 +108,7 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 	$(DEBUG_PREFIX)$(PRINTF) '%s' "$$_HELP_AWK" > /tmp/brnshkr_config_help.awk
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_PWD="$(abspath $(PWD))" \
-		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call text,$(call _escape_newlines,$(LOGO)),$(COLOR_LOGO))'),)" \
+		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call _color,$(COLOR_LOGO))$(subst $(_NEWLINE),\n,$(LOGO))$(_ANSI_RESET)__BRNSHKR_LOGO_END__'),)" \
 		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
@@ -212,11 +216,13 @@ _EDITOR_URL_PHPSTORM   := phpstorm://open?file=%s&line=%s
 ifneq ($(strip $(EDITOR)),)
 _EDITOR         = $(filter $(EDITOR),$(_EDITORS))
 _EDITOR_UNKNOWN = $(if $(_EDITOR),,$(EDITOR))
+else ifneq ($(filter environment command line,$(origin EDITOR)),)
+_EDITOR =
 else
 _EDITOR = $(or $(call _editor_from_env),$(call _editor_from_command),$(EDITOR_VSCODE))
 endif
 
-ifndef LOGO
+ifeq ($(origin LOGO),undefined)
 define LOGO
    ___               __   __
   / _ )_______  ____/ /  / /__ ____
@@ -1050,8 +1056,10 @@ END {
 		}
 		exit 0;
 	}
-	if (length(trim(ENVIRON["_HEADER_LOGO"])) > 0) printf "%s\n", trim(ENVIRON["_HEADER_LOGO"]);
-	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", trim(ENVIRON["_HEADER_TITLE"]);
+	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = "";
+	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
+	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset;
+	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"];
 	printf "%s\n", ENVIRON["_HEADER_USAGE"];
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx];
