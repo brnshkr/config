@@ -46,19 +46,22 @@
 #     #---- name    —  subsection (depth 2)
 #     #-----… name  —  subsection (depth N)
 #
-#     Append 'v' characters to set a minimum verbosity level for everything inside the scope:
-#       #---v name    —  contents hidden unless make help v   (verbosity ≥ 1)
-#       #---vv name   —  contents hidden unless make help vv  (verbosity ≥ 2)
-#       #---vvv name  —  contents hidden unless make help vvv (verbosity ≥ 3)
+#     Append 'v' characters to set a minimum verbosity level for everything inside the scope.
+#     Arbitrary depth is supported — each additional 'v' raises the threshold by one:
+#       #---v name    —  contents hidden unless verbosity >= 1
+#       #---vv name   —  contents hidden unless verbosity >= 2
+#       #---vvv name  —  contents hidden unless verbosity >= 3
+#       (and so on)
 #
 #   Inline description comments (attach metadata to a specific symbol):
 #     VARIABLE ?= value#~~ description  —  annotate a variable with a description
 #     command: #~~ description          —  annotate a command with a description
 #
-#     Append 'v' characters after '#' to make the line itself require higher verbosity:
-#       command: #~~ description #v  —  hide the command entry unless verbosity >=1
-#       VARIABLE ?= value#vv #~~ …   —  hide the variable entry unless verbosity ≥ 2
-#       VARIABLE ?= value#~~ … #vvv  —  hide the variable entry unless verbosity ≥ 3
+#     Append 'v' characters after '#' to make the line itself require higher verbosity
+#     (also arbitrary depth):
+#       command: #~~ description #v  —  hide the command entry unless verbosity >= 1
+#       VARIABLE ?= value#vv #~~ …   —  hide the variable entry unless verbosity >= 2
+#       VARIABLE ?= value#~~ … #vvv  —  hide the variable entry unless verbosity >= 3
 #
 #   Description block (shown at the top of the help output under "Description:"):
 #     #!! text  —  emit a free-form description line; multiple lines are supported
@@ -73,6 +76,13 @@
 #     make help brnshkr.phpstan
 #     make help brnshkr.phpstan brnshkr.rector
 #     make help brnshkr app.foo -- -v
+#
+#   Selecting verbosity at the command line (arbitrary depth):
+#     make help v       —  verbosity 1
+#     make help vvv     —  verbosity 3
+#     make help vvvv    —  verbosity 4
+#     make help -- -vv  —  verbosity 2 (alias form)
+#     make help V=10    —  verbosity 10 (numeric form via env var)
 #
 #   Listing all known scope dot-paths:
 #     make help list-scopes
@@ -654,14 +664,78 @@ endef
 define _HELP_AWK
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
-function strip_verbosity(text) { sub(/[ \t]*#v{1,3}([ \t]|$$)/, "", text); return text }
-function line_verbosity(verbosity_match) { if (!match($$0, /#v{1,3}([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); return length(verbosity_match) }
+function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
+function line_verbosity(verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
 function derive_description(documentation, line) {
 	match(documentation, /^[^\n]+/);
 	line = tolower(substr(documentation, RSTART, 1)) substr(documentation, RSTART + 1, RLENGTH - 1);
 	sub(/\.[[:space:]]*$$/, "", line);
 	return line;
+}
+function expand_make(expr, result, varname, previous) {
+	result = expr;
+	while (match(result, /\$$[({][A-Za-z0-9_]+[)}]/)) {
+		previous = result;
+		varname = substr(result, RSTART + 2, RLENGTH - 3);
+		result = substr(result, 1, RSTART - 1) (varname in ENVIRON ? ENVIRON[varname] : "") substr(result, RSTART + RLENGTH);
+		if (result == previous) break;
+	}
+	return result;
+}
+function eval_condition(line, varname) {
+	if (match(line, /^ifdef[ \t]+/)) {
+		varname = trim(substr(line, RLENGTH + 1));
+		return (varname in ENVIRON && ENVIRON[varname] != "");
+	}
+	if (line ~ /^ifndef[ \t]+/) return 1;
+	return eval_ifeq(line);
+}
+function eval_ifeq(line, op_eq, rest, depth, comma, i, c, arg1, arg2, quote) {
+	if (!match(line, /^ifn?eq[ \t]*/)) return 1;
+	op_eq = (substr(line, 1, 4) == "ifeq");
+	rest = substr(line, RLENGTH + 1);
+	if (substr(rest, 1, 1) == "\"" || substr(rest, 1, 1) == "'") {
+		quote = substr(rest, 1, 1);
+		if (!match(rest, "^" quote "[^" quote "]*" quote "[ \t]+" quote "[^" quote "]*" quote)) return 1;
+		i = index(substr(rest, 2), quote) + 1;
+		arg1 = expand_make(substr(rest, 2, i - 2));
+		rest = substr(rest, i + 1);
+		sub(/^[ \t]+/, "", rest);
+		i = index(substr(rest, 2), substr(rest, 1, 1)) + 1;
+		arg2 = expand_make(substr(rest, 2, i - 2));
+		return op_eq ? (arg1 == arg2) : (arg1 != arg2);
+	}
+	if (substr(rest, 1, 1) != "(") return 1;
+	for (i = 2; i <= length(rest); i++) {
+		c = substr(rest, i, 1);
+		if (c == "(") depth++;
+		else if (c == ")" && depth > 0) depth--;
+		else if (c == ")") break;
+		else if (c == "," && depth == 0 && !comma) comma = i;
+	}
+	arg1 = expand_make(trim(substr(rest, 2, comma - 2)));
+	arg2 = expand_make(trim(substr(rest, comma + 1, i - comma - 1)));
+	return op_eq ? (arg1 == arg2) : (arg1 != arg2);
+}
+function begin_condition(line) {
+	condition_depth++;
+	if (line ~ /^ifndef[ \t]/) is_in_ifndef = 1;
+	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1]);
+	condition_is_active[condition_depth]      = is_parent_active ? eval_condition(line) : 0;
+	condition_branch_matched[condition_depth] = condition_is_active[condition_depth];
+}
+function else_condition(line, else_rest) {
+	if (condition_depth == 0) return;
+	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1]);
+	else_rest = line; sub(/^else[ \t]*/, "", else_rest);
+	if (is_parent_active && else_rest ~ /^(ifeq|ifneq|ifdef|ifndef)[ \t]/) {
+		if (condition_branch_matched[condition_depth]) condition_is_active[condition_depth] = 0;
+		else {
+			condition_is_active[condition_depth] = eval_condition(else_rest);
+			if (condition_is_active[condition_depth]) condition_branch_matched[condition_depth] = 1;
+		}
+	} else if (is_parent_active) condition_is_active[condition_depth] = !condition_branch_matched[condition_depth];
 }
 function scope_matches(path, i, f) {
 	if (scope_filter_count == 0) return 1;
@@ -730,6 +804,7 @@ function resolve_scope(symbol_type, current) {
 function add(section, name, text, extra, description, line, current, idx) {
 	current = resolve_scope(section);
 	if (!current) return;
+	if (name != "" && seen_symbol[current, section, name]++) return;
 	idx = ++section_count[current, section];
 	section_name[current, section, idx] = name;
 	section_text[current, section, idx] = text;
@@ -854,15 +929,13 @@ function print_section(has_previous, section, label, column, top_idx, top_path, 
 	return found + 0;
 }
 BEGIN { seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0) }
-current_file != FILENAME { current_file = FILENAME; for (i in scope_at) delete scope_at[i]; scope_depth = 0; last_symbol_type = ""; is_in_define = 0; is_in_documentation = 0; condition_depth = 0 }
+current_file != FILENAME { current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = 0; last_symbol_type = ""; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
 is_in_define { next }
-/^(ifeq|ifneq)[[:space:]]/ { condition_depth += 1; next }
-/^else([[:space:]]|$$)/ { next }
-/^endif([[:space:]]|$$)/ { if (condition_depth > 0) { condition_depth -= 1; next } is_in_ifndef = 0; scope_depth = 0; last_symbol_type = ""; next }
-condition_depth > 0 { next }
-/^ifndef[[:space:]]/ { is_in_ifndef = 1; next }
-/^ifdef[[:space:]]/ { scope_depth = 0; last_symbol_type = ""; next }
+/^(ifeq|ifneq|ifdef|ifndef)[[:space:]]/ { begin_condition($$0); next }
+/^else([[:space:]]|$$)/ { else_condition($$0); next }
+/^endif([[:space:]]|$$)/ { if (condition_depth > 0) { condition_depth--; is_in_ifndef = 0 } next }
+condition_depth > 0 && !condition_is_active[condition_depth] { next }
 /^#-+/ { match($$0, /^#-+/); scope_dash_count = RLENGTH - 1; scope_suffix = substr($$0, RLENGTH + 1); match(scope_suffix, /^v*/); scope_verbosity_count = RLENGTH; push_scope(scope_dash_count - 2, trim(substr(scope_suffix, scope_verbosity_count + 1)), scope_verbosity_count); last_symbol_type = ""; next }
 /^#\*\*/ { is_in_documentation = 1; documentation_text = ""; next }
 is_in_documentation {
