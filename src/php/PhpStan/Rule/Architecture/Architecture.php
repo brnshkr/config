@@ -19,8 +19,26 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\ApplicationNoInfrastructure
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoApplicationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest as ModularModuleIsolatedTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\AuthenticatorTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\CommandTest as SymfonyCommandTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ControllerTest as SymfonyControllerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\DataFixtureTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\DependencyInjectionTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\EntityNoHttpFoundationTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\EventListenerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\FormTypeTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\MessageHandlerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\MessageTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\NormalizerTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\RepositoryTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\RoleFoldersExhaustiveTest as SymfonyRoleFoldersExhaustiveTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ServiceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\SubscriberTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigExtensionTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\VoterTest;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use Brnshkr\Config\Str;
+use Closure;
 use InvalidArgumentException;
 
 use function array_filter;
@@ -276,6 +294,129 @@ final class Architecture
     }
 
     /**
+     * Build Symfony architecture rules.
+     *
+     * Creates framework-specific architecture tests for Symfony applications.
+     * Optionally supports modular Symfony structures by applying rules per module root.
+     *
+     * Generated rules validate conventions for:
+     *   - Controllers
+     *   - Repositories
+     *   - Commands
+     *   - Voters
+     *   - Form types
+     *   - Subscribers
+     *   - Twig extensions
+     *   - Message handlers
+     *   - Services
+     *   - Event listeners
+     *   - Authenticators
+     *   - Fixtures
+     *   - Dependency injection
+     *
+     * @example
+     * ```php
+     * $symfonyDefault = Architecture::symfony('Acme');
+     * $symfonyModular = Architecture::symfony('Acme', modules: ['Blog', 'News']);
+     * ```
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param list<non-empty-string> $modules Optional module names
+     *
+     * @return non-empty-list<PhpAtService> Configured Symfony architecture rule services
+     *
+     * @throws InvalidArgumentException When namespaces or module names are invalid
+     */
+    public static function symfony(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    {
+        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $modules = self::normalizeModuleNames($modules);
+
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        return self::buildPresetServices(
+            $root,
+            $modules,
+            self::symfonyBase(...),
+            static fn (string $module, string $moduleRoot, array $allModules): array => [
+                PhpStan::configurePhpAtTest(SymfonyRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+            ],
+        );
+    }
+
+    /**
+     * @param non-empty-string $root
+     *
+     * @return non-empty-list<PhpAtService>
+     */
+    private static function symfonyBase(string $root): array
+    {
+        return [
+            PhpStan::configurePhpAtTest(SymfonyControllerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(RepositoryTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(SymfonyCommandTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(VoterTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(FormTypeTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(SubscriberTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(MessageTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ServiceTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(EventListenerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(AuthenticatorTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(DataFixtureTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(NormalizerTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => $root]),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $root
+     * @param list<non-empty-string> $modules
+     * @param Closure(non-empty-string $moduleRoot): non-empty-list<PhpAtService> $buildFlatRules
+     * @param Closure(non-empty-string $module, non-empty-string $moduleRoot, list<non-empty-string> $modules): list<PhpAtService> $buildPerModuleRules
+     *
+     * @return non-empty-list<PhpAtService>
+     */
+    private static function buildPresetServices(
+        string $root,
+        array $modules,
+        Closure $buildFlatRules,
+        Closure $buildPerModuleRules,
+    ): array {
+        if ($modules === []) {
+            return $buildFlatRules($root);
+        }
+
+        $services = [];
+
+        foreach ($modules as $module) {
+            $moduleRoot = self::getModuleRoot($root, $module);
+
+            $services = [
+                ...$services,
+                ...$buildFlatRules($moduleRoot),
+                ...$buildPerModuleRules($module, $moduleRoot, $modules),
+            ];
+        }
+
+        return $services;
+    }
+
+    /**
+     * @param non-empty-string $root
+     * @param non-empty-string $module
+     *
+     * @return non-empty-string
+     */
+    private static function getModuleRoot(string $root, string $module): string
+    {
+        return $root . '\\' . $module;
+    }
+
+    /**
      * @param list<string> $modules
      *
      * @return list<string>
@@ -290,10 +431,9 @@ final class Architecture
         $normalized = Str::trim($namespace);
         $normalized = Str::replace($normalized, '/', '\\');
 
-        do {
-            $previous   = $normalized;
+        while (Str::doesContain($normalized, '\\\\')) {
             $normalized = Str::replace($normalized, '\\\\', '\\');
-        } while ($normalized !== $previous);
+        }
 
         return Str::trim($normalized, '\\');
     }
