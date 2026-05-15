@@ -27,7 +27,7 @@ trait RuleTrait
     {
         $className = Str::afterLast(self::class, '\\');
 
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         $ruleName = lcfirst(preg_replace('/Rule$/', '', $className) ?: 'unknown');
 
         $identifier = sprintf(

@@ -36,19 +36,19 @@ final readonly class Str
 
     public static function length(string $string): int
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strlen($string);
     }
 
     public static function toLowerCase(string $string): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strtolower($string);
     }
 
     public static function doesStartWith(string $haystack, string $needle): bool
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_starts_with($haystack, $needle);
     }
 
@@ -65,7 +65,7 @@ final readonly class Str
 
     public static function doesEndWith(string $haystack, string $needle): bool
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_ends_with($haystack, $needle);
     }
 
@@ -76,7 +76,7 @@ final readonly class Str
     {
         $matches = [];
 
-        // @phpstan-ignore symplify.forbiddenFuncCall(Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall(Avoid using symfony/string here to keep package as lightweight as possible)
         $result = preg_match($pattern . 'u', $string, $matches, PREG_UNMATCHED_AS_NULL);
 
         return $result === false
@@ -86,19 +86,19 @@ final readonly class Str
 
     public static function doesContain(string $haystack, string $needle): bool
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_contains($haystack, $needle);
     }
 
     public static function replace(string $haystack, string $needle, string $replacement): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_replace($needle, $replacement, $haystack);
     }
 
     public static function afterLast(string $haystack, string $needle): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (See ->), symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (See ->), symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
     }
 
@@ -111,11 +111,11 @@ final readonly class Str
         string $mode = 'default',
     ): string {
         return match ($mode) {
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'start' => mb_ltrim($string, $characters),
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'end' => mb_rtrim($string, $characters),
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'default' => mb_trim($string, $characters),
         };
     }
