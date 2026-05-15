@@ -349,16 +349,16 @@ final class MakeHelpTest extends TestCase
 
         $differ = new Differ(new UnifiedDiffOutputBuilder('', false));
 
-        foreach ($outputGroups as $group) {
-            if ($group['representative'] === $baseScenario) {
+        foreach ($outputGroups as $outputGroup) {
+            if ($outputGroup['representative'] === $baseScenario) {
                 continue;
             }
 
-            $diff = $differ->diff($baseOutput, $group['output']);
+            $diff = $differ->diff($baseOutput, $outputGroup['output']);
 
-            $rendered .= Str::length($diff) < Str::length($group['output'])
-                ? sprintf("=== diff: %s ===\n%s\n", $group['representative'], $diff)
-                : sprintf("=== full: %s ===\n%s\n", $group['representative'], $group['output']);
+            $rendered .= Str::length($diff) < Str::length($outputGroup['output'])
+                ? sprintf("=== diff: %s ===\n%s\n", $outputGroup['representative'], $diff)
+                : sprintf("=== full: %s ===\n%s\n", $outputGroup['representative'], $outputGroup['output']);
         }
 
         return $rendered;
