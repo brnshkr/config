@@ -90,7 +90,7 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
-_MODIFIER_COLUMN_WIDTH := $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
+_MODIFIER_COLUMN_WIDTH := $(shell $(_PRINTF) '$(_MODIFIER_COLUMNS)' | $(_AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
@@ -101,7 +101,7 @@ _MODIFIER_COLUMN_WIDTH := $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 )
 
 _TABLE_COLORS        := $(filter-out $(COLOR_NORMAL),$(_COLORS))
-_COLOR_COLUMN_WIDTHS := $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
+_COLOR_COLUMN_WIDTHS := $(foreach COLOR,$(_TABLE_COLORS),$(shell $(_PRINTF) '$(COLOR)' | $(_AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
 	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s';

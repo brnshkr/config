@@ -116,6 +116,12 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 		$(AWK) -f /tmp/brnshkr_config_help.awk \
 		$(MAKEFILE_LIST)
 
+#--- tools
+
+_MAKE   = $(or $(MAKE),make)
+_AWK    = $(or $(AWK),awk)
+_PRINTF = $(or $(PRINTF),printf)
+
 #--- includes
 
 define _include_makefiles_in_directory
