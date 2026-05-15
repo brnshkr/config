@@ -57,6 +57,10 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ServiceTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\SubscriberTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigExtensionTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\VoterTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Tempest\ConsoleNoHttpTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Tempest\ModuleIsolatedTest as TempestModuleIsolatedTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Tempest\RoleFoldersExhaustiveTest as TempestRoleFoldersExhaustiveTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Tempest\RouteNoDatabaseTest;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use Brnshkr\Config\Str;
 use Closure;
@@ -476,6 +480,61 @@ final class Architecture
         );
     }
 
+    /**
+     * Build Tempest architecture rules.
+     *
+     * Creates Tempest-specific architecture tests validating:
+     *   - Routes do not access the database directly
+     *   - Console layer does not depend on HTTP layer
+     *   - Module isolation
+     *   - Role folder exhaustiveness
+     *
+     * Module isolation rules are only generated when at least two modules exist.
+     *
+     * @example
+     * ```php
+     * $tempestDefault = Architecture::tempest('Acme');
+     * $tempestModular = Architecture::tempest('Acme', modules: ['Blog', 'News']);
+     * ```
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param list<non-empty-string> $modules Optional module names
+     *
+     * @return non-empty-list<PhpAtService> Configured Tempest architecture rule services
+     *
+     * @throws InvalidArgumentException When namespaces or module names are invalid
+     */
+    public static function tempest(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    {
+        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $modules = self::normalizeModuleNames($modules);
+
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        return self::buildPresetServices(
+            $root,
+            $modules,
+            self::tempestBase(...),
+            static function (string $module, string $moduleRoot, array $allModules) use ($root): array {
+                $services = [
+                    PhpStan::configurePhpAtTest(TempestRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+                ];
+
+                if (count($allModules) >= 2) {
+                    $services[] = PhpStan::configurePhpAtTest(TempestModuleIsolatedTest::class, [
+                        'root'     => $root,
+                        'module'   => $module,
+                        'siblings' => self::findSiblingsOf($module, $allModules),
+                    ]);
+                }
+
+                return $services;
+            },
+        );
+    }
+
+    /**
      * @param non-empty-string $root
      *
      * @return non-empty-list<PhpAtService>
@@ -527,6 +586,19 @@ final class Architecture
             PhpStan::configurePhpAtTest(ChannelTest::class, ['root' => $root]),
             PhpStan::configurePhpAtTest(ScopeTest::class, ['root' => $root]),
             PhpStan::configurePhpAtTest(CastTest::class, ['root' => $root]),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $root
+     *
+     * @return non-empty-list<PhpAtService>
+     */
+    private static function tempestBase(string $root): array
+    {
+        return [
+            PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['root' => $root]),
         ];
     }
 
