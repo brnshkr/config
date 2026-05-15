@@ -18,6 +18,7 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ValueObjectImmutableTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\ApplicationNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoApplicationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoInfrastructureTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest as ModularModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use Brnshkr\Config\Str;
 use InvalidArgumentException;
@@ -225,6 +226,56 @@ final class Architecture
     }
 
     /**
+     * Build modular isolation rules.
+     *
+     * Creates architecture tests that ensure modules cannot depend on sibling modules.
+     * Each module namespace is generated from the provided pattern using the `{name}` placeholder.
+     *
+     * Requires at least two modules.
+     *
+     * @example
+     * ```php
+     * $modular = Architecture::modular(['Blog', 'News'], 'Acme\{name}');
+     * ```
+     *
+     * @param non-empty-list<non-empty-string> $modules Module names
+     * @param non-empty-string $pattern Namespace pattern containing the "{name}" placeholder
+     *
+     * @return non-empty-list<PhpAtService> Configured module isolation rule services
+     *
+     * @throws InvalidArgumentException When the pattern is invalid or module names are invalid
+     */
+    public static function modular(array $modules, string $pattern = self::DEFAULT_ROOT . '\{name}'): array
+    {
+        $pattern = self::normalizeNamespace($pattern);
+
+        if (!Str::doesContain($pattern, '{name}')) {
+            throw new InvalidArgumentException(sprintf(
+                'Modular architecture pattern "%s" must contain the "{name}" placeholder.',
+                $pattern,
+            ));
+        }
+
+        $modules = self::normalizeModuleNames($modules);
+
+        self::assertAtLeastTwoModules($modules);
+        self::assertNonEmptyModuleNames($modules);
+        self::assertUniqueModuleNames($modules);
+
+        return array_map(
+            static fn (string $module): array => PhpStan::configurePhpAtTest(ModularModuleIsolatedTest::class, [
+                'module'   => self::applyNamePlaceholder($pattern, $module),
+                'label'    => $module,
+                'siblings' => array_map(
+                    static fn (string $sibling): string => self::applyNamePlaceholder($pattern, $sibling),
+                    self::findSiblingsOf($module, $modules),
+                ),
+            ]),
+            $modules,
+        );
+    }
+
+    /**
      * @param list<string> $modules
      *
      * @return list<string>
@@ -276,6 +327,11 @@ final class Architecture
         return array_map(self::normalizeNamespace(...), $modules);
     }
 
+    private static function applyNamePlaceholder(string $pattern, string $name): string
+    {
+        return Str::replace($pattern, '{name}', $name);
+    }
+
     /**
      * @param list<string> $modules
      *
@@ -313,6 +369,23 @@ final class Architecture
             }
 
             $seen[$module] = true;
+        }
+    }
+
+    /**
+     * @param list<string> $modules
+     *
+     * @phpstan-assert non-empty-list<string> $modules
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertAtLeastTwoModules(array $modules): void
+    {
+        if (count($modules) < 2) {
+            throw new InvalidArgumentException(sprintf(
+                'At least 2 modules required for isolation rules; got %d.',
+                count($modules),
+            ));
         }
     }
 }
