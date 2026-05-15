@@ -209,10 +209,11 @@ _EDITOR_URL_VSCODE     := vscode://file/%s:%s
 _EDITOR_URL_VSCODE_WSL := vscode://vscode-remote/wsl+%s/%s:%s
 _EDITOR_URL_PHPSTORM   := phpstorm://open?file=%s&line=%s
 
-ifndef EDITOR
-_EDITOR = $(or $(call _editor_from_env),$(call _editor_from_command),$(EDITOR_VSCODE))
+ifneq ($(strip $(EDITOR)),)
+_EDITOR         = $(filter $(EDITOR),$(_EDITORS))
+_EDITOR_UNKNOWN = $(if $(_EDITOR),,$(EDITOR))
 else
-_EDITOR = $(if $(filter $(EDITOR),$(_EDITORS)),$(EDITOR),$(or $(call _editor_from_env),$(call _editor_from_command),$(EDITOR_VSCODE)))
+_EDITOR = $(or $(call _editor_from_env),$(call _editor_from_command),$(EDITOR_VSCODE))
 endif
 
 ifndef LOGO
@@ -995,6 +996,15 @@ is_in_documentation {
 	next;
 }
 END {
+	if (ENVIRON["_EDITOR_UNKNOWN"] != "") {
+		editor_count = split(ENVIRON["_EDITORS"], editor_names, " ");
+		editor_choices = "";
+		for (editor_idx = 1; editor_idx <= editor_count; editor_idx += 1)
+			editor_choices = editor_choices (editor_idx == 1 ? "" : "|") editor_names[editor_idx];
+		printf "$(call text,[$(VENDOR)/$(PACKAGE)],$(COLOR_ERROR)) Unknown editor \"$(call text,%s,$(COLOR_WARNING))\".\n", ENVIRON["_EDITOR_UNKNOWN"];
+		printf "$(call text,[$(VENDOR)/$(PACKAGE)],$(COLOR_NOTICE)) Run with \"$(call text,EDITOR=<%s>,$(MODIFIER_UNDERLINE))\" or \"$(call text,EDITOR=,$(MODIFIER_UNDERLINE))\" to disable.\n", editor_choices;
+		exit $(BRNSHKR_CONFIG_ERROR_CODE);
+	}
 	unknown_filter_count = 0;
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
 		filter = scope_filter[filter_idx];
@@ -1008,11 +1018,14 @@ END {
 		}
 	}
 	if (unknown_filter_count > 0) {
-		unknown_message = sprintf("$(call text,%s,$(COLOR_WARNING))", unknown_filters[1]);
-		for (filter_idx = 2; filter_idx <= unknown_filter_count; filter_idx += 1)
-			unknown_message = unknown_message ", " sprintf("$(call text,%s,$(COLOR_WARNING))", unknown_filters[filter_idx]);
+		unknown_message = "";
+		for (filter_idx = 1; filter_idx <= unknown_filter_count; filter_idx += 1) {
+			separator = (filter_idx == 1 ? "" : (filter_idx == unknown_filter_count ? " and " : ", "));
+			unknown_message = unknown_message separator sprintf("\"$(call text,%s,$(COLOR_WARNING))\"", unknown_filters[filter_idx]);
+		}
 		unknown_label = (unknown_filter_count == 1 ? "scope" : "scopes");
-		printf "$(call text,[$(VENDOR)/$(PACKAGE)],$(COLOR_ERROR)) Unknown %s: %s.\n", unknown_label, unknown_message;
+		printf "$(call text,[$(VENDOR)/$(PACKAGE)],$(COLOR_ERROR)) Unknown %s %s.\n", unknown_label, unknown_message;
+		printf "$(call text,[$(VENDOR)/$(PACKAGE)],$(COLOR_NOTICE)) Run \"$(call text,make help list-scopes,$(MODIFIER_UNDERLINE))\" or \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.\n";
 		exit $(BRNSHKR_CONFIG_ERROR_CODE);
 	}
 	if (ENVIRON["_LIST_SCOPES"]) {
