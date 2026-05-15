@@ -60,11 +60,20 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  *     tags?: list<string>,
  *     arguments?: array<array-key, mixed>,
  * }
- * @phpstan-type RuleService Service&array{
- *     tags?: self::TAG_RULE,
+ * @phpstan-type RuleService array{
+ *     class: class-string,
+ *     tags: self::TAG_RULE,
+ *     arguments?: array<array-key, mixed>,
  * }
- * @phpstan-type StaticThrowTypeExtensionService Service&array{
- *     tags?: self::TAG_STATIC_THROW_TYPE_EXTENSION,
+ * @phpstan-type StaticThrowTypeExtensionService array{
+ *     class: class-string,
+ *     tags: self::TAG_STATIC_THROW_TYPE_EXTENSION,
+ *     arguments?: array<array-key, mixed>,
+ * }
+ * @phpstan-type PhpAtService array{
+ *     class: class-string,
+ *     tags: self::TAG_PHP_AT_TEST,
+ *     arguments?: array<array-key, mixed>,
  * }
  * @phpstan-type Config array{
  *     includes: list<string>,
@@ -75,6 +84,7 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  */
 final class PhpStan
 {
+    private const array TAG_PHP_AT_TEST                 = ['phpat.test'];
     private const array TAG_RULE                        = ['phpstan.rules.rule'];
     private const array TAG_STATIC_THROW_TYPE_EXTENSION = ['phpstan.dynamicStaticMethodThrowTypeExtension'];
 
@@ -457,6 +467,21 @@ final class PhpStan
         return [
             'class'     => $class,
             'tags'      => self::TAG_STATIC_THROW_TYPE_EXTENSION,
+            'arguments' => $arguments,
+        ];
+    }
+
+    /**
+     * @param class-string $class
+     * @param array<array-key, mixed> $arguments
+     *
+     * @return PhpAtService
+     */
+    public static function configurePhpAtTest(string $class, array $arguments = []): array
+    {
+        return [
+            'class'     => $class,
+            'tags'      => self::TAG_PHP_AT_TEST,
             'arguments' => $arguments,
         ];
     }
