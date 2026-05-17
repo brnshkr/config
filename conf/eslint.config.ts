@@ -1,5 +1,6 @@
 import { getConfig } from '../src/js/eslint';
 import { log } from '../src/js/shared/utils/log';
+import { packageOrganization } from '../src/js/shared/utils/package-json';
 
 /* eslint-disable ts/no-unnecessary-condition -- Optional chaining is required here since some IDE runtimes _might_ still not define import.meta.env */
 const isInEditor = Boolean(import.meta.env?.['VSCODE_PID']
@@ -81,5 +82,16 @@ export default getConfig(undefined, {
   ],
   rules: {
     'import/max-dependencies': 'off',
+  },
+}, {
+  files: [
+    'README.md/**',
+  ],
+  rules: {
+    [<const>`${packageOrganization}/require-import-attributes`]: 'off',
+    'import/extensions': 'off',
+    'import/no-duplicates': 'off',
+    'import/order': 'off',
+    'import/no-unresolved': 'off',
   },
 });
