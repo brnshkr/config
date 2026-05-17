@@ -11,6 +11,7 @@
             "analyseAndScan": [
                 "./tests/php/Fixtures/Rule/ApiOrInternalTagRuleFixture.php",
                 "./tests/php/Fixtures/Rule/BoolishPrefixRuleFixture.php",
+                "./tests/php/Fixtures/Rule/InterfaceSuffixRuleFixture.php",
                 "./tests/php/Fixtures/Rule/Internal/InternalClass.php",
                 "./tests/php/Fixtures/Rule/Internal/ScopedInternalClass.php",
                 "./tests/php/Fixtures/Rule/InternalUsageRuleFixture.php",
@@ -69,6 +70,7 @@
     "rules": [
         "Brnshkr\\Config\\PhpStan\\Rule\\ApiOrInternalTagRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NoNamedArgumentsTagRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",

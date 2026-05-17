@@ -6,6 +6,7 @@ namespace Brnshkr\Config;
 
 use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
+use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\NoNamedArgumentsTagRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\GetConfigThrowTypeExtension;
@@ -183,6 +184,7 @@ final class PhpStan
             ->setRules([
                 ApiOrInternalTagRule::class,
                 BoolishPrefixRule::class,
+                InterfaceSuffixRule::class,
                 NoNamedArgumentsTagRule::class,
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallingNamespaces' => [
