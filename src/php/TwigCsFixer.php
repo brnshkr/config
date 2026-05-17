@@ -42,7 +42,7 @@ final readonly class TwigCsFixer
             ->removeRule(IncludeFunctionRule::class)
             ->addRule(new FileExtensionRule())
             ->addRule(new ValidConstantFunctionRule())
-            ->addRule(new FileNameRule(FileNameRule::KEBAB_CASE))
+            ->addRule(new FileNameRule(FileNameRule::KEBAB_CASE, optionalPrefix: '_'))
             ->addRule(new DirectoryNameRule(DirectoryNameRule::KEBAB_CASE))
             ->overrideRule(new NamedArgumentNameRule(NamedArgumentNameRule::CAMEL_CASE))
             ->overrideRule(new MacroArgumentNameRule(MacroArgumentNameRule::CAMEL_CASE))
