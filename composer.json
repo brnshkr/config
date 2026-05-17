@@ -107,7 +107,10 @@
   "autoload-dev": {
     "psr-4": {
       "Brnshkr\\Config\\Tests\\": "./tests/php/"
-    }
+    },
+    "classmap": [
+      "./tests/php/Fixtures/"
+    ]
   },
   "extra": {
     "class": "Brnshkr\\Config\\Composer\\Plugin"
