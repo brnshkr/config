@@ -21,7 +21,6 @@ use PhpParser\Node\Name;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassMemberReflection;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
@@ -47,15 +46,6 @@ final class InternalUsageRule implements Rule
     use RuleTrait;
 
     private const string AT_INTERNAL = '@internal';
-
-    private const string KIND_CLASS     = 'Class';
-    private const string KIND_CONSTANT  = 'Constant';
-    private const string KIND_ENUM      = 'Enum';
-    private const string KIND_FUNCTION  = 'Function';
-    private const string KIND_INTERFACE = 'Interface';
-    private const string KIND_METHOD    = 'Method';
-    private const string KIND_PROPERTY  = 'Property';
-    private const string KIND_TRAIT     = 'Trait';
 
     /**
      * @param ?list<string> $allowedInternalTargets
@@ -466,15 +456,5 @@ final class InternalUsageRule implements Rule
         $inputCasted = $input;
 
         return $inputCasted;
-    }
-
-    private static function getKindForClassReflection(ClassReflection $classReflection): string
-    {
-        return match (true) {
-            $classReflection->isEnum()      => self::KIND_ENUM,
-            $classReflection->isInterface() => self::KIND_INTERFACE,
-            $classReflection->isTrait()     => self::KIND_TRAIT,
-            default                         => self::KIND_CLASS,
-        };
     }
 }

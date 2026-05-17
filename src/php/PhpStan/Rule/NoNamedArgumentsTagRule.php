@@ -5,16 +5,11 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
-use Brnshkr\Config\Str;
 use Override;
 use PhpParser\Node;
-use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\Function_;
-use PhpParser\Node\Stmt\Interface_;
-use PhpParser\Node\Stmt\Trait_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
@@ -35,12 +30,6 @@ use function sprintf;
 final readonly class NoNamedArgumentsTagRule implements Rule
 {
     use RuleTrait;
-
-    private const string KIND_CLASS     = 'Class';
-    private const string KIND_ENUM      = 'Enum';
-    private const string KIND_FUNCTION  = 'Function';
-    private const string KIND_INTERFACE = 'Interface';
-    private const string KIND_TRAIT     = 'Trait';
 
     #[Override]
     public function getNodeType(): string
@@ -71,19 +60,13 @@ final readonly class NoNamedArgumentsTagRule implements Rule
      */
     private static function processClassLike(ClassLike $classLike): ?IdentifierRuleError
     {
-        if ($classLike instanceof Class_ && $classLike->isAnonymous()) {
+        if (self::isAnonymousClass($classLike) || !self::hasMethodsWithParameters($classLike)) {
             return null;
         }
 
-        if (!self::hasMethodsWithParameters($classLike)) {
-            return null;
-        }
+        $doc = $classLike->getDocComment();
 
-        if (self::hasInternalTag($classLike)) {
-            return null;
-        }
-
-        if (self::hasNoNamedArgumentsTag($classLike)) {
+        if (self::hasTag($doc, 'internal') || self::hasTag($doc, 'no-named-arguments')) {
             return null;
         }
 
@@ -92,19 +75,6 @@ final readonly class NoNamedArgumentsTagRule implements Rule
             self::getClassLikeName($classLike),
             $classLike->getStartLine(),
         );
-    }
-
-    /**
-     * @return self::KIND_*
-     */
-    private static function getKindForClassLike(ClassLike $classLike): string
-    {
-        return match (true) {
-            $classLike instanceof Enum_      => self::KIND_ENUM,
-            $classLike instanceof Interface_ => self::KIND_INTERFACE,
-            $classLike instanceof Trait_     => self::KIND_TRAIT,
-            default                          => self::KIND_CLASS,
-        };
     }
 
     private static function hasMethodsWithParameters(ClassLike $classLike): bool
@@ -124,29 +94,13 @@ final readonly class NoNamedArgumentsTagRule implements Rule
             return null;
         }
 
-        if (self::hasInternalTag($function)) {
+        $doc = $function->getDocComment();
+
+        if (self::hasTag($doc, 'internal') || self::hasTag($doc, 'no-named-arguments')) {
             return null;
         }
 
-        if (self::hasNoNamedArgumentsTag($function)) {
-            return null;
-        }
-
-        return self::buildError(
-            self::KIND_FUNCTION,
-            $function->name->toString(),
-            $function->getStartLine(),
-        );
-    }
-
-    private static function hasInternalTag(NodeAbstract $nodeAbstract): bool
-    {
-        return Str::match($nodeAbstract->getDocComment()?->getText() ?? '', '/\*\s+@internal\b/') !== [];
-    }
-
-    private static function hasNoNamedArgumentsTag(NodeAbstract $nodeAbstract): bool
-    {
-        return Str::match($nodeAbstract->getDocComment()?->getText() ?? '', '/\*\s+@no-named-arguments\b/') !== [];
+        return self::buildError(self::KIND_FUNCTION, $function->name->toString(), $function->getStartLine());
     }
 
     /**

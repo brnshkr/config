@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
-use Brnshkr\Config\Str;
 use Override;
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Const_ as ConstNode;
-use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Const_ as ConstStmt;
-use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\Function_;
-use PhpParser\Node\Stmt\Interface_;
-use PhpParser\Node\Stmt\Trait_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
@@ -37,13 +33,6 @@ use function sprintf;
 final readonly class ApiOrInternalTagRule implements Rule
 {
     use RuleTrait;
-
-    private const string KIND_CLASS     = 'Class';
-    private const string KIND_CONSTANT  = 'Constant';
-    private const string KIND_ENUM      = 'Enum';
-    private const string KIND_FUNCTION  = 'Function';
-    private const string KIND_INTERFACE = 'Interface';
-    private const string KIND_TRAIT     = 'Trait';
 
     #[Override]
     public function getNodeType(): string
@@ -73,26 +62,15 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processClassLike(ClassLike $classLike): ?IdentifierRuleError
     {
-        if ($classLike instanceof Class_ && $classLike->isAnonymous()) {
+        if (self::isAnonymousClass($classLike) || self::hasApiOrInternalTag($classLike->getDocComment())) {
             return null;
         }
 
-        return self::hasApiOrInternalTag($classLike)
-            ? null
-            : self::buildError(self::getKindForClassLike($classLike), self::getClassLikeName($classLike), $classLike->getStartLine());
-    }
-
-    /**
-     * @return self::KIND_*
-     */
-    private static function getKindForClassLike(ClassLike $classLike): string
-    {
-        return match (true) {
-            $classLike instanceof Enum_      => self::KIND_ENUM,
-            $classLike instanceof Interface_ => self::KIND_INTERFACE,
-            $classLike instanceof Trait_     => self::KIND_TRAIT,
-            default                          => self::KIND_CLASS,
-        };
+        return self::buildError(
+            self::getKindForClassLike($classLike),
+            self::getClassLikeName($classLike),
+            $classLike->getStartLine(),
+        );
     }
 
     /**
@@ -100,7 +78,7 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processFunction(Function_ $function): ?IdentifierRuleError
     {
-        return self::hasApiOrInternalTag($function)
+        return self::hasApiOrInternalTag($function->getDocComment())
             ? null
             : self::buildError(self::KIND_FUNCTION, $function->name->toString(), $function->getStartLine());
     }
@@ -112,7 +90,7 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processGlobalConst(ConstStmt $constStmt): array
     {
-        if (self::hasApiOrInternalTag($constStmt)) {
+        if (self::hasApiOrInternalTag($constStmt->getDocComment())) {
             return [];
         }
 
@@ -126,9 +104,13 @@ final readonly class ApiOrInternalTagRule implements Rule
         ));
     }
 
-    private static function hasApiOrInternalTag(NodeAbstract $nodeAbstract): bool
+    private static function hasApiOrInternalTag(?Doc $doc): bool
     {
-        return Str::match($nodeAbstract->getDocComment()?->getText() ?? '', '/\*\s+@(api|internal)\b/') !== [];
+        if (self::hasTag($doc, 'api')) {
+            return true;
+        }
+
+        return self::hasTag($doc, 'internal');
     }
 
     /**
