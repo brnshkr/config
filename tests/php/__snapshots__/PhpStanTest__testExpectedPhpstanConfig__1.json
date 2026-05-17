@@ -15,7 +15,8 @@
                 "./tests/php/Fixtures/Rule/Internal/InternalClass.php",
                 "./tests/php/Fixtures/Rule/Internal/ScopedInternalClass.php",
                 "./tests/php/Fixtures/Rule/InternalUsageRuleFixture.php",
-                "./tests/php/Fixtures/Rule/NoNamedArgumentsTagRuleFixture.php"
+                "./tests/php/Fixtures/Rule/NoNamedArgumentsTagRuleFixture.php",
+                "./tests/php/Fixtures/Rule/PublicApiDocumentationRuleFixture.php"
             ]
         },
         "tmpDir": ".cache/phpstan.cache",
@@ -72,6 +73,7 @@
         "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NoNamedArgumentsTagRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\PublicApiDocumentationRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\NoArrayMapWithArrayCallableRule",

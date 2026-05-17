@@ -9,6 +9,7 @@ use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\NoNamedArgumentsTagRule;
+use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\GetConfigThrowTypeExtension;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -117,14 +118,41 @@ final class PhpStan
     ) {}
 
     /**
+     * Build the project's baseline PHPStan configuration.
+     *
+     * Pre-configures level=max, strict exception checking, the package's own custom rules
+     * ({@see ApiOrInternalTagRule},
+     * {@see BoolishPrefixRule},
+     * {@see InterfaceSuffixRule},
+     * {@see InternalUsageRule},
+     * {@see NoNamedArgumentsTagRule}),
+     * the {@see GetConfigThrowTypeExtension} dynamic
+     * throw-type extension, and editor-URL handling. Conditionally enables strict rules,
+     * type-perfect and Symplify rules when their packages are installed.
+     *
+     * Returns the raw config array by default; pass `$asInstance: true` to get the builder
+     * instance for further chaining (used by `conf/phpstan.dist.php` to add architecture rules).
+     *
+     * // conf/phpstan.php — extend before returning
+     * return PhpStan::getConfig(null, true)
+     *     ->setArchitecture([...Architecture::laravel('Acme')])
+     *     ->toArray();
+     * ```
+     *
+     * @example
+     * ```php
+     * // conf/phpstan.php — plain config
+     * return PhpStan::getConfig();
+     *
      * @template TAsInstance of bool
      *
-     * @param TAsInstance $asInstance
+     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     * @param TAsInstance $asInstance When true return the builder, otherwise the config array
      *
-     * @return (TAsInstance is true ? self : Config)
+     * @return (TAsInstance is true ? self : Config) Builder instance or finalized config array
      *
-     * @throws DirectoryNotFoundException
-     * @throws RuntimeException
+     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
+     * @throws RuntimeException When a required optional PHPStan extension is missing
      */
     public static function getConfig(?Finder $finder = null, bool $asInstance = false): self|array
     {
@@ -186,6 +214,7 @@ final class PhpStan
                 BoolishPrefixRule::class,
                 InterfaceSuffixRule::class,
                 NoNamedArgumentsTagRule::class,
+                PublicApiDocumentationRule::class,
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallingNamespaces' => [
                         '/^Brnshkr\\\Config\\\Tests/',

@@ -151,6 +151,7 @@
         "./src/php/PhpStan/Rule/InterfaceSuffixRule.php",
         "./src/php/PhpStan/Rule/InternalUsageRule.php",
         "./src/php/PhpStan/Rule/NoNamedArgumentsTagRule.php",
+        "./src/php/PhpStan/Rule/PublicApiDocumentationRule.php",
         "./src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php",
         "./src/php/PhpStan/Rule/Trait/RuleTrait.php",
         "./src/php/PhpStan/ThrowTypeExtension/GetConfigThrowTypeExtension.php",
@@ -165,6 +166,7 @@
         "./tests/php/PhpStan/Rule/InterfaceSuffixRuleTest.php",
         "./tests/php/PhpStan/Rule/InternalUsageRuleTest.php",
         "./tests/php/PhpStan/Rule/NoNamedArgumentsTagRuleTest.php",
+        "./tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php",
         "./tests/php/PhpStanTest.php",
         "./tests/php/RectorTest.php",
         "./tests/php/TwigCsFixerTest.php"
