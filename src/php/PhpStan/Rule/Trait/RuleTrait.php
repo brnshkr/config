@@ -25,7 +25,7 @@ trait RuleTrait
      */
     private static function buildRuleError(string $message, int $line, bool $isIgnorable = true): IdentifierRuleError
     {
-        $className = Str::afterLast(self::class, '\\');
+        $className = Str::getClassShortName(self::class);
 
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         $ruleName = lcfirst(preg_replace('/Rule$/', '', $className) ?: 'unknown');

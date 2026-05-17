@@ -102,6 +102,13 @@ final readonly class Str
         return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
     }
 
+    public static function getClassShortName(string $fullyQualifiedClassName): string
+    {
+        $shortName = self::afterLast($fullyQualifiedClassName, '\\');
+
+        return $shortName !== '' ? $shortName : $fullyQualifiedClassName;
+    }
+
     /**
      * @param 'default'|'end'|'start' $mode
      */

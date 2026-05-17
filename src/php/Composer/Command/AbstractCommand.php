@@ -6,10 +6,10 @@ namespace Brnshkr\Config\Composer\Command;
 
 use Brnshkr\Config\Composer\Console;
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Str;
 use Composer\Command\BaseCommand;
 use Composer\Composer;
 use Override;
-use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -69,7 +69,7 @@ abstract class AbstractCommand extends BaseCommand
             [$packageOrganization, $packageName],
         ));
 
-        $kebabName = s($this->getName() ?: new ReflectionClass($this)->getShortName())
+        $kebabName = s($this->getName() ?: Str::getClassShortName($this::class))
             ->beforeLast('Command')
             ->snake()
             ->replace('_', '-')
