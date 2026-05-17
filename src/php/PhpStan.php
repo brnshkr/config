@@ -431,9 +431,9 @@ final class PhpStan
     /**
      * @param EditorUrl::EDITOR_* $editor
      */
-    public function setEditor(string $editor): self
+    public function setEditor(string $editor, ?string $currentWorkingDirectory = null): self
     {
-        return $this->setParameter('editorUrl', EditorUrl::forPhpStan($editor));
+        return $this->setParameter('editorUrl', EditorUrl::forPhpStan($editor, $currentWorkingDirectory));
     }
 
     /**

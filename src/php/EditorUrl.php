@@ -21,10 +21,10 @@ final readonly class EditorUrl
     public const string EDITOR_VSCODE   = 'vscode';
     public const string EDITOR_PHPSTORM = 'phpstorm';
 
-    private const string PLACEHOLDER_CWD        = '{{ cwd }}';
-    private const string PLACEHOLDER_FILE       = '{{ file }}';
-    private const string PLACEHOLDER_LINE       = '{{ line }}';
-    private const string PLACEHOLDER_WSL_DISTRO = '{{ wslDistro }}';
+    private const string PLACEHOLDER_CWD        = '{cwd}';
+    private const string PLACEHOLDER_FILE       = '{file}';
+    private const string PLACEHOLDER_LINE       = '{line}';
+    private const string PLACEHOLDER_WSL_DISTRO = '{wslDistro}';
 
     private const array EDITORS = [
         self::EDITOR_VSCODE => [
@@ -49,10 +49,10 @@ final readonly class EditorUrl
      *
      * @return (TEditor is null ? ?string : string)
      */
-    public static function forPhpStan(?string $editor = null): ?string
+    public static function forPhpStan(?string $editor = null, ?string $currentWorkingDirectory = null): ?string
     {
         return self::build($editor, [
-            'cwd'  => '%currentWorkingDirectory%',
+            'cwd'  => $currentWorkingDirectory ?? '%currentWorkingDirectory%',
             'file' => '%%relFile%%',
             'line' => '%%line%%',
         ]);
@@ -65,10 +65,10 @@ final readonly class EditorUrl
      *
      * @return (TEditor is null ? ?string : string)
      */
-    public static function forRector(?string $editor = null): ?string
+    public static function forRector(?string $editor = null, ?string $currentWorkingDirectory = null): ?string
     {
         return self::build($editor, [
-            'cwd'  => getcwd() ?: '.',
+            'cwd'  => ($currentWorkingDirectory ?? getcwd()) ?: '.',
             'file' => '%relFile%',
             'line' => '%line%',
         ]);
