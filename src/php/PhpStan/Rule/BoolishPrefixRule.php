@@ -34,6 +34,15 @@ use function is_string;
 use function sprintf;
 
 /**
+ * Requires boolean-typed symbols (variables, parameters, properties, class constants, methods
+ * returning `bool`) to start with one of the recognised boolish prefixes — see
+ * {@see self::BOOLISH_PREFIXES}.
+ *
+ * The aim is that boolean-ness is obvious from the name alone, without needing to inspect the
+ * type. Methods inherited from vendor interfaces/parents/traits are skipped since their names
+ * are not the project's to change; magic methods other than `__construct` are skipped because
+ * their names are fixed by the language.
+ *
  * @api
  *
  * @no-named-arguments
@@ -60,6 +69,9 @@ final readonly class BoolishPrefixRule implements Rule
         'can',
     ];
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getNodeType(): string
     {
@@ -67,6 +79,8 @@ final readonly class BoolishPrefixRule implements Rule
     }
 
     /**
+     * @internal invoked by PHPStan
+     *
      * @throws RuntimeException
      */
     #[Override]

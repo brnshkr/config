@@ -13,6 +13,17 @@ use PHPat\Test\Builder\BuildStep;
 use function sprintf;
 
 /**
+ * Enforce Laravel controller placement, base class and repository isolation.
+ *
+ * Classes named `*Controller` must live under `<root>\Http\Controllers`, must extend
+ * `Illuminate\Routing\Controller`, and may not depend on `<root>\Repositories\*` directly —
+ * controllers go through a service layer instead.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ControllerTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -22,7 +33,9 @@ final readonly class ControllerTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Doctrine data-fixture placement and base class.
+ *
+ * Classes extending `Doctrine\Bundle\FixturesBundle\Fixture` must live under `<root>\DataFixtures`,
+ * and every class in that folder must extend Fixture.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(DataFixtureTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class DataFixtureTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

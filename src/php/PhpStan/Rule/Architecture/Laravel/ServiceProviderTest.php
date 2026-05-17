@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel service provider placement and base class.
+ *
+ * Classes named `*ServiceProvider` must live under `<root>\Providers`, and every
+ * `*ServiceProvider` in that folder must extend `Illuminate\Support\ServiceProvider`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ServiceProviderTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class ServiceProviderTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

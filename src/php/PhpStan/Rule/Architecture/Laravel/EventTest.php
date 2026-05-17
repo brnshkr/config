@@ -12,6 +12,16 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Enforce Laravel event placement and immutability.
+ *
+ * Classes named `*Event` must live under `<root>\Events`, and every class in that folder
+ * must be `final` and `readonly` — events are sealed, immutable notifications.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(EventTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +31,9 @@ final readonly class EventTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel broadcasting channel placement and base class.
+ *
+ * Classes extending `Illuminate\Broadcasting\Channel` must live under `<root>\Broadcasting`,
+ * and every class in that folder must extend the base channel.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ChannelTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class ChannelTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

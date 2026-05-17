@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Symfony Security authenticator placement and contract.
+ *
+ * Classes named `*Authenticator` must live under `<root>\Security\Authenticator`, and every
+ * class in that folder must implement `Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(AuthenticatorTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class AuthenticatorTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

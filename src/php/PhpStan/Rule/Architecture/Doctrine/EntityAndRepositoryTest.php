@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Doctrine entity and repository placement conventions.
+ *
+ * Two checks:
+ *   - Classes carrying `#[Doctrine\ORM\Mapping\Entity]` must live under `<root>\Entity`.
+ *   - Classes under `<root>\Repository` ending in `Repository` must extend `Doctrine\ORM\EntityRepository`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class EntityAndRepositoryTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel form request placement and base class.
+ *
+ * Classes named `*Request` or extending `Illuminate\Foundation\Http\FormRequest` must live
+ * under `<root>\Http\Requests`, and every `*Request` in that folder must extend FormRequest.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(RequestTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class RequestTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

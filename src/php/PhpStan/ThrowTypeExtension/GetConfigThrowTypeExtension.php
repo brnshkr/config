@@ -22,12 +22,23 @@ use function count;
 use function in_array;
 
 /**
+ * Drops `InvalidArgumentException` from the inferred throw-type of {@see FileFinder::get()} and
+ * {@see FileFinder::getFilePaths()} when every passed extension is one of
+ * {@see FileFinder::EXTENSIONS}.
+ *
+ * The exception is only ever thrown for unsupported extensions, so call sites that pass a
+ * supported literal (e.g. `EXTENSION_PHP` or `EXTENSION_TWIG`) do not need to carry it in their
+ * own `@throws` signatures.
+ *
  * @api
  *
  * @no-named-arguments
  */
 final readonly class GetConfigThrowTypeExtension implements DynamicStaticMethodThrowTypeExtension
 {
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function isStaticMethodSupported(MethodReflection $methodReflection): bool
     {
@@ -35,6 +46,9 @@ final readonly class GetConfigThrowTypeExtension implements DynamicStaticMethodT
             && ($methodReflection->getName() === 'get' || $methodReflection->getName() === 'getFilePaths');
     }
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getThrowTypeFromStaticMethodCall(
         MethodReflection $methodReflection,

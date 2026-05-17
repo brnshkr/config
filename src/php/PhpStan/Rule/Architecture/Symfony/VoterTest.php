@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Symfony Security voter placement and base class.
+ *
+ * Classes named `*Voter` must live under `<root>\Security\Voter`, and every class in that
+ * folder must extend `Symfony\Component\Security\Core\Authorization\Voter\Voter`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(VoterTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class VoterTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,
@@ -40,8 +52,6 @@ final readonly class VoterTest
             'Security\Voter',
             'Voters',
         );
-
-
 
         yield self::buildMustExtendRule(
             Selector::inNamespace($this->root . '\Security\Voter'),

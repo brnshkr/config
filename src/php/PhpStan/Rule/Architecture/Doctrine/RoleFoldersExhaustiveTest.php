@@ -10,6 +10,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Require every top-level folder directly under `<root>` to match a known Doctrine role.
+ *
+ * Catches stray top-level folders (typos, ad-hoc additions, orphaned legacy directories)
+ * before they accumulate. Default whitelist covers the canonical Doctrine roles
+ * (`Entity`, `Repository`); override `$allowedFolders` to extend.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(RoleFoldersExhaustiveTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -24,8 +35,10 @@ final readonly class RoleFoldersExhaustiveTest
     ];
 
     /**
-     * @param non-empty-string $root
-     * @param non-empty-list<non-empty-string> $allowedFolders
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param non-empty-list<non-empty-string> $allowedFolders Whitelisted top-level folder names
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

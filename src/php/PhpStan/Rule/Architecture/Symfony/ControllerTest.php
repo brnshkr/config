@@ -10,6 +10,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Symfony controller placement and EntityManager isolation.
+ *
+ * Classes named `*Controller` must live under `<root>\Controller`, and controllers may not
+ * depend on `Doctrine\ORM\EntityManagerInterface` — use repositories or services instead.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ControllerTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -19,7 +29,9 @@ final readonly class ControllerTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

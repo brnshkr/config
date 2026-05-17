@@ -12,6 +12,17 @@ use PHPat\Test\Builder\BuildStep;
 use function sprintf;
 
 /**
+ * Enforce Symfony service layer isolation from HTTP and controllers.
+ *
+ * Two checks under `<root>\Service`:
+ *   - Services may not depend on `Symfony\Component\HttpFoundation` — services are HTTP-agnostic.
+ *   - Services may not depend on `<root>\Controller\*` — services are not called upward.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ServiceTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +32,9 @@ final readonly class ServiceTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

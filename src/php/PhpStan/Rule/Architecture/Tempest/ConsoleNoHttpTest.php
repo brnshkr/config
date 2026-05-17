@@ -11,6 +11,17 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Forbid Tempest console commands from depending on `Tempest\Http`.
+ *
+ * Classes under `<root>` annotated with `#[Tempest\Console\ConsoleCommand]` run outside the
+ * HTTP request lifecycle; touching HTTP types couples console workflows to a transport they
+ * never use.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,7 +29,9 @@ use PHPat\Test\PHPat;
 final readonly class ConsoleNoHttpTest
 {
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

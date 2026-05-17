@@ -10,6 +10,15 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel event listener placement.
+ *
+ * Classes named `*Listener` must live under `<root>\Listeners`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ListenerTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -19,7 +28,9 @@ final readonly class ListenerTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

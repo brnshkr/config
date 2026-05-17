@@ -14,6 +14,20 @@ use function array_map;
 use function sprintf;
 
 /**
+ * Forbid one Domain-layer module from depending on any of its sibling modules.
+ *
+ * Module isolation in the domain layer prevents cross-module entanglement at the model
+ * level; integration belongs in the application or interface layer.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
+ *     'domain'   => 'Acme\Domain',
+ *     'module'   => 'Blog',
+ *     'siblings' => ['News', 'Shop'],
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -23,9 +37,11 @@ final readonly class ModuleDomainIsolatedTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $domain
-     * @param non-empty-string $module
-     * @param list<non-empty-string> $siblings
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $domain Domain layer namespace
+     * @param non-empty-string $module The module being isolated
+     * @param list<non-empty-string> $siblings Sibling module names within the same Domain namespace
      */
     public function __construct(
         private string $domain,

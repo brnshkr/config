@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel queue job placement, contract and HTTP isolation.
+ *
+ * Classes named `*Job` or implementing `Illuminate\Contracts\Queue\ShouldQueue` must live
+ * under `<root>\Jobs`, every `*Job` in that folder must implement `ShouldQueue`, and jobs
+ * may not depend on `Illuminate\Http` — they run outside the HTTP request lifecycle.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(JobTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class JobTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

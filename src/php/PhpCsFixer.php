@@ -17,6 +17,13 @@ use function array_merge;
 Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
 
 /**
+ * Builds a ready-to-use PHP-CS-Fixer config that captures the @brnshkr coding-style decisions.
+ *
+ * Extends the `@PhpCsFixer` and `@PhpCsFixer:risky` presets with project-specific opinions
+ * around alignment, ordering, native-function invocation, and PHPDoc layout. When the optional
+ * `kubawerlos/php-cs-fixer-custom-fixers` package is installed, its fixers are layered on top
+ * automatically.
+ *
  * @api
  *
  * @no-named-arguments
@@ -26,8 +33,23 @@ final readonly class PhpCsFixer
     private function __construct() {}
 
     /**
-     * @throws DirectoryNotFoundException
-     * @throws RuntimeException
+     * Build a fully configured php-cs-fixer Config.
+     *
+     * Caller may pass a Finder to narrow scope (e.g. lint a single subdirectory); otherwise
+     * the project-wide {@see FileFinder} defaults apply.
+     *
+     * @example
+     * ```php
+     * // conf/php-cs-fixer.php
+     * return PhpCsFixer::getConfig();
+     * ```
+     *
+     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     *
+     * @return PhpCsFixerConfig Configured Config instance ready for php-cs-fixer
+     *
+     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
+     * @throws RuntimeException When required php-cs-fixer dependencies are missing
      */
     public static function getConfig(?Finder $finder = null): PhpCsFixerConfig
     {

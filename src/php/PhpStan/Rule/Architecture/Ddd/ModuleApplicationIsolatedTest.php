@@ -14,6 +14,20 @@ use function array_map;
 use function sprintf;
 
 /**
+ * Forbid one Application-layer module from depending on any of its sibling modules.
+ *
+ * Module isolation forces cross-module communication through explicit shared kernels or
+ * domain events; siblings stay independently replaceable.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
+ *     'application' => 'Acme\Application',
+ *     'module'      => 'Blog',
+ *     'siblings'    => ['News', 'Shop'],
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -23,9 +37,11 @@ final readonly class ModuleApplicationIsolatedTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $application
-     * @param non-empty-string $module
-     * @param list<non-empty-string> $siblings
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $application Application layer namespace
+     * @param non-empty-string $module The module being isolated
+     * @param list<non-empty-string> $siblings Sibling module names within the same Application namespace
      */
     public function __construct(
         private string $application,

@@ -14,6 +14,20 @@ use function array_map;
 use function sprintf;
 
 /**
+ * Forbid one Tempest module from depending on any of its sibling modules.
+ *
+ * Module isolation in Tempest's flat module layout: cross-module communication must go
+ * through explicit shared contracts rather than direct namespace coupling.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
+ *     'root'     => 'Acme',
+ *     'module'   => 'Blog',
+ *     'siblings' => ['News', 'Shop'],
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -23,9 +37,11 @@ final readonly class ModuleIsolatedTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
-     * @param non-empty-string $module
-     * @param list<non-empty-string> $siblings
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param non-empty-string $module The module being isolated (relative to `$root`)
+     * @param list<non-empty-string> $siblings Sibling module names (relative to `$root`)
      */
     public function __construct(
         private string $root,

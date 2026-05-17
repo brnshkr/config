@@ -24,6 +24,12 @@ use function array_map;
 Module::warnMissingPackages(Module::MODULE_RECTOR);
 
 /**
+ * Builds a ready-to-use Rector config that captures the @brnshkr refactoring decisions.
+ *
+ * The `#[\SensitiveParameter]` attribute rule is pre-wired to a list of parameter names commonly
+ * associated with secrets (e.g. `password`, `apiToken`, `clientSecret`, plus plural variants), so
+ * newly introduced sensitive parameters automatically get the attribute added.
+ *
  * @api
  *
  * @no-named-arguments
@@ -122,8 +128,24 @@ final readonly class Rector
     private function __construct() {}
 
     /**
-     * @throws DirectoryNotFoundException
-     * @throws RuntimeException
+     * Build a fully configured RectorConfigBuilder.
+     *
+     * Caller may pass a Finder to narrow paths under analysis; otherwise the project-wide
+     * {@see FileFinder} defaults apply. The returned builder can be further customised
+     * before being returned from `conf/rector.php`.
+     *
+     * @example
+     * ```php
+     * // conf/rector.php
+     * return Rector::getConfig()->withSkip([SomeOtherRule::class]);
+     * ```
+     *
+     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     *
+     * @return RectorConfigBuilder Configured builder ready for further customization or return
+     *
+     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
+     * @throws RuntimeException When required Rector dependencies are missing
      */
     public static function getConfig(?Finder $finder = null): RectorConfigBuilder
     {

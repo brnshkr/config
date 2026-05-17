@@ -9,6 +9,19 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Forbid the Domain layer from depending on the Application layer.
+ *
+ * Domain model expresses business invariants and must remain ignorant of use-case
+ * orchestration; the dependency arrow points inward, from Application into Domain.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(DomainNoApplicationTest::class, [
+ *     'domain'      => 'Acme\Domain',
+ *     'application' => 'Acme\Application',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,8 +31,10 @@ final readonly class DomainNoApplicationTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $domain
-     * @param non-empty-string $application
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $domain Domain layer namespace
+     * @param non-empty-string $application Application layer namespace
      */
     public function __construct(
         private string $domain,

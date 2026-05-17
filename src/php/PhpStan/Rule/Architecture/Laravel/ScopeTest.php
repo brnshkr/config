@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel Eloquent scope placement and contract.
+ *
+ * Classes implementing `Illuminate\Database\Eloquent\Scope` must live under `<root>\Scopes`,
+ * and every class in that folder must implement the contract.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ScopeTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class ScopeTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -12,6 +12,16 @@ use PHPat\Test\Builder\BuildStep;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
+ * Enforce Symfony event listener placement.
+ *
+ * Classes named `*Listener` or annotated with `#[AsEventListener]` must live under
+ * `<root>\EventListener`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(EventListenerTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +31,9 @@ final readonly class EventListenerTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel Eloquent model placement, base class and HTTP isolation.
+ *
+ * Classes extending `Illuminate\Database\Eloquent\Model` must live under `<root>\Models`,
+ * every class in that folder must extend the base model, and models may not depend on
+ * `Illuminate\Http` — models are persistence objects, not HTTP boundary types.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModelTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class ModelTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

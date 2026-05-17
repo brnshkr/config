@@ -10,6 +10,18 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Require all classes in the value-object namespace to be `final` and `readonly`.
+ *
+ * Value objects model identity-less domain concepts (Money, EmailAddress, Coordinate);
+ * structural equality plus immutability is the whole contract.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ValueObjectImmutableTest::class, [
+ *     'valueObject' => 'Acme\Domain\ValueObject',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -17,7 +29,9 @@ use PHPat\Test\PHPat;
 final readonly class ValueObjectImmutableTest
 {
     /**
-     * @param non-empty-string $valueObject
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $valueObject Namespace containing the project's value objects
      */
     public function __construct(
         private string $valueObject,

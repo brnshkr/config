@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Symfony form type placement and base class.
+ *
+ * Classes named `*Type` must live under `<root>\Form`, and every class in that folder must
+ * extend `Symfony\Component\Form\AbstractType`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(FormTypeTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class FormTypeTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

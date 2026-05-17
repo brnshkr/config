@@ -73,6 +73,18 @@ use function count;
 use function sprintf;
 
 /**
+ * Hands you a ready-made bundle of architecture rules for the layout your project already uses.
+ *
+ * Each public method returns a list of PHPat service definitions that can be passed straight to
+ * {@see PhpStan::setArchitecture()}. Presets cover the layered and DDD arrangements, flat
+ * modular layouts, and the standard framework folder conventions. Framework presets accept an
+ * optional `modules` list, in which case the rules are scoped per module-root and a
+ * `RoleFoldersExhaustiveTest` is added so stray top-level folders outside the canonical role
+ * names are flagged.
+ *
+ * Named arguments are explicitly allowed here because callers commonly pass `domain:`,
+ * `application:`, or `root:` by name for readability.
+ *
  * @api
  *
  * @phpstan-import-type PhpAtService from PhpStan

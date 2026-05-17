@@ -11,6 +11,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel validation rule placement and contract.
+ *
+ * Classes named `*Rule` or implementing `Illuminate\Contracts\Validation\ValidationRule`
+ * must live under `<root>\Rules`, and every `*Rule` in that folder must implement the contract.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ValidationRuleTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +30,9 @@ final readonly class ValidationRuleTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

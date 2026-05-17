@@ -10,6 +10,15 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel model observer placement.
+ *
+ * Classes named `*Observer` must live under `<root>\Observers`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ObserverTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -19,7 +28,9 @@ final readonly class ObserverTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

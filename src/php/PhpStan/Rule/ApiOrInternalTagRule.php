@@ -24,6 +24,12 @@ use function array_values;
 use function sprintf;
 
 /**
+ * Requires every top-level declaration to carry either an `@api` or an `@internal` tag.
+ *
+ * Applies to classes, traits, enums, interfaces, top-level functions, and global constants. The
+ * intent is to make the public surface of a package a deliberate decision rather than an accident
+ * of which symbols happened to be reachable. Anonymous classes are exempt.
+ *
  * @api
  *
  * @no-named-arguments
@@ -34,6 +40,9 @@ final readonly class ApiOrInternalTagRule implements Rule
 {
     use RuleTrait;
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getNodeType(): string
     {
@@ -41,6 +50,8 @@ final readonly class ApiOrInternalTagRule implements Rule
     }
 
     /**
+     * @internal invoked by PHPStan
+     *
      * @throws RuntimeException
      */
     #[Override]

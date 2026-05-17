@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel notification placement and base class.
+ *
+ * Classes named `*Notification` or extending `Illuminate\Notifications\Notification` must
+ * live under `<root>\Notifications`, and every `*Notification` in that folder must extend
+ * the base notification.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(NotificationTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class NotificationTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -35,6 +35,24 @@ use function is_string;
 use function sprintf;
 
 /**
+ * Reports calls into another package's `@internal` symbols.
+ *
+ * By default an `@internal` symbol may only be used from inside its own declaring namespace or
+ * any sub-namespace of it; calls from outside that subtree are flagged. The tag also accepts an
+ * optional FQCN or namespace argument (`@internal Acme\Foo`) that overrides the default target,
+ * useful when an internal symbol should be reachable from one specific namespace but no other.
+ *
+ * Three regex-based allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces`
+ * exempts callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring
+ * packages, and `allowedInternalTargets` exempts groups of symbols that share the same target.
+ *
+ * @example
+ * ```php
+ * PhpStan::configureRule(InternalUsageRule::class, [
+ *     'allowedCallingNamespaces' => ['/^Acme\\\\Tests/'],
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -48,9 +66,12 @@ final class InternalUsageRule implements Rule
     private const string AT_INTERNAL = '@internal';
 
     /**
-     * @param ?list<string> $allowedInternalTargets
-     * @param ?list<string> $allowedDeclaringNamespaces
-     * @param ?list<string> $allowedCallingNamespaces
+     * @internal invoked by PHPStan
+     *
+     * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
+     * @param ?list<string> $allowedInternalTargets Regex patterns matched against `@internal <target>` values to whitelist
+     * @param ?list<string> $allowedDeclaringNamespaces Regex patterns matched against the declaring namespace to whitelist
+     * @param ?list<string> $allowedCallingNamespaces Regex patterns matched against the caller's namespace to whitelist
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
@@ -80,6 +101,9 @@ final class InternalUsageRule implements Rule
         },
     ) {}
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getNodeType(): string
     {
@@ -87,6 +111,8 @@ final class InternalUsageRule implements Rule
     }
 
     /**
+     * @internal invoked by PHPStan
+     *
      * @throws RuntimeException
      */
     #[Override]

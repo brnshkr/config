@@ -21,6 +21,15 @@ use function array_filter;
 use function sprintf;
 
 /**
+ * Requires every public-facing declaration that exposes parameters to carry `@no-named-arguments`.
+ *
+ * PHP's named-argument syntax silently turns parameter names into part of the public contract —
+ * once a caller writes `someFunction(name: 'foo')`, the parameter cannot be renamed without
+ * breaking that caller. The tag keeps parameter names out of the contract, leaving them free to
+ * be renamed without a backwards-compatibility break.
+ *
+ * Symbols tagged `@internal` are exempt; anonymous classes are skipped.
+ *
  * @api
  *
  * @no-named-arguments
@@ -31,6 +40,9 @@ final readonly class NoNamedArgumentsTagRule implements Rule
 {
     use RuleTrait;
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getNodeType(): string
     {
@@ -38,6 +50,8 @@ final readonly class NoNamedArgumentsTagRule implements Rule
     }
 
     /**
+     * @internal invoked by PHPStan
+     *
      * @return list<IdentifierRuleError>
      *
      * @throws RuntimeException

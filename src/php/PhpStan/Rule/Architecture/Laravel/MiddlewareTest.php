@@ -10,6 +10,15 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel HTTP middleware placement.
+ *
+ * Classes named `*Middleware` must live under `<root>\Http\Middleware`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(MiddlewareTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -19,7 +28,9 @@ final readonly class MiddlewareTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

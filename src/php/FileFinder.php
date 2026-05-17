@@ -18,6 +18,13 @@ use function iterator_to_array;
 use function sprintf;
 
 /**
+ * Shared file-discovery helper that every tool config in this package delegates to.
+ *
+ * Excludes `vendor`, `node_modules`, `var`, `.cache`, `.local`, `config/reference.php`, and the
+ * `tests/**\/Fixtures` / `tests/**\/coverage` folders; filters by PHP and/or Twig extensions; and
+ * also picks up `bin/console` when PHP files are requested. Callers may pass a pre-configured
+ * Symfony Finder to narrow the scope further, otherwise the current working directory is scanned.
+ *
  * @api
  *
  * @no-named-arguments
@@ -28,7 +35,7 @@ final readonly class FileFinder
     public const string EXTENSION_TWIG = 'twig';
 
     /**
-     *  @phpstan-var list<self::EXTENSION_*>
+     * @phpstan-var list<self::EXTENSION_*>
      */
     public const array EXTENSIONS = [
         self::EXTENSION_PHP,
@@ -38,10 +45,25 @@ final readonly class FileFinder
     private function __construct() {}
 
     /**
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions
+     * Build a Finder filtered to the requested extensions with project-wide exclusions applied.
      *
-     * @throws DirectoryNotFoundException
-     * @throws InvalidArgumentException
+     * Reuses the caller's Finder when provided (calling `in('.')` if no source directory is set);
+     * otherwise constructs a new Finder rooted at the current working directory.
+     *
+     * @example
+     * ```php
+     * $phpFiles = FileFinder::get();
+     * $bothExt  = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scoped   = FileFinder::get(new Finder()->in('src'), FileFinder::EXTENSION_PHP);
+     * ```
+     *
+     * @param ?Finder $finder Pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions File extensions to include
+     *
+     * @return Finder Configured Finder ready for iteration
+     *
+     * @throws DirectoryNotFoundException When the resolved source directory does not exist
+     * @throws InvalidArgumentException When an extension outside {@see self::EXTENSIONS} is passed
      */
     public static function get(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): Finder
     {
@@ -97,12 +119,23 @@ final readonly class FileFinder
     }
 
     /**
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions
+     * Return matched file paths as a flat list of strings.
      *
-     * @return list<string>
+     * Convenience over {@see self::get()} for callers that only need the absolute paths,
+     * not the underlying SplFileInfo objects.
      *
-     * @throws DirectoryNotFoundException
-     * @throws InvalidArgumentException
+     * @example
+     * ```php
+     * $paths = FileFinder::getFilePaths(extensions: FileFinder::EXTENSION_PHP);
+     * ```
+     *
+     * @param ?Finder $finder Pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions File extensions to include
+     *
+     * @return list<string> Absolute paths to matched files
+     *
+     * @throws DirectoryNotFoundException When the resolved source directory does not exist
+     * @throws InvalidArgumentException When an extension outside {@see self::EXTENSIONS} is passed
      */
     public static function getFilePaths(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): array
     {

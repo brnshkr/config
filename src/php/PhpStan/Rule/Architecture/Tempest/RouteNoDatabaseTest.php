@@ -11,6 +11,17 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Forbid Tempest route handlers from depending on `Tempest\Database`.
+ *
+ * Classes under `<root>` carrying any of `#[Get]`, `#[Post]`, `#[Put]`, `#[Patch]`, `#[Delete]`
+ * must go through a service or repository layer rather than touching the database directly —
+ * keeps HTTP code separable from persistence concerns.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,7 +29,9 @@ use PHPat\Test\PHPat;
 final readonly class RouteNoDatabaseTest
 {
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -9,6 +9,19 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Forbid the Interface (presentation) layer from depending on the Domain layer directly.
+ *
+ * Controllers and other presentation classes must go through Application use cases rather
+ * than touching domain types directly — keeps domain refactors invisible to delivery code.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(InterfaceNoDomainTest::class, [
+ *     'interface' => 'Acme\Interface',
+ *     'domain'    => 'Acme\Domain',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,8 +31,10 @@ final readonly class InterfaceNoDomainTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $interface
-     * @param non-empty-string $domain
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $interface Interface (presentation) layer namespace
+     * @param non-empty-string $domain Domain layer namespace
      */
     public function __construct(
         private string $interface,

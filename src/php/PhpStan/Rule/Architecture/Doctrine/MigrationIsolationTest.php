@@ -11,6 +11,20 @@ use PHPat\Test\Builder\BuildStep;
 use function sprintf;
 
 /**
+ * Forbid Doctrine migrations from depending on application code.
+ *
+ * Migrations must be self-contained and replayable in isolation: referencing application
+ * classes ties past migrations to current code shape, breaking schema rebuilds when
+ * referenced classes are renamed or removed.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(MigrationIsolationTest::class, [
+ *     'root'                => 'Acme',
+ *     'migrationsNamespace' => 'DoctrineMigrations',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,8 +34,10 @@ final readonly class MigrationIsolationTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
-     * @param non-empty-string $migrationsNamespace
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace forbidden inside migrations
+     * @param non-empty-string $migrationsNamespace Namespace containing Doctrine migration classes
      */
     public function __construct(
         private string $root = 'App',

@@ -9,6 +9,19 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Forbid the Interface (presentation) layer from depending on the Infrastructure layer.
+ *
+ * Delivery code (controllers, CLI commands) must access infrastructure through Application
+ * use cases, never reach for repositories or external clients directly.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(InterfaceNoInfrastructureTest::class, [
+ *     'interface'      => 'Acme\Interface',
+ *     'infrastructure' => 'Acme\Infrastructure',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,8 +31,10 @@ final readonly class InterfaceNoInfrastructureTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $interface
-     * @param non-empty-string $infrastructure
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $interface Interface (presentation) layer namespace
+     * @param non-empty-string $infrastructure Infrastructure layer namespace
      */
     public function __construct(
         private string $interface,

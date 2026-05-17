@@ -12,6 +12,16 @@ use PHPat\Test\Builder\BuildStep;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
+ * Enforce Symfony event subscriber placement and contract.
+ *
+ * Classes named `*Subscriber` must live under `<root>\EventSubscriber`, and every class in
+ * that folder must implement `Symfony\Component\EventDispatcher\EventSubscriberInterface`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(SubscriberTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +31,9 @@ final readonly class SubscriberTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

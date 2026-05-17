@@ -10,6 +10,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Require every top-level folder directly under `<root>` to match a known Tempest role.
+ *
+ * Default whitelist covers the canonical Tempest folders (Console, Http, Model, Database).
+ * Override `$allowedFolders` to extend.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(RoleFoldersExhaustiveTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -26,8 +36,10 @@ final readonly class RoleFoldersExhaustiveTest
     ];
 
     /**
-     * @param non-empty-string $root
-     * @param non-empty-list<non-empty-string> $allowedFolders
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
+     * @param non-empty-list<non-empty-string> $allowedFolders Whitelisted top-level folder names
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

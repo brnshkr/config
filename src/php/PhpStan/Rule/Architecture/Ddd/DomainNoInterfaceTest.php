@@ -9,6 +9,19 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Forbid the Domain layer from depending on the Interface (presentation) layer.
+ *
+ * Domain logic must remain transport-agnostic: HTTP, CLI and other delivery mechanisms sit
+ * outside the inward-pointing dependency arrow.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(DomainNoInterfaceTest::class, [
+ *     'domain'    => 'Acme\Domain',
+ *     'interface' => 'Acme\Interface',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -18,8 +31,10 @@ final readonly class DomainNoInterfaceTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $domain
-     * @param non-empty-string $interface
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $domain Domain layer namespace
+     * @param non-empty-string $interface Interface (presentation) layer namespace
      */
     public function __construct(
         private string $domain,

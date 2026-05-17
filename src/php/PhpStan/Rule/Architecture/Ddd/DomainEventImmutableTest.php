@@ -10,6 +10,18 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Require all classes in the domain-event namespace to be `final` and `readonly`.
+ *
+ * Domain events represent sealed, immutable records of past occurrences; they must not be
+ * subclassable or mutable after construction.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(DomainEventImmutableTest::class, [
+ *     'domainEvent' => 'Acme\Domain\Event',
+ * ]);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -17,7 +29,9 @@ use PHPat\Test\PHPat;
 final readonly class DomainEventImmutableTest
 {
     /**
-     * @param non-empty-string $domainEvent
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $domainEvent Namespace containing the project's domain event classes
      */
     public function __construct(
         private string $domainEvent,

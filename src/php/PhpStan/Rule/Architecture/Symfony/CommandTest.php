@@ -12,6 +12,17 @@ use PHPat\Test\Builder\BuildStep;
 use Symfony\Component\Console\Command\Command;
 
 /**
+ * Enforce Symfony Console command placement, base class and HTTP isolation.
+ *
+ * Classes named `*Command` must live under `<root>\Command`, every class in that folder must
+ * extend `Symfony\Component\Console\Command\Command`, and commands may not depend on
+ * `Symfony\Component\HttpFoundation` — console commands run outside the HTTP lifecycle.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(CommandTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +32,9 @@ final readonly class CommandTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

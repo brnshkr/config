@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Laravel Eloquent cast placement and contract.
+ *
+ * Casts implementing `Illuminate\Contracts\Database\Eloquent\CastsAttributes` must live under
+ * `<root>\Casts`, and every class in that folder must implement the contract — guarantees the
+ * folder maps 1:1 to a single concept.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(CastTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class CastTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

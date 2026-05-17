@@ -10,6 +10,16 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Forbid Doctrine entities from depending on `Symfony\Component\HttpFoundation`.
+ *
+ * Entities are persistence-layer types; coupling them to HTTP request/response classes
+ * smuggles transport concerns into the model and breaks framework upgrades.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -19,7 +29,9 @@ final readonly class EntityNoHttpFoundationTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace containing the `Entity` folder
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -11,6 +11,17 @@ use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 
 /**
+ * Enforce Symfony Messenger handler placement and HTTP isolation.
+ *
+ * Classes named `*Handler` or annotated with `#[AsMessageHandler]` must live under
+ * `<root>\MessageHandler`, and handlers may not depend on `Symfony\Component\HttpFoundation` —
+ * handlers run outside the HTTP lifecycle (workers, schedulers, etc.).
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -20,7 +31,9 @@ final readonly class MessageHandlerTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

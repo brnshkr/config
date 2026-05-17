@@ -12,6 +12,19 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 /**
+ * Enforce Symfony DI bundle/extension conventions.
+ *
+ * Four checks under `<root>\DependencyInjection`:
+ *   - Classes named `*Extension` must extend `Symfony\Component\DependencyInjection\Extension\Extension`.
+ *   - Classes named `*Extension` must be `final`.
+ *   - Classes under `Compiler\` must implement `CompilerPassInterface`.
+ *   - The single `Configuration` class must implement `ConfigurationInterface`.
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => 'Acme']);
+ * ```
+ *
  * @api
  *
  * @no-named-arguments
@@ -21,7 +34,9 @@ final readonly class DependencyInjectionTest
     use ArchitectureRuleTrait;
 
     /**
-     * @param non-empty-string $root
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-string $root Root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,
