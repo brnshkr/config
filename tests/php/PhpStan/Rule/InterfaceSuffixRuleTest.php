@@ -22,9 +22,14 @@ final class InterfaceSuffixRuleTest extends RuleTestCase
 {
     public function testRule(): void
     {
-        $this->analyse([__DIR__ . '/../../Fixtures/Rule/InterfaceSuffixRuleFixture.php'], [
-            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'User', 'UserServiceInterface', 'UserService'), 61],
-            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'BadListener', 'EventSubscriberInterface', 'EventSubscriber'), 71],
+        $this->analyse([
+            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/PassingSuffix.php',
+            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/MismatchedSuffix.php',
+            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/NonSuffixInterface.php',
+            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/MultipleInterfaces.php',
+        ], [
+            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'User', 'UserServiceInterface', 'UserService'), 28],
+            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'BadListener', 'EventSubscriberInterface', 'EventSubscriber'), 38],
         ]);
     }
 

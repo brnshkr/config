@@ -30,15 +30,16 @@ final class InternalUsageRuleTest extends RuleTestCase
         $this->analyse([
             __DIR__ . '/../../Fixtures/Rule/Internal/InternalClass.php',
             __DIR__ . '/../../Fixtures/Rule/Internal/ScopedInternalClass.php',
-            __DIR__ . '/../../Fixtures/Rule/InternalUsageRuleFixture.php',
+            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeInternalClass.php',
+            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeScopedInternalClass.php',
         ], [
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 12],
-            [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::doSomething', $callerNamespace), 14],
-            [sprintf('Property `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::$value', $callerNamespace), 16],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 17],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 17],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 19],
-            [sprintf('Class `%s` is internal to `%s` and must not be used from `%s`.', $internalNamespace . '\ScopedInternalClass', 'Brnshkr\Config', $callerNamespace), 24],
+            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 11],
+            [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::doSomething', $callerNamespace), 13],
+            [sprintf('Property `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::$value', $callerNamespace), 15],
+            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 16],
+            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 16],
+            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 18],
+            [sprintf('Class `%s` is internal to `%s` and must not be used from `%s`.', $internalNamespace . '\ScopedInternalClass', 'Brnshkr\Config', $callerNamespace), 11],
         ]);
     }
 

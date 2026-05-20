@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace External\Consumer;
 
 use Brnshkr\Config\Tests\Fixtures\Rule\Internal\InternalClass;
-use Brnshkr\Config\Tests\Fixtures\Rule\Internal\ScopedInternalClass;
 
 function consumeInternalClass(): void
 {
@@ -17,9 +16,4 @@ function consumeInternalClass(): void
     $constant = InternalClass::SOME_CONSTANT;
 
     InternalClass::staticMethod();
-}
-
-function consumeScopedInternalClass(): void
-{
-    $object = new ScopedInternalClass();
 }

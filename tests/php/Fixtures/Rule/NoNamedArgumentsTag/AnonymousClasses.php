@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Brnshkr\Config\Tests\Fixtures\Rule\NoNamedArgumentsTag;
+
+$anonymousClass = new class {
+    public function anonymousMethod(): void {}
+};
+
+$anonymousClassWithParameters = new class {
+    public function anonymousMethod(string $argument): void {}
+};
