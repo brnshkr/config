@@ -689,7 +689,7 @@ final class Architecture
     {
         $normalized = self::normalizeNamespace($namespace);
 
-        if ($normalized === '') {
+        if (Str::isEmpty($normalized)) {
             throw new InvalidArgumentException(sprintf(
                 '"%s" namespace must not be empty.',
                 $paramName,
@@ -724,7 +724,7 @@ final class Architecture
     private static function assertNonEmptyModuleNames(array $modules): void
     {
         foreach ($modules as $index => $module) {
-            if ($module === '') {
+            if (Str::isEmpty($module)) {
                 throw new InvalidArgumentException(sprintf(
                     'Module name at index %d must not be empty.',
                     $index,

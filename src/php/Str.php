@@ -34,6 +34,14 @@ final readonly class Str
 {
     private function __construct() {}
 
+    /**
+     * @phpstan-assert-if-false non-empty-string $string
+     */
+    public static function isEmpty(string $string): bool
+    {
+        return $string === '';
+    }
+
     public static function length(string $string): int
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
@@ -106,7 +114,7 @@ final readonly class Str
     {
         $shortName = self::afterLast($fullyQualifiedClassName, '\\');
 
-        return $shortName !== '' ? $shortName : $fullyQualifiedClassName;
+        return self::isEmpty($shortName) ? $fullyQualifiedClassName : $shortName;
     }
 
     /**

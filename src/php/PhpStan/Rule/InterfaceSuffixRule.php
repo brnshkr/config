@@ -75,7 +75,7 @@ final readonly class InterfaceSuffixRule implements Rule
         $interfaceName = Str::getClassShortName($suffixed[0]->toString());
         $expected      = Str::match($interfaceName, '/^(.+)Interface$/')[1] ?? '';
 
-        if ($expected === '' || Str::doesEndWith($className, $expected)) {
+        if (Str::isEmpty($expected) || Str::doesEndWith($className, $expected)) {
             return [];
         }
 
