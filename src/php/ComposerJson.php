@@ -107,7 +107,13 @@ final class ComposerJson
      */
     private ?array $rawInstalledVersionData = null;
 
+    private static ?self $libraryInstance = null;
+
+    private static ?self $projectInstance = null;
+
     /**
+     * @param non-empty-string $path
+     *
      * @throws RuntimeException
      */
     private function __construct(
@@ -115,7 +121,7 @@ final class ComposerJson
     ) {
         $this->lockFilePath = pathinfo($path, PATHINFO_EXTENSION) === 'json'
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string since this class is shared by all modules and not all of them rely on it)
-            ? (preg_replace('/\.json$/', '.lock', $path) ?: '')
+            ? (preg_replace('/\.json$/', '.lock', $path) ?: $path . '.lock')
             : $path . '.lock';
     }
 
@@ -124,7 +130,7 @@ final class ComposerJson
      */
     public static function forThisLibrary(): self
     {
-        return new self(__DIR__ . '/../../composer.json');
+        return self::$libraryInstance ??= new self(__DIR__ . '/../../composer.json');
     }
 
     /**
@@ -138,47 +144,50 @@ final class ComposerJson
             default                                 => (string) getenv('COMPOSER'),
         });
 
-        if ($composer !== '' && is_dir($composer)) {
+        if (!Str::isEmpty($composer) && is_dir($composer)) {
             throw new RuntimeException(sprintf(
                 'The COMPOSER environment variable is set to "%s" which is a directory, this variable should point to a composer.json file or be left unset.',
                 $composer,
             ));
         }
 
-        $path = $composer === '' ? 'composer.json' : $composer;
+        $path = Str::isEmpty($composer) ? 'composer.json' : $composer;
 
         if ($path[0] !== '/') {
             $path = (getcwd() ?: '.') . '/' . $path;
         }
 
-        return new self($path);
+        return self::$projectInstance ??= new self($path);
     }
 
     /**
+     * @return ?non-empty-string
+     *
      * @throws RuntimeException
      */
     public function getPackageFullName(): ?string
     {
         $data = $this->read();
 
-        return isset($data['name']) && is_string($data['name'])
+        return isset($data['name']) && is_string($data['name']) && !Str::isEmpty($data['name'])
             ? $data['name']
             : null;
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws RuntimeException
      */
     public function getPackageName(): string
     {
-        $packageName = explode('/', $this->getPackageFullName() ?? '')[1] ?? null;
-
-        return is_string($packageName)
-            ? $packageName
-            : throw new RuntimeException('Failed to read package name from composer.json file.');
+        return (explode('/', $this->getPackageFullName() ?? '')[1] ?? '')
+            ?: throw new RuntimeException('Failed to read package name from composer.json file.');
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws RuntimeException
      */
     public function getPackageOrganization(): string
@@ -188,18 +197,22 @@ final class ComposerJson
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws RuntimeException
      */
     public function getPackageVersion(): string
     {
         $data = $this->read();
 
-        return isset($data['version']) && is_string($data['version'])
+        return isset($data['version']) && is_string($data['version']) && !Str::isEmpty($data['version'])
             ? $data['version']
             : throw new RuntimeException('Failed to read package version from composer.json file.');
     }
 
     /**
+     * @return ?non-empty-string
+     *
      * @throws RuntimeException
      */
     public function getFirstAutoloadDirectory(): ?string
@@ -215,13 +228,13 @@ final class ComposerJson
 
         $firstAutoloadDir = reset($data['autoload']['psr-4']);
 
-        return is_string($firstAutoloadDir)
+        return is_string($firstAutoloadDir) && !Str::isEmpty($firstAutoloadDir)
             ? $firstAutoloadDir
             : null;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<non-empty-string, non-empty-string>
      *
      * @throws RuntimeException
      */
@@ -230,11 +243,11 @@ final class ComposerJson
         $data = $this->read();
 
         /**
-         * @var array<string, string> $requires
+         * @var array<non-empty-string, non-empty-string> $requires
          */
         $requires = isset($data['require'])
             && is_array($data['require'])
-            && array_all($data['require'], static fn (mixed $key, mixed $value): bool => is_string($key) && is_string($value))
+            && array_all($data['require'], static fn (mixed $key, mixed $value): bool => is_string($key) && !Str::isEmpty($key) && is_string($value) && !Str::isEmpty($value))
             ? $data['require']
             : [];
 
@@ -251,11 +264,11 @@ final class ComposerJson
         $data = $this->read();
 
         /**
-         * @var array<string, string> $devRequires
+         * @var array<non-empty-string, non-empty-string> $devRequires
          */
         $devRequires = isset($data['require-dev'])
             && is_array($data['require-dev'])
-            && array_all($data['require-dev'], static fn (mixed $key, mixed $value): bool => is_string($key) && is_string($value))
+            && array_all($data['require-dev'], static fn (mixed $key, mixed $value): bool => is_string($key) && !Str::isEmpty($key) && is_string($value) && !Str::isEmpty($value))
             ? $data['require-dev']
             : [];
 
@@ -296,25 +309,32 @@ final class ComposerJson
             ));
         }
 
-        if (array_any($conflicts, static fn (mixed $package, mixed $version): bool => !is_string($package) || !is_string($version))) {
-            throw new RuntimeException('Expected conflicts to be an array of strings to strings.');
+        if (array_any($conflicts, static fn (mixed $package, mixed $version): bool => !is_string($package) || Str::isEmpty($package) || !is_string($version) || Str::isEmpty($version))) {
+            throw new RuntimeException('Expected conflicts to be an array of non-empty strings to non-empty strings.');
         }
 
         /**
-         * @var array<string, string> $conflictsCasted
+         * @var array<non-empty-string, non-empty-string> $conflictsCasted
          */
         $conflictsCasted = $conflicts;
 
         return array_map(
-            static fn (string $version): string => s($version)
-                ->replaceMatches('/(<|>=)/', static fn (array $matches): string => (isset($matches[0]) && $matches[0] === '<') ? '>=' : '<')
-                ->toString(),
+            static function (string $version): string {
+                $flipped = s($version)
+                    ->replaceMatches('/(<|>=)/', static fn (array $matches): string => (isset($matches[0]) && $matches[0] === '<') ? '>=' : '<')
+                    ->toString()
+                ;
+
+                return Str::isEmpty($flipped)
+                    ? throw new RuntimeException(sprintf('Flipped version constraint for "%s" is empty.', $version))
+                    : $flipped;
+            },
             $conflictsCasted,
         );
     }
 
     /**
-     * @return list<string>
+     * @return list<non-empty-string>
      *
      * @throws RuntimeException
      */
@@ -328,7 +348,10 @@ final class ComposerJson
             static fn (array $installed): bool => $installed['root']['name'] === $packageFullName,
         );
 
-        return array_keys($data['versions'] ?? []);
+        return array_values(array_filter(
+            array_keys($data['versions'] ?? []),
+            static fn (string $name): bool => !Str::isEmpty($name),
+        ));
     }
 
     /**
