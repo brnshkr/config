@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer\Command;
 
 use BadMethodCallException;
+use Brnshkr\Config\Str;
 use InvalidArgumentException;
 use LogicException;
 use Override;
@@ -72,7 +73,12 @@ final class ExtractPharCommand extends AbstractCommand
         $vendorDirectory = $cwd . '/vendor/' . $package;
         $targetDirectory = $this->getTargetDirectory() ?? ($vendorDirectory . '/.extracted-phar');
         $targetDirectory = Path::makeAbsolute($targetDirectory, $cwd);
-        $pharPath        = self::getPharPath($vendorDirectory);
+
+        if (Str::isEmpty($targetDirectory)) {
+            throw new RuntimeException('Resolved target directory is empty.');
+        }
+
+        $pharPath = self::getPharPath($vendorDirectory);
 
         $this->console->writeNotice(sprintf(
             'Extracting ./%s to ./%s',
@@ -86,14 +92,16 @@ final class ExtractPharCommand extends AbstractCommand
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws InvalidArgumentException
      */
     private function getPackage(): string
     {
         $package = $this->input->getArgument('package');
 
-        if (!is_string($package)) {
-            throw new InvalidArgumentException('Argument "package" must be a string.');
+        if (!is_string($package) || Str::isEmpty($package)) {
+            throw new InvalidArgumentException('Argument "package" must be a non-empty string.');
         }
 
         $packageParts = array_filter(explode('/', $package), boolval(...));
@@ -119,7 +127,7 @@ final class ExtractPharCommand extends AbstractCommand
                 throw new InvalidArgumentException('Option "target-directory" must be a string.');
             }
 
-            if ($targetDirectory === '') {
+            if (Str::isEmpty($targetDirectory)) {
                 throw new InvalidArgumentException('Option "target-directory" must not be empty.');
             }
         }
@@ -143,7 +151,7 @@ final class ExtractPharCommand extends AbstractCommand
 
         $phars = glob($vendorDirectory . '/*.phar');
 
-        if ($phars === false || $phars === [] || !is_file($phars[0])) {
+        if ($phars === false || $phars === [] || Str::isEmpty($phars[0]) || !is_file($phars[0])) {
             throw new RuntimeException(sprintf('No .phar binary found in "%s".', $vendorDirectory));
         }
 
