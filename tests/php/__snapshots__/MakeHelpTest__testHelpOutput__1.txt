@@ -266,7 +266,7 @@ Available commands:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -297,6 +297,7 @@ Available commands:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +  arguments
 +   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))
 +   ARG1                        :=  $(word 2,$(MAKECMDGOALS))
@@ -404,7 +405,7 @@ Available commands:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -435,6 +436,7 @@ Available commands:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +   modifiers
 +    MODIFIER_NORMAL            :=  normal
 +    MODIFIER_UNDERLINE         :=  underline
@@ -578,7 +580,7 @@ Available commands:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -609,6 +611,7 @@ Available commands:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +   modifiers
 +    MODIFIER_NORMAL            :=  normal
 +    MODIFIER_UNDERLINE         :=  underline
@@ -939,7 +942,7 @@ Variables:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -970,6 +973,7 @@ Variables:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +   modifiers
 +    MODIFIER_NORMAL            :=  normal
 +    MODIFIER_UNDERLINE         :=  underline
@@ -1123,7 +1127,7 @@ Variables:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -1154,6 +1158,7 @@ Variables:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +   modifiers
 +    MODIFIER_NORMAL            :=  normal
 +    MODIFIER_UNDERLINE         :=  underline
@@ -1309,7 +1314,7 @@ Variables:
     TWIG_CS_FIXER_CONFIG        ?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)
     TWIG_CS_FIXER_FLAGS         ?=  -v                                          (additional flags passed to twig-cs-fixer)
 +  theming
-+   INDENT                      ?=  1                                           (indent used in `make help` output)
++   INDENT                      ?=  1                                           (indent used in make help output)
 +   NO_ANSI                     ?=                                              (whether ANSI colors are enabled)
 +   THEME                       ?=                                              (the theme to use)
 +   THEME_BRNSHKR               :=  brnshkr
@@ -1340,6 +1345,7 @@ Variables:
 +    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
 +    COLOR_COMMAND              ?=  $(COLOR_PRIMARY)
 +    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
 +   modifiers
 +    MODIFIER_NORMAL            :=  normal
 +    MODIFIER_UNDERLINE         :=  underline
@@ -1556,10 +1562,10 @@ Variables:
 
 [35mDescription:[0m
  [35mbrnshkr[0m
-  [90mMain Makefile of the brnshkr/config package[0m
+  [90mMain Makefile of the [35mbrnshkr/config[0m[90m package[0m
  [35mapp[0m
   [90mApplication Makefile of the test fixture[0m
-  [90mCovers all make help AWK features for snapshot testing[0m
+  [90mCovers all make help [35mAWK[0m[90m features for snapshot testing[0m
   [90mshown at verbosity >= 2[0m
  [35mlocal[0m
   [90mLocal overrides for the test fixture[0m
@@ -1567,9 +1573,9 @@ Variables:
 [35mVariables:[0m
  [35mbrnshkr[0m
   [35mtools[0m
-   [36mMAKE                      [0m  [90m?=  make                                        (path to make binary)[0m
-   [36mPRINTF                    [0m  [90m?=  printf                                      (path to printf binary)[0m
-   [36mAWK                       [0m  [90m?=  awk                                         (path to awk binary)[0m
+   [36mMAKE                      [0m  [90m?=  make                                        (path to [35mmake[0m[90m binary)[0m
+   [36mPRINTF                    [0m  [90m?=  printf                                      (path to [35mprintf[0m[90m binary)[0m
+   [36mAWK                       [0m  [90m?=  awk                                         (path to [35mawk[0m[90m binary)[0m
   [35mgeneral[0m
    [36mPWD                       [0m  [90m?=  .                                           (current working directory)[0m
    [36mSHELL                     [0m  [90m?=  /bin/sh                                     (shell to use)[0m
@@ -1580,23 +1586,23 @@ Variables:
    [36mDEBUG_PREFIX              [0m  [90m?=  $(if $(DEBUG),,@)                           (prefix for all commands)[0m
    [36mBRNSHKR_CONFIG_ERROR_CODE [0m  [90m?=  69                                          (the error code for custom errors thrown by this Makefile)[0m
   [35mphpstan[0m
-   [36mPHP_STAN                  [0m  [90m?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)[0m
-   [36mPHP_STAN_CONFIG           [0m  [90m?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)[0m
-   [36mPHP_STAN_FLAGS            [0m  [90m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to phpstan)[0m
+   [36mPHP_STAN                  [0m  [90m?=  $(PWD)/vendor/bin/phpstan                   (path to [35mphpstan[0m[90m binary)[0m
+   [36mPHP_STAN_CONFIG           [0m  [90m?=  $(PWD)/conf/phpstan.php                     (path to [35mphpstan[0m[90m config)[0m
+   [36mPHP_STAN_FLAGS            [0m  [90m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to [35mphpstan[0m[90m)[0m
   [35mphp-cs-fixer[0m
-   [36mPHP_CS_FIXER              [0m  [90m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to php-cs-fixer binary)[0m
-   [36mPHP_CS_FIXER_CONFIG       [0m  [90m?=  $(PWD)/conf/php-cs-fixer.php                (path to php-cs-fixer config)[0m
-   [36mPHP_CS_FIXER_FLAGS        [0m  [90m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to php-cs-fixer)[0m
+   [36mPHP_CS_FIXER              [0m  [90m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to [35mphp-cs-fixer[0m[90m binary)[0m
+   [36mPHP_CS_FIXER_CONFIG       [0m  [90m?=  $(PWD)/conf/php-cs-fixer.php                (path to [35mphp-cs-fixer[0m[90m config)[0m
+   [36mPHP_CS_FIXER_FLAGS        [0m  [90m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to [35mphp-cs-fixer[0m[90m)[0m
   [35mrector[0m
-   [36mRECTOR                    [0m  [90m?=  $(PWD)/vendor/bin/rector                    (path to rector binary)[0m
-   [36mRECTOR_CONFIG             [0m  [90m?=  $(PWD)/conf/rector.php                      (path to rector config)[0m
-   [36mRECTOR_FLAGS              [0m  [90m?=  --memory-limit=-1                           (additional flags passed to rector)[0m
+   [36mRECTOR                    [0m  [90m?=  $(PWD)/vendor/bin/rector                    (path to [35mrector[0m[90m binary)[0m
+   [36mRECTOR_CONFIG             [0m  [90m?=  $(PWD)/conf/rector.php                      (path to [35mrector[0m[90m config)[0m
+   [36mRECTOR_FLAGS              [0m  [90m?=  --memory-limit=-1                           (additional flags passed to [35mrector[0m[90m)[0m
   [35mtwig-cs-fixer[0m
-   [36mTWIG_CS_FIXER             [0m  [90m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)[0m
-   [36mTWIG_CS_FIXER_CONFIG      [0m  [90m?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)[0m
-   [36mTWIG_CS_FIXER_FLAGS       [0m  [90m?=  -v                                          (additional flags passed to twig-cs-fixer)[0m
+   [36mTWIG_CS_FIXER             [0m  [90m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to [35mtwig-cs-fixer[0m[90m binary)[0m
+   [36mTWIG_CS_FIXER_CONFIG      [0m  [90m?=  $(PWD)/conf/twig-cs-fixer.php               (path to [35mtwig-cs-fixer[0m[90m config)[0m
+   [36mTWIG_CS_FIXER_FLAGS       [0m  [90m?=  -v                                          (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
   [35mtheming[0m
-   [36mINDENT                    [0m  [90m?=  1                                           (indent used in `make help` output)[0m
+   [36mINDENT                    [0m  [90m?=  1                                           (indent used in [35mmake help[0m[90m output)[0m
    [36mNO_ANSI                   [0m  [90m?=                                              (whether ANSI colors are enabled)[0m
    [36mTHEME                     [0m  [90m?=                                              (the theme to use)[0m
    [36mTHEME_BRNSHKR             [0m  [90m:=  brnshkr[0m
@@ -1627,6 +1633,7 @@ Variables:
     [36mCOLOR_SECTION_LABEL      [0m  [90m?=  $(COLOR_SECONDARY)[0m
     [36mCOLOR_COMMAND            [0m  [90m?=  $(COLOR_PRIMARY)[0m
     [36mCOLOR_DESCRIPTION        [0m  [90m?=  $(COLOR_TERTIARY)[0m
+    [36mCOLOR_INLINE_CODE        [0m  [90m?=  $(COLOR_SECONDARY)[0m
    [35mmodifiers[0m
     [36mMODIFIER_NORMAL          [0m  [90m:=  normal[0m
     [36mMODIFIER_UNDERLINE       [0m  [90m:=  underline[0m
@@ -1656,7 +1663,7 @@ Variables:
    [36mCONTINUATION_VARIABLE     [0m  [90m?=  first second third                          (value assembled from continuation lines)[0m
    [36mIFNDEF_VARIABLE           [0m  [90m?=  default-value                               (variable in ifndef block (operator always shown as ?=))[0m
    [36mIFNDEF_MACRO_VARIABLE     [0m  [90m?=  (macro)                                     (macro variable inside ifndef shows ?= operator)[0m
-   [36mIFEQ_ELSE_VARIABLE        [0m  [90m:=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))[0m
+   [36mIFEQ_ELSE_VARIABLE        [0m  [90m:=  else-value                                  (variable from else branch (dedup: [35mDEDUP_VARIABLE[0m[90m skipped here))[0m
    [36mDEDUP_VARIABLE            [0m  [90m:=  branch-b                                    (deduplicated — first branch wins, this is dropped)[0m
    [36mLANG_GREETING             [0m  [90m:=  Hello                                       (greeting selected by else-ifeq chain (default branch))[0m
    [36mQUOTED_DOUBLE_VARIABLE    [0m  [90m:=  matched                                     (quoted condition form (double-quoted operands))[0m
@@ -1706,7 +1713,7 @@ Variables:
     [90mResolves the environment name from context.[0m
     [90mDefaults to dev when ENV is not set.[0m
 
-    [90mThis paragraph only renders at vvv verbosity.[0m
+    [90mThis paragraph only renders at [35mvvv[0m[90m verbosity.[0m
 
     [90musage:[0m
     [90m  $(call resolve_env)[0m
@@ -1731,26 +1738,26 @@ Variables:
   [36mlocal-make-makefile-command[0m  [90mcommand from .local/make/Makefile auto-include[0m
   [36mlocal-make-mk-command      [0m  [90mcommand from .local/make/test.mk auto-include[0m
  [35mbrnshkr[0m
-  [36mhelp                       [0m  [90mshow this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)[0m
+  [36mhelp                       [0m  [90mshow this help (optionally with scope filters and higher verbosity: [35mv[0m[90m/[35mvv[0m[90m/[35mvvv[0m[90m | [35m-v[0m[90m/[35m-vv[0m[90m/[35m-vvv[0m[90m | [35mV=1[0m[90m/[35mV=2[0m[90m/[35mV=3[0m[90m)[0m
   [35mphpstan[0m
-   [36mphpstan                   [0m  [90mruns phpstan analyze[0m
-   [36mphpstan-debug             [0m  [90mruns phpstan analyze in debug mode[0m
-   [36mphpstan-raw               [0m  [90mruns phpstan analyze with raw output[0m
-   [36mphpstan-list              [0m  [90mlists all files that are processed by phpstan[0m
+   [36mphpstan                   [0m  [90mruns [35mphpstan analyze[0m[90m[0m
+   [36mphpstan-debug             [0m  [90mruns [35mphpstan analyze[0m[90m in debug mode[0m
+   [36mphpstan-raw               [0m  [90mruns [35mphpstan analyze[0m[90m with raw output[0m
+   [36mphpstan-list              [0m  [90mlists all files that are processed by [35mphpstan[0m[90m[0m
   [35mphp-cs-fixer[0m
-   [36mphp-cs-fixer              [0m  [90mruns php-cs-fixer fix[0m
-   [36mphp-cs-fixer-debug        [0m  [90mdisplays used php-cs-fixer rules[0m
-   [36mphp-cs-fixer-dry-run      [0m  [90mruns php-cs-fixer fix in dry run mode[0m
-   [36mphp-cs-fixer-list         [0m  [90mlists all files that are processed by php-cs-fixer[0m
+   [36mphp-cs-fixer              [0m  [90mruns [35mphp-cs-fixer fix[0m[90m[0m
+   [36mphp-cs-fixer-debug        [0m  [90mdisplays used [35mphp-cs-fixer[0m[90m rules[0m
+   [36mphp-cs-fixer-dry-run      [0m  [90mruns [35mphp-cs-fixer fix[0m[90m in dry run mode[0m
+   [36mphp-cs-fixer-list         [0m  [90mlists all files that are processed by [35mphp-cs-fixer[0m[90m[0m
   [35mrector[0m
-   [36mrector                    [0m  [90mruns rector process[0m
-   [36mrector-debug              [0m  [90mruns rector process in debug mode[0m
-   [36mrector-dry-run            [0m  [90mruns rector process in dry run mode[0m
-   [36mrector-list               [0m  [90mlists all files that are processed by rector[0m
+   [36mrector                    [0m  [90mruns [35mrector process[0m[90m[0m
+   [36mrector-debug              [0m  [90mruns [35mrector process[0m[90m in debug mode[0m
+   [36mrector-dry-run            [0m  [90mruns [35mrector process[0m[90m in dry run mode[0m
+   [36mrector-list               [0m  [90mlists all files that are processed by [35mrector[0m[90m[0m
   [35mtwig-cs-fixer[0m
-   [36mtwig-cs-fixer             [0m  [90mruns twig-cs-fixer fix[0m
-   [36mtwig-cs-fixer-debug       [0m  [90mruns twig-cs-fixer in debug mode[0m
-   [36mtwig-cs-fixer-dry-run     [0m  [90mruns twig-cs-fixer in dry run mode[0m
+   [36mtwig-cs-fixer             [0m  [90mruns [35mtwig-cs-fixer fix[0m[90m[0m
+   [36mtwig-cs-fixer-debug       [0m  [90mruns [35mtwig-cs-fixer[0m[90m in debug mode[0m
+   [36mtwig-cs-fixer-dry-run     [0m  [90mruns [35mtwig-cs-fixer[0m[90m in dry run mode[0m
  [35mapp[0m
   [35mcommands[0m
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
@@ -1787,10 +1794,10 @@ Variables:
 
 [33mDescription:[0m
  [33mbrnshkr[0m
-  [0mMain Makefile of the brnshkr/config package[0m
+  [0mMain Makefile of the [33mbrnshkr/config[0m[0m package[0m
  [33mapp[0m
   [0mApplication Makefile of the test fixture[0m
-  [0mCovers all make help AWK features for snapshot testing[0m
+  [0mCovers all make help [33mAWK[0m[0m features for snapshot testing[0m
   [0mshown at verbosity >= 2[0m
  [33mlocal[0m
   [0mLocal overrides for the test fixture[0m
@@ -1798,9 +1805,9 @@ Variables:
 [33mVariables:[0m
  [33mbrnshkr[0m
   [33mtools[0m
-   [32mMAKE                      [0m  [0m?=  make                                        (path to make binary)[0m
-   [32mPRINTF                    [0m  [0m?=  printf                                      (path to printf binary)[0m
-   [32mAWK                       [0m  [0m?=  awk                                         (path to awk binary)[0m
+   [32mMAKE                      [0m  [0m?=  make                                        (path to [33mmake[0m[0m binary)[0m
+   [32mPRINTF                    [0m  [0m?=  printf                                      (path to [33mprintf[0m[0m binary)[0m
+   [32mAWK                       [0m  [0m?=  awk                                         (path to [33mawk[0m[0m binary)[0m
   [33mgeneral[0m
    [32mPWD                       [0m  [0m?=  .                                           (current working directory)[0m
    [32mSHELL                     [0m  [0m?=  /bin/sh                                     (shell to use)[0m
@@ -1811,23 +1818,23 @@ Variables:
    [32mDEBUG_PREFIX              [0m  [0m?=  $(if $(DEBUG),,@)                           (prefix for all commands)[0m
    [32mBRNSHKR_CONFIG_ERROR_CODE [0m  [0m?=  69                                          (the error code for custom errors thrown by this Makefile)[0m
   [33mphpstan[0m
-   [32mPHP_STAN                  [0m  [0m?=  $(PWD)/vendor/bin/phpstan                   (path to phpstan binary)[0m
-   [32mPHP_STAN_CONFIG           [0m  [0m?=  $(PWD)/conf/phpstan.php                     (path to phpstan config)[0m
-   [32mPHP_STAN_FLAGS            [0m  [0m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to phpstan)[0m
+   [32mPHP_STAN                  [0m  [0m?=  $(PWD)/vendor/bin/phpstan                   (path to [33mphpstan[0m[0m binary)[0m
+   [32mPHP_STAN_CONFIG           [0m  [0m?=  $(PWD)/conf/phpstan.php                     (path to [33mphpstan[0m[0m config)[0m
+   [32mPHP_STAN_FLAGS            [0m  [0m?=  --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)   (additional flags passed to [33mphpstan[0m[0m)[0m
   [33mphp-cs-fixer[0m
-   [32mPHP_CS_FIXER              [0m  [0m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to php-cs-fixer binary)[0m
-   [32mPHP_CS_FIXER_CONFIG       [0m  [0m?=  $(PWD)/conf/php-cs-fixer.php                (path to php-cs-fixer config)[0m
-   [32mPHP_CS_FIXER_FLAGS        [0m  [0m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to php-cs-fixer)[0m
+   [32mPHP_CS_FIXER              [0m  [0m?=  $(PWD)/vendor/bin/php-cs-fixer              (path to [33mphp-cs-fixer[0m[0m binary)[0m
+   [32mPHP_CS_FIXER_CONFIG       [0m  [0m?=  $(PWD)/conf/php-cs-fixer.php                (path to [33mphp-cs-fixer[0m[0m config)[0m
+   [32mPHP_CS_FIXER_FLAGS        [0m  [0m?=  --show-progress=dots $(if $(DEBUG),-vvv,-v) (additional flags passed to [33mphp-cs-fixer[0m[0m)[0m
   [33mrector[0m
-   [32mRECTOR                    [0m  [0m?=  $(PWD)/vendor/bin/rector                    (path to rector binary)[0m
-   [32mRECTOR_CONFIG             [0m  [0m?=  $(PWD)/conf/rector.php                      (path to rector config)[0m
-   [32mRECTOR_FLAGS              [0m  [0m?=  --memory-limit=-1                           (additional flags passed to rector)[0m
+   [32mRECTOR                    [0m  [0m?=  $(PWD)/vendor/bin/rector                    (path to [33mrector[0m[0m binary)[0m
+   [32mRECTOR_CONFIG             [0m  [0m?=  $(PWD)/conf/rector.php                      (path to [33mrector[0m[0m config)[0m
+   [32mRECTOR_FLAGS              [0m  [0m?=  --memory-limit=-1                           (additional flags passed to [33mrector[0m[0m)[0m
   [33mtwig-cs-fixer[0m
-   [32mTWIG_CS_FIXER             [0m  [0m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to twig-cs-fixer binary)[0m
-   [32mTWIG_CS_FIXER_CONFIG      [0m  [0m?=  $(PWD)/conf/twig-cs-fixer.php               (path to twig-cs-fixer config)[0m
-   [32mTWIG_CS_FIXER_FLAGS       [0m  [0m?=  -v                                          (additional flags passed to twig-cs-fixer)[0m
+   [32mTWIG_CS_FIXER             [0m  [0m?=  $(PWD)/vendor/bin/twig-cs-fixer             (path to [33mtwig-cs-fixer[0m[0m binary)[0m
+   [32mTWIG_CS_FIXER_CONFIG      [0m  [0m?=  $(PWD)/conf/twig-cs-fixer.php               (path to [33mtwig-cs-fixer[0m[0m config)[0m
+   [32mTWIG_CS_FIXER_FLAGS       [0m  [0m?=  -v                                          (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
   [33mtheming[0m
-   [32mINDENT                    [0m  [0m?=  1                                           (indent used in `make help` output)[0m
+   [32mINDENT                    [0m  [0m?=  1                                           (indent used in [33mmake help[0m[0m output)[0m
    [32mNO_ANSI                   [0m  [0m?=                                              (whether ANSI colors are enabled)[0m
    [32mTHEME                     [0m  [0m?=                                              (the theme to use)[0m
    [32mTHEME_BRNSHKR             [0m  [0m:=  brnshkr[0m
@@ -1858,6 +1865,7 @@ Variables:
     [32mCOLOR_SECTION_LABEL      [0m  [0m?=  $(COLOR_SECONDARY)[0m
     [32mCOLOR_COMMAND            [0m  [0m?=  $(COLOR_PRIMARY)[0m
     [32mCOLOR_DESCRIPTION        [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32mCOLOR_INLINE_CODE        [0m  [0m?=  $(COLOR_SECONDARY)[0m
    [33mmodifiers[0m
     [32mMODIFIER_NORMAL          [0m  [0m:=  normal[0m
     [32mMODIFIER_UNDERLINE       [0m  [0m:=  underline[0m
@@ -1887,7 +1895,7 @@ Variables:
    [32mCONTINUATION_VARIABLE     [0m  [0m?=  first second third                          (value assembled from continuation lines)[0m
    [32mIFNDEF_VARIABLE           [0m  [0m?=  default-value                               (variable in ifndef block (operator always shown as ?=))[0m
    [32mIFNDEF_MACRO_VARIABLE     [0m  [0m?=  (macro)                                     (macro variable inside ifndef shows ?= operator)[0m
-   [32mIFEQ_ELSE_VARIABLE        [0m  [0m:=  else-value                                  (variable from else branch (dedup: DEDUP_VARIABLE skipped here))[0m
+   [32mIFEQ_ELSE_VARIABLE        [0m  [0m:=  else-value                                  (variable from else branch (dedup: [33mDEDUP_VARIABLE[0m[0m skipped here))[0m
    [32mDEDUP_VARIABLE            [0m  [0m:=  branch-b                                    (deduplicated — first branch wins, this is dropped)[0m
    [32mLANG_GREETING             [0m  [0m:=  Hello                                       (greeting selected by else-ifeq chain (default branch))[0m
    [32mQUOTED_DOUBLE_VARIABLE    [0m  [0m:=  matched                                     (quoted condition form (double-quoted operands))[0m
@@ -1937,7 +1945,7 @@ Variables:
     [0mResolves the environment name from context.[0m
     [0mDefaults to dev when ENV is not set.[0m
 
-    [0mThis paragraph only renders at vvv verbosity.[0m
+    [0mThis paragraph only renders at [33mvvv[0m[0m verbosity.[0m
 
     [0musage:[0m
     [0m  $(call resolve_env)[0m
@@ -1962,26 +1970,26 @@ Variables:
   [32mlocal-make-makefile-command[0m  [0mcommand from .local/make/Makefile auto-include[0m
   [32mlocal-make-mk-command      [0m  [0mcommand from .local/make/test.mk auto-include[0m
  [33mbrnshkr[0m
-  [32mhelp                       [0m  [0mshow this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)[0m
+  [32mhelp                       [0m  [0mshow this help (optionally with scope filters and higher verbosity: [33mv[0m[0m/[33mvv[0m[0m/[33mvvv[0m[0m | [33m-v[0m[0m/[33m-vv[0m[0m/[33m-vvv[0m[0m | [33mV=1[0m[0m/[33mV=2[0m[0m/[33mV=3[0m[0m)[0m
   [33mphpstan[0m
-   [32mphpstan                   [0m  [0mruns phpstan analyze[0m
-   [32mphpstan-debug             [0m  [0mruns phpstan analyze in debug mode[0m
-   [32mphpstan-raw               [0m  [0mruns phpstan analyze with raw output[0m
-   [32mphpstan-list              [0m  [0mlists all files that are processed by phpstan[0m
+   [32mphpstan                   [0m  [0mruns [33mphpstan analyze[0m[0m[0m
+   [32mphpstan-debug             [0m  [0mruns [33mphpstan analyze[0m[0m in debug mode[0m
+   [32mphpstan-raw               [0m  [0mruns [33mphpstan analyze[0m[0m with raw output[0m
+   [32mphpstan-list              [0m  [0mlists all files that are processed by [33mphpstan[0m[0m[0m
   [33mphp-cs-fixer[0m
-   [32mphp-cs-fixer              [0m  [0mruns php-cs-fixer fix[0m
-   [32mphp-cs-fixer-debug        [0m  [0mdisplays used php-cs-fixer rules[0m
-   [32mphp-cs-fixer-dry-run      [0m  [0mruns php-cs-fixer fix in dry run mode[0m
-   [32mphp-cs-fixer-list         [0m  [0mlists all files that are processed by php-cs-fixer[0m
+   [32mphp-cs-fixer              [0m  [0mruns [33mphp-cs-fixer fix[0m[0m[0m
+   [32mphp-cs-fixer-debug        [0m  [0mdisplays used [33mphp-cs-fixer[0m[0m rules[0m
+   [32mphp-cs-fixer-dry-run      [0m  [0mruns [33mphp-cs-fixer fix[0m[0m in dry run mode[0m
+   [32mphp-cs-fixer-list         [0m  [0mlists all files that are processed by [33mphp-cs-fixer[0m[0m[0m
   [33mrector[0m
-   [32mrector                    [0m  [0mruns rector process[0m
-   [32mrector-debug              [0m  [0mruns rector process in debug mode[0m
-   [32mrector-dry-run            [0m  [0mruns rector process in dry run mode[0m
-   [32mrector-list               [0m  [0mlists all files that are processed by rector[0m
+   [32mrector                    [0m  [0mruns [33mrector process[0m[0m[0m
+   [32mrector-debug              [0m  [0mruns [33mrector process[0m[0m in debug mode[0m
+   [32mrector-dry-run            [0m  [0mruns [33mrector process[0m[0m in dry run mode[0m
+   [32mrector-list               [0m  [0mlists all files that are processed by [33mrector[0m[0m[0m
   [33mtwig-cs-fixer[0m
-   [32mtwig-cs-fixer             [0m  [0mruns twig-cs-fixer fix[0m
-   [32mtwig-cs-fixer-debug       [0m  [0mruns twig-cs-fixer in debug mode[0m
-   [32mtwig-cs-fixer-dry-run     [0m  [0mruns twig-cs-fixer in dry run mode[0m
+   [32mtwig-cs-fixer             [0m  [0mruns [33mtwig-cs-fixer fix[0m[0m[0m
+   [32mtwig-cs-fixer-debug       [0m  [0mruns [33mtwig-cs-fixer[0m[0m in debug mode[0m
+   [32mtwig-cs-fixer-dry-run     [0m  [0mruns [33mtwig-cs-fixer[0m[0m in dry run mode[0m
  [33mapp[0m
   [33mcommands[0m
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m

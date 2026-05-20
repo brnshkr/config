@@ -97,14 +97,14 @@
 
 #-- brnshkr
 
-#!! Main Makefile of the brnshkr/config package
+#!! Main Makefile of the `brnshkr/config` package
 
 _HELP_VERBOSITY_ARGS = $(shell $(_AWK) -v args="$(ARGS)" 'BEGIN { n = split(args, words, " "); for (i = 1; i <= n; i++) if (words[i] ~ /^-?v+$$/) printf "%s ", words[i] }')
 _HELP_RESERVED_ARGS  = -- list-scopes ls $(_HELP_VERBOSITY_ARGS)
 _HELP_SCOPES         = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(ARGS)))
 _HELP_LIST_SCOPES    = $(if $(filter list-scopes ls,$(ARGS)),1)
 
-help: #~~ show this help (optionally with scope filters and higher verbosity: v/vv/vvv | -v/-vv/-vvv | V=1/V=2/V=3)
+help: #~~ show this help (optionally with scope filters and higher verbosity: `v`/`vv`/`vvv` | `-v`/`-vv`/`-vvv` | `V=1`/`V=2`/`V=3`)
 	$(DEBUG_PREFIX)$(PRINTF) '%s' "$$_HELP_AWK" > /tmp/brnshkr_config_help.awk
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_PWD="$(abspath $(PWD))" \
@@ -113,6 +113,8 @@ help: #~~ show this help (optionally with scope filters and higher verbosity: v/
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		_LIST_SCOPES="$(_HELP_LIST_SCOPES)" \
+		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
+		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(shell $(_AWK) -v args="$(ARGS)" 'BEGIN { \
 			n = split(args, words, " "); \
 			for (i = 1; i <= n; i++) \
@@ -157,33 +159,33 @@ BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown 
 
 #--- phpstan
 
-PHP_STAN        ?= $(PWD)/vendor/bin/phpstan#~~ path to phpstan binary
-PHP_STAN_CONFIG ?= $(PWD)/conf/phpstan.php#~~ path to phpstan config
-PHP_STAN_FLAGS  ?= --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)#~~ additional flags passed to phpstan
+PHP_STAN        ?= $(PWD)/vendor/bin/phpstan#~~ path to `phpstan` binary
+PHP_STAN_CONFIG ?= $(PWD)/conf/phpstan.php#~~ path to `phpstan` config
+PHP_STAN_FLAGS  ?= --memory-limit=-1 $(if $(DEBUG),-vvv,-vv)#~~ additional flags passed to `phpstan`
 
 #--- php-cs-fixer
 
-PHP_CS_FIXER        ?= $(PWD)/vendor/bin/php-cs-fixer#~~ path to php-cs-fixer binary
-PHP_CS_FIXER_CONFIG ?= $(PWD)/conf/php-cs-fixer.php#~~ path to php-cs-fixer config
-PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(if $(DEBUG),-vvv,-v)#~~ additional flags passed to php-cs-fixer
+PHP_CS_FIXER        ?= $(PWD)/vendor/bin/php-cs-fixer#~~ path to `php-cs-fixer` binary
+PHP_CS_FIXER_CONFIG ?= $(PWD)/conf/php-cs-fixer.php#~~ path to `php-cs-fixer` config
+PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(if $(DEBUG),-vvv,-v)#~~ additional flags passed to `php-cs-fixer`
 
 #--- rector
 
-RECTOR        ?= $(PWD)/vendor/bin/rector#~~ path to rector binary
-RECTOR_CONFIG ?= $(PWD)/conf/rector.php#~~ path to rector config
-RECTOR_FLAGS  ?= --memory-limit=-1#~~ additional flags passed to rector
+RECTOR        ?= $(PWD)/vendor/bin/rector#~~ path to `rector` binary
+RECTOR_CONFIG ?= $(PWD)/conf/rector.php#~~ path to `rector` config
+RECTOR_FLAGS  ?= --memory-limit=-1#~~ additional flags passed to `rector`
 
 #--- twig-cs-fixer
 
-TWIG_CS_FIXER        ?= $(PWD)/vendor/bin/twig-cs-fixer#~~ path to twig-cs-fixer binary
-TWIG_CS_FIXER_CONFIG ?= $(PWD)/conf/twig-cs-fixer.php#~~ path to twig-cs-fixer config
-TWIG_CS_FIXER_FLAGS  ?= -v#~~ additional flags passed to twig-cs-fixer
+TWIG_CS_FIXER        ?= $(PWD)/vendor/bin/twig-cs-fixer#~~ path to `twig-cs-fixer` binary
+TWIG_CS_FIXER_CONFIG ?= $(PWD)/conf/twig-cs-fixer.php#~~ path to `twig-cs-fixer` config
+TWIG_CS_FIXER_FLAGS  ?= -v#~~ additional flags passed to `twig-cs-fixer`
 
 #---v tools
 
-MAKE   ?= make#~~ path to make binary
-PRINTF ?= printf#~~ path to printf binary
-AWK    ?= awk#~~ path to awk binary
+MAKE   ?= make#~~ path to `make` binary
+PRINTF ?= printf#~~ path to `printf` binary
+AWK    ?= awk#~~ path to `awk` binary
 
 #---vv theming
 
@@ -258,6 +260,7 @@ COLOR_USAGE_PROGRAM   ?= $(COLOR_PRIMARY)
 COLOR_SECTION_LABEL   ?= $(COLOR_SECONDARY)
 COLOR_COMMAND         ?= $(COLOR_PRIMARY)
 COLOR_DESCRIPTION     ?= $(COLOR_TERTIARY)
+COLOR_INLINE_CODE     ?= $(COLOR_SECONDARY)
 else ifeq ($(_THEME),$(THEME_SYMFONY))
 COLOR_PRIMARY         ?= $(COLOR_GREEN)
 COLOR_SECONDARY       ?= $(COLOR_YELLOW)
@@ -272,6 +275,7 @@ COLOR_USAGE_ARGUMENTS ?= $(COLOR_TERTIARY)
 COLOR_SECTION_LABEL   ?= $(COLOR_SECONDARY)
 COLOR_COMMAND         ?= $(COLOR_PRIMARY)
 COLOR_DESCRIPTION     ?= $(COLOR_TERTIARY)
+COLOR_INLINE_CODE     ?= $(COLOR_SECONDARY)
 endif
 
 _COLORS := $(COLOR_NORMAL) \
@@ -325,55 +329,55 @@ ARGS = $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOA
 
 #--- phpstan
 
-phpstan: #~~ runs phpstan analyze
+phpstan: #~~ runs `phpstan analyze`
 	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(_NO_ANSI_OPTION) $(PHP_STAN_FLAGS) $(ARGS)
 
-phpstan-debug: #~~ runs phpstan analyze in debug mode
+phpstan-debug: #~~ runs `phpstan analyze` in debug mode
 	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(_NO_ANSI_OPTION) $(PHP_STAN_FLAGS) --debug $(ARGS)
 
-phpstan-raw: #~~ runs phpstan analyze with raw output
+phpstan-raw: #~~ runs `phpstan analyze` with raw output
 	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(_NO_ANSI_OPTION) $(PHP_STAN_FLAGS) --error-format=raw $(ARGS)
 
-phpstan-list: #~~ lists all files that are processed by phpstan
+phpstan-list: #~~ lists all files that are processed by `phpstan`
 	$(DEBUG_PREFIX)$(MAKE) phpstan-raw -- $(_NO_ANSI_OPTION) --debug 2>&1 | $(AWK) 'match($$0, /.+\.php$$/) { print substr($$0, RSTART, RLENGTH) }'
 
 #--- php-cs-fixer
 
-php-cs-fixer: #~~ runs php-cs-fixer fix
+php-cs-fixer: #~~ runs `php-cs-fixer fix`
 	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) $(PHP_CS_FIXER_FLAGS) $(ARGS)
 
-php-cs-fixer-debug: #~~ displays used php-cs-fixer rules
+php-cs-fixer-debug: #~~ displays used `php-cs-fixer` rules
 	$(DEBUG_PREFIX)$(PHP_CS_FIXER) describe --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) -n @ $(ARGS)
 
-php-cs-fixer-dry-run: #~~ runs php-cs-fixer fix in dry run mode
+php-cs-fixer-dry-run: #~~ runs `php-cs-fixer fix` in dry run mode
 	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) $(PHP_CS_FIXER_FLAGS) --dry-run $(ARGS)
 
-php-cs-fixer-list: #~~ lists all files that are processed by php-cs-fixer
+php-cs-fixer-list: #~~ lists all files that are processed by `php-cs-fixer`
 	$(DEBUG_PREFIX)$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) 2>&1 | $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }'
 
 #--- rector
 
-rector: #~~ runs rector process
+rector: #~~ runs `rector process`
 	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(_NO_ANSI_OPTION) $(RECTOR_FLAGS) $(ARGS)
 
-rector-debug: #~~ runs rector process in debug mode
+rector-debug: #~~ runs `rector process` in debug mode
 	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(_NO_ANSI_OPTION) $(RECTOR_FLAGS) --debug $(ARGS)
 
-rector-dry-run: #~~ runs rector process in dry run mode
+rector-dry-run: #~~ runs `rector process` in dry run mode
 	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(_NO_ANSI_OPTION) $(RECTOR_FLAGS) --dry-run $(ARGS)
 
-rector-list: #~~ lists all files that are processed by rector
+rector-list: #~~ lists all files that are processed by `rector`
 	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(_NO_ANSI_OPTION) --debug --dry-run | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(PWD)/", ""); if (/\.php$$/) print }'
 
 #--- twig-cs-fixer
 
-twig-cs-fixer: #~~ runs twig-cs-fixer fix
+twig-cs-fixer: #~~ runs `twig-cs-fixer fix`
 	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --fix --config $(TWIG_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
 
-twig-cs-fixer-debug: #~~ runs twig-cs-fixer in debug mode
+twig-cs-fixer-debug: #~~ runs `twig-cs-fixer` in debug mode
 	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --fix --debug --config $(TWIG_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
 
-twig-cs-fixer-dry-run: #~~ runs twig-cs-fixer in dry run mode
+twig-cs-fixer-dry-run: #~~ runs `twig-cs-fixer` in dry run mode
 	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
 
 # NOTICE: Create dummy targets for all non-target tokens
@@ -557,7 +561,7 @@ endef
 #**
 #* Converts a string to title case.
 #* Hyphens are replaced with spaces before capitalization.
-#* Implemented through <AWK> word iteration.
+#* Implemented through `AWK` word iteration.
 #*
 #* usage:
 #*   $(call _to_title_case,text)
@@ -645,7 +649,7 @@ $(foreach V,$(shell $(_AWK) -v var_names="$(.VARIABLES)" '\
 				print names[idx] \
 	}' \
 ),$(if $(filter simple recursive,$(flavor $(V))), \
-	$(V)="$(subst $$,\$$,$(subst ",\",$(subst \,\\,$(subst $(_NEWLINE), ,$($(V))))))" \
+	$(V)="$(subst $$,\$$,$(subst ",\",$(subst `,\`,$(subst \,\\,$(subst $(_NEWLINE), ,$($(V)))))))" \
 ))
 endef
 
@@ -687,6 +691,16 @@ function leaf(path) { sub(/.*\//, "", path); return path }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
 function line_verbosity(verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
+function render_inline_code(text, out, ansi_open, ansi_close) {
+	ansi_open = ENVIRON["_INLINE_CODE_OPEN"];
+	ansi_close = ENVIRON["_INLINE_CODE_CLOSE"];
+	out = "";
+	while (match(text, /`[^`]+`/)) {
+		out = out substr(text, 1, RSTART - 1) ansi_open substr(text, RSTART + 1, RLENGTH - 2) ansi_close;
+		text = substr(text, RSTART + RLENGTH);
+	}
+	return out text;
+}
 function derive_description(documentation, line) {
 	match(documentation, /^[^\n]+/);
 	line = tolower(substr(documentation, RSTART, 1)) substr(documentation, RSTART + 1, RLENGTH - 1);
@@ -883,6 +897,10 @@ function walk(scope_path, depth, section, column, render_scope, padding, width, 
 			text = section_text[scope_path, section, idx];
 			extra = section_extra[scope_path, section, idx];
 			description = section_description[scope_path, section, idx];
+			if (section == "variables") description = render_inline_code(description);
+			else if (section == "commands") text = render_inline_code(text);
+			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text); }
+			else if (section == "description") text = render_inline_code(text);
 			file = section_file[scope_path, section, idx];
 			line = section_line[scope_path, section, idx];
 			if (file != "" && file !~ /^\//) file = ENVIRON["_PWD"] "/" file;

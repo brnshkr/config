@@ -2,7 +2,7 @@ include ./conf/Makefile
 
 #-- app
 
-#!! Application Makefile of the brnshkr/config package
+#!! Application Makefile of the `brnshkr/config` package
 
 #---v general
 
@@ -14,6 +14,7 @@ RSYNC := rsync
 TAR   := tar
 
 #---vv tools
+
 BUN      := bun
 COMPOSER := composer
 
@@ -27,7 +28,7 @@ PHP_UNIT        := $(PWD)/vendor/bin/pest
 PHP_UNIT_CONFIG := $(PWD)/conf/phpunit.dist.xml
 PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug)
 
-cc: #~~ removes the ./cache directory
+cc: #~~ removes the `./cache` directory
 	$(DEBUG_PREFIX)$(RM) -rf $(PWD)/.cache
 
 #--- test
@@ -38,11 +39,11 @@ test: #~~ runs tests
 test-update: #~~ runs tests with snapshot update
 	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) --update-snapshots $(ARGS)
 
-check: rector php-cs-fixer twig-cs-fixer phpstan test #~~ runs rector, php-cs-fixer, twig-cs-fixer, phpstan and phpunit
+check: rector php-cs-fixer twig-cs-fixer phpstan test #~~ runs `rector`, `php-cs-fixer`, `twig-cs-fixer`, `phpstan` and `phpunit`
 
 #--- package
 
-pack: bun-pack composer-pack #~~ runs composer-pack and bun-pack
+pack: bun-pack composer-pack #~~ runs `make composer-pack bun-pack`
 
 #----vv bun
 
@@ -51,7 +52,7 @@ bun-list: #~~ lists included bun package files
 		&& $(TAR) -tf "$$archive_file" | sed 's/^package\///' \
 		&& $(RM) -f "$$archive_file"
 
-bun-pack: #~~ publishes the bun package to ./.local/@<VENDOR>/<PACKAGE>
+bun-pack: #~~ publishes the bun package to `./.local/@<VENDOR>/<PACKAGE>`
 	$(DEBUG_PREFIX)archive_file=$$($(BUN) pm pack 2>&1 | grep -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tgz') \
 		&& $(RM) -rf $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
 		&& $(MKDIR) -p $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
@@ -67,7 +68,7 @@ composer-list: #~~ lists included composer package files
 		&& $(TAR) -tf "$$archive_file" \
 		&& $(RM) -f "$$archive_file"
 
-composer-pack: #~~ publishes the composer package to ./.local/<VENDOR>/<PACKAGE>
+composer-pack: #~~ publishes the composer package to `./.local/<VENDOR>/<PACKAGE>`
 	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
 		&& $(RM) -rf $(PWD)/.local/$(VENDOR)/$(PACKAGE) \
 		&& $(MKDIR) -p $(PWD)/.local/$(VENDOR)/$(PACKAGE) \

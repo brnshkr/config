@@ -1,7 +1,7 @@
 #-- app
 
 #!! Application Makefile of the test fixture
-#!! Covers all make help AWK features for snapshot testing
+#!! Covers all make help `AWK` features for snapshot testing
 #!! shown at verbosity >= 2 #vv
 
 #--- commands
@@ -75,18 +75,18 @@ endef
 endif
 
 ifdef IS_DEFINED
-IFDEF_VARIABLE := from-ifdef-block#~~ variable inside ifdef (shown only when IS_DEFINED is set)
+IFDEF_VARIABLE := from-ifdef-block#~~ variable inside ifdef (shown only when `IS_DEFINED` is set)
 endif
 
 ifdef NEVER_DEFINED
-NEVER_SHOWN := should-not-appear#~~ skipped — NEVER_DEFINED never set
+NEVER_SHOWN := should-not-appear#~~ skipped — `NEVER_DEFINED` never set
 endif
 
 ifeq ($(ENV),prod)
 IFEQ_VARIABLE     := prod-value#~~ variable inside ifeq block
 DEDUP_VARIABLE    := branch-a#~~ appears once despite being in multiple branches
 else
-IFEQ_ELSE_VARIABLE := else-value#~~ variable from else branch (dedup: DEDUP_VARIABLE skipped here)
+IFEQ_ELSE_VARIABLE := else-value#~~ variable from else branch (dedup: `DEDUP_VARIABLE` skipped here)
 DEDUP_VARIABLE     := branch-b#~~ deduplicated — first branch wins, this is dropped
 endif
 
@@ -145,7 +145,7 @@ endif
 #* Resolves the environment name from context.
 #* Defaults to dev when ENV is not set.
 #*
-#* This paragraph only renders at vvv verbosity.
+#* This paragraph only renders at `vvv` verbosity.
 #*
 #* usage:
 #*   $(call resolve_env)
