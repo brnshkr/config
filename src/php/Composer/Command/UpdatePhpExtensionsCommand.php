@@ -219,8 +219,8 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
     }
 
     /**
-     * @param array<string, string> $potentiallyUnusedMainRequires
-     * @param array<string, string> $potentiallyUnusedDevRequires
+     * @param array<non-empty-string, non-empty-string> $potentiallyUnusedMainRequires
+     * @param array<non-empty-string, non-empty-string> $potentiallyUnusedDevRequires
      *
      * @throws RuntimeException
      */

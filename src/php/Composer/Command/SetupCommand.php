@@ -430,6 +430,9 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $sourceFilePath
+     * @param non-empty-string $targetFilePath
+     *
      * @throws RuntimeException
      */
     private function copyFile(string $sourceFilePath, string $targetFilePath, bool $isVersioned = true): void
@@ -448,6 +451,8 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $targetFilePath
+     *
      * @throws RuntimeException
      */
     private function isCopyAllowed(string $targetFilePath): bool
@@ -461,6 +466,10 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $path
+     *
+     * @return ?non-empty-string
+     *
      * @throws RuntimeException
      */
     private function getFileContent(string $path): ?string
@@ -472,6 +481,9 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $path
+     * @param non-empty-string $content
+     *
      * @throws IOException
      * @throws RuntimeException
      */

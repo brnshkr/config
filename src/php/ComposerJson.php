@@ -43,6 +43,9 @@ final class ComposerJson
 {
     private const int INDENT = 2;
 
+    /**
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
     private const array ALLOWED_PACKAGE_DIFFERENCES = [
         'composer/composer',
         'ext-ctype',
@@ -67,6 +70,9 @@ final class ComposerJson
         'symfony/process',
     ];
 
+    /**
+     * @var non-empty-string
+     */
     public readonly string $lockFilePath;
 
     /**
@@ -236,7 +242,7 @@ final class ComposerJson
     }
 
     /**
-     * @return array<string, string>
+     * @return array<non-empty-string, non-empty-string>
      *
      * @throws RuntimeException
      */
@@ -257,7 +263,7 @@ final class ComposerJson
     }
 
     /**
-     * @return array<string, string>
+     * @return array<non-empty-string, non-empty-string>
      *
      * @throws RuntimeException
      */

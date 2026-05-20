@@ -57,6 +57,8 @@ final readonly class BoolishPrefixRule implements Rule
      * NOTICE: Keep in sync with ts/naming-convention eslint rule.
      *
      * @internal
+     *
+     * @phpstan-var non-empty-list<non-empty-string>
      */
     public const array BOOLISH_PREFIXES = [
         'as',

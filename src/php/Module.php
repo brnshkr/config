@@ -19,10 +19,10 @@ use function sprintf;
  * @internal
  *
  * @phpstan-type ModuleInfo array{
- *     name: string,
+ *     name: non-empty-string,
  *     packages: array{
- *         requiredAll: list<self::PACKAGE_*>,
- *         optional?: list<self::PACKAGE_*>,
+ *         requiredAll: non-empty-list<self::PACKAGE_*>,
+ *         optional?: non-empty-list<self::PACKAGE_*>,
  *     },
  * }
  */

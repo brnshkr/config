@@ -36,6 +36,9 @@ Module::warnMissingPackages(Module::MODULE_RECTOR);
  */
 final readonly class Rector
 {
+    /**
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
     private const array SENSITIVE_PARAMETERS = [
         'accessKey',
         'accessKeyId',

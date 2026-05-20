@@ -159,7 +159,7 @@ final readonly class EditorUrl
     }
 
     /**
-     * @param string|list<string> $command
+     * @param non-empty-string|non-empty-list<non-empty-string> $command
      * @param list<string> $paths
      */
     private static function isCommandAvailable(string|array $command, array $paths): bool

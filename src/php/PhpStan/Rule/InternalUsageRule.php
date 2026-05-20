@@ -69,9 +69,9 @@ final class InternalUsageRule implements Rule
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?list<string> $allowedInternalTargets Regex patterns matched against `@internal <target>` values to whitelist
-     * @param ?list<string> $allowedDeclaringNamespaces Regex patterns matched against the declaring namespace to whitelist
-     * @param ?list<string> $allowedCallingNamespaces Regex patterns matched against the caller's namespace to whitelist
+     * @param ?list<non-empty-string> $allowedInternalTargets Regex patterns matched against `@internal <target>` values to whitelist
+     * @param ?list<non-empty-string> $allowedDeclaringNamespaces Regex patterns matched against the declaring namespace to whitelist
+     * @param ?list<non-empty-string> $allowedCallingNamespaces Regex patterns matched against the caller's namespace to whitelist
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
@@ -457,9 +457,10 @@ final class InternalUsageRule implements Rule
     }
 
     /**
+     * @param non-empty-string $optionName
      * @param ?array<array-key, mixed> $input
      *
-     * @return list<string>
+     * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      */

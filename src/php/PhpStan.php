@@ -74,7 +74,7 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  *
  * @phpstan-type Service array{
  *     class: class-string,
- *     tags?: list<string>,
+ *     tags?: non-empty-list<non-empty-string>,
  *     arguments?: array<array-key, mixed>,
  * }
  * @phpstan-type RuleService array{
@@ -93,8 +93,8 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  *     arguments?: array<array-key, mixed>,
  * }
  * @phpstan-type Config array{
- *     includes: list<string>,
- *     parameters: array<string, mixed>,
+ *     includes: list<non-empty-string>,
+ *     parameters: array<non-empty-string, mixed>,
  *     rules: list<class-string>,
  *     services: list<Service>,
  * }
@@ -260,7 +260,7 @@ final class PhpStan
     /**
      * Merge additional `includes` neon paths into the config (dedup-preserving order).
      *
-     * @param list<string> $includes Absolute or relative paths to neon files to merge in
+     * @param list<non-empty-string> $includes Absolute or relative paths to neon files to merge in
      */
     public function setIncludes(array $includes): self
     {
@@ -272,7 +272,7 @@ final class PhpStan
     /**
      * Merge multiple PHPStan parameters at once, overwriting existing keys.
      *
-     * @param array<string, mixed> $parameters Map of parameter name to value
+     * @param array<non-empty-string, mixed> $parameters Map of parameter name to value
      */
     public function setParameters(array $parameters): self
     {
@@ -287,7 +287,7 @@ final class PhpStan
      * Prefer the named setters ({@see self::setLevel()}, {@see self::setPaths()} etc.) where
      * one exists; use this only for parameters without a dedicated wrapper.
      *
-     * @param string $key Parameter name as it appears under the `parameters:` section
+     * @param non-empty-string $key Parameter name as it appears under the `parameters:` section
      * @param mixed $value Parameter value
      */
     public function setParameter(string $key, mixed $value): self
@@ -410,10 +410,10 @@ final class PhpStan
      * $config->setPaths(['src'], ['analyse' => ['src/runtime-only']]);
      * ```
      *
-     * @param list<string> $paths Paths to analyse
-     * @param list<string>|array{
-     *     analyse?: list<string>,
-     *     analyseAndScan?: list<string>,
+     * @param list<non-empty-string> $paths Paths to analyse
+     * @param list<non-empty-string>|array{
+     *     analyse?: list<non-empty-string>,
+     *     analyseAndScan?: list<non-empty-string>,
      * } $excludedPaths Excluded paths (flat list or structured)
      */
     public function setPaths(array $paths, array $excludedPaths = []): self
@@ -432,9 +432,9 @@ final class PhpStan
      *
      * A flat list is treated as `analyseAndScan`; a structured array is passed through verbatim.
      *
-     * @param list<string>|array{
-     *     analyse?: list<string>,
-     *     analyseAndScan?: list<string>,
+     * @param list<non-empty-string>|array{
+     *     analyse?: list<non-empty-string>,
+     *     analyseAndScan?: list<non-empty-string>,
      * } $excludedPaths Excluded paths (flat list or structured)
      */
     public function setExcludedPaths(array $excludedPaths): self
@@ -450,7 +450,7 @@ final class PhpStan
     /**
      * Set the list of bootstrap files PHPStan should require before analysis.
      *
-     * @param list<string> $bootstrapFiles Paths to bootstrap PHP files
+     * @param list<non-empty-string> $bootstrapFiles Paths to bootstrap PHP files
      */
     public function setBootstrapFiles(array $bootstrapFiles): self
     {
@@ -460,7 +460,7 @@ final class PhpStan
     /**
      * Override the cache directory PHPStan writes to.
      *
-     * @param ?string $temporaryDirectory Cache directory path, or null to use the PHPStan default
+     * @param ?non-empty-string $temporaryDirectory Cache directory path, or null to use the PHPStan default
      *
      * @see https://phpstan.org/config-reference#caching
      */
@@ -474,11 +474,11 @@ final class PhpStan
      *
      * Each entry is either a raw regex string or the structured `{message, identifier?, count?, path?, reportUnmatched?}` shape.
      *
-     * @param list<string|array{
-     *     message: string,
-     *     identifier?: string,
-     *     count?: int,
-     *     path?: string,
+     * @param list<non-empty-string|array{
+     *     message: non-empty-string,
+     *     identifier?: non-empty-string,
+     *     count?: positive-int,
+     *     path?: non-empty-string,
      *     reportUnmatched?: bool,
      * }> $ignoredErrors Ignored-error definitions
      *
@@ -492,7 +492,7 @@ final class PhpStan
     /**
      * Toggle PHPStan feature flags by name.
      *
-     * @param array<string, bool> $featureToggles Map of feature-toggle name to enable/disable
+     * @param array<non-empty-string, bool> $featureToggles Map of feature-toggle name to enable/disable
      */
     public function setFeatureToggles(array $featureToggles): self
     {
@@ -502,7 +502,7 @@ final class PhpStan
     /**
      * Configure PHPStan exception-checking parameters.
      *
-     * @param array<string, mixed> $exceptions Exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
+     * @param array<non-empty-string, mixed> $exceptions Exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
      *
      * @see https://phpstan.org/config-reference#exceptions
      */
@@ -514,7 +514,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-strict-rules` extension.
      *
-     * @param array<string, bool> $strictRules Map of strict-rule name to enabled flag
+     * @param array<non-empty-string, bool> $strictRules Map of strict-rule name to enabled flag
      *
      * @see https://github.com/phpstan/phpstan-strict-rules
      *
@@ -530,7 +530,7 @@ final class PhpStan
     /**
      * Configure the `rector/type-perfect` extension.
      *
-     * @param array<string, bool> $options Map of type-perfect option name to enabled flag
+     * @param array<non-empty-string, bool> $options Map of type-perfect option name to enabled flag
      *
      * @see https://github.com/rectorphp/type-perfect
      *
@@ -547,7 +547,7 @@ final class PhpStan
      * Set the editor-URL template used for clickable error locations.
      *
      * @param EditorUrl::EDITOR_* $editor Editor identifier (e.g. `vscode`, `phpstorm`)
-     * @param ?string $currentWorkingDirectory Override for the path prefix; null uses the runtime cwd
+     * @param ?non-empty-string $currentWorkingDirectory Override for the path prefix; null uses the runtime cwd
      */
     public function setEditor(string $editor, ?string $currentWorkingDirectory = null): self
     {
@@ -557,7 +557,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-symfony` extension.
      *
-     * @param array<string, mixed> $options Symfony-extension options (containerXmlPath, consoleApplicationLoader, etc.)
+     * @param array<non-empty-string, mixed> $options Symfony-extension options (containerXmlPath, consoleApplicationLoader, etc.)
      *
      * @see https://github.com/phpstan/phpstan-symfony
      *
@@ -573,7 +573,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-doctrine` extension.
      *
-     * @param array<string, mixed> $options Doctrine-extension options (objectManagerLoader, queryBuilderClass, etc.)
+     * @param array<non-empty-string, mixed> $options Doctrine-extension options (objectManagerLoader, queryBuilderClass, etc.)
      *
      * @throws RuntimeException When `phpstan/phpstan-doctrine` is not installed
      *
@@ -737,7 +737,7 @@ final class PhpStan
      * equivalent. Conditionally adds entries for `nesbot/carbon` and the php-cs-fixer Finder
      * when those packages are installed.
      *
-     * @return array<class-string, class-string> Map of legacy class to preferred replacement
+     * @return non-empty-array<class-string, class-string> Map of legacy class to preferred replacement
      *
      * @throws RuntimeException When `symplify/phpstan-rules` is not installed
      */
@@ -770,7 +770,7 @@ final class PhpStan
     }
 
     /**
-     * @return list<class-string|RuleService>
+     * @return non-empty-list<class-string|RuleService>
      *
      * @throws RuntimeException
      */
@@ -850,7 +850,7 @@ final class PhpStan
     }
 
     /**
-     * @return list<class-string>
+     * @return non-empty-list<class-string>
      */
     private static function getForbiddenNodes(): array
     {
@@ -868,7 +868,7 @@ final class PhpStan
     }
 
     /**
-     * @return array<string, string>
+     * @return non-empty-array<non-empty-string, non-empty-string>
      */
     private static function getForbiddenFunctions(): array
     {
@@ -959,8 +959,8 @@ final class PhpStan
 
     /**
      * @return array{
-     *     paths: list<string>,
-     *     excludedPaths: list<string>,
+     *     paths: list<non-empty-string>,
+     *     excludedPaths: list<non-empty-string>,
      * }
      *
      * @throws DirectoryNotFoundException

@@ -35,7 +35,7 @@ final readonly class FileFinder
     public const string EXTENSION_TWIG = 'twig';
 
     /**
-     * @phpstan-var list<self::EXTENSION_*>
+     * @phpstan-var non-empty-list<self::EXTENSION_*>
      */
     public const array EXTENSIONS = [
         self::EXTENSION_PHP,
@@ -132,7 +132,7 @@ final readonly class FileFinder
      * @param ?Finder $finder Pre-configured Finder to extend, or null to scan the working directory
      * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions File extensions to include
      *
-     * @return list<string> Absolute paths to matched files
+     * @return list<non-empty-string> Absolute paths to matched files
      *
      * @throws DirectoryNotFoundException When the resolved source directory does not exist
      * @throws InvalidArgumentException When an extension outside {@see self::EXTENSIONS} is passed

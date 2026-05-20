@@ -31,6 +31,9 @@ final readonly class Installer
 {
     private const int STABILTY_RANK_STABLE = 4;
 
+    /**
+     * @phpstan-var non-empty-array<non-empty-string, int<0, 4>>
+     */
     private const array STABILITY_RANKS = [
         'dev'    => 0,
         'alpha'  => 1,
@@ -135,6 +138,9 @@ final readonly class Installer
     }
 
     /**
+     * @param non-empty-string $package
+     * @param non-empty-string $versionConstraint
+     *
      * @throws RuntimeException
      */
     private function findPackage(string $package, string $versionConstraint): ?PackageInterface
@@ -161,6 +167,9 @@ final readonly class Installer
         return $packagesToInstall[0] ?? null;
     }
 
+    /**
+     * @return int<0, 4>
+     */
     private static function getStabilityRank(string $stability): int
     {
         return self::STABILITY_RANKS[$stability] ?? self::STABILTY_RANK_STABLE;

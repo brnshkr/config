@@ -227,6 +227,8 @@ final readonly class Console
     }
 
     /**
+     * @param non-empty-string $tag
+     *
      * @throws RuntimeException
      */
     public function write(string $message, string $tag): void
@@ -273,6 +275,10 @@ final readonly class Console
     }
 
     /**
+     * @param non-empty-string $tag
+     *
+     * @return non-empty-string
+     *
      * @throws RuntimeException
      */
     private function getFormattedMessage(string $message, string $tag): string

@@ -106,6 +106,8 @@ final class ExtractPharCommand extends AbstractCommand
     }
 
     /**
+     * @return ?non-empty-string
+     *
      * @throws InvalidArgumentException
      */
     private function getTargetDirectory(): ?string
@@ -126,6 +128,10 @@ final class ExtractPharCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $vendorDirectory
+     *
+     * @return non-empty-string
+     *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
@@ -145,6 +151,9 @@ final class ExtractPharCommand extends AbstractCommand
     }
 
     /**
+     * @param non-empty-string $pharPath
+     * @param non-empty-string $targetDirectory
+     *
      * @throws LogicException
      * @throws RuntimeException
      */
