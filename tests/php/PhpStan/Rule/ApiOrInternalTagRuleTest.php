@@ -29,6 +29,9 @@ final class ApiOrInternalTagRuleTest extends RuleTestCase
             __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/Interfaces.php',
             __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/Enums.php',
             __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/Traits.php',
+            __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/FileLevelApi.php',
+            __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/FileLevelInternal.php',
+            __DIR__ . '/../../Fixtures/Rule/ApiOrInternalTag/BareReturn.php',
         ], [
             [sprintf('Class `%s` must be annotated with either @internal or @api.', 'ClassWithoutTag'), 17],
             [sprintf('Function `%s` must be annotated with either @internal or @api.', 'functionWithoutTag'), 17],
@@ -37,6 +40,7 @@ final class ApiOrInternalTagRuleTest extends RuleTestCase
             [sprintf('Interface `%s` must be annotated with either @internal or @api.', 'InterfaceWithoutTag'), 17],
             [sprintf('Enum `%s` must be annotated with either @internal or @api.', 'EnumWithoutTag'), 17],
             [sprintf('Trait `%s` must be annotated with either @internal or @api.', 'TraitWithoutTag'), 17],
+            ['Top-level `return` must be annotated with either @internal or @api (either on the `return` statement or on the file).', 7],
         ]);
     }
 

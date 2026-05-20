@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule\Trait;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\Str;
 use PhpParser\Comment\Doc;
+use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Trait_;
+use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -37,6 +40,9 @@ trait RuleTrait
     protected const string KIND_PROPERTY    = 'Property';
     protected const string KIND_TRAIT       = 'Trait';
     protected const string KIND_VARIABLE    = 'Variable';
+
+    protected const string TAG_API      = 'api';
+    protected const string TAG_INTERNAL = 'internal';
 
     /**
      * @throws RuntimeException
@@ -110,5 +116,40 @@ trait RuleTrait
     private static function hasTagInText(string $text, string $tag): bool
     {
         return Str::match($text, '/\*\s+@' . $tag . '\b/') !== [];
+    }
+
+    private static function resolveFileLevelDoc(Node $node, Scope $scope): ?Doc
+    {
+        $filePath = $scope->getFile();
+
+        if (Str::isEmpty($filePath)) {
+            return null;
+        }
+
+        if (!$scope->isInClass() && $scope->getFunction() === null) {
+            FileLevelDocCache::captureFrom($node, $filePath);
+        }
+
+        return FileLevelDocCache::get($filePath);
+    }
+
+    /**
+     * @return ?self::TAG_*
+     */
+    private static function getVisibilityTag(?Doc $doc): ?string
+    {
+        return match (true) {
+            self::hasTag($doc, self::TAG_API)      => self::TAG_API,
+            self::hasTag($doc, self::TAG_INTERNAL) => self::TAG_INTERNAL,
+            default                                => null,
+        };
+    }
+
+    /**
+     * @return self::TAG_API|self::TAG_INTERNAL|null
+     */
+    private static function getEffectiveVisibilityTag(?Doc $symbolDoc, ?Doc $fileDoc): ?string
+    {
+        return self::getVisibilityTag($symbolDoc) ?? self::getVisibilityTag($fileDoc);
     }
 }

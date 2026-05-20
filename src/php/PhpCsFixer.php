@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @api
+ */
+
 declare(strict_types=1);
 
 namespace Brnshkr\Config;
@@ -23,8 +27,6 @@ Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
  * around alignment, ordering, native-function invocation, and PHPDoc layout. When the optional
  * `kubawerlos/php-cs-fixer-custom-fixers` package is installed, its fixers are layered on top
  * automatically.
- *
- * @api
  *
  * @no-named-arguments
  */

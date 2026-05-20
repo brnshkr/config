@@ -80,7 +80,7 @@ final readonly class NoNamedArgumentsTagRule implements Rule
 
         $doc = $classLike->getDocComment();
 
-        if (self::hasTag($doc, 'internal') || self::hasTag($doc, 'no-named-arguments')) {
+        if (self::hasTag($doc, self::TAG_INTERNAL) || self::hasTag($doc, 'no-named-arguments')) {
             return null;
         }
 
@@ -110,7 +110,7 @@ final readonly class NoNamedArgumentsTagRule implements Rule
 
         $doc = $function->getDocComment();
 
-        if (self::hasTag($doc, 'internal') || self::hasTag($doc, 'no-named-arguments')) {
+        if (self::hasTag($doc, self::TAG_INTERNAL) || self::hasTag($doc, 'no-named-arguments')) {
             return null;
         }
 

@@ -9,17 +9,23 @@ use Brnshkr\Config\Str;
 use Override;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
+use ReflectionException;
 use RuntimeException;
 
 use function in_array;
@@ -34,6 +40,14 @@ use function sprintf;
  * `@param` per parameter with a sentence of context after the variable name, an `@return` line
  * that says what the value actually represents, and an `@example` block whenever calling the
  * symbol involves non-obvious arguments.
+ *
+ * A file-level docblock (the first `/** ... *\/` before `namespace`/`declare`/`use`) carrying
+ * `@api` or `@internal` provides a default for every contained symbol; per-symbol tags override
+ * the file-level default.
+ *
+ * Top-level `return` statements in an `@api`-tagged file must also carry a description, either on
+ * the `return` itself or on the returned source (a `new ClassName(...)` falls back to the class
+ * docblock, a `Class::method(...)` falls back to the method docblock).
  *
  * A few exemptions keep the rule pragmatic: private methods and methods tagged `@internal` are
  * skipped entirely, constructors do not need their own description (the class docblock already
@@ -54,6 +68,15 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     /**
      * @internal invoked by PHPStan
+     *
+     * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
+     */
+    public function __construct(
+        private ReflectionProvider $reflectionProvider,
+    ) {}
+
+    /**
+     * @internal invoked by PHPStan
      */
     #[Override]
     public function getNodeType(): string
@@ -66,15 +89,19 @@ final readonly class PublicApiDocumentationRule implements Rule
      *
      * @return list<IdentifierRuleError>
      *
+     * @throws ReflectionException
      * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
+        $fileDoc = self::resolveFileLevelDoc($node, $scope);
+
         return match (true) {
-            $node instanceof ClassLike   => self::checkClassLike($node),
-            $node instanceof Function_   => self::checkFunctionLike($node, $scope),
-            $node instanceof ClassMethod => self::checkFunctionLike($node, $scope),
+            $node instanceof ClassLike   => self::checkClassLike($node, $fileDoc),
+            $node instanceof Function_   => self::checkFunctionLike($node, $scope, $fileDoc),
+            $node instanceof ClassMethod => self::checkFunctionLike($node, $scope, $fileDoc),
+            $node instanceof Return_     => $this->checkFileLevelReturn($node, $scope, $fileDoc),
             default                      => [],
         };
     }
@@ -84,7 +111,7 @@ final readonly class PublicApiDocumentationRule implements Rule
      *
      * @throws RuntimeException
      */
-    private static function checkClassLike(ClassLike $classLike): array
+    private static function checkClassLike(ClassLike $classLike, ?Doc $fileDoc): array
     {
         if (self::isAnonymousClass($classLike)) {
             return [];
@@ -92,7 +119,7 @@ final readonly class PublicApiDocumentationRule implements Rule
 
         $doc = $classLike->getDocComment();
 
-        if (!self::hasTag($doc, 'api') || self::hasDescription($doc)) {
+        if (self::getEffectiveVisibilityTag($doc, $fileDoc) !== self::TAG_API || self::hasDescription($doc)) {
             return [];
         }
 
@@ -104,9 +131,9 @@ final readonly class PublicApiDocumentationRule implements Rule
      *
      * @throws RuntimeException
      */
-    private static function checkFunctionLike(ClassMethod|Function_ $node, Scope $scope): array
+    private static function checkFunctionLike(ClassMethod|Function_ $node, Scope $scope, ?Doc $fileDoc): array
     {
-        $classReflection = self::resolveApiContext($node, $scope);
+        $classReflection = self::resolveApiContext($node, $scope, $fileDoc);
 
         if ($classReflection === false) {
             return [];
@@ -162,13 +189,93 @@ final readonly class PublicApiDocumentationRule implements Rule
     }
 
     /**
-     * Returns the containing class reflection for an `@api` method, null for an `@api` function,
-     * or `false` when the symbol is out of scope.
+     * @return list<IdentifierRuleError>
+     *
+     * @throws ReflectionException
+     * @throws RuntimeException
      */
-    private static function resolveApiContext(ClassMethod|Function_ $node, Scope $scope): ClassReflection|false|null
+    private function checkFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): array
+    {
+        if ($scope->isInClass() || $scope->getFunction() !== null) {
+            return [];
+        }
+
+        if (self::getVisibilityTag($fileDoc) !== self::TAG_API) {
+            return [];
+        }
+
+        if (self::hasDescription($return->getDocComment())) {
+            return [];
+        }
+
+        if ($this->hasReturnSourceWithDescription($return->expr)) {
+            return [];
+        }
+
+        return [self::buildRuleError(
+            'Top-level `return` in an `@api` file must carry a doc-block with a description (either on the `return` statement or on its returned source).',
+            $return->getStartLine(),
+        )];
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private function hasReturnSourceWithDescription(?Expr $expression): bool
+    {
+        return self::hasDescription(match (true) {
+            $expression instanceof New_                                                  => $this->getReflectionDoc($expression->class),
+            $expression instanceof StaticCall && $expression->name instanceof Identifier => $this->getReflectionDoc($expression->class, $expression->name),
+            default                                                                      => null,
+        });
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private function getReflectionDoc(Node $classNode, ?Identifier $methodNode = null): ?Doc
+    {
+        $className = self::resolveClassName($classNode);
+
+        if ($className === null || !$this->reflectionProvider->hasClass($className)) {
+            return null;
+        }
+
+        $class = $this->reflectionProvider->getClass($className);
+
+        if ($methodNode === null) {
+            return self::wrapRawDoc($class->getNativeReflection()->getDocComment());
+        }
+
+        $methodName = $methodNode->toString();
+
+        if (!$class->hasMethod($methodName)) {
+            return null;
+        }
+
+        return self::wrapRawDoc($class->getNativeReflection()->getMethod($methodName)->getDocComment());
+    }
+
+    private static function wrapRawDoc(string|false $rawDoc): ?Doc
+    {
+        return is_string($rawDoc) ? new Doc($rawDoc) : null;
+    }
+
+    private static function resolveClassName(Node $classNode): ?string
+    {
+        if (!$classNode instanceof Name) {
+            return null;
+        }
+
+        $resolved = $classNode->getAttribute('resolvedName');
+
+        return $resolved instanceof Name ? $resolved->toString() : $classNode->toString();
+    }
+
+    private static function resolveApiContext(ClassMethod|Function_ $node, Scope $scope, ?Doc $fileDoc): ClassReflection|false|null
     {
         if ($node instanceof Function_) {
-            return self::hasTag($node->getDocComment(), 'api') ? null : false;
+            return self::getEffectiveVisibilityTag($node->getDocComment(), $fileDoc) === self::TAG_API ? null : false;
         }
 
         if ($node->isPrivate()) {
@@ -181,13 +288,15 @@ final readonly class PublicApiDocumentationRule implements Rule
             return false;
         }
 
-        $classDoc = $class->getNativeReflection()->getDocComment();
+        $classDoc          = $class->getNativeReflection()->getDocComment();
+        $classDocObject    = is_string($classDoc) ? new Doc($classDoc) : null;
+        $effectiveClassTag = self::getEffectiveVisibilityTag($classDocObject, $fileDoc);
 
-        if (!is_string($classDoc) || !self::hasTagInText($classDoc, 'api')) {
+        if ($effectiveClassTag !== self::TAG_API) {
             return false;
         }
 
-        if (self::hasTag($node->getDocComment(), 'internal')) {
+        if (self::hasTag($node->getDocComment(), self::TAG_INTERNAL)) {
             return false;
         }
 

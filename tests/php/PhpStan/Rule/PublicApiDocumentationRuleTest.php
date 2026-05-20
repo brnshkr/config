@@ -6,6 +6,8 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Override;
+use PHPStan\DependencyInjection\MissingServiceException;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -29,6 +31,9 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
             __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/AbstractClass.php',
             __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/Interface.php',
             __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/Functions.php',
+            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/FileLevel.php',
+            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/BareReturn.php',
+            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/BareReturnUndocumented.php',
         ], [
             [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Class', 'MissingClassDescription'), 10],
             [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Method', 'missingDescription'), 17],
@@ -37,12 +42,21 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
             [sprintf('%s `%s` is `@api` and returns a non-void type; an `@return` tag with a description is required.', 'Method', 'missingReturnProse'), 39],
             [sprintf('%s `%s` is `@api` and accepts parameters; an `@example` tag is required.', 'Method', 'missingExample'), 49],
             [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Function', 'publicApiDocsMissingDescriptionFunction'), 24],
+            [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Class', 'FileLevelApiMissingDescription'), 14],
+            [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Method', 'method'), 16],
+            [sprintf('%s `%s` is `@api` and must carry a description before the first doc-tag.', 'Class', 'UndocumentedReturnTarget'), 14],
+            ['Top-level `return` in an `@api` file must carry a doc-block with a description (either on the `return` statement or on its returned source).', 16],
         ]);
     }
 
+    /**
+     * @throws MissingServiceException
+     */
     #[Override]
     protected function getRule(): Rule
     {
-        return new PublicApiDocumentationRule();
+        return new PublicApiDocumentationRule(
+            self::getContainer()->getByType(ReflectionProvider::class),
+        );
     }
 }

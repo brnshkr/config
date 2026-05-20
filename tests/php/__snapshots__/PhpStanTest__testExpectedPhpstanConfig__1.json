@@ -9,9 +9,12 @@
         ],
         "excludePaths": {
             "analyseAndScan": [
+                "./tests/php/Fixtures/Rule/ApiOrInternalTag/BareReturn.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Classes.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Constants.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Enums.php",
+                "./tests/php/Fixtures/Rule/ApiOrInternalTag/FileLevelApi.php",
+                "./tests/php/Fixtures/Rule/ApiOrInternalTag/FileLevelInternal.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Functions.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Interfaces.php",
                 "./tests/php/Fixtures/Rule/ApiOrInternalTag/Traits.php",
@@ -37,6 +40,9 @@
                 "./tests/php/Fixtures/Rule/NoNamedArgumentsTag/Interfaces.php",
                 "./tests/php/Fixtures/Rule/NoNamedArgumentsTag/Traits.php",
                 "./tests/php/Fixtures/Rule/PublicApiDocumentation/AbstractClass.php",
+                "./tests/php/Fixtures/Rule/PublicApiDocumentation/BareReturn.php",
+                "./tests/php/Fixtures/Rule/PublicApiDocumentation/BareReturnUndocumented.php",
+                "./tests/php/Fixtures/Rule/PublicApiDocumentation/FileLevel.php",
                 "./tests/php/Fixtures/Rule/PublicApiDocumentation/Functions.php",
                 "./tests/php/Fixtures/Rule/PublicApiDocumentation/GoodClass.php",
                 "./tests/php/Fixtures/Rule/PublicApiDocumentation/Interface.php",

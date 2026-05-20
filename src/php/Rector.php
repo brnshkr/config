@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @api
+ */
+
 declare(strict_types=1);
 
 namespace Brnshkr\Config;
@@ -29,8 +33,6 @@ Module::warnMissingPackages(Module::MODULE_RECTOR);
  * The `#[\SensitiveParameter]` attribute rule is pre-wired to a list of parameter names commonly
  * associated with secrets (e.g. `password`, `apiToken`, `clientSecret`, plus plural variants), so
  * newly introduced sensitive parameters automatically get the attribute added.
- *
- * @api
  *
  * @no-named-arguments
  */

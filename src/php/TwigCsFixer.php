@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @api
+ */
+
 declare(strict_types=1);
 
 namespace Brnshkr\Config;
@@ -20,8 +24,6 @@ Module::warnMissingPackages(Module::MODULE_TWIG_CS_FIXER);
 
 /**
  * Builds a ready-to-use Twig-CS-Fixer config that captures the @brnshkr template-style decisions.
- *
- * @api
  *
  * @no-named-arguments
  */

@@ -12,6 +12,7 @@ use PhpParser\Node\Const_ as ConstNode;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Const_ as ConstStmt;
 use PhpParser\Node\Stmt\Function_;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
@@ -24,11 +25,16 @@ use function array_values;
 use function sprintf;
 
 /**
- * Requires every top-level declaration to carry either an `@api` or an `@internal` tag.
+ * Requires every top-level declaration in a file to carry either an `@api` or an `@internal` tag.
  *
- * Applies to classes, traits, enums, interfaces, top-level functions, and global constants. The
- * intent is to make the public surface of a package a deliberate decision rather than an accident
- * of which symbols happened to be reachable. Anonymous classes are exempt.
+ * Applies to classes, traits, enums, interfaces, top-level functions, global constants, and
+ * top-level `return` statements (e.g. config files that return a value). The intent is to make
+ * the public surface of a package a deliberate decision rather than an accident of which symbols
+ * happened to be reachable. Anonymous classes are exempt.
+ *
+ * A file-level docblock (the first `/** ... *\/` before `namespace`/`declare`/`use`) carrying
+ * `@api` or `@internal` provides a default for every contained symbol; per-symbol tags override
+ * the file-level default.
  *
  * @api
  *
@@ -57,11 +63,14 @@ final readonly class ApiOrInternalTagRule implements Rule
     #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
+        $fileDoc = self::resolveFileLevelDoc($node, $scope);
+
         return array_values(array_filter(
             match (true) {
-                $node instanceof ClassLike => [self::processClassLike($node)],
-                $node instanceof Function_ => [self::processFunction($node)],
-                $node instanceof ConstStmt => self::processGlobalConst($node),
+                $node instanceof ClassLike => [self::processClassLike($node, $fileDoc)],
+                $node instanceof Function_ => [self::processFunction($node, $fileDoc)],
+                $node instanceof ConstStmt => self::processGlobalConst($node, $fileDoc),
+                $node instanceof Return_   => [self::processFileLevelReturn($node, $scope, $fileDoc)],
                 default                    => [],
             },
             static fn (?IdentifierRuleError $identifierRuleError): bool => $identifierRuleError instanceof IdentifierRuleError,
@@ -71,9 +80,28 @@ final readonly class ApiOrInternalTagRule implements Rule
     /**
      * @throws RuntimeException
      */
-    private static function processClassLike(ClassLike $classLike): ?IdentifierRuleError
+    private static function processFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): ?IdentifierRuleError
     {
-        if (self::isAnonymousClass($classLike) || self::hasApiOrInternalTag($classLike->getDocComment())) {
+        if ($scope->isInClass() || $scope->getFunction() !== null) {
+            return null;
+        }
+
+        if (self::getEffectiveVisibilityTag($return->getDocComment(), $fileDoc) !== null) {
+            return null;
+        }
+
+        return self::buildRuleError(
+            'Top-level `return` must be annotated with either @internal or @api (either on the `return` statement or on the file).',
+            $return->getStartLine(),
+        );
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private static function processClassLike(ClassLike $classLike, ?Doc $fileDoc): ?IdentifierRuleError
+    {
+        if (self::isAnonymousClass($classLike) || self::getEffectiveVisibilityTag($classLike->getDocComment(), $fileDoc) !== null) {
             return null;
         }
 
@@ -87,9 +115,9 @@ final readonly class ApiOrInternalTagRule implements Rule
     /**
      * @throws RuntimeException
      */
-    private static function processFunction(Function_ $function): ?IdentifierRuleError
+    private static function processFunction(Function_ $function, ?Doc $fileDoc): ?IdentifierRuleError
     {
-        return self::hasApiOrInternalTag($function->getDocComment())
+        return self::getEffectiveVisibilityTag($function->getDocComment(), $fileDoc) !== null
             ? null
             : self::buildError(self::KIND_FUNCTION, $function->name->toString(), $function->getStartLine());
     }
@@ -99,9 +127,9 @@ final readonly class ApiOrInternalTagRule implements Rule
      *
      * @throws RuntimeException
      */
-    private static function processGlobalConst(ConstStmt $constStmt): array
+    private static function processGlobalConst(ConstStmt $constStmt, ?Doc $fileDoc): array
     {
-        if (self::hasApiOrInternalTag($constStmt->getDocComment())) {
+        if (self::getEffectiveVisibilityTag($constStmt->getDocComment(), $fileDoc) !== null) {
             return [];
         }
 
@@ -113,15 +141,6 @@ final readonly class ApiOrInternalTagRule implements Rule
             ),
             $constStmt->consts,
         ));
-    }
-
-    private static function hasApiOrInternalTag(?Doc $doc): bool
-    {
-        if (self::hasTag($doc, 'api')) {
-            return true;
-        }
-
-        return self::hasTag($doc, 'internal');
     }
 
     /**

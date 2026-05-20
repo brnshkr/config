@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @api
+ */
+
 declare(strict_types=1);
 
 namespace Brnshkr\Config;
@@ -67,8 +71,6 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  * strings by hand. Setters for optional integrations (Symfony, Doctrine, Strict-Rules, etc.)
  * throw a {@see RuntimeException} when the corresponding package is not installed, so missing
  * dependencies surface immediately rather than as cryptic errors at analysis time.
- *
- * @api
  *
  * @no-named-arguments
  *
