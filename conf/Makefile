@@ -904,17 +904,17 @@ function walk(scope_path, depth, section, column, render_scope, padding, width, 
 			if (section == "variables") {
 				if (description != "") {
 					format = sprintf("%2s  %-*s", extra, description_column, text);
-					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s (%s),$(COLOR_TERTIARY))\n", padding, entry_padded, format, description;
+					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description;
 				} else {
-					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%2s  %s,$(COLOR_TERTIARY))\n", padding, entry_padded, extra, text;
+					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra, text;
 				}
 			} else if (section == "commands") {
-				printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s,$(COLOR_TERTIARY))\n", padding, entry_padded, text;
+				printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, text;
 			} else if (section == "functions") {
 				if (function_printed && ENVIRON["_VERBOSITY"] + 0 >= 2 && text != "") printf "\n";
 				function_printed = (text != "" && ENVIRON["_VERBOSITY"] + 0 >= 2);
 				if (extra != "" && (ENVIRON["_VERBOSITY"] + 0 < 2 || text == "")) {
-					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s,$(COLOR_TERTIARY))\n", padding, entry_padded, extra;
+					printf "%s$(call text,%s,$(COLOR_PRIMARY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra;
 				} else {
 					printf "%s$(call text,%s,$(COLOR_PRIMARY))\n", padding, entry_linked;
 				}
@@ -924,11 +924,11 @@ function walk(scope_path, depth, section, column, render_scope, padding, width, 
 					for (line_idx = 1; line_idx <= count; line_idx += 1) {
 						if (lines[line_idx] == "") { if (ENVIRON["_VERBOSITY"] + 0 < 3) break; blank = 1; continue }
 						if (blank) { printf "\n"; blank = 0 }
-						printf "%s$(call text,%s,$(COLOR_TERTIARY))\n", padding " ", lines[line_idx];
+						printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding " ", lines[line_idx];
 					}
 				}
 			} else {
-				printf "%s$(call text,%s,$(COLOR_TERTIARY))\n", padding, text;
+				printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding, text;
 			}
 		}
 	}
