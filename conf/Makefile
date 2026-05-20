@@ -453,13 +453,7 @@ _UPPER_white   := WHITE
 #* returns: string
 #*
 define text
-$(call _color \
-	,$(firstword $(filter $(_COLORS),$2 $3)), \
-	$(strip $(filter-out $(firstword $(filter $(_COLORS),$2 $3)), \
-		$2 \
-		$3) \
-	) \
-)$1$(_ANSI_RESET)
+$(call _ansi,$2 $3)$1$(_ANSI_RESET)
 endef
 
 #**
@@ -481,6 +475,25 @@ $(DEBUG_PREFIX)$(PRINTF) '$(call text \
 	,[$(VENDOR)/$(PACKAGE)], \
 	$2 \
 ) $1\n'
+endef
+
+#**
+#* Builds an ANSI escape prefix from a combined color + modifier list.
+#* Splits the first color token from the rest and forwards to `_color`.
+#*
+#* usage:
+#*   $(call _ansi,color_and_or_modifiers)
+#*
+#* parameters:
+#*   color_and_or_modifiers: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
+#*
+#* returns: string
+#*
+define _ansi
+$(call _color \
+	,$(firstword $(filter $(_COLORS),$1)), \
+	$(strip $(filter-out $(firstword $(filter $(_COLORS),$1)),$1)) \
+)
 endef
 
 #**
