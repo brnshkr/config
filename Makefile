@@ -138,7 +138,7 @@ colors: #~~ prints a table of all supported colors with combinations with all su
 #  $(call _str_repeat,string,count)
 # parameters:
 #  string: string
-#  count: int<1, max>
+#  count: positive-int
 # returns: string
 #**
 define _str_repeat
@@ -151,8 +151,8 @@ endef
 # usage:
 #  $(call _get_indices_internal,list)
 # parameters:
-#  list: List<1>
-# returns: List<int<1,max>>
+#  list: list<1>
+# returns: list<positive-int>
 #**
 define _get_indices_internal
 $(if $1,$(words $1) $(call _get_indices_internal,$(wordlist 2,$(words $1),$1)))
@@ -164,8 +164,8 @@ endef
 # usage:
 #  $(call _get_indices,list)
 # parameters:
-#  list: List<string>
-# returns: List<int<1,max>>
+#  list: list<string>
+# returns: list<positive-int>
 #**
 define _get_indices
 $(sort $(call _get_indices_internal,$1))

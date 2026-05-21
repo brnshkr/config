@@ -22,7 +22,7 @@ final readonly class Json
     private function __construct() {}
 
     /**
-     * @param int<1, max> $depth
+     * @param positive-int $depth
      *
      * @throws JsonException
      */
@@ -35,7 +35,7 @@ final readonly class Json
     /**
      * @template TAssociative of bool
      *
-     * @param int<1, max> $depth
+     * @param positive-int $depth
      * @param TAssociative $isAssociative
      *
      * @return (TAssociative is true ? array<string, mixed> : mixed)
