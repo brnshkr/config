@@ -1,5 +1,6 @@
 import path from 'node:path';
 
+import { toPosix } from '../../../shared/utils/filesystem';
 import { objectEntries } from '../../../shared/utils/object';
 import { loadTsConfigPaths, resolveTsConfigPath } from '../../utils/tsconfig';
 
@@ -28,8 +29,6 @@ interface RequireImportAliasOptions {
 const resolveAliases = (options: RequireImportAliasOptions): TsConfigPaths => options.aliases
   ?? loadTsConfigPaths(options.tsConfigPath ?? resolveTsConfigPath())
   ?? {};
-
-const toPosix = (value: string): string => value.replaceAll('\\', '/');
 
 const buildAliasMappings = (aliases: Record<string, string[]>): AliasMapping[] => objectEntries(aliases)
   .filter(([pattern]) => pattern.endsWith(WILDCARD_SUFFIX))
