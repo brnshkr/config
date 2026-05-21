@@ -118,6 +118,23 @@ final readonly class Str
     }
 
     /**
+     * @param non-empty-string $cwd
+     * @param non-empty-string $path
+     *
+     * @return non-empty-string
+     */
+    public static function toAbsolutePath(string $cwd, string $path): string
+    {
+        if (self::doesStartWith($path, '/')) {
+            return $path;
+        }
+
+        return $cwd . (self::doesStartWith($path, './')
+            ? self::trim($path, './', 'start')
+            : $path);
+    }
+
+    /**
      * @param 'default'|'end'|'start' $mode
      */
     public static function trim(

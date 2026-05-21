@@ -988,13 +988,9 @@ final class PhpStan
 
         $cwd = (getcwd() ?: '.') . '/';
 
-        $toAbsolutePath = static fn (string $path): string => Str::doesStartWith($path, '/')
-            ? $path
-            : $cwd . (Str::doesStartWith($path, './') ? Str::trim($path, './', 'start') : $path);
-
         return [
-            'paths'         => array_map($toAbsolutePath(...), $directories),
-            'excludedPaths' => array_map($toAbsolutePath(...), $excludedPaths),
+            'paths'         => array_map(static fn (string $path): string => Str::toAbsolutePath($cwd, $path), $directories),
+            'excludedPaths' => array_map(static fn (string $path): string => Str::toAbsolutePath($cwd, $path), $excludedPaths),
         ];
     }
 
