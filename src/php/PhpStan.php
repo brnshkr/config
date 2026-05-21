@@ -997,7 +997,7 @@ final class PhpStan
     /**
      * @param list<SymfonySplFileInfo> $files
      *
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private static function convertFilesToMinimalDirectoryPaths(array $files): array
     {
@@ -1022,12 +1022,17 @@ final class PhpStan
                 : [...$minimalPaths, $currentPath],
                 [],
             ))
-            |> (static fn (array $minimalPaths): array => array_filter($minimalPaths, is_string(...)))
+            |> (static fn (array $minimalPaths): array => array_filter(
+                $minimalPaths,
+                static fn (mixed $path): bool => is_string($path) && !Str::isEmpty($path),
+            ))
             |> array_values(...);
     }
 
     /**
      * @param Service $service
+     *
+     * @return non-empty-string
      */
     private static function getServiceKey(array $service): string
     {
