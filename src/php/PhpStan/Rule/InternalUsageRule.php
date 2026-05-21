@@ -423,7 +423,7 @@ final class InternalUsageRule implements Rule
 
         return $internalTarget === self::AT_INTERNAL
             ? Str::doesStartWith($callerNamespace, $declaringNamespace)
-            : ($callerNamespace === '' || Str::doesContain($callerNamespace, $internalTarget));
+            : (Str::isEmpty($callerNamespace) || Str::doesContain($callerNamespace, $internalTarget));
     }
 
     /**
@@ -470,15 +470,15 @@ final class InternalUsageRule implements Rule
             return [];
         }
 
-        if (!array_is_list($input) || array_find($input, static fn ($item): bool => !is_string($item))) {
+        if (!array_is_list($input) || array_find($input, static fn ($item): bool => !is_string($item) || Str::isEmpty($item))) {
             throw new InvalidArgumentException(sprintf(
-                'Value for option "%s" must be a list of strings.',
+                'Value for option "%s" must be a list of non-empty strings.',
                 $optionName,
             ));
         }
 
         /**
-         * @var list<string> $inputCasted
+         * @var list<non-empty-string> $inputCasted
          */
         $inputCasted = $input;
 
