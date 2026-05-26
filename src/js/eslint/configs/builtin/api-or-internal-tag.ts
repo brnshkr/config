@@ -6,7 +6,7 @@ import type { TSESLint } from '@typescript-eslint/utils';
 import type { PackageExportsResolverOptions } from '../../utils/package-exports';
 import type { RuleDefinition } from '.';
 
-const MESSAGE_ID_MISSING_TAG = 'missingTag';
+export const MESSAGE_ID_MISSING_TAG = 'missingTag';
 
 export const apiOrInternalTagRule = <const>{
   meta: {

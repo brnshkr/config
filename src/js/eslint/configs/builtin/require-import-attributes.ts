@@ -1,9 +1,9 @@
 import type { TSESTree } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '.';
 
-const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
-const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
-const MESSAGE_ID_WRONG_TYPE_VALUE = 'wrongTypeValue';
+export const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
+export const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
+export const MESSAGE_ID_WRONG_TYPE_VALUE = 'wrongTypeValue';
 
 const FILE_TYPE_MAP: Record<string, string> = <const>{
   '.json': 'json',

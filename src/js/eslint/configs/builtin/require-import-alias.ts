@@ -9,8 +9,9 @@ import type { Maybe } from '../../../shared/types/core';
 import type { TsConfigPaths } from '../../utils/tsconfig';
 import type { RuleDefinition } from '.';
 
-const MESSAGE_ID_PREFER_ALIAS = 'preferAlias';
-const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';
+export const MESSAGE_ID_PREFER_ALIAS = 'preferAlias';
+export const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';
+
 const WILDCARD_SUFFIX = '/*';
 const WILDCARD_SUFFIX_LENGTH = WILDCARD_SUFFIX.length;
 const RELATIVE_SPECIFIER_PREFIXES = <const>['./', '../'];
@@ -147,7 +148,9 @@ export const requireImportAliasRule = <const>{
         context.report({
           node: sourceNode,
           messageId: MESSAGE_ID_MISSING_ALIAS,
-          data: { source },
+          data: {
+            source,
+          },
         });
 
         return;

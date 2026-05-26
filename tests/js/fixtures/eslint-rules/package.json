@@ -1,0 +1,7 @@
+{
+  "name": "@brnshkr/eslint-rules-fixture",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./dist/index.js"
+  }
+}

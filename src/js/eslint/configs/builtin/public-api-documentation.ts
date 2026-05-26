@@ -32,11 +32,12 @@ import type { ExportedSymbol } from '../../utils/exports';
 import type { PackageExportsResolverOptions } from '../../utils/package-exports';
 import type { RuleDefinition } from '.';
 
-const MESSAGE_ID_MISSING_FILE_DESCRIPTION = 'missingFileDescription';
-const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
-const MESSAGE_ID_MISSING_PARAM = 'missingParam';
-const MESSAGE_ID_MISSING_RETURNS = 'missingReturns';
-const MESSAGE_ID_MISSING_EXAMPLE = 'missingExample';
+export const MESSAGE_ID_MISSING_FILE_DESCRIPTION = 'missingFileDescription';
+export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
+export const MESSAGE_ID_MISSING_PARAM = 'missingParam';
+export const MESSAGE_ID_MISSING_RETURNS = 'missingReturns';
+export const MESSAGE_ID_MISSING_EXAMPLE = 'missingExample';
+
 const KIND_METHOD = 'Method';
 const KIND_CONSTRUCTOR = 'Constructor';
 

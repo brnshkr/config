@@ -28,7 +28,9 @@ export const isFluentReturn = (
 
 export const isVoidLikeReturn = (
   returnType: Maybe<TSESTree.TSTypeAnnotation>,
-): boolean => returnType?.typeAnnotation.type === 'TSVoidKeyword' || returnType?.typeAnnotation.type === 'TSNeverKeyword';
+): boolean => returnType === undefined
+  || returnType.typeAnnotation.type === 'TSVoidKeyword'
+  || returnType.typeAnnotation.type === 'TSNeverKeyword';
 
 export const getParameterName = (parameter: TSESTree.Parameter): Maybe<string> => {
   if (parameter.type === 'Identifier') {
