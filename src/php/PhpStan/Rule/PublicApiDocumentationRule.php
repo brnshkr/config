@@ -362,7 +362,7 @@ final readonly class PublicApiDocumentationRule implements Rule
     private static function buildDescriptionError(string $kind, string $name, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
-            '%s `%s` is `@api` and must carry a description before the first doc-tag.',
+            '%s `%s` is `@api` and must carry a description before the first PHPDoc tag.',
             $kind,
             $name,
         ), $line);
