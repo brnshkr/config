@@ -85,6 +85,8 @@ use function sprintf;
  * Named arguments are explicitly allowed here because callers commonly pass `domain:`,
  * `application:`, or `root:` by name for readability.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/architecture/index.md
+ *
  * @api
  *
  * @phpstan-import-type PhpAtService from PhpStan
@@ -118,13 +120,13 @@ final class Architecture
      * );
      * ```
      *
-     * @param non-empty-string $domain Domain layer namespace
-     * @param non-empty-string $application Application layer namespace
-     * @param non-empty-string $infrastructure Infrastructure layer namespace
+     * @param non-empty-string $domain domain layer namespace
+     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $infrastructure infrastructure layer namespace
      *
-     * @return non-empty-list<PhpAtService> Configured architecture rule services
+     * @return non-empty-list<PhpAtService> configured architecture rule services
      *
-     * @throws InvalidArgumentException When a namespace is empty after normalization
+     * @throws InvalidArgumentException when a namespace is empty after normalization
      */
     public static function layered(
         string $domain = self::DEFAULT_ROOT . '\Domain',
@@ -173,22 +175,22 @@ final class Architecture
      *     valueObject: 'Acme\Domain\ValueObject',
      *     domainEvent: 'Acme\Domain\Event',
      *     isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
-     *     modules: ['Blog', 'News'],
+     *     modules: ['User', 'Email'],
      * );
      * ```
      *
-     * @param non-empty-string $domain Domain layer namespace
-     * @param non-empty-string $application Application layer namespace
-     * @param non-empty-string $infrastructure Infrastructure layer namespace
-     * @param ?non-empty-string $interface Interface layer namespace
-     * @param ?non-empty-string $valueObject Value object namespace requiring immutability
-     * @param ?non-empty-string $domainEvent Domain event namespace requiring immutability
-     * @param list<non-empty-string> $isolatedFrom Framework namespaces forbidden in the domain layer
-     * @param list<non-empty-string> $modules Module names participating in isolation rules
+     * @param non-empty-string $domain domain layer namespace
+     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $infrastructure infrastructure layer namespace
+     * @param ?non-empty-string $interface interface layer namespace
+     * @param ?non-empty-string $valueObject value object namespace requiring immutability
+     * @param ?non-empty-string $domainEvent domain event namespace requiring immutability
+     * @param list<non-empty-string> $isolatedFrom framework namespaces forbidden in the domain layer
+     * @param list<non-empty-string> $modules module names participating in isolation rules
      *
-     * @return non-empty-list<PhpAtService> Configured architecture rule services
+     * @return non-empty-list<PhpAtService> configured architecture rule services
      *
-     * @throws InvalidArgumentException When namespaces or module names are invalid
+     * @throws InvalidArgumentException when namespaces or module names are invalid
      */
     public static function ddd(
         string $domain = self::DEFAULT_ROOT . '\Domain',
@@ -290,15 +292,15 @@ final class Architecture
      *
      * @example
      * ```php
-     * $modular = Architecture::modular(['Blog', 'News'], 'Acme\{name}');
+     * $modular = Architecture::modular(['User', 'Email'], 'Acme\{name}');
      * ```
      *
-     * @param non-empty-list<non-empty-string> $modules Module names
-     * @param non-empty-string $pattern Namespace pattern containing the "{name}" placeholder
+     * @param non-empty-list<non-empty-string> $modules module names
+     * @param non-empty-string $pattern namespace pattern containing the "{name}" placeholder
      *
-     * @return non-empty-list<PhpAtService> Configured module isolation rule services
+     * @return non-empty-list<PhpAtService> configured module isolation rule services
      *
-     * @throws InvalidArgumentException When the pattern is invalid or module names are invalid
+     * @throws InvalidArgumentException when the pattern is invalid or module names are invalid
      */
     public static function modular(array $modules, string $pattern = self::DEFAULT_ROOT . '\{name}'): array
     {
@@ -354,15 +356,15 @@ final class Architecture
      * @example
      * ```php
      * $symfonyDefault = Architecture::symfony('Acme');
-     * $symfonyModular = Architecture::symfony('Acme', modules: ['Blog', 'News']);
+     * $symfonyModular = Architecture::symfony('Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root Root application namespace
-     * @param list<non-empty-string> $modules Optional module names
+     * @param non-empty-string $root root application namespace
+     * @param list<non-empty-string> $modules optional module names
      *
-     * @return non-empty-list<PhpAtService> Configured Symfony architecture rule services
+     * @return non-empty-list<PhpAtService> configured Symfony architecture rule services
      *
-     * @throws InvalidArgumentException When namespaces or module names are invalid
+     * @throws InvalidArgumentException when namespaces or module names are invalid
      */
     public static function symfony(string $root = self::DEFAULT_ROOT, array $modules = []): array
     {
@@ -395,16 +397,16 @@ final class Architecture
      * @example
      * ```php
      * $doctrineDefault = Architecture::doctrine('Acme', 'Acme\Migrations');
-     * $doctrineModular = Architecture::doctrine('Acme', modules: ['Blog', 'News']);
+     * $doctrineModular = Architecture::doctrine('Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root Root application namespace
-     * @param non-empty-string $migrationsNamespace Doctrine migrations namespace
-     * @param list<non-empty-string> $modules Optional module names
+     * @param non-empty-string $root root application namespace
+     * @param non-empty-string $migrationsNamespace doctrine migrations namespace
+     * @param list<non-empty-string> $modules optional module names
      *
-     * @return non-empty-list<PhpAtService> Configured Doctrine architecture rule services
+     * @return non-empty-list<PhpAtService> configured Doctrine architecture rule services
      *
-     * @throws InvalidArgumentException When namespaces or module names are invalid
+     * @throws InvalidArgumentException when namespaces or module names are invalid
      */
     public static function doctrine(
         string $root = self::DEFAULT_ROOT,
@@ -464,15 +466,15 @@ final class Architecture
      * @example
      * ```php
      * $laravelDefault = Architecture::laravel('Acme');
-     * $laravelModular = Architecture::laravel('Acme', ['Blog', 'News']);
+     * $laravelModular = Architecture::laravel('Acme', ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root Root application namespace
-     * @param list<non-empty-string> $modules Optional module names
+     * @param non-empty-string $root root application namespace
+     * @param list<non-empty-string> $modules optional module names
      *
-     * @return non-empty-list<PhpAtService> Configured Laravel architecture rule services
+     * @return non-empty-list<PhpAtService> configured Laravel architecture rule services
      *
-     * @throws InvalidArgumentException When namespaces or module names are invalid
+     * @throws InvalidArgumentException when namespaces or module names are invalid
      */
     public static function laravel(string $root = self::DEFAULT_ROOT, array $modules = []): array
     {
@@ -506,15 +508,15 @@ final class Architecture
      * @example
      * ```php
      * $tempestDefault = Architecture::tempest('Acme');
-     * $tempestModular = Architecture::tempest('Acme', modules: ['Blog', 'News']);
+     * $tempestModular = Architecture::tempest('Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root Root application namespace
-     * @param list<non-empty-string> $modules Optional module names
+     * @param non-empty-string $root root application namespace
+     * @param list<non-empty-string> $modules optional module names
      *
-     * @return non-empty-list<PhpAtService> Configured Tempest architecture rule services
+     * @return non-empty-list<PhpAtService> configured Tempest architecture rule services
      *
-     * @throws InvalidArgumentException When namespaces or module names are invalid
+     * @throws InvalidArgumentException when namespaces or module names are invalid
      */
     public static function tempest(string $root = self::DEFAULT_ROOT, array $modules = []): array
     {

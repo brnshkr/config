@@ -31,8 +31,11 @@ Module::warnMissingPackages(Module::MODULE_RECTOR);
  * Builds a ready-to-use Rector config that captures the @brnshkr refactoring decisions.
  *
  * The `#[\SensitiveParameter]` attribute rule is pre-wired to a list of parameter names commonly
- * associated with secrets (e.g. `password`, `apiToken`, `clientSecret`, plus plural variants), so
- * newly introduced sensitive parameters automatically get the attribute added.
+ * associated with secrets (e.g. `password`, `apiToken`, `clientSecret`, plus plural variants
+ * generated at runtime), so newly introduced sensitive parameters automatically get the
+ * attribute added.
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/Rector.md
  *
  * @no-named-arguments
  */
@@ -136,7 +139,7 @@ final readonly class Rector
      * Build a fully configured RectorConfigBuilder.
      *
      * Caller may pass a Finder to narrow paths under analysis; otherwise the project-wide
-     * {@see FileFinder} defaults apply. The returned builder can be further customised
+     * {@see FileFinder} defaults apply. The returned builder can be further customized
      * before being returned from `conf/rector.php`.
      *
      * @example
@@ -145,12 +148,12 @@ final readonly class Rector
      * return Rector::getConfig()->withSkip([SomeOtherRule::class]);
      * ```
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
-     * @return RectorConfigBuilder Configured builder ready for further customization or return
+     * @return RectorConfigBuilder configured builder ready for further customization or return
      *
-     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
-     * @throws RuntimeException When required Rector dependencies are missing
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when required Rector dependencies are missing
      */
     public static function getConfig(?Finder $finder = null): RectorConfigBuilder
     {

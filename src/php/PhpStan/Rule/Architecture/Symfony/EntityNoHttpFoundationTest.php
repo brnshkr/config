@@ -31,7 +31,7 @@ final readonly class EntityNoHttpFoundationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root Root application namespace containing the `Entity` folder
+     * @param non-empty-string $root root application namespace containing the `Entity` folder
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

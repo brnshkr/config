@@ -53,8 +53,8 @@ final readonly class RoleFoldersExhaustiveTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root Root application namespace
-     * @param non-empty-list<non-empty-string> $allowedFolders Whitelisted top-level folder names
+     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $allowedFolders whitelisted top-level folder names
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

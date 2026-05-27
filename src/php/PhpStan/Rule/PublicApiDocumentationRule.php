@@ -56,6 +56,8 @@ use function sprintf;
  * methods skip `@example` since they have no implementation to demonstrate. `@throws` coverage
  * is left to PHPStan's built-in throw-type checks.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/PublicApiDocumentationRule.md
+ *
  * @api
  *
  * @no-named-arguments

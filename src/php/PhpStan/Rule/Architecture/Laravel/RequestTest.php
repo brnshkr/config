@@ -32,7 +32,7 @@ final readonly class RequestTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root Root application namespace
+     * @param non-empty-string $root root application namespace
      */
     public function __construct(
         private string $root = Architecture::DEFAULT_ROOT,

@@ -34,8 +34,8 @@ final readonly class DomainNoInfrastructureTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domain Domain layer namespace
-     * @param non-empty-string $infrastructure Infrastructure layer namespace
+     * @param non-empty-string $domain domain layer namespace
+     * @param non-empty-string $infrastructure infrastructure layer namespace
      */
     public function __construct(
         private string $domain,

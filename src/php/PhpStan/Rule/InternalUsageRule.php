@@ -46,6 +46,8 @@ use function sprintf;
  * exempts callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring
  * packages, and `allowedInternalTargets` exempts groups of symbols that share the same target.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
+ *
  * @example
  * ```php
  * PhpStan::configureRule(InternalUsageRule::class, [
@@ -69,9 +71,9 @@ final class InternalUsageRule implements Rule
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?list<non-empty-string> $allowedInternalTargets Regex patterns matched against `@internal <target>` values to whitelist
-     * @param ?list<non-empty-string> $allowedDeclaringNamespaces Regex patterns matched against the declaring namespace to whitelist
-     * @param ?list<non-empty-string> $allowedCallingNamespaces Regex patterns matched against the caller's namespace to whitelist
+     * @param ?list<non-empty-string> $allowedInternalTargets regex patterns matched against `@internal <target>` values to whitelist
+     * @param ?list<non-empty-string> $allowedDeclaringNamespaces regex patterns matched against the declaring namespace to whitelist
+     * @param ?list<non-empty-string> $allowedCallingNamespaces regex patterns matched against the caller's namespace to whitelist
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,

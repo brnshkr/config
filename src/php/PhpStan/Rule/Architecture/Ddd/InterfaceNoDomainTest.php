@@ -33,8 +33,8 @@ final readonly class InterfaceNoDomainTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $interface Interface (presentation) layer namespace
-     * @param non-empty-string $domain Domain layer namespace
+     * @param non-empty-string $interface interface (presentation) layer namespace
+     * @param non-empty-string $domain domain layer namespace
      */
     public function __construct(
         private string $interface,

@@ -25,6 +25,8 @@ Module::warnMissingPackages(Module::MODULE_TWIG_CS_FIXER);
 /**
  * Builds a ready-to-use Twig-CS-Fixer config that captures the @brnshkr template-style decisions.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/TwigCsFixer.md
+ *
  * @no-named-arguments
  */
 final readonly class TwigCsFixer
@@ -43,11 +45,11 @@ final readonly class TwigCsFixer
      * return TwigCsFixer::getConfig();
      * ```
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
-     * @return TwigCsFixerConfig Configured Config instance ready for twig-cs-fixer
+     * @return TwigCsFixerConfig configured Config instance ready for twig-cs-fixer
      *
-     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      */
     public static function getConfig(?Finder $finder = null): TwigCsFixerConfig
     {

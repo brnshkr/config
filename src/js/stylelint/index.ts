@@ -20,10 +20,12 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *
  * @api
  *
- * @param optionsAndGlobalConfig - Per-module toggles and global Stylelint fields merged with the defaults.
- * @param additionalConfigs - Extra Stylelint config entries merged after the built-in ones.
+ * @param optionsAndGlobalConfig per-module toggles and global Stylelint fields merged with the defaults
+ * @param additionalConfigs extra Stylelint config entries merged after the built-in ones
  *
- * @returns Final Stylelint config ready to be consumed by Stylelint.
+ * @returns final Stylelint config ready to be consumed by Stylelint
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/stylelint.md
  *
  * @example
  * import { getConfig } from '@brnshkr/config/stylelint';

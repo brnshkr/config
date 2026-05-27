@@ -20,13 +20,14 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 
 <!-- NOTICE: GitHub strips emojis in anchors, but multi-codepoint characters may leave invisible remnants, causing anchors to differ and require URL encoding. -->
 - [👋 About the Project](#-about-the-project)
+- [📚 Documentation](#-documentation)
 - [☕ JS](#-js)
   - [🧰 Prerequisites](#-prerequisites)
   - [🚀 Installation](#-installation)
     - [✋ Manual](#-manual)
     - [🎨 Custom](#-custom)
   - [👀 Usage](#-usage)
-  - [💻 Development](#-development)
+  - [🧩 Custom ESLint Rules](#-custom-eslint-rules)
 - [🐘 PHP](#-php)
   - [🧰 Prerequisites](#-prerequisites-1)
   - [🚀 Installation](#-installation-1)
@@ -34,7 +35,7 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
     - [✋ Manual](#-manual-1)
     - [🎨 Custom](#-custom-1)
   - [👀 Usage](#-usage-1)
-  - [💻 Development](#-development-1)
+  - [🧩 Custom PHPStan Rules](#-custom-phpstan-rules)
 - [🔨 TODOs / Roadmap](#-todos--roadmap)
 - [❤️ Contributing](#️-contributing)
   - [💄 Commit Style](#-commit-style)
@@ -51,6 +52,12 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 
 > ❗ **Note** ❗  
 > While you're more than welcome to use this in your own projects, the configurations are tailored specifically for the [@brnshkr][@brnshkr-organization-url] ecosystem and may not be a perfect fit elsewhere.
+
+<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
+
+## 📚 Documentation
+
+This README covers installation and usage. The full reference — custom rules, config builders, the Composer plugin, and the development setup — lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs), organized by stack and tool.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -196,7 +203,7 @@ bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache -
 <!-- omit in toc -->
 ##### Option 2 — Run Helper Scripts (Bun Only, @brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the [`./conf`](./conf) directory (Exactly how it is done in this project as well).
+For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory (Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf).
 
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
@@ -224,41 +231,9 @@ If you need a VSCode setup and have the specific [`extensions`](https://github.c
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-### 💻 Development
+### 🧩 Custom ESLint Rules
 
-<!-- omit in toc -->
-#### Node version
-
-The required Node version is pinned in [`.nvmrc`](./.nvmrc). We use [nvm](https://github.com/nvm-sh/nvm); with it installed and activated, running `nvm install` from the repo root installs and selects the pinned version.
-
-<!-- omit in toc -->
-#### Setup
-
-Install dependencies and setup git hooks:
-
-```sh
-bun install \
-  && bun install-hooks
-```
-
-<!-- omit in toc -->
-#### Scripts
-
-We recommend using the scripts provided in the [package.json](./package.json) file as the primary way of running common tasks.  
-Have a look yourself for a full list of available targets.
-
-<!-- omit in toc -->
-##### Common targets
-
-Here are some frequently used examples:
-
-- `bun lint` — Run ESLint, Stylelint and Commitlint
-- `bun inspect:eslint` — Inspect ESLint configuration
-- `bun check` — Run TypeScript checks, linters and Vitest
-- `bun run test` — Run Vitest test suite
-- `bun test-update` — Run Vitest test suite and update snapshots
-- `bun run build` — Build the project and generate types
-- `bun watch` — Build the project in watch mode
+The default ESLint configuration ships a small `brnshkr` plugin that contributes a handful of project-specific rules, all enabled out of the box. Each rule is documented with examples in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/index.md).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -502,7 +477,7 @@ php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
 <!-- omit in toc -->
 ##### Option 2 — Run Helper Scripts (Make Only, @brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the [`./conf`](./conf) directory (Exactly how it is done in this project as well).
+For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory (Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
 Do not forget to setup your Makefile with this projects Makefile as a base:
 
@@ -567,53 +542,16 @@ For full usage run `composer help <command>`, `composer <command> --help` or `co
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-### 💻 Development
+### 🧩 Custom PHPStan Rules
 
-<!-- omit in toc -->
-#### PHP version
+Beyond the upstream rule set, the default configuration ships a number of custom PHPStan rules in two flavors. **Standalone rules** are general-purpose checks enabled out of the box, while **architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a specific framework or architecture style — opt-in and configured through `setArchitecture()`. Both are documented with examples in the [Custom PHPStan Rules docs](https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/index.md).
 
-The required PHP version and build configuration are pinned in [`mise.toml`](./mise.toml). We use [mise](https://github.com/jdx/mise) with the [verzly/mise-php](https://github.com/verzly/mise-php) plugin; with it installed and activated, running `mise install` from the repo root installs and selects the pinned version.
-
-<!-- omit in toc -->
-#### Setup
-
-Install dependencies and setup project tooling with the following commands and adjust as needed:
-
-```sh
-composer install \
-  && cp -v ./conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php \
-  && cp -v ./conf/rector.php.example ./conf/rector.php \
-  && cp -v ./conf/phpstan.php.example ./conf/phpstan.php \
-  && cp -v ./conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php
-```
-
-<!-- omit in toc -->
-#### Make
-
-We recommend using [GNU Make][make-url] as the primary task runner.  
-See [the Makefile](./conf/Makefile) for a full list of available targets.  
-You can also run `make help` or simply `make` to view all targets with brief descriptions.
-
-If you need local overrides, create a `./.local/Makefile` — the main Makefile automatically includes it if present.
-
-<!-- omit in toc -->
-##### Common targets
-
-Here are some frequently used examples (see `make help` for the complete list):
-
-- `make help` — Show available targets and usage
-- `make rector` — Run Rector to apply automated PHP refactorings
-- `make php-cs-fixer` — Run PHP-CS-Fixer to format and fix coding-style issues
-- `make phpstan` — Run PHPStan static analysis
-- `make test` — Run PHPUnit test suite
-- `make test-update` — Run PHPUnit test suite and update snapshots
-- `make check` — Run Rector, PHP-CS-Fixer, Twig-CS-Fixer, PHPStan and PHPUnit
+<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
 ## 🔨 TODOs / Roadmap
 
 - Add setup command for JS package (like `composer brnshkr:config:setup`)
 - Expand [`⚙️ Worflows`](#️-workflows) section in readme
-- Write sections about custom PHPStan and ESLint rules
 - Add Vue support
 - Add React support
 - Add Tailwind support via <https://github.com/schoero/eslint-plugin-better-tailwindcss>
@@ -635,6 +573,8 @@ Don't forget to give the project a star! Thanks again!
 3. Commit your changes => `git commit -m 'feat(my-new-feature): add some awesome new feature'`
 4. Push to the branch => `git push origin feature/my-new-feature`
 5. Open a pull request
+
+New to the codebase? The [Development docs](https://github.com/brnshkr/config/blob/master/docs/development.md) cover environment setup and the day-to-day commands for both stacks.
 
 ### 💄 Commit Style
 
@@ -708,8 +648,6 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for more information
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [@brnshkr-organization-url]: https://github.com/brnshkr
-
-[make-url]: https://www.gnu.org/software/make
 
 [semver-2.0.0-url]: https://semver.org/#semantic-versioning-200
 [semver-2.0.0-shield-url]: https://img.shields.io/badge/semver-2.0.0-blue?label=🔖%20semver&style=flat-square&labelColor=%237f399d&color=%23a5097e

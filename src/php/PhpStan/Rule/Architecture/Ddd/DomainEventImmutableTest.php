@@ -31,7 +31,7 @@ final readonly class DomainEventImmutableTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domainEvent Namespace containing the project's domain event classes
+     * @param non-empty-string $domainEvent namespace containing the project's domain event classes
      */
     public function __construct(
         private string $domainEvent,

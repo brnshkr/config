@@ -26,9 +26,11 @@ use function sprintf;
  * PHP's named-argument syntax silently turns parameter names into part of the public contract —
  * once a caller writes `someFunction(name: 'foo')`, the parameter cannot be renamed without
  * breaking that caller. The tag keeps parameter names out of the contract, leaving them free to
- * be renamed without a backwards-compatibility break.
+ * be renamed without a backward-compatibility break.
  *
  * Symbols tagged `@internal` are exempt; anonymous classes are skipped.
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NoNamedArgumentsTagRule.md
  *
  * @api
  *

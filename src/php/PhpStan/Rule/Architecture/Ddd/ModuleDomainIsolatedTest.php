@@ -23,8 +23,8 @@ use function sprintf;
  * ```php
  * PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
  *     'domain'   => 'Acme\Domain',
- *     'module'   => 'Blog',
- *     'siblings' => ['News', 'Shop'],
+ *     'module'   => 'User',
+ *     'siblings' => ['Email'],
  * ]);
  * ```
  *
@@ -39,9 +39,9 @@ final readonly class ModuleDomainIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domain Domain layer namespace
-     * @param non-empty-string $module The module being isolated
-     * @param list<non-empty-string> $siblings Sibling module names within the same Domain namespace
+     * @param non-empty-string $domain domain layer namespace
+     * @param non-empty-string $module the module being isolated
+     * @param list<non-empty-string> $siblings sibling module names within the same Domain namespace
      */
     public function __construct(
         private string $domain,

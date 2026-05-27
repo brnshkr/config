@@ -80,12 +80,16 @@ const getQuote = (sourceNode: TSESTree.Node): string => (('raw' in sourceNode
   ? '"'
   : '\'');
 
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md
+ */
 export const requireImportAliasRule = <const>{
   meta: {
     type: 'suggestion',
     fixable: 'code',
     docs: {
       description: 'Require imports to use TypeScript path aliases when the target file is reachable through a configured alias.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md',
     },
     schema: [
       {

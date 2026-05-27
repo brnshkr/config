@@ -17,11 +17,15 @@ const FILE_TYPE_MAP: Record<string, string> = <const>{
   '.wasm': 'webassembly',
 };
 
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-attributes.md
+ */
 export const requireImportAttributesRule = <const>{
   meta: {
     type: 'problem',
     docs: {
       description: 'Require non-JavaScript imports (e.g. .json and .css) to include import attributes.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-attributes.md',
     },
     messages: {
       [MESSAGE_ID_MISSING_WITH_KEYWORD]: 'Non-JavaScript import (\'{{ extension }}\') requires an import attributes object with the \'type\' property set to \'{{ expectedValue }}\'.',

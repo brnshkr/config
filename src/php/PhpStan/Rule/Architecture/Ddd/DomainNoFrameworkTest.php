@@ -35,8 +35,8 @@ final readonly class DomainNoFrameworkTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domain Domain layer namespace
-     * @param list<non-empty-string> $isolatedFrom Framework namespaces forbidden inside the domain layer
+     * @param non-empty-string $domain domain layer namespace
+     * @param list<non-empty-string> $isolatedFrom framework namespaces forbidden inside the domain layer
      */
     public function __construct(
         private string $domain,

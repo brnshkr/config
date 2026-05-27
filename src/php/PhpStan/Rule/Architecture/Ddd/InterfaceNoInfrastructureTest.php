@@ -33,8 +33,8 @@ final readonly class InterfaceNoInfrastructureTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $interface Interface (presentation) layer namespace
-     * @param non-empty-string $infrastructure Infrastructure layer namespace
+     * @param non-empty-string $interface interface (presentation) layer namespace
+     * @param non-empty-string $infrastructure infrastructure layer namespace
      */
     public function __construct(
         private string $interface,

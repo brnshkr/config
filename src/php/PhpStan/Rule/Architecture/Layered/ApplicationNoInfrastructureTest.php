@@ -34,8 +34,8 @@ final readonly class ApplicationNoInfrastructureTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $application Application layer namespace
-     * @param non-empty-string $infrastructure Infrastructure layer namespace
+     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $infrastructure infrastructure layer namespace
      */
     public function __construct(
         private string $application,

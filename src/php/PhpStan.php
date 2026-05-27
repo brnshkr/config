@@ -57,6 +57,11 @@ use function usort;
 
 Module::warnMissingPackages(Module::MODULE_PHP_STAN);
 
+// @phpstan-ignore symplify.forbiddenFuncCall (Guards the class declaration so this self-returning config can be safely required more than once, e.g. via PHPStan's 'includes')
+if (class_exists(PhpStan::class)) {
+    return PhpStan::getConfig();
+}
+
 /**
  * Builds the @brnshkr PHPStan configuration through a chainable, opt-in API.
  *
@@ -71,6 +76,8 @@ Module::warnMissingPackages(Module::MODULE_PHP_STAN);
  * strings by hand. Setters for optional integrations (Symfony, Doctrine, Strict-Rules, etc.)
  * throw a {@see RuntimeException} when the corresponding package is not installed, so missing
  * dependencies surface immediately rather than as cryptic errors at analysis time.
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/index.md
  *
  * @no-named-arguments
  *
@@ -135,26 +142,28 @@ final class PhpStan
      * Returns the raw config array by default; pass `$asInstance: true` to get the builder
      * instance for further chaining (used by `conf/phpstan.dist.php` to add architecture rules).
      *
-     * // conf/phpstan.php — extend before returning
+     * @example
+     * ```php
+     * // conf/phpstan.php
+     *
+     * // plain config
+     * return PhpStan::getConfig();
+     *
+     * // extend before returning
      * return PhpStan::getConfig(null, true)
-     *     ->setArchitecture([...Architecture::laravel('Acme')])
+     *     ->setArchitecture(Architecture::symfony('Acme'))
      *     ->toArray();
      * ```
      *
-     * @example
-     * ```php
-     * // conf/phpstan.php — plain config
-     * return PhpStan::getConfig();
-     *
      * @template TAsInstance of bool
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
-     * @param TAsInstance $asInstance When true return the builder, otherwise the config array
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param TAsInstance $asInstance when true return the builder, otherwise the config array
      *
-     * @return (TAsInstance is true ? self : Config) Builder instance or finalized config array
+     * @return (TAsInstance is true ? self : Config) builder instance or finalized config array
      *
-     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
-     * @throws RuntimeException When a required optional PHPStan extension is missing
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when a required optional PHPStan extension is missing
      */
     public static function getConfig(?Finder $finder = null, bool $asInstance = false): self|array
     {
@@ -187,7 +196,6 @@ final class PhpStan
                 'reportNonIntStringArrayKey'                         => true,
                 'reportPossiblyNonexistentConstantArrayOffset'       => true,
                 'reportPossiblyNonexistentGeneralArrayOffset'        => true,
-                // 'reportUnsafeArrayStringKeyCasting'                  => 'prevent',
             ])
             ->setFeatureToggles([
                 'checkParameterCastableToNumberFunctions'     => true,
@@ -252,7 +260,7 @@ final class PhpStan
     /**
      * Serialize the builder to its raw PHPStan config array.
      *
-     * @return Config Finalized config with the four top-level sections (includes, parameters, rules, services)
+     * @return Config finalized config with the four top-level sections (includes, parameters, rules, services)
      */
     public function toArray(): array
     {
@@ -262,7 +270,7 @@ final class PhpStan
     /**
      * Merge additional `includes` neon paths into the config (dedup-preserving order).
      *
-     * @param list<non-empty-string> $includes Absolute or relative paths to neon files to merge in
+     * @param list<non-empty-string> $includes absolute or relative paths to neon files to merge in
      */
     public function setIncludes(array $includes): self
     {
@@ -274,7 +282,7 @@ final class PhpStan
     /**
      * Merge multiple PHPStan parameters at once, overwriting existing keys.
      *
-     * @param array<non-empty-string, mixed> $parameters Map of parameter name to value
+     * @param array<non-empty-string, mixed> $parameters map of parameter name to value
      */
     public function setParameters(array $parameters): self
     {
@@ -289,8 +297,8 @@ final class PhpStan
      * Prefer the named setters ({@see self::setLevel()}, {@see self::setPaths()} etc.) where
      * one exists; use this only for parameters without a dedicated wrapper.
      *
-     * @param non-empty-string $key Parameter name as it appears under the `parameters:` section
-     * @param mixed $value Parameter value
+     * @param non-empty-string $key parameter name as it appears under the `parameters:` section
+     * @param mixed $value parameter value
      */
     public function setParameter(string $key, mixed $value): self
     {
@@ -305,7 +313,7 @@ final class PhpStan
      * Plain class-string entries land under `rules:`; service-array entries (from
      * {@see self::configureRule()}) land under `services:` with the correct tag.
      *
-     * @param list<class-string|RuleService> $rules Rule class-strings or pre-configured rule services
+     * @param list<class-string|RuleService> $rules rule class-strings or pre-configured rule services
      */
     public function setRules(array $rules): self
     {
@@ -319,7 +327,7 @@ final class PhpStan
      *
      * Removes matching entries from both the `rules:` and `services:` sections.
      *
-     * @param list<class-string> $rules Rule class-strings to drop
+     * @param list<class-string> $rules rule class-strings to drop
      */
     public function removeRules(array $rules): self
     {
@@ -337,7 +345,7 @@ final class PhpStan
      * Service entries usually come from {@see self::configureRule()},
      * {@see self::configureStaticThrowTypeExtension()} or {@see self::configurePhpAtTest()}.
      *
-     * @param list<Service> $services Service definitions to merge
+     * @param list<Service> $services service definitions to merge
      */
     public function setServices(array $services): self
     {
@@ -358,7 +366,7 @@ final class PhpStan
      * When a class-string is passed, every service with that `class` key is removed.
      * When a service array is passed, removal matches on (class + arguments).
      *
-     * @param list<class-string|Service> $services Services to drop
+     * @param list<class-string|Service> $services services to drop
      */
     public function removeServices(array $services): self
     {
@@ -391,7 +399,7 @@ final class PhpStan
     /**
      * Set the PHPStan analysis rule level.
      *
-     * @param int<0, 10>|'max' $level Numeric level 0-10 or the string "max"
+     * @param int<0, 10>|'max' $level numeric level 0-10 or the string "max"
      *
      * @see https://phpstan.org/user-guide/rule-levels
      */
@@ -401,7 +409,7 @@ final class PhpStan
     }
 
     /**
-     * Set the paths PHPStan analyses, optionally with exclusions.
+     * Set the paths PHPStan analyzes, optionally with exclusions.
      *
      * Exclusions accept either a flat list (treated as `analyseAndScan`) or the structured
      * `{analyse, analyseAndScan}` shape PHPStan understands.
@@ -412,7 +420,7 @@ final class PhpStan
      * $config->setPaths(['src'], ['analyse' => ['src/runtime-only']]);
      * ```
      *
-     * @param list<non-empty-string> $paths Paths to analyse
+     * @param list<non-empty-string> $paths paths to analyze
      * @param list<non-empty-string>|array{
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
@@ -452,7 +460,7 @@ final class PhpStan
     /**
      * Set the list of bootstrap files PHPStan should require before analysis.
      *
-     * @param list<non-empty-string> $bootstrapFiles Paths to bootstrap PHP files
+     * @param list<non-empty-string> $bootstrapFiles paths to bootstrap PHP files
      */
     public function setBootstrapFiles(array $bootstrapFiles): self
     {
@@ -462,7 +470,7 @@ final class PhpStan
     /**
      * Override the cache directory PHPStan writes to.
      *
-     * @param ?non-empty-string $temporaryDirectory Cache directory path, or null to use the PHPStan default
+     * @param ?non-empty-string $temporaryDirectory cache directory path, or null to use the PHPStan default
      *
      * @see https://phpstan.org/config-reference#caching
      */
@@ -494,7 +502,7 @@ final class PhpStan
     /**
      * Toggle PHPStan feature flags by name.
      *
-     * @param array<non-empty-string, bool> $featureToggles Map of feature-toggle name to enable/disable
+     * @param array<non-empty-string, bool> $featureToggles map of feature-toggle name to enable/disable
      */
     public function setFeatureToggles(array $featureToggles): self
     {
@@ -504,7 +512,7 @@ final class PhpStan
     /**
      * Configure PHPStan exception-checking parameters.
      *
-     * @param array<non-empty-string, mixed> $exceptions Exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
+     * @param array<non-empty-string, mixed> $exceptions exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
      *
      * @see https://phpstan.org/config-reference#exceptions
      */
@@ -516,11 +524,11 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-strict-rules` extension.
      *
-     * @param array<non-empty-string, bool> $strictRules Map of strict-rule name to enabled flag
+     * @param array<non-empty-string, bool> $strictRules map of strict-rule name to enabled flag
      *
      * @see https://github.com/phpstan/phpstan-strict-rules
      *
-     * @throws RuntimeException When `phpstan/phpstan-strict-rules` is not installed
+     * @throws RuntimeException when `phpstan/phpstan-strict-rules` is not installed
      */
     public function setStrictRules(array $strictRules): self
     {
@@ -532,11 +540,11 @@ final class PhpStan
     /**
      * Configure the `rector/type-perfect` extension.
      *
-     * @param array<non-empty-string, bool> $options Map of type-perfect option name to enabled flag
+     * @param array<non-empty-string, bool> $options map of type-perfect option name to enabled flag
      *
      * @see https://github.com/rectorphp/type-perfect
      *
-     * @throws RuntimeException When `rector/type-perfect` is not installed
+     * @throws RuntimeException when `rector/type-perfect` is not installed
      */
     public function setTypePerfect(array $options): self
     {
@@ -548,8 +556,8 @@ final class PhpStan
     /**
      * Set the editor-URL template used for clickable error locations.
      *
-     * @param EditorUrl::EDITOR_* $editor Editor identifier (e.g. `vscode`, `phpstorm`)
-     * @param ?non-empty-string $currentWorkingDirectory Override for the path prefix; null uses the runtime cwd
+     * @param EditorUrl::EDITOR_* $editor editor identifier (e.g. `vscode`, `phpstorm`)
+     * @param ?non-empty-string $currentWorkingDirectory override for the path prefix; null uses the runtime cwd
      */
     public function setEditor(string $editor, ?string $currentWorkingDirectory = null): self
     {
@@ -563,7 +571,7 @@ final class PhpStan
      *
      * @see https://github.com/phpstan/phpstan-symfony
      *
-     * @throws RuntimeException When `phpstan/phpstan-symfony` is not installed
+     * @throws RuntimeException when `phpstan/phpstan-symfony` is not installed
      */
     public function setSymfony(array $options): self
     {
@@ -577,7 +585,7 @@ final class PhpStan
      *
      * @param array<non-empty-string, mixed> $options Doctrine-extension options (objectManagerLoader, queryBuilderClass, etc.)
      *
-     * @throws RuntimeException When `phpstan/phpstan-doctrine` is not installed
+     * @throws RuntimeException when `phpstan/phpstan-doctrine` is not installed
      *
      * @see https://github.com/phpstan/phpstan-doctrine
      */
@@ -604,7 +612,7 @@ final class PhpStan
      *
      * @param list<PhpAtService|list<PhpAtService>> $architecture PHPat services or nested service lists
      *
-     * @throws RuntimeException When `phpat/phpat` is not installed
+     * @throws RuntimeException when `phpat/phpat` is not installed
      */
     public function setArchitecture(array $architecture): self
     {
@@ -638,7 +646,7 @@ final class PhpStan
      * $config->removeArchitecture([ServiceProviderTest::class]);
      * ```
      *
-     * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture Rules to drop
+     * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture rules to drop
      */
     public function removeArchitecture(array $architecture): self
     {
@@ -672,10 +680,10 @@ final class PhpStan
      *
      * @template TNode of Node
      *
-     * @param class-string<Rule<TNode>> $class Rule class implementing PHPStan's Rule interface
-     * @param array<array-key, mixed> $arguments Constructor arguments keyed by parameter name
+     * @param class-string<Rule<TNode>> $class rule class implementing PHPStan's Rule interface
+     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
      *
-     * @return RuleService Tagged service definition ready for `services:`
+     * @return RuleService tagged service definition ready for `services:`
      */
     public static function configureRule(string $class, array $arguments = []): array
     {
@@ -694,10 +702,10 @@ final class PhpStan
      * PhpStan::configureStaticThrowTypeExtension(GetConfigThrowTypeExtension::class);
      * ```
      *
-     * @param class-string<DynamicStaticMethodThrowTypeExtension> $class Extension class
-     * @param array<array-key, mixed> $arguments Constructor arguments keyed by parameter name
+     * @param class-string<DynamicStaticMethodThrowTypeExtension> $class extension class
+     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
      *
-     * @return StaticThrowTypeExtensionService Tagged service definition ready for `services:`
+     * @return StaticThrowTypeExtensionService tagged service definition ready for `services:`
      */
     public static function configureStaticThrowTypeExtension(string $class, array $arguments = []): array
     {
@@ -719,9 +727,9 @@ final class PhpStan
      * ```
      *
      * @param class-string $class PHPat `*Test` class
-     * @param array<array-key, mixed> $arguments Constructor arguments keyed by parameter name
+     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
      *
-     * @return PhpAtService Tagged service definition ready for `services:`
+     * @return PhpAtService tagged service definition ready for `services:`
      */
     public static function configurePhpAtTest(string $class, array $arguments = []): array
     {
@@ -739,9 +747,9 @@ final class PhpStan
      * equivalent. Conditionally adds entries for `nesbot/carbon` and the php-cs-fixer Finder
      * when those packages are installed.
      *
-     * @return non-empty-array<class-string, class-string> Map of legacy class to preferred replacement
+     * @return non-empty-array<class-string, class-string> map of legacy class to preferred replacement
      *
-     * @throws RuntimeException When `symplify/phpstan-rules` is not installed
+     * @throws RuntimeException when `symplify/phpstan-rules` is not installed
      */
     public static function getPreferredClassesMap(): array
     {

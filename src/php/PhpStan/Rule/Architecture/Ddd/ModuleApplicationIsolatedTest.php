@@ -23,8 +23,8 @@ use function sprintf;
  * ```php
  * PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
  *     'application' => 'Acme\Application',
- *     'module'      => 'Blog',
- *     'siblings'    => ['News', 'Shop'],
+ *     'module'      => 'User',
+ *     'siblings'    => ['Email'],
  * ]);
  * ```
  *
@@ -39,9 +39,9 @@ final readonly class ModuleApplicationIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $application Application layer namespace
-     * @param non-empty-string $module The module being isolated
-     * @param list<non-empty-string> $siblings Sibling module names within the same Application namespace
+     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $module the module being isolated
+     * @param list<non-empty-string> $siblings sibling module names within the same Application namespace
      */
     public function __construct(
         private string $application,

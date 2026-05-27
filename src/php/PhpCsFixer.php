@@ -28,6 +28,8 @@ Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
  * `kubawerlos/php-cs-fixer-custom-fixers` package is installed, its fixers are layered on top
  * automatically.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/PhpCsFixer.md
+ *
  * @no-named-arguments
  */
 final readonly class PhpCsFixer
@@ -46,12 +48,12 @@ final readonly class PhpCsFixer
      * return PhpCsFixer::getConfig();
      * ```
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
-     * @return PhpCsFixerConfig Configured Config instance ready for php-cs-fixer
+     * @return PhpCsFixerConfig configured Config instance ready for php-cs-fixer
      *
-     * @throws DirectoryNotFoundException When FileFinder cannot resolve the source directory
-     * @throws RuntimeException When required php-cs-fixer dependencies are missing
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when required php-cs-fixer dependencies are missing
      */
     public static function getConfig(?Finder $finder = null): PhpCsFixerConfig
     {

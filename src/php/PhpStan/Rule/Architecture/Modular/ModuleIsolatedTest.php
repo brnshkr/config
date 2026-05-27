@@ -22,9 +22,9 @@ use function sprintf;
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
- *     'module'   => 'Acme\Blog',
- *     'label'    => 'Blog',
- *     'siblings' => ['Acme\News', 'Acme\Shop'],
+ *     'module'   => 'Acme\User',
+ *     'label'    => 'User',
+ *     'siblings' => ['Acme\Email'],
  * ]);
  * ```
  *
@@ -39,9 +39,9 @@ final readonly class ModuleIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $module Fully-qualified module namespace being isolated
-     * @param non-empty-string $label Short module label used in the violation message
-     * @param list<non-empty-string> $siblings Fully-qualified namespaces of sibling modules
+     * @param non-empty-string $module fully-qualified module namespace being isolated
+     * @param non-empty-string $label short module label used in the violation message
+     * @param list<non-empty-string> $siblings fully-qualified namespaces of sibling modules
      */
     public function __construct(
         private string $module,

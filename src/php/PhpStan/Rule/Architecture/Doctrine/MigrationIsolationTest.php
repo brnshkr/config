@@ -36,8 +36,8 @@ final readonly class MigrationIsolationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root Root application namespace forbidden inside migrations
-     * @param non-empty-string $migrationsNamespace Namespace containing Doctrine migration classes
+     * @param non-empty-string $root root application namespace forbidden inside migrations
+     * @param non-empty-string $migrationsNamespace namespace containing Doctrine migration classes
      */
     public function __construct(
         private string $root = 'App',

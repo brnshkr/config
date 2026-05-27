@@ -43,6 +43,8 @@ use function sprintf;
  * are not the project's to change; magic methods other than `__construct` are skipped because
  * their names are fixed by the language.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/BoolishPrefixRule.md
+ *
  * @api
  *
  * @no-named-arguments

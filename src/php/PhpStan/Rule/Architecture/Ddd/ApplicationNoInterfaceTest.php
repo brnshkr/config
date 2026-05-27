@@ -33,8 +33,8 @@ final readonly class ApplicationNoInterfaceTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $application Application layer namespace
-     * @param non-empty-string $interface Interface (presentation) layer namespace
+     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $interface interface (presentation) layer namespace
      */
     public function __construct(
         private string $application,

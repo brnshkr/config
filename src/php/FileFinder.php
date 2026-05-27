@@ -25,6 +25,8 @@ use function sprintf;
  * also picks up `bin/console` when PHP files are requested. Callers may pass a pre-configured
  * Symfony Finder to narrow the scope further, otherwise the current working directory is scanned.
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/FileFinder.md
+ *
  * @api
  *
  * @no-named-arguments
@@ -52,18 +54,18 @@ final readonly class FileFinder
      *
      * @example
      * ```php
-     * $phpFiles = FileFinder::get();
-     * $bothExt  = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
-     * $scoped   = FileFinder::get(new Finder()->in('src'), FileFinder::EXTENSION_PHP);
+     * $phpFiles        = FileFinder::get();
+     * $phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scopedTwigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
      * ```
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null to scan the working directory
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions File extensions to include
+     * @param ?Finder $finder pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions file extensions to include
      *
-     * @return Finder Configured Finder ready for iteration
+     * @return Finder configured Finder ready for iteration
      *
-     * @throws DirectoryNotFoundException When the resolved source directory does not exist
-     * @throws InvalidArgumentException When an extension outside {@see self::EXTENSIONS} is passed
+     * @throws DirectoryNotFoundException when the resolved source directory does not exist
+     * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
      */
     public static function get(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): Finder
     {
@@ -126,16 +128,18 @@ final readonly class FileFinder
      *
      * @example
      * ```php
-     * $paths = FileFinder::getFilePaths(extensions: FileFinder::EXTENSION_PHP);
+     * $phpFiles        = FileFinder::get();
+     * $phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scopedTwigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
      * ```
      *
-     * @param ?Finder $finder Pre-configured Finder to extend, or null to scan the working directory
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions File extensions to include
+     * @param ?Finder $finder pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions file extensions to include
      *
-     * @return list<non-empty-string> Absolute paths to matched files
+     * @return list<non-empty-string> absolute paths to matched files
      *
-     * @throws DirectoryNotFoundException When the resolved source directory does not exist
-     * @throws InvalidArgumentException When an extension outside {@see self::EXTENSIONS} is passed
+     * @throws DirectoryNotFoundException when the resolved source directory does not exist
+     * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
      */
     public static function getFilePaths(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): array
     {

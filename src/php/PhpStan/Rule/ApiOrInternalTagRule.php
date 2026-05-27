@@ -27,14 +27,7 @@ use function sprintf;
 /**
  * Requires every top-level declaration in a file to carry either an `@api` or an `@internal` tag.
  *
- * Applies to classes, traits, enums, interfaces, top-level functions, global constants, and
- * top-level `return` statements (e.g. config files that return a value). The intent is to make
- * the public surface of a package a deliberate decision rather than an accident of which symbols
- * happened to be reachable. Anonymous classes are exempt.
- *
- * A file-level docblock (the first `/** ... *\/` before `namespace`/`declare`/`use`) carrying
- * `@api` or `@internal` provides a default for every contained symbol; per-symbol tags override
- * the file-level default.
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ApiOrInternalTagRule.md
  *
  * @api
  *

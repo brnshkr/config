@@ -85,13 +85,22 @@ export default getConfig(undefined, {
   },
 }, {
   files: [
-    'README.md/**',
+    'docs/**/*.md/**',
   ],
   rules: {
     [<const>`${packageOrganization}/require-import-attributes`]: 'off',
+    'class-methods-use-this': 'off',
+    'max-classes-per-file': 'off',
+    'import/export': 'off',
     'import/extensions': 'off',
     'import/no-duplicates': 'off',
-    'import/order': 'off',
     'import/no-unresolved': 'off',
+    'import/order': 'off',
+    'jsdoc/no-undefined-types': 'off',
+    'jsdoc/require-param': 'off',
+    'jsdoc/require-returns-check': 'off',
+    'style/padding-line-between-statements': 'off',
+    'ts/no-empty-function': 'off',
+    'ts/no-extraneous-class': 'off',
   },
 });

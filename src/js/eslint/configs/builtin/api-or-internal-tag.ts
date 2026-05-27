@@ -8,11 +8,15 @@ import type { RuleDefinition } from '.';
 
 export const MESSAGE_ID_MISSING_TAG = 'missingTag';
 
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/api-or-internal-tag.md
+ */
 export const apiOrInternalTagRule = <const>{
   meta: {
     type: 'suggestion',
     docs: {
       description: 'Require every exported declaration in a public-API source file to carry an `@api` or `@internal` JSDoc tag; a `@file` block carrying `@api`/`@internal` covers all symbols below it.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/api-or-internal-tag.md',
     },
     schema: [
       {
