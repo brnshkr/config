@@ -91,7 +91,16 @@ export const jsdoc = async (): Promise<Config[]> => {
             tagSequence: [
               {
                 tags: [
-                  'import',
+                  'file',
+                  'fileoverview',
+                  'overview',
+                  'module',
+                ],
+              },
+              {
+                tags: [
+                  'api',
+                  'internal',
                 ],
               },
               {
@@ -114,10 +123,6 @@ export const jsdoc = async (): Promise<Config[]> => {
                 tags: [
                   'summary',
                   'typeSummary',
-                ],
-              },
-              {
-                tags: [
                   'desc',
                   'description',
                   'classdesc',
@@ -125,14 +130,18 @@ export const jsdoc = async (): Promise<Config[]> => {
               },
               {
                 tags: [
-                  'internal',
                   'namespace',
                   'category',
                   'package',
-                  'file',
-                  'fileoverview',
-                  'overview',
-                  'module',
+                ],
+              },
+              {
+                tags: [
+                  'import',
+                ],
+              },
+              {
+                tags: [
                   'override',
                   'requires',
                   'implements',
@@ -205,11 +214,15 @@ export const jsdoc = async (): Promise<Config[]> => {
               },
               {
                 tags: [
+                  'prop',
+                  'property',
+                ],
+              },
+              {
+                tags: [
                   'param',
                   'arg',
                   'argument',
-                  'prop',
-                  'property',
                 ],
               },
               {
@@ -248,6 +261,7 @@ export const jsdoc = async (): Promise<Config[]> => {
               },
               {
                 tags: [
+                  'link',
                   'see',
                   'tutorial',
                 ],
