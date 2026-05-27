@@ -181,7 +181,7 @@ A few possible ways are listed below:
 Example call, adjust as needed
 
 ```sh
-bun eslint --config ./conf/eslint.config.mjs --cache --cache-location ./.cache/eslint.cache.json
+bun eslint --config ./conf/eslint.config.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
 ```
 
 <!-- omit in toc -->
@@ -190,7 +190,7 @@ bun eslint --config ./conf/eslint.config.mjs --cache --cache-location ./.cache/e
 Example call, adjust as needed
 
 ```sh
-bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json **/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}
+bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 **/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}
 ```
 
 <!-- omit in toc -->
