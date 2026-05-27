@@ -49,11 +49,18 @@ export const jsdoc = async (): Promise<Config[]> => {
               ))
               .filter(Boolean),
           )),
+          'jsdoc/check-tag-names': ['error', {
+            definedTags: ['api'],
+            typed: true,
+          }],
           'jsdoc/require-param': 'off',
           'jsdoc/require-returns': 'off',
         }
         : {
           ...pluginJsdoc.configs['flat/recommended-error'].rules,
+          'jsdoc/check-tag-names': ['error', {
+            definedTags: ['api'],
+          }],
           'jsdoc/check-indentation': ['error', {
             allowIndentedSections: true,
           }],
