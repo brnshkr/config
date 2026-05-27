@@ -1,3 +1,8 @@
+/**
+ * @file Entry point for the `@brnshkr` Stylelint config builder. Exposes `getConfig` (and a default
+ * pre-built config) that downstream projects consume from `@brnshkr/config/stylelint`.
+ */
+
 import { isModuleEnabledByDefault } from '../shared/utils/module';
 
 import { configs } from './configs';
@@ -7,6 +12,36 @@ import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
 import type { Config } from './types/config';
 import type { ResolvedOptions, UserOptions } from './types/options';
 
+/**
+ * Build the `@brnshkr` Stylelint config object.
+ *
+ * Merges sensible defaults for every supported module (scss, html, logical, etc.) with user
+ * overrides and any additional configs.
+ *
+ * @api
+ *
+ * @param optionsAndGlobalConfig - Per-module toggles and global Stylelint fields merged with the defaults.
+ * @param additionalConfigs - Extra Stylelint config entries merged after the built-in ones.
+ *
+ * @returns Final Stylelint config ready to be consumed by Stylelint.
+ *
+ * @example
+ * import { getConfig } from '@brnshkr/config/stylelint';
+ *
+ * getConfig(undefined);
+ * getConfig({});
+ *
+ * getConfig({
+ *   scss: false,
+ *   ignoreFiles: ['dist/**'],
+ * }, {
+ *   rules: { 'color-no-hex': null },
+ * });
+ *
+ * getConfig(undefined, {
+ *   rules: { 'color-no-hex': null },
+ * });
+ */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,
   ...additionalConfigs: Config[]
@@ -86,5 +121,10 @@ export const getConfig = (
   return config;
 };
 
+/**
+ * Default-exported pre-built config for direct re-export from a Stylelint config file.
+ *
+ * @api
+ */
 // eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting from stylelint config file
 export default getConfig();

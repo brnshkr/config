@@ -130,6 +130,8 @@ const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
         'style/no-multiple-empty-lines': 'off',
         'ts/no-unused-expressions': 'off',
         'ts/no-unused-vars': 'off',
+        'unicorn/no-null': 'off',
+        'unicorn/no-useless-undefined': 'off',
         'unused/no-unused-imports': 'off',
         'unused/no-unused-vars': 'off',
       },

@@ -1,3 +1,8 @@
+/**
+ * @file Entry point for the `@brnshkr` ESLint flat-config builder. Exposes `getConfig` (and a default
+ * pre-built composer) that downstream projects consume from `@brnshkr/config/eslint`.
+ */
+
 import { FlatConfigComposer } from 'eslint-flat-config-utils';
 
 import { isModuleEnabledByDefault } from '../shared/utils/module';
@@ -11,6 +16,40 @@ import type { Awaitable } from '../shared/types/core';
 import type { Config, ConfigNames, ResolvableConfig } from './types/config';
 import type { ResolvedOptions, UserOptions } from './types/options';
 
+/**
+ * Build the `@brnshkr` ESLint flat config composer.
+ *
+ * Merges sensible defaults for every supported module (typescript, svelte, jsdoc, etc.) with user
+ * overrides and any additional flat configs. Modules whose optional peer dependency is not installed
+ * are skipped automatically, so consumers only opt into what they use.
+ *
+ * @api
+ *
+ * @param optionsAndGlobalConfig - Per-module toggles and global flat-config fields (`files`,
+ * `ignores`, `languageOptions`, etc.) merged with the defaults.
+ * @param additionalConfigs - Extra flat-config entries appended after the built-in ones.
+ *
+ * @returns Configured `FlatConfigComposer` that resolves to the final flat-config array.
+ *
+ * @example
+ * import { getConfig } from '@brnshkr/config/eslint';
+ *
+ * getConfig(undefined);
+ * getConfig({});
+ *
+ * getConfig({
+ *   svelte: false,
+ *   files: ['src/**'],
+ * }, {
+ *   files: ['scripts/**'],
+ *   rules: { 'no-console': 'off' },
+ * });
+ *
+ * getConfig(undefined, {
+ *   files: ['scripts/**'],
+ *   rules: { 'no-console': 'off' },
+ * });
+ */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,
   ...additionalConfigs: Awaitable<Config>[]
@@ -162,5 +201,10 @@ export const getConfig = (
   return composer;
 };
 
+/**
+ * Default-exported pre-built composer for direct re-export from an ESLint flat-config file.
+ *
+ * @api
+ */
 // eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting from eslint config file
 export default getConfig();
