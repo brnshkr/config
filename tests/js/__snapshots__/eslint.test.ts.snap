@@ -1335,6 +1335,12 @@ exports[`expected eslint config > base: 1.js 1`] = `
     "block-scoped-var": [
       2,
     ],
+    "brnshkr/api-or-internal-tag": [
+      2,
+    ],
+    "brnshkr/public-api-documentation": [
+      2,
+    ],
     "brnshkr/require-import-alias": [
       2,
       {
@@ -1511,10 +1517,8 @@ exports[`expected eslint config > base: 1.js 1`] = `
       2,
     ],
     "import/no-cycle": [
-      2,
+      0,
       {
-        "allowUnsafeDynamicCyclicDependency": false,
-        "ignoreExternal": false,
         "maxDepth": 3,
       },
     ],
@@ -1666,6 +1670,11 @@ exports[`expected eslint config > base: 1.js 1`] = `
     ],
     "jsdoc/check-tag-names": [
       2,
+      {
+        "definedTags": [
+          "api",
+        ],
+      },
     ],
     "jsdoc/check-template-names": [
       2,
@@ -1856,7 +1865,16 @@ exports[`expected eslint config > base: 1.js 1`] = `
         "tagSequence": [
           {
             "tags": [
-              "import",
+              "file",
+              "fileoverview",
+              "overview",
+              "module",
+            ],
+          },
+          {
+            "tags": [
+              "api",
+              "internal",
             ],
           },
           {
@@ -1879,10 +1897,6 @@ exports[`expected eslint config > base: 1.js 1`] = `
             "tags": [
               "summary",
               "typeSummary",
-            ],
-          },
-          {
-            "tags": [
               "desc",
               "description",
               "classdesc",
@@ -1890,14 +1904,18 @@ exports[`expected eslint config > base: 1.js 1`] = `
           },
           {
             "tags": [
-              "internal",
               "namespace",
               "category",
               "package",
-              "file",
-              "fileoverview",
-              "overview",
-              "module",
+            ],
+          },
+          {
+            "tags": [
+              "import",
+            ],
+          },
+          {
+            "tags": [
               "override",
               "requires",
               "implements",
@@ -1970,11 +1988,15 @@ exports[`expected eslint config > base: 1.js 1`] = `
           },
           {
             "tags": [
+              "prop",
+              "property",
+            ],
+          },
+          {
+            "tags": [
               "param",
               "arg",
               "argument",
-              "prop",
-              "property",
             ],
           },
           {
@@ -2013,6 +2035,7 @@ exports[`expected eslint config > base: 1.js 1`] = `
           },
           {
             "tags": [
+              "link",
               "see",
               "tutorial",
             ],
@@ -5390,6 +5413,9 @@ exports[`expected eslint config > diff: 4.ts 1`] = `
       "jsdoc/check-tag-names": [
         2,
         {
+          "definedTags": [
+            "api",
+          ],
           "typed": true,
         },
       ],
@@ -5458,6 +5484,9 @@ exports[`expected eslint config > diff: 7.d.ts 1`] = `
       "jsdoc/check-tag-names": [
         2,
         {
+          "definedTags": [
+            "api",
+          ],
           "typed": true,
         },
       ],
@@ -6587,6 +6616,9 @@ exports[`expected eslint config > diff: 14.svelte.ts 1`] = `
       "jsdoc/check-tag-names": [
         2,
         {
+          "definedTags": [
+            "api",
+          ],
           "typed": true,
         },
       ],
@@ -6849,7 +6881,7 @@ exports[`expected eslint config > diff: 15.json 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -7267,8 +7299,10 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -7804,7 +7838,7 @@ exports[`expected eslint config > diff: 16.jsonc 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -8222,8 +8256,10 @@ exports[`expected eslint config > diff: 16.jsonc 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -8735,7 +8771,7 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -9153,8 +9189,10 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -9629,7 +9667,7 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -10045,8 +10083,10 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -10511,7 +10551,7 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -10928,8 +10968,10 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -11386,7 +11428,7 @@ exports[`expected eslint config > diff: 21.css 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -11803,8 +11845,10 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -12336,7 +12380,7 @@ exports[`expected eslint config > diff: 22.md 1`] = `
         0,
       ],
       "import/no-cycle": [
-        2,
+        0,
       ],
       "max-lines": [
         0,
@@ -12753,8 +12797,10 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "node/prefer-node-protocol",
       "node/prefer-promises/dns",
       "node/prefer-promises/fs",
+      "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/api-or-internal-tag",
       "comments/disable-enable-pair",
       "comments/no-aggregating-enable",
       "comments/no-duplicate-disable",
@@ -13838,6 +13884,9 @@ exports[`expected eslint config > diff: 26.test.ts 1`] = `
       "jsdoc/check-tag-names": [
         2,
         {
+          "definedTags": [
+            "api",
+          ],
           "typed": true,
         },
       ],
