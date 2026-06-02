@@ -17,6 +17,8 @@
 /CHANGELOG.md                         export-ignore
 /composer.lock                        export-ignore
 /dist/                                export-ignore
+/docs/                                export-ignore
+/mise.toml                            export-ignore
 /node_modules/                        export-ignore
 /package.json                         export-ignore
 /scripts/                             export-ignore
