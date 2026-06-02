@@ -472,7 +472,7 @@ final class InternalUsageRule implements Rule
             return [];
         }
 
-        if (!array_is_list($input) || array_find($input, static fn ($item): bool => !is_string($item) || Str::isEmpty($item))) {
+        if (!array_is_list($input) || array_find($input, static fn (mixed $item): bool => !is_string($item) || Str::isEmpty($item))) {
             throw new InvalidArgumentException(sprintf(
                 'Value for option "%s" must be a list of non-empty strings.',
                 $optionName,

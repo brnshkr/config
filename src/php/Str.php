@@ -11,6 +11,7 @@ use function array_slice;
 use function array_values;
 use function count;
 use function implode;
+use function is_string;
 use function mb_ltrim;
 use function mb_rtrim;
 use function mb_strlen;
@@ -110,11 +111,12 @@ final readonly class Str
         return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
     }
 
-    public static function getClassShortName(string $fullyQualifiedClassName): string
+    public static function getClassShortName(string|object $classOrObject): string
     {
-        $shortName = self::afterLast($fullyQualifiedClassName, '\\');
+        $fullyQualifiedName = is_string($classOrObject) ? $classOrObject : $classOrObject::class;
+        $shortName          = self::afterLast($fullyQualifiedName, '\\');
 
-        return self::isEmpty($shortName) ? $fullyQualifiedClassName : $shortName;
+        return self::isEmpty($shortName) ? $fullyQualifiedName : $shortName;
     }
 
     /**

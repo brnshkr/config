@@ -22,6 +22,7 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
@@ -198,7 +199,7 @@ final readonly class PublicApiDocumentationRule implements Rule
      */
     private function checkFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): array
     {
-        if ($scope->isInClass() || $scope->getFunction() !== null) {
+        if ($scope->isInClass() || $scope->getFunction() instanceof PhpFunctionFromParserNodeReflection) {
             return [];
         }
 
@@ -223,12 +224,12 @@ final readonly class PublicApiDocumentationRule implements Rule
     /**
      * @throws ReflectionException
      */
-    private function hasReturnSourceWithDescription(?Expr $expression): bool
+    private function hasReturnSourceWithDescription(?Expr $expr): bool
     {
         return self::hasDescription(match (true) {
-            $expression instanceof New_                                                  => $this->getReflectionDoc($expression->class),
-            $expression instanceof StaticCall && $expression->name instanceof Identifier => $this->getReflectionDoc($expression->class, $expression->name),
-            default                                                                      => null,
+            $expr instanceof New_                                            => $this->getReflectionDoc($expr->class),
+            $expr instanceof StaticCall && $expr->name instanceof Identifier => $this->getReflectionDoc($expr->class, $expr->name),
+            default                                                          => null,
         });
     }
 
@@ -243,19 +244,19 @@ final readonly class PublicApiDocumentationRule implements Rule
             return null;
         }
 
-        $class = $this->reflectionProvider->getClass($className);
+        $classReflection = $this->reflectionProvider->getClass($className);
 
-        if ($methodNode === null) {
-            return self::wrapRawDoc($class->getNativeReflection()->getDocComment());
+        if (!$methodNode instanceof Identifier) {
+            return self::wrapRawDoc($classReflection->getNativeReflection()->getDocComment());
         }
 
         $methodName = $methodNode->toString();
 
-        if (!$class->hasMethod($methodName)) {
+        if (!$classReflection->hasMethod($methodName)) {
             return null;
         }
 
-        return self::wrapRawDoc($class->getNativeReflection()->getMethod($methodName)->getDocComment());
+        return self::wrapRawDoc($classReflection->getNativeReflection()->getMethod($methodName)->getDocComment());
     }
 
     private static function wrapRawDoc(string|false $rawDoc): ?Doc

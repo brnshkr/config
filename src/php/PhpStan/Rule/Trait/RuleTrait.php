@@ -16,6 +16,7 @@ use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Trait_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\RuleErrorBuilder;
 use RuntimeException;
@@ -126,7 +127,7 @@ trait RuleTrait
             return null;
         }
 
-        if (!$scope->isInClass() && $scope->getFunction() === null) {
+        if (!$scope->isInClass() && !$scope->getFunction() instanceof PhpFunctionFromParserNodeReflection) {
             FileLevelDocCache::captureFrom($node, $filePath);
         }
 

@@ -69,7 +69,7 @@ abstract class AbstractCommand extends BaseCommand
             [$packageOrganization, $packageName],
         ));
 
-        $kebabName = s($this->getName() ?: Str::getClassShortName($this::class))
+        $kebabName = s($this->getName() ?: Str::getClassShortName($this))
             ->beforeLast('Command')
             ->snake()
             ->replace('_', '-')

@@ -15,6 +15,7 @@ use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use RuntimeException;
@@ -75,7 +76,7 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): ?IdentifierRuleError
     {
-        if ($scope->isInClass() || $scope->getFunction() !== null) {
+        if ($scope->isInClass() || $scope->getFunction() instanceof PhpFunctionFromParserNodeReflection) {
             return null;
         }
 
