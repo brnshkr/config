@@ -5,6 +5,7 @@
 
   // CSS
   "stylelint.configFile": "./conf/stylelint.config.mjs",
+  "stylelint.configBasedir": "./",
 
   // JS/TS
   "js/ts.tsdk.path": "./node_modules/typescript/lib",
