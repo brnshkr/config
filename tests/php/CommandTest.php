@@ -44,12 +44,9 @@ final class CommandTest extends TestCase
     protected function setUp(): void
     {
         $application = new Application();
-        $composer    = $application->getComposer(true);
-
-        self::assertInstanceOf(Composer::class, $composer);
 
         $application->setAutoExit(false);
-        $application->addCommands(CommandProvider::getCommandInstances($composer));
+        $application->addCommands((new CommandProvider())->getCommands());
 
         $this->application = $application;
     }

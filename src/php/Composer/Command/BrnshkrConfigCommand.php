@@ -47,7 +47,7 @@ final class BrnshkrConfigCommand extends AbstractCommand
         $this->textDescriptor->describe($this->output, $this);
 
         $this->console->writeRaw('');
-        $this->console->writeHelp(CommandProvider::getCommandInstances($this->composer));
+        $this->console->writeHelp((new CommandProvider())->getCommands());
 
         return self::SUCCESS;
     }

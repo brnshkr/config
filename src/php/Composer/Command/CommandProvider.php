@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Composer\Command;
 
-use Brnshkr\Config\Composer\Plugin;
-use Composer\Composer;
+use Composer\Command\BaseCommand;
 use Composer\Plugin\Capability\CommandProvider as BaseCommandProvider;
 use LogicException;
 use Override;
-use Symfony\Component\Console\Command\Command;
-
-use function array_values;
 
 /**
  * @internal Brnshkr\Config\Composer
@@ -19,6 +15,8 @@ use function array_values;
 final class CommandProvider implements BaseCommandProvider
 {
     /**
+     * @return list<BaseCommand>
+     *
      * @throws LogicException
      */
     #[Override]
@@ -30,15 +28,5 @@ final class CommandProvider implements BaseCommandProvider
             new SetupCommand(),
             new UpdatePhpExtensionsCommand(),
         ];
-    }
-
-    /**
-     * @return list<Command>
-     */
-    public static function getCommandInstances(Composer $composer): array
-    {
-        $provider = $composer->getPluginManager()->getPluginCapability(new Plugin(), BaseCommandProvider::class);
-
-        return array_values($provider?->getCommands() ?? []);
     }
 }
