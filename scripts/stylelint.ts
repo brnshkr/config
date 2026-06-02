@@ -31,7 +31,7 @@ const command = [
   './.cache/stylelint.cache.json',
   '--max-warnings',
   '0',
-  argv.includes('--print-config') ? '' : `**/*.{${EXTENSIONS.join(',')}}`,
+  argv.includes('--print-config') ? '' : `"**/*.{${EXTENSIONS.join(',')}}"`,
   ...argv,
 ].filter(Boolean);
 
