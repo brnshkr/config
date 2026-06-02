@@ -170,7 +170,7 @@ export const buildExportVisitors = (
       return;
     }
 
-    const comment = extractBlockComment(sourceCode.getCommentsBefore(node));
+    const comment = extractBlockComment(sourceCode.getCommentsBefore(node), node);
 
     for (const symbol of collectDeclaration(node.declaration, node, comment)) {
       onSymbol(symbol);

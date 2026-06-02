@@ -18,9 +18,15 @@ const isBlockComment = (
 // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
 ): comment is TSESTree.Comment => comment?.type === 'Block' && comment.value.startsWith('*');
 
-export const extractBlockComment = (comments: TSESTree.Comment[]): Maybe<string> => {
-  for (let index = comments.length - 1; index >= 0; index -= 1) {
-    const comment = comments[index];
+export const extractBlockComment = (comments: TSESTree.Comment[], node: TSESTree.Node): Maybe<string> => {
+  let expectedEndLine = node.loc.start.line - 1;
+
+  for (const comment of comments.toReversed()) {
+    if (comment.loc.end.line !== expectedEndLine) {
+      return undefined;
+    }
+
+    expectedEndLine = comment.loc.start.line - 1;
 
     if (isBlockComment(comment)) {
       return `/*${comment.value}*/`;

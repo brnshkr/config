@@ -171,7 +171,7 @@ const checkClassMembers = (
       continue;
     }
 
-    const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member));
+    const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member), member);
 
     if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL) {
       continue;
@@ -199,7 +199,7 @@ const checkInterfaceMembers = (
       continue;
     }
 
-    const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member));
+    const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member), member);
 
     if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL) {
       continue;
