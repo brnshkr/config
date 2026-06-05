@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Closure;
+
 use function array_any;
 use function array_filter;
 use function array_last;
@@ -20,6 +22,7 @@ use function mb_strtolower;
 use function mb_substr;
 use function mb_trim;
 use function preg_match;
+use function preg_replace_callback;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
@@ -86,6 +89,15 @@ final readonly class Str
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_repeat($string, $times);
+    }
+
+    /**
+     * @param Closure(array<int|string, string>): string $callback
+     */
+    public static function replaceMatches(string $subject, string $pattern, Closure $callback): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return preg_replace_callback($pattern . 'u', $callback, $subject) ?? $subject;
     }
 
     /**
