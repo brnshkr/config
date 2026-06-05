@@ -23,6 +23,7 @@ use function preg_match;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
+use function str_repeat;
 use function str_replace;
 use function str_starts_with;
 
@@ -76,6 +77,15 @@ final readonly class Str
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_ends_with($haystack, $needle);
+    }
+
+    /**
+     * @param int<0, max> $times
+     */
+    public static function repeat(string $string, int $times): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return str_repeat($string, $times);
     }
 
     /**
