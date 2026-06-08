@@ -26,7 +26,6 @@ use function array_values;
 use function count;
 use function implode;
 use function in_array;
-use function is_array;
 use function sprintf;
 use function Symfony\Component\String\s;
 
@@ -138,8 +137,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
             $jsonManipulator->removeMainKeyIfEmpty(self::SECTION_REQUIRE_DEV);
         });
 
-        $allowedUnusedMainRequires = $this->input->getOption('allow') ?? [];
-        $allowedUnusedMainRequires = is_array($allowedUnusedMainRequires) ? $allowedUnusedMainRequires : [];
+        $allowedUnusedMainRequires = $this->getStringListOption('allow');
 
         foreach ($unusedMainRequires as $key => $unusedMainRequire) {
             if (in_array($unusedMainRequire, $allowedUnusedMainRequires, true)) {
@@ -147,8 +145,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
             }
         }
 
-        $allowedUnusedDevRequires = $this->input->getOption('allow-dev') ?? [];
-        $allowedUnusedDevRequires = is_array($allowedUnusedDevRequires) ? $allowedUnusedDevRequires : [];
+        $allowedUnusedDevRequires = $this->getStringListOption('allow-dev');
 
         foreach ($unusedDevRequires as $key => $unusedDevRequire) {
             if (in_array($unusedDevRequire, $allowedUnusedDevRequires, true)) {

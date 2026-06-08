@@ -18,11 +18,14 @@ use function sprintf;
 /**
  * @internal
  *
- * @phpstan-type ModuleInfo array{
+ * @phpstan-type ModuleName key-of<self::MAP>
+ * @phpstan-type ModuleInfo self::MODULE_*
+ * @phpstan-type PackageName self::PACKAGE_*
+ * @phpstan-type _ModuleInfo array{
  *     name: non-empty-string,
  *     packages: array{
- *         requiredAll: non-empty-list<self::PACKAGE_*>,
- *         optional?: non-empty-list<self::PACKAGE_*>,
+ *         requiredAll: non-empty-list<PackageName>,
+ *         optional?: non-empty-list<PackageName>,
  *     },
  * }
  */
@@ -52,7 +55,7 @@ final class Module
     public const string NAME_TWIG_CS_FIXER = 'twigcsfixer';
 
     /**
-     * @phpstan-var ModuleInfo
+     * @phpstan-var _ModuleInfo
      */
     public const array MODULE_PHP_CS_FIXER = [
         'name'     => self::NAME_PHP_CS_FIXER,
@@ -68,7 +71,7 @@ final class Module
     ];
 
     /**
-     * @phpstan-var ModuleInfo
+     * @phpstan-var _ModuleInfo
      */
     public const array MODULE_PHP_STAN = [
         'name'     => self::NAME_PHP_STAN,
@@ -94,7 +97,7 @@ final class Module
     ];
 
     /**
-     * @phpstan-var ModuleInfo
+     * @phpstan-var _ModuleInfo
      */
     public const array MODULE_RECTOR = [
         'name'     => self::NAME_RECTOR,
@@ -107,7 +110,7 @@ final class Module
     ];
 
     /**
-     * @phpstan-var ModuleInfo
+     * @phpstan-var _ModuleInfo
      */
     public const array MODULE_TWIG_CS_FIXER = [
         'name'     => self::NAME_TWIG_CS_FIXER,
@@ -120,9 +123,9 @@ final class Module
     ];
 
     /**
-     * @phpstan-var array<self::NAME_*, self::MODULE_*>
+     * @phpstan-var array<self::NAME_*, ModuleInfo>
      */
-    public const array NAME_TO_MODULE_MAP = [
+    public const array MAP = [
         self::NAME_PHP_CS_FIXER  => self::MODULE_PHP_CS_FIXER,
         self::NAME_PHP_STAN      => self::MODULE_PHP_STAN,
         self::NAME_RECTOR        => self::MODULE_RECTOR,
@@ -132,14 +135,14 @@ final class Module
     private static ComposerJson $composerJson;
 
     /**
-     * @var list<self::PACKAGE_*>
+     * @var list<PackageName>
      */
     private static array $warnedPackages = [];
 
     private function __construct() {}
 
     /**
-     * @param ModuleInfo|self::PACKAGE_* $moduleInfoOrPackage
+     * @param ModuleInfo|PackageName $moduleInfoOrPackage
      *
      * @throws RuntimeException
      */
@@ -181,7 +184,7 @@ final class Module
     }
 
     /**
-     * @param self::PACKAGE_* $package
+     * @param PackageName $package
      *
      * @throws RuntimeException
      */

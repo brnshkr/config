@@ -29,15 +29,16 @@ use function array_merge;
 use function array_values;
 use function count;
 use function file_get_contents;
-use function get_debug_type;
 use function in_array;
-use function is_array;
 use function is_file;
-use function is_string;
 use function sprintf;
 
 /**
  * @internal Brnshkr\Config\Composer
+ *
+ * @phpstan-import-type ModuleName from Module
+ * @phpstan-import-type ModuleInfo from Module
+ * @phpstan-import-type PackageName from Module
  */
 final class SetupCommand extends AbstractCommand
 {
@@ -49,6 +50,18 @@ final class SetupCommand extends AbstractCommand
     private Filesystem $filesystem;
 
     private ComposerJson $projectComposerJson;
+
+    private bool $doForceUpdate = false;
+
+    private bool $doInstallExactVersions = false;
+
+    private bool $doIncludeOptionalPackagesAutomatically = false;
+
+    private bool $doCopyConfigFilesAutomatically = false;
+
+    private bool $doCreateMakeFileAutomatically = false;
+
+    private bool $doCreateGitignoreFileAutomatically = false;
 
     #[Override]
     protected function getDescriptionTemplate(): string
@@ -81,7 +94,7 @@ final class SetupCommand extends AbstractCommand
     protected function wrappedConfigure(): void
     {
         $this
-            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(array_keys(Module::NAME_TO_MODULE_MAP)) . ')</fg=yellow>')
+            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(array_keys(Module::MAP)) . ')</fg=yellow>')
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Install all modules')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force update to the latest package versions from ' . $this->libraryComposerJson->getPackageFullName())
             ->addOption('exact', 'e', InputOption::VALUE_NONE, 'Install exact versions of dependencies')
@@ -101,31 +114,30 @@ final class SetupCommand extends AbstractCommand
     #[Override]
     protected function wrappedExecute(): int
     {
-        $this->console->writeLogo();
+        $this->doForceUpdate                          = $this->isBoolOptionEnabled('force');
+        $this->doInstallExactVersions                 = $this->isBoolOptionEnabled('exact');
+        $this->doIncludeOptionalPackagesAutomatically = $this->isBoolOptionEnabled('optional');
+        $this->doCopyConfigFilesAutomatically         = $this->isBoolOptionEnabled('copy');
+        $this->doCreateMakeFileAutomatically          = $this->isBoolOptionEnabled('make');
+        $this->doCreateGitignoreFileAutomatically     = $this->isBoolOptionEnabled('gitignore');
 
-        $modules              = $this->input->getArgument('modules');
-        $modules              = is_array($modules) && $modules !== [] ? $modules : null;
-        $doInstallAllModules  = $this->input->getOption('all') !== false;
+        $modules              = $this->getStringListArgument('modules');
+        $doInstallAllModules  = $this->isBoolOptionEnabled('all');
         $moduleNamesToInstall = [];
 
-        if ($modules === null) {
-            $moduleNamesToInstall = $doInstallAllModules ? array_keys(Module::NAME_TO_MODULE_MAP) : $this->getModuleNamesToInstall();
+        $this->console->writeLogo();
+
+        if ($modules === []) {
+            $moduleNamesToInstall = $doInstallAllModules ? array_keys(Module::MAP) : $this->getModuleNamesToInstall();
         } elseif ($doInstallAllModules) {
             throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifing modules via the arguments.');
         } else {
             foreach ($modules as $module) {
-                if (!is_string($module)) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid module name, expected string, but got %s.',
-                        get_debug_type($module),
-                    ));
-                }
-
-                if (!array_key_exists($module, Module::NAME_TO_MODULE_MAP)) {
+                if (!array_key_exists($module, Module::MAP)) {
                     throw new InvalidArgumentException(sprintf(
                         'Unknown module "%s". Allowed modules are: %s.',
                         $module,
-                        Str::joinAsQuotedList(array_keys(Module::NAME_TO_MODULE_MAP)),
+                        Str::joinAsQuotedList(array_keys(Module::MAP)),
                     ));
                 }
 
@@ -134,21 +146,15 @@ final class SetupCommand extends AbstractCommand
         }
 
         $modulesToInstall = array_map(
-            static fn (string $name): array => Module::NAME_TO_MODULE_MAP[$name],
+            static fn (string $name): array => Module::MAP[$name],
             $moduleNamesToInstall,
         );
 
-        $doForceUpdate                          = $this->input->getOption('force') !== false;
-        $doInstallExactVersions                 = $this->input->getOption('exact') !== false;
-        $doIncludeOptionalPackagesAutomatically = $this->input->getOption('optional') !== false;
-        $doCopyConfigFilesAutomatically         = $this->input->getOption('copy') !== false;
-        $doCreateMakeFileAutomatically          = $this->input->getOption('make') !== false;
-        $doCreateGitignoreFileAutomatically     = $this->input->getOption('gitignore') !== false;
-        $composerJsonFileContent                = $this->getFileContent($this->projectComposerJson->path);
-        $lockFileContent                        = $this->getFileContent($this->projectComposerJson->lockFilePath);
+        $composerJsonFileContent = $this->getFileContent($this->projectComposerJson->path);
+        $lockFileContent         = $this->getFileContent($this->projectComposerJson->lockFilePath);
 
         $packagesToInstall = array_merge(...array_map(
-            fn (array $moduleInfo): array => $this->getPackagesToInstall($moduleInfo, $doForceUpdate, $doIncludeOptionalPackagesAutomatically),
+            $this->getPackagesToInstall(...),
             $modulesToInstall,
         ));
 
@@ -158,7 +164,7 @@ final class SetupCommand extends AbstractCommand
                 $this->libraryComposerJson->getPackageFullName(),
             ));
 
-            $this->copyFilesIfApplicable($modulesToInstall, $doCopyConfigFilesAutomatically, $doCreateMakeFileAutomatically, $doCreateGitignoreFileAutomatically);
+            $this->copyFilesIfApplicable($modulesToInstall);
 
             return self::SUCCESS;
         }
@@ -166,7 +172,7 @@ final class SetupCommand extends AbstractCommand
         $exitCode = null;
 
         try {
-            $exitCode = $this->installer->install($packagesToInstall, $doInstallExactVersions);
+            $exitCode = $this->installer->install($packagesToInstall, $this->doInstallExactVersions);
         } catch (Exception $exception) {
             $this->console->writeError($exception);
         }
@@ -199,21 +205,21 @@ final class SetupCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        $this->copyFilesIfApplicable($modulesToInstall, $doCopyConfigFilesAutomatically, $doCreateMakeFileAutomatically, $doCreateGitignoreFileAutomatically);
+        $this->copyFilesIfApplicable($modulesToInstall);
         $this->console->writeNotice('Setup process completed successfully.');
 
         return self::SUCCESS;
     }
 
     /**
-     * @return list<key-of<Module::NAME_TO_MODULE_MAP>>
+     * @return list<ModuleName>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
     private function getModuleNamesToInstall(): array
     {
-        $moduleNames          = array_keys(Module::NAME_TO_MODULE_MAP);
+        $moduleNames          = array_keys(Module::MAP);
         $isAnswerValid        = false;
         $moduleNamesToInstall = [];
 
@@ -239,30 +245,30 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param Module::MODULE_* $moduleInfo
+     * @param ModuleInfo $moduleInfo
      *
-     * @return list<Module::PACKAGE_*>
+     * @return list<PackageName>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function getPackagesToInstall(array $moduleInfo, bool $doForceUpdate, bool $doIncludeOptionalPackagesAutomatically): array
+    private function getPackagesToInstall(array $moduleInfo): array
     {
         $packages = array_values(array_filter(
             $moduleInfo['packages']['requiredAll'],
-            static fn (string $package): bool => $doForceUpdate ? true : !Module::isPackageInstalled($package),
+            fn (string $package): bool => $this->doForceUpdate ? true : !Module::isPackageInstalled($package),
         ));
 
         $allOptionalPackages = $moduleInfo['packages']['optional'] ?? [];
 
-        if ($doForceUpdate && $doIncludeOptionalPackagesAutomatically) {
+        if ($this->doForceUpdate && $this->doIncludeOptionalPackagesAutomatically) {
             $optionalPackagesToInstall = $allOptionalPackages;
-        } elseif ($doForceUpdate) {
+        } elseif ($this->doForceUpdate) {
             $optionalPackagesToInstall = array_values(array_filter(
                 $allOptionalPackages,
                 Module::isPackageInstalled(...),
             ));
-        } elseif ($doIncludeOptionalPackagesAutomatically) {
+        } elseif ($this->doIncludeOptionalPackagesAutomatically) {
             $optionalPackagesToInstall = array_values(array_filter(
                 $allOptionalPackages,
                 static fn (string $package): bool => !Module::isPackageInstalled($package),
@@ -281,10 +287,10 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param Module::MODULE_* $moduleInfo
-     * @param list<Module::PACKAGE_*> $packages
+     * @param ModuleInfo $moduleInfo
+     * @param list<PackageName> $packages
      *
-     * @return list<Module::PACKAGE_*>
+     * @return list<PackageName>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
@@ -337,31 +343,31 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param list<Module::MODULE_*> $moduleInfos
+     * @param list<ModuleInfo> $moduleInfos
      *
      * @throws IOException
      * @throws RuntimeException
      */
-    private function copyFilesIfApplicable(array $moduleInfos, bool $doCopyConfigFilesAutomatically, bool $doCreateMakeFileAutomatically, bool $doCreateGitignoreFileAutomatically): void
+    private function copyFilesIfApplicable(array $moduleInfos): void
     {
-        if (!$doCopyConfigFilesAutomatically && !$doCreateMakeFileAutomatically && !$doCreateGitignoreFileAutomatically) {
+        if (!$this->doCopyConfigFilesAutomatically && !$this->doCreateMakeFileAutomatically && !$this->doCreateGitignoreFileAutomatically) {
             return;
         }
 
         $projectRootPath = Path::getDirectory($this->projectComposerJson->path);
         $libraryRootPath = Path::getDirectory($this->libraryComposerJson->path);
 
-        if ($doCreateMakeFileAutomatically) {
+        if ($this->doCreateMakeFileAutomatically) {
             $this->console->writeNotice('Copying Makefile');
             $this->copyFile($libraryRootPath . '/conf/Makefile.example', $projectRootPath . '/Makefile');
         }
 
-        if ($doCreateGitignoreFileAutomatically) {
+        if ($this->doCreateGitignoreFileAutomatically) {
             $this->console->writeNotice('Copying .gitignore file');
             $this->copyFile($libraryRootPath . '/conf/.gitignore.example', $projectRootPath . '/.gitignore');
         }
 
-        if (!$doCopyConfigFilesAutomatically) {
+        if (!$this->doCopyConfigFilesAutomatically) {
             return;
         }
 

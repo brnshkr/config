@@ -18,11 +18,9 @@ use Symfony\Component\Filesystem\Path;
 use function array_filter;
 use function count;
 use function explode;
-use function getcwd;
 use function glob;
 use function is_dir;
 use function is_file;
-use function is_string;
 use function mkdir;
 use function sprintf;
 use function Symfony\Component\String\s;
@@ -69,9 +67,9 @@ final class ExtractPharCommand extends AbstractCommand
     protected function wrappedExecute(): int
     {
         $package         = $this->getPackage();
-        $cwd             = getcwd() ?: '.';
+        $cwd             = $this->getCwd();
         $vendorDirectory = $cwd . '/vendor/' . $package;
-        $targetDirectory = $this->getTargetDirectory() ?? ($vendorDirectory . '/.extracted-phar');
+        $targetDirectory = $this->getOptionalStringOption('target-directory') ?? ($vendorDirectory . '/.extracted-phar');
         $targetDirectory = Path::makeAbsolute($targetDirectory, $cwd);
 
         if (Str::isEmpty($targetDirectory)) {
@@ -98,12 +96,7 @@ final class ExtractPharCommand extends AbstractCommand
      */
     private function getPackage(): string
     {
-        $package = $this->input->getArgument('package');
-
-        if (!is_string($package) || Str::isEmpty($package)) {
-            throw new InvalidArgumentException('Argument "package" must be a non-empty string.');
-        }
-
+        $package      = $this->getStringArgument('package');
         $packageParts = array_filter(explode('/', $package), boolval(...));
 
         if (count($packageParts) !== 2) {
@@ -111,28 +104,6 @@ final class ExtractPharCommand extends AbstractCommand
         }
 
         return $package;
-    }
-
-    /**
-     * @return ?non-empty-string
-     *
-     * @throws InvalidArgumentException
-     */
-    private function getTargetDirectory(): ?string
-    {
-        $targetDirectory = $this->input->getOption('target-directory');
-
-        if ($targetDirectory !== null) {
-            if (!is_string($targetDirectory)) {
-                throw new InvalidArgumentException('Option "target-directory" must be a string.');
-            }
-
-            if (Str::isEmpty($targetDirectory)) {
-                throw new InvalidArgumentException('Option "target-directory" must not be empty.');
-            }
-        }
-
-        return $targetDirectory;
     }
 
     /**

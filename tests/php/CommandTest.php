@@ -172,8 +172,8 @@ EOF;
         $arrayInput = new ArrayInput([
             'command' => new UpdatePhpExtensionsCommand()->getName(),
             '-vvv',
-            '--allow'     => true,
-            '--allow-dev' => true,
+            '--allow'     => [],
+            '--allow-dev' => [],
         ]);
 
         $bufferedOutput = new BufferedOutput();

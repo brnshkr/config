@@ -26,6 +26,8 @@ use function version_compare;
 
 /**
  * @internal Brnshkr\Config\Composer
+ *
+ * @phpstan-import-type PackageName from Module
  */
 final readonly class Installer
 {
@@ -53,7 +55,7 @@ final readonly class Installer
     ) {}
 
     /**
-     * @param list<Module::PACKAGE_*> $packages
+     * @param list<PackageName> $packages
      *
      * @return ComposerInstaller::ERROR_*
      *
@@ -102,7 +104,7 @@ final readonly class Installer
     }
 
     /**
-     * @param list<Module::PACKAGE_*> $packages
+     * @param list<PackageName> $packages
      *
      * @return list<PackageInterface>
      *
