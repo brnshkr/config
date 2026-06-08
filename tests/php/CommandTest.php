@@ -10,7 +10,6 @@ use Brnshkr\Config\Composer\Command\ExtractPharCommand;
 use Brnshkr\Config\Composer\Command\SetupCommand;
 use Brnshkr\Config\Composer\Command\UpdatePhpExtensionsCommand;
 use Brnshkr\Config\ComposerJson;
-use Composer\Composer;
 use Composer\Console\Application;
 use Composer\Json\JsonValidationException;
 use Exception;
@@ -46,7 +45,7 @@ final class CommandTest extends TestCase
         $application = new Application();
 
         $application->setAutoExit(false);
-        $application->addCommands((new CommandProvider())->getCommands());
+        $application->addCommands(new CommandProvider()->getCommands());
 
         $this->application = $application;
     }
