@@ -25,6 +25,7 @@ final class CommandProvider implements BaseCommandProvider
         return [
             new BrnshkrConfigCommand(),
             new ExtractPharCommand(),
+            new PrintModuleConfigCommand(),
             new SetupCommand(),
             new UpdatePhpExtensionsCommand(),
         ];

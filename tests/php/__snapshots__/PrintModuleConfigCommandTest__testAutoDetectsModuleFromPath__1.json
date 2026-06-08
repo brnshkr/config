@@ -75,6 +75,7 @@
         "./src/php/Composer/Command/BrnshkrConfigCommand.php",
         "./src/php/Composer/Command/CommandProvider.php",
         "./src/php/Composer/Command/ExtractPharCommand.php",
+        "./src/php/Composer/Command/PrintModuleConfigCommand.php",
         "./src/php/Composer/Command/SetupCommand.php",
         "./src/php/Composer/Command/UpdatePhpExtensionsCommand.php",
         "./src/php/Composer/ComposerJsonManipulator.php",
@@ -148,6 +149,7 @@
         "./src/php/PhpStan/Rule/Architecture/Tempest/RoleFoldersExhaustiveTest.php",
         "./src/php/PhpStan/Rule/Architecture/Tempest/RouteNoDatabaseTest.php",
         "./src/php/PhpStan/Rule/BoolishPrefixRule.php",
+        "./src/php/PhpStan/Rule/FileLevelDocCache.php",
         "./src/php/PhpStan/Rule/InterfaceSuffixRule.php",
         "./src/php/PhpStan/Rule/InternalUsageRule.php",
         "./src/php/PhpStan/Rule/NoNamedArgumentsTagRule.php",
@@ -160,16 +162,13 @@
         "./src/php/TwigCsFixer.php",
         "./tests/php/CommandTest.php",
         "./tests/php/MakeHelpTest.php",
-        "./tests/php/PhpCsFixerTest.php",
         "./tests/php/PhpStan/Rule/ApiOrInternalTagRuleTest.php",
         "./tests/php/PhpStan/Rule/BoolishPrefixRuleTest.php",
         "./tests/php/PhpStan/Rule/InterfaceSuffixRuleTest.php",
         "./tests/php/PhpStan/Rule/InternalUsageRuleTest.php",
         "./tests/php/PhpStan/Rule/NoNamedArgumentsTagRuleTest.php",
         "./tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php",
-        "./tests/php/PhpStanTest.php",
-        "./tests/php/RectorTest.php",
-        "./tests/php/TwigCsFixerTest.php"
+        "./tests/php/PrintModuleConfigCommandTest.php"
     ],
     "format": "txt",
     "hideProgress": false,
@@ -296,7 +295,6 @@
                 "dataProvider",
                 "depends",
                 "group",
-                "internal",
                 "method",
                 "mixin",
                 "property",
@@ -310,10 +308,20 @@
         "phpdoc_separation": {
             "groups": [
                 [
+                    "filesource"
+                ],
+                [
+                    "api",
+                    "internal"
+                ],
+                [
+                    "ignore"
+                ],
+                [
                     "deprecated",
-                    "link",
-                    "see",
-                    "since"
+                    "since",
+                    "todo",
+                    "version"
                 ],
                 [
                     "author",
@@ -326,6 +334,43 @@
                     "subpackage"
                 ],
                 [
+                    "phpstan-type",
+                    "phpstan-import-type"
+                ],
+                [
+                    "phpstan-template",
+                    "phpstan-template-covariant",
+                    "phpstan-template-contravariant"
+                ],
+                [
+                    "phpstan-extends",
+                    "phpstan-implements",
+                    "phpstan-use"
+                ],
+                [
+                    "phpstan-require-extends",
+                    "phpstan-require-implements"
+                ],
+                [
+                    "phpstan-consistent-constructor",
+                    "phpstan-immutable",
+                    "phpstan-pure",
+                    "phpstan-impure",
+                    "phpstan-readonly",
+                    "phpstan-readonly-allow-private-mutation",
+                    "phpstan-allow-private-mutation"
+                ],
+                [
+                    "uses"
+                ],
+                [
+                    "name"
+                ],
+                [
+                    "method",
+                    "phpstan-method"
+                ],
+                [
                     "property",
                     "phpstan-property",
                     "property-read",
@@ -334,17 +379,47 @@
                     "phpstan-property-write"
                 ],
                 [
+                    "abstract",
+                    "access",
+                    "final",
+                    "static"
+                ],
+                [
+                    "global",
+                    "staticvar",
+                    "var",
+                    "phpstan-var"
+                ],
+                [
                     "param",
-                    "phpstan-param"
+                    "phpstan-param",
+                    "phpstan-param-out",
+                    "phpstan-param-immediately-invoked-callable",
+                    "phpstan-param-later-invoked-callable",
+                    "phpstan-param-closure-this"
                 ],
                 [
                     "return",
                     "phpstan-return"
                 ],
                 [
+                    "throws",
+                    "phpstan-throws"
+                ],
+                [
                     "phpstan-assert",
                     "phpstan-assert-if-true",
-                    "phpstan-assert-if-false"
+                    "phpstan-assert-if-false",
+                    "phpstan-self-out",
+                    "phpstan-this-out"
+                ],
+                [
+                    "link",
+                    "see",
+                    "tutorial"
+                ],
+                [
+                    "example"
                 ]
             ]
         },

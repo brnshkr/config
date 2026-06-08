@@ -105,6 +105,7 @@ Options:
 Available commands:
   {$packageOrganization}:{$packageName}                        [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}] Displays {$packageOrganization}/{$packageName} composer plugin overview
   {$packageOrganization}:{$packageName}:extract-phar           [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:ep] Extracts a .phar file from a given vendor package
+  {$packageOrganization}:{$packageName}:print-module-config    [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:pmc] Prints the resolved configuration as JSON for any supported {$packageOrganization}/{$packageName} module
   {$packageOrganization}:{$packageName}:setup                  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:s] Runs the {$packageOrganization}/{$packageName} setup process
   {$packageOrganization}:{$packageName}:update-php-extensions  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:upe] Updates required PHP extensions in composer.json based on installed vendor files
 
