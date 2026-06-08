@@ -71,6 +71,7 @@
         "./conf/rector.php",
         "./conf/twig-cs-fixer.dist.php",
         "./conf/twig-cs-fixer.php",
+        "./scripts/composer.php",
         "./src/php/Composer/Command/AbstractCommand.php",
         "./src/php/Composer/Command/BrnshkrConfigCommand.php",
         "./src/php/Composer/Command/CommandProvider.php",

@@ -63,6 +63,9 @@ bun-pack: #~~ publishes the bun package to `./.local/@<VENDOR>/<PACKAGE>`
 
 #----vv composer
 
+composer: #~~ runs `composer` with this package's plugin commands registered
+	$(DEBUG_PREFIX)./scripts/composer.php $(ARGS)
+
 composer-list: #~~ lists included composer package files
 	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
 		&& $(TAR) -tf "$$archive_file" \

@@ -4,6 +4,7 @@
         "level": "max",
         "paths": [
             "./conf",
+            "./scripts",
             "./src/php",
             "./tests/php"
         ],
