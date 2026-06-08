@@ -32,6 +32,7 @@
                 "./tests/php/Fixtures/Rule/Internal/InternalClass.php",
                 "./tests/php/Fixtures/Rule/Internal/ScopedInternalClass.php",
                 "./tests/php/Fixtures/Rule/InternalUsage/ConsumeInternalClass.php",
+                "./tests/php/Fixtures/Rule/InternalUsage/ConsumeInternalClassFromGlobalNamespace.php",
                 "./tests/php/Fixtures/Rule/InternalUsage/ConsumeScopedInternalClass.php",
                 "./tests/php/Fixtures/Rule/NoNamedArgumentsTag/AnonymousClasses.php",
                 "./tests/php/Fixtures/Rule/NoNamedArgumentsTag/Classes.php",

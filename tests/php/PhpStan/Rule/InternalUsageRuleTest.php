@@ -43,6 +43,23 @@ final class InternalUsageRuleTest extends RuleTestCase
         ]);
     }
 
+    public function testRuleReportsFromGlobalNamespace(): void
+    {
+        $internalNamespace = 'Brnshkr\Config\Tests\Fixtures\Rule\Internal';
+
+        $this->analyse([
+            __DIR__ . '/../../Fixtures/Rule/Internal/InternalClass.php',
+            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeInternalClassFromGlobalNamespace.php',
+        ], [
+            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 9],
+            [sprintf('Method `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::doSomething'), 10],
+            [sprintf('Property `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::$value'), 12],
+            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 14],
+            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 14],
+            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 16],
+        ]);
+    }
+
     /**
      * @throws MissingServiceException
      */

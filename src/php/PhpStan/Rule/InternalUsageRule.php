@@ -450,11 +450,11 @@ final class InternalUsageRule implements Rule
     private static function buildError(string $kind, string $symbol, string $internalTarget, string $callerNamespace, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
-            '%s `%s` is internal%sand must not be used from `%s`.',
+            '%s `%s` is internal%sand must not be used from %s.',
             $kind,
             $symbol,
             $internalTarget === self::AT_INTERNAL ? ' ' : sprintf(' to `%s` ', $internalTarget),
-            $callerNamespace,
+            Str::isEmpty($callerNamespace) ? 'the global namespace' : sprintf('`%s`', $callerNamespace),
         ), $line);
     }
 
