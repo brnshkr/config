@@ -18,7 +18,13 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\NodeAbstract;
+use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\GroupUse;
+use PhpParser\Node\Stmt\TraitUse;
+use PhpParser\Node\Stmt\Use_;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
+use PhpParser\NodeVisitorAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
@@ -28,7 +34,6 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use RuntimeException;
 
-use function array_filter;
 use function array_find;
 use function array_is_list;
 use function is_string;
@@ -59,7 +64,7 @@ use function sprintf;
  *
  * @no-named-arguments
  *
- * @implements Rule<NodeAbstract>
+ * @implements Rule<Stmt>
  */
 final class InternalUsageRule implements Rule
 {
@@ -109,7 +114,7 @@ final class InternalUsageRule implements Rule
     #[Override]
     public function getNodeType(): string
     {
-        return NodeAbstract::class;
+        return Stmt::class;
     }
 
     /**
@@ -120,23 +125,74 @@ final class InternalUsageRule implements Rule
     #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        $callerNamespace = $scope->getNamespace() ?? '';
-        $line            = $node->getStartLine();
+        if ($node instanceof Use_ || $node instanceof GroupUse || $node instanceof TraitUse) {
+            return [];
+        }
 
-        return array_filter(
-            match (true) {
-                $node instanceof New_            => [$this->processNameLikeNode($node->class, $scope, $callerNamespace, $line)],
-                $node instanceof Name            => [$this->processNameLikeNode($node, $scope, $callerNamespace, $line)],
-                $node instanceof StaticCall      => [$this->processStaticCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof ClassConstFetch => [$this->processClassConstFetch($node, $scope, $callerNamespace, $line)],
-                $node instanceof MethodCall      => [$this->processMethodCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof PropertyFetch   => [$this->processPropertyFetch($node, $scope, $callerNamespace, $line)],
-                $node instanceof FuncCall        => [$this->processFunctionCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof ConstFetch      => [$this->processConstantFetch($node, $scope, $callerNamespace, $line)],
-                default                          => [],
-            },
-            static fn (?IdentifierRuleError $identifierRuleError): bool => $identifierRuleError instanceof IdentifierRuleError,
-        );
+        $callerNamespace = $scope->getNamespace() ?? '';
+
+        foreach (self::collectNodesWithinStatement($node) as $subNode) {
+            $error = $this->processSubNode($subNode, $scope, $callerNamespace);
+
+            if ($error instanceof IdentifierRuleError) {
+                return [$error];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @return list<Node>
+     */
+    private static function collectNodesWithinStatement(Stmt $stmt): array
+    {
+        $visitor = new class extends NodeVisitorAbstract {
+            /**
+             * @var list<Node>
+             */
+            public array $collectedNodes = [];
+
+            private bool $isRoot = true;
+
+            #[Override]
+            public function enterNode(Node $node): ?int
+            {
+                if ($this->isRoot) {
+                    $this->isRoot = false;
+                } elseif ($node instanceof Stmt) {
+                    return NodeVisitor::DONT_TRAVERSE_CHILDREN;
+                }
+
+                $this->collectedNodes[] = $node;
+
+                return null;
+            }
+        };
+
+        new NodeTraverser($visitor)->traverse([$stmt]);
+
+        return $visitor->collectedNodes;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private function processSubNode(Node $node, Scope $scope, string $callerNamespace): ?IdentifierRuleError
+    {
+        $line = $node->getStartLine();
+
+        return match (true) {
+            $node instanceof New_            => $this->processNameLikeNode($node->class, $scope, $callerNamespace, $line),
+            $node instanceof Name            => $this->processNameLikeNode($node, $scope, $callerNamespace, $line),
+            $node instanceof StaticCall      => $this->processStaticCall($node, $scope, $callerNamespace, $line),
+            $node instanceof ClassConstFetch => $this->processClassConstFetch($node, $scope, $callerNamespace, $line),
+            $node instanceof MethodCall      => $this->processMethodCall($node, $scope, $callerNamespace, $line),
+            $node instanceof PropertyFetch   => $this->processPropertyFetch($node, $scope, $callerNamespace, $line),
+            $node instanceof FuncCall        => $this->processFunctionCall($node, $scope, $callerNamespace, $line),
+            $node instanceof ConstFetch      => $this->processConstantFetch($node, $scope, $callerNamespace, $line),
+            default                          => null,
+        };
     }
 
     /**
@@ -223,7 +279,7 @@ final class InternalUsageRule implements Rule
      */
     private function processStaticCall(StaticCall $staticCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
-        if (!$staticCall->class instanceof Name) {
+        if (!$staticCall->class instanceof Name || !$staticCall->name instanceof Identifier) {
             return null;
         }
 
@@ -234,33 +290,20 @@ final class InternalUsageRule implements Rule
         }
 
         $classReflection = $this->reflectionProvider->getClass($resolvedName);
-        $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
-        $internalTarget  = self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
 
-        $classError = $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $classNamespace,
-            $callerNamespace,
-            self::getKindForClassReflection($classReflection),
-            $resolvedName,
-            $line,
-        );
-
-        if ($classError instanceof IdentifierRuleError) {
-            return $classError;
-        }
-
-        if (!$staticCall->name instanceof Identifier || !$classReflection->hasMethod($staticCall->name->toString())) {
+        if (!$classReflection->hasMethod($staticCall->name->toString())) {
             return null;
         }
 
-        $methodName               = $staticCall->name->toString();
-        $extendedMethodReflection = $classReflection->getMethod($methodName, $scope);
-        $internalTarget           = self::resolveInternalTarget($extendedMethodReflection->getDocComment());
+        $methodName       = $staticCall->name->toString();
+        $methodReflection = $classReflection->getMethod($methodName, $scope);
+
+        $internalTarget = self::resolveInternalTarget($methodReflection->getDocComment())
+            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
-            $classNamespace,
+            $classReflection->getNativeReflection()->getNamespaceName(),
             $callerNamespace,
             self::KIND_METHOD,
             $resolvedName . '::' . $methodName,
@@ -366,31 +409,17 @@ final class InternalUsageRule implements Rule
         }
 
         $classReflection = $this->reflectionProvider->getClass($className);
-        $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
-        $internalTarget  = self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
-
-        $classError = $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $classNamespace,
-            $callerNamespace,
-            self::getKindForClassReflection($classReflection),
-            $className,
-            $line,
-        );
-
-        if ($classError instanceof IdentifierRuleError) {
-            return $classError;
-        }
 
         if (!$classReflection->hasConstant($constName)) {
             return null;
         }
 
-        $internalTarget = self::resolveInternalTarget($classReflection->getConstant($constName)->getDocComment());
+        $internalTarget = self::resolveInternalTarget($classReflection->getConstant($constName)->getDocComment())
+            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
-            $classNamespace,
+            $classReflection->getNativeReflection()->getNamespaceName(),
             $callerNamespace,
             self::KIND_CONSTANT,
             $className . '::' . $constName,

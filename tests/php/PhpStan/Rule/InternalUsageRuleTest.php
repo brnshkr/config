@@ -36,9 +36,8 @@ final class InternalUsageRuleTest extends RuleTestCase
             [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 11],
             [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::doSomething', $callerNamespace), 13],
             [sprintf('Property `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::$value', $callerNamespace), 15],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 16],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 16],
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 18],
+            [sprintf('Constant `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::SOME_CONSTANT', $callerNamespace), 16],
+            [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::staticMethod', $callerNamespace), 18],
             [sprintf('Class `%s` is internal to `%s` and must not be used from `%s`.', $internalNamespace . '\ScopedInternalClass', 'Brnshkr\Config', $callerNamespace), 11],
         ]);
     }
@@ -54,9 +53,8 @@ final class InternalUsageRuleTest extends RuleTestCase
             [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 9],
             [sprintf('Method `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::doSomething'), 10],
             [sprintf('Property `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::$value'), 12],
-            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 14],
-            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 14],
-            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 16],
+            [sprintf('Constant `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::SOME_CONSTANT'), 14],
+            [sprintf('Method `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::staticMethod'), 16],
         ]);
     }
 
