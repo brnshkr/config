@@ -687,11 +687,16 @@ final class PhpStan
      */
     public static function configureRule(string $class, array $arguments = []): array
     {
-        return [
-            'class'     => $class,
-            'tags'      => self::TAG_RULE,
-            'arguments' => $arguments,
+        $service = [
+            'class' => $class,
+            'tags'  => self::TAG_RULE,
         ];
+
+        if ($arguments !== []) {
+            $service['arguments'] = $arguments;
+        }
+
+        return $service;
     }
 
     /**
@@ -709,11 +714,16 @@ final class PhpStan
      */
     public static function configureStaticThrowTypeExtension(string $class, array $arguments = []): array
     {
-        return [
-            'class'     => $class,
-            'tags'      => self::TAG_STATIC_THROW_TYPE_EXTENSION,
-            'arguments' => $arguments,
+        $service = [
+            'class' => $class,
+            'tags'  => self::TAG_STATIC_THROW_TYPE_EXTENSION,
         ];
+
+        if ($arguments !== []) {
+            $service['arguments'] = $arguments;
+        }
+
+        return $service;
     }
 
     /**
@@ -733,11 +743,16 @@ final class PhpStan
      */
     public static function configurePhpAtTest(string $class, array $arguments = []): array
     {
-        return [
-            'class'     => $class,
-            'tags'      => self::TAG_PHP_AT_TEST,
-            'arguments' => $arguments,
+        $service = [
+            'class' => $class,
+            'tags'  => self::TAG_PHP_AT_TEST,
         ];
+
+        if ($arguments !== []) {
+            $service['arguments'] = $arguments;
+        }
+
+        return $service;
     }
 
     /**

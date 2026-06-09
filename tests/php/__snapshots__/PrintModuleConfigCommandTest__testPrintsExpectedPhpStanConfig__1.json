@@ -184,8 +184,7 @@
             "class": "Brnshkr\\Config\\PhpStan\\ThrowTypeExtension\\FileFinderThrowTypeExtension",
             "tags": [
                 "phpstan.dynamicStaticMethodThrowTypeExtension"
-            ],
-            "arguments": []
+            ]
         },
         {
             "class": "Symplify\\PHPStanRules\\Rules\\ForbiddenNodeRule",
