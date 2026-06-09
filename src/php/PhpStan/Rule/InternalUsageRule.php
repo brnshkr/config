@@ -47,16 +47,20 @@ use function sprintf;
  * optional FQCN or namespace argument (`@internal Acme\Foo`) that overrides the default target,
  * useful when an internal symbol should be reachable from one specific namespace but no other.
  *
- * Three regex-based allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces`
- * exempts callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring
- * packages, and `allowedInternalTargets` exempts groups of symbols that share the same target.
+ * Three allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces` exempts
+ * callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring packages,
+ * and `allowedInternalTargets` exempts groups of symbols that share the same target. Each entry
+ * is either a plain namespace prefix (matches the exact namespace or anything below it) or a
+ * regex pattern recognised by its leading `/` delimiter.
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
  *
  * @example
  * ```php
  * PhpStan::configureRule(InternalUsageRule::class, [
- *     'allowedCallingNamespaces' => ['/^Acme\\\\Tests/'],
+ *     'allowedCallingNamespaces'   => ['Acme\Tests'],
+ *     'allowedDeclaringNamespaces' => ['Acme\Shared'],
+ *     'allowedInternalTargets'     => ['/^Acme\\\\User$/'],
  * ]);
  * ```
  *
@@ -76,9 +80,9 @@ final class InternalUsageRule implements Rule
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?list<non-empty-string> $allowedInternalTargets regex patterns matched against `@internal <target>` values to whitelist
-     * @param ?list<non-empty-string> $allowedDeclaringNamespaces regex patterns matched against the declaring namespace to whitelist
-     * @param ?list<non-empty-string> $allowedCallingNamespaces regex patterns matched against the caller's namespace to whitelist
+     * @param ?list<non-empty-string> $allowedInternalTargets plain namespace prefixes or `/.../`-delimited regex patterns matched against `@internal <target>` values to whitelist
+     * @param ?list<non-empty-string> $allowedDeclaringNamespaces plain namespace prefixes or `/.../`-delimited regex patterns matched against the declaring namespace to whitelist
+     * @param ?list<non-empty-string> $allowedCallingNamespaces plain namespace prefixes or `/.../`-delimited regex patterns matched against the caller's namespace to whitelist
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
@@ -446,7 +450,7 @@ final class InternalUsageRule implements Rule
 
         foreach ($patternsByValue as $value => $patterns) {
             foreach (($patterns ?? []) as $pattern) {
-                if (Str::match($value, $pattern) !== []) {
+                if (self::isAllowed($value, $pattern)) {
                     return true;
                 }
             }
@@ -455,6 +459,13 @@ final class InternalUsageRule implements Rule
         return $internalTarget === self::AT_INTERNAL
             ? Str::doesStartWith($callerNamespace, $declaringNamespace)
             : (Str::isEmpty($callerNamespace) || Str::doesContain($callerNamespace, $internalTarget));
+    }
+
+    private static function isAllowed(string $value, string $pattern): bool
+    {
+        return Str::doesStartWith($pattern, '/')
+            ? Str::match($value, $pattern) !== []
+            : ($value === $pattern || Str::doesStartWith($value, $pattern . '\\'));
     }
 
     /**

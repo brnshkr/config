@@ -176,7 +176,7 @@
             ],
             "arguments": {
                 "allowedCallingNamespaces": [
-                    "/^Brnshkr\\\\Config\\\\Tests/"
+                    "Brnshkr\\Config\\Tests"
                 ]
             }
         },

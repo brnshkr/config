@@ -227,7 +227,7 @@ final class PhpStan
                 PublicApiDocumentationRule::class,
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallingNamespaces' => [
-                        '/^Brnshkr\\\Config\\\Tests/',
+                        'Brnshkr\Config\Tests',
                     ],
                 ]),
             ])

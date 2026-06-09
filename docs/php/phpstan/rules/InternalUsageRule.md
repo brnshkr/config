@@ -44,9 +44,11 @@ new \Acme\Shared\UserOnlyHelper();
 
 Three configuration options widen what counts as a legal caller:
 
-- `allowedCallingNamespaces` — patterns matched against the caller's namespace. Useful for letting test suites or other infrastructure reach into internals
-- `allowedDeclaringNamespaces` — patterns matched against the namespace that declares the internal symbol. Useful for exempting whole packages from the check
-- `allowedInternalTargets` — patterns matched against the FQCN or namespace argument passed to `@internal`. Useful when many symbols share the same target and should all be reachable from anywhere
+- `allowedCallingNamespaces` — entries matched against the caller's namespace. Useful for letting test suites or other infrastructure reach into internals
+- `allowedDeclaringNamespaces` — entries matched against the namespace that declares the internal symbol. Useful for exempting whole packages from the check
+- `allowedInternalTargets` — entries matched against the FQCN or namespace argument passed to `@internal`. Useful when many symbols share the same target and should all be reachable from anywhere
+
+Each entry is either a plain namespace prefix (matches the exact namespace plus anything below it) or a `/.../`-delimited regex pattern for advanced cases. Plain prefixes avoid the four-backslash escaping single-quoted PHP strings require for regex `\\`-separators.
 
 ```php
 use Brnshkr\Config\PhpStan;
@@ -55,9 +57,9 @@ use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 return PhpStan::getConfig(null, true)
     ->setRules([
         PhpStan::configureRule(InternalUsageRule::class, [
-            'allowedCallingNamespaces'   => ['/^Acme\\\Tests/'],
-            'allowedDeclaringNamespaces' => ['/^Acme\\\Shared\\\/'],
-            'allowedInternalTargets'     => ['/^Acme\\\User$/'],
+            'allowedCallingNamespaces'   => ['Acme\Tests'],
+            'allowedDeclaringNamespaces' => ['Acme\Shared'],
+            'allowedInternalTargets'     => ['/^Acme\\\\User$/'],
         ]),
     ])
     ->toArray()
