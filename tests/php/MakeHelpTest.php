@@ -19,7 +19,6 @@ use Symfony\Component\Process\Process;
 use function array_first;
 use function dirname;
 use function md5;
-use function preg_quote;
 use function shell_exec;
 use function sprintf;
 use function Symfony\Component\String\s;
@@ -406,7 +405,7 @@ final class MakeHelpTest extends TestCase
     private function normalizeOutput(string $output): string
     {
         return s($output)
-            ->replaceMatches(sprintf('/%s/', preg_quote(dirname(self::MAKEFILE_PATH, 2), '/')), '.')
+            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(dirname(self::MAKEFILE_PATH, 2))), '.')
             ->toString()
         ;
     }

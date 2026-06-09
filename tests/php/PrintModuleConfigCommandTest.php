@@ -7,6 +7,7 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\Composer\Command\CommandProvider;
 use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Module;
+use Brnshkr\Config\Str;
 use Composer\Console\Application;
 use Exception;
 use LogicException;
@@ -18,7 +19,6 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 use function getcwd;
-use function preg_quote;
 use function sprintf;
 use function Symfony\Component\String\s;
 
@@ -173,7 +173,7 @@ final class PrintModuleConfigCommandTest extends TestCase
         }
 
         return s($bufferedOutput->fetch())
-            ->replaceMatches(sprintf('/%s/', preg_quote(getcwd() ?: '.', '/')), '.')
+            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(getcwd() ?: '.')), '.')
             ->toString()
         ;
     }

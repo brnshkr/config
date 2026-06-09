@@ -22,6 +22,7 @@ use function mb_strtolower;
 use function mb_substr;
 use function mb_trim;
 use function preg_match;
+use function preg_quote;
 use function preg_replace_callback;
 use function sprintf;
 use function str_contains;
@@ -98,6 +99,11 @@ final readonly class Str
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return preg_replace_callback($pattern . 'u', $callback, $subject) ?? $subject;
+    }
+
+    public static function quoteRegex(string $value, ?string $delimiter = '/'): string
+    {
+        return preg_quote($value, $delimiter);
     }
 
     /**

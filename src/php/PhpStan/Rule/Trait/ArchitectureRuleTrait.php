@@ -29,11 +29,6 @@ trait ArchitectureRuleTrait
         return array_map(static fn (string $namespace): SelectorInterface => Selector::inNamespace($namespace), $namespaces);
     }
 
-    private static function regexEscapeNamespace(string $namespace): string
-    {
-        return Str::replace($namespace, '\\', '\\\\');
-    }
-
     /**
      * @param non-empty-string $suffix
      */
@@ -55,8 +50,8 @@ trait ArchitectureRuleTrait
             ->should()
             ->beNamed(sprintf(
                 '/^%s\\\%s\\\.+$/',
-                self::regexEscapeNamespace($root),
-                self::regexEscapeNamespace($targetSegment),
+                Str::quoteRegex($root),
+                Str::quoteRegex($targetSegment),
             ), regex: true)
             ->because(sprintf('%s must reside in %s\%s\*.', $noun, $root, $targetSegment))
         ;
@@ -131,14 +126,14 @@ trait ArchitectureRuleTrait
      */
     private static function buildRoleFoldersExhaustiveRule(string $root, array $allowedFolders, string $presetLabel): BuildStep
     {
-        $foldersAlternation = implode('|', array_map(self::regexEscapeNamespace(...), $allowedFolders));
+        $foldersAlternation = implode('|', array_map(Str::quoteRegex(...), $allowedFolders));
 
         return PHPat::rule()
             ->classes(Selector::inNamespace($root))
             ->should()
             ->beNamed(sprintf(
                 '/^%s\\\(?:%s)\\\.+$/',
-                self::regexEscapeNamespace($root),
+                Str::quoteRegex($root),
                 $foldersAlternation,
             ), regex: true)
             ->because(sprintf(
