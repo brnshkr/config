@@ -33,6 +33,18 @@ export default defineConfig((options) => {
         '../scripts/eslint.ts',
         '../scripts/stylelint.ts',
       ],
+      plugins: [
+        {
+          name: 'rewrite-config-extension',
+          renderChunk(code, chunk) {
+            if (chunk.name !== 'eslint') {
+              return null;
+            }
+
+            return code.replaceAll('eslint.config.ts', 'eslint.config.mjs');
+          },
+        },
+      ],
     },
   ];
 });

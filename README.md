@@ -208,7 +208,7 @@ For these scripts to work you need to follow the convention of putting your conf
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
 
-Expected configuration file: `./conf/eslint.config.ts`
+Expected configuration file: `./conf/eslint.config.mjs`
 
 ```sh
 bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
