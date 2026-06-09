@@ -128,9 +128,9 @@ final readonly class FileFinder
      *
      * @example
      * ```php
-     * $phpFiles        = FileFinder::get();
-     * $phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
-     * $scopedTwigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+     * $phpFiles        = FileFinder::getFilePaths();
+     * $phpAndTwigFiles = FileFinder::getFilePaths(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scopedTwigFiles = FileFinder::getFilePaths(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
      * ```
      *
      * @param ?Finder $finder pre-configured Finder to extend, or null to scan the working directory
