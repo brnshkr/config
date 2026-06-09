@@ -94,7 +94,7 @@
         "./src/php/PhpStan/Rule/PublicApiDocumentationRule.php",
         "./src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php",
         "./src/php/PhpStan/Rule/Trait/RuleTrait.php",
-        "./src/php/PhpStan/ThrowTypeExtension/GetConfigThrowTypeExtension.php",
+        "./src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php",
         "./src/php/Rector.php",
         "./src/php/Str.php",
         "./src/php/TwigCsFixer.php",

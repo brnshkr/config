@@ -34,7 +34,7 @@ use function in_array;
  *
  * @no-named-arguments
  */
-final readonly class GetConfigThrowTypeExtension implements DynamicStaticMethodThrowTypeExtension
+final readonly class FileFinderThrowTypeExtension implements DynamicStaticMethodThrowTypeExtension
 {
     /**
      * @internal invoked by PHPStan

@@ -14,7 +14,7 @@ use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\NoNamedArgumentsTagRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
-use Brnshkr\Config\PhpStan\ThrowTypeExtension\GetConfigThrowTypeExtension;
+use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use DateTimeImmutable;
@@ -135,7 +135,7 @@ final class PhpStan
      * {@see InterfaceSuffixRule},
      * {@see InternalUsageRule},
      * {@see NoNamedArgumentsTagRule}),
-     * the {@see GetConfigThrowTypeExtension} dynamic
+     * the {@see FileFinderThrowTypeExtension} dynamic
      * throw-type extension, and editor-URL handling. Conditionally enables strict rules,
      * type-perfect and Symplify rules when their packages are installed.
      *
@@ -232,7 +232,7 @@ final class PhpStan
                 ]),
             ])
             ->setServices([
-                self::configureStaticThrowTypeExtension(GetConfigThrowTypeExtension::class),
+                self::configureStaticThrowTypeExtension(FileFinderThrowTypeExtension::class),
             ])
         ;
 
@@ -699,7 +699,7 @@ final class PhpStan
      *
      * @example
      * ```php
-     * PhpStan::configureStaticThrowTypeExtension(GetConfigThrowTypeExtension::class);
+     * PhpStan::configureStaticThrowTypeExtension(FileFinderThrowTypeExtension::class);
      * ```
      *
      * @param class-string<DynamicStaticMethodThrowTypeExtension> $class extension class
