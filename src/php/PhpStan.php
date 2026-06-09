@@ -33,17 +33,21 @@ use Symfony\Component\String\AbstractString;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symplify\PHPStanRules\Rules as SymplifyPhpStanRules;
 
+use function array_any;
 use function array_diff;
 use function array_filter;
+use function array_find;
 use function array_is_list;
 use function array_keys;
 use function array_map;
 use function array_merge;
-use function array_reduce;
+use function array_pop;
 use function array_unique;
 use function array_values;
 use function class_exists;
+use function explode;
 use function getcwd;
+use function implode;
 use function in_array;
 use function interface_exists;
 use function is_array;
@@ -53,7 +57,6 @@ use function ksort;
 use function serialize;
 use function sprintf;
 use function Symfony\Component\String\s;
-use function usort;
 
 Module::warnMissingPackages(Module::MODULE_PHP_STAN);
 
@@ -993,7 +996,8 @@ final class PhpStan
     private static function getAnalysisPaths(Finder $finder): array
     {
         $finderResults = FileFinder::get($finder) |> iterator_to_array(...);
-        $directories   = array_values($finderResults) |> self::convertFilesToMinimalDirectoryPaths(...);
+        $analyzedFiles = array_keys($finderResults);
+        $directories   = $analyzedFiles |> self::convertFilesToMinimalAnalysisPaths(...);
 
         if ($directories === []) {
             return [
@@ -1006,8 +1010,9 @@ final class PhpStan
             |> iterator_to_array(...)
             |> array_keys(...);
 
-        $excludedPaths = array_diff($allFilesInDirectories, array_keys($finderResults))
-            |> array_values(...);
+        $excludedPaths = array_diff($allFilesInDirectories, $analyzedFiles)
+            |> array_values(...)
+            |> (static fn (array $excludedFiles): array => self::convertFilesToMinimalExcludedPaths($excludedFiles, $analyzedFiles));
 
         $cwd = (getcwd() ?: '.') . '/';
 
@@ -1018,38 +1023,79 @@ final class PhpStan
     }
 
     /**
-     * @param list<SymfonySplFileInfo> $files
+     * @param list<non-empty-string> $files
      *
      * @return list<non-empty-string>
      */
-    private static function convertFilesToMinimalDirectoryPaths(array $files): array
+    private static function convertFilesToMinimalAnalysisPaths(array $files): array
     {
-        return array_map(static fn (SymfonySplFileInfo $file): string => $file->getPath(), $files)
-            |> array_unique(...)
-            |> (
-                static function (array $paths): array {
-                    usort($paths, static fn (string $path1, string $path2): int => Str::length($path1) <=> Str::length($path2));
+        return array_map(
+            static function (string $file): string {
+                $segments = explode('/', $file);
 
-                    return $paths;
-                }
-            )
-            |> (static fn (array $sortedPaths): array => array_reduce(
-                $sortedPaths,
-                static fn (array $minimalPaths, string $currentPath): array => array_reduce(
-                    $minimalPaths,
-                    static fn (bool $doSkip, mixed $parentPath): bool => $doSkip
-                        || Str::doesStartWith($currentPath, Str::trim(is_string($parentPath) ? $parentPath : '', '/', 'end') . '/'),
-                    false,
-                )
-                ? $minimalPaths
-                : [...$minimalPaths, $currentPath],
-                [],
-            ))
-            |> (static fn (array $minimalPaths): array => array_filter(
-                $minimalPaths,
-                static fn (mixed $path): bool => is_string($path) && !Str::isEmpty($path),
-            ))
+                array_pop($segments);
+
+                return implode('/', $segments);
+            },
+            $files,
+        )
+            |> array_unique(...)
+            |> (static fn (array $paths): array => array_filter($paths, static fn (string $path): bool => !Str::isEmpty($path)))
+            |> array_values(...)
+            |> (static fn (array $paths): array => array_filter($paths, static fn (string $path): bool => !array_any(
+                $paths,
+                static fn (string $ancestor): bool => $ancestor !== $path
+                    && Str::doesStartWith($path, Str::trim($ancestor, '/', 'end') . '/'),
+            )))
             |> array_values(...);
+    }
+
+    /**
+     * @param list<non-empty-string> $excludedFiles
+     * @param list<non-empty-string> $analyzedFiles
+     *
+     * @return list<non-empty-string>
+     */
+    private static function convertFilesToMinimalExcludedPaths(array $excludedFiles, array $analyzedFiles): array
+    {
+        $protectedDirectories = array_map(self::getAncestorDirectories(...), $analyzedFiles)
+            |> (static fn (array $directories): array => array_merge([], ...$directories))
+            |> array_flip(...);
+
+        return array_map(
+            static fn (string $excludedFile): string => array_find(
+                self::getAncestorDirectories($excludedFile),
+                static fn (string $directory): bool => !isset($protectedDirectories[$directory]),
+            ) ?: $excludedFile,
+            $excludedFiles,
+        )
+            |> array_unique(...)
+            |> array_values(...);
+    }
+
+    /**
+     * @param non-empty-string $file
+     *
+     * @return list<non-empty-string>
+     */
+    private static function getAncestorDirectories(string $file): array
+    {
+        $segments = explode('/', $file);
+
+        array_pop($segments);
+
+        $directories = [];
+        $directory   = '';
+
+        foreach ($segments as $segment) {
+            $directory = $directory === '' ? $segment : $directory . '/' . $segment;
+
+            if ($directory !== '') {
+                $directories[] = $directory;
+            }
+        }
+
+        return $directories;
     }
 
     /**
