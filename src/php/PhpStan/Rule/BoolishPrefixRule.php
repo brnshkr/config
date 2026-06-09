@@ -35,7 +35,7 @@ use function sprintf;
 
 /**
  * Requires boolean-typed symbols (variables, parameters, properties, class constants, methods
- * returning `bool`) to start with one of the recognised boolish prefixes — see
+ * returning `bool`) to start with one of the recognized boolish prefixes — see
  * {@see self::BOOLISH_PREFIXES}.
  *
  * The aim is that boolean-ness is obvious from the name alone, without needing to inspect the
