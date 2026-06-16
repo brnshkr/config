@@ -8,6 +8,7 @@ import type { Config } from '../types/config';
 export const FILE_NAMES_TO_IGNORE = <const>[
   'ACKNOWLEDGMENTS.md',
   'ADOPTERS.md',
+  'AGENT_INSTRUCTIONS.md',
   'AGENTS.md',
   'API_REFERENCE.md',
   'ARCHITECTURE.md',
@@ -33,6 +34,7 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'FAQ.md',
   'GOVERNANCE.md',
   'INSTALL.md',
+  'INSTRUCTIONS.md',
   'ISSUE_TEMPLATE.md',
   'LICENSE.md',
   'LLMS.md',
