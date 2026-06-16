@@ -10,6 +10,9 @@ use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Extension\Extension;
 
 /**
  * Enforce Symfony DI bundle/extension conventions.
@@ -57,7 +60,7 @@ final readonly class DependencyInjectionTest
 
         yield self::buildMustExtendRule(
             $allOfSelectorModifier,
-            'Symfony\Component\DependencyInjection\Extension\Extension',
+            Extension::class,
             'DI extension classes must extend Symfony\Component\DependencyInjection\Extension\Extension.',
         );
 
@@ -70,13 +73,13 @@ final readonly class DependencyInjectionTest
 
         yield self::buildMustImplementRule(
             Selector::inNamespace($this->root . '\DependencyInjection\Compiler'),
-            'Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface',
+            CompilerPassInterface::class,
             'Compiler passes must implement Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface.',
         );
 
         yield self::buildMustImplementRule(
             Selector::classname($this->root . '\DependencyInjection\Configuration'),
-            'Symfony\Component\Config\Definition\ConfigurationInterface',
+            ConfigurationInterface::class,
             'DI Configuration must implement Symfony\Component\Config\Definition\ConfigurationInterface.',
         );
     }

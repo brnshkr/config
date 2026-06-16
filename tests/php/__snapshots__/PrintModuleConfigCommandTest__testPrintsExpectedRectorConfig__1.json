@@ -1,5 +1,12 @@
 {
     "paths": [
+        "./conf/ai/mate/config.php",
+        "./conf/ai/mate/src/Support/Project.php",
+        "./conf/ai/mate/src/Tool/CommitlintTool.php",
+        "./conf/ai/mate/src/Tool/ModuleTool.php",
+        "./conf/ai/mate/src/Tool/ProjectTool.php",
+        "./conf/ai/mate/src/Tool/QualityTool.php",
+        "./conf/ai/mate/src/Tool/TestTool.php",
         "./conf/php-cs-fixer.dist.php",
         "./conf/php-cs-fixer.php",
         "./conf/phpstan.dist.php",
@@ -8,6 +15,7 @@
         "./conf/rector.php",
         "./conf/twig-cs-fixer.dist.php",
         "./conf/twig-cs-fixer.php",
+        "./mate/extensions.php",
         "./scripts/composer.php",
         "./src/php/Composer/Command/AbstractCommand.php",
         "./src/php/Composer/Command/BrnshkrConfigCommand.php",

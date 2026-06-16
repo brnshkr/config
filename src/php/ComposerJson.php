@@ -51,6 +51,7 @@ final class ComposerJson
         'ext-ctype',
         'ext-date',
         'ext-dom',
+        'ext-fileinfo',
         'ext-filter',
         'ext-hash',
         'ext-iconv',
@@ -63,10 +64,15 @@ final class ComposerJson
         'ext-tokenizer',
         'ext-xml',
         'ext-xmlwriter',
+        'helgesverre/toon',
+        'matesofmate/composer-extension',
+        'matesofmate/phpstan-extension',
+        'matesofmate/phpunit-extension',
         'pestphp/pest',
         'phpunit/phpunit',
         'sebastian/diff',
         'spatie/phpunit-snapshot-assertions',
+        'symfony/ai-mate',
         'symfony/process',
     ];
 

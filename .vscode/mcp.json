@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "symfony-ai-mate": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/vendor/bin/mate",
+      "args": [
+        "serve",
+        "--force-keep-alive"
+      ]
+    }
+  }
+}

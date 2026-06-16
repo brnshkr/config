@@ -28,6 +28,10 @@ PHP_UNIT        := $(PWD)/vendor/bin/pest
 PHP_UNIT_CONFIG := $(PWD)/conf/phpunit.dist.xml
 PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug)
 
+#--- mate
+
+MATE := $(PWD)/vendor/bin/mate
+
 cc: #~~ removes the `./cache` directory
 	$(DEBUG_PREFIX)$(RM) -rf $(PWD)/.cache
 
@@ -40,6 +44,19 @@ test-update: #~~ runs tests with snapshot update
 	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) --update-snapshots $(ARGS)
 
 check: rector php-cs-fixer twig-cs-fixer phpstan test #~~ runs `rector`, `php-cs-fixer`, `twig-cs-fixer`, `phpstan` and `phpunit`
+
+#--- mate
+
+discover: #~~ runs mate discover
+	$(DEBUG_PREFIX)$(MATE) discover
+	$(DEBUG_PREFIX)$(MAKE) -s php-cs-fixer $(PWD)/mate/extensions.php
+	$(DEBUG_PREFIX)$(_AWK) '\
+		/This file is managed by/,/^$$/ { next } \
+		/^return/ { print "/**\n * @internal\n */" } \
+		1 \
+	' $(PWD)/mate/extensions.php > $(PWD)/mate/extensions.php.tmp \
+		&& $(MV) $(PWD)/mate/extensions.php.tmp $(PWD)/mate/extensions.php
+	$(call log,Discovery finished.,$(COLOR_NOTICE))
 
 #--- package
 

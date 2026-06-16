@@ -1,12 +1,14 @@
 /.cache/
 /.idea/
 /.local/
+/conf/ai/claude/settings.local.json
 /conf/php-cs-fixer.php
 /conf/phpstan.php
 /conf/phpunit.xml
 /conf/rector.php
 /conf/twig-cs-fixer.php
 /dist/
+/mate/AGENT_INSTRUCTIONS.md
 /node_modules/
 /src/js/eslint/types/declarations/typegen.d.ts
 /vendor/

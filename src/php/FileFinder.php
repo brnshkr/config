@@ -20,10 +20,10 @@ use function sprintf;
 /**
  * Shared file-discovery helper that every tool config in this package delegates to.
  *
- * Excludes `vendor`, `node_modules`, `var`, `.cache`, `.local`, `config/reference.php`, and the
- * `tests/**\/Fixtures` / `tests/**\/coverage` folders; filters by PHP and/or Twig extensions; and
- * also picks up `bin/console` when PHP files are requested. Callers may pass a pre-configured
- * Symfony Finder to narrow the scope further, otherwise the current working directory is scanned.
+ * Filters by PHP and/or Twig extensions with project-wide noise (dependencies, caches, build
+ * artifacts, generated files and test fixtures) excluded, and also picks up `bin/console` when PHP
+ * files are requested. Callers may pass a pre-configured Symfony Finder to narrow the scope
+ * further, otherwise the current working directory is scanned.
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/FileFinder.md
  *

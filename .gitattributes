@@ -12,12 +12,16 @@
 /conf/rector.php.example             -export-ignore
 /conf/twig-cs-fixer.dist.php.example -export-ignore
 /conf/twig-cs-fixer.php.example      -export-ignore
+/AGENTS.md                            export-ignore
 /bun.lock                             export-ignore
 /bunfig.toml                          export-ignore
 /CHANGELOG.md                         export-ignore
+/CLAUDE.md                            export-ignore
 /composer.lock                        export-ignore
 /dist/                                export-ignore
 /docs/                                export-ignore
+/mate/                                export-ignore
+/mcp.json                             export-ignore
 /mise.toml                            export-ignore
 /node_modules/                        export-ignore
 /package.json                         export-ignore

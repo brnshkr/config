@@ -58,3 +58,7 @@ We recommend [GNU Make](https://www.gnu.org/software/make) as the primary task r
 - `make test` — run the PHPUnit test suite
 - `make test-update` — run the PHPUnit test suite and update snapshots
 - `make check` — run Rector, PHP-CS-Fixer, Twig-CS-Fixer, PHPStan and PHPUnit
+
+## 🤖 AI tooling
+
+This repo ships a project-aware MCP server ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants, wired up under [`conf/ai/`](../conf/ai). It installs itself on `composer install` (the `mate/` directory is generated), and is picked up automatically by Claude Code (`.mcp.json`) and Codex (`./conf/ai/bin/codex`). Agents should read [`AGENTS.md`](../AGENTS.md) first; how the setup works and how to extend it lives in [`conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).
