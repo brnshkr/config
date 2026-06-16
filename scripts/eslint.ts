@@ -20,7 +20,11 @@ const command = [
   ...argv,
 ];
 
-spawn('bun', command, {
+const bunProcess = spawn('bun', command, {
   stdio: 'inherit',
   env: import.meta.env,
+});
+
+bunProcess.on('close', (code) => {
+  process.exitCode = code ?? 1;
 });
