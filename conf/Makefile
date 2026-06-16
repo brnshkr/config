@@ -983,7 +983,7 @@ is_in_documentation {
 }
 /^define[[:space:]]+/ { handle_define(""); is_in_define = 1; next }
 /^#!!/ { sub(/^#!![ ]*/, ""); add("description", "", strip_verbosity($$0), "", "", FNR); next }
-/^[A-Za-z0-9_]+[ \t]*[:?+]?=/ {
+/^[A-Za-z0-9_]+[ \t]*[?:+!]*=/ {
 	line_number = FNR;
 	var_source = $$0;
 	var_description = "";
@@ -994,7 +994,7 @@ is_in_documentation {
 	match(var_source, /^[A-Za-z0-9_]+/);
 	var_name = substr(var_source, RSTART, RLENGTH);
 	var_rest = substr(var_source, RSTART + RLENGTH);
-	match(var_rest, /^[ \t]*[:?+]?=/);
+	match(var_rest, /^[ \t]*[?:+!]*=/);
 	var_operator = substr(var_rest, RSTART, RLENGTH);
 	gsub(/[ \t]/, "", var_operator);
 	if (var_name !~ /^_/) {
