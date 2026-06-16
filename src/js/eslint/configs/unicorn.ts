@@ -58,10 +58,10 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'RELEASING.md',
   'RESEARCH.md',
   'ROADMAP.md',
-  'SKILL.md',
-  'SPEC.md',
   'SECURITY_POLICY.md',
   'SECURITY.md',
+  'SKILL.md',
+  'SPEC.md',
   'STYLE_GUIDE.md',
   'SUPPORT.md',
   'TESTING.md',
@@ -108,10 +108,12 @@ export const unicorn = async (): Promise<Config[]> => {
         'unicorn/prefer-json-parse-buffer': 'error',
         'unicorn/prefer-switch': 'off',
         'unicorn/string-content': ['error', {
+          /* eslint-disable unicorn/string-content -- Of course we need to disable this rule here or it would trigger for its own config */
           patterns: {
             '\\.\\.\\.': '…',
-            '^http:\\/\\/': String.raw`^https:\/\/`,
+            'http://': 'https://',
           },
+          /* eslint-enable unicorn/string-content -- Restore rule */
         }],
         'unicorn/text-encoding-identifier-case': ['error', {
           withDash: true,
