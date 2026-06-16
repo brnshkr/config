@@ -1,5 +1,7 @@
 import { defineConfig } from 'tsdown';
 
+import type { Maybe } from '../src/js/shared/types/core';
+
 export default defineConfig((options) => {
   const isWatchMode = options.watch === true;
 
@@ -36,13 +38,9 @@ export default defineConfig((options) => {
       plugins: [
         {
           name: 'rewrite-config-extension',
-          renderChunk(code, chunk) {
-            if (chunk.name !== 'eslint') {
-              return null;
-            }
-
-            return code.replaceAll('eslint.config.ts', 'eslint.config.mjs');
-          },
+          renderChunk: (code, chunk): Maybe<string> => (chunk.name === 'eslint'
+            ? code.replaceAll('eslint.config.ts', 'eslint.config.mjs')
+            : undefined),
         },
       ],
     },
