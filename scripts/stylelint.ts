@@ -21,6 +21,7 @@ const EXTENSIONS = <const>[
 const argv = process.argv.slice(2);
 
 const command = [
+  'x',
   'stylelint',
   '--config',
   './conf/stylelint.config.mjs',

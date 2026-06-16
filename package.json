@@ -15,15 +15,15 @@
   },
   "type": "module",
   "scripts": {
-    "lint": "bun --bun lint:css && bun --bun lint:js && bun --bun lint:commit",
-    "lint:css": "bun --bun ./scripts/stylelint.ts",
-    "lint:js": "bun --bun ./scripts/eslint.ts",
-    "lint:commit": "bun --bun commitlint --config ./conf/commitlint.config.mjs --edit",
+    "stylelint": "bun --bun ./scripts/stylelint.ts",
+    "eslint": "bun --bun ./scripts/eslint.ts",
+    "commitlint": "bun --bun x commitlint --config ./conf/commitlint.config.mjs --edit",
+    "typescript": "bun --bun tsc --noEmit",
     "inspect:eslint": "bun --bun eslint-config-inspector --config ./conf/eslint.config.ts",
     "inspect:modules": "bun --bun node-modules-inspector",
     "test": "bun --bun vitest --run --testTimeout 120000 --exclude **/fixtures/**",
     "test-update": "bun --bun run test --update",
-    "check": "bun --bun tsc && bun --bun lint && bun --bun run test",
+    "check": "bun --bun typescript && bun --bun stylelint && bun --bun eslint && bun --bun commitlint && bun --bun run test",
     "build": "bun --bun typegen && bun --bun tsdown --config ./conf/tsdown.config.ts",
     "watch": "bun --bun tsdown --config ./conf/tsdown.config.ts --watch",
     "typegen": "bun --bun scripts/typegen.ts",
@@ -268,6 +268,6 @@
     "linting"
   ],
   "simple-git-hooks": {
-    "commit-msg": "bun lint:commit"
+    "commit-msg": "bun commitlint"
   }
 }
