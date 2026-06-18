@@ -5,57 +5,44 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
+use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
+use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
 use PHPStan\DependencyInjection\MissingServiceException;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
-
-use function sprintf;
 
 /**
  * @internal
  *
- * @extends RuleTestCase<InternalUsageRule>
+ * @extends AbstractRuleTestCase<InternalUsageRule>
  */
 #[CoversNothing]
-final class InternalUsageRuleTest extends RuleTestCase
+final class InternalUsageRuleTest extends AbstractRuleTestCase
 {
+    /**
+     * @throws InvalidFixtureFile
+     */
     public function testRule(): void
     {
-        $internalNamespace = 'Brnshkr\Config\Tests\Fixtures\Rule\Internal';
-        $callerNamespace   = 'External\Consumer';
-
-        $this->analyse([
-            __DIR__ . '/../../Fixtures/Rule/Internal/InternalClass.php',
-            __DIR__ . '/../../Fixtures/Rule/Internal/ScopedInternalClass.php',
-            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeInternalClass.php',
-            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeScopedInternalClass.php',
-        ], [
-            [sprintf('Class `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass', $callerNamespace), 11],
-            [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::doSomething', $callerNamespace), 13],
-            [sprintf('Property `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::$value', $callerNamespace), 15],
-            [sprintf('Constant `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::SOME_CONSTANT', $callerNamespace), 16],
-            [sprintf('Method `%s` is internal and must not be used from `%s`.', $internalNamespace . '\InternalClass::staticMethod', $callerNamespace), 18],
-            [sprintf('Class `%s` is internal to `%s` and must not be used from `%s`.', $internalNamespace . '\ScopedInternalClass', 'Brnshkr\Config', $callerNamespace), 11],
-        ]);
+        $this->assertIssuesReported(
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/Internal/InternalClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/Internal/ScopedInternalClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InternalUsage/ConsumeInternalClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InternalUsage/ConsumeScopedInternalClass.php',
+        );
     }
 
+    /**
+     * @throws InvalidFixtureFile
+     */
     public function testRuleReportsFromGlobalNamespace(): void
     {
-        $internalNamespace = 'Brnshkr\Config\Tests\Fixtures\Rule\Internal';
-
-        $this->analyse([
-            __DIR__ . '/../../Fixtures/Rule/Internal/InternalClass.php',
-            __DIR__ . '/../../Fixtures/Rule/InternalUsage/ConsumeInternalClassFromGlobalNamespace.php',
-        ], [
-            [sprintf('Class `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass'), 9],
-            [sprintf('Method `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::doSomething'), 10],
-            [sprintf('Property `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::$value'), 12],
-            [sprintf('Constant `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::SOME_CONSTANT'), 14],
-            [sprintf('Method `%s` is internal and must not be used from the global namespace.', $internalNamespace . '\InternalClass::staticMethod'), 16],
-        ]);
+        $this->assertIssuesReported(
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/Internal/InternalClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InternalUsage/ConsumeInternalClassFromGlobalNamespace.php',
+        );
     }
 
     /**

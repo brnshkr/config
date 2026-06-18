@@ -25,15 +25,15 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
     public function testRule(): void
     {
         $this->analyse([
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/GoodClass.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/MissingClassDescription.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/MethodDocblockProblems.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/AbstractClass.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/Interface.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/Functions.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/FileLevel.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/BareReturn.php',
-            __DIR__ . '/../../Fixtures/Rule/PublicApiDocumentation/BareReturnUndocumented.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/GoodClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/MissingClassDescription.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/MethodDocblockProblems.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/AbstractClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/Interface.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/Functions.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/FileLevel.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/BareReturn.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/BareReturnUndocumented.php',
         ], [
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Class', 'MissingClassDescription'), 10],
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'missingDescription'), 17],

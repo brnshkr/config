@@ -44,6 +44,7 @@
     "ext-xml": "*",
     "ext-xmlwriter": "*",
     "composer/composer": "2.9.7",
+    "dave-liddament/phpstan-rule-test-helper": "0.6.0",
     "friendsofphp/php-cs-fixer": "3.95.1",
     "helgesverre/toon": "3.1.0",
     "kubawerlos/php-cs-fixer-custom-fixers": "3.36.1",

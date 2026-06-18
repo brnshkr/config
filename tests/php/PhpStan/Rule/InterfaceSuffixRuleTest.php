@@ -5,32 +5,31 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
+use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
+use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
 use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
-
-use function sprintf;
 
 /**
  * @internal
  *
- * @extends RuleTestCase<InterfaceSuffixRule>
+ * @extends AbstractRuleTestCase<InterfaceSuffixRule>
  */
 #[CoversNothing]
-final class InterfaceSuffixRuleTest extends RuleTestCase
+final class InterfaceSuffixRuleTest extends AbstractRuleTestCase
 {
+    /**
+     * @throws InvalidFixtureFile
+     */
     public function testRule(): void
     {
-        $this->analyse([
-            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/PassingSuffix.php',
-            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/MismatchedSuffix.php',
-            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/NonSuffixInterface.php',
-            __DIR__ . '/../../Fixtures/Rule/InterfaceSuffix/MultipleInterfaces.php',
-        ], [
-            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'User', 'UserServiceInterface', 'UserService'), 28],
-            [sprintf('Class `%s` implements `%s` and must end with suffix `%s`.', 'BadListener', 'EventSubscriberInterface', 'EventSubscriber'), 38],
-        ]);
+        $this->assertIssuesReported(
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InterfaceSuffix/PassingSuffix.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InterfaceSuffix/MismatchedSuffix.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InterfaceSuffix/NonSuffixInterface.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/InterfaceSuffix/MultipleInterfaces.php',
+        );
     }
 
     #[Override]

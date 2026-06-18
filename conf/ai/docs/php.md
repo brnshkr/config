@@ -20,7 +20,8 @@ Agent knowledge beyond `docs/php/`.
 
 ## Custom PHPStan rules
 
-- New rule = class in `src/php/PhpStan/Rule/` + Pest test in `tests/php/PhpStan/Rule/` + fixtures in `tests/php/Fixtures/Rule/<Name>/` + doc page `docs/php/phpstan/rules/<Name>.md` (PascalCase). Verify pairing with MCP `project-rule-docs-audit`.
+- New rule = class in `src/php/PhpStan/Rule/` + Pest test in `tests/php/PhpStan/Rule/` + fixtures in `tests/php/Fixtures/PhpStan/Rule/<Name>/` + doc page `docs/php/phpstan/rules/<Name>.md` (PascalCase). Verify pairing with MCP `project-rule-docs-audit`.
+- Most rule tests extend `DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase` (dev dep) and call `assertIssuesReported(...$fixturePaths)`; expected errors live as `// ERROR <context>` markers in the fixtures, not as hand-kept `[message, line]` lists, so line numbers never need maintaining. Marker text is the message verbatim by default; override `getErrorFormatter()` to return a `{0}`/`{1}` template (filled from `|`-separated context) or an `ErrorMessageFormatter` subclass for branching messages. One marker per line only — a rule that reports two errors on one line (e.g. `PublicApiDocumentationRule`) keeps PHPStan's raw `RuleTestCase` with an explicit `[message, line]` list.
 - Architecture rules are PHPat-based `*Test` classes under `src/php/PhpStan/Rule/Architecture/<Framework>/`, bundled through the `Architecture` facade factories (`layered`, `ddd`, `symfony`, ...).
 - Constant globs like `Module::NAME_*` match ALL constants with that prefix, array constants included — an array in the glob expands the type to `string|array<...>` and breaks `key-of<>`. Rename the odd constant out of the prefix or use `key-of<self::EXPLICIT_MAP>`.
 - `InternalUsageRule` emits max one violation per statement; pre-order traversal means the deepest accessed symbol wins (`Foo::method()->path` reports the property fetch). Allow-list options accept a plain namespace prefix or a `/regex/`.

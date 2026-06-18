@@ -48,6 +48,7 @@ final class ComposerJson
      */
     private const array ALLOWED_PACKAGE_DIFFERENCES = [
         'composer/composer',
+        'dave-liddament/phpstan-rule-test-helper',
         'ext-ctype',
         'ext-date',
         'ext-dom',
