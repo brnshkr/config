@@ -177,7 +177,8 @@
         "./tests/php/PhpStan/Rule/InternalUsageRuleTest.php",
         "./tests/php/PhpStan/Rule/NoNamedArgumentsTagRuleTest.php",
         "./tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php",
-        "./tests/php/PrintModuleConfigCommandTest.php"
+        "./tests/php/PrintModuleConfigCommandTest.php",
+        "./tests/php/TwigCsFixerTest.php"
     ],
     "format": "txt",
     "hideProgress": false,

@@ -1,0 +1,38 @@
+[
+    {
+        "file": "templates/bundles/acme_email_bundle/notification.html.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "level": "ERROR",
+        "message": "The directory name must use PascalCase; expected AcmeEmailBundle."
+    },
+    {
+        "file": "templates/components/data_table.html.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "level": "ERROR",
+        "message": "The file name must use PascalCase; expected DataTable."
+    },
+    {
+        "file": "templates/components/form_widgets/Select.html.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "level": "ERROR",
+        "message": "The directory name must use PascalCase; expected FormWidgets."
+    },
+    {
+        "file": "templates/email/EmailLog/show.html.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "level": "ERROR",
+        "message": "The directory name must use kebab-case; expected email-log."
+    },
+    {
+        "file": "templates/email/password_reset.html.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "level": "ERROR",
+        "message": "The file name must use kebab-case; expected password-reset."
+    },
+    {
+        "file": "templates/user/profile.twig",
+        "rule": "TwigCsFixer\\Rules\\File\\FileExtensionRule",
+        "level": "ERROR",
+        "message": "The file must use two extensions; found \".twig\"."
+    }
+]

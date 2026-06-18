@@ -16,13 +16,16 @@
         "TwigCsFixer\\Rules\\Punctuation\\TrailingCommaMultiLineRule",
         "TwigCsFixer\\Rules\\Punctuation\\TrailingCommaSingleLineRule",
         "TwigCsFixer\\Rules\\Whitespace\\TrailingSpaceRule",
-        "TwigCsFixer\\Rules\\File\\FileExtensionRule",
-        "TwigCsFixer\\Rules\\Node\\ValidConstantFunctionRule",
-        "TwigCsFixer\\Rules\\File\\FileNameRule",
         "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
-        "TwigCsFixer\\Rules\\Function\\NamedArgumentNameRule",
+        "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "TwigCsFixer\\Rules\\File\\FileExtensionRule",
+        "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "TwigCsFixer\\Rules\\Node\\ValidConstantFunctionRule",
+        "TwigCsFixer\\Rules\\Literal\\CompactHashRule",
         "TwigCsFixer\\Rules\\Function\\MacroArgumentNameRule",
-        "TwigCsFixer\\Rules\\Literal\\CompactHashRule"
+        "TwigCsFixer\\Rules\\Function\\NamedArgumentNameRule"
     ],
     "finder": [
         "./tests/php/templates/test.html.twig"
