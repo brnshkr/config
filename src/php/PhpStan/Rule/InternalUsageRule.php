@@ -299,10 +299,10 @@ final class InternalUsageRule implements Rule
             return null;
         }
 
-        $methodName       = $staticCall->name->toString();
-        $methodReflection = $classReflection->getMethod($methodName, $scope);
+        $methodName               = $staticCall->name->toString();
+        $extendedMethodReflection = $classReflection->getMethod($methodName, $scope);
 
-        $internalTarget = self::resolveInternalTarget($methodReflection->getDocComment())
+        $internalTarget = self::resolveInternalTarget($extendedMethodReflection->getDocComment())
             ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
 
         return $this->buildViolationIfDisallowed(
