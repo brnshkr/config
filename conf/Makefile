@@ -135,6 +135,8 @@ _PRINTF = $(or $(PRINTF),printf)
 
 #--- includes
 
+PWD := $(CURDIR)#vvv #~~ current working directory
+
 define _include_makefiles_in_directory
 $(eval -include $(filter-out $(abspath $(MAKEFILE_LIST)),$(wildcard $1/Makefile $1/*.mk)))
 endef
@@ -148,7 +150,6 @@ $(call _include_makefiles_in_directory,$(PWD)/.local/make)
 
 #---v general
 
-PWD                       ?= .#vvv #~~ current working directory
 SHELL                     ?= /bin/sh#vv #~~ shell to use
 VENDOR                    ?= brnshkr#~~ vendor name
 PACKAGE                   ?= config#~~ package name

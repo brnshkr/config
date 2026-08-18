@@ -382,7 +382,6 @@ final class MakeHelpTest extends TestCase
             'help',
             ...$args,
         ], env: [
-            'PWD'  => self::FIXTURES_DIRECTORY,
             'HOME' => $_SERVER['HOME'] ?? '',
             'PATH' => $_SERVER['PATH'] ?? '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
             ...self::BASELINE_ENV,

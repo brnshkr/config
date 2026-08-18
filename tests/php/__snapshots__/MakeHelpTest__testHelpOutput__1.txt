@@ -388,8 +388,9 @@ Available commands:
 +   MAKE                        ?=  make                                        (path to make binary)
 +   PRINTF                      ?=  printf                                      (path to printf binary)
 +   AWK                         ?=  awk                                         (path to awk binary)
++  includes
++   PWD                         :=  $(CURDIR)                                   (current working directory)
 +  general
-+   PWD                         ?=  .                                           (current working directory)
 +   SHELL                       ?=  /bin/sh                                     (shell to use)
 +   VENDOR                      ?=  brnshkr                                     (vendor name)
 +   PACKAGE                     ?=  config                                      (package name)
@@ -563,8 +564,9 @@ Available commands:
 +   MAKE                        ?=  make                                        (path to make binary)
 +   PRINTF                      ?=  printf                                      (path to printf binary)
 +   AWK                         ?=  awk                                         (path to awk binary)
++  includes
++   PWD                         :=  $(CURDIR)                                   (current working directory)
 +  general
-+   PWD                         ?=  .                                           (current working directory)
 +   SHELL                       ?=  /bin/sh                                     (shell to use)
 +   VENDOR                      ?=  brnshkr                                     (vendor name)
 +   PACKAGE                     ?=  config                                      (package name)
@@ -925,8 +927,9 @@ Variables:
 +   MAKE                        ?=  make                                        (path to make binary)
 +   PRINTF                      ?=  printf                                      (path to printf binary)
 +   AWK                         ?=  awk                                         (path to awk binary)
++  includes
++   PWD                         :=  $(CURDIR)                                   (current working directory)
 +  general
-+   PWD                         ?=  .                                           (current working directory)
 +   SHELL                       ?=  /bin/sh                                     (shell to use)
 +   VENDOR                      ?=  brnshkr                                     (vendor name)
 +   PACKAGE                     ?=  config                                      (package name)
@@ -1110,8 +1113,9 @@ Variables:
 +   MAKE                        ?=  make                                        (path to make binary)
 +   PRINTF                      ?=  printf                                      (path to printf binary)
 +   AWK                         ?=  awk                                         (path to awk binary)
++  includes
++   PWD                         :=  $(CURDIR)                                   (current working directory)
 +  general
-+   PWD                         ?=  .                                           (current working directory)
 +   SHELL                       ?=  /bin/sh                                     (shell to use)
 +   VENDOR                      ?=  brnshkr                                     (vendor name)
 +   PACKAGE                     ?=  config                                      (package name)
@@ -1297,8 +1301,9 @@ Variables:
 +   MAKE                        ?=  make                                        (path to make binary)
 +   PRINTF                      ?=  printf                                      (path to printf binary)
 +   AWK                         ?=  awk                                         (path to awk binary)
++  includes
++   PWD                         :=  $(CURDIR)                                   (current working directory)
 +  general
-+   PWD                         ?=  .                                           (current working directory)
 +   SHELL                       ?=  /bin/sh                                     (shell to use)
 +   VENDOR                      ?=  brnshkr                                     (vendor name)
 +   PACKAGE                     ?=  config                                      (package name)
@@ -1576,8 +1581,9 @@ Variables:
    [36mMAKE                      [0m  [90m?=  make                                        (path to [35mmake[0m[90m binary)[0m
    [36mPRINTF                    [0m  [90m?=  printf                                      (path to [35mprintf[0m[90m binary)[0m
    [36mAWK                       [0m  [90m?=  awk                                         (path to [35mawk[0m[90m binary)[0m
+  [35mincludes[0m
+   [36mPWD                       [0m  [90m:=  $(CURDIR)                                   (current working directory)[0m
   [35mgeneral[0m
-   [36mPWD                       [0m  [90m?=  .                                           (current working directory)[0m
    [36mSHELL                     [0m  [90m?=  /bin/sh                                     (shell to use)[0m
    [36mVENDOR                    [0m  [90m?=  brnshkr                                     (vendor name)[0m
    [36mPACKAGE                   [0m  [90m?=  config                                      (package name)[0m
@@ -1808,8 +1814,9 @@ Variables:
    [32mMAKE                      [0m  [0m?=  make                                        (path to [33mmake[0m[0m binary)[0m
    [32mPRINTF                    [0m  [0m?=  printf                                      (path to [33mprintf[0m[0m binary)[0m
    [32mAWK                       [0m  [0m?=  awk                                         (path to [33mawk[0m[0m binary)[0m
+  [33mincludes[0m
+   [32mPWD                       [0m  [0m:=  $(CURDIR)                                   (current working directory)[0m
   [33mgeneral[0m
-   [32mPWD                       [0m  [0m?=  .                                           (current working directory)[0m
    [32mSHELL                     [0m  [0m?=  /bin/sh                                     (shell to use)[0m
    [32mVENDOR                    [0m  [0m?=  brnshkr                                     (vendor name)[0m
    [32mPACKAGE                   [0m  [0m?=  config                                      (package name)[0m
