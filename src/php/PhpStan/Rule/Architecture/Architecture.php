@@ -306,7 +306,7 @@ final class Architecture
     {
         $pattern = self::normalizeNamespace($pattern);
 
-        if (!Str::doesContain($pattern, '{name}')) {
+        if (!Str::contains($pattern, '{name}')) {
             throw new InvalidArgumentException(sprintf(
                 'Modular architecture pattern "%s" must contain the "{name}" placeholder.',
                 $pattern,
@@ -675,7 +675,7 @@ final class Architecture
         $normalized = Str::trim($namespace);
         $normalized = Str::replace($normalized, '/', '\\');
 
-        while (Str::doesContain($normalized, '\\\\')) {
+        while (Str::contains($normalized, '\\\\')) {
             $normalized = Str::replace($normalized, '\\\\', '\\');
         }
 

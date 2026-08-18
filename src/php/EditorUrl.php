@@ -174,8 +174,8 @@ final readonly class EditorUrl
             $key = (string) $key;
 
             $editor = match (true) {
-                Str::doesStartWith($key, 'VSCODE_')                             => self::EDITOR_VSCODE,
-                Str::doesStartWith($key, 'PHPSTORM')                            => self::EDITOR_PHPSTORM,
+                Str::startsWith($key, 'VSCODE_')                                => self::EDITOR_VSCODE,
+                Str::startsWith($key, 'PHPSTORM')                               => self::EDITOR_PHPSTORM,
                 $key === 'TERMINAL_EMULATOR' && $value === 'JetBrains-JediTerm' => self::EDITOR_PHPSTORM,
                 default                                                         => null,
             };

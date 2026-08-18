@@ -172,7 +172,7 @@ final readonly class PublicApiDocumentationRule implements Rule
             }
         }
 
-        if (self::doesNeedReturnProse($node->returnType) && !self::hasReturnWithProse($docText)) {
+        if (self::needsReturnProse($node->returnType) && !self::hasReturnWithProse($docText)) {
             $errors[] = self::buildRuleError(sprintf(
                 '%s `%s` is `@api` and returns a non-void type; an `@return` tag with a description is required.',
                 $kind,
@@ -180,7 +180,7 @@ final readonly class PublicApiDocumentationRule implements Rule
             ), $line);
         }
 
-        if (self::doesNeedExample($node, $classReflection) && !self::hasTagInText($docText, 'example')) {
+        if (self::needsExample($node, $classReflection) && !self::hasTagInText($docText, 'example')) {
             $errors[] = self::buildRuleError(sprintf(
                 '%s `%s` is `@api` and accepts parameters; an `@example` tag is required.',
                 $kind,
@@ -306,7 +306,7 @@ final readonly class PublicApiDocumentationRule implements Rule
         return $class;
     }
 
-    private static function doesNeedReturnProse(Node|Identifier|null $returnType): bool
+    private static function needsReturnProse(Node|Identifier|null $returnType): bool
     {
         if ($returnType instanceof Identifier) {
             return !in_array(Str::toLowerCase($returnType->name), ['void', 'never'], true);
@@ -319,7 +319,7 @@ final readonly class PublicApiDocumentationRule implements Rule
         return $returnType instanceof Node;
     }
 
-    private static function doesNeedExample(ClassMethod|Function_ $node, ?ClassReflection $classReflection): bool
+    private static function needsExample(ClassMethod|Function_ $node, ?ClassReflection $classReflection): bool
     {
         if ($node->params === []) {
             return false;
@@ -329,7 +329,7 @@ final readonly class PublicApiDocumentationRule implements Rule
             return false;
         }
 
-        if (self::doesNeedReturnProse($node->returnType)) {
+        if (self::needsReturnProse($node->returnType)) {
             return true;
         }
 

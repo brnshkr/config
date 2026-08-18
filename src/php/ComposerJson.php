@@ -250,15 +250,15 @@ final class ComposerJson
         $data = $this->read();
 
         /**
-         * @var array<non-empty-string, non-empty-string> $requires
+         * @var array<non-empty-string, non-empty-string> $requirements
          */
-        $requires = isset($data['require'])
+        $requirements = isset($data['require'])
             && is_array($data['require'])
             && array_all($data['require'], static fn (mixed $key, mixed $value): bool => is_string($key) && !Str::isEmpty($key) && is_string($value) && !Str::isEmpty($value))
             ? $data['require']
             : [];
 
-        return $requires;
+        return $requirements;
     }
 
     /**
@@ -271,15 +271,15 @@ final class ComposerJson
         $data = $this->read();
 
         /**
-         * @var array<non-empty-string, non-empty-string> $devRequires
+         * @var array<non-empty-string, non-empty-string> $devRequirements
          */
-        $devRequires = isset($data['require-dev'])
+        $devRequirements = isset($data['require-dev'])
             && is_array($data['require-dev'])
             && array_all($data['require-dev'], static fn (mixed $key, mixed $value): bool => is_string($key) && !Str::isEmpty($key) && is_string($value) && !Str::isEmpty($value))
             ? $data['require-dev']
             : [];
 
-        return $devRequires;
+        return $devRequirements;
     }
 
     /**

@@ -60,7 +60,7 @@ final readonly class Str
         return mb_strtolower($string);
     }
 
-    public static function doesStartWith(string $haystack, string $needle): bool
+    public static function startsWith(string $haystack, string $needle): bool
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_starts_with($haystack, $needle);
@@ -69,15 +69,15 @@ final readonly class Str
     /**
      * @param list<string> $needles
      */
-    public static function doesStartWithAny(string $haystack, array $needles): bool
+    public static function startsWithAny(string $haystack, array $needles): bool
     {
         return array_any(
             $needles,
-            static fn (string $needle): bool => self::doesStartWith($haystack, $needle),
+            static fn (string $needle): bool => self::startsWith($haystack, $needle),
         );
     }
 
-    public static function doesEndWith(string $haystack, string $needle): bool
+    public static function endsWith(string $haystack, string $needle): bool
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_ends_with($haystack, $needle);
@@ -121,7 +121,7 @@ final readonly class Str
             : array_values(array_filter($matches, is_string(...)));
     }
 
-    public static function doesContain(string $haystack, string $needle): bool
+    public static function contains(string $haystack, string $needle): bool
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_contains($haystack, $needle);
@@ -155,11 +155,11 @@ final readonly class Str
      */
     public static function toAbsolutePath(string $cwd, string $path): string
     {
-        if (self::doesStartWith($path, '/')) {
+        if (self::startsWith($path, '/')) {
             return $path;
         }
 
-        return $cwd . (self::doesStartWith($path, './')
+        return $cwd . (self::startsWith($path, './')
             ? self::trim($path, './', 'start')
             : $path);
     }

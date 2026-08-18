@@ -201,7 +201,7 @@ final readonly class Rector
                 AddSensitiveParameterAttributeRector::SENSITIVE_PARAMETERS => [
                     ...self::SENSITIVE_PARAMETERS,
                     ...array_map(
-                        static fn (string $parameter): string => Str::doesEndWith($parameter, 's')
+                        static fn (string $parameter): string => Str::endsWith($parameter, 's')
                             ? ($parameter . 'es')
                             : ($parameter . 's'),
                         self::SENSITIVE_PARAMETERS,

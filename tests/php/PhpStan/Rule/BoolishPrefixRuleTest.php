@@ -14,6 +14,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 
 use function explode;
 use function implode;
+use function in_array;
 use function sprintf;
 
 /**
@@ -37,6 +38,8 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/MagicMethods.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/ExternalImpl.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Functions.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/NonBoolean.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Types.php',
         );
     }
 
@@ -47,13 +50,31 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
             #[Override]
             public function getErrorMessage(string $errorContext): string
             {
-                [, $kind, $name] = explode('|', $errorContext);
+                $parts = explode('|', $errorContext);
+
+                $type   = $parts[0];
+                $kind   = $parts[1] ?? '';
+                $name   = $parts[2] ?? '';
+                $prefix = $parts[3] ?? '';
+
+                if ($type === 'reserved') {
+                    return sprintf(
+                        '%s name `%s` must not start with the boolish prefix `%s` because it is not boolean.',
+                        $kind,
+                        $name,
+                        $prefix,
+                    );
+                }
+
+                $prefixes = in_array($kind, ['Method', 'Function'], true)
+                    ? BoolishPrefixRule::PREDICATE_PREFIXES
+                    : BoolishPrefixRule::FLAG_PREFIXES;
 
                 return sprintf(
-                    '%s name `%s` must have one of the following prefixes: %s',
+                    '%s name `%s` must have one of the following prefixes: %s.',
                     $kind,
                     $name,
-                    implode(', ', BoolishPrefixRule::BOOLISH_PREFIXES),
+                    implode(', ', $prefixes),
                 );
             }
         };

@@ -273,11 +273,11 @@ final class PhpStan
     /**
      * Merge additional `includes` neon paths into the config (dedup-preserving order).
      *
-     * @param list<non-empty-string> $includes absolute or relative paths to neon files to merge in
+     * @param list<non-empty-string> $includePaths absolute or relative paths to neon files to merge in
      */
-    public function setIncludes(array $includes): self
+    public function setIncludes(array $includePaths): self
     {
-        $this->config['includes'] = array_values(array_unique([...$this->config['includes'], ...$includes]));
+        $this->config['includes'] = array_values(array_unique([...$this->config['includes'], ...$includePaths]));
 
         return $this;
     }
@@ -1045,7 +1045,7 @@ final class PhpStan
             |> (static fn (array $paths): array => array_filter($paths, static fn (string $path): bool => !array_any(
                 $paths,
                 static fn (string $ancestor): bool => $ancestor !== $path
-                    && Str::doesStartWith($path, Str::trim($ancestor, '/', 'end') . '/'),
+                    && Str::startsWith($path, Str::trim($ancestor, '/', 'end') . '/'),
             )))
             |> array_values(...);
     }

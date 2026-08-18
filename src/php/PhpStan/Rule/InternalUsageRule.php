@@ -457,15 +457,15 @@ final class InternalUsageRule implements Rule
         }
 
         return $internalTarget === self::AT_INTERNAL
-            ? Str::doesStartWith($callerNamespace, $declaringNamespace)
-            : (Str::isEmpty($callerNamespace) || Str::doesContain($callerNamespace, $internalTarget));
+            ? Str::startsWith($callerNamespace, $declaringNamespace)
+            : (Str::isEmpty($callerNamespace) || Str::contains($callerNamespace, $internalTarget));
     }
 
     private static function isAllowed(string $value, string $pattern): bool
     {
-        return Str::doesStartWith($pattern, '/')
+        return Str::startsWith($pattern, '/')
             ? Str::match($value, $pattern) !== []
-            : ($value === $pattern || Str::doesStartWith($value, $pattern . '\\'));
+            : ($value === $pattern || Str::startsWith($value, $pattern . '\\'));
     }
 
     /**

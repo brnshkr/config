@@ -66,7 +66,7 @@ final readonly class InterfaceSuffixRule implements Rule
 
         $suffixed = array_values(array_filter(
             $node->implements,
-            static fn (Name $name): bool => Str::doesEndWith(Str::getClassShortName($name->toString()), 'Interface'),
+            static fn (Name $name): bool => Str::endsWith(Str::getClassShortName($name->toString()), 'Interface'),
         ));
 
         if (count($suffixed) !== 1) {
@@ -77,7 +77,7 @@ final readonly class InterfaceSuffixRule implements Rule
         $interfaceName = Str::getClassShortName($suffixed[0]->toString());
         $expected      = Str::match($interfaceName, '/^(.+)Interface$/')[1] ?? '';
 
-        if (Str::isEmpty($expected) || Str::doesEndWith($className, $expected)) {
+        if (Str::isEmpty($expected) || Str::endsWith($className, $expected)) {
             return [];
         }
 
