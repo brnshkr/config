@@ -13,8 +13,8 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Symfony form type placement and base class.
  *
- * Classes named `*Type` must live under `<root>\Form`, and every class in that folder must
- * extend `Symfony\Component\Form\AbstractType`.
+ * Classes named `*Type` that extend `Symfony\Component\Form\AbstractType` must live under
+ * `<root>\Form\Type`, and every class in that folder must extend AbstractType.
  *
  * @example
  * ```php
@@ -48,13 +48,13 @@ final readonly class FormTypeTest
     {
         yield self::buildPlacementRule(
             $this->root,
-            [self::selectByClassnameSuffix('Type')],
-            'Form',
+            [self::selectByClassnameSuffix('Type'), Selector::extends('Symfony\Component\Form\AbstractType')],
+            'Form\Type',
             'Form types',
         );
 
         yield self::buildMustExtendRule(
-            Selector::inNamespace($this->root . '\Form'),
+            Selector::inNamespace($this->root . '\Form\Type'),
             'Symfony\Component\Form\AbstractType',
             'Form types must extend Symfony\Component\Form\AbstractType.',
         );
