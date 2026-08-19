@@ -10,6 +10,7 @@ All rules ship in the `brnshkr` plugin and are enabled by the default configurat
 ## Naming
 
 - [`brnshkr/boolish-prefix`](./boolish-prefix.md) — boolean symbols must carry a boolish name prefix, and non-boolean symbols must avoid one
+- [`brnshkr/interface-suffix`](./interface-suffix.md) — a class implementing a single `*Interface` must end with the matching prefix
 
 ## Public API
 

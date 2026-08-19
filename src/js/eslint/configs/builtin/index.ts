@@ -6,6 +6,7 @@ import { resolveTsConfigPath } from '../../utils/tsconfig';
 
 import { apiOrInternalTagRule } from './api-or-internal-tag';
 import { boolishPrefixRule } from './boolish-prefix';
+import { interfaceSuffixRule } from './interface-suffix';
 import { publicApiDocumentationRule } from './public-api-documentation';
 import { requireImportAliasRule } from './require-import-alias';
 import { requireImportAttributesRule } from './require-import-attributes';
@@ -21,6 +22,7 @@ export type RuleDefinition = ExtractValueTypeFromRecord<ESLint.Plugin['rules']>;
 export const RULE_DEFINITIONS = <const>{
   'api-or-internal-tag': apiOrInternalTagRule,
   'boolish-prefix': boolishPrefixRule,
+  'interface-suffix': interfaceSuffixRule,
   'public-api-documentation': publicApiDocumentationRule,
   'require-import-attributes': requireImportAttributesRule,
   'require-import-alias': requireImportAliasRule,
@@ -45,6 +47,7 @@ const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Conf
     rules: {
       [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
       [<const>`${packageOrganization}/boolish-prefix`]: 'error',
+      [<const>`${packageOrganization}/interface-suffix`]: 'error',
       [<const>`${packageOrganization}/public-api-documentation`]: 'error',
       [<const>`${packageOrganization}/require-import-alias`]: ['error', {
         tsConfigPath: resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined),

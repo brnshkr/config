@@ -21,7 +21,7 @@ use function count;
 use function sprintf;
 
 /**
- * Requires classes that implement a single `<Prefix>Interface` to end with the matching `<Prefix>`.
+ * Requires classes that implement a single `*Interface` to end with the matching prefix.
  *
  * The intent is to make the contract-to-implementation pairing visible at the call site — a
  * `UserRepository` implementing `RepositoryInterface` reads better than a `UserRepo` would, and

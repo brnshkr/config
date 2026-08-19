@@ -25,6 +25,9 @@ export default getConfig({
     'test/expect-expect': ['error', {
       assertFunctionNames: [
         'expect',
+        'runJsRuleTests',
+        'runTsRuleTests',
+        'runTypeAwareRuleTests',
         'snapshotConfigs',
       ],
     }],
@@ -93,6 +96,7 @@ export default getConfig({
   ],
   rules: {
     [<const>`${packageOrganization}/boolish-prefix`]: 'off',
+    [<const>`${packageOrganization}/interface-suffix`]: 'off',
     [<const>`${packageOrganization}/require-import-attributes`]: 'off',
     'class-methods-use-this': 'off',
     'max-classes-per-file': 'off',
@@ -104,8 +108,10 @@ export default getConfig({
     'jsdoc/no-undefined-types': 'off',
     'jsdoc/require-param': 'off',
     'jsdoc/require-returns-check': 'off',
+    'perfectionist/sort-heritage-clauses': 'off',
     'style/padding-line-between-statements': 'off',
     'ts/no-empty-function': 'off',
+    'ts/no-empty-object-type': 'off',
     'ts/no-extraneous-class': 'off',
   },
 });

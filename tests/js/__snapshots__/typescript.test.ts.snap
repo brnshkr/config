@@ -68,6 +68,7 @@ exports[`expected typescript config 1`] = `
         "./src/js/eslint/configs/builtin/api-or-internal-tag.ts",
         "./src/js/eslint/configs/builtin/boolish-prefix.ts",
         "./src/js/eslint/configs/builtin/index.ts",
+        "./src/js/eslint/configs/builtin/interface-suffix.ts",
         "./src/js/eslint/configs/builtin/public-api-documentation.ts",
         "./src/js/eslint/configs/builtin/require-import-alias.ts",
         "./src/js/eslint/configs/builtin/require-import-attributes.ts",
@@ -124,6 +125,7 @@ exports[`expected typescript config 1`] = `
         "./tests/js/typescript.test.ts",
         "./tests/js/eslint-rules/api-or-internal-tag.test.ts",
         "./tests/js/eslint-rules/boolish-prefix.test.ts",
+        "./tests/js/eslint-rules/interface-suffix.test.ts",
         "./tests/js/eslint-rules/public-api-cache.test.ts",
         "./tests/js/eslint-rules/public-api-documentation.test.ts",
         "./tests/js/eslint-rules/require-import-alias.test.ts",
@@ -152,6 +154,7 @@ exports[`expected typescript config 1`] = `
         "./tests/js/utils/config-snapshot.ts",
         "./tests/js/utils/filesystem.ts",
         "./tests/js/utils/json-diff.ts",
+        "./tests/js/utils/php-rule.ts",
         "./tests/js/utils/rule-tester.ts"
     ],
     "exclude": [
