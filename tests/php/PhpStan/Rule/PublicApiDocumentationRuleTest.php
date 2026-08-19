@@ -45,7 +45,7 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Class', 'FileLevelApiMissingDescription'), 14],
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'method'), 16],
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Class', 'UndocumentedReturnTarget'), 14],
-            ['Top-level `return` in an `@api` file must carry a doc-block with a description (either on the `return` statement or on its returned source).', 16],
+            ['Top-level `return` in an `@api` file must carry a docblock with a description (either on the `return` statement or on its returned source).', 16],
         ]);
     }
 

@@ -216,7 +216,7 @@ final readonly class PublicApiDocumentationRule implements Rule
         }
 
         return [self::buildRuleError(
-            'Top-level `return` in an `@api` file must carry a doc-block with a description (either on the `return` statement or on its returned source).',
+            'Top-level `return` in an `@api` file must carry a docblock with a description (either on the `return` statement or on its returned source).',
             $return->getStartLine(),
         )];
     }
