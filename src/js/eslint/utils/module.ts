@@ -186,6 +186,6 @@ const enabledStates: Record<string, boolean> = {};
 export const isModuleEnabled = (moduleInfo: ModuleInfo): boolean => enabledStates[moduleInfo.name]
   ?? isModuleEnabledByDefault(moduleInfo);
 
-export const setModuleEnabled = (moduleInfo: ModuleInfo, state: boolean): void => {
-  enabledStates[moduleInfo.name] = state;
+export const setModuleEnabled = (moduleInfo: ModuleInfo, isEnabled: boolean): void => {
+  enabledStates[moduleInfo.name] = isEnabled;
 };

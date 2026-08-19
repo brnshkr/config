@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import {
-  fileExists,
+  doesFileExist,
   readJsonFile,
   readTextFile,
   toPosix,
@@ -89,7 +89,7 @@ const collectStringEntries = (node: unknown, accumulator: string[]): void => {
 
 const findFirstExistingFile = (candidates: Iterable<string>): Maybe<string> => {
   for (const candidate of candidates) {
-    if (fileExists(candidate)) {
+    if (doesFileExist(candidate)) {
       return toPosix(candidate);
     }
   }

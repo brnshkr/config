@@ -9,6 +9,7 @@ import type { TypescriptOptions } from '../types/options';
 export type TsConfigPaths = Record<string, string[]>;
 
 interface ParsedTsConfig {
+  // eslint-disable-next-line brnshkr/boolish-prefix -- Mirrors the `extends` key of `tsconfig.json`
   extends?: string | string[];
   compilerOptions?: {
     baseUrl?: string;
@@ -35,14 +36,14 @@ const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
   }
 };
 
-const resolveExtends = (extendsValue: string, fromDirectory: string): string => {
-  if (extendsValue.startsWith('.') || path.isAbsolute(extendsValue)) {
-    const resolved = path.resolve(fromDirectory, extendsValue);
+const resolveExtends = (parentConfig: string, fromDirectory: string): string => {
+  if (parentConfig.startsWith('.') || path.isAbsolute(parentConfig)) {
+    const resolved = path.resolve(fromDirectory, parentConfig);
 
     return path.extname(resolved) === '' ? `${resolved}.json` : resolved;
   }
 
-  return path.resolve(fromDirectory, 'node_modules', extendsValue);
+  return path.resolve(fromDirectory, 'node_modules', parentConfig);
 };
 
 const normalizeExtends = (raw: ParsedTsConfig): string[] => {

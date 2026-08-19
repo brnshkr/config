@@ -88,6 +88,7 @@ export default getConfig(undefined, {
     'docs/**/*.md/**',
   ],
   rules: {
+    [<const>`${packageOrganization}/boolish-prefix`]: 'off',
     [<const>`${packageOrganization}/require-import-attributes`]: 'off',
     'class-methods-use-this': 'off',
     'max-classes-per-file': 'off',

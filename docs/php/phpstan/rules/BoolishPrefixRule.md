@@ -51,3 +51,5 @@ Two exemptions cover routine, legitimate collisions:
 ## Skipped symbols
 
 The rule only governs names the project is free to choose. A method that overrides or implements a declaration from a vendor (`/vendor/`) parent, interface, or trait is skipped, as are magic methods other than `__construct`. A type that cannot be resolved to clearly boolean or clearly non-boolean — a generic, `mixed`, an untyped parameter, a `bool|int` union — is left alone in both directions.
+
+The JavaScript counterpart is [`brnshkr/boolish-prefix`](../../../js/eslint/rules/boolish-prefix.md).

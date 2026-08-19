@@ -5,7 +5,7 @@ import type { Maybe } from '../types/core';
 
 export const toPosix = (value: string): string => value.replaceAll('\\', '/');
 
-export const fileExists = (filePath: string): boolean => {
+export const doesFileExist = (filePath: string): boolean => {
   try {
     // eslint-disable-next-line node/no-sync -- Synchronous resolution mirrors ESLint's lifecycle
     fs.accessSync(filePath, fs.constants.R_OK);
@@ -55,7 +55,7 @@ export const findNearestPackageJson = (startDirectory: string): Maybe<string> =>
   while (current !== parent) {
     const candidate = path.join(current, 'package.json');
 
-    if (fileExists(candidate)) {
+    if (doesFileExist(candidate)) {
       return candidate;
     }
 

@@ -43,6 +43,7 @@ export interface IgnoresAndFiles {
    *
    * @default []
    */
+  // eslint-disable-next-line brnshkr/boolish-prefix -- Mirrors ESLint's own `ignores` config key
   ignores?: Linter.Config['ignores'];
 }
 
@@ -85,6 +86,7 @@ export interface TypescriptOptions extends IgnoresAndFiles {
   typeAware: boolean | string | TypeAwareOptions;
 }
 
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 export interface ConfigOptions {
   /**
    * Enables builtin rules.
@@ -248,6 +250,7 @@ export interface ConfigOptions {
    */
   yaml: boolean;
 }
+/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
 
 export type ResolvedOptions = ConfigOptions & Omit<Config, 'files'>;
 export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'files'>;

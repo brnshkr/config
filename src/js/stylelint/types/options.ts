@@ -1,3 +1,5 @@
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
+
 import type { Config } from './config';
 
 export interface ConfigOptions {
@@ -96,3 +98,5 @@ export interface ConfigOptions {
 
 export type ResolvedOptions = ConfigOptions & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
 export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
+
+/* eslint-enable brnshkr/boolish-prefix -- Restore rule */

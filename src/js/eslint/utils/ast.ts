@@ -32,25 +32,29 @@ export const isVoidLikeReturn = (
   || returnType.typeAnnotation.type === 'TSVoidKeyword'
   || returnType.typeAnnotation.type === 'TSNeverKeyword';
 
-export const getParameterName = (parameter: TSESTree.Parameter): Maybe<string> => {
+export const resolveParameterIdentifier = (parameter: TSESTree.Parameter): Maybe<TSESTree.Identifier> => {
   if (parameter.type === 'Identifier') {
-    return parameter.name;
+    return parameter;
   }
 
   if (parameter.type === 'AssignmentPattern' && parameter.left.type === 'Identifier') {
-    return parameter.left.name;
+    return parameter.left;
   }
 
   if (parameter.type === 'RestElement' && parameter.argument.type === 'Identifier') {
-    return parameter.argument.name;
+    return parameter.argument;
   }
 
   if (parameter.type === 'TSParameterProperty') {
-    return getParameterName(parameter.parameter);
+    return resolveParameterIdentifier(parameter.parameter);
   }
 
   return undefined;
 };
+
+export const getParameterName = (
+  parameter: TSESTree.Parameter,
+): Maybe<string> => resolveParameterIdentifier(parameter)?.name;
 
 export const isAccessibleMethod = (
   method: MethodLikeNode,
