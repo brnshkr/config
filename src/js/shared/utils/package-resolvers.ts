@@ -25,6 +25,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_PLUGIN_UNUSED_IMPORTS: 'eslint-plugin-unused-imports',
   ESLINT_PLUGIN_YML: 'eslint-plugin-yml',
   SVELTE: 'svelte',
+  TAILWINDCSS: 'tailwindcss',
   TYPESCRIPT: 'typescript',
   TYPESCRIPT_ESLINT: 'typescript-eslint',
   VITEST_ESLINT_PLUGIN: '@vitest/eslint-plugin',
@@ -99,6 +100,8 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.SVELTE]: () => isPackageExists(ESLINT_PACKAGES.SVELTE),
+  // Do not import, just check for existence
+  [ESLINT_PACKAGES.TAILWINDCSS]: () => isPackageExists(ESLINT_PACKAGES.TAILWINDCSS),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.TYPESCRIPT]: () => isPackageExists(ESLINT_PACKAGES.TYPESCRIPT),
   [ESLINT_PACKAGES.TYPESCRIPT_ESLINT]: async () => await interopImport(

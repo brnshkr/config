@@ -81,7 +81,7 @@ export const getConfig = (
 
   setModuleEnabled(MODULES[packageOrganization], resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.comments, resolvedOptions.comments);
-  setModuleEnabled(MODULES.css, resolvedOptions.css);
+  setModuleEnabled(MODULES.css, resolvedOptions.css !== false);
   setModuleEnabled(MODULES.gitignore, resolvedOptions.gitignore !== false);
   setModuleEnabled(MODULES.import, resolvedOptions.import);
   setModuleEnabled(MODULES.jsdoc, resolvedOptions.jsdoc);
@@ -186,7 +186,11 @@ export const getConfig = (
   }
 
   if (isModuleEnabled(MODULES.css)) {
-    appendToComposer(configs.css());
+    appendToComposer(configs.css(
+      typeof resolvedOptions.css === 'object'
+        ? resolvedOptions.css
+        : undefined,
+    ));
   }
 
   if (isModuleEnabled(MODULES.markdown)) {

@@ -1,9 +1,39 @@
+import type { CSSLanguageOptions } from '@eslint/css';
 import type { Linter } from 'eslint';
 import type { FlatGitignoreOptions } from 'eslint-config-flat-gitignore';
 import type { packageOrganization } from '../../shared/utils/package-json';
 import type { Config, TsEslintParserOptions } from './config';
 
 export type GitignoreOptions = Omit<FlatGitignoreOptions, 'name'>;
+
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
+export interface CssOptions {
+  /**
+   * Additional syntax definitions, e.g. project specific at-rules.
+   *
+   * @default undefined
+   *
+   * @see https://github.com/eslint/css#configuring-custom-syntax
+   */
+  customSyntax: CSSLanguageOptions['customSyntax'];
+
+  /**
+   * Enables the TailwindCSS at-rules and turns off the rules its syntax cannot satisfy.
+   *
+   * @default `Enabled when "tailwindcss" is installed.`
+   *
+   * @see https://tailwindcss.com/docs/functions-and-directives
+   */
+  tailwind: boolean;
+
+  /**
+   * Enables tolerant parsing of preludes the CSS parser cannot read.
+   *
+   * @default `Enabled when the "tailwind" option is enabled.`
+   */
+  tolerant: boolean;
+}
+/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
 
 export interface NodeOptions {
   /**
@@ -111,7 +141,7 @@ export interface ConfigOptions {
    *
    * @see https://github.com/eslint/css
    */
-  css: boolean;
+  css: boolean | Partial<CssOptions>;
 
   /**
    * Enables `eslint-config-flat-gitignore`.
