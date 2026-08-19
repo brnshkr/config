@@ -14,13 +14,16 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function array_diff;
+use function array_filter;
 use function array_map;
 use function array_values;
 use function basename;
 use function glob;
+use function in_array;
 use function is_string;
 use function sort;
 use function sprintf;
+use function Symfony\Component\String\s;
 
 /**
  * Project-level consistency checks for this repository.
@@ -29,6 +32,25 @@ use function sprintf;
  */
 final class ProjectTool
 {
+    /**
+     * PHPStan rules that have no ESLint counterpart by design.
+     *
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
+    private const array PHP_ONLY_RULES = [
+        'NoNamedArgumentsTagRule',
+    ];
+
+    /**
+     * ESLint rules that have no PHPStan counterpart by design.
+     *
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
+    private const array JS_ONLY_RULES = [
+        'require-import-alias',
+        'require-import-attributes',
+    ];
+
     /**
      * @throws IOException
      * @throws JsonException
@@ -54,20 +76,104 @@ final class ProjectTool
 
     #[McpTool(
         name: 'project-rule-docs-audit',
-        description: 'Cross-checks the custom PHPStan rules in src/php/PhpStan/Rule against their documentation in docs/php/phpstan/rules and reports rules without docs and docs without rules.',
+        description: 'Cross-checks the custom PHPStan and ESLint rules against their doc pages and against each other, reporting rules without docs, docs without rules and rules that exist on only one of the two stacks.',
     )]
     public function auditRuleDocs(): string
     {
         $rootDirectory = Project::getRootDirectory();
-        $rules         = $this->getBasenamesByGlob(sprintf('%s/src/php/PhpStan/Rule/*Rule.php', $rootDirectory), '.php');
-        $docs          = $this->getBasenamesByGlob(sprintf('%s/docs/php/phpstan/rules/*Rule.md', $rootDirectory), '.md');
+        $phpRules      = $this->getRuleNames(sprintf('%s/src/php/PhpStan/Rule/*Rule.php', $rootDirectory), '.php');
+        $phpDocs       = $this->getRuleNames(sprintf('%s/docs/php/phpstan/rules/*Rule.md', $rootDirectory), '.md');
+        $jsRules       = $this->getRuleNames(sprintf('%s/src/js/eslint/configs/builtin/*.ts', $rootDirectory), '.ts');
+        $jsDocs        = $this->getRuleNames(sprintf('%s/docs/js/eslint/rules/*.md', $rootDirectory), '.md');
 
         return Project::encode([
+            'php'    => $this->buildDocsReport($phpRules, $phpDocs),
+            'js'     => $this->buildDocsReport($jsRules, $jsDocs),
+            'parity' => $this->buildParityReport($phpRules, $jsRules),
+        ]);
+    }
+
+    /**
+     * @param list<string> $rules
+     * @param list<string> $docs
+     *
+     * @return array{
+     *     implementedRules: list<string>,
+     *     documentedRules: list<string>,
+     *     rulesMissingDocs: list<string>,
+     *     docsMissingRules: list<string>,
+     * }
+     */
+    private function buildDocsReport(array $rules, array $docs): array
+    {
+        return [
             'implementedRules' => $rules,
             'documentedRules'  => $docs,
             'rulesMissingDocs' => array_values(array_diff($rules, $docs)),
             'docsMissingRules' => array_values(array_diff($docs, $rules)),
-        ]);
+        ];
+    }
+
+    /**
+     * @param list<string> $phpRules
+     * @param list<string> $jsRules
+     *
+     * @return array{
+     *     pairedRules: list<string>,
+     *     phpRulesMissingJsCounterpart: list<string>,
+     *     jsRulesMissingPhpCounterpart: list<string>,
+     *     intentionallyPhpOnly: list<string>,
+     *     intentionallyJsOnly: list<string>,
+     * }
+     */
+    private function buildParityReport(array $phpRules, array $jsRules): array
+    {
+        $pairedRules  = [];
+        $missingJsFor = [];
+
+        foreach ($phpRules as $phpRule) {
+            $jsRule = $this->toJsRuleName($phpRule);
+
+            if (in_array($jsRule, $jsRules, true)) {
+                $pairedRules[] = $jsRule;
+
+                continue;
+            }
+
+            if (!in_array($phpRule, self::PHP_ONLY_RULES, true)) {
+                $missingJsFor[] = $phpRule;
+            }
+        }
+
+        return [
+            'pairedRules'                  => $pairedRules,
+            'phpRulesMissingJsCounterpart' => $missingJsFor,
+            'jsRulesMissingPhpCounterpart' => array_values(array_diff(
+                $jsRules,
+                [...$pairedRules, ...self::JS_ONLY_RULES],
+            )),
+            'intentionallyPhpOnly' => self::PHP_ONLY_RULES,
+            'intentionallyJsOnly'  => self::JS_ONLY_RULES,
+        ];
+    }
+
+    private function toJsRuleName(string $phpRule): string
+    {
+        return s($phpRule)->trimSuffix('Rule')->kebab()->toString();
+    }
+
+    /**
+     * @param non-empty-string $pattern
+     * @param non-empty-string $extension
+     *
+     * @return list<string>
+     */
+    private function getRuleNames(string $pattern, string $extension): array
+    {
+        return array_values(array_filter(
+            $this->getBasenamesByGlob($pattern, $extension),
+            static fn (string $name): bool => $name !== 'index',
+        ));
     }
 
     /**
