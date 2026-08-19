@@ -55,11 +55,6 @@ final class QualityTool
      * @param string $tool the tool to run (phpstan, php-cs-fixer, rector, twig-cs-fixer, eslint, stylelint or typescript)
      * @param bool $isDryRun when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
      *
-     * @return array{
-     *     exitCode: int,
-     *     output: string,
-     * }
-     *
      * @throws LogicException
      * @throws RuntimeException
      */
@@ -67,21 +62,21 @@ final class QualityTool
         name: 'project-quality-check',
         description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (phpstan and typescript are check-only).',
     )]
-    public function runQualityTool(string $tool, bool $isDryRun = true): array
+    public function runQualityTool(string $tool, bool $isDryRun = true): string
     {
         $commands = self::COMMAND_MAP[$tool] ?? null;
 
         if ($commands === null) {
-            return [
+            return Project::encode([
                 'exitCode' => 1,
                 'output'   => sprintf(
                     'Unknown tool "%s". Valid tools: %s.',
                     $tool,
                     Str::joinAsQuotedList(array_keys(self::COMMAND_MAP)),
                 ),
-            ];
+            ]);
         }
 
-        return Project::run($isDryRun ? $commands['check'] : $commands['fix']);
+        return Project::encode(Project::run($isDryRun ? $commands['check'] : $commands['fix']));
     }
 }

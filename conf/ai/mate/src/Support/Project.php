@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Mate\Support;
 
 use Brnshkr\Config\Str;
+use Symfony\AI\Mate\Encoding\ResponseEncoder;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
@@ -27,6 +28,14 @@ final class Project
     public static function getRootDirectory(): string
     {
         return dirname(__DIR__, 5);
+    }
+
+    /**
+     * @param array<array-key, mixed> $payload
+     */
+    public static function encode(array $payload): string
+    {
+        return ResponseEncoder::encode($payload);
     }
 
     /**

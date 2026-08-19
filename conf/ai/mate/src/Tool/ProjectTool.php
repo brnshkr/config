@@ -30,13 +30,6 @@ use function sprintf;
 final class ProjectTool
 {
     /**
-     * @return array{
-     *     packageJson: string,
-     *     composerJson: string,
-     *     makefile: string,
-     *     isInSync: bool,
-     * }
-     *
      * @throws IOException
      * @throws JsonException
      * @throws RuntimeException
@@ -45,44 +38,36 @@ final class ProjectTool
         name: 'project-version-sync-check',
         description: 'Compares the version declared in package.json, composer.json and conf/Makefile (VERSION), which must stay in sync (CI validates this).',
     )]
-    public function checkVersionSync(): array
+    public function checkVersionSync(): string
     {
         $packageVersion  = $this->getVersionOf('package.json');
         $composerVersion = $this->getVersionOf('composer.json');
         $makefileVersion = $this->getMakefileVersion();
 
-        return [
+        return Project::encode([
             'packageJson'  => $packageVersion,
             'composerJson' => $composerVersion,
             'makefile'     => $makefileVersion,
             'isInSync'     => $packageVersion === $composerVersion && $composerVersion === $makefileVersion,
-        ];
+        ]);
     }
 
-    /**
-     * @return array{
-     *     implementedRules: list<string>,
-     *     documentedRules: list<string>,
-     *     rulesMissingDocs: list<string>,
-     *     docsMissingRules: list<string>,
-     * }
-     */
     #[McpTool(
         name: 'project-rule-docs-audit',
         description: 'Cross-checks the custom PHPStan rules in src/php/PhpStan/Rule against their documentation in docs/php/phpstan/rules and reports rules without docs and docs without rules.',
     )]
-    public function auditRuleDocs(): array
+    public function auditRuleDocs(): string
     {
         $rootDirectory = Project::getRootDirectory();
         $rules         = $this->getBasenamesByGlob(sprintf('%s/src/php/PhpStan/Rule/*Rule.php', $rootDirectory), '.php');
         $docs          = $this->getBasenamesByGlob(sprintf('%s/docs/php/phpstan/rules/*Rule.md', $rootDirectory), '.md');
 
-        return [
+        return Project::encode([
             'implementedRules' => $rules,
             'documentedRules'  => $docs,
             'rulesMissingDocs' => array_values(array_diff($rules, $docs)),
             'docsMissingRules' => array_values(array_diff($docs, $rules)),
-        ];
+        ]);
     }
 
     /**

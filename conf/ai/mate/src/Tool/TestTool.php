@@ -34,12 +34,6 @@ final class TestTool
      * @param string $filter runs a subset of tests; a Pest --filter value (e.g. a test class name) for "php", a file name filter for "js"; empty runs the full suite
      * @param bool $doesUpdateSnapshots when true, runs with snapshot updates instead of a plain run
      *
-     * @return array{
-     *     exitCode: int,
-     *     output: string,
-     *     changedSnapshots: list<string>,
-     * }
-     *
      * @throws LogicException
      * @throws RuntimeException
      */
@@ -47,24 +41,24 @@ final class TestTool
         name: 'project-tests-run',
         description: 'Runs a test suite of this repository ("php" = Pest, "js" = Vitest). Supports filtering and updating snapshots; reports which snapshot files changed afterwards.',
     )]
-    public function runTests(string $suite = 'php', string $filter = '', bool $doesUpdateSnapshots = false): array
+    public function runTests(string $suite = 'php', string $filter = '', bool $doesUpdateSnapshots = false): string
     {
         $snapshotDir = self::SNAPSHOT_DIR_MAP[$suite] ?? null;
 
         if ($snapshotDir === null) {
-            return [
+            return Project::encode([
                 'exitCode'         => 1,
                 'output'           => sprintf('Unknown suite "%s". Valid suites: "php", "js".', $suite),
                 'changedSnapshots' => [],
-            ];
+            ]);
         }
 
         $result = Project::run($this->getCommand($suite, $filter, $doesUpdateSnapshots));
 
-        return [
+        return Project::encode([
             ...$result,
             'changedSnapshots' => $this->getChangedSnapshots($snapshotDir),
-        ];
+        ]);
     }
 
     /**

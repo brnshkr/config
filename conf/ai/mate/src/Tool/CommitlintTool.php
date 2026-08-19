@@ -19,11 +19,6 @@ final class CommitlintTool
     /**
      * @param string $message the commit message draft to lint (subject line plus optional body)
      *
-     * @return array{
-     *     exitCode: int,
-     *     output: string,
-     * }
-     *
      * @throws LogicException
      * @throws RuntimeException
      */
@@ -31,11 +26,11 @@ final class CommitlintTool
         name: 'project-commitlint-check',
         description: 'Lints a commit message draft against the Commitlint rules of this repository without creating a commit. Use before committing to validate type, scope and body formatting.',
     )]
-    public function checkMessage(string $message): array
+    public function checkMessage(string $message): string
     {
-        return Project::run(
+        return Project::encode(Project::run(
             ['bun', '--bun', 'x', 'commitlint', '--config', './conf/commitlint.config.mjs'],
             input: $message,
-        );
+        ));
     }
 }

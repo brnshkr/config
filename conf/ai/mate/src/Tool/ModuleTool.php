@@ -23,20 +23,11 @@ use function sprintf;
  */
 final class ModuleTool
 {
-    /**
-     * @return array<string, array{
-     *     configFile: non-empty-string,
-     *     packages: array<string, array{
-     *         isRequired: bool,
-     *         isInstalled: bool,
-     *     }>,
-     * }>
-     */
     #[McpTool(
         name: 'project-modules-list',
         description: 'Lists all brnshkr/config modules (phpcsfixer, phpstan, rector, twigcsfixer) with their default config file and the required/optional packages including installation status.',
     )]
-    public function listModules(): array
+    public function listModules(): string
     {
         $modules = [];
 
@@ -63,16 +54,11 @@ final class ModuleTool
             ];
         }
 
-        return $modules;
+        return Project::encode($modules);
     }
 
     /**
      * @param string $module the module to resolve (one of the names returned by project-modules-list)
-     *
-     * @return array{
-     *     exitCode: int,
-     *     output: string,
-     * }
      *
      * @throws LogicException
      * @throws RuntimeException
@@ -81,19 +67,19 @@ final class ModuleTool
         name: 'project-module-config',
         description: 'Prints the fully resolved configuration of a brnshkr/config module as JSON via the composer plugin command "brnshkr:config:print-module-config".',
     )]
-    public function printModuleConfig(string $module): array
+    public function printModuleConfig(string $module): string
     {
         if (!in_array($module, array_keys(Module::MAP), true)) {
-            return [
+            return Project::encode([
                 'exitCode' => 1,
                 'output'   => sprintf(
                     'Unknown module "%s". Valid modules: %s.',
                     $module,
                     Str::joinAsQuotedList(array_keys(Module::MAP)),
                 ),
-            ];
+            ]);
         }
 
-        return Project::run(['php', 'scripts/composer.php', 'brnshkr:config:print-module-config', $module]);
+        return Project::encode(Project::run(['php', 'scripts/composer.php', 'brnshkr:config:print-module-config', $module]));
     }
 }
