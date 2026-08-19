@@ -14,7 +14,11 @@ if (isInEditor) {
   log('log', `ESLint is running in an editor.`);
 }
 
-export default getConfig(undefined, {
+export default getConfig({
+  ignores: [
+    'src/js/eslint/types/declarations/typegen.d.ts',
+  ],
+}, {
   rules: {
     // NOTICE: This rule has quite a significant performance impact so we turn it off in the editor
     'import/no-cycle': isInEditor ? 'off' : 'error',
