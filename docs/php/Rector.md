@@ -10,17 +10,4 @@ use Brnshkr\Config\Rector;
 return Rector::getConfig();
 ```
 
-## Scoping the run
-
-Pass a pre-configured [Symfony Finder](https://symfony.com/doc/current/components/finder.html) as the first argument to narrow which files Rector processes; otherwise the shared [`FileFinder`](./FileFinder.md) defaults apply.
-
-```php
-use Brnshkr\Config\Rector;
-use Symfony\Component\Finder\Finder;
-
-return Rector::getConfig(new Finder()->in('src'));
-```
-
-## Customizing the returned config
-
-`getConfig()` returns a `RectorConfigBuilder`. This package only layers the @brnshkr defaults on top — any further customization is Rector's own API, documented upstream.
+Scope the run with a [`FileFinder`](./FileFinder.md) argument. `getConfig()` returns a `RectorConfigBuilder`; customizing it further is Rector's own API.

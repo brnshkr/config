@@ -40,10 +40,6 @@ const emailNotifierModule = await import('../../email/EmailNotifier');
 const emailNotifierModule = await import('$email/EmailNotifier');
 ```
 
-## Diagnostics
-
-- `preferAlias` — a relative specifier resolves into a configured alias root and should be rewritten to use the alias form
-- `missingAlias` — a relative specifier escapes _every_ configured alias root. Usually means an alias is missing for the location, the file belongs under an existing alias and was placed wrong, or the rule should be turned off for that file via `ignoredPaths`
 
 ## Options
 

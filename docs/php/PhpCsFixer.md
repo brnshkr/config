@@ -10,17 +10,4 @@ use Brnshkr\Config\PhpCsFixer;
 return PhpCsFixer::getConfig();
 ```
 
-## Scoping the run
-
-Pass a pre-configured [Symfony Finder](https://symfony.com/doc/current/components/finder.html) as the first argument to narrow which files are processed; otherwise the shared [`FileFinder`](./FileFinder.md) defaults apply.
-
-```php
-use Brnshkr\Config\PhpCsFixer;
-use Symfony\Component\Finder\Finder;
-
-return PhpCsFixer::getConfig(new Finder()->in('src'));
-```
-
-## Customizing the returned config
-
-`getConfig()` returns a `PhpCsFixer\Config` instance. This package only layers the @brnshkr defaults on top — any further customization is PHP-CS-Fixer's own API, documented upstream.
+Scope the run with a [`FileFinder`](./FileFinder.md) argument. `getConfig()` returns a `PhpCsFixer\Config`; customizing it further is PHP-CS-Fixer's own API.

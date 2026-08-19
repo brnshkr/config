@@ -10,17 +10,4 @@ use Brnshkr\Config\TwigCsFixer;
 return TwigCsFixer::getConfig();
 ```
 
-## Scoping the run
-
-Pass a pre-configured [Symfony Finder](https://symfony.com/doc/current/components/finder.html) as the first argument to narrow which templates are processed; otherwise the shared [`FileFinder`](./FileFinder.md) defaults apply, restricted to the Twig extension.
-
-```php
-use Brnshkr\Config\TwigCsFixer;
-use Symfony\Component\Finder\Finder;
-
-return TwigCsFixer::getConfig(new Finder()->in('templates'));
-```
-
-## Customizing the returned config
-
-`getConfig()` returns a `TwigCsFixer\Config\Config` instance. This package only layers the @brnshkr defaults on top — any further customization is Twig-CS-Fixer's own API, documented upstream.
+Scope the run with a [`FileFinder`](./FileFinder.md) argument, restricted to the Twig extension. `getConfig()` returns a `TwigCsFixer\Config\Config`; customizing it further is Twig-CS-Fixer's own API.

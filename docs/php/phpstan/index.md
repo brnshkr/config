@@ -38,16 +38,7 @@ return PhpStan::getConfig(null, true)
 
 ## Scoping the run
 
-`getConfig()` accepts a pre-configured [Symfony Finder](https://symfony.com/doc/current/components/finder.html) as the first argument. When omitted, the shared [`FileFinder`](../FileFinder.md) defaults apply.
-
-```php
-use Brnshkr\Config\PhpStan;
-use Symfony\Component\Finder\Finder;
-
-return PhpStan::getConfig(new Finder()->in('src'));
-```
-
-`setPaths()` overrides the analyzed paths regardless of the Finder — pick whichever feels closer to intent.
+Scope the run with a [`FileFinder`](../FileFinder.md) argument, or override the analyzed paths outright with `setPaths()` — pick whichever feels closer to intent.
 
 ## The fluent builder
 
@@ -110,4 +101,4 @@ The `configure*()` helpers build correctly-tagged service definitions so callers
 
 ## Custom Rules
 
-Beyond the upstream sets, the config ships custom rules in two flavors: [**standalone rules**](./rules/index.md#standalone-rules) — general-purpose checks on by default — and [**architecture presets**](./rules/architecture/index.md) — opt-in, framework-specific bundles wired through `setArchitecture()`. Both are documented under [Custom Rules](./rules/index.md).
+See [Custom PHPStan Rules](./rules/index.md).

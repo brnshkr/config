@@ -4,7 +4,7 @@ The ESLint module is a flat-config builder consumed from `@brnshkr/config/eslint
 
 ## Custom Rules
 
-The default configuration ships a small `brnshkr` plugin that contributes a handful of project-specific rules, all enabled out of the box — import-hygiene rules that apply everywhere, plus public-API rules that mirror their PHPStan counterparts. See [Custom ESLint Rules](./rules/index.md) for the full list with examples.
+The default configuration ships a small `brnshkr` plugin, enabled out of the box. See [Custom ESLint Rules](./rules/index.md).
 
 ## Customizing
 

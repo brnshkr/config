@@ -1,6 +1,6 @@
 # `brnshkr/api-or-internal-tag` [🔍](../../../../src/js/eslint/configs/builtin/api-or-internal-tag.ts 'Go to source')
 
-JavaScript mirror of the PHP [`ApiOrInternalTagRule`](../../../php/phpstan/rules/ApiOrInternalTagRule.md) — see there for the rationale. Every exported declaration in a public-API source file must declare its intended visibility by carrying either an `@api` or an `@internal` JSDoc tag.
+JavaScript mirror of the PHP [`ApiOrInternalTagRule`](../../../php/phpstan/rules/ApiOrInternalTagRule.md), which is the source of truth for the rationale and the tagging rules. Every exported declaration in a public-API source file must declare its visibility with an `@api` or `@internal` JSDoc tag.
 
 The rule only runs on **public-API source files** — the `src` files that the package's `package.json#exports` ultimately resolve to. Anything that is not reachable through `exports` is left alone.
 
@@ -21,7 +21,7 @@ export class UserService {}
 export class UserService {}
 ```
 
-## `@file`-level visibility
+## File-level shortcut
 
 A `@file` block at the top of the module carrying `@api` or `@internal` sets the effective visibility for every symbol below it, so files that are uniformly public or uniformly internal do not need a tag on each declaration.
 
@@ -36,9 +36,6 @@ A `@file` block at the top of the module carrying `@api` or `@internal` sets the
 export class UserService {}
 ```
 
-## Diagnostics
-
-- `missingTag` — an exported declaration in a public-API source file carries neither `@api` nor `@internal`, and no `@file`-level visibility covers it
 
 ## Options
 

@@ -17,9 +17,3 @@ import emailTemplates from './email-templates.json' with { type: 'css' };
 import emailTemplates from './email-templates.json' with { type: 'json' };
 import userListStyles from './user-list.css' with { type: 'css' };
 ```
-
-## Diagnostics
-
-- `missingWithKeyword` — the import has no attributes object at all
-- `missingTypeProperty` — an attributes object exists but lacks the `type` property
-- `wrongTypeValue` — a `type` is present but does not match the value expected for the extension

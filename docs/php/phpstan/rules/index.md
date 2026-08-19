@@ -2,8 +2,6 @@
 
 The custom PHPStan rules ship in two flavors. **Standalone rules** are general-purpose checks enabled by the default configuration. **Architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a specific framework or architecture style — they are opt-in and configured through `setArchitecture()`.
 
-The `ApiOrInternalTagRule` and `PublicApiDocumentationRule` are the PHP counterparts of the [`brnshkr/api-or-internal-tag`](../../../js/eslint/rules/api-or-internal-tag.md) and [`brnshkr/public-api-documentation`](../../../js/eslint/rules/public-api-documentation.md) ESLint rules.
-
 ## Standalone Rules
 
 - [`ApiOrInternalTagRule`](./ApiOrInternalTagRule.md) — every symbol must declare `@api` or `@internal`
