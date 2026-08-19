@@ -150,6 +150,9 @@ export const javascript = async (): Promise<Config[]> => {
         'no-extend-native': 'error',
         'no-extra-bind': 'error',
         'no-extra-label': 'error',
+        'no-fallthrough': ['error', {
+          allowEmptyCase: true,
+        }],
         'no-implicit-coercion': ['error', {
           boolean: false,
         }],

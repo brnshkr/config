@@ -2300,7 +2300,7 @@ exports[`expected eslint config > base: 1.js 1`] = `
     "no-fallthrough": [
       2,
       {
-        "allowEmptyCase": false,
+        "allowEmptyCase": true,
         "reportUnusedFallthroughComment": false,
       },
     ],
