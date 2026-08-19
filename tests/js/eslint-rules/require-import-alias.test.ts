@@ -16,7 +16,14 @@ const FIXTURE_ALIAS_BASE = path.posix.join(path.posix.resolve(FIXTURE_ROOT), 'sr
 
 const RULE_OPTIONS = <const>{
   aliases: {
-    '@brnshkr/test/*': [`${FIXTURE_ALIAS_BASE}/*`],
+    '$test/*': [`${FIXTURE_ALIAS_BASE}/*`],
+  },
+};
+
+const OVERLAPPING_RULE_OPTIONS = <const>{
+  aliases: {
+    '$root/*': [`${path.posix.dirname(FIXTURE_ALIAS_BASE)}/*`],
+    '$lib/*': [`${FIXTURE_ALIAS_BASE}/*`],
   },
 };
 
@@ -38,13 +45,19 @@ test('requireImportAliasRule scenarios', () => {
           name: 'already-aliased import is accepted',
           filename: FIXTURE_CONSUMER,
           options: [RULE_OPTIONS],
-          code: 'import { x } from \'@brnshkr/test/target\';\n',
+          code: 'import { x } from \'$test/target\';\n',
         },
         {
           name: 'bare module specifier is ignored',
           filename: FIXTURE_CONSUMER,
           options: [RULE_OPTIONS],
           code: 'import { x } from \'lodash\';\n',
+        },
+        {
+          name: 'alias with the fewest path segments is accepted',
+          filename: FIXTURE_CONSUMER,
+          options: [OVERLAPPING_RULE_OPTIONS],
+          code: 'import { x } from \'$lib/target\';\n',
         },
         {
           name: 'ignored path skips lint',
@@ -65,7 +78,23 @@ test('requireImportAliasRule scenarios', () => {
           options: [RULE_OPTIONS],
           code: 'import { x } from \'./lib/target\';\n',
           errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
-          output: 'import { x } from \'@brnshkr/test/target\';\n',
+          output: 'import { x } from \'$test/target\';\n',
+        },
+        {
+          name: 'relative import prefers the alias with the fewest path segments',
+          filename: FIXTURE_CONSUMER,
+          options: [OVERLAPPING_RULE_OPTIONS],
+          code: 'import { x } from \'./lib/target\';\n',
+          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
+          output: 'import { x } from \'$lib/target\';\n',
+        },
+        {
+          name: 'alias with more path segments than needed is autofixed',
+          filename: FIXTURE_CONSUMER,
+          options: [OVERLAPPING_RULE_OPTIONS],
+          code: 'import { x } from \'$root/lib/target\';\n',
+          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
+          output: 'import { x } from \'$lib/target\';\n',
         },
         {
           name: 'relative import outside any alias root reports missingAlias',
@@ -80,7 +109,7 @@ test('requireImportAliasRule scenarios', () => {
           options: [RULE_OPTIONS],
           code: 'import { x } from "./lib/target";\n',
           errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
-          output: 'import { x } from "@brnshkr/test/target";\n',
+          output: 'import { x } from "$test/target";\n',
         },
         {
           name: 'export-from is also checked',
@@ -88,7 +117,7 @@ test('requireImportAliasRule scenarios', () => {
           options: [RULE_OPTIONS],
           code: 'export { x } from \'./lib/target\';\n',
           errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
-          output: 'export { x } from \'@brnshkr/test/target\';\n',
+          output: 'export { x } from \'$test/target\';\n',
         },
         {
           name: 'export-* is also checked',
@@ -96,7 +125,7 @@ test('requireImportAliasRule scenarios', () => {
           options: [RULE_OPTIONS],
           code: 'export * from \'./lib/target\';\n',
           errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
-          output: 'export * from \'@brnshkr/test/target\';\n',
+          output: 'export * from \'$test/target\';\n',
         },
         {
           name: 'dynamic import is also checked',
@@ -104,7 +133,7 @@ test('requireImportAliasRule scenarios', () => {
           options: [RULE_OPTIONS],
           code: 'const value = import(\'./lib/target\');\n',
           errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
-          output: 'const value = import(\'@brnshkr/test/target\');\n',
+          output: 'const value = import(\'$test/target\');\n',
         },
       ],
     });

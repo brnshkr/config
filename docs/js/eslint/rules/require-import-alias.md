@@ -40,6 +40,20 @@ const emailNotifierModule = await import('../../email/EmailNotifier');
 const emailNotifierModule = await import('$email/EmailNotifier');
 ```
 
+## Overlapping aliases
+
+When more than one alias can express the same target, the one with the **fewest path segments** wins — not the shortest string. A nested alias exists to shorten the paths below it, so reaching its files through an outer alias is reported too, even though the specifier is already aliased.
+
+Given `$src/*` pointing at `./src/*` next to the `$user/*` alias above:
+
+```js
+// ❌ Bad — three segments, and '$user/*' covers the target
+import { UserService } from '$src/user/UserService';
+
+// ✅ Good — two segments
+import { UserService } from '$user/UserService';
+```
+
 
 ## Options
 

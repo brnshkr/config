@@ -42,17 +42,46 @@ const buildAliasMappings = (aliases: Record<string, string[]>): AliasMapping[] =
         prefix,
         baseDirectory: toPosix(target).slice(0, -WILDCARD_SUFFIX_LENGTH),
       }));
-  })
-  .toSorted((left, right) => right.baseDirectory.length - left.baseDirectory.length);
+  });
 
-const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): Maybe<string> => {
+const buildAliasedSpecifier = (
+  { prefix, baseDirectory }: AliasMapping,
+  absolutePath: string,
+): Maybe<string> => {
+  if (absolutePath === baseDirectory) {
+    return prefix;
+  }
+
+  return absolutePath.startsWith(`${baseDirectory}/`)
+    ? `${prefix}/${absolutePath.slice(baseDirectory.length + 1)}`
+    : undefined;
+};
+
+const compareSpecifiers = (left: string, right: string): number => {
+  const segmentDifference = left.split('/').length - right.split('/').length;
+
+  if (segmentDifference !== 0) {
+    return segmentDifference;
+  }
+
+  const lengthDifference = left.length - right.length;
+
+  return lengthDifference === 0 ? left.localeCompare(right) : lengthDifference;
+};
+
+const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): Maybe<string> => mappings
+  .map((mapping) => buildAliasedSpecifier(mapping, absolutePath))
+  .filter((specifier) => specifier !== undefined)
+  .toSorted(compareSpecifiers)[0];
+
+const resolveAliasedPath = (mappings: AliasMapping[], source: string): Maybe<string> => {
   for (const { prefix, baseDirectory } of mappings) {
-    if (absolutePath === baseDirectory) {
-      return prefix;
+    if (source === prefix) {
+      return baseDirectory;
     }
 
-    if (absolutePath.startsWith(`${baseDirectory}/`)) {
-      return `${prefix}/${absolutePath.slice(baseDirectory.length + 1)}`;
+    if (source.startsWith(`${prefix}/`)) {
+      return `${baseDirectory}/${source.slice(prefix.length + 1)}`;
     }
   }
 
@@ -61,10 +90,6 @@ const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): M
 
 const isRelativeSpecifier = (source: string): boolean => RELATIVE_SPECIFIER_PREFIXES.some(
   (prefix) => source.startsWith(prefix),
-);
-
-const isAlreadyAliased = (source: string, mappings: AliasMapping[]): boolean => mappings.some(
-  ({ prefix }) => source === prefix || source.startsWith(`${prefix}/`),
 );
 
 /* eslint-disable node/no-unsupported-features/node-builtins -- 'path.matchesGlob' is stable enough for our supported runtimes (Bun + Node 22+) */
@@ -88,7 +113,7 @@ export const requireImportAliasRule = <const>{
     type: 'suggestion',
     fixable: 'code',
     docs: {
-      description: 'Require imports to use TypeScript path aliases when the target file is reachable through a configured alias.',
+      description: 'Require imports to use the TypeScript path alias with the fewest path segments when the target file is reachable through one.',
       url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md',
     },
     schema: [
@@ -141,12 +166,19 @@ export const requireImportAliasRule = <const>{
 
       const source = sourceNode.value;
 
-      if (!isRelativeSpecifier(source) || isAlreadyAliased(source, mappings)) {
+      const absolutePath = isRelativeSpecifier(source)
+        ? path.posix.normalize(`${fileDirectory}/${source}`)
+        : resolveAliasedPath(mappings, source);
+
+      if (absolutePath === undefined) {
         return;
       }
 
-      const absolutePath = path.posix.normalize(`${fileDirectory}/${source}`);
       const replacement = findAliasReplacement(mappings, absolutePath);
+
+      if (replacement === source) {
+        return;
+      }
 
       if (replacement === undefined) {
         context.report({
