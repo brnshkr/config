@@ -54,7 +54,11 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-hooks-on-top': 'error',
         'test/prefer-import-in-mock': 'error',
         'test/prefer-importing-vitest-globals': 'error',
-        'test/prefer-lowercase-title': 'error',
+        'test/prefer-lowercase-title': ['error', {
+          ignore: [
+            'describe',
+          ],
+        }],
         'test/prefer-mock-promise-shorthand': 'error',
         'test/prefer-snapshot-hint': 'error',
         'test/prefer-spy-on': 'error',

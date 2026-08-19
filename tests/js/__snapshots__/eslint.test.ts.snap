@@ -13295,7 +13295,9 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
         2,
         {
           "allowedPrefixes": [],
-          "ignore": [],
+          "ignore": [
+            "describe",
+          ],
           "ignoreTopLevelDescribe": false,
           "lowercaseFirstCharacterOnly": true,
         },
@@ -13541,7 +13543,9 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
         2,
         {
           "allowedPrefixes": [],
-          "ignore": [],
+          "ignore": [
+            "describe",
+          ],
           "ignoreTopLevelDescribe": false,
           "lowercaseFirstCharacterOnly": true,
         },
@@ -13781,7 +13785,9 @@ exports[`expected eslint config > diff: 26.test.ts 1`] = `
         2,
         {
           "allowedPrefixes": [],
-          "ignore": [],
+          "ignore": [
+            "describe",
+          ],
           "ignoreTopLevelDescribe": false,
           "lowercaseFirstCharacterOnly": true,
         },
