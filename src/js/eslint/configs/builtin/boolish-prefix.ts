@@ -395,7 +395,7 @@ export const boolishPrefixRule = <const>{
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Require boolean symbols to carry a boolish name prefix, and non-boolean symbols to avoid one.',
+      description: 'Keep boolean-ness and names aligned in both directions.',
       url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/boolish-prefix.md',
     },
     messages: {

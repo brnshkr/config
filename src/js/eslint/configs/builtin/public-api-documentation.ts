@@ -260,7 +260,7 @@ export const publicApiDocumentationRule = <const>{
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Hold every `@api`-tagged symbol in a public-API source file to a consistent JSDoc standard.',
+      description: 'Hold every `@api` symbol in a public-API source file to a consistent docblock standard.',
       url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/public-api-documentation.md',
     },
     schema: [
