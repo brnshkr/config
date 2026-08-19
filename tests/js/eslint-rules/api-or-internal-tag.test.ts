@@ -7,8 +7,10 @@ import {
   MESSAGE_ID_MISSING_TAG,
 } from '../../../src/js/eslint/configs/builtin/api-or-internal-tag';
 
+import { TAG_API, TAG_INTERNAL } from '../../../src/js/eslint/utils/jsdoc';
 import { clearPublicApiResolutionCache } from '../../../src/js/eslint/utils/public-api';
-import { jsRuleTester, tsRuleTester } from '../utils/rule-tester';
+import { extractPhpStringConstants, readPhpRuleSource } from '../utils/php-rule';
+import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '../utils/rule-tester';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_INDEX = path.join(FIXTURE_ROOT, 'src/index.ts');
@@ -20,147 +22,121 @@ const RULE_OPTIONS = <const>{
   srcRoot: './src',
 };
 
+const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders({
+  filename: FIXTURE_INDEX,
+  options: [RULE_OPTIONS],
+});
+
 beforeEach(() => {
   clearPublicApiResolutionCache();
 });
 
+test('apiOrInternalTagRule stays in sync with the PHP rule', () => {
+  const source = readPhpRuleSource('Trait/RuleTrait.php');
+
+  expect(extractPhpStringConstants(source, 'TAG_')).toStrictEqual([TAG_API, TAG_INTERNAL]);
+});
+
 test('apiOrInternalTagRule scenarios', () => {
-  expect(() => {
-    tsRuleTester.run('api-or-internal-tag', apiOrInternalTagRule, {
-      valid: [
+  runTsRuleTests(apiOrInternalTagRule, {
+    valid: [
+      buildValidCase(
+        '@api tag present',
+        '/** @api */\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        '@internal tag present',
+        '/** @internal */\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        'file-level @api covers symbol',
+        '/** @file Foo. @api */\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        'file-level @internal covers symbol',
+        '/** @file Foo. @internal */\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        'non-public-API file ignored',
+        'export const value = 1;\n',
         {
-          name: '@api tag present',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @api */\nexport const value = 1;\n',
-        },
-        {
-          name: '@internal tag present',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @internal */\nexport const value = 1;\n',
-        },
-        {
-          name: 'file-level @api covers symbol',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @file Foo. @api */\nexport const value = 1;\n',
-        },
-        {
-          name: 'file-level @internal covers symbol',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @file Foo. @internal */\nexport const value = 1;\n',
-        },
-        {
-          name: 'non-public-API file ignored',
           filename: FIXTURE_UNLISTED,
-          options: [RULE_OPTIONS],
-          code: 'export const value = 1;\n',
         },
-      ],
-      invalid: [
-        {
-          name: 'untagged export errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export const value = 1;\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged class errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export class Box {}\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged interface errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export interface Shape {}\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged type alias errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export type Id = string;\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged enum errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export enum Color { Red }\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged function errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export function go(): void {}\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged default arrow errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export default (): void => {};\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged default constant expression errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export default { value: 1 };\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged default identifier errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'const value = 1;\nexport default value;\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-      ],
-    });
-  }).not.toThrow();
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'untagged export errors',
+        'export const value = 1;\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged class errors',
+        'export class Box {}\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged interface errors',
+        'export interface Shape {}\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged type alias errors',
+        'export type Id = string;\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged enum errors',
+        'export enum Color { Red }\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged function errors',
+        'export function go(): void {}\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged default arrow errors',
+        'export default (): void => {};\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged default constant expression errors',
+        'export default { value: 1 };\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged default identifier errors',
+        'const value = 1;\nexport default value;\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+    ],
+  });
 });
 
 test('apiOrInternalTagRule works with default ESLint parser', () => {
-  expect(() => {
-    jsRuleTester.run('api-or-internal-tag', apiOrInternalTagRule, {
-      valid: [
-        {
-          name: '@api tag on JS const',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @api */\nexport const value = 1;\n',
-        },
-        {
-          name: 'file-level @internal covers JS class',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: '/** @file Foo. @internal */\nexport class Box {}\n',
-        },
-      ],
-      invalid: [
-        {
-          name: 'untagged JS function errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export function go() {}\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-        {
-          name: 'untagged JS class errors',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export class Box {}\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_TAG }],
-        },
-      ],
-    });
-  }).not.toThrow();
+  runJsRuleTests(apiOrInternalTagRule, {
+    valid: [
+      buildValidCase(
+        '@api tag on JS const',
+        '/** @api */\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        'file-level @internal covers JS class',
+        '/** @file Foo. @internal */\nexport class Box {}\n',
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'untagged JS function errors',
+        'export function go() {}\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
+        'untagged JS class errors',
+        'export class Box {}\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+    ],
+  });
 });

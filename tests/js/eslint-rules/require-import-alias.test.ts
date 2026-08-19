@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { expect, test } from 'vitest';
+import { test } from 'vitest';
 
 import {
   MESSAGE_ID_MISSING_ALIAS,
@@ -8,7 +8,7 @@ import {
   requireImportAliasRule,
 } from '../../../src/js/eslint/configs/builtin/require-import-alias';
 
-import { jsRuleTester } from '../utils/rule-tester';
+import { createRuleCaseBuilders, runJsRuleTests } from '../utils/rule-tester';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_CONSUMER = path.join(FIXTURE_ROOT, 'src/consumer.ts');
@@ -27,115 +27,117 @@ const OVERLAPPING_RULE_OPTIONS = <const>{
   },
 };
 
+const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders({
+  filename: FIXTURE_CONSUMER,
+  options: [RULE_OPTIONS],
+});
+
 test('requireImportAliasRule scenarios', () => {
-  expect(() => {
-    jsRuleTester.run('require-import-alias', requireImportAliasRule, {
-      valid: [
+  runJsRuleTests(requireImportAliasRule, {
+    valid: [
+      buildValidCase(
+        'no aliases configured leaves rule inert',
+        'import { x } from \'./lib/target\';\n',
         {
-          name: 'no aliases configured leaves rule inert',
-          filename: FIXTURE_CONSUMER,
           options: [
             {
               aliases: {},
             },
           ],
-          code: 'import { x } from \'./lib/target\';\n',
         },
+      ),
+      buildValidCase(
+        'already-aliased import is accepted',
+        'import { x } from \'$test/target\';\n',
+      ),
+      buildValidCase(
+        'bare module specifier is ignored',
+        'import { x } from \'lodash\';\n',
+      ),
+      buildValidCase(
+        'alias with the fewest path segments is accepted',
+        'import { x } from \'$lib/target\';\n',
         {
-          name: 'already-aliased import is accepted',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'import { x } from \'$test/target\';\n',
-        },
-        {
-          name: 'bare module specifier is ignored',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'import { x } from \'lodash\';\n',
-        },
-        {
-          name: 'alias with the fewest path segments is accepted',
-          filename: FIXTURE_CONSUMER,
           options: [OVERLAPPING_RULE_OPTIONS],
-          code: 'import { x } from \'$lib/target\';\n',
         },
+      ),
+      buildValidCase(
+        'ignored path skips lint',
+        'import { x } from \'./lib/target\';\n',
         {
-          name: 'ignored path skips lint',
-          filename: FIXTURE_CONSUMER,
           options: [
             {
               aliases: RULE_OPTIONS.aliases,
               ignoredPaths: ['**/consumer.ts'],
             },
           ],
-          code: 'import { x } from \'./lib/target\';\n',
         },
-      ],
-      invalid: [
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'relative import resolvable as alias is autofixed',
+        'import { x } from \'./lib/target\';\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'relative import resolvable as alias is autofixed',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'import { x } from \'./lib/target\';\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'import { x } from \'$test/target\';\n',
         },
+      ),
+      buildInvalidCase(
+        'relative import prefers the alias with the fewest path segments',
+        'import { x } from \'./lib/target\';\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'relative import prefers the alias with the fewest path segments',
-          filename: FIXTURE_CONSUMER,
           options: [OVERLAPPING_RULE_OPTIONS],
-          code: 'import { x } from \'./lib/target\';\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'import { x } from \'$lib/target\';\n',
         },
+      ),
+      buildInvalidCase(
+        'alias with more path segments than needed is autofixed',
+        'import { x } from \'$root/lib/target\';\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'alias with more path segments than needed is autofixed',
-          filename: FIXTURE_CONSUMER,
           options: [OVERLAPPING_RULE_OPTIONS],
-          code: 'import { x } from \'$root/lib/target\';\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'import { x } from \'$lib/target\';\n',
         },
+      ),
+      buildInvalidCase(
+        'relative import outside any alias root reports missingAlias',
+        'import { y } from \'../outside/file\';\n',
+        [MESSAGE_ID_MISSING_ALIAS],
+      ),
+      buildInvalidCase(
+        'autofix preserves double-quoted source',
+        'import { x } from "./lib/target";\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'relative import outside any alias root reports missingAlias',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'import { y } from \'../outside/file\';\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_ALIAS }],
-        },
-        {
-          name: 'autofix preserves double-quoted source',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'import { x } from "./lib/target";\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'import { x } from "$test/target";\n',
         },
+      ),
+      buildInvalidCase(
+        'export-from is also checked',
+        'export { x } from \'./lib/target\';\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'export-from is also checked',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'export { x } from \'./lib/target\';\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'export { x } from \'$test/target\';\n',
         },
+      ),
+      buildInvalidCase(
+        'export-* is also checked',
+        'export * from \'./lib/target\';\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'export-* is also checked',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'export * from \'./lib/target\';\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'export * from \'$test/target\';\n',
         },
+      ),
+      buildInvalidCase(
+        'dynamic import is also checked',
+        'const value = import(\'./lib/target\');\n',
+        [MESSAGE_ID_PREFER_ALIAS],
         {
-          name: 'dynamic import is also checked',
-          filename: FIXTURE_CONSUMER,
-          options: [RULE_OPTIONS],
-          code: 'const value = import(\'./lib/target\');\n',
-          errors: [{ messageId: MESSAGE_ID_PREFER_ALIAS }],
           output: 'const value = import(\'$test/target\');\n',
         },
-      ],
-    });
-  }).not.toThrow();
+      ),
+    ],
+  });
 });

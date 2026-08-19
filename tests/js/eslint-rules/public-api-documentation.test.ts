@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { beforeEach, expect, test } from 'vitest';
+import { beforeEach, test } from 'vitest';
 
 import {
   MESSAGE_ID_MISSING_DESCRIPTION,
@@ -12,7 +12,7 @@ import {
 } from '../../../src/js/eslint/configs/builtin/public-api-documentation';
 
 import { clearPublicApiResolutionCache } from '../../../src/js/eslint/utils/public-api';
-import { jsRuleTester, tsRuleTester } from '../utils/rule-tester';
+import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '../utils/rule-tester';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_INDEX = path.join(FIXTURE_ROOT, 'src/index.ts');
@@ -26,437 +26,387 @@ const RULE_OPTIONS = <const>{
 
 const wrap = (body: string): string => `/** @file Fixture file. */\n${body}\n`;
 
+const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders({
+  filename: FIXTURE_INDEX,
+  options: [RULE_OPTIONS],
+});
+
 beforeEach(() => {
   clearPublicApiResolutionCache();
 });
 
 test('publicApiDocumentationRule scenarios', () => {
-  expect(() => {
-    tsRuleTester.run('public-api-documentation', publicApiDocumentationRule, {
-      valid: [
+  runTsRuleTests(publicApiDocumentationRule, {
+    valid: [
+      buildValidCase(
+        'documented @api function',
+        wrap(`
+          /**
+           * Adds two numbers.
+           *
+           * @api
+           *
+           * @param a - First operand.
+           * @param b - Second operand.
+           *
+           * @returns The sum of the operands.
+           *
+           * @example
+           * add(1, 2);
+           */
+          export const add = (a: number, b: number): number => a + b;
+        `),
+      ),
+      buildValidCase(
+        '@internal symbol is skipped',
+        wrap(`
+          /** @internal */
+          export const helper = (value: string): string => value;
+        `),
+      ),
+      buildValidCase(
+        'non-public-API file is untouched',
+        'export const undocumented = 1;\n',
         {
-          name: 'documented @api function',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Adds two numbers.
-             *
-             * @api
-             *
-             * @param a - First operand.
-             * @param b - Second operand.
-             *
-             * @returns The sum of the operands.
-             *
-             * @example
-             * add(1, 2);
-             */
-            export const add = (a: number, b: number): number => a + b;
-          `),
-        },
-        {
-          name: '@internal symbol is skipped',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @internal */
-            export const helper = (value: string): string => value;
-          `),
-        },
-        {
-          name: 'non-public-API file is untouched',
           filename: FIXTURE_UNLISTED,
-          options: [RULE_OPTIONS],
-          code: 'export const undocumented = 1;\n',
         },
-      ],
-      invalid: [
-        {
-          name: 'missing @file description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export {};\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_FILE_DESCRIPTION }],
-        },
-        {
-          name: '@api function missing description, returns prose, example',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * @api
-             *
-             * @param value
-             */
-            export const compute = (value: number): number => value;
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-            { messageId: MESSAGE_ID_MISSING_RETURNS },
-            { messageId: MESSAGE_ID_MISSING_EXAMPLE },
-          ],
-        },
-        {
-          name: '@api class with undocumented public method',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Public widget.
-             *
-             * @api
-             */
-            export class Widget {
-              public render(target: string): void {
-                void target;
-              }
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'missing @file description',
+        'export {};\n',
+        [MESSAGE_ID_MISSING_FILE_DESCRIPTION],
+      ),
+      buildInvalidCase(
+        '@api function missing description, returns prose, example',
+        wrap(`
+          /**
+           * @api
+           *
+           * @param value
+           */
+          export const compute = (value: number): number => value;
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_RETURNS,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+      buildInvalidCase(
+        '@api class with undocumented public method',
+        wrap(`
+          /**
+           * Public widget.
+           *
+           * @api
+           */
+          export class Widget {
+            public render(target: string): void {
+              void target;
             }
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-            { messageId: MESSAGE_ID_MISSING_EXAMPLE },
-          ],
-        },
-        {
-          name: '@api interface with undocumented method',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Public shape.
-             *
-             * @api
-             */
-            export interface Shape {
-              render(target: string): void;
-            }
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-          ],
-        },
-        {
-          name: '@api type alias without description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export type Id = string;
-          `),
-          errors: [{ messageId: MESSAGE_ID_MISSING_DESCRIPTION }],
-        },
-        {
-          name: '@api enum without description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export enum Color { Red, Blue }
-          `),
-          errors: [{ messageId: MESSAGE_ID_MISSING_DESCRIPTION }],
-        },
-        {
-          name: '@api default arrow missing description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export default (value: number): number => value;
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-            { messageId: MESSAGE_ID_MISSING_RETURNS },
-            { messageId: MESSAGE_ID_MISSING_EXAMPLE },
-          ],
-        },
-        {
-          name: '@api default constant expression without description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export default { value: 1 };
-          `),
-          errors: [{ messageId: MESSAGE_ID_MISSING_DESCRIPTION }],
-        },
-        {
-          name: '@api const arrow factory requires full function checks',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export const factory = (input: number): string => String(input);
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-            { messageId: MESSAGE_ID_MISSING_RETURNS },
-            { messageId: MESSAGE_ID_MISSING_EXAMPLE },
-          ],
-        },
-        {
-          name: '@api const object literal needs description only',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @api */
-            export const config = { value: 1, label: 'x' };
-          `),
-          errors: [{ messageId: MESSAGE_ID_MISSING_DESCRIPTION }],
-        },
-      ],
-    });
-  }).not.toThrow();
+          }
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+      buildInvalidCase(
+        '@api interface with undocumented method',
+        wrap(`
+          /**
+           * Public shape.
+           *
+           * @api
+           */
+          export interface Shape {
+            render(target: string): void;
+          }
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+        ],
+      ),
+      buildInvalidCase(
+        '@api type alias without description',
+        wrap(`
+          /** @api */
+          export type Id = string;
+        `),
+        [MESSAGE_ID_MISSING_DESCRIPTION],
+      ),
+      buildInvalidCase(
+        '@api enum without description',
+        wrap(`
+          /** @api */
+          export enum Color { Red, Blue }
+        `),
+        [MESSAGE_ID_MISSING_DESCRIPTION],
+      ),
+      buildInvalidCase(
+        '@api default arrow missing description',
+        wrap(`
+          /** @api */
+          export default (value: number): number => value;
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_RETURNS,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+      buildInvalidCase(
+        '@api default constant expression without description',
+        wrap(`
+          /** @api */
+          export default { value: 1 };
+        `),
+        [MESSAGE_ID_MISSING_DESCRIPTION],
+      ),
+      buildInvalidCase(
+        '@api const arrow factory requires full function checks',
+        wrap(`
+          /** @api */
+          export const factory = (input: number): string => String(input);
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_RETURNS,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+      buildInvalidCase(
+        '@api const object literal needs description only',
+        wrap(`
+          /** @api */
+          export const config = { value: 1, label: 'x' };
+        `),
+        [MESSAGE_ID_MISSING_DESCRIPTION],
+      ),
+    ],
+  });
 });
 
 test('publicApiDocumentationRule valid extras', () => {
-  expect(() => {
-    tsRuleTester.run('public-api-documentation', publicApiDocumentationRule, {
-      valid: [
-        {
-          name: '@api fluent setter skips returns/example',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
+  runTsRuleTests(publicApiDocumentationRule, {
+    valid: [
+      buildValidCase(
+        '@api fluent setter skips returns/example',
+        wrap(`
+          /**
+           * Builder with fluent setters.
+           *
+           * @api
+           */
+          export class Builder {
             /**
-             * Builder with fluent setters.
+             * Sets the name.
              *
-             * @api
+             * @param name - Human-readable label.
              */
-            export class Builder {
-              /**
-               * Sets the name.
-               *
-               * @param name - Human-readable label.
-               */
-              public withName(name: string): this {
-                void name;
-                return this;
-              }
+            public withName(name: string): this {
+              void name;
+              return this;
             }
-          `),
-        },
-        {
-          name: '@api class skips @internal method',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Container.
-             *
-             * @api
-             */
-            export class Container {
-              /** @internal */
-              public touchMe(value: string): string {
-                return value;
-              }
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api class skips @internal method',
+        wrap(`
+          /**
+           * Container.
+           *
+           * @api
+           */
+          export class Container {
+            /** @internal */
+            public touchMe(value: string): string {
+              return value;
             }
-          `),
-        },
-        {
-          name: '@api class skips private/protected methods',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Container.
-             *
-             * @api
-             */
-            export class Container {
-              private value = 0;
-              private bump(): void {
-                this.value += 1;
-              }
-              protected helper(): number {
-                return this.value;
-              }
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api class skips private/protected methods',
+        wrap(`
+          /**
+           * Container.
+           *
+           * @api
+           */
+          export class Container {
+            private value = 0;
+            private bump(): void {
+              this.value += 1;
             }
-          `),
-        },
-        {
-          name: '@api class constructor needs params/example but not description',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Greeter.
-             *
-             * @api
-             */
-            export class Greeter {
-              /**
-               * @param name - Recipient name.
-               *
-               * @example
-               * new Greeter('world');
-               */
-              public constructor(public readonly name: string) {}
+            protected helper(): number {
+              return this.value;
             }
-          `),
-        },
-        {
-          name: '@api void method skips returns',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api class constructor needs params/example but not description',
+        wrap(`
+          /**
+           * Greeter.
+           *
+           * @api
+           */
+          export class Greeter {
             /**
-             * Logger.
+             * @param name - Recipient name.
              *
-             * @api
+             * @example
+             * new Greeter('world');
              */
-            export class Logger {
-              /**
-               * Writes a line.
-               *
-               * @param line - Message body.
-               *
-               * @example
-               * logger.write('hi');
-               */
-              public write(line: string): void {
-                void line;
-              }
+            public constructor(public readonly name: string) {}
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api void method skips returns',
+        wrap(`
+          /**
+           * Logger.
+           *
+           * @api
+           */
+          export class Logger {
+            /**
+             * Writes a line.
+             *
+             * @param line - Message body.
+             *
+             * @example
+             * logger.write('hi');
+             */
+            public write(line: string): void {
+              void line;
             }
-          `),
-        },
-        {
-          name: '@api interface abstract methods skip example',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api interface abstract methods skip example',
+        wrap(`
+          /**
+           * Renderer contract.
+           *
+           * @api
+           */
+          export interface Renderer {
             /**
-             * Renderer contract.
+             * Renders target.
              *
-             * @api
-             */
-            export interface Renderer {
-              /**
-               * Renders target.
-               *
-               * @param target - Element to render.
-               *
-               * @returns Rendered string.
-               */
-              render(target: string): string;
-            }
-          `),
-        },
-        {
-          name: '@api documented type alias',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Identifier alias.
+             * @param target - Element to render.
              *
-             * @api
+             * @returns Rendered string.
              */
-            export type Id = string;
-          `),
-        },
-        {
-          name: '@api documented enum',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Available colors.
-             *
-             * @api
-             */
-            export enum Color { Red, Blue }
-          `),
-        },
-        {
-          name: '@api default identifier passes description from binding',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** Underlying. @api */
-            const underlying = 1;
-            /**
-             * Re-exported.
-             *
-             * @api
-             */
-            export default underlying;
-          `),
-        },
-      ],
-      invalid: [],
-    });
-  }).not.toThrow();
+            render(target: string): string;
+          }
+        `),
+      ),
+      buildValidCase(
+        '@api documented type alias',
+        wrap(`
+          /**
+           * Identifier alias.
+           *
+           * @api
+           */
+          export type Id = string;
+        `),
+      ),
+      buildValidCase(
+        '@api documented enum',
+        wrap(`
+          /**
+           * Available colors.
+           *
+           * @api
+           */
+          export enum Color { Red, Blue }
+        `),
+      ),
+      buildValidCase(
+        '@api default identifier passes description from binding',
+        wrap(`
+          /** Underlying. @api */
+          const underlying = 1;
+          /**
+           * Re-exported.
+           *
+           * @api
+           */
+          export default underlying;
+        `),
+      ),
+    ],
+    invalid: [],
+  });
 });
 
 test('publicApiDocumentationRule works with default ESLint parser', () => {
-  expect(() => {
-    jsRuleTester.run('public-api-documentation', publicApiDocumentationRule, {
-      valid: [
-        {
-          name: 'documented @api JS function',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * Adds two numbers.
-             *
-             * @api
-             *
-             * @param {number} a - First operand.
-             * @param {number} b - Second operand.
-             *
-             * @returns {number} The sum of the operands.
-             *
-             * @example
-             * add(1, 2);
-             */
-            export const add = (a, b) => a + b;
-          `),
-        },
-        {
-          name: '@internal JS const is skipped',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /** @internal */
-            export const helper = (value) => value;
-          `),
-        },
-      ],
-      invalid: [
-        {
-          name: 'missing @file description on JS file',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: 'export {};\n',
-          errors: [{ messageId: MESSAGE_ID_MISSING_FILE_DESCRIPTION }],
-        },
-        {
-          name: '@api JS function missing description, returns prose, example',
-          filename: FIXTURE_INDEX,
-          options: [RULE_OPTIONS],
-          code: wrap(`
-            /**
-             * @api
-             *
-             * @param {number} value
-             */
-            export const compute = (value) => value;
-          `),
-          errors: [
-            { messageId: MESSAGE_ID_MISSING_DESCRIPTION },
-            { messageId: MESSAGE_ID_MISSING_PARAM },
-            { messageId: MESSAGE_ID_MISSING_EXAMPLE },
-          ],
-        },
-      ],
-    });
-  }).not.toThrow();
+  runJsRuleTests(publicApiDocumentationRule, {
+    valid: [
+      buildValidCase(
+        'documented @api JS function',
+        wrap(`
+          /**
+           * Adds two numbers.
+           *
+           * @api
+           *
+           * @param {number} a - First operand.
+           * @param {number} b - Second operand.
+           *
+           * @returns {number} The sum of the operands.
+           *
+           * @example
+           * add(1, 2);
+           */
+          export const add = (a, b) => a + b;
+        `),
+      ),
+      buildValidCase(
+        '@internal JS const is skipped',
+        wrap(`
+          /** @internal */
+          export const helper = (value) => value;
+        `),
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'missing @file description on JS file',
+        'export {};\n',
+        [MESSAGE_ID_MISSING_FILE_DESCRIPTION],
+      ),
+      buildInvalidCase(
+        '@api JS function missing description, returns prose, example',
+        wrap(`
+          /**
+           * @api
+           *
+           * @param {number} value
+           */
+          export const compute = (value) => value;
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+    ],
+  });
 });
