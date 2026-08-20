@@ -15,6 +15,19 @@ Pause + ask on every judgment call: hunk splits, scope token, `feat` vs `refacto
 
 Verification after each commit: `make check` clean; JS side `bun check` (heavy — prefer filtered `bun run test <filter>`).
 
+## Scope
+
+Required, lower-case, `/`-delimited, one to three segments — the narrowest that still covers the change. Read `git log` for an existing token before inventing one.
+
+- segment 1 — stack or area (e.g. `php`, `js`, `make`, `composer`, `ci`, `ai`), or a bucket for work with no path of its own (e.g. `hygiene`, `release`, `dependencies`, `readme`)
+- segment 2 — the tool or module (e.g. `php/phpstan`, `php/rector`, `php/string`, `js/eslint`, `js/stylelint`, `composer/commands`, `ai/mate`)
+- segment 3 — a rule group or sub-area (e.g. `php/phpstan/rule`, `js/eslint/unicorn`, `js/stylelint/defensive`, `composer/setup`)
+
+`general` is for a change spanning both stacks or the whole tree, not for one that is merely awkward to place.
+
+New rule → `php/phpstan` / `js/eslint`; changing one → `.../rule`.  
+`Str` → `php/string`. Symbols in backticks, methods without `()`.
+
 ## Fixup over fix-commits
 
 Correcting landed commit: fixup + autosquash onto ORIGINAL, never new "fix" commit.
