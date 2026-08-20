@@ -9,6 +9,7 @@ use Closure;
 use function array_any;
 use function array_filter;
 use function array_last;
+use function array_map;
 use function array_slice;
 use function count;
 use function implode;
@@ -21,6 +22,7 @@ use function mb_strtolower;
 use function mb_substr;
 use function mb_trim;
 use function preg_match;
+use function preg_match_all;
 use function preg_quote;
 use function preg_replace_callback;
 use function sprintf;
@@ -30,6 +32,7 @@ use function str_repeat;
 use function str_replace;
 use function str_starts_with;
 
+use const PREG_SET_ORDER;
 use const PREG_UNMATCHED_AS_NULL;
 
 /**
@@ -118,6 +121,24 @@ final readonly class Str
         return $result === false
             ? []
             : array_filter($matches, is_string(...));
+    }
+
+    /**
+     * @return list<array<array-key, string>>
+     */
+    public static function matchAll(string $string, string $pattern): array
+    {
+        $matches = [];
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $result = preg_match_all($pattern . 'u', $string, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
+
+        return $result === false
+            ? []
+            : array_map(
+                static fn (array $match): array => array_filter($match, is_string(...)),
+                $matches,
+            );
     }
 
     public static function contains(string $haystack, string $needle): bool
