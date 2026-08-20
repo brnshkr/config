@@ -15,6 +15,7 @@ use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\NoNamedArgumentsTagRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
+use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -133,15 +134,10 @@ final class PhpStan
     /**
      * Build the project's baseline PHPStan configuration.
      *
-     * Pre-configures level=max, strict exception checking, the package's own custom rules
-     * ({@see ApiOrInternalTagRule},
-     * {@see BoolishPrefixRule},
-     * {@see InterfaceSuffixRule},
-     * {@see InternalUsageRule},
-     * {@see NoNamedArgumentsTagRule}),
-     * the {@see FileFinderThrowTypeExtension} dynamic
-     * throw-type extension, and editor-URL handling. Conditionally enables strict rules,
-     * type-perfect and Symplify rules when their packages are installed.
+     * Pre-configures level=max, strict exception checking, every custom rule this package ships
+     * (see `docs/php/phpstan/rules/`), the {@see FileFinderThrowTypeExtension} dynamic throw-type
+     * extension, and editor-URL handling. Conditionally enables strict rules, type-perfect and
+     * Symplify rules when their packages are installed.
      *
      * Returns the raw config array by default; pass `$asInstance: true` to get the builder
      * instance for further chaining (used by `conf/phpstan.dist.php` to add architecture rules).
@@ -229,6 +225,7 @@ final class PhpStan
                 InterfaceSuffixRule::class,
                 NoNamedArgumentsTagRule::class,
                 PublicApiDocumentationRule::class,
+                ResolvableDocReferenceRule::class,
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallingNamespaces' => [
                         'Brnshkr\Config\Tests',

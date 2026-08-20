@@ -87,6 +87,16 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /@return\s+\S+\s+(?<description>\S[^\n]*)/v,
   },
   {
+    file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',
+    php: String.raw`/(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s}]+)/`,
+    regex: /(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s\}]+)/v,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',
+    php: String.raw`/^\p{Lu}/`,
+    regex: /^\p{Uppercase_Letter}/v,
+  },
+  {
     file: 'src/php/PhpStan/Rule/Trait/RuleTrait.php',
     php: String.raw`/\*\s+@`,
     regex: /\*\s+@api\b/v,

@@ -24,6 +24,7 @@ const CONSUMER_CALLS = <const>[
   'preg_replace_callback(',
   'preg_split(',
   'Str::match(',
+  'Str::matchAll(',
   'Str::replaceMatches(',
 ];
 
