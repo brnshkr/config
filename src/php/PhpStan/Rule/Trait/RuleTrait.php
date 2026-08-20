@@ -22,7 +22,6 @@ use PHPStan\Rules\RuleErrorBuilder;
 use RuntimeException;
 
 use function lcfirst;
-use function preg_replace;
 use function sprintf;
 
 /**
@@ -53,7 +52,7 @@ trait RuleTrait
         $className = Str::getClassShortName(self::class);
 
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
-        $ruleName = lcfirst(preg_replace('/Rule$/', '', $className) ?: 'unknown');
+        $ruleName = lcfirst(Str::trimSuffix($className, 'Rule'));
 
         $identifier = sprintf(
             '%s.%s',

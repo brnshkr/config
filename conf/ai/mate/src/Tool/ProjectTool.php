@@ -203,13 +203,13 @@ final class ProjectTool
     private function getMakefileVersion(): string
     {
         $contents = new Filesystem()->readFile(sprintf('%s/conf/Makefile', Project::getRootDirectory()));
-        $matches  = Str::match($contents, '/^VERSION\s*[?:+!]*=\s*([^#\s]+)/m');
+        $matches  = Str::match($contents, '/^VERSION\s*[!+:?]*=\s*(?<version>[^\s#]+)/m');
 
-        if (!isset($matches[1]) || $matches[1] === '') {
+        if (!isset($matches['version']) || $matches['version'] === '') {
             throw new RuntimeException('Failed reading the VERSION from "conf/Makefile".');
         }
 
-        return $matches[1];
+        return $matches['version'];
     }
 
     /**

@@ -27,13 +27,10 @@ use function in_array;
 use function is_array;
 use function is_dir;
 use function is_string;
-use function pathinfo;
-use function preg_replace;
 use function reset;
 use function sprintf;
 use function Symfony\Component\String\s;
 
-use const PATHINFO_EXTENSION;
 use const PHP_EOL;
 
 /**
@@ -126,10 +123,7 @@ final class ComposerJson
     private function __construct(
         public readonly string $path,
     ) {
-        $this->lockFilePath = pathinfo($path, PATHINFO_EXTENSION) === 'json'
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string since this class is shared by all modules and not all of them rely on it)
-            ? (preg_replace('/\.json$/', '.lock', $path) ?: $path . '.lock')
-            : $path . '.lock';
+        $this->lockFilePath = Str::trimSuffix($path, '.json') . '.lock';
     }
 
     /**
@@ -328,7 +322,7 @@ final class ComposerJson
         return array_map(
             static function (string $version): string {
                 $flipped = s($version)
-                    ->replaceMatches('/(<|>=)/', static fn (array $matches): string => (isset($matches[0]) && $matches[0] === '<') ? '>=' : '<')
+                    ->replaceMatches('/<|>=/', static fn (array $matches): string => (isset($matches[0]) && $matches[0] === '<') ? '>=' : '<')
                     ->toString()
                 ;
 

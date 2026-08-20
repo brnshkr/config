@@ -338,21 +338,21 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     private static function hasDescription(?Doc $doc): bool
     {
-        $beforeTags = Str::match($doc?->getText() ?? '', '/\/\*\*(.*?)(?:\n[ \t]*\*[ \t]+@|\*\/)/s')[1] ?? '';
+        $beforeTags = Str::match($doc?->getText() ?? '', '/\/\*\*(?<body>.*?)(?:\n[\t ]*\*[\t ]+@|\*\/)/s')['body'] ?? '';
 
-        return Str::match($beforeTags, '/^[ \t]*\*[ \t]+(?!@)[^\s*\/][^\n]*/m') !== [];
+        return Str::match($beforeTags, '/^[\t ]*\*[\t ]+(?!@)[^\s*\/][^\n]*/m') !== [];
     }
 
     private static function hasParamProse(string $docText, string $paramName): bool
     {
-        $after = Str::match($docText, sprintf('/@param\s+[^@]*?\$%s\b([^\n]*)/', $paramName))[1] ?? null;
+        $after = Str::match($docText, sprintf('/@param\s[^@]*?\$%s\b(?<description>[^\n]*)/', $paramName))['description'] ?? null;
 
         return $after !== null && Str::match($after, '/[A-Za-z]/') !== [];
     }
 
     private static function hasReturnWithProse(string $docText): bool
     {
-        $after = Str::match($docText, '/@return\s+\S+\s+(\S[^\n]*)/')[1] ?? null;
+        $after = Str::match($docText, '/@return\s+\S+\s+(?<description>\S[^\n]*)/')['description'] ?? null;
 
         return $after !== null && Str::match($after, '/[A-Za-z]/') !== [];
     }

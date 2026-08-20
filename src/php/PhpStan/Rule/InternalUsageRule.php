@@ -259,7 +259,7 @@ final class InternalUsageRule implements Rule
 
         $functionReflection = $this->reflectionProvider->getFunction($funcCall->name, $scope);
         $internalTarget     = self::resolveInternalTarget($functionReflection->getDocComment());
-        $declaringNamespace = Str::match($functionReflection->getName(), '/^(.+)\\\[^\\\]+$/')[1] ?? '';
+        $declaringNamespace = Str::beforeLast($functionReflection->getName(), '\\');
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
@@ -453,13 +453,13 @@ final class InternalUsageRule implements Rule
 
     private static function resolveInternalTarget(string|false|null $docComment): ?string
     {
-        $matches = Str::match($docComment ?: '', '/\*\s+@internal(?=\s|$)([^\n]*)(?:\n|$)/');
+        $matches = Str::match($docComment ?: '', '/\*\s+@internal(?=\s|$)(?<target>[^\n]*)(?:\n|$)/');
 
-        if (!isset($matches[1])) {
+        if (!isset($matches['target'])) {
             return null;
         }
 
-        $target = self::trimBackslashes(Str::trim($matches[1]));
+        $target = self::trimBackslashes(Str::trim($matches['target']));
 
         return Str::match($target, '/^[\w\\\]+$/') === [] ? self::AT_INTERNAL : $target;
     }
@@ -510,7 +510,7 @@ final class InternalUsageRule implements Rule
 
     private static function isRegexPattern(string $pattern): bool
     {
-        return Str::match($pattern, '/^([^\w\\\]).*\1[A-Za-z]*$/s') !== [];
+        return Str::match($pattern, '/^(?<delimiter>[^\w\\\]).*\k<delimiter>[A-Za-z]*$/s') !== [];
     }
 
     private static function isInSubtree(string $value, string $prefix): bool

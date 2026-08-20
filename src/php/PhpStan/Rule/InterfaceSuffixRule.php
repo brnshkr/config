@@ -41,6 +41,8 @@ final readonly class InterfaceSuffixRule implements Rule
 {
     use RuleTrait;
 
+    private const string INTERFACE_SUFFIX = 'Interface';
+
     /**
      * @internal invoked by PHPStan
      */
@@ -66,7 +68,7 @@ final readonly class InterfaceSuffixRule implements Rule
 
         $suffixed = array_values(array_filter(
             $node->implements,
-            static fn (Name $name): bool => Str::endsWith(Str::getClassShortName($name->toString()), 'Interface'),
+            static fn (Name $name): bool => Str::endsWith(Str::getClassShortName($name->toString()), self::INTERFACE_SUFFIX),
         ));
 
         if (count($suffixed) !== 1) {
@@ -75,7 +77,9 @@ final readonly class InterfaceSuffixRule implements Rule
 
         $className     = $node->name->toString();
         $interfaceName = Str::getClassShortName($suffixed[0]->toString());
-        $expected      = Str::match($interfaceName, '/^(.+)Interface$/')[1] ?? '';
+        $expected      = Str::endsWith($interfaceName, self::INTERFACE_SUFFIX)
+            ? Str::trimSuffix($interfaceName, self::INTERFACE_SUFFIX)
+            : '';
 
         if (Str::isEmpty($expected) || Str::endsWith($className, $expected)) {
             return [];

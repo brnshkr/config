@@ -425,7 +425,7 @@ final readonly class BoolishPrefixRule implements Rule
 
     private static function getFirstWord(string $name): string
     {
-        return Str::toLowerCase(Str::match($name, '/^(?:[a-z0-9]+|[A-Z0-9]+)/')[0] ?? '');
+        return Str::toLowerCase(Str::match($name, '/^(?:[0-9a-z]+|[0-9A-Z]+)/')[0] ?? '');
     }
 
     /**

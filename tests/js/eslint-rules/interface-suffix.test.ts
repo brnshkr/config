@@ -6,14 +6,14 @@ import {
   MESSAGE_ID_MISSING_SUFFIX,
 } from '../../../src/js/eslint/configs/builtin/interface-suffix';
 
-import { readPhpRuleSource } from '../utils/php-rule';
+import { extractPhpStringConstants, readPhpRuleSource } from '../utils/php-rule';
 import { createRuleCaseBuilders, runTsRuleTests } from '../utils/rule-tester';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders();
 
 test('interfaceSuffixRule stays in sync with the PHP rule', () => {
   const source = readPhpRuleSource('InterfaceSuffixRule.php');
-  const suffix = /Str::match\(\$interfaceName, '\/\^\(\.\+\)(?<suffix>\w+)\$\/'\)/v.exec(source)?.groups?.['suffix'];
+  const [suffix] = extractPhpStringConstants(source, 'INTERFACE_');
 
   expect(suffix).toBe(INTERFACE_SUFFIX);
 });

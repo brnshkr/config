@@ -10,7 +10,6 @@ use function array_any;
 use function array_filter;
 use function array_last;
 use function array_slice;
-use function array_values;
 use function count;
 use function implode;
 use function is_string;
@@ -107,7 +106,7 @@ final readonly class Str
     }
 
     /**
-     * @return list<string>
+     * @return array<array-key, string>
      */
     public static function match(string $string, string $pattern): array
     {
@@ -118,7 +117,7 @@ final readonly class Str
 
         return $result === false
             ? []
-            : array_values(array_filter($matches, is_string(...)));
+            : array_filter($matches, is_string(...));
     }
 
     public static function contains(string $haystack, string $needle): bool
@@ -133,10 +132,27 @@ final readonly class Str
         return str_replace($needle, $replacement, $haystack);
     }
 
+    public static function beforeLast(string $haystack, string $needle): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $position = mb_strrpos($haystack, $needle);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return $position === false ? '' : mb_substr($haystack, 0, $position);
+    }
+
     public static function afterLast(string $haystack, string $needle): string
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (See ->), symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
+    }
+
+    public static function trimSuffix(string $haystack, string $suffix): string
+    {
+        return self::isEmpty($suffix) || !self::endsWith($haystack, $suffix)
+            ? $haystack
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+            : mb_substr($haystack, 0, -self::length($suffix));
     }
 
     public static function getClassShortName(string|object $classOrObject): string
