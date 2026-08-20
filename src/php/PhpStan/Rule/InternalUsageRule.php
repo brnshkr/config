@@ -37,6 +37,7 @@ use RuntimeException;
 use function array_any;
 use function array_find;
 use function array_is_list;
+use function array_map;
 use function is_string;
 use function sprintf;
 
@@ -458,9 +459,14 @@ final class InternalUsageRule implements Rule
             return null;
         }
 
-        $target = Str::trim($matches[1]);
+        $target = self::trimBackslashes(Str::trim($matches[1]));
 
         return Str::match($target, '/^[\w\\\]+$/') === [] ? self::AT_INTERNAL : $target;
+    }
+
+    private static function trimBackslashes(string $namespace): string
+    {
+        return Str::trim($namespace, '\\');
     }
 
     private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace, string $symbol): bool
@@ -570,7 +576,8 @@ final class InternalUsageRule implements Rule
 
         $malformedPattern = array_find(
             $inputCasted,
-            static fn (string $pattern): bool => Str::match($pattern, '/^[\w\\\]/') === [] && !self::isRegexPattern($pattern),
+            static fn (string $pattern): bool => !self::isRegexPattern($pattern)
+                && (Str::match($pattern, '/^[\w\\\]/') === [] || self::trimBackslashes($pattern) === ''),
         );
 
         if ($malformedPattern !== null) {
@@ -581,6 +588,16 @@ final class InternalUsageRule implements Rule
             ));
         }
 
-        return $inputCasted;
+        /**
+         * @var list<non-empty-string> $normalizedPattern
+         */
+        $normalizedPattern = array_map(
+            static fn (string $pattern): string => self::isRegexPattern($pattern)
+                ? $pattern
+                : self::trimBackslashes($pattern),
+            $inputCasted,
+        );
+
+        return $normalizedPattern;
     }
 }

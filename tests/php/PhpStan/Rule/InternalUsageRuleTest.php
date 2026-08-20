@@ -120,9 +120,34 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     /**
      * @throws InvalidFixtureFile
      */
+    public function testRuleIgnoresALeadingBackslashInTheTarget(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/BackslashTargetInternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeBackslashTargetInternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeBackslashTargetInternalClassFromOutside.php',
+        );
+    }
+
+    /**
+     * @throws InvalidFixtureFile
+     */
     public function testRuleExemptsAllowedCallingNamespaces(): void
     {
         $this->allowedCallingNamespaces = ['External\AllowedConsumer'];
+
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassAllowed.php',
+        );
+    }
+
+    /**
+     * @throws InvalidFixtureFile
+     */
+    public function testRuleIgnoresALeadingBackslashInAnAllowListEntry(): void
+    {
+        $this->allowedCallingNamespaces = ['\External\AllowedConsumer'];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -161,7 +186,7 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
      */
     public function testRuleExemptsAllowedSymbolsIncludingTheirMembers(): void
     {
-        $this->allowedSymbols = [InternalClass::class];
+        $this->allowedSymbols = [InternalClass::class . '::doSomething', InternalClass::class];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -190,6 +215,17 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         $this->expectExceptionMessage('Entry "/^Brnshkr" for option "allowedCallingNamespaces" is neither a namespace prefix nor a delimited regex pattern.');
 
         $this->createRule(null, null, ['/^Brnshkr']);
+    }
+
+    /**
+     * @throws MissingServiceException
+     */
+    public function testRuleRejectsABackslashOnlyEntry(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Entry "\" for option "allowedDeclaringNamespaces" is neither a namespace prefix nor a delimited regex pattern.');
+
+        $this->createRule(null, ['\\']);
     }
 
     /**
