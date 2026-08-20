@@ -10,7 +10,7 @@ Agent knowledge beyond `docs/php/`.
 
 - Many native functions are forbidden (symplify `forbiddenFuncCall`) in favor of wrappers — e.g. `trim`/`strlen` → `Brnshkr\Config\Str` helpers or Symfony String `s()`, `json_decode` → `Brnshkr\Config\Json::decode`, `file_get_contents` → `Filesystem::readFile`. The PHPStan error names the expected replacement; check `Str`/`Json` for an existing helper first.
 - Checked exceptions must be declared (`missingType.checkedException`) — Symfony `Process` alone adds `LogicException`/`RuntimeException` `@throws` to every caller chain.
-- `@internal` symbols are only usable at or below their declaring namespace (`InternalUsageRule`); an explicit target (`@internal Vendor\Package`) replaces that subtree, and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package.
+- `@internal` symbols are only usable at or below their declaring namespace (`InternalUsageRule`); an explicit target (`@internal Vendor\Package`) replaces that subtree, and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package. A tag argument that is not a single namespace is a description and leaves a plain `@internal`.
 - Rector rewrites on `make rector`: imports FQCNs (no fully-qualified inline names), adds `#[\Override]` to overridden methods, adds `#[\SensitiveParameter]` to secret-named params (`password`, `apiToken`, ...) — generate code that way up front. Full builder behavior in `docs/php/Rector.md`.
 
 ## Composer plugin

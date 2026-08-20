@@ -109,6 +109,17 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     /**
      * @throws InvalidFixtureFile
      */
+    public function testRuleTreatsADescribedTagAsABareInternal(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/DescribedInternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeDescribedInternalClass.php',
+        );
+    }
+
+    /**
+     * @throws InvalidFixtureFile
+     */
     public function testRuleExemptsAllowedCallingNamespaces(): void
     {
         $this->allowedCallingNamespaces = ['External\AllowedConsumer'];

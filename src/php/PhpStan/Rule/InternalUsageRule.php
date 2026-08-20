@@ -452,11 +452,15 @@ final class InternalUsageRule implements Rule
 
     private static function resolveInternalTarget(string|false|null $docComment): ?string
     {
-        $matches = Str::match($docComment ?: '', '/\*\s+@internal\s*([\w\\\]*)\s*\n/');
+        $matches = Str::match($docComment ?: '', '/\*\s+@internal(?=\s|$)([^\n]*)(?:\n|$)/');
 
-        return isset($matches[1])
-            ? ($matches[1] ?: self::AT_INTERNAL)
-            : null;
+        if (!isset($matches[1])) {
+            return null;
+        }
+
+        $target = Str::trim($matches[1]);
+
+        return Str::match($target, '/^[\w\\\]+$/') === [] ? self::AT_INTERNAL : $target;
     }
 
     private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace, string $symbol): bool

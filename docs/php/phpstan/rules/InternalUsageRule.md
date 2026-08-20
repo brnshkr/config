@@ -46,6 +46,8 @@ new \Acme\Shared\UserOnlyHelper();
 
 A bare vendor namespace (`@internal Acme`) widens that to every sibling package of the same organization.
 
+Anything after `@internal` that is not a single namespace — `@internal invoked by the framework` — counts as a description and leaves a plain `@internal`.
+
 ## Options
 
 Four configuration options widen what counts as a legal caller:
