@@ -121,6 +121,7 @@ exports[`expected typescript config 1`] = `
         "./src/js/stylelint/utils/module.ts",
         "./tests/js/commitlint.test.ts",
         "./tests/js/eslint.test.ts",
+        "./tests/js/spelling.test.ts",
         "./tests/js/stylelint.test.ts",
         "./tests/js/typescript.test.ts",
         "./tests/js/eslint-rules/api-or-internal-tag.test.ts",
