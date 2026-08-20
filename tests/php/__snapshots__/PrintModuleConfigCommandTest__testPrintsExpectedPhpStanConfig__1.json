@@ -69,6 +69,7 @@
         "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NoNamedArgumentsTagRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\PublicApiDocumentationRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\ResolvableDocReferenceRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\NoArrayMapWithArrayCallableRule",
