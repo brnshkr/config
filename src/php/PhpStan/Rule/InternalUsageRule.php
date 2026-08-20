@@ -34,6 +34,7 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use RuntimeException;
 
+use function array_any;
 use function array_find;
 use function array_is_list;
 use function is_string;
@@ -43,25 +44,34 @@ use function sprintf;
  * Reports calls into another package's `@internal` symbols.
  *
  * By default an `@internal` symbol may only be used from inside its own declaring namespace or
- * any sub-namespace of it; calls from outside that subtree are flagged. The tag also accepts an
- * optional FQCN or namespace argument (`@internal Acme\Foo`) that overrides the default target,
- * useful when an internal symbol should be reachable from one specific namespace but no other.
+ * any sub-namespace of it; callers outside that subtree are flagged, the global namespace
+ * included. The tag also accepts an optional FQCN or namespace argument (`@internal Acme\Foo`)
+ * that replaces the declaring namespace as the reachable subtree, useful when an internal symbol
+ * should be reachable from one specific namespace but no other — naming the bare vendor namespace
+ * (`@internal Acme`) opens the symbol to every sibling package of the same organization.
  *
- * Three allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces` exempts
+ * Four allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces` exempts
  * callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring packages,
- * and `allowedInternalTargets` exempts groups of symbols that share the same target. Each entry
- * is either a plain namespace prefix (matches the exact namespace or anything below it) or a
- * regex pattern recognised by its leading `/` delimiter.
+ * `allowedInternalTargets` exempts groups of symbols that share the same target, and
+ * `allowedSymbols` exempts individual symbols by their fully-qualified name. Each entry is either
+ * a plain prefix (matches the exact value or anything below it) or a delimited regex pattern,
+ * recognized by an opening delimiter the entry also closes with.
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
  *
  * @example
  * ```php
- * PhpStan::configureRule(InternalUsageRule::class, [
- *     'allowedCallingNamespaces'   => ['Acme\Tests'],
- *     'allowedDeclaringNamespaces' => ['Acme\Shared'],
- *     'allowedInternalTargets'     => ['/^Acme\\\\User$/'],
- * ]);
+ * PhpStan::getConfig(null, true)
+ *     ->removeRules([InternalUsageRule::class])
+ *     ->setRules([
+ *         PhpStan::configureRule(InternalUsageRule::class, [
+ *             'allowedCallingNamespaces'   => ['Acme\Tests'],
+ *             'allowedDeclaringNamespaces' => ['/^Acme\\\Shared/'],
+ *             'allowedInternalTargets'     => ['/^Acme\\\User$/'],
+ *             'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash'],
+ *         ]),
+ *     ])
+ * ;
  * ```
  *
  * @api
@@ -80,9 +90,10 @@ final class InternalUsageRule implements Rule
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?list<non-empty-string> $allowedInternalTargets plain namespace prefixes or `/.../`-delimited regex patterns matched against `@internal <target>` values to whitelist
-     * @param ?list<non-empty-string> $allowedDeclaringNamespaces plain namespace prefixes or `/.../`-delimited regex patterns matched against the declaring namespace to whitelist
-     * @param ?list<non-empty-string> $allowedCallingNamespaces plain namespace prefixes or `/.../`-delimited regex patterns matched against the caller's namespace to whitelist
+     * @param ?list<non-empty-string> $allowedInternalTargets plain namespace prefixes or delimited regex patterns matched against `@internal <target>` values to whitelist
+     * @param ?list<non-empty-string> $allowedDeclaringNamespaces plain namespace prefixes or delimited regex patterns matched against the declaring namespace to whitelist
+     * @param ?list<non-empty-string> $allowedCallingNamespaces plain namespace prefixes or delimited regex patterns matched against the caller's namespace to whitelist
+     * @param ?list<non-empty-string> $allowedSymbols plain prefixes or delimited regex patterns matched against the fully-qualified symbol name to whitelist
      */
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
@@ -108,6 +119,14 @@ final class InternalUsageRule implements Rule
              */
             set(?array $allowedCallingNamespaces) {
                 $this->allowedCallingNamespaces = self::getValidatedStringList('allowedCallingNamespaces', $allowedCallingNamespaces);
+            }
+        },
+        private ?array $allowedSymbols = null {
+            /**
+             * @throws InvalidArgumentException
+             */
+            set(?array $allowedSymbols) {
+                $this->allowedSymbols = self::getValidatedStringList('allowedSymbols', $allowedSymbols);
             }
         },
     ) {}
@@ -246,7 +265,7 @@ final class InternalUsageRule implements Rule
             $declaringNamespace,
             $callerNamespace,
             self::KIND_FUNCTION,
-            $funcCall->name->toString(),
+            $functionReflection->getName(),
             $line,
         );
     }
@@ -440,32 +459,53 @@ final class InternalUsageRule implements Rule
             : null;
     }
 
-    private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace): bool
+    private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace, string $symbol): bool
     {
-        $patternsByValue = [
-            $internalTarget     => $this->allowedInternalTargets,
-            $declaringNamespace => $this->allowedDeclaringNamespaces,
-            $callerNamespace    => $this->allowedCallingNamespaces,
+        $patternsPerValue = [
+            [$internalTarget, $this->allowedInternalTargets],
+            [$declaringNamespace, $this->allowedDeclaringNamespaces],
+            [$callerNamespace, $this->allowedCallingNamespaces],
+            [$symbol, $this->allowedSymbols],
         ];
 
-        foreach ($patternsByValue as $value => $patterns) {
-            foreach (($patterns ?? []) as $pattern) {
-                if (self::isAllowed($value, $pattern)) {
-                    return true;
-                }
+        foreach ($patternsPerValue as [$value, $patterns]) {
+            if (self::isAllowedByAny($value, $patterns)) {
+                return true;
             }
         }
 
-        return $internalTarget === self::AT_INTERNAL
-            ? Str::startsWith($callerNamespace, $declaringNamespace)
-            : (Str::isEmpty($callerNamespace) || Str::contains($callerNamespace, $internalTarget));
+        return self::isInSubtree(
+            $callerNamespace,
+            $internalTarget === self::AT_INTERNAL ? $declaringNamespace : $internalTarget,
+        );
+    }
+
+    /**
+     * @param ?list<non-empty-string> $patterns
+     */
+    private static function isAllowedByAny(string $value, ?array $patterns): bool
+    {
+        return array_any(
+            $patterns ?? [],
+            static fn (string $pattern): bool => self::isAllowed($value, $pattern),
+        );
     }
 
     private static function isAllowed(string $value, string $pattern): bool
     {
-        return Str::startsWith($pattern, '/')
+        return self::isRegexPattern($pattern)
             ? Str::match($value, $pattern) !== []
-            : ($value === $pattern || Str::startsWith($value, $pattern . '\\'));
+            : self::isInSubtree($value, $pattern);
+    }
+
+    private static function isRegexPattern(string $pattern): bool
+    {
+        return Str::match($pattern, '/^([^\w\\\]).*\1[A-Za-z]*$/s') !== [];
+    }
+
+    private static function isInSubtree(string $value, string $prefix): bool
+    {
+        return $value === $prefix || Str::startsWithAny($value, [$prefix . '\\', $prefix . '::']);
     }
 
     /**
@@ -479,7 +519,7 @@ final class InternalUsageRule implements Rule
         string $symbol,
         int $line,
     ): ?IdentifierRuleError {
-        return $internalTarget !== null && !$this->isAllowedInCaller($internalTarget, $declaringNamespace, $callerNamespace)
+        return $internalTarget !== null && !$this->isAllowedInCaller($internalTarget, $declaringNamespace, $callerNamespace, $symbol)
             ? self::buildError($kind, $symbol, $internalTarget ?: self::AT_INTERNAL, $callerNamespace, $line)
             : null;
     }
@@ -512,7 +552,7 @@ final class InternalUsageRule implements Rule
             return [];
         }
 
-        if (!array_is_list($input) || array_find($input, static fn (mixed $item): bool => !is_string($item) || Str::isEmpty($item))) {
+        if (!array_is_list($input) || array_any($input, static fn (mixed $item): bool => !is_string($item) || Str::isEmpty($item))) {
             throw new InvalidArgumentException(sprintf(
                 'Value for option "%s" must be a list of non-empty strings.',
                 $optionName,
@@ -523,6 +563,19 @@ final class InternalUsageRule implements Rule
          * @var list<non-empty-string> $inputCasted
          */
         $inputCasted = $input;
+
+        $malformedPattern = array_find(
+            $inputCasted,
+            static fn (string $pattern): bool => Str::match($pattern, '/^[\w\\\]/') === [] && !self::isRegexPattern($pattern),
+        );
+
+        if ($malformedPattern !== null) {
+            throw new InvalidArgumentException(sprintf(
+                'Entry "%s" for option "%s" is neither a namespace prefix nor a delimited regex pattern.',
+                $malformedPattern,
+                $optionName,
+            ));
+        }
 
         return $inputCasted;
     }

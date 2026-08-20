@@ -30,7 +30,7 @@ On `composer install`/`update` the `post-install-cmd`/`post-update-cmd` scripts 
 
 ## Adding an MCP tool
 
-1. Class under `conf/ai/mate/src/Tool/`, namespace `Brnshkr\Config\Mate\Tool` — shares the `Brnshkr\Config` root namespace so `@internal` symbols (e.g. `Module::MAP`) stay usable; cross-subnamespace helpers like `Support\Project` carry an explicit `@internal Brnshkr\Config\Mate` target.
+1. Class under `conf/ai/mate/src/Tool/`, namespace `Brnshkr\Config\Mate\Tool` — sits below the declaring `Brnshkr\Config` namespace so `@internal` symbols (e.g. `Module::MAP`) stay usable; cross-subnamespace helpers like `Support\Project` carry an explicit `@internal Brnshkr\Config\Mate` target.
 2. `#[McpTool(name: '...', description: '...')]` on a public method; params/docblock become the input schema; return scalars or arrays only.
 3. Discovery is automatic via `scan-dirs`; constructor DI works for container services. Use `Project::run()` for shell work (root-aware, output-truncating, stdin support).
 4. Verify: `vendor/bin/mate mcp:tools:list`, `mcp:tools:call <name> '<json>'`. The code is linted by `make check` — full style rules apply.

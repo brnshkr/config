@@ -10,7 +10,7 @@ Agent knowledge beyond `docs/php/`.
 
 - Many native functions are forbidden (symplify `forbiddenFuncCall`) in favor of wrappers — e.g. `trim`/`strlen` → `Brnshkr\Config\Str` helpers or Symfony String `s()`, `json_decode` → `Brnshkr\Config\Json::decode`, `file_get_contents` → `Filesystem::readFile`. The PHPStan error names the expected replacement; check `Str`/`Json` for an existing helper first.
 - Checked exceptions must be declared (`missingType.checkedException`) — Symfony `Process` alone adds `LogicException`/`RuntimeException` `@throws` to every caller chain.
-- `@internal` symbols are only usable within their root namespace (`InternalUsageRule`); an explicit target (`@internal Vendor\Package`) widens the audience deliberately.
+- `@internal` symbols are only usable at or below their declaring namespace (`InternalUsageRule`); an explicit target (`@internal Vendor\Package`) replaces that subtree, and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package.
 - Rector rewrites on `make rector`: imports FQCNs (no fully-qualified inline names), adds `#[\Override]` to overridden methods, adds `#[\SensitiveParameter]` to secret-named params (`password`, `apiToken`, ...) — generate code that way up front. Full builder behavior in `docs/php/Rector.md`.
 
 ## Composer plugin
@@ -24,7 +24,7 @@ Agent knowledge beyond `docs/php/`.
 - Most rule tests extend `DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase` (dev dep) and call `assertIssuesReported(...$fixturePaths)`; expected errors live as `// ERROR <context>` markers in the fixtures, not as hand-kept `[message, line]` lists, so line numbers never need maintaining. Marker text is the message verbatim by default; override `getErrorFormatter()` to return a `{0}`/`{1}` template (filled from `|`-separated context) or an `ErrorMessageFormatter` subclass for branching messages. One marker per line only — a rule that reports two errors on one line (e.g. `PublicApiDocumentationRule`) keeps PHPStan's raw `RuleTestCase` with an explicit `[message, line]` list.
 - Architecture rules are PHPat-based `*Test` classes under `src/php/PhpStan/Rule/Architecture/<Framework>/`, bundled through the `Architecture` facade factories (`layered`, `ddd`, `symfony`, ...).
 - Constant globs like `Module::NAME_*` match ALL constants with that prefix, array constants included — an array in the glob expands the type to `string|array<...>` and breaks `key-of<>`. Rename the odd constant out of the prefix or use `key-of<self::EXPLICIT_MAP>`.
-- `InternalUsageRule` emits max one violation per statement; pre-order traversal means the deepest accessed symbol wins (`Foo::method()->path` reports the property fetch). Allow-list options accept a plain namespace prefix or a `/regex/`.
+- `InternalUsageRule` emits max one violation per statement; pre-order traversal means the deepest accessed symbol wins (`Foo::method()->path` reports the property fetch). The four allow-list options accept a plain prefix or a delimited regex (any delimiter, recognized by shape); `allowedSymbols` matches the fully-qualified symbol and descends through `::` too. Malformed entries throw at construction.
 - `FileFinder` does NOT respect `.gitignore`; its exclusions are hardcoded — see `docs/php/FileFinder.md`.
 
 ## Tests + snapshots

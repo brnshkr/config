@@ -7,7 +7,7 @@ The custom PHPStan rules ship in two flavors. **Standalone rules** are general-p
 - [`ApiOrInternalTagRule`](./ApiOrInternalTagRule.md) — every symbol must declare `@api` or `@internal`
 - [`NoNamedArgumentsTagRule`](./NoNamedArgumentsTagRule.md) — `@api` symbols must also carry `@no-named-arguments`
 - [`PublicApiDocumentationRule`](./PublicApiDocumentationRule.md) — `@api` symbols must be documented in prose
-- [`InternalUsageRule`](./InternalUsageRule.md) — `@internal` symbols may only be used from their own root namespace
+- [`InternalUsageRule`](./InternalUsageRule.md) — `@internal` symbols may only be used from their own declaring namespace or below
 - [`BoolishPrefixRule`](./BoolishPrefixRule.md) — boolean symbols must use a boolish prefix
 - [`InterfaceSuffixRule`](./InterfaceSuffixRule.md) — single-interface implementers must carry the matching suffix
 

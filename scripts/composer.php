@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+namespace Brnshkr\Config\Composer;
+
 use Brnshkr\Config\Composer\Command\CommandProvider;
 use Composer\Console\Application;
 
