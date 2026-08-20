@@ -143,8 +143,11 @@ final readonly class Str
 
     public static function afterLast(string $haystack, string $needle): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (See ->), symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
-        return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $position = mb_strrpos($haystack, $needle);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return $position === false ? $haystack : mb_substr($haystack, $position + self::length($needle));
     }
 
     public static function trimSuffix(string $haystack, string $suffix): string
