@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config;
 
 use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;

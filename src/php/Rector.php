@@ -179,12 +179,6 @@ final readonly class Rector
                 symfonyCodeQuality: true,
                 symfonyConfigs: true,
             )
-            ->withImportNames(
-                importNames: false,
-                importDocBlockNames: false,
-                importShortClasses: false,
-                removeUnusedImports: true,
-            )
             ->withSkip([
                 LocallyCalledStaticMethodToNonStaticRector::class,
                 NewlineBeforeNewAssignSetRector::class,
