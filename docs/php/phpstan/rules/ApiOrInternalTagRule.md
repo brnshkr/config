@@ -6,6 +6,13 @@ Every class, interface, trait, enum, top-level function, and global constant mus
 // ❌ Bad — no visibility tag
 final class UserService {}
 
+// ❌ Bad — declares two visibilities at once
+/**
+ * @api
+ * @internal
+ */
+final class UserService {}
+
 // ✅ Good — '@api' marks the symbol as part of the public surface
 /**
  * @api

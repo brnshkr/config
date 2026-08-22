@@ -139,10 +139,15 @@ trait RuleTrait
     private static function getVisibilityTag(?Doc $doc): ?string
     {
         return match (true) {
-            self::hasTag($doc, self::TAG_API)      => self::TAG_API,
             self::hasTag($doc, self::TAG_INTERNAL) => self::TAG_INTERNAL,
+            self::hasTag($doc, self::TAG_API)      => self::TAG_API,
             default                                => null,
         };
+    }
+
+    private static function hasConflictingVisibilityTags(?Doc $doc): bool
+    {
+        return self::hasTag($doc, self::TAG_API) && self::hasTag($doc, self::TAG_INTERNAL);
     }
 
     /**

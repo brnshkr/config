@@ -12,6 +12,7 @@ use PhpParser\Node\Const_ as ConstNode;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Const_ as ConstStmt;
 use PhpParser\Node\Stmt\Function_;
+use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
@@ -62,11 +63,12 @@ final readonly class ApiOrInternalTagRule implements Rule
 
         return array_values(array_filter(
             match (true) {
-                $node instanceof ClassLike => [self::processClassLike($node, $fileDoc)],
-                $node instanceof Function_ => [self::processFunction($node, $fileDoc)],
-                $node instanceof ConstStmt => self::processGlobalConst($node, $fileDoc),
-                $node instanceof Return_   => [self::processFileLevelReturn($node, $scope, $fileDoc)],
-                default                    => [],
+                $node instanceof ClassLike  => [self::processClassLike($node, $fileDoc)],
+                $node instanceof Function_  => [self::processFunction($node, $fileDoc)],
+                $node instanceof ConstStmt  => self::processGlobalConst($node, $fileDoc),
+                $node instanceof Return_    => [self::processFileLevelReturn($node, $scope, $fileDoc)],
+                $node instanceof Namespace_ => [self::processFileDoc($node, $fileDoc)],
+                default                     => [],
             },
             static fn (?IdentifierRuleError $identifierRuleError): bool => $identifierRuleError instanceof IdentifierRuleError,
         ));
@@ -83,12 +85,16 @@ final readonly class ApiOrInternalTagRule implements Rule
             return null;
         }
 
+        if (self::hasConflictingVisibilityTags($return->getDocComment())) {
+            return self::buildConflictError('Top-level `return`', $return->getStartLine());
+        }
+
         if (self::getEffectiveVisibilityTag($return->getDocComment(), $fileDoc) !== null) {
             return null;
         }
 
         return self::buildRuleError(
-            'Top-level `return` must be annotated with either @internal or @api (either on the `return` statement or on the file).',
+            'Top-level `return` must carry either `@api` or `@internal` (either on the `return` statement or on the file).',
             $return->getStartLine(),
         );
     }
@@ -96,9 +102,31 @@ final readonly class ApiOrInternalTagRule implements Rule
     /**
      * @throws RuntimeException
      */
+    private static function processFileDoc(Namespace_ $namespace, ?Doc $fileDoc): ?IdentifierRuleError
+    {
+        return self::hasConflictingVisibilityTags($fileDoc)
+            ? self::buildConflictError('File-level docblock', $namespace->getStartLine())
+            : null;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
     private static function processClassLike(ClassLike $classLike, ?Doc $fileDoc): ?IdentifierRuleError
     {
-        if (self::isAnonymousClass($classLike) || self::getEffectiveVisibilityTag($classLike->getDocComment(), $fileDoc) !== null) {
+        if (self::isAnonymousClass($classLike)) {
+            return null;
+        }
+
+        if (self::hasConflictingVisibilityTags($classLike->getDocComment())) {
+            return self::buildConflictError(sprintf(
+                '%s `%s`',
+                self::getKindForClassLike($classLike),
+                self::getClassLikeName($classLike),
+            ), $classLike->getStartLine());
+        }
+
+        if (self::getEffectiveVisibilityTag($classLike->getDocComment(), $fileDoc) !== null) {
             return null;
         }
 
@@ -114,6 +142,14 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processFunction(Function_ $function, ?Doc $fileDoc): ?IdentifierRuleError
     {
+        if (self::hasConflictingVisibilityTags($function->getDocComment())) {
+            return self::buildConflictError(sprintf(
+                '%s `%s`',
+                self::KIND_FUNCTION,
+                $function->name->toString(),
+            ), $function->getStartLine());
+        }
+
         return self::getEffectiveVisibilityTag($function->getDocComment(), $fileDoc) !== null
             ? null
             : self::buildError(self::KIND_FUNCTION, $function->name->toString(), $function->getStartLine());
@@ -126,6 +162,16 @@ final readonly class ApiOrInternalTagRule implements Rule
      */
     private static function processGlobalConst(ConstStmt $constStmt, ?Doc $fileDoc): array
     {
+        if (self::hasConflictingVisibilityTags($constStmt->getDocComment())) {
+            return array_values(array_map(
+                static fn (ConstNode $constNode): IdentifierRuleError => self::buildConflictError(
+                    sprintf('%s `%s`', self::KIND_CONSTANT, $constNode->name->toString()),
+                    $constNode->getStartLine(),
+                ),
+                $constStmt->consts,
+            ));
+        }
+
         if (self::getEffectiveVisibilityTag($constStmt->getDocComment(), $fileDoc) !== null) {
             return [];
         }
@@ -141,6 +187,17 @@ final readonly class ApiOrInternalTagRule implements Rule
     }
 
     /**
+     * @throws RuntimeException
+     */
+    private static function buildConflictError(string $subject, int $line): IdentifierRuleError
+    {
+        return self::buildRuleError(sprintf(
+            '%s must carry exactly one visibility tag, but has both `@api` and `@internal`.',
+            $subject,
+        ), $line);
+    }
+
+    /**
      * @param self::KIND_* $kind
      *
      * @throws RuntimeException
@@ -148,7 +205,7 @@ final readonly class ApiOrInternalTagRule implements Rule
     private static function buildError(string $kind, string $name, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
-            '%s `%s` must be annotated with either @internal or @api.',
+            '%s `%s` must carry either `@api` or `@internal`.',
             $kind,
             $name,
         ), $line);

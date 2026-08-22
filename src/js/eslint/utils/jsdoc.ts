@@ -79,24 +79,27 @@ export const getVisibilityTag = (comment: Maybe<string>): Maybe<VisibilityTag> =
   return undefined;
 };
 
+export const hasConflictingVisibilityTags = (comment: Maybe<string>): boolean => hasTag(comment, TAG_API)
+  && hasTag(comment, TAG_INTERNAL);
+
 export const hasFileDescription = (text: Maybe<string>): boolean => text !== undefined
   && (hasDescription(text)
     || hasProseAfter(/@(?:file|fileoverview)\s+(?<prose>\S[^\n]*)/v, text));
 
-export const getFileLevelBlockComment = (sourceCode: TSESLint.SourceCode): Maybe<string> => {
+export const findFileLevelComment = (sourceCode: TSESLint.SourceCode): Maybe<TSESTree.Comment> => {
   for (const comment of sourceCode.getAllComments()) {
-    if (!isBlockComment(comment)) {
-      continue;
-    }
-
-    const text = `/*${comment.value}*/`;
-
-    if (hasAnyTag(text, ['file', 'fileoverview'])) {
-      return text;
+    if (isBlockComment(comment) && hasAnyTag(`/*${comment.value}*/`, ['file', 'fileoverview'])) {
+      return comment;
     }
   }
 
   return undefined;
+};
+
+export const getFileLevelBlockComment = (sourceCode: TSESLint.SourceCode): Maybe<string> => {
+  const comment = findFileLevelComment(sourceCode);
+
+  return comment === undefined ? undefined : `/*${comment.value}*/`;
 };
 
 export const getEffectiveVisibilityTag = (

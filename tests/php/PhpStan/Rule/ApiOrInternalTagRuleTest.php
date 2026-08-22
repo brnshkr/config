@@ -39,6 +39,8 @@ final class ApiOrInternalTagRuleTest extends AbstractRuleTestCase
             __DIR__ . '/../../Fixtures/PhpStan/Rule/ApiOrInternalTag/FileLevelApi.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/ApiOrInternalTag/FileLevelInternal.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/ApiOrInternalTag/BareReturn.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/ApiOrInternalTag/Conflicts.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/ApiOrInternalTag/FileLevelConflict.php',
         );
     }
 
@@ -51,9 +53,16 @@ final class ApiOrInternalTagRuleTest extends AbstractRuleTestCase
             {
                 $parts = explode('|', $errorContext);
 
+                if ($parts[0] === 'conflict') {
+                    return sprintf(
+                        '%s must carry exactly one visibility tag, but has both `@api` and `@internal`.',
+                        $parts[1] ?? '',
+                    );
+                }
+
                 return count($parts) === 2
-                    ? sprintf('%s `%s` must be annotated with either @internal or @api.', $parts[0], $parts[1])
-                    : 'Top-level `return` must be annotated with either @internal or @api (either on the `return` statement or on the file).';
+                    ? sprintf('%s `%s` must carry either `@api` or `@internal`.', $parts[0], $parts[1])
+                    : 'Top-level `return` must carry either `@api` or `@internal` (either on the `return` statement or on the file).';
             }
         };
     }

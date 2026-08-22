@@ -36,7 +36,6 @@ A `@file` block at the top of the module carrying `@api` or `@internal` sets the
 export class UserService {}
 ```
 
-
 ## Options
 
 The rule shares its options with [`brnshkr/public-api-documentation`](./public-api-documentation.md); both resolve the public-API file set the same way.
