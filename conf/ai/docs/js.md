@@ -13,6 +13,7 @@ Agent knowledge beyond `docs/js/`.
 
 ## Lint infra
 
+- `make clean` removes `.cache` wholesale, the ESLint cache included, so the next lint runs cold. Remove the one cache you mean to remove.
 - This repo lints itself through scripts named after the tools: `bun eslint`/`bun stylelint` → `scripts/{eslint,stylelint}.ts` (apply `conf/*.config.ts`), `bun typescript` → `tsc --noEmit`. The script name wins over the same-named binary; to hit the raw binary use `bun --bun x eslint --config conf/eslint.config.ts`.
 
 ## Typegen

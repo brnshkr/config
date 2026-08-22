@@ -7,6 +7,7 @@ import { resolveTsConfigPath } from '../../utils/tsconfig';
 import { apiOrInternalTagRule } from './api-or-internal-tag';
 import { boolishPrefixRule } from './boolish-prefix';
 import { interfaceSuffixRule } from './interface-suffix';
+import { internalUsageRule } from './internal-usage';
 import { publicApiDocumentationRule } from './public-api-documentation';
 import { requireImportAliasRule } from './require-import-alias';
 import { requireImportAttributesRule } from './require-import-attributes';
@@ -25,41 +26,49 @@ export const RULE_DEFINITIONS = <const>{
   'api-or-internal-tag': apiOrInternalTagRule,
   'boolish-prefix': boolishPrefixRule,
   'interface-suffix': interfaceSuffixRule,
+  'internal-usage': internalUsageRule,
   'public-api-documentation': publicApiDocumentationRule,
   'require-import-attributes': requireImportAttributesRule,
   'require-import-alias': requireImportAliasRule,
   'resolvable-doc-reference': resolvableDocReferenceRule,
 } satisfies Record<string, RuleDefinition>;
 
-const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => [
-  {
-    name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.SETUP),
-    plugins: {
-      [packageOrganization]: {
-        meta: {
-          name: packageOrganization,
-          version: packageVersion,
+const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
+  const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined);
+
+  return [
+    {
+      name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.SETUP),
+      plugins: {
+        [packageOrganization]: {
+          meta: {
+            name: packageOrganization,
+            version: packageVersion,
+          },
+          rules: RULE_DEFINITIONS,
         },
-        rules: RULE_DEFINITIONS,
       },
     },
-  },
-  {
-    name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.RULES),
-    files: GLOB_SCRIPT_FILES,
-    rules: {
-      [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
-      [<const>`${packageOrganization}/boolish-prefix`]: 'error',
-      [<const>`${packageOrganization}/interface-suffix`]: 'error',
-      [<const>`${packageOrganization}/public-api-documentation`]: 'error',
-      [<const>`${packageOrganization}/require-import-alias`]: ['error', {
-        tsConfigPath: resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined),
-      }],
-      [<const>`${packageOrganization}/require-import-attributes`]: 'error',
-      [<const>`${packageOrganization}/resolvable-doc-reference`]: 'error',
-    } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,
-  },
-];
+    {
+      name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.RULES),
+      files: GLOB_SCRIPT_FILES,
+      rules: {
+        [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
+        [<const>`${packageOrganization}/boolish-prefix`]: 'error',
+        [<const>`${packageOrganization}/interface-suffix`]: 'error',
+        [<const>`${packageOrganization}/internal-usage`]: ['error', {
+          tsConfigPath,
+        }],
+        [<const>`${packageOrganization}/public-api-documentation`]: 'error',
+        [<const>`${packageOrganization}/require-import-alias`]: ['error', {
+          tsConfigPath,
+        }],
+        [<const>`${packageOrganization}/require-import-attributes`]: 'error',
+        [<const>`${packageOrganization}/resolvable-doc-reference`]: 'error',
+      } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,
+    },
+  ];
+};
 
 export const builtinConfig = {
   [packageOrganization]: builtin,

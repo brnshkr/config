@@ -1,3 +1,4 @@
+import { packageOrganization } from '../../shared/utils/package-json';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 
@@ -113,6 +114,25 @@ const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
 
 const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
   ? [
+    ...(isModuleEnabled(MODULES[packageOrganization])
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/internal-tag`),
+        files: GLOB_SCRIPT_FILES,
+        settings: {
+          jsdoc: {
+            structuredTags: {
+              internal: {
+                name: 'text',
+                type: false,
+              },
+            },
+          },
+        },
+        rules: {
+          'jsdoc/empty-tags': 'off',
+        },
+      } satisfies Config]
+      : []),
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/${SUB_SCOPES.EXAMPLES}`),
       files: [GLOB_EXAMPLES],

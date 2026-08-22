@@ -1,6 +1,6 @@
 # 🧩 Custom ESLint Rules
 
-All rules ship in the `brnshkr` plugin and are enabled by the default configuration. **Import hygiene**, **naming** and **documentation** rules apply everywhere; **public-API** rules only run on the source files a package re-exports through its `package.json#exports`.
+All rules ship in the `brnshkr` plugin and are enabled by the default configuration. **Import hygiene**, **naming**, **encapsulation** and **documentation** rules apply everywhere; **public-API** rules only run on the source files a package re-exports through its `package.json#exports`.
 
 ## Import Hygiene
 
@@ -11,6 +11,10 @@ All rules ship in the `brnshkr` plugin and are enabled by the default configurat
 
 - [`brnshkr/boolish-prefix`](./boolish-prefix.md) — boolean symbols must carry a boolish name prefix, and non-boolean symbols must avoid one
 - [`brnshkr/interface-suffix`](./interface-suffix.md) — a class implementing a single `*Interface` must end with the matching prefix
+
+## Encapsulation
+
+- [`brnshkr/internal-usage`](./internal-usage.md) — an `@internal` symbol must not be used from outside the namespace it is internal to
 
 ## Documentation
 

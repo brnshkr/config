@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@user/*": ["./src/*"]
+    },
+    "strict": true
+  }
+}

@@ -26,6 +26,7 @@ export default getConfig({
       assertFunctionNames: [
         'expect',
         'runJsRuleTests',
+        'runRuleTests',
         'runTsRuleTests',
         'runTypeAwareRuleTests',
         'snapshotConfigs',
@@ -48,9 +49,21 @@ export default getConfig({
   },
 }, {
   files: [
+    'src/js/stylelint/utils/config.ts',
+  ],
+  rules: {
+    [<const>`${packageOrganization}/internal-usage`]: ['error', {
+      allowedSymbols: [
+        'stylelint/types/stylelint/index#stylelint.Config.computeEditInfo',
+      ],
+    }],
+  },
+}, {
+  files: [
     '**/tests/**/fixtures/**',
   ],
   rules: {
+    'func-style': 'off',
     'import/unambiguous': 'off',
     'unicorn/no-empty-file': 'off',
     'yaml/file-extension': 'off',

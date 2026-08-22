@@ -36,7 +36,10 @@ export const tsRuleTester = new RuleTester({
   },
 });
 
-export const typeAwareRuleTester = new RuleTester({
+export const createTypeAwareRuleTester = (
+  fixtureRoot: string,
+  allowedDefaultProjectPaths: string[] = ['*.ts'],
+): RuleTester => new RuleTester({
   ...COMMON_OPTIONS,
   languageOptions: {
     ...COMMON_OPTIONS.languageOptions,
@@ -44,12 +47,14 @@ export const typeAwareRuleTester = new RuleTester({
     parserOptions: {
       ...COMMON_OPTIONS.languageOptions.parserOptions,
       projectService: {
-        allowDefaultProject: ['*.ts'],
+        allowDefaultProject: allowedDefaultProjectPaths,
       },
-      tsconfigRootDir: TYPE_AWARE_FIXTURE_ROOT,
+      tsconfigRootDir: fixtureRoot,
     },
   },
 });
+
+export const typeAwareRuleTester = createTypeAwareRuleTester(TYPE_AWARE_FIXTURE_ROOT);
 
 export interface RuleCaseOptions {
   filename?: string;
@@ -101,14 +106,18 @@ const getRuleName = (rule: RuleDefinition): string => {
   return name;
 };
 
+export const runRuleTests = (ruleTester: RuleTester, rule: RuleDefinition, tests: RuleTests): void => {
+  ruleTester.run(getRuleName(rule), rule, tests);
+};
+
 export const runJsRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
-  jsRuleTester.run(getRuleName(rule), rule, tests);
+  runRuleTests(jsRuleTester, rule, tests);
 };
 
 export const runTsRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
-  tsRuleTester.run(getRuleName(rule), rule, tests);
+  runRuleTests(tsRuleTester, rule, tests);
 };
 
 export const runTypeAwareRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
-  typeAwareRuleTester.run(getRuleName(rule), rule, tests);
+  runRuleTests(typeAwareRuleTester, rule, tests);
 };

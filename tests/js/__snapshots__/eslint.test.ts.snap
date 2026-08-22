@@ -1344,6 +1344,12 @@ exports[`expected eslint config > base: 1.js 1`] = `
     "brnshkr/interface-suffix": [
       2,
     ],
+    "brnshkr/internal-usage": [
+      2,
+      {
+        "tsConfigPath": "./tsconfig.json",
+      },
+    ],
     "brnshkr/public-api-documentation": [
       2,
     ],
