@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Mate\Support;
 
-use Brnshkr\Config\Str;
 use Symfony\AI\Mate\Encoding\ResponseEncoder;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
@@ -57,19 +56,24 @@ final class Project
 
         $process->run();
 
-        $output = Str::trim($process->getOutput() . "\n" . $process->getErrorOutput());
+        $output = s($process->getOutput() . "\n" . $process->getErrorOutput())
+            ->replaceMatches('/\x1B\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]/', '')
+            ->replaceMatches('/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\\)/', '')
+            ->replaceMatches('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '')
+            ->trim()
+        ;
 
-        if (Str::length($output) > self::MAX_OUTPUT_LENGTH) {
-            $output = sprintf(
+        if ($output->length() > self::MAX_OUTPUT_LENGTH) {
+            $output = s(sprintf(
                 "[... %d characters truncated ...]\n%s",
-                Str::length($output) - self::MAX_OUTPUT_LENGTH,
-                s($output)->slice(-self::MAX_OUTPUT_LENGTH)->toString(),
-            );
+                $output->length() - self::MAX_OUTPUT_LENGTH,
+                $output->slice(-self::MAX_OUTPUT_LENGTH)->toString(),
+            ));
         }
 
         return [
             'exitCode' => $process->getExitCode() ?? -1,
-            'output'   => $output,
+            'output'   => $output->toString(),
         ];
     }
 }

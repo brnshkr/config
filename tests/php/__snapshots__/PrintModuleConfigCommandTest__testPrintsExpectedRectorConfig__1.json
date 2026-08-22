@@ -109,6 +109,7 @@
         "./src/php/TwigCsFixer.php",
         "./tests/php/CommandTest.php",
         "./tests/php/MakeHelpTest.php",
+        "./tests/php/Mate/ProjectTest.php",
         "./tests/php/PhpStan/Rule/ApiOrInternalTagRuleTest.php",
         "./tests/php/PhpStan/Rule/BoolishPrefixRuleTest.php",
         "./tests/php/PhpStan/Rule/InterfaceSuffixRuleTest.php",

@@ -6,6 +6,23 @@ interface PhpRegex {
 }
 
 export const createPhpRegexes = (): PhpRegex[] => [
+  /* eslint-disable no-control-regex, regexp/control-character-escape, regexp/no-control-character, unicorn/no-hex-escape -- PCRE spells no `\u{...}` escape and reads `\v` as a character class rather than a vertical tab, and matching control characters is what these three patterns are for */
+  {
+    file: 'conf/ai/mate/src/Support/Project.php',
+    php: String.raw`/\x1B\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]/`,
+    regex: /\x1B\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]/v,
+  },
+  {
+    file: 'conf/ai/mate/src/Support/Project.php',
+    php: String.raw`/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\)/`,
+    regex: /\x1B\][^\x07\x1B]*(?:\x07|\x1B\\)/v,
+  },
+  {
+    file: 'conf/ai/mate/src/Support/Project.php',
+    php: String.raw`/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/`,
+    regex: /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/v,
+  },
+  /* eslint-enable no-control-regex, regexp/control-character-escape, regexp/no-control-character, unicorn/no-hex-escape -- Restore rules */
   {
     file: 'conf/ai/mate/src/Tool/ProjectTool.php',
     php: String.raw`/^VERSION\s*[!+:?]*=\s*(?<version>[^\s#]+)/m`,
