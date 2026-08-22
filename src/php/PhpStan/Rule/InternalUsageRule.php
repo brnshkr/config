@@ -69,7 +69,7 @@ use function sprintf;
  *             'allowedCallingNamespaces'   => ['Acme\Tests'],
  *             'allowedDeclaringNamespaces' => ['/^Acme\\\Shared/'],
  *             'allowedInternalTargets'     => ['/^Acme\\\User$/'],
- *             'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash'],
+ *             'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash()'],
  *         ]),
  *     ])
  * ;
@@ -85,6 +85,7 @@ final class InternalUsageRule implements Rule
 {
     use RuleTrait;
 
+    private const string AT_API      = '@api';
     private const string AT_INTERNAL = '@internal';
 
     /**
@@ -266,7 +267,7 @@ final class InternalUsageRule implements Rule
             $declaringNamespace,
             $callerNamespace,
             self::KIND_FUNCTION,
-            $functionReflection->getName(),
+            $functionReflection->getName() . '()',
             $line,
         );
     }
@@ -322,15 +323,17 @@ final class InternalUsageRule implements Rule
         $methodName               = $staticCall->name->toString();
         $extendedMethodReflection = $classReflection->getMethod($methodName, $scope);
 
-        $internalTarget = self::resolveInternalTarget($extendedMethodReflection->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $extendedMethodReflection->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classReflection->getNativeReflection()->getNamespaceName(),
             $callerNamespace,
             self::KIND_METHOD,
-            $resolvedName . '::' . $methodName,
+            $resolvedName . '::' . $methodName . '()',
             $line,
         );
     }
@@ -353,15 +356,17 @@ final class InternalUsageRule implements Rule
         $classReflection = $method->getDeclaringClass();
         $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
 
-        $internalTarget = self::resolveInternalTarget($method->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $method->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classNamespace,
             $callerNamespace,
             self::KIND_METHOD,
-            $classReflection->getName() . '::' . $method->getName(),
+            $classReflection->getName() . '::' . $method->getName() . '()',
             $line,
         );
     }
@@ -384,8 +389,10 @@ final class InternalUsageRule implements Rule
         $classReflection = $property->getDeclaringClass();
         $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
 
-        $internalTarget = self::resolveInternalTarget($property->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $property->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
@@ -438,8 +445,10 @@ final class InternalUsageRule implements Rule
             return null;
         }
 
-        $internalTarget = self::resolveInternalTarget($classReflection->getConstant($constName)->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $classReflection->getConstant($constName)->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
@@ -462,6 +471,19 @@ final class InternalUsageRule implements Rule
         $target = self::trimBackslashes(Str::trim($matches['target']));
 
         return Str::match($target, '/^[\w\\\]+$/') === [] ? self::AT_INTERNAL : $target;
+    }
+
+    private static function resolveVisibility(string|false|null $docComment): ?string
+    {
+        return self::resolveInternalTarget($docComment)
+            ?? (self::hasTagInText($docComment ?: '', self::TAG_API) ? self::AT_API : null);
+    }
+
+    private static function resolveEffectiveInternalTarget(string|false|null $memberDocComment, string|false|null $containerDocComment): ?string
+    {
+        $visibility = self::resolveVisibility($memberDocComment) ?? self::resolveVisibility($containerDocComment);
+
+        return $visibility === self::AT_API ? null : $visibility;
     }
 
     private static function trimBackslashes(string $namespace): string

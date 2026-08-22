@@ -72,7 +72,7 @@ return PhpStan::getConfig(null, true)
             'allowedCallingNamespaces'   => ['Acme\Tests'],
             'allowedDeclaringNamespaces' => ['/^Acme\\\Shared/'],
             'allowedInternalTargets'     => ['/^Acme\\\User$/'],
-            'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash'],
+            'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash()'],
         ]),
     ])
     ->toArray()

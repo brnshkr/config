@@ -186,7 +186,7 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
      */
     public function testRuleExemptsAllowedSymbolsIncludingTheirMembers(): void
     {
-        $this->allowedSymbols = [InternalClass::class . '::doSomething', InternalClass::class];
+        $this->allowedSymbols = [InternalClass::class . '::doSomething()', InternalClass::class];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
