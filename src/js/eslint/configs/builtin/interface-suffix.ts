@@ -4,7 +4,7 @@ import type { RuleDefinition } from '.';
 export const MESSAGE_ID_MISSING_SUFFIX = 'missingSuffix';
 export const INTERFACE_SUFFIX = 'Interface';
 
-/* eslint-disable ts/no-unsafe-enum-comparison -- Usage of strings is desired here to not have an explicit dependency on typescript-eslint */
+/* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum throughout this module */
 const getImplementedName = (expression: TSESTree.Expression): string => {
   if (expression.type === 'Identifier') {
     return expression.name;

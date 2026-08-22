@@ -64,7 +64,7 @@ export const requireImportAttributesRule = <const>{
         return;
       }
 
-      /* eslint-disable ts/no-unsafe-enum-comparison -- Usage of strings is desired here to not have an explicit dependency on typescript-eslint */
+      /* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum */
       const typeProperty = attributes.find(
         (attribute) => (
           attribute.key.type === 'Identifier'
