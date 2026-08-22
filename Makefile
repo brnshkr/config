@@ -26,7 +26,7 @@ SEMVER_REGEX := (0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+
 
 PHP_UNIT        := $(PWD)/vendor/bin/pest
 PHP_UNIT_CONFIG := $(PWD)/conf/phpunit.dist.xml
-PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug)
+PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug) $(if $(NO_ANSI),--colors=never)
 
 #--- mate
 

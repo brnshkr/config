@@ -39,6 +39,7 @@ final class MakeHelpTest extends TestCase
      * scenario-specific overrides on top via `runMakeHelp(env: [...])`.
      */
     private const array BASELINE_ENV = [
+        'MAKEFLAGS'         => '',
         'NO_ANSI'           => '1',
         'WSL_DISTRO_NAME'   => '',
         'TERM_PROGRAM'      => '',

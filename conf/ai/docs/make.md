@@ -18,7 +18,7 @@ Agent knowledge beyond `docs/php/Makefile.md` (downstream usage) and the `conf/M
 - Runs `make help --no-print-directory` via Process against `tests/php/Fixtures/Make/`, `NO_ANSI=1`, snapshots to `__snapshots__/MakeHelpTest__testHelpOutput__1.txt`.
 - Path normalization replaces ONLY the repo root (→ `.`) — also replacing the fixture dir would collapse distinct paths.
 - `renderDeduplicatedScenarios()` hashes scenario outputs, emits each unique once with `(also: alias...)` header.
-- Process env is sanitized (`WSL_DISTRO_NAME`, `TERM_PROGRAM`, `TERMINAL_EMULATOR`, `EDITOR` emptied) for determinism. The fixture dir comes from `-C`, not from a `PWD` env entry — `PWD := $(CURDIR)` ignores the env.
+- Process env is sanitized (`MAKEFLAGS` cleared, `WSL_DISTRO_NAME`, `TERM_PROGRAM`, `TERMINAL_EMULATOR`, `EDITOR` emptied) for determinism. Clearing `MAKEFLAGS` matters because a command-line variable of an outer `make` travels in it and overrides the scenario env. The fixture dir comes from `-C`, not from a `PWD` env entry — `PWD := $(CURDIR)` ignores the env.
 - The fixture Makefile is the canonical feature surface (scope depths, verbosity gates, var operators, skipped `_private`/`.dot` symbols, condition blocks, define-doc variants) — new help features need a representative fixture entry.
 - Fixture naming: `<dir>-<file-type>-command`; no abbreviations (`command`, not `cmd`); visibility prose `shown at verbosity >= N`.
 - Run: `make test -- --filter MakeHelpTest`; regen: `make test-update -- --filter MakeHelpTest`.
