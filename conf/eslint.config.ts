@@ -92,12 +92,21 @@ export default getConfig({
   },
 }, {
   files: [
+    'src/js/eslint/configs/builtin/resolvable-doc-reference.ts',
+    'tests/js/eslint-rules/resolvable-doc-reference.test.ts',
+  ],
+  rules: {
+    'unicorn/prevent-abbreviations': 'off',
+  },
+}, {
+  files: [
     'docs/**/*.md/**',
   ],
   rules: {
     [<const>`${packageOrganization}/boolish-prefix`]: 'off',
     [<const>`${packageOrganization}/interface-suffix`]: 'off',
     [<const>`${packageOrganization}/require-import-attributes`]: 'off',
+    [<const>`${packageOrganization}/resolvable-doc-reference`]: 'off',
     'class-methods-use-this': 'off',
     'max-classes-per-file': 'off',
     'import/export': 'off',
@@ -113,5 +122,6 @@ export default getConfig({
     'ts/no-empty-function': 'off',
     'ts/no-empty-object-type': 'off',
     'ts/no-extraneous-class': 'off',
+    'unicorn/prevent-abbreviations': 'off',
   },
 });

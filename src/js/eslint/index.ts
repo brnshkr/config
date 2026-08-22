@@ -29,7 +29,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * `ignores`, `languageOptions`, etc.) merged with the defaults
  * @param additionalConfigs extra flat-config entries appended after the built-in ones
  *
- * @returns configured `FlatConfigComposer` that resolves to the final flat-config array
+ * @returns configured {@link FlatConfigComposer} that resolves to the final flat-config array
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/index.md
  *

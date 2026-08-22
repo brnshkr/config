@@ -13,7 +13,7 @@ const hasProseAfter = (pattern: RegExp, comment: string): boolean => {
   return typeof prose === 'string' && /[A-Za-z]/v.test(prose);
 };
 
-const isBlockComment = (
+export const isBlockComment = (
   comment: Maybe<TSESTree.Comment>,
 // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
 ): comment is TSESTree.Comment => comment?.type === 'Block' && comment.value.startsWith('*');

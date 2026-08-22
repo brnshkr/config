@@ -10,6 +10,8 @@ import { interfaceSuffixRule } from './interface-suffix';
 import { publicApiDocumentationRule } from './public-api-documentation';
 import { requireImportAliasRule } from './require-import-alias';
 import { requireImportAttributesRule } from './require-import-attributes';
+// eslint-disable-next-line unicorn/prevent-abbreviations -- Mirrors the rule id, which pairs with the PHP `ResolvableDocReferenceRule`
+import { resolvableDocReferenceRule } from './resolvable-doc-reference';
 
 import type { ESLint } from 'eslint';
 import type { Config } from '../../types/config';
@@ -26,6 +28,7 @@ export const RULE_DEFINITIONS = <const>{
   'public-api-documentation': publicApiDocumentationRule,
   'require-import-attributes': requireImportAttributesRule,
   'require-import-alias': requireImportAliasRule,
+  'resolvable-doc-reference': resolvableDocReferenceRule,
 } satisfies Record<string, RuleDefinition>;
 
 const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => [
@@ -53,6 +56,7 @@ const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Conf
         tsConfigPath: resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined),
       }],
       [<const>`${packageOrganization}/require-import-attributes`]: 'error',
+      [<const>`${packageOrganization}/resolvable-doc-reference`]: 'error',
     } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,
   },
 ];

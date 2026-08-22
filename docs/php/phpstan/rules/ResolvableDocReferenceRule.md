@@ -36,3 +36,5 @@ A URI must be complete. `@link` takes one and nothing else, `@see` takes one alo
 ## Free text
 
 A target ends at the first space, so the rest is a description. A block `@see` may carry free text, which is why a lowercase target under it is left alone; an inline `{@see …}` names a symbol and is checked whatever its case.
+
+The JavaScript counterpart is [`brnshkr/resolvable-doc-reference`](../../../js/eslint/rules/resolvable-doc-reference.md).
