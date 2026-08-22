@@ -30,8 +30,8 @@ export const regexp = async (): Promise<Config[]> => {
         'regexp/grapheme-string-literal': 'error',
         'regexp/letter-case': ['error', {
           caseInsensitive: 'lowercase',
-          unicodeEscape: 'lowercase',
-          hexadecimalEscape: 'lowercase',
+          unicodeEscape: 'uppercase',
+          hexadecimalEscape: 'uppercase',
           controlEscape: 'uppercase',
         }],
         'regexp/no-control-character': 'error',

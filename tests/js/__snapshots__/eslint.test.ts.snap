@@ -3034,8 +3034,8 @@ exports[`expected eslint config > base: 1.js 1`] = `
       {
         "caseInsensitive": "lowercase",
         "controlEscape": "uppercase",
-        "hexadecimalEscape": "lowercase",
-        "unicodeEscape": "lowercase",
+        "hexadecimalEscape": "uppercase",
+        "unicodeEscape": "uppercase",
       },
     ],
     "regexp/match-any": [
