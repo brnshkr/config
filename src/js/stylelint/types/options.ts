@@ -96,7 +96,10 @@ export interface ConfigOptions {
   style: boolean;
 }
 
-export type ResolvedOptions = ConfigOptions & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
-export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
+export type ResolvedOptions = ConfigOptions
+  & Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>;
+
+export type UserOptions = Partial<ConfigOptions>
+  & Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>;
 
 /* eslint-enable brnshkr/boolish-prefix -- Restore rule */

@@ -49,17 +49,6 @@ export default getConfig({
   },
 }, {
   files: [
-    'src/js/stylelint/utils/config.ts',
-  ],
-  rules: {
-    [<const>`${packageOrganization}/internal-usage`]: ['error', {
-      allowedSymbols: [
-        'stylelint/types/stylelint/index#stylelint.Config.computeEditInfo',
-      ],
-    }],
-  },
-}, {
-  files: [
     '**/tests/**/fixtures/**',
   ],
   rules: {

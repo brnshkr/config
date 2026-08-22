@@ -14,7 +14,7 @@ export const buildOverrideName = (
 
 const isValidGlobalAdditionalConfigKey = (
   key: string,
-): key is keyof Omit<Config, 'ignorePatterns' | '_processorFunctions'> => (<const>[
+): key is keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'> => (<const>[
   'extends',
   'plugins',
   'ignoreFiles',
@@ -35,9 +35,8 @@ const isValidGlobalAdditionalConfigKey = (
   'allowEmptyInput',
   'cache',
   'fix',
-  'computeEditInfo',
   'validate',
-] satisfies (keyof Omit<Config, 'ignorePatterns' | '_processorFunctions'>)[]).includes(key);
+] satisfies (keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>)[]).includes(key);
 
 const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
   const config: Config = {};
@@ -200,10 +199,6 @@ export const includeConfigs = (config: Config, configsToInclude: Config[]): void
 
     if (configToInclude.fix !== undefined) {
       config.fix = configToInclude.fix;
-    }
-
-    if (configToInclude.computeEditInfo !== undefined) {
-      config.computeEditInfo = configToInclude.computeEditInfo;
     }
 
     if (configToInclude.validate !== undefined) {
