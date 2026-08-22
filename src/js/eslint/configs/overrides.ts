@@ -16,10 +16,13 @@ import {
 } from '../utils/globs';
 
 import { isModuleEnabled, MODULES } from '../utils/module';
+import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
 
+import { DEFAULT_TYPE_AWARE_IGNORES } from './typescript';
 import { FILE_NAMES_TO_IGNORE } from './unicorn';
 
 import type { Config } from '../types/config';
+import type { TypescriptOptions } from '../types/options';
 
 const jsOverrides: Config[] = [
   {
@@ -81,6 +84,44 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
     },
   ]
   : [];
+
+const importOverrides: Config[] = (isModuleEnabled(MODULES.import) && isModuleEnabled(MODULES.typescript))
+  ? [
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.IMPORT}/${MAIN_SCOPES.TYPESCRIPT}`),
+      files: [GLOB_TS],
+      rules: {
+        'import/default': 'off',
+        'import/named': 'off',
+        'import/no-named-as-default-member': 'off',
+        'import/no-unresolved': 'off',
+      },
+    },
+  ]
+  : [];
+
+const buildTypeAwareImportOverrides = (
+  typescriptOptions?: boolean | Partial<TypescriptOptions>,
+): Config[] => {
+  const resolvedOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
+
+  const hasTypeAwareLinting = isModuleEnabled(MODULES.import)
+    && isModuleEnabled(MODULES.typescript)
+    && (resolvedOptions?.typeAware ?? doesTsConfigExist(resolveTsConfigPath(resolvedOptions))) !== false;
+
+  return hasTypeAwareLinting
+    ? [
+      {
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.IMPORT}/type-aware`),
+        files: [GLOB_TS],
+        ignores: DEFAULT_TYPE_AWARE_IGNORES,
+        rules: {
+          'import/no-deprecated': 'off',
+        },
+      },
+    ]
+    : [];
+};
 
 const testOverrides: Config[] = isModuleEnabled(MODULES.test)
   ? [
@@ -227,9 +268,11 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
   ]
   : [];
 
-export const overrides = (): Config[] => [
+export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => [
   ...jsOverrides,
   ...tsOverrides,
+  ...importOverrides,
+  ...buildTypeAwareImportOverrides(typescriptOptions),
   ...testOverrides,
   ...unicornOverrides,
   ...jsdocOverrides,

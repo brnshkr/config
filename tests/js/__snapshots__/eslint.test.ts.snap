@@ -1463,7 +1463,7 @@ exports[`expected eslint config > base: 1.js 1`] = `
       {},
     ],
     "func-style": [
-      2,
+      0,
       "expression",
       {
         "allowArrowFunctions": false,
@@ -1517,10 +1517,10 @@ exports[`expected eslint config > base: 1.js 1`] = `
       },
     ],
     "import/named": [
-      0,
+      2,
     ],
     "import/namespace": [
-      2,
+      0,
     ],
     "import/newline-after-import": [
       2,
@@ -1707,7 +1707,7 @@ exports[`expected eslint config > base: 1.js 1`] = `
       },
     ],
     "jsdoc/empty-tags": [
-      2,
+      0,
     ],
     "jsdoc/escape-inline-tags": [
       2,
@@ -4110,6 +4110,7 @@ exports[`expected eslint config > base: 1.js 1`] = `
         "assertFunctionNames": [
           "expect",
           "runJsRuleTests",
+          "runRuleTests",
           "runTsRuleTests",
           "runTypeAwareRuleTests",
           "snapshotConfigs",
@@ -5287,6 +5288,12 @@ exports[`expected eslint config > base: 1.js 1`] = `
     ],
     "jsdoc": {
       "mode": "typescript",
+      "structuredTags": {
+        "internal": {
+          "name": "text",
+          "type": false,
+        },
+      },
     },
     "n": {
       "version": "24.3.0",
@@ -5412,6 +5419,22 @@ exports[`expected eslint config > diff: 4.ts 1`] = `
       ],
     },
     "changedValues": {
+      "import/default": [
+        0,
+      ],
+      "import/named": [
+        0,
+      ],
+      "import/no-deprecated": [
+        0,
+      ],
+      "import/no-unresolved": [
+        0,
+        {
+          "caseSensitive": true,
+          "commonjs": true,
+        },
+      ],
       "jsdoc/check-tag-names": [
         2,
         {
@@ -5470,6 +5493,15 @@ exports[`expected eslint config > diff: 7.d.ts 1`] = `
       "comments/no-unlimited-disable": [
         0,
       ],
+      "import/default": [
+        0,
+      ],
+      "import/named": [
+        0,
+      ],
+      "import/no-deprecated": [
+        0,
+      ],
       "import/no-extraneous-dependencies": [
         0,
         {
@@ -5482,6 +5514,13 @@ exports[`expected eslint config > diff: 7.d.ts 1`] = `
       ],
       "import/no-named-as-default": [
         0,
+      ],
+      "import/no-unresolved": [
+        0,
+        {
+          "caseSensitive": true,
+          "commonjs": true,
+        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -5914,7 +5953,6 @@ exports[`expected eslint config > diff: 12.svelte 1`] = `
       "jsdoc/check-types",
       "jsdoc/check-values",
       "jsdoc/convert-to-jsdoc-comments",
-      "jsdoc/empty-tags",
       "jsdoc/escape-inline-tags",
       "jsdoc/implements-on-classes",
       "jsdoc/imports-as-dependencies",
@@ -6615,6 +6653,22 @@ exports[`expected eslint config > diff: 14.svelte.ts 1`] = `
       ],
     },
     "changedValues": {
+      "import/default": [
+        0,
+      ],
+      "import/named": [
+        0,
+      ],
+      "import/no-deprecated": [
+        0,
+      ],
+      "import/no-unresolved": [
+        0,
+        {
+          "caseSensitive": true,
+          "commonjs": true,
+        },
+      ],
       "jsdoc/check-tag-names": [
         2,
         {
@@ -6979,7 +7033,6 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -7304,6 +7357,7 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -7668,6 +7722,15 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -7939,7 +8002,6 @@ exports[`expected eslint config > diff: 16.jsonc 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -8264,6 +8326,7 @@ exports[`expected eslint config > diff: 16.jsonc 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -8628,6 +8691,15 @@ exports[`expected eslint config > diff: 16.jsonc 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -8875,7 +8947,6 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -9200,6 +9271,7 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -9564,6 +9636,15 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -9770,7 +9851,6 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -10097,6 +10177,7 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -10461,6 +10542,15 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -10658,7 +10748,6 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -10985,6 +11074,7 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -11349,6 +11439,15 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -11538,7 +11637,6 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -11865,6 +11963,7 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -12229,6 +12328,15 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -12493,7 +12601,6 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "eqeqeq",
       "func-name-matching",
       "func-names",
-      "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
       "init-declarations",
@@ -12820,6 +12927,7 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "brnshkr/api-or-internal-tag",
       "brnshkr/boolish-prefix",
       "brnshkr/interface-suffix",
+      "brnshkr/internal-usage",
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
@@ -13184,6 +13292,15 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "perfectionist/sort-sets",
       "perfectionist/sort-switch-case",
     ],
+  },
+  "settings": {
+    "addedValues": {},
+    "changedValues": {
+      "jsdoc": {
+        "mode": "typescript",
+      },
+    },
+    "removedKeys": [],
   },
 }
 `;
@@ -13910,6 +14027,22 @@ exports[`expected eslint config > diff: 26.test.ts 1`] = `
       ],
     },
     "changedValues": {
+      "import/default": [
+        0,
+      ],
+      "import/named": [
+        0,
+      ],
+      "import/no-deprecated": [
+        0,
+      ],
+      "import/no-unresolved": [
+        0,
+        {
+          "caseSensitive": true,
+          "commonjs": true,
+        },
+      ],
       "jsdoc/check-tag-names": [
         2,
         {

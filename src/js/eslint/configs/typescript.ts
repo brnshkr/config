@@ -9,7 +9,7 @@ import type { Maybe } from '../../shared/types/core';
 import type { Config, TsEslintConfigArray, TsEslintParser } from '../types/config';
 import type { TypeAwareOptions, TypescriptOptions } from '../types/options';
 
-const DEFAULT_TYPE_AWARE_IGNORES = [
+export const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,
 ];
 

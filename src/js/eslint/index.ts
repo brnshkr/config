@@ -201,7 +201,7 @@ export const getConfig = (
     ));
   }
 
-  appendToComposer(configs.overrides());
+  appendToComposer(configs.overrides(resolvedOptions.typescript));
   appendToComposer(...getUserConfigs(resolvedOptions, additionalConfigs));
 
   return composer;

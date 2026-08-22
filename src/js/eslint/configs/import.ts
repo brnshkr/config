@@ -1,6 +1,6 @@
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES } from '../utils/globs';
+import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
 import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
 
 import type { ESLint } from 'eslint';
@@ -15,6 +15,7 @@ export const imports = async (): Promise<Config[]> => {
   const plugins: Config['plugins'] = {};
   const settings: Config['settings'] = {};
   let pluginImportRules: Config['rules'] = {};
+  let pluginImportTsRules: Config['rules'] = {};
   let pluginAntfuRules: Config['rules'] = {};
 
   if (pluginImport) {
@@ -38,13 +39,10 @@ export const imports = async (): Promise<Config[]> => {
       'bun:test',
     ];
 
-    const pluginImportTsRules: Config['rules'] = isModuleEnabled(MODULES.typescript)
-      ? renameRules(pluginImport.flatConfigs.typescript.rules, { 'import-x': 'import' })
-      : {};
+    pluginImportTsRules = renameRules(pluginImport.flatConfigs.typescript.rules, { 'import-x': 'import' });
 
     pluginImportRules = {
       ...renameRules(pluginImport.flatConfigs.recommended.rules, { 'import-x': 'import' }),
-      ...pluginImportTsRules,
       'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
       'import/extensions': ['error', 'ignorePackages', {
         js: 'never',
@@ -56,6 +54,7 @@ export const imports = async (): Promise<Config[]> => {
       'import/max-dependencies': ['error', {
         max: 15,
       }],
+      'import/namespace': 'off',
       'import/newline-after-import': 'error',
       'import/no-absolute-path': 'error',
       'import/no-amd': 'error',
@@ -162,5 +161,12 @@ export const imports = async (): Promise<Config[]> => {
         ...pluginAntfuRules,
       },
     },
+    ...(isModuleEnabled(MODULES.typescript)
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.IMPORT, `${SUB_SCOPES.RULES}-typescript`),
+        files: [GLOB_TS],
+        rules: pluginImportTsRules,
+      } satisfies Config]
+      : []),
   ];
 };
