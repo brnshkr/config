@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import type { TSESLint } from '@typescript-eslint/utils';
 import type { Linter } from 'eslint';
 import type { ResolvableFlatConfig } from 'eslint-flat-config-utils';

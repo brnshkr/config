@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { packageOrganization } from '../../shared/utils/package-json';
 
 import { builtinConfig } from './builtin';

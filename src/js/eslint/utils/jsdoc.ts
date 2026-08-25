@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type { Maybe } from '../../shared/types/core';
 

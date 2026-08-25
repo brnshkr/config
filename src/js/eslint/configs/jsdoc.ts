@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { objectEntries } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';

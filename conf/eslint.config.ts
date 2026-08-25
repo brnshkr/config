@@ -45,7 +45,26 @@ export default getConfig({
     'scripts/typegen.ts',
   ],
   rules: {
+    [<const>`${packageOrganization}/internal-usage`]: ['error', {
+      allowedDeclaringNamespaces: [
+        '@brnshkr/config/eslint',
+      ],
+    }],
     'import/no-extraneous-dependencies': 'off',
+  },
+}, {
+  files: [
+    'tests/**/*.?(c|m)[jt]s?(x)',
+  ],
+  ignores: [
+    '**/tests/**/fixtures/**',
+  ],
+  rules: {
+    [<const>`${packageOrganization}/internal-usage`]: ['error', {
+      allowedCallingNamespaces: [
+        '@brnshkr/config/tests',
+      ],
+    }],
   },
 }, {
   files: [

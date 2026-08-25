@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { INDENT } from '../../shared/utils/constants';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';

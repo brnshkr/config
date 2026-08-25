@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_MD } from '../utils/globs';

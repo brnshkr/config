@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 // eslint-disable-next-line brnshkr/require-import-attributes -- Allow imported json properties to get inlined
 import { name } from '../../../../package.json';
 

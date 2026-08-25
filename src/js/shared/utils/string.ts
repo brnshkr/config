@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 export const joinAsQuotedList = (
   strings: string[],
   type: 'conjunction' | 'disjunction' = 'conjunction',

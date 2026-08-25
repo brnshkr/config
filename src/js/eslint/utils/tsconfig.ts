@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 

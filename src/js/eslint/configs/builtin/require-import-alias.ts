@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import path from 'node:path';
 
 import { toPosix } from '../../../shared/utils/filesystem';

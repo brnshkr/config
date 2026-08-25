@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import type { TSESTree } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '.';
 

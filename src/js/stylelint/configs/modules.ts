@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
 
 import type { Config } from '../types/config';

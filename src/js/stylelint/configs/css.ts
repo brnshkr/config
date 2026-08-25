@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import type { Config } from '../types/config';
 
 export const css = (): Config[] => [

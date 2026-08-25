@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { isModuleEnabledByDefault, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
 import { STYLELINT_PACKAGES } from '../../shared/utils/package-resolvers';
 

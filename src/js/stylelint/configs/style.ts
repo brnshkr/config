@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { INDENT, MAX_LEN, QUOTES } from '../../shared/utils/constants';
 import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
 

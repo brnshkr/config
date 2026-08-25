@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { baseline } from './baseline';
 import { css } from './css';
 import { defensive } from './defensive';

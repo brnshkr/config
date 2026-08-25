@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { buildExportVisitors } from '../../utils/exports';
 
 import {

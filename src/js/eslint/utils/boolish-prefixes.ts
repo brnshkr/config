@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import type { Maybe } from '../../shared/types/core';
 
 /**

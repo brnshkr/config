@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { objectEntries } from '../../shared/utils/object';
 import { packageOrganization } from '../../shared/utils/package-json';
 

@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 import type { Simplify, ValueOf } from 'type-fest';
 
 export type AnyRecord = Record<PropertyKey, unknown>;

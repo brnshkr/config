@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 export const GLOB_IGNORES = <const>[
   '**/.cache/**',
   '**/.changeset/**',

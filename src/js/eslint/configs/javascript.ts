@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import jsEslint from '@eslint/js';
 import confusingBrowserGlobals from 'confusing-browser-globals';
 import globals from 'globals';

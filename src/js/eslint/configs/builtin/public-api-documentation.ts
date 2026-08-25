@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import {
   getNamedKeyText,
   getParameterName,

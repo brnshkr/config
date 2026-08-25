@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { GLOB_IGNORES } from '../../shared/utils/globs';
 
 import type { Config } from '../types/config';

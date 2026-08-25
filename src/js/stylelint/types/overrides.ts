@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 export const OVERRIDES = <const>{
   SCSS: 'scss',
   SVELTE: 'svelte',

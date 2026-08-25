@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 import { isPackageExists } from 'local-pkg';
 
 import { log } from './log';

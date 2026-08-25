@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config
+ */
+
 import { packageFullName } from './package-json';
 
 /* eslint-disable no-console -- This is the only place in the application that is allowed to use the console directly */

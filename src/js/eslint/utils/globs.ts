@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 export const GLOB_CJS = '**/*.cjs';
 export const GLOB_TS = '**/*.?(c|m)ts?(x)';
 export const GLOB_DTS = '**/*.d.?(c|m)ts';

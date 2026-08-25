@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import path from 'node:path';
 
 import { findNearestPackageJson, getMtime, toPosix } from '../../shared/utils/filesystem';

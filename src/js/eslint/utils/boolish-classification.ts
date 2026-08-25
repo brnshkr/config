@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { toPosix } from '../../shared/utils/filesystem';
 
 import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-eslint/utils';

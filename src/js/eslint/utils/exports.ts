@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { isFunctionInitializer } from './ast';
 import { extractBlockComment } from './jsdoc';
 

@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { resolveParameterIdentifier } from '../../utils/ast';
 
 import {

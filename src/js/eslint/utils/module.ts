@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { isModuleEnabledByDefault, resolvePackagesSharedAsynchronously } from '../../shared/utils/module';
 import { packageOrganization } from '../../shared/utils/package-json';
 import { ESLINT_PACKAGES } from '../../shared/utils/package-resolvers';

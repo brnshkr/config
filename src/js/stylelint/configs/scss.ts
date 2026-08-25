@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import { OVERRIDES } from '../types/overrides';
 import { buildOverrideName } from '../utils/config';
 import { MODULES, PACKAGES, resolvePackages } from '../utils/module';

@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import { doAllPackagesExist } from '../../shared/utils/module';
 import { objectFromEntries, objectKeys } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
