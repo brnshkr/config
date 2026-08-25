@@ -2,7 +2,7 @@
 
 JavaScript mirror of the PHP [`PublicApiDocumentationRule`](../../../php/phpstan/rules/PublicApiDocumentationRule.md), which is the source of truth for the documentation standard and its exemptions. `@api` symbols must be documented to a consistent JSDoc standard.
 
-Like [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md), the rule only runs on **public-API source files** — the `src` files that `package.json#exports` resolve to — and it additionally requires a top-of-file `@file` block with a description.
+Like [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md), the rule only runs on **public-API source files** — the `src` files that `package.json#exports` resolve to.
 
 ```js
 // ❌ Bad — '@api' function with no description and an undocumented parameter
@@ -34,6 +34,28 @@ export const formatUser = (user, isShort) => {
 
 TypeScript users move the types from the JSDoc tags onto the signature; the rest applies unchanged.
 
+## File-level docblock
+
+A [file-level docblock](./api-or-internal-tag.md#file-level-shortcut) sets the default visibility for the module, and this rule follows it. An `@api` there holds every untagged export to the standard, and an `@internal` there exempts the whole module.
+
+```js
+/**
+ * @api
+ */
+
+// ❌ Bad — the file-level '@api' reaches this export, so the missing description is reported
+export const toDisplayName = (user) => {
+  // ...
+};
+
+// ✅ Good — an explicit '@internal' opts a single export back out
+/**
+ * @internal
+ */
+export const normalize = (user) => {
+  // ...
+};
+```
 
 ## Options
 

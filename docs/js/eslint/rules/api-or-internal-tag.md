@@ -23,18 +23,18 @@ export class UserService {}
 
 ## File-level shortcut
 
-A `@file` block at the top of the module carrying `@api` or `@internal` sets the effective visibility for every symbol below it, so files that are uniformly public or uniformly internal do not need a tag on each declaration.
+The first docblock in a module is file-level when a blank line separates it from the code, when the statement below it is an `import` or a re-export, or when a second docblock follows it. An `@api` or `@internal` there sets the effective visibility for every symbol below, so files that are uniformly public or uniformly internal do not need a tag on each declaration.
 
 ```js
 /**
- * @file Public entry point for the user module.
- *
  * @api
  */
 
-// ✅ Good — covered by the '@file' '@api' tag above
+// ✅ Good — covered by the file-level '@api' tag above
 export class UserService {}
 ```
+
+A docblock sitting directly above a declaration documents that declaration instead, and covers nothing else.
 
 ## Options
 

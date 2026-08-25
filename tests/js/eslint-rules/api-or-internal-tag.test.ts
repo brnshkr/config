@@ -52,11 +52,19 @@ test('apiOrInternalTagRule scenarios', () => {
       ),
       buildValidCase(
         'file-level @api covers symbol',
-        '/** @file Foo. @api */\nexport const value = 1;\n',
+        '/**\n * @api\n */\n\nexport const value = 1;\n',
       ),
       buildValidCase(
         'file-level @internal covers symbol',
-        '/** @file Foo. @internal */\nexport const value = 1;\n',
+        '/**\n * @internal\n */\n\nexport const value = 1;\n',
+      ),
+      buildValidCase(
+        'file-level tag covers every export below it',
+        '/**\n * @internal\n */\n\nexport const first = 1;\nexport const second = 2;\n',
+      ),
+      buildValidCase(
+        'file-level tag above an import covers the exports',
+        '/**\n * @internal\n */\nimport path from \'node:path\';\n\nexport const value = path;\n',
       ),
       buildValidCase(
         'non-public-API file ignored',
@@ -67,7 +75,7 @@ test('apiOrInternalTagRule scenarios', () => {
       ),
       buildValidCase(
         'symbol @api overrides a file-level @internal',
-        '/**\n * @file Foo.\n *\n * @internal\n */\n\n/**\n * @api\n */\nexport const value = 1;\n',
+        '/**\n * @internal\n */\n\n/**\n * @api\n */\nexport const value = 1;\n',
       ),
     ],
     invalid: [
@@ -128,8 +136,13 @@ test('apiOrInternalTagRule scenarios', () => {
         { filename: FIXTURE_UNLISTED },
       ),
       buildInvalidCase(
+        'an adjacent docblock documents the symbol, not the file',
+        '/**\n * @internal\n */\nexport const first = 1;\nexport const second = 2;\n',
+        [MESSAGE_ID_MISSING_TAG],
+      ),
+      buildInvalidCase(
         'file-level block carrying both tags errors',
-        '/**\n * @file Foo.\n *\n * @api\n * @internal\n */\n\n/**\n * @api\n */\nexport const value = 1;\n',
+        '/**\n * @api\n * @internal\n */\n\n/**\n * @api\n */\nexport const value = 1;\n',
         [MESSAGE_ID_CONFLICTING_FILE_TAGS],
       ),
     ],
@@ -145,7 +158,7 @@ test('apiOrInternalTagRule works with default ESLint parser', () => {
       ),
       buildValidCase(
         'file-level @internal covers JS class',
-        '/** @file Foo. @internal */\nexport class Box {}\n',
+        '/**\n * @internal\n */\n\nexport class Box {}\n',
       ),
     ],
     invalid: [

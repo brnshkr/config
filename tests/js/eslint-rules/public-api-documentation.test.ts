@@ -5,7 +5,6 @@ import { beforeEach, test } from 'vitest';
 import {
   MESSAGE_ID_MISSING_DESCRIPTION,
   MESSAGE_ID_MISSING_EXAMPLE,
-  MESSAGE_ID_MISSING_FILE_DESCRIPTION,
   MESSAGE_ID_MISSING_PARAM,
   MESSAGE_ID_MISSING_RETURNS,
   publicApiDocumentationRule,
@@ -24,7 +23,7 @@ const RULE_OPTIONS = <const>{
   srcRoot: './src',
 };
 
-const wrap = (body: string): string => `/** @file Fixture file. */\n${body}\n`;
+const wrap = (body: string): string => `/**\n * Fixture file.\n */\n${body}\n`;
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders({
   filename: FIXTURE_INDEX,
@@ -73,11 +72,6 @@ test('publicApiDocumentationRule scenarios', () => {
       ),
     ],
     invalid: [
-      buildInvalidCase(
-        'missing @file description',
-        'export {};\n',
-        [MESSAGE_ID_MISSING_FILE_DESCRIPTION],
-      ),
       buildInvalidCase(
         '@api function missing description, returns prose, example',
         wrap(`
@@ -386,11 +380,6 @@ test('publicApiDocumentationRule works with default ESLint parser', () => {
       ),
     ],
     invalid: [
-      buildInvalidCase(
-        'missing @file description on JS file',
-        'export {};\n',
-        [MESSAGE_ID_MISSING_FILE_DESCRIPTION],
-      ),
       buildInvalidCase(
         '@api JS function missing description, returns prose, example',
         wrap(`

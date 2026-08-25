@@ -1,8 +1,3 @@
-/**
- * @file Entry point for the `@brnshkr` Stylelint config builder. Exposes `getConfig` (and a default
- * pre-built config) that downstream projects consume from `@brnshkr/config/stylelint`.
- */
-
 import { isModuleEnabledByDefault } from '../shared/utils/module';
 
 import { configs } from './configs';

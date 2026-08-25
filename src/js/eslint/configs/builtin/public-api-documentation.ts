@@ -16,7 +16,6 @@ import {
   getEffectiveVisibilityTag,
   getFileLevelBlockComment,
   hasDescription,
-  hasFileDescription,
   hasParameterProse,
   hasReturnsWithProse,
   hasTag,
@@ -32,7 +31,6 @@ import type { ExportedSymbol } from '../../utils/exports';
 import type { PackageExportsResolverOptions } from '../../utils/package-exports';
 import type { RuleDefinition } from '.';
 
-export const MESSAGE_ID_MISSING_FILE_DESCRIPTION = 'missingFileDescription';
 export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
 export const MESSAGE_ID_MISSING_PARAM = 'missingParam';
 export const MESSAGE_ID_MISSING_RETURNS = 'missingReturns';
@@ -287,7 +285,6 @@ export const publicApiDocumentationRule = <const>{
       },
     ],
     messages: {
-      [MESSAGE_ID_MISSING_FILE_DESCRIPTION]: 'Public-API source file must carry a top-of-file `@file` JSDoc block with a description.',
       [MESSAGE_ID_MISSING_DESCRIPTION]: '{{ kind }} `{{ name }}` is `@api` and must carry a description before the first JSDoc tag.',
       [MESSAGE_ID_MISSING_PARAM]: '{{ kind }} `{{ name }}` is `@api`; parameter `{{ parameterName }}` must have a `@param` tag with a description.',
       [MESSAGE_ID_MISSING_RETURNS]: '{{ kind }} `{{ name }}` is `@api` and returns a non-void type; a `@returns` tag with a description is required.',
@@ -303,16 +300,6 @@ export const publicApiDocumentationRule = <const>{
 
     const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
     const fileComment = getFileLevelBlockComment(sourceCode);
-
-    if (!hasFileDescription(fileComment)) {
-      context.report({
-        messageId: MESSAGE_ID_MISSING_FILE_DESCRIPTION,
-        loc: {
-          line: 1,
-          column: 0,
-        },
-      });
-    }
 
     const ruleContext = <const>{
       context: <TSESLint.RuleContext<string, unknown[]>><unknown>context,

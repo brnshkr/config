@@ -1,8 +1,3 @@
-/**
- * @file Entry point for the `@brnshkr` ESLint flat-config builder. Exposes `getConfig` (and a default
- * pre-built composer) that downstream projects consume from `@brnshkr/config/eslint`.
- */
-
 import { FlatConfigComposer } from 'eslint-flat-config-utils';
 
 import { isModuleEnabledByDefault } from '../shared/utils/module';
