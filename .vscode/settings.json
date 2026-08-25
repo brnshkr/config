@@ -12,6 +12,12 @@
   "eslint.options": {
     "overrideConfigFile": "./conf/eslint.config.ts"
   },
+  "eslint.workingDirectories": [
+    {
+      "directory": ".",
+      "changeProcessCWD": true
+    }
+  ],
 
   // PHP
   "php-cs-fixer.config": "./conf/.php-cs-fixer.php",
