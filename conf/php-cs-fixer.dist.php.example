@@ -8,6 +8,9 @@ declare(strict_types=1);
 // ------------------------------------
 use Brnshkr\Config\PhpCsFixer;
 
+/**
+ * @internal App
+ */
 return PhpCsFixer::getConfig(/* ... */)
     // ->setRules([
     //     // ...
@@ -17,6 +20,9 @@ return PhpCsFixer::getConfig(/* ... */)
 
 // Option 2
 // ----------------------------------------------------------------------------------
+// /**
+//  * @internal App
+//  */
 // return include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixer.php';
 // ----------------------------------------------------------------------------------
 
@@ -29,6 +35,9 @@ return PhpCsFixer::getConfig(/* ... */)
 //  */
 // $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixer.php';
 //
+// /**
+//  * @internal App
+//  */
 // return $config
 //     // ->setRules([
 //     //     //...

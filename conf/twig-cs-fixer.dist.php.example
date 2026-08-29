@@ -8,6 +8,9 @@ declare(strict_types=1);
 // ------------------------------------
 use Brnshkr\Config\TwigCsFixer;
 
+/**
+ * @internal App
+ */
 return TwigCsFixer::getConfig(/* ... */)
     // ->allowNonFixableRules(false)
 ;
@@ -15,6 +18,9 @@ return TwigCsFixer::getConfig(/* ... */)
 
 // Option 2
 // ----------------------------------------------------------------------------------
+// /**
+//  * @internal App
+//  */
 // return include __DIR__ . '/../vendor/brnshkr/config/src/php/TwigCsFixer.php';
 // ----------------------------------------------------------------------------------
 
@@ -27,6 +33,9 @@ return TwigCsFixer::getConfig(/* ... */)
 //  */
 // $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/TwigCsFixer.php';
 //
+// /**
+//  * @internal App
+//  */
 // return $config
 //     // ->allowNonFixableRules(false)
 // ;
