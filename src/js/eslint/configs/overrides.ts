@@ -17,6 +17,7 @@ import {
   GLOB_TOML,
   GLOB_TS,
   GLOB_YAML,
+  GLOB_YAML_FIXED_EXTENSION_FILES,
 } from '../utils/globs';
 
 import { isModuleEnabled, MODULES } from '../utils/module';
@@ -267,6 +268,13 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
       rules: {
         'no-irregular-whitespace': 'off',
         'no-unused-vars': 'off',
+      },
+    },
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.YAML}/extension`),
+      files: GLOB_YAML_FIXED_EXTENSION_FILES,
+      rules: {
+        'yaml/file-extension': 'off',
       },
     },
   ]

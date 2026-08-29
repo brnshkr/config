@@ -34,6 +34,15 @@ export const GLOB_DEVELOPMENT_FILES = <const>[
   '**/types/declarations/reset.d.ts',
 ] satisfies string[];
 
+export const GLOB_YAML_FIXED_EXTENSION_FILES = <const>[
+  '**/.circleci/**/*.yml',
+  '**/.github/**/*.yml',
+  '**/.gitlab-ci.yml',
+  '**/.gitlab/**/*.yml',
+  '**/.travis.yml',
+  '**/appveyor.yml',
+] satisfies string[];
+
 export const GLOB_TEST_FILES = <const>[
   '**/__tests__/**/*.?(c|m)[jt]s',
   '**/*.spec.?(c|m)[jt]s',
