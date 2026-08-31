@@ -1,9 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-declare(strict_types=1);
+/**
+ * @internal Brnshkr\Config\Composer
+ */
 
-namespace Brnshkr\Config\Composer;
+declare(strict_types=1);
 
 use Brnshkr\Config\Composer\Command\CommandProvider;
 use Composer\Console\Application;
