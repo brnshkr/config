@@ -207,5 +207,5 @@ export const getConfig = (
  *
  * @api
  */
-// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting from eslint config file
+// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting
 export default getConfig();

@@ -1,6 +1,8 @@
 # `brnshkr/require-import-alias` [🔍](../../../../src/js/eslint/configs/builtin/require-import-alias.ts 'Go to source')
 
-Relative imports that resolve into a TypeScript `paths` alias must use the alias form instead. Shorter import paths, stable across file moves, consistent across the codebase. Aliases are read from the nearest `tsconfig.json` by default; the autofix rewrites the specifier to the matching alias.
+Relative imports that resolve into a TypeScript `paths` alias must use the alias form instead. Shorter import paths,
+stable across file moves, consistent across the codebase. Aliases are read from the nearest `tsconfig.json` by default;
+the autofix rewrites the specifier to the matching alias.
 
 ```jsonc
 // ./tsconfig.json
@@ -42,7 +44,9 @@ const emailNotifierModule = await import('$email/EmailNotifier');
 
 ## Overlapping aliases
 
-When more than one alias can express the same target, the one with the **fewest path segments** wins — not the shortest string. A nested alias exists to shorten the paths below it, so reaching its files through an outer alias is reported too, even though the specifier is already aliased.
+When more than one alias can express the same target, the one with the **fewest path segments** wins
+— not the shortest string. A nested alias exists to shorten the paths below it, so reaching its files
+through an outer alias is reported too, even though the specifier is already aliased.
 
 Given `$src/*` pointing at `./src/*` next to the `$user/*` alias above:
 
@@ -54,9 +58,11 @@ import { UserService } from '$src/user/UserService';
 import { UserService } from '$user/UserService';
 ```
 
-
 ## Options
 
-- `aliases` — explicit alias map in the same shape as `tsconfig#compilerOptions.paths`. Bypasses `tsconfig.json` discovery entirely; useful when aliases live outside TypeScript or need to differ from the project's TS config
-- `tsConfigPath` — path to the `tsconfig.json` to load when `aliases` is not given. Defaults to the auto-resolved project config
-- `ignoredPaths` — glob patterns matched against the linted file's absolute and cwd-relative paths. Files matching any pattern are skipped — useful for generated code or fixtures
+- `aliases` — explicit alias map in the same shape as `tsconfig#compilerOptions.paths`. Bypasses `tsconfig.json`
+  discovery entirely; useful when aliases live outside TypeScript or need to differ from the project's TS config
+- `tsConfigPath` — path to the `tsconfig.json` to load when `aliases` is not given. Defaults to the auto-resolved
+  project config
+- `ignoredPaths` — glob patterns matched against the linted file's absolute and cwd-relative paths. Files matching any
+  pattern are skipped — useful for generated code or fixtures

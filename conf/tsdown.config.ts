@@ -20,6 +20,7 @@ export default defineConfig((options) => {
       dts: !isWatchMode,
       entry: [
         '../src/js/eslint/index.ts',
+        '../src/js/markdownlint/index.ts',
         '../src/js/stylelint/index.ts',
       ],
       deps: {
@@ -33,6 +34,7 @@ export default defineConfig((options) => {
       outDir: `${commonOptions.outDir}/scripts`,
       entry: [
         '../scripts/eslint.ts',
+        '../scripts/markdownlint.ts',
         '../scripts/stylelint.ts',
       ],
       plugins: [

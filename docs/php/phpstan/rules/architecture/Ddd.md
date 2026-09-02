@@ -1,6 +1,10 @@
 # `Architecture::ddd()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
-A full Domain-Driven Design preset. Composes `layered()` and adds per-module `Domain` and `Application` isolation, an optional `Interface` layer (entry points such as HTTP controllers and CLI commands), `final readonly` contracts for value objects and domain events, and a configurable list of framework namespaces that the `Domain` layer must not depend on. Module isolation rules are emitted only when at least two modules are configured.
+A full Domain-Driven Design preset. Composes `layered()` and adds per-module `Domain` and `Application` isolation,
+an optional `Interface` layer (entry points such as HTTP controllers and CLI commands),
+`final readonly` contracts for value objects and domain events, and a configurable list of
+framework namespaces that the `Domain` layer must not depend on.
+Module isolation rules are emitted only when at least two modules are configured.
 
 ```php
 use Brnshkr\Config\PhpStan;

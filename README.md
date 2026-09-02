@@ -1,6 +1,10 @@
 <h1 id="top">
   <a href="#top">
-    <img src="https://raw.githubusercontent.com/brnshkr/brand/refs/heads/master/images/projects/config.png" alt="@brnshkr/config project logo" title="@brnshkr/config">
+    <img
+      src="https://raw.githubusercontent.com/brnshkr/brand/refs/heads/master/images/projects/config.png"
+      alt="@brnshkr/config project logo"
+      title="@brnshkr/config"
+    >
   </a>
 
   [![Semantic Versioning 2.0.0][semver-2.0.0-shield-url]][semver-2.0.0-url]
@@ -18,7 +22,11 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 <!-- omit in toc -->
 ## Table of Contents
 
-<!-- NOTICE: GitHub strips emojis in anchors, but multi-codepoint characters may leave invisible remnants, causing anchors to differ and require URL encoding. -->
+<!-- 
+  NOTICE:
+  GitHub strips emojis in anchors, but multi-codepoint characters may leave invisible remnants,
+  causing anchors to differ and require URL encoding.
+-->
 - [👋 About the Project](#-about-the-project)
 - [📚 Documentation](#-documentation)
 - [☕ JS](#-js)
@@ -48,16 +56,22 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 
 ## 👋 About the Project
 
-**@brnshkr/config** is a centralized, opinionated collection of shared configuration files, tooling, and workflows for JavaScript and PHP projects. It helps standardizing linting, formatting, static analysis, and development workflows across repositories — reducing setup time, preventing config drift, and improving code quality and consistency.
+**@brnshkr/config** is a centralized, opinionated collection of shared configuration files,
+tooling, and workflows for JavaScript and PHP projects.
+It helps standardizing linting, formatting, static analysis, and development workflows across repositories
+— reducing setup time, preventing config drift, and improving code quality and consistency.
 
 > ❗ **Note** ❗  
-> While you're more than welcome to use this in your own projects, the configurations are tailored specifically for the [@brnshkr][@brnshkr-organization-url] ecosystem and may not be a perfect fit elsewhere.
+> While you're more than welcome to use this in your own projects, the configurations are tailored specifically
+> for the [@brnshkr][@brnshkr-organization-url] ecosystem and may not be a perfect fit elsewhere.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
 ## 📚 Documentation
 
-This README covers installation and usage. The full reference — custom rules, config builders, the Composer plugin, and the development setup — lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs), organized by stack and tool.
+This README covers installation and usage. The full reference — custom rules, config builders, the Composer plugin,
+and the development setup — lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs),
+organized by stack and tool.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -100,7 +114,8 @@ pnpm add -D -E @brnshkr/config
 npm i -D -E @brnshkr/config
 ```
 
-This repository currently only provides one way to integrate configuration files (An automatic setup is planned, See [🔨 TODOs / Roadmap](#-todos--roadmap)):
+This repository currently only provides one way to integrate configuration files
+(An automatic setup is planned, See [🔨 TODOs / Roadmap](#-todos--roadmap)):
 
 - [**Manual setup**](#-manual) by copying the example configuration files yourself
 
@@ -108,7 +123,8 @@ This repository currently only provides one way to integrate configuration files
 
 #### ✋ Manual
 
-Take a look at the `peerDependencies` in the [package.json](./package.json) file and install the ones you need for the modules you want to use.  
+Take a look at the `peerDependencies` in the [package.json](./package.json) file
+and install the ones you need for the modules you want to use.  
 You can then copy the specific configs to your project:
 
 <!-- omit in toc -->
@@ -133,11 +149,19 @@ cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/st
 ```
 
 <!-- omit in toc -->
+##### markdownlint
+
+```sh
+cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf/markdownlint.config.mjs
+```
+
+<!-- omit in toc -->
 ##### All
 
 ```sh
 cp -v ./node_modules/@brnshkr/config/conf/tsconfig.json.example ./tsconfig.json \
   && cp -v ./node_modules/@brnshkr/config/conf/eslint.config.mjs.example ./conf/eslint.config.mjs \
+  && cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf/markdownlint.config.mjs \
   && cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/stylelint.config.mjs
 ```
 
@@ -165,6 +189,17 @@ export default getConfig(/* customize */);
 // ./stylelint.config.mjs
 
 import { getConfig } from '@brnshkr/config/stylelint';
+
+export default getConfig(/* customize */);
+```
+
+<!-- omit in toc -->
+##### markdownlint
+
+```js
+// ./conf/markdownlint.config.mjs
+
+import { getConfig } from '@brnshkr/config/markdownlint';
 
 export default getConfig(/* customize */);
 ```
@@ -201,9 +236,19 @@ bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache -
 ```
 
 <!-- omit in toc -->
+###### markdownlint
+
+Example call, adjust as needed
+
+```sh
+bun markdownlint-cli2 --config ./conf/markdownlint.config.mjs "**/*.md"
+```
+
+<!-- omit in toc -->
 ##### Option 2 — Run Helper Scripts (Bun Only, @brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory (Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf).
+For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory
+(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf).
 
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
@@ -224,16 +269,29 @@ bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
 ```
 
 <!-- omit in toc -->
+###### markdownlint
+
+Expected configuration file: `./conf/markdownlint.config.mjs`
+
+```sh
+bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
+```
+
+<!-- omit in toc -->
 #### IDE Setup
 
-When using the recommended way of putting config files into the `./conf` directory it might be neccesary to instruct your IDE to read these files correctly.  
-If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json) installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
+When using the recommended way of putting config files into the `./conf` directory
+it might be neccesary to instruct your IDE to read these files correctly.  
+If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
+installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
 ### 🧩 Custom ESLint Rules
 
-The default ESLint configuration ships a small `brnshkr` plugin that contributes a handful of project-specific rules, all enabled out of the box. Each rule is documented with examples in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/index.md).
+The default ESLint configuration ships a small `brnshkr` plugin that contributes a handful
+of project-specific rules, all enabled out of the box. Each rule is documented with examples
+in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/index.md).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -265,8 +323,10 @@ This repository provides two ways to integrate configuration files and setup too
 
 #### 🤖 Automatic
 
-If you allow this package to run as a Composer plugin (Composer will prompt you on first install), several helper commands become available.  
-The most commonly used is the automatic setup command which installs packages for selected modules, copies example config files into your repository, and can optionally create a `Makefile` and/or a `.gitignore` file.
+If you allow this package to run as a Composer plugin (Composer will prompt you on first install),
+several helper commands become available.   The most commonly used is the automatic setup command
+which installs packages for selected modules, copies example config files into your repository,
+and can optionally create a `Makefile` and/or a `.gitignore` file.
 
 Run the automatic setup with defaults:
 
@@ -286,7 +346,8 @@ Take a look at the [plugin commands](#plugin-commands) section to see a full lis
 
 #### ✋ Manual
 
-Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones you need for the modules you want to use.  
+Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones
+you need for the modules you want to use.  
 You can then copy the specific configs to your project:
 
 <!-- omit in toc -->
@@ -477,7 +538,9 @@ php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
 <!-- omit in toc -->
 ##### Option 2 — Run Helper Scripts (Make Only, @brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory (Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
+For these scripts to work you need to follow the convention of putting your configuration files into the `./conf`
+directory (Exactly how it is done in this project as well; see
+[`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
 Do not forget to setup your Makefile with this projects Makefile as a base:
 
@@ -524,8 +587,10 @@ make twig-cs-fixer
 <!-- omit in toc -->
 #### IDE Setup
 
-When using the recommended way of putting config files into the `./conf` directory it might be neccesary to instruct your IDE to read these files correctly.  
-If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json) installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
+When using the recommended way of putting config files into the `./conf` directory
+it might be neccesary to instruct your IDE to read these files correctly.  
+If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
+installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
 <!-- omit in toc -->
 #### Plugin Commands
@@ -544,7 +609,11 @@ For full usage run `composer help <command>`, `composer <command> --help` or `co
 
 ### 🧩 Custom PHPStan Rules
 
-Beyond the upstream rule set, the default configuration ships a number of custom PHPStan rules in two flavors. **Standalone rules** are general-purpose checks enabled out of the box, while **architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a specific framework or architecture style — opt-in and configured through `setArchitecture()`. Both are documented with examples in the [Custom PHPStan Rules docs](https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/index.md).
+Beyond the upstream rule set, the default configuration ships a number of custom PHPStan rules in two flavors.
+**Standalone rules** are general-purpose checks enabled out of the box,
+while **architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a
+specific framework or architecture style — opt-in and configured through `setArchitecture()`.
+Both are documented with examples in the [Custom PHPStan Rules docs](https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/index.md).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -563,9 +632,11 @@ Any help is always greatly appreciated 🙂
 
 ## ❤️ Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create.
+Any contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+If you have a suggestion that would make this better, please fork the repo and create a pull request.
+You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
 1. Fork the project
@@ -574,7 +645,9 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the branch => `git push origin feature/my-new-feature`
 5. Open a pull request
 
-New to the codebase? The [Development docs](https://github.com/brnshkr/config/blob/master/docs/development.md) cover environment setup and the day-to-day commands for both stacks.
+New to the codebase?
+The [Development docs](https://github.com/brnshkr/config/blob/master/docs/development.md)
+cover environment setup and the day-to-day commands for both stacks.
 
 ### 💄 Commit Style
 
@@ -593,10 +666,15 @@ See [./.github/workflows](https://github.com/brnshkr/config/blob/master/.github/
 ## 🔖 Versioning
 
 This project follows [Semantic Versioning 2.0.0][semver-2.0.0-url].  
-The NPM and Composer packages are versioned in sync, so a version change does not necessarily indicate a change in a specific package.  
+The NPM and Composer packages are versioned in sync,
+so a version change does not necessarily indicate a change in a specific package.  
 
 > ❗ **Note** ❗  
-> Since changes to rules and dependencies are not considered breaking, even a patch release may introduce new errors in code that hasn't changed and break your CI without notice. We therefore strongly recommend pinning to an exact version (`-E` for the JS package managers, `composer r --dev brnshkr/config:X.Y.Z` for Composer) so updates stay opt-in and can be applied on your own schedule.
+> Since changes to rules and dependencies are not considered breaking,
+> even a patch release may introduce new errors in code that hasn't changed and break your CI without notice.
+> We therefore strongly recommend pinning to an exact version
+> (`-E` for the JS package managers, `composer r --dev brnshkr/config:X.Y.Z` for Composer)
+> so updates stay opt-in and can be applied on your own schedule.
 
 <!-- omit in toc -->
 ### Changes Considered as Breaking Changes
@@ -623,6 +701,7 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for more information
 
 - [TypeScript](https://www.typescriptlang.org)
 - [ESLint](https://github.com/eslint/eslint)
+- [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
 - [Stylelint](https://github.com/stylelint/stylelint)
 - [Commitlint](https://github.com/conventional-changelog/commitlint)
 - [@antfu/eslint-config](https://github.com/antfu/eslint-config)
@@ -632,7 +711,7 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for more information
 - [PHP-CS-Fixer](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer)
 - [Twig-CS-Fixer](https://github.com/VincentLanglet/Twig-CS-Fixer)
 - [GNU Make](https://www.gnu.org/software/make)
-- [Best-README-Template](https://github.com/othneildrew/Best-README-Template) by [othneildrew](https://github.com/othneildrew)
+- [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 - [Choose an Open Source License](https://choosealicense.com)
 - [Shields.io](https://shields.io)
 - <a href="https://github.com/brnshkr">

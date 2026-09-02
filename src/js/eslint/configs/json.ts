@@ -114,6 +114,7 @@ const getJsoncSortConfigs = (): Config[] => [
             'lint-staged',
             'eslintConfig',
             'stylelint',
+            'markdownlint-cli2',
             'prettier',
             'ava',
             'stackblitz',

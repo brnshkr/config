@@ -19,6 +19,10 @@
     }
   ],
 
+  // Markdown
+  "markdownlint.configFile": "./conf/markdownlint.config.mjs",
+  "markdownlint.configPointer": "/config",
+
   // PHP
   "php-cs-fixer.config": "./conf/.php-cs-fixer.php",
   "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
@@ -305,71 +309,6 @@
   "phpstan.enableStatusBar": false,
   "phpstan.showTypeOnHover": true,
   // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
-
-  // Markdown
-  "markdownlint.config": {
-    "no-duplicate-heading": {
-      "siblings_only": true
-    },
-    "no-inline-html": {
-      "allowed_elements": [
-        "a",
-        "br",
-        "dd",
-        "del",
-        "details",
-        "div",
-        "dl",
-        "dt",
-        "h1",
-        "img",
-        "ins",
-        "kbd",
-        "p",
-        "q",
-        "rp",
-        "rt",
-        "ruby",
-        "samp",
-        "sub",
-        "summary",
-        "sup",
-        "var"
-      ]
-    }
-  },
-  "markdownlint.lintWorkspaceGlobs": [
-    "**/*.{md,mkd,mdwn,mdown,markdown,markdn,mdtxt,mdtext,workbook}",
-    "!**/__snapshots__",
-    "!**/.cache",
-    "!**/.changeset",
-    "!**/.git",
-    "!**/.hg/store",
-    "!**/.history",
-    "!**/.idea",
-    "!**/.next",
-    "!**/.nuxt",
-    "!**/.output",
-    "!**/.svelte-kit",
-    "!**/.temp",
-    "!**/.tmp",
-    "!**/.vercel",
-    "!**/.vite-inspect",
-    "!**/.vitepress/cache",
-    "!**/.vscode",
-    "!**/.yarn",
-    "!**/*.code-search",
-    "!**/bower_components",
-    "!**/coverage",
-    "!**/dist",
-    "!**/node_modules",
-    "!**/output",
-    "!**/temp",
-    "!**/tmp",
-    "!**/tests/fixtures",
-    "!**/tmp",
-    "!**/vendor"
-  ],
 
   // JSON
   "json.schemas": [

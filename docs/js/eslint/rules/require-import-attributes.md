@@ -1,6 +1,10 @@
 # `brnshkr/require-import-attributes` [🔍](../../../../src/js/eslint/configs/builtin/require-import-attributes.ts 'Go to source')
 
-Imports of non-JavaScript files (such as `.json` or `.css`) must declare a matching `with { type: '...' }` import attribute. This makes the runtime contract explicit and keeps the build tooling, the runtime, and the type system in agreement about how the file should be loaded. The expected `type` value is derived from the extension — `.json` maps to `json`, `.css` to `css`, `.svg` to `svg`, image extensions to `image`, and so on. JavaScript and unknown extensions are left untouched.
+Imports of non-JavaScript files (such as `.json` or `.css`) must declare a matching `with { type: '...' }`
+import attribute. This makes the runtime contract explicit and keeps the build tooling, the runtime,
+and the type system in agreement about how the file should be loaded.
+The expected `type` value is derived from the extension — `.json` maps to `json`, `.css` to `css`,
+`.svg` to `svg`, image extensions to `image`, and so on. JavaScript and unknown extensions are left untouched.
 
 ```js
 // ❌ Bad — missing import attributes

@@ -6,7 +6,13 @@ import { isPackageExists } from 'local-pkg';
 
 import { log } from './log';
 import { objectEntries } from './object';
-import { ESLINT_PACKAGE_RESOLVERS, STYLELINT_PACKAGE_RESOLVERS } from './package-resolvers';
+
+import {
+  ESLINT_PACKAGE_RESOLVERS,
+  MARKDOWNLINT_PACKAGE_RESOLVERS,
+  STYLELINT_PACKAGE_RESOLVERS,
+} from './package-resolvers';
+
 import { joinAsQuotedList } from './string';
 
 import type { Simplify } from 'type-fest';
@@ -14,11 +20,13 @@ import type { Maybe } from '../types/core';
 
 const PACKAGE_RESOLVERS = <const>{
   ...ESLINT_PACKAGE_RESOLVERS,
+  ...MARKDOWNLINT_PACKAGE_RESOLVERS,
   ...STYLELINT_PACKAGE_RESOLVERS,
 };
 
 type PackageResolvers = typeof PACKAGE_RESOLVERS;
-type Package = keyof PackageResolvers;
+
+export type Package = keyof PackageResolvers;
 
 type ResolvedPackage<TPackage extends Package> = ReturnType<PackageResolvers[TPackage]> extends boolean
   ? Awaited<ReturnType<PackageResolvers[TPackage]>>
@@ -227,4 +235,36 @@ export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
   }
 
   return isEnabled;
+};
+
+export type PackageResolver<TPackage extends Package> = <
+  TModuleInfo extends ModuleInfo<readonly TPackage[]>,
+  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
+>(
+  moduleInfo: TModuleInfo,
+  type?: TType,
+) => ResolvedPackages<TModuleInfo, TType>;
+
+export type AsyncPackageResolver<TPackage extends Package> = <
+  TModuleInfo extends ModuleInfo<readonly TPackage[]>,
+  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
+>(
+  moduleInfo: TModuleInfo,
+  type?: TType,
+) => Promise<ResolvedPackages<TModuleInfo, TType>>;
+
+export interface ModuleState {
+  isModuleEnabled: (moduleInfo: ModuleInfo) => boolean;
+  setModuleEnabled: (moduleInfo: ModuleInfo, isEnabled: boolean) => void;
+}
+
+export const createModuleState = (): ModuleState => {
+  const enabledStates: Record<string, boolean> = {};
+
+  return {
+    isModuleEnabled: (moduleInfo) => enabledStates[moduleInfo.name] ?? isModuleEnabledByDefault(moduleInfo),
+    setModuleEnabled: (moduleInfo, isEnabled): void => {
+      enabledStates[moduleInfo.name] = isEnabled;
+    },
+  };
 };

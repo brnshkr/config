@@ -1,6 +1,8 @@
 # `ApiOrInternalTagRule` [🔍](../../../../src/php/PhpStan/Rule/ApiOrInternalTagRule.php 'Go to source')
 
-Every class, interface, trait, enum, top-level function, and global constant must declare its intended visibility by carrying either an `@api` or an `@internal` tag in its docblock. The aim is to make the public surface of every package an explicit, deliberate decision rather than an accident of which symbols happened to be reachable.
+Every class, interface, trait, enum, top-level function, and global constant must declare its intended visibility
+by carrying either an `@api` or an `@internal` tag in its docblock. The aim is to make the public surface
+of every package an explicit, deliberate decision rather than an accident of which symbols happened to be reachable.
 
 ```php
 // ❌ Bad — no visibility tag
@@ -49,7 +51,9 @@ const DEFAULT_EMAIL_TIMEOUT = 30;
 
 ## File-level shortcut
 
-A file-level docblock (the first `/** ... */` before `namespace`, `declare`, or `use`) carrying `@api` or `@internal` sets the default visibility for every symbol declared below it, so files that are uniformly public or uniformly internal do not need a tag on each declaration.
+A file-level docblock (the first `/** ... */` before `namespace`, `declare`, or `use`) carrying `@api` or `@internal`
+sets the default visibility for every symbol declared below it, so files that are uniformly public
+or uniformly internal do not need a tag on each declaration.
 
 ```php
 /**

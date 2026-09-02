@@ -2,11 +2,10 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { isModuleEnabledByDefault, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
+import { createModuleState, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
 import { STYLELINT_PACKAGES } from '../../shared/utils/package-resolvers';
 
-import type { Maybe } from '../../shared/types/core';
-import type { ModuleInfo, ResolvedPackages } from '../../shared/utils/module';
+import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
 import type { StylelintPackage } from '../../shared/utils/package-resolvers';
 import type { configs } from '../configs';
 
@@ -100,19 +99,5 @@ export const MODULES = <const>{
   },
 } satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly StylelintPackage[]>>>;
 
-export const resolvePackages = <
-  TModuleInfo extends ModuleInfo<readonly StylelintPackage[]>,
-  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
->(
-  moduleInfo: TModuleInfo,
-  type?: TType,
-): ResolvedPackages<TModuleInfo, TType> => resolvePackagesSharedSynchronously(moduleInfo, type);
-
-const enabledStates: Record<string, boolean> = {};
-
-export const isModuleEnabled = (moduleInfo: ModuleInfo): boolean => enabledStates[moduleInfo.name]
-  ?? isModuleEnabledByDefault(moduleInfo);
-
-export const setModuleEnabled = (moduleInfo: ModuleInfo, isEnabled: boolean): void => {
-  enabledStates[moduleInfo.name] = isEnabled;
-};
+export const resolvePackages: PackageResolver<StylelintPackage> = resolvePackagesSharedSynchronously;
+export const { isModuleEnabled, setModuleEnabled } = createModuleState();

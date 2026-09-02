@@ -1,6 +1,8 @@
 # 🐘 PHP
 
-The PHP half of **@brnshkr/config**: fluent config builders for every tool, a shared file-discovery helper they all delegate to, a Composer plugin that bootstraps downstream projects, and a reusable Makefile foundation. Per-tool pages below; the [README](../../README.md#-php) covers setup.
+The PHP half of **@brnshkr/config**: fluent config builders for every tool,
+a shared file-discovery helper they all delegate to, a Composer plugin that bootstraps downstream projects,
+and a reusable Makefile foundation. Per-tool pages below; the [README](../../README.md#-php) covers setup.
 
 ## Tooling
 

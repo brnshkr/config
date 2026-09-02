@@ -17,6 +17,7 @@ if (isInEditor) {
 export default getConfig({
   ignores: [
     'src/js/eslint/types/declarations/typegen.d.ts',
+    'src/js/markdownlint/types/declarations/typegen.d.ts',
   ],
 }, {
   rules: {
@@ -79,6 +80,7 @@ export default getConfig({
 }, {
   files: [
     'src/js/eslint/index.ts',
+    'src/js/markdownlint/index.ts',
     'src/js/stylelint/index.ts',
   ],
   rules: {
@@ -89,6 +91,7 @@ export default getConfig({
 }, {
   files: [
     'src/js/eslint/configs/**',
+    'src/js/markdownlint/configs/**',
     'src/js/stylelint/configs/**',
   ],
   rules: {

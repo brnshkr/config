@@ -41,6 +41,10 @@ final class QualityTool
             'check' => ['bun', '--bun', 'run', 'eslint'],
             'fix'   => ['bun', '--bun', 'run', 'eslint', '--fix'],
         ],
+        'markdownlint' => [
+            'check' => ['bun', '--bun', 'run', 'markdownlint'],
+            'fix'   => ['bun', '--bun', 'run', 'markdownlint', '--fix'],
+        ],
         'stylelint' => [
             'check' => ['bun', '--bun', 'run', 'stylelint'],
             'fix'   => ['bun', '--bun', 'run', 'stylelint', '--fix'],
@@ -52,7 +56,7 @@ final class QualityTool
     ];
 
     /**
-     * @param string $tool the tool to run (phpstan, php-cs-fixer, rector, twig-cs-fixer, eslint, stylelint or typescript)
+     * @param string $tool the tool to run, one of the keys of {@see self::COMMAND_MAP}
      * @param bool $isDryRun when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
      *
      * @throws LogicException
@@ -60,7 +64,7 @@ final class QualityTool
      */
     #[McpTool(
         name: 'project-quality-check',
-        description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (phpstan and typescript are check-only).',
+        description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, markdownlint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (phpstan and typescript are check-only).',
     )]
     public function runQualityTool(string $tool, bool $isDryRun = true): string
     {

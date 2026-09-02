@@ -2,12 +2,11 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { isModuleEnabledByDefault, resolvePackagesSharedAsynchronously } from '../../shared/utils/module';
+import { createModuleState, resolvePackagesSharedAsynchronously } from '../../shared/utils/module';
 import { packageOrganization } from '../../shared/utils/package-json';
 import { ESLINT_PACKAGES } from '../../shared/utils/package-resolvers';
 
-import type { Maybe } from '../../shared/types/core';
-import type { ModuleInfo, ResolvedPackages } from '../../shared/utils/module';
+import type { AsyncPackageResolver, ModuleInfo } from '../../shared/utils/module';
 import type { EslintPackage } from '../../shared/utils/package-resolvers';
 import type { configs } from '../configs';
 
@@ -177,19 +176,5 @@ export const MODULES = <const>{
   },
 } satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly EslintPackage[]>>>;
 
-export const resolvePackages = async <
-  TModuleInfo extends ModuleInfo<readonly EslintPackage[]>,
-  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
->(
-  moduleInfo: TModuleInfo,
-  type?: TType,
-): Promise<ResolvedPackages<TModuleInfo, TType>> => resolvePackagesSharedAsynchronously(moduleInfo, type);
-
-const enabledStates: Record<string, boolean> = {};
-
-export const isModuleEnabled = (moduleInfo: ModuleInfo): boolean => enabledStates[moduleInfo.name]
-  ?? isModuleEnabledByDefault(moduleInfo);
-
-export const setModuleEnabled = (moduleInfo: ModuleInfo, isEnabled: boolean): void => {
-  enabledStates[moduleInfo.name] = isEnabled;
-};
+export const resolvePackages: AsyncPackageResolver<EslintPackage> = resolvePackagesSharedAsynchronously;
+export const { isModuleEnabled, setModuleEnabled } = createModuleState();

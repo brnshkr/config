@@ -1,6 +1,8 @@
 # `NoNamedArgumentsTagRule` [🔍](../../../../src/php/PhpStan/Rule/NoNamedArgumentsTagRule.php 'Go to source')
 
-Symbols exposed as `@api` must additionally carry a `@no-named-arguments` tag. This keeps parameter names out of the backward-compatibility contract, leaving them free to be renamed without breaking the public-facing API.
+Symbols exposed as `@api` must additionally carry a `@no-named-arguments` tag.
+This keeps parameter names out of the backward-compatibility contract,
+leaving them free to be renamed without breaking the public-facing API.
 
 ```php
 // ❌ Bad — '@api' alone leaks parameter names into the public contract

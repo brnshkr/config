@@ -42,6 +42,7 @@ const SKIPPED_SEGMENTS = new Set([
 
 const SKIPPED_PATHS = new Set([
   'src/js/eslint/types/declarations/typegen.d.ts',
+  'src/js/markdownlint/types/declarations/typegen.d.ts',
   'tests/js/spelling.test.ts',
 ]);
 

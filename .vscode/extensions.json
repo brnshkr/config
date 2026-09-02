@@ -3,6 +3,7 @@
     "aeschli.vscode-css-formatter",
     "bmewburn.vscode-intelephense-client",
     "bradlc.vscode-tailwindcss",
+    "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
     "EditorConfig.EditorConfig",
     "junstyle.php-cs-fixer",

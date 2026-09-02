@@ -1,12 +1,19 @@
 # FileFinder [🔍](../../src/php/FileFinder.php 'Go to source')
 
-`Brnshkr\Config\FileFinder` is the shared file-discovery helper that every PHP tool config in this package delegates to. Passing `null` as an argument for the `$finder` parameter of [`PhpCsFixer`](./PhpCsFixer.md), [`Rector`](./Rector.md), [`TwigCsFixer`](./TwigCsFixer.md), and [`PhpStan`](./phpstan/index.md) hands scope resolution to `FileFinder`.
+`Brnshkr\Config\FileFinder` is the shared file-discovery helper that every PHP tool config in this package
+delegates to. Passing `null` as an argument for the `$finder` parameter
+of [`PhpCsFixer`](./PhpCsFixer.md), [`Rector`](./Rector.md), [`TwigCsFixer`](./TwigCsFixer.md),
+and [`PhpStan`](./phpstan/index.md) hands scope resolution to `FileFinder`.
 
 ## What it does
 
-- Scans the current working directory (or a caller-provided [Symfony Finder](https://symfony.com/doc/current/components/finder.html), narrowed further).
-- Filters by extension — PHP, Twig, or both. The supported set is exposed as `FileFinder::EXTENSIONS`, with the individual values available as `FileFinder::EXTENSION_PHP` and `FileFinder::EXTENSION_TWIG`. Passing an unsupported extension throws `InvalidArgumentException`.
-- Excludes project-wide noise: dependencies, caches, build artifacts, generated files and test fixtures. See the [source](../../src/php/FileFinder.php) for the exact set.
+- Scans the current working directory (or a caller-provided
+  [Symfony Finder](https://symfony.com/doc/current/components/finder.html), narrowed further).
+- Filters by extension — PHP, Twig, or both. The supported set is exposed as `FileFinder::EXTENSIONS`,
+  with the individual values available as `FileFinder::EXTENSION_PHP` and `FileFinder::EXTENSION_TWIG`.
+  Passing an unsupported extension throws `InvalidArgumentException`.
+- Excludes project-wide noise: dependencies, caches, build artifacts, generated files and test fixtures.
+  See the [source](../../src/php/FileFinder.php) for the exact set.
 - Also picks up `bin/console` when PHP files are requested.
 
 ## Usage

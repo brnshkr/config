@@ -1,6 +1,9 @@
 # 🧩 Custom PHPStan Rules
 
-The custom PHPStan rules ship in two flavors. **Standalone rules** are general-purpose checks enabled by the default configuration. **Architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a specific framework or architecture style — they are opt-in and configured through `setArchitecture()`.
+The custom PHPStan rules ship in two flavors.
+**Standalone rules** are general-purpose checks enabled by the default configuration.
+**Architecture presets** are opinionated bundles of class-placement and isolation rules tailored
+to a specific framework or architecture style — they are opt-in and configured through `addArchitecture()`.
 
 ## Naming
 
@@ -9,11 +12,13 @@ The custom PHPStan rules ship in two flavors. **Standalone rules** are general-p
 
 ## Encapsulation
 
-- [`InternalUsageRule`](./InternalUsageRule.md) — `@internal` symbols may only be used from their own declaring namespace or below
+- [`InternalUsageRule`](./InternalUsageRule.md) — `@internal` symbols may only be used
+  from their own declaring namespace or below
 
 ## Documentation
 
-- [`ResolvableDocReferenceRule`](./ResolvableDocReferenceRule.md) — every `@see` and `@link` target must name a symbol that exists
+- [`ResolvableDocReferenceRule`](./ResolvableDocReferenceRule.md)
+  — every `@see` and `@link` target must name a symbol that exists
 
 ## Public API
 
@@ -23,4 +28,5 @@ The custom PHPStan rules ship in two flavors. **Standalone rules** are general-p
 
 ## Architecture Presets
 
-- [Architecture presets](./architecture/index.md) — framework and architecture-style rule bundles configured through `setArchitecture()`
+- [Architecture presets](./architecture/index.md) — framework and architecture-style rule
+  bundles configured through `addArchitecture()`

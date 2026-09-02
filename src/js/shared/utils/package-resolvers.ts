@@ -116,6 +116,38 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
 } satisfies Record<EslintPackage, (() => Promise<unknown>) | (() => boolean)>;
 
+export const MARKDOWNLINT_PACKAGES = <const>{
+  MARKDOWNLINT_GITHUB: '@github/markdownlint-github',
+  MARKDOWNLINT_RULES: '@hongminhee/markdownlint-rules',
+  MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS: 'markdownlint-rule-no-trailing-slash-in-links',
+  MARKDOWNLINT_RULE_RELATIVE_LINKS: 'markdownlint-rule-relative-links',
+  MARKDOWNLINT_RULE_SEARCH_REPLACE: 'markdownlint-rule-search-replace',
+  MARKDOWNLINT_RULE_TABLE_FORMAT: 'markdownlint-rule-table-format',
+};
+
+export type MarkdownlintPackage = typeof MARKDOWNLINT_PACKAGES[keyof typeof MARKDOWNLINT_PACKAGES];
+
+export const MARKDOWNLINT_PACKAGE_RESOLVERS = <const>{
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_GITHUB]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_GITHUB,
+  ),
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULES]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULES,
+  ),
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS,
+  ),
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS,
+  ),
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_SEARCH_REPLACE]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_SEARCH_REPLACE,
+  ),
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT]: () => isPackageExists(
+    MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT,
+  ),
+} satisfies Record<MarkdownlintPackage, () => boolean>;
+
 export const STYLELINT_PACKAGES = <const>{
   POSTCSS_HTML: 'postcss-html',
   STYLELINT_CONFIG_CSS_MODULES: 'stylelint-config-css-modules',

@@ -1,6 +1,10 @@
 # `PublicApiDocumentationRule` [🔍](../../../../src/php/PhpStan/Rule/PublicApiDocumentationRule.php 'Go to source')
 
-Symbols marked as `@api` must carry a docblock that explains them in prose. Every class, interface, trait, enum, top-level function, and non-private method on an `@api` class has to have a real description before the first PHPDoc tag, an `@param` line per parameter with a description after the variable name, an `@return` line that describes what the value represents when the symbol returns something non-void, and an `@example` block whenever calling it involves arguments. The aim is that anyone landing on a public symbol gets the same level of guidance no matter where in the codebase it lives.
+Symbols marked as `@api` must carry a docblock that explains them in prose. Every class, interface, trait, enum,
+top-level function, and non-private method on an `@api` class has to have a real description before the first PHPDoc tag,
+an `@param` line per parameter with a description after the variable name, an `@return` line that describes what the value
+represents when the symbol returns something non-void, and an `@example` block whenever calling it involves arguments.
+The aim is that anyone landing on a public symbol gets the same level of guidance no matter where in the codebase it lives.
 
 ```php
 // ❌ Bad — '@api' class with no description and an undocumented parameter
@@ -75,7 +79,10 @@ function formatUser(User $user, bool $isShort): string {}
 
 ## File-level docblock
 
-A file-level docblock (the first `/** ... */` before `namespace`, `declare`, or `use`) sets the default visibility for the file, and this rule follows it. An `@api` there holds every untagged symbol to the standard, and an `@internal` there exempts the file. [`ApiOrInternalTagRule`](./ApiOrInternalTagRule.md#file-level-shortcut) is the source of truth for how that docblock is found.
+A file-level docblock (the first `/** ... */` before `namespace`, `declare`, or `use`) sets the default visibility
+for the file, and this rule follows it. An `@api` there holds every untagged symbol to the standard,
+and an `@internal` there exempts the file. [`ApiOrInternalTagRule`](./ApiOrInternalTagRule.md#file-level-shortcut)
+is the source of truth for how that docblock is found.
 
 ```php
 /**
@@ -94,7 +101,9 @@ final class UserService {}
 final class PasswordHasher {}
 ```
 
-A top-level `return` in an `@api` file needs a description too, either on the `return` statement or on the value it returns. A `new ClassName(...)` falls back to the class docblock and a `Class::method(...)` to the method docblock, which is how a config-style file documents itself through the type it returns.
+A top-level `return` in an `@api` file needs a description too, either on the `return` statement or on the value
+it returns. A `new ClassName(...)` falls back to the class docblock and a `Class::method(...)` to the method docblock,
+which is how a config-style file documents itself through the type it returns.
 
 ```php
 /**
@@ -110,6 +119,9 @@ return $config;
 
 ## Exemptions
 
-A few exemptions keep the rule pragmatic: private methods and methods tagged `@internal` are skipped, constructors do not need their own description (the class docblock already covers the type's purpose), fluent setters returning `self` or `static` skip the `@return`/`@example` checks, and interface or abstract methods skip `@example` since they have no implementation to demonstrate. `@throws` coverage is left to PHPStan's built-in throw-type checks.
+A few exemptions keep the rule pragmatic: private methods and methods tagged `@internal` are skipped,
+constructors do not need their own description (the class docblock already covers the type's purpose), fluent setters
+returning `self` or `static` skip the `@return`/`@example` checks, and interface or abstract methods skip `@example`
+since they have no implementation to demonstrate. `@throws` coverage is left to PHPStan's built-in throw-type checks.
 
 The JavaScript counterpart is [`brnshkr/public-api-documentation`](../../../js/eslint/rules/public-api-documentation.md).

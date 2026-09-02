@@ -11,4 +11,5 @@
 /mate/AGENT_INSTRUCTIONS.md
 /node_modules/
 /src/js/eslint/types/declarations/typegen.d.ts
+/src/js/markdownlint/types/declarations/typegen.d.ts
 /vendor/

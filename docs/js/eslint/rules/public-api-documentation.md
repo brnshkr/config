@@ -1,8 +1,11 @@
 # `brnshkr/public-api-documentation` [🔍](../../../../src/js/eslint/configs/builtin/public-api-documentation.ts 'Go to source')
 
-JavaScript mirror of the PHP [`PublicApiDocumentationRule`](../../../php/phpstan/rules/PublicApiDocumentationRule.md), which is the source of truth for the documentation standard and its exemptions. `@api` symbols must be documented to a consistent JSDoc standard.
+JavaScript mirror of the PHP [`PublicApiDocumentationRule`](../../../php/phpstan/rules/PublicApiDocumentationRule.md),
+which is the source of truth for the documentation standard and its exemptions.
+`@api` symbols must be documented to a consistent JSDoc standard.
 
-Like [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md), the rule only runs on **public-API source files** — the `src` files that `package.json#exports` resolve to.
+Like [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md), the rule only runs on **public-API source files**
+— the `src` files that `package.json#exports` resolve to.
 
 ```js
 // ❌ Bad — '@api' function with no description and an undocumented parameter
@@ -36,7 +39,9 @@ TypeScript users move the types from the JSDoc tags onto the signature; the rest
 
 ## File-level docblock
 
-A [file-level docblock](./api-or-internal-tag.md#file-level-shortcut) sets the default visibility for the module, and this rule follows it. An `@api` there holds every untagged export to the standard, and an `@internal` there exempts the whole module.
+A [file-level docblock](./api-or-internal-tag.md#file-level-shortcut) sets the default visibility for the module,
+and this rule follows it. An `@api` there holds every untagged export to the standard,
+and an `@internal` there exempts the whole module.
 
 ```js
 /**
@@ -59,4 +64,5 @@ export const normalize = (user) => {
 
 ## Options
 
-Identical to [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md#options) — `packageJsonPath`, `distRoot`, `srcRoot`, and `srcExtensions` all resolve the public-API file set the same way.
+Identical to [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md#options) — `packageJsonPath`, `distRoot`,
+`srcRoot`, and `srcExtensions` all resolve the public-API file set the same way.

@@ -17,13 +17,14 @@
   "scripts": {
     "stylelint": "bun --bun ./scripts/stylelint.ts",
     "eslint": "bun --bun ./scripts/eslint.ts",
+    "markdownlint": "bun --bun ./scripts/markdownlint.ts",
     "commitlint": "bun --bun x commitlint --config ./conf/commitlint.config.mjs --edit",
     "typescript": "bun --bun tsc --noEmit",
     "inspect:eslint": "bun --bun eslint-config-inspector --config ./conf/eslint.config.ts",
     "inspect:modules": "bun --bun node-modules-inspector",
-    "test": "bun --bun vitest --run --testTimeout 120000 --exclude **/fixtures/**",
+    "test": "bun --bun vitest --run --testTimeout 120000 --exclude '**/[Ff]ixture?(s)/**'",
     "test-update": "bun --bun run test --update",
-    "check": "bun --bun typescript && bun --bun stylelint && bun --bun eslint && bun --bun commitlint && bun --bun run test",
+    "check": "bun --bun typescript && bun --bun stylelint && bun --bun eslint && bun --bun markdownlint && bun --bun commitlint && bun --bun run test",
     "build": "bun --bun typegen && bun --bun tsdown --config ./conf/tsdown.config.ts",
     "watch": "bun --bun tsdown --config ./conf/tsdown.config.ts --watch",
     "typegen": "bun --bun scripts/typegen.ts",
@@ -31,12 +32,15 @@
   },
   "exports": {
     "./eslint": "./dist/eslint/index.mjs",
+    "./markdownlint": "./dist/markdownlint/index.mjs",
+    "./scripts/markdownlint": "./dist/scripts/markdownlint.mjs",
     "./scripts/eslint": "./dist/scripts/eslint.mjs",
     "./stylelint": "./dist/stylelint/index.mjs",
     "./scripts/stylelint": "./dist/scripts/stylelint.mjs"
   },
   "files": [
     "./conf/eslint.config.mjs.example",
+    "./conf/markdownlint.config.mjs.example",
     "./conf/stylelint.config.mjs.example",
     "./conf/tsconfig.json",
     "./conf/tsconfig.json.example",
@@ -55,6 +59,8 @@
     "@eslint/css": "^1.1.0",
     "@eslint/json": "^1.2.0",
     "@eslint/markdown": "^8.0.1",
+    "@github/markdownlint-github": "^0.8.3",
+    "@hongminhee/markdownlint-rules": "^0.2.5",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/stylelint-config": "^5.0.0",
     "@vitest/eslint-plugin": "^1.6.15",
@@ -74,6 +80,11 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
     "eslint-plugin-yml": "^3.3.1",
+    "markdownlint-cli2": "^0.23.2",
+    "markdownlint-rule-no-trailing-slash-in-links": "^0.0.2",
+    "markdownlint-rule-relative-links": "^5.1.2",
+    "markdownlint-rule-search-replace": "^1.2.0",
+    "markdownlint-rule-table-format": "^1.0.3",
     "postcss-html": "^1.8.1",
     "stylelint": "^17.7.0",
     "stylelint-config-css-modules": "^4.6.0",
@@ -101,6 +112,12 @@
       "optional": true
     },
     "@eslint/markdown": {
+      "optional": true
+    },
+    "@github/markdownlint-github": {
+      "optional": true
+    },
+    "@hongminhee/markdownlint-rules": {
       "optional": true
     },
     "@stylistic/eslint-plugin": {
@@ -157,6 +174,21 @@
     "eslint-plugin-yml": {
       "optional": true
     },
+    "markdownlint-cli2": {
+      "optional": true
+    },
+    "markdownlint-rule-no-trailing-slash-in-links": {
+      "optional": true
+    },
+    "markdownlint-rule-relative-links": {
+      "optional": true
+    },
+    "markdownlint-rule-search-replace": {
+      "optional": true
+    },
+    "markdownlint-rule-table-format": {
+      "optional": true
+    },
     "postcss-html": {
       "optional": true
     },
@@ -211,6 +243,8 @@
     "@eslint/css": "1.1.0",
     "@eslint/json": "1.2.0",
     "@eslint/markdown": "8.0.1",
+    "@github/markdownlint-github": "0.8.3",
+    "@hongminhee/markdownlint-rules": "0.2.5",
     "@stylistic/eslint-plugin": "5.10.0",
     "@stylistic/stylelint-config": "5.0.0",
     "@total-typescript/ts-reset": "0.6.1",
@@ -238,6 +272,12 @@
     "eslint-plugin-yml": "3.3.1",
     "eslint-typegen": "2.3.1",
     "jiti": "2.6.1",
+    "json-schema-to-typescript": "16.0.0",
+    "markdownlint-cli2": "0.23.2",
+    "markdownlint-rule-no-trailing-slash-in-links": "0.0.2",
+    "markdownlint-rule-relative-links": "5.1.2",
+    "markdownlint-rule-search-replace": "1.2.0",
+    "markdownlint-rule-table-format": "1.0.3",
     "node-modules-inspector": "1.4.2",
     "postcss-html": "1.8.1",
     "simple-git-hooks": "2.13.1",

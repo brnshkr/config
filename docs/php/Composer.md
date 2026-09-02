@@ -1,6 +1,9 @@
 # Composer Plugin [🔍](../../src/php/Composer/Command/ 'Go to source')
 
-The package doubles as a Composer plugin. Once you allow it to run (Composer prompts on first install), it registers a set of helper commands under the `brnshkr:config` namespace. The most important of them, `setup`, installs packages for the modules you pick, copies example config files into your repository, and can optionally create a `Makefile` and/or a `.gitignore`.
+The package doubles as a Composer plugin. Once you allow it to run (Composer prompts on first install),
+it registers a set of helper commands under the `brnshkr:config` namespace. The most important of them, `setup`,
+installs packages for the modules you pick, copies example config files into your repository,
+and can optionally create a `Makefile` and/or a `.gitignore`.
 
 For full usage of any command run `composer help <command>`, `composer <command> --help`, or `composer <command> -h`.
 
@@ -15,7 +18,8 @@ For full usage of any command run `composer help <command>`, `composer <command>
 
 ## `setup` flags
 
-`brnshkr:config:setup` runs interactively by default; the flags below skip the prompts. They can be combined into a single bundle, e.g. `composer brnshkr:config:setup -gofacme`.
+`brnshkr:config:setup` runs interactively by default; the flags below skip the prompts.
+They can be combined into a single bundle, e.g. `composer brnshkr:config:setup -gofacme`.
 
 | Flag | Short | Effect |
 | --- | --- | --- |
