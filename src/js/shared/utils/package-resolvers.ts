@@ -116,6 +116,26 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
 } satisfies Record<EslintPackage, (() => Promise<unknown>) | (() => boolean)>;
 
+export const COMMITLINT_PACKAGES = <const>{
+  COMMITLINT_CONFIG_CONVENTIONAL: '@commitlint/config-conventional',
+  COMMITLINT_PLUGIN_FUNCTION_RULES: 'commitlint-plugin-function-rules',
+  COMMITLINT_PLUGIN_TENSE: 'commitlint-plugin-tense',
+};
+
+export type CommitlintPackage = typeof COMMITLINT_PACKAGES[keyof typeof COMMITLINT_PACKAGES];
+
+export const COMMITLINT_PACKAGE_RESOLVERS = <const>{
+  [COMMITLINT_PACKAGES.COMMITLINT_CONFIG_CONVENTIONAL]: () => isPackageExists(
+    COMMITLINT_PACKAGES.COMMITLINT_CONFIG_CONVENTIONAL,
+  ),
+  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES]: () => isPackageExists(
+    COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES,
+  ),
+  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => isPackageExists(
+    COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE,
+  ),
+} satisfies Record<CommitlintPackage, () => boolean>;
+
 export const MARKDOWNLINT_PACKAGES = <const>{
   MARKDOWNLINT_GITHUB: '@github/markdownlint-github',
   MARKDOWNLINT_RULES: '@hongminhee/markdownlint-rules',

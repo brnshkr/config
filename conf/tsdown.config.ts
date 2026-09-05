@@ -11,6 +11,14 @@ export default defineConfig((options) => {
     treeshake: !isWatchMode,
     outputOptions: {
       chunkFileNames: 'shared.mjs',
+      advancedChunks: {
+        groups: [
+          {
+            name: 'shared',
+            minShareCount: 2,
+          },
+        ],
+      },
     },
   } satisfies typeof options;
 
@@ -19,12 +27,14 @@ export default defineConfig((options) => {
       ...commonOptions,
       dts: !isWatchMode,
       entry: [
+        '../src/js/commitlint/index.ts',
         '../src/js/eslint/index.ts',
         '../src/js/markdownlint/index.ts',
         '../src/js/stylelint/index.ts',
       ],
       deps: {
         neverBundle: [
+          '@commitlint/types',
           '@typescript-eslint/utils',
         ],
       },
@@ -33,6 +43,7 @@ export default defineConfig((options) => {
       ...commonOptions,
       outDir: `${commonOptions.outDir}/scripts`,
       entry: [
+        '../scripts/commitlint.ts',
         '../scripts/eslint.ts',
         '../scripts/markdownlint.ts',
         '../scripts/stylelint.ts',

@@ -30,6 +30,8 @@
         "@typescript-eslint/utils": "8.58.2",
         "@vitest/eslint-plugin": "1.6.15",
         "commitlint": "20.5.0",
+        "commitlint-plugin-function-rules": "5.0.1",
+        "commitlint-plugin-tense": "1.0.10",
         "conventional-changelog": "7.2.0",
         "eslint": "10.2.0",
         "eslint-config-flat-gitignore": "2.3.0",
@@ -77,6 +79,7 @@
         "vitest": "4.1.4",
       },
       "peerDependencies": {
+        "@commitlint/config-conventional": "^20.5.0",
         "@eslint-community/eslint-plugin-eslint-comments": "^4.7.1",
         "@eslint/css": "^1.1.0",
         "@eslint/json": "^1.2.0",
@@ -86,6 +89,9 @@
         "@stylistic/eslint-plugin": "^5.10.0",
         "@stylistic/stylelint-config": "^5.0.0",
         "@vitest/eslint-plugin": "^1.6.15",
+        "commitlint": "^20.5.0",
+        "commitlint-plugin-function-rules": "^5.0.1",
+        "commitlint-plugin-tense": "^1.0.10",
         "eslint": "^10.2.0",
         "eslint-config-flat-gitignore": "^2.3.0",
         "eslint-import-resolver-typescript": "^4.4.4",
@@ -124,13 +130,19 @@
         "typescript-eslint": "^8.58.2",
       },
       "optionalPeers": [
+        "@commitlint/config-conventional",
         "@eslint-community/eslint-plugin-eslint-comments",
         "@eslint/css",
         "@eslint/json",
         "@eslint/markdown",
+        "@github/markdownlint-github",
+        "@hongminhee/markdownlint-rules",
         "@stylistic/eslint-plugin",
         "@stylistic/stylelint-config",
         "@vitest/eslint-plugin",
+        "commitlint",
+        "commitlint-plugin-function-rules",
+        "commitlint-plugin-tense",
         "eslint-config-flat-gitignore",
         "eslint-import-resolver-typescript",
         "eslint-merge-processors",
@@ -147,6 +159,10 @@
         "eslint-plugin-unused-imports",
         "eslint-plugin-yml",
         "markdownlint-cli2",
+        "markdownlint-rule-no-trailing-slash-in-links",
+        "markdownlint-rule-relative-links",
+        "markdownlint-rule-search-replace",
+        "markdownlint-rule-table-format",
         "postcss-html",
         "stylelint",
         "stylelint-config-css-modules",
@@ -726,6 +742,10 @@
 
     "commitlint": ["commitlint@20.5.0", "", { "dependencies": { "@commitlint/cli": "^20.5.0", "@commitlint/types": "^20.5.0" }, "bin": { "commitlint": "cli.js" } }, "sha512-zc3hOb8+ivBza2sIF9bhm2aPs9ovR77v7VHN6SPQ4cVjZBw5t48j78v7KU7UIeOJ5k18BQpfsGfY4Bf2KQyiBg=="],
 
+    "commitlint-plugin-function-rules": ["commitlint-plugin-function-rules@5.0.1", "", { "peerDependencies": { "@commitlint/lint": ">=19 <22" } }, "sha512-AC8fH83A+soNq9VKTlLptkbg8Zpfx88ng9hKzdiJ0N+GoYgWTWNt6yFA3zEZ0qy3ekQ4Paf1slkaH1UKWRLUvg=="],
+
+    "commitlint-plugin-tense": ["commitlint-plugin-tense@1.0.10", "", { "dependencies": { "@commitlint/message": "^20.4.3", "fast-tag-pos": "^2.0.0" }, "peerDependencies": { "@commitlint/lint": ">=7.6.0" } }, "sha512-DO/f+X3LrrOPdrVtFvA7KSuCG8V1Qc3jtOtf1HHdRvYDlIYH0ngVy/m+jGz8kBZrCNfRPM6P9CTlRjAwE7IstQ=="],
+
     "compare-func": ["compare-func@2.0.0", "", { "dependencies": { "array-ify": "^1.0.0", "dot-prop": "^5.1.0" } }, "sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA=="],
 
     "confbox": ["confbox@0.2.2", "", {}, "sha512-1NB+BKqhtNipMsov4xI/NnhCKp9XG9NamYp5PVm9klAT0fsrNPjaFICsCFhNhwZJKNh7zB/3q8qXz0E9oaMNtQ=="],
@@ -901,6 +921,8 @@
     "fast-levenshtein": ["fast-levenshtein@2.0.6", "", {}, "sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw=="],
 
     "fast-npm-meta": ["fast-npm-meta@1.4.2", "", { "bin": { "fast-npm-meta": "dist/cli.mjs" } }, "sha512-XXyd9d3ie/JeIIjm6WeKalvapGGFI4ShAjPJM78vgUFYzoEsuNSjvvVTuht0XZcwbVdOnEEGzhxwguRbxkIcDg=="],
+
+    "fast-tag-pos": ["fast-tag-pos@2.0.0", "", {}, "sha512-BdT2WMan25s8x5obDInSy1twqAKzeqHQ7T6fbowICcIUANoCRlhWUPn1e7r4Me2Jz3tNFT71MIZf2hIn0tUrag=="],
 
     "fast-uri": ["fast-uri@3.0.6", "", {}, "sha512-Atfo14OibSv5wAp4VWNsFYE1AchQRTv9cBGWET4pZWHzYshFSS9NQI6I57rdKn9croWVMbYFbLhJ+yJvmZIIHw=="],
 

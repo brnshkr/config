@@ -156,13 +156,21 @@ cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf
 ```
 
 <!-- omit in toc -->
+##### commitlint
+
+```sh
+cp -v ./node_modules/@brnshkr/config/conf/commitlint.config.mjs.example ./conf/commitlint.config.mjs
+```
+
+<!-- omit in toc -->
 ##### All
 
 ```sh
 cp -v ./node_modules/@brnshkr/config/conf/tsconfig.json.example ./tsconfig.json \
   && cp -v ./node_modules/@brnshkr/config/conf/eslint.config.mjs.example ./conf/eslint.config.mjs \
   && cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf/markdownlint.config.mjs \
-  && cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/stylelint.config.mjs
+  && cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/stylelint.config.mjs \
+  && cp -v ./node_modules/@brnshkr/config/conf/commitlint.config.mjs.example ./conf/commitlint.config.mjs
 ```
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
@@ -200,6 +208,17 @@ export default getConfig(/* customize */);
 // ./conf/markdownlint.config.mjs
 
 import { getConfig } from '@brnshkr/config/markdownlint';
+
+export default getConfig(/* customize */);
+```
+
+<!-- omit in toc -->
+##### commitlint
+
+```js
+// ./conf/commitlint.config.mjs
+
+import { getConfig } from '@brnshkr/config/commitlint';
 
 export default getConfig(/* customize */);
 ```
@@ -245,6 +264,15 @@ bun markdownlint-cli2 --config ./conf/markdownlint.config.mjs "**/*.md"
 ```
 
 <!-- omit in toc -->
+###### commitlint
+
+Example call, adjust as needed
+
+```sh
+bun commitlint --config ./conf/commitlint.config.mjs --edit
+```
+
+<!-- omit in toc -->
 ##### Option 2 — Run Helper Scripts (Bun Only, @brnshkr Convention)
 
 For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory
@@ -275,6 +303,15 @@ Expected configuration file: `./conf/markdownlint.config.mjs`
 
 ```sh
 bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
+```
+
+<!-- omit in toc -->
+###### commitlint
+
+Expected configuration file: `./conf/commitlint.config.mjs`
+
+```sh
+bun ./node_modules/@brnshkr/config/dist/scripts/commitlint.mjs
 ```
 
 <!-- omit in toc -->

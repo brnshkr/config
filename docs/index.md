@@ -5,6 +5,7 @@ Installation and the ways to run each tool live in the [README](../README.md)
 — these pages focus on the @brnshkr-specific decisions and custom behavior.
 
 - [☕ JS](./js/index.md)
+  - [commitlint](./js/commitlint.md)
   - [ESLint](./js/eslint/index.md) — including the [custom rules](./js/eslint/rules/index.md)
   - [markdownlint](./js/markdownlint.md)
   - [Stylelint](./js/stylelint.md)

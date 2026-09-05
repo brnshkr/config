@@ -19,11 +19,55 @@ exports[`expected commitlint config 1`] = `
   },
   ignores: undefined,
   defaultIgnores: undefined,
-  plugins: {},
+  plugins: {
+    'function-rules': Module <[Object: null prototype] {}> [Module] {
+      rules: {
+        'function-rules/body-case': [AsyncFunction: functionRule],
+        'function-rules/body-empty': [AsyncFunction: functionRule],
+        'function-rules/body-full-stop': [AsyncFunction: functionRule],
+        'function-rules/body-leading-blank': [AsyncFunction: functionRule],
+        'function-rules/body-max-length': [AsyncFunction: functionRule],
+        'function-rules/body-max-line-length': [AsyncFunction: functionRule],
+        'function-rules/body-min-length': [AsyncFunction: functionRule],
+        'function-rules/breaking-change-exclamation-mark': [AsyncFunction: functionRule],
+        'function-rules/footer-empty': [AsyncFunction: functionRule],
+        'function-rules/footer-leading-blank': [AsyncFunction: functionRule],
+        'function-rules/footer-max-length': [AsyncFunction: functionRule],
+        'function-rules/footer-max-line-length': [AsyncFunction: functionRule],
+        'function-rules/footer-min-length': [AsyncFunction: functionRule],
+        'function-rules/header-case': [AsyncFunction: functionRule],
+        'function-rules/header-full-stop': [AsyncFunction: functionRule],
+        'function-rules/header-max-length': [AsyncFunction: functionRule],
+        'function-rules/header-min-length': [AsyncFunction: functionRule],
+        'function-rules/header-trim': [AsyncFunction: functionRule],
+        'function-rules/references-empty': [AsyncFunction: functionRule],
+        'function-rules/scope-case': [AsyncFunction: functionRule],
+        'function-rules/scope-delimiter-style': [AsyncFunction: functionRule],
+        'function-rules/scope-empty': [AsyncFunction: functionRule],
+        'function-rules/scope-enum': [AsyncFunction: functionRule],
+        'function-rules/scope-max-length': [AsyncFunction: functionRule],
+        'function-rules/scope-min-length': [AsyncFunction: functionRule],
+        'function-rules/signed-off-by': [AsyncFunction: functionRule],
+        'function-rules/subject-case': [AsyncFunction: functionRule],
+        'function-rules/subject-empty': [AsyncFunction: functionRule],
+        'function-rules/subject-exclamation-mark': [AsyncFunction: functionRule],
+        'function-rules/subject-full-stop': [AsyncFunction: functionRule],
+        'function-rules/subject-max-length': [AsyncFunction: functionRule],
+        'function-rules/subject-min-length': [AsyncFunction: functionRule],
+        'function-rules/trailer-exists': [AsyncFunction: functionRule],
+        'function-rules/type-case': [AsyncFunction: functionRule],
+        'function-rules/type-empty': [AsyncFunction: functionRule],
+        'function-rules/type-enum': [AsyncFunction: functionRule],
+        'function-rules/type-max-length': [AsyncFunction: functionRule],
+        'function-rules/type-min-length': [AsyncFunction: functionRule]
+      }
+    },
+    tense: { rules: { 'tense/subject-tense': [Function: subjectTense] } }
+  },
   rules: {
-    'body-leading-blank': [ 1, 'always' ],
+    'body-leading-blank': [ 2, 'always' ],
     'body-max-line-length': [ 2, 'always', 100 ],
-    'footer-leading-blank': [ 1, 'always' ],
+    'footer-leading-blank': [ 2, 'always' ],
     'footer-max-line-length': [ 2, 'always', 100 ],
     'header-max-length': [ 2, 'always', 100 ],
     'header-trim': [ 2, 'always' ],
@@ -49,15 +93,30 @@ exports[`expected commitlint config 1`] = `
       ]
     ],
     'body-case': [ 2, 'always', 'sentence-case' ],
-    'body-full-stop': [ 2, 'never' ],
     'breaking-change-exclamation-mark': [ 2, 'always' ],
     'header-case': [ 2, 'always', 'lower-case' ],
-    'header-full-stop': [ 2, 'never' ],
     'scope-case': [ 2, 'always', 'lower-case' ],
-    'scope-delimiter-style': [ 2, 'always', [ '/', '-' ] ],
+    'scope-delimiter-style': [ 2, 'always', [ '/' ] ],
     'scope-empty': [ 2, 'never' ],
     'scope-min-length': [ 2, 'always', 2 ],
-    'subject-min-length': [ 2, 'always', 5 ]
+    'subject-min-length': [ 2, 'always', 5 ],
+    'tense/subject-tense': [
+      2,
+      'always',
+      {
+        allowedTenses: [ 'present-imperative' ],
+        firstOnly: true,
+        allowlist: [
+          'called',           'console',
+          'cover',            'covers',
+          'decide',           'dismantle',
+          'excludes',         'harden',
+          'hoist',            'missing',
+          'non-empty-string', 'promote',
+          'spell'
+        ]
+      }
+    ]
   },
   helpUrl: 'https://github.com/brnshkr/config/blob/master/README.md#-commit-style',
   prompt: {

@@ -18,7 +18,7 @@
     "stylelint": "bun --bun ./scripts/stylelint.ts",
     "eslint": "bun --bun ./scripts/eslint.ts",
     "markdownlint": "bun --bun ./scripts/markdownlint.ts",
-    "commitlint": "bun --bun x commitlint --config ./conf/commitlint.config.mjs --edit",
+    "commitlint": "bun --bun ./scripts/commitlint.ts",
     "typescript": "bun --bun tsc --noEmit",
     "inspect:eslint": "bun --bun eslint-config-inspector --config ./conf/eslint.config.ts",
     "inspect:modules": "bun --bun node-modules-inspector",
@@ -31,6 +31,8 @@
     "install-hooks": "bun --bun simple-git-hooks"
   },
   "exports": {
+    "./commitlint": "./dist/commitlint/index.mjs",
+    "./scripts/commitlint": "./dist/scripts/commitlint.mjs",
     "./eslint": "./dist/eslint/index.mjs",
     "./markdownlint": "./dist/markdownlint/index.mjs",
     "./scripts/markdownlint": "./dist/scripts/markdownlint.mjs",
@@ -39,6 +41,7 @@
     "./scripts/stylelint": "./dist/scripts/stylelint.mjs"
   },
   "files": [
+    "./conf/commitlint.config.mjs.example",
     "./conf/eslint.config.mjs.example",
     "./conf/markdownlint.config.mjs.example",
     "./conf/stylelint.config.mjs.example",
@@ -55,6 +58,7 @@
     "stylelint-config-standard": "^40.0.0"
   },
   "peerDependencies": {
+    "@commitlint/config-conventional": "^20.5.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.7.1",
     "@eslint/css": "^1.1.0",
     "@eslint/json": "^1.2.0",
@@ -64,6 +68,9 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/stylelint-config": "^5.0.0",
     "@vitest/eslint-plugin": "^1.6.15",
+    "commitlint": "^20.5.0",
+    "commitlint-plugin-function-rules": "^5.0.1",
+    "commitlint-plugin-tense": "^1.0.10",
     "eslint": "^10.2.0",
     "eslint-config-flat-gitignore": "^2.3.0",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -102,6 +109,9 @@
     "typescript-eslint": "^8.58.2"
   },
   "peerDependenciesMeta": {
+    "@commitlint/config-conventional": {
+      "optional": true
+    },
     "@eslint-community/eslint-plugin-eslint-comments": {
       "optional": true
     },
@@ -127,6 +137,15 @@
       "optional": true
     },
     "@vitest/eslint-plugin": {
+      "optional": true
+    },
+    "commitlint": {
+      "optional": true
+    },
+    "commitlint-plugin-function-rules": {
+      "optional": true
+    },
+    "commitlint-plugin-tense": {
       "optional": true
     },
     "eslint-config-flat-gitignore": {
@@ -253,6 +272,8 @@
     "@typescript-eslint/utils": "8.58.2",
     "@vitest/eslint-plugin": "1.6.15",
     "commitlint": "20.5.0",
+    "commitlint-plugin-function-rules": "5.0.1",
+    "commitlint-plugin-tense": "1.0.10",
     "conventional-changelog": "7.2.0",
     "eslint": "10.2.0",
     "eslint-config-flat-gitignore": "2.3.0",

@@ -8,6 +8,7 @@ import { log } from './log';
 import { objectEntries } from './object';
 
 import {
+  COMMITLINT_PACKAGE_RESOLVERS,
   ESLINT_PACKAGE_RESOLVERS,
   MARKDOWNLINT_PACKAGE_RESOLVERS,
   STYLELINT_PACKAGE_RESOLVERS,
@@ -19,6 +20,7 @@ import type { Simplify } from 'type-fest';
 import type { Maybe } from '../types/core';
 
 const PACKAGE_RESOLVERS = <const>{
+  ...COMMITLINT_PACKAGE_RESOLVERS,
   ...ESLINT_PACKAGE_RESOLVERS,
   ...MARKDOWNLINT_PACKAGE_RESOLVERS,
   ...STYLELINT_PACKAGE_RESOLVERS,
