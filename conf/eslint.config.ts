@@ -57,25 +57,12 @@ export default getConfig({
   files: [
     'tests/**/*.?(c|m)[jt]s?(x)',
   ],
-  ignores: [
-    '**/tests/**/fixtures/**',
-  ],
   rules: {
     [<const>`${packageOrganization}/internal-usage`]: ['error', {
       allowedCallingNamespaces: [
         '@brnshkr/config/tests',
       ],
     }],
-  },
-}, {
-  files: [
-    '**/tests/**/fixtures/**',
-  ],
-  rules: {
-    'func-style': 'off',
-    'import/unambiguous': 'off',
-    'unicorn/no-empty-file': 'off',
-    'yaml/file-extension': 'off',
   },
 }, {
   files: [

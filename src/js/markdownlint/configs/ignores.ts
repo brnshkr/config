@@ -10,9 +10,6 @@ import type { Config } from '../types/config';
 export const ignores = (): Config[] => [
   {
     gitignore: true,
-    ignores: [
-      ...GLOB_IGNORES,
-      '**/tests/**/[Ff]ixture?(s)/**',
-    ],
+    ignores: GLOB_IGNORES,
   },
 ];

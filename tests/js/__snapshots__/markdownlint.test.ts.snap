@@ -251,11 +251,11 @@ exports[`expected markdownlint config 1`] = `
     "**/package-lock.json",
     "**/pnpm-lock.yaml",
     "**/temp/**",
+    "**/tests/**/[Ff]ixture?(s)/**",
     "**/tmp/**",
     "**/vendor/**",
     "**/vite.config.*.timestamp-*",
     "**/yarn.lock",
-    "**/tests/**/[Ff]ixture?(s)/**",
   ],
   "overrides": [
     {

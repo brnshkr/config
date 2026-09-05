@@ -1,3 +1,5 @@
+import { objectEntries } from '../../../src/js/shared/utils/object';
+
 export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 
 export interface JsonObject {
@@ -24,7 +26,7 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   const removedKeys: string[] = [];
   const changedValues: JsonObject = {};
 
-  for (const [object1Key, object1Value] of Object.entries(object1)) {
+  for (const [object1Key, object1Value] of objectEntries(object1)) {
     if (object1Key in object2) {
       const object2Value = <JsonValue>object2[object1Key];
 
@@ -32,11 +34,11 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
         changedValues[object1Key] = object2Value;
       }
     } else {
-      removedKeys.push(object1Key);
+      removedKeys.push(String(object1Key));
     }
   }
 
-  for (const [object2Key, object2Value] of Object.entries(object2)) {
+  for (const [object2Key, object2Value] of objectEntries(object2)) {
     if (!(object2Key in object1)) {
       addedValues[object2Key] = object2Value;
     }
@@ -52,9 +54,9 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
 export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): ConfigDiff => {
   const diff: ConfigDiff = {};
 
-  for (const [object1Key, object1Value] of Object.entries(object1)) {
+  for (const [object1Key, object1Value] of objectEntries(object1)) {
     if (!(object1Key in object2)) {
-      diff[`-${object1Key}`] = object1Value;
+      diff[`-${String(object1Key)}`] = object1Value;
 
       continue;
     }
@@ -70,9 +72,9 @@ export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): Con
       : object2Value;
   }
 
-  for (const [object2Key, object2Value] of Object.entries(object2)) {
+  for (const [object2Key, object2Value] of objectEntries(object2)) {
     if (!(object2Key in object1)) {
-      diff[`+${object2Key}`] = object2Value;
+      diff[`+${String(object2Key)}`] = object2Value;
     }
   }
 

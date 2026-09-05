@@ -34,6 +34,7 @@ export const GLOB_IGNORES = <const>[
   '**/package-lock.json',
   '**/pnpm-lock.yaml',
   '**/temp/**',
+  '**/tests/**/[Ff]ixture?(s)/**',
   '**/tmp/**',
   '**/vendor/**',
   '**/vite.config.*.timestamp-*',

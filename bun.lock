@@ -57,6 +57,7 @@
         "markdownlint-rule-relative-links": "5.1.2",
         "markdownlint-rule-search-replace": "1.2.0",
         "markdownlint-rule-table-format": "1.0.3",
+        "minimatch": "10.2.4",
         "node-modules-inspector": "1.4.2",
         "postcss-html": "1.8.1",
         "simple-git-hooks": "2.13.1",

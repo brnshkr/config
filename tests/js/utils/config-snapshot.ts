@@ -1,39 +1,66 @@
+import { Minimatch } from 'minimatch';
 import { expect } from 'vitest';
 
-import { run } from './command';
 import { traverseDirectory } from './filesystem';
 import { computeConfigDiff } from './json-diff';
 
 import type { JsonObject } from './json-diff';
 
 interface SnapshotConfigsOptions {
-  command: (filePath: string) => string;
   fixturesDirectory: string;
-  normalize?: (output: string) => string;
+  globs?: string[];
+  virtualGlobs?: string[];
+  resolve: (filePath: string) => Promise<JsonObject> | JsonObject;
+  normalize?: (config: JsonObject) => JsonObject;
 }
 
-const parseConfigOutput = (output: string): JsonObject => {
-  const start = output.indexOf('{');
+const listFixtures = (fixturesDirectory: string): string[] => {
+  const filePaths: string[] = [];
 
-  return <JsonObject>JSON.parse(output.slice(start));
+  traverseDirectory(fixturesDirectory, (filePath) => {
+    filePaths.push(filePath);
+  });
+
+  return filePaths;
 };
 
-export const snapshotConfigs = (options: SnapshotConfigsOptions): void => {
+const stripRoot = (config: JsonObject): JsonObject => <JsonObject>JSON.parse(
+  JSON.stringify(config).replaceAll(JSON.stringify(process.cwd()).slice(1, -1), '<root>'),
+);
+
+const expectEveryGlobCovered = (globs: string[], virtualGlobs: string[], names: string[]): void => {
+  expect(globs.length).toBeGreaterThan(0);
+
+  const uncovered = globs
+    .filter((glob) => !virtualGlobs.includes(glob))
+    .filter((glob) => !names.some((name) => new Minimatch(glob, { dot: true }).match(name)));
+
+  expect(uncovered).toStrictEqual([]);
+};
+
+export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<void> => {
   const {
     fixturesDirectory,
-    command,
+    globs,
+    virtualGlobs = [],
+    resolve,
     normalize,
   } = options;
 
-  const configs = new Map<string, JsonObject>();
+  const configs = new Map(await Promise.all(
+    listFixtures(fixturesDirectory).map(async (filePath): Promise<[string, JsonObject]> => {
+      const config = await resolve(filePath);
 
-  traverseDirectory(fixturesDirectory, (filePath) => {
-    const name = filePath.replace(`${fixturesDirectory}/`, '');
-    const raw = run(command(filePath));
-    const config = parseConfigOutput(normalize ? normalize(raw) : raw);
+      return [
+        filePath.replace(`${fixturesDirectory}/`, ''),
+        stripRoot(normalize ? normalize(config) : config),
+      ];
+    }),
+  ));
 
-    configs.set(name, config);
-  });
+  if (globs !== undefined) {
+    expectEveryGlobCovered(globs, virtualGlobs, [...configs.keys()]);
+  }
 
   const groups = new Map<string, string[]>();
   const hashToRepresentative = new Map<string, string>();
