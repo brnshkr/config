@@ -33,7 +33,7 @@ import type { TypeClassification } from '../../utils/boolish-classification';
 import type { RuleDefinition } from '.';
 
 export const MESSAGE_ID_MISSING_PREFIX = 'missingPrefix';
-export const MESSAGE_ID_RESERVED_PREFIX = 'reservedPrefix';
+export const MESSAGE_ID_UNEXPECTED_PREFIX = 'unexpectedPrefix';
 
 const CLASS_MEMBER_NODES = new Set([
   'MethodDefinition',
@@ -244,7 +244,7 @@ const checkTarget = (ruleContext: RuleContext, target: SymbolTarget): void => {
     : undefined;
 
   if (reservedToken !== undefined) {
-    ruleContext.report(target.nameNode, MESSAGE_ID_RESERVED_PREFIX, {
+    ruleContext.report(target.nameNode, MESSAGE_ID_UNEXPECTED_PREFIX, {
       kind,
       name,
       prefix: reservedToken,
@@ -404,7 +404,7 @@ export const boolishPrefixRule = <const>{
     },
     messages: {
       [MESSAGE_ID_MISSING_PREFIX]: '{{ kind }} name `{{ name }}` must have one of the following prefixes: {{ prefixes }}.',
-      [MESSAGE_ID_RESERVED_PREFIX]: '{{ kind }} name `{{ name }}` must not start with the boolish prefix `{{ prefix }}` because it is not boolean.',
+      [MESSAGE_ID_UNEXPECTED_PREFIX]: '{{ kind }} name `{{ name }}` must not start with the boolish prefix `{{ prefix }}` because it is not boolean.',
     },
   },
   create: (context) => {

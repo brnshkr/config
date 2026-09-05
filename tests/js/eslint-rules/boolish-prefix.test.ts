@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import {
   boolishPrefixRule,
   MESSAGE_ID_MISSING_PREFIX,
-  MESSAGE_ID_RESERVED_PREFIX,
+  MESSAGE_ID_UNEXPECTED_PREFIX,
 } from '../../../src/js/eslint/configs/builtin/boolish-prefix';
 
 import {
@@ -105,17 +105,17 @@ test('boolishPrefixRule inverse direction', () => {
       buildValidCase('external override is skipped', 'class Numbers extends Array<number> { public some(): boolean { return false; } }\n'),
     ],
     invalid: [
-      buildInvalidCase('non-boolean method with reserved prefix', 'class Box { public hasName(): string { return \'x\'; } }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean method with capability prefix', 'class Box { public requiresList(): string[] { return []; } }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean method with relational prefix', 'class Box { public allowsAccess(): string[] { return []; } }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean method with collider prefix', 'class Box { public startsWith(): string[] { return []; } }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean converter method', 'class Box { public asBoolean(): string { return \'x\'; } }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean property with reserved prefix', 'class Box { public hasCount: number = 0; }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean promoted property with reserved prefix', 'class Box { public constructor(public isName: string) {} }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean parameter with reserved prefix', 'function run(shouldLabel: string): void {}\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean variable with reserved prefix', 'const isLabel: string = \'draft\';\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean interface property with reserved prefix', 'interface Box { isMixed: number }\n', [MESSAGE_ID_RESERVED_PREFIX]),
-      buildInvalidCase('non-boolean enum member with reserved prefix', 'enum Box { IS_LABEL = \'draft\' }\n', [MESSAGE_ID_RESERVED_PREFIX]),
+      buildInvalidCase('non-boolean method with reserved prefix', 'class Box { public hasName(): string { return \'x\'; } }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean method with capability prefix', 'class Box { public requiresList(): string[] { return []; } }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean method with relational prefix', 'class Box { public allowsAccess(): string[] { return []; } }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean method with collider prefix', 'class Box { public startsWith(): string[] { return []; } }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean converter method', 'class Box { public asBoolean(): string { return \'x\'; } }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean property with reserved prefix', 'class Box { public hasCount: number = 0; }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean promoted property with reserved prefix', 'class Box { public constructor(public isName: string) {} }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean parameter with reserved prefix', 'function run(shouldLabel: string): void {}\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean variable with reserved prefix', 'const isLabel: string = \'draft\';\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean interface property with reserved prefix', 'interface Box { isMixed: number }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
+      buildInvalidCase('non-boolean enum member with reserved prefix', 'enum Box { IS_LABEL = \'draft\' }\n', [MESSAGE_ID_UNEXPECTED_PREFIX]),
       buildInvalidCase('project-owned override is checked', 'class Base { public verify(): boolean { return true; } }\nclass Child extends Base { public verify(): boolean { return false; } }\n', [MESSAGE_ID_MISSING_PREFIX, MESSAGE_ID_MISSING_PREFIX]),
     ],
   });
@@ -182,7 +182,7 @@ test('boolishPrefixRule falls back to literal evidence without type information'
       buildInvalidLiteralCase(
         'non-boolean variable with reserved prefix',
         'const isLabel = \'draft\';\n',
-        [MESSAGE_ID_RESERVED_PREFIX],
+        [MESSAGE_ID_UNEXPECTED_PREFIX],
       ),
       buildInvalidLiteralCase(
         'boolean function without prefix',
@@ -192,7 +192,7 @@ test('boolishPrefixRule falls back to literal evidence without type information'
       buildInvalidLiteralCase(
         'non-boolean function with reserved prefix',
         'function hasName() { return \'x\'; }\n',
-        [MESSAGE_ID_RESERVED_PREFIX],
+        [MESSAGE_ID_UNEXPECTED_PREFIX],
       ),
       buildInvalidLiteralCase(
         'boolean class property without prefix',
@@ -207,7 +207,7 @@ test('boolishPrefixRule falls back to literal evidence without type information'
       buildInvalidLiteralCase(
         'arrow returning a non-boolean with reserved prefix',
         'const hasName = () => \'x\';\n',
-        [MESSAGE_ID_RESERVED_PREFIX],
+        [MESSAGE_ID_UNEXPECTED_PREFIX],
       ),
       buildInvalidLiteralCase(
         'mutable boolean binding without prefix',

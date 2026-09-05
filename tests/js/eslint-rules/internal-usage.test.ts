@@ -4,8 +4,8 @@ import { expect, test } from 'vitest';
 
 import {
   internalUsageRule,
-  MESSAGE_ID_INTERNAL_USAGE,
-  MESSAGE_ID_TARGETED_INTERNAL_USAGE,
+  MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE,
+  MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE,
 } from '../../../src/js/eslint/configs/builtin/internal-usage';
 
 import { readPhpRuleSource } from '../utils/php-rule';
@@ -141,32 +141,32 @@ test('internalUsageRule scenarios', () => {
       buildInvalidCase(
         'construction of an internal class',
         'import { PasswordHasher } from \'../internal/hasher\';\n\nnew PasswordHasher();\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'internal method reached through an instance',
         'import { PasswordHasher } from \'../internal/hasher\';\n\nnew PasswordHasher().rehash(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE, MESSAGE_ID_TARGETED_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE, MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'internal property of an untagged interface',
         'import type { HashOptions } from \'../internal/hasher\';\n\nexport const read = (options: HashOptions): string => options.secret;\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'internal property on a callback parameter',
         'import type { HashOptions } from \'../internal/hasher\';\n\ndeclare const handle: (callback: (options: HashOptions) => string) => void;\n\nhandle((options) => options.secret);\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'internal type in a type position',
         'import type { HashToken } from \'../internal/hasher\';\n\nexport const read = (token: HashToken): string => token;\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'usage from another package',
         'import { hashPassword } from \'../src/internal/hasher\';\n\nhashPassword(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
         { filename: CALLER_EMAIL },
       ),
       {
@@ -180,43 +180,43 @@ test('internalUsageRule scenarios', () => {
       buildInvalidCase(
         'bare vendor target from a lookalike scope',
         'import { organizationHelper } from \'../src/internal/vendor\';\n\norganizationHelper(\'a\');\n',
-        [MESSAGE_ID_TARGETED_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE],
         { filename: CALLER_LOOKALIKE },
       ),
       buildInvalidCase(
         'described tag from a sibling namespace',
         'import { describedHelper } from \'../internal/described\';\n\ndescribedHelper(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'file-level internal from a sibling namespace',
         'import { fileLevelHelper } from \'../internal/file-level\';\n\nfileLevelHelper(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         're-export of an internal symbol',
         'export { hashPassword } from \'../internal/hasher\';\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'export all of an internal module',
         'export * from \'../internal/file-level\';\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'dynamic import of an internal module',
         'export const load = async (): Promise<unknown> => import(\'../internal/file-level\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'barrel re-export resolves to the origin',
         'import { hashPassword } from \'../internal/barrel\';\n\nhashPassword(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'member of a namespace import',
         'import * as hasher from \'../internal/hasher\';\n\nhasher.hashPassword(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       {
         name: 'a declared function carries parentheses in its symbol name',
@@ -245,17 +245,17 @@ test('internalUsageRule scenarios', () => {
       buildInvalidCase(
         '@internal symbol inside a file-level @api module',
         'import { apiFileInternalHelper } from \'../entry/api-file\';\n\napiFileInternalHelper(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'untagged symbol in a file-level @internal module',
         'import { internalFileOpenHelper } from \'../entry/internal-file\';\n\ninternalFileOpenHelper(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'every usage is reported',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\nhashPassword(\'b\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE, MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE, MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
     ],
   });
@@ -307,7 +307,7 @@ test('internalUsageRule option scenarios', () => {
       buildInvalidCase(
         'a partial segment is not a prefix match',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
         { options: [{ allowedCallingNamespaces: ['@acme/user/pub'] }] },
       ),
     ],
@@ -330,7 +330,7 @@ test('internalUsageRule resolves namespaces through tsconfig path aliases', () =
       buildInvalidCase(
         'alias target stays unresolved without a tsconfig',
         'import { aliasedHelper } from \'../aliased\';\n\naliasedHelper(\'a\');\n',
-        [MESSAGE_ID_TARGETED_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE],
         { filename: CALLER_BELOW },
       ),
       {
@@ -416,7 +416,7 @@ test('internalUsageRule degrades to lexical resolution without type information'
       buildInvalidCase(
         'usage of an internal import',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       {
         name: 'a declared function carries parentheses without type information',
@@ -429,17 +429,17 @@ test('internalUsageRule degrades to lexical resolution without type information'
       buildInvalidCase(
         're-export of an internal symbol',
         'export { hashPassword } from \'../internal/hasher\';\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'export all of a file-level internal module',
         'export * from \'../internal/file-level\';\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
       buildInvalidCase(
         'usage of a file-level internal import',
         'import { fileLevelHelper } from \'../internal/file-level\';\n\nfileLevelHelper(\'a\');\n',
-        [MESSAGE_ID_INTERNAL_USAGE],
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
       ),
     ],
   });

@@ -9,7 +9,7 @@ import type ts from 'typescript';
 import type { Maybe } from '../../../shared/types/core';
 import type { RuleDefinition } from '.';
 
-export const MESSAGE_ID_UNRESOLVED_REFERENCE = 'unresolvedReference';
+export const MESSAGE_ID_MISSING_REFERENCE = 'missingReference';
 
 interface DocNameNode extends ts.Node {
   left?: DocNameNode;
@@ -157,7 +157,7 @@ export const resolvableDocReferenceRule = <const>{
       url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/resolvable-doc-reference.md',
     },
     messages: {
-      [MESSAGE_ID_UNRESOLVED_REFERENCE]: 'Reference `{{ name }}` does not exist.',
+      [MESSAGE_ID_MISSING_REFERENCE]: 'Reference `{{ name }}` does not exist.',
     },
   },
   create: (context) => {
@@ -232,7 +232,7 @@ export const resolvableDocReferenceRule = <const>{
         for (const finding of findings.values()) {
           context.report({
             loc: finding.loc,
-            messageId: MESSAGE_ID_UNRESOLVED_REFERENCE,
+            messageId: MESSAGE_ID_MISSING_REFERENCE,
             data: {
               name: finding.target,
             },

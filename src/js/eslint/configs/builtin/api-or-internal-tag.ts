@@ -17,8 +17,8 @@ import type { PackageExportsResolverOptions } from '../../utils/package-exports'
 import type { RuleDefinition } from '.';
 
 export const MESSAGE_ID_MISSING_TAG = 'missingTag';
-export const MESSAGE_ID_CONFLICTING_TAGS = 'conflictingTags';
-export const MESSAGE_ID_CONFLICTING_FILE_TAGS = 'conflictingFileTags';
+export const MESSAGE_ID_UNEXPECTED_TAG_CONFLICT = 'unexpectedTagConflict';
+export const MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT = 'unexpectedFileTagConflict';
 
 /**
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/api-or-internal-tag.md
@@ -55,8 +55,8 @@ export const apiOrInternalTagRule = <const>{
     ],
     messages: {
       [MESSAGE_ID_MISSING_TAG]: '{{ kind }} `{{ name }}` is exported from a public-API source file and must carry an `@api` or `@internal` JSDoc tag.',
-      [MESSAGE_ID_CONFLICTING_TAGS]: '{{ kind }} `{{ name }}` must declare exactly one visibility, but carries both `@api` and `@internal`.',
-      [MESSAGE_ID_CONFLICTING_FILE_TAGS]: 'The file-level docblock must declare exactly one visibility, but carries both `@api` and `@internal`.',
+      [MESSAGE_ID_UNEXPECTED_TAG_CONFLICT]: '{{ kind }} `{{ name }}` must declare exactly one visibility, but carries both `@api` and `@internal`.',
+      [MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT]: 'The file-level docblock must declare exactly one visibility, but carries both `@api` and `@internal`.',
     },
   },
   create: (context) => {
@@ -71,7 +71,7 @@ export const apiOrInternalTagRule = <const>{
         if (hasConflictingVisibilityTags(symbol.comment)) {
           context.report({
             node: symbol.anchor,
-            messageId: MESSAGE_ID_CONFLICTING_TAGS,
+            messageId: MESSAGE_ID_UNEXPECTED_TAG_CONFLICT,
             data: {
               kind: symbol.kind,
               name: symbol.name,
@@ -98,7 +98,7 @@ export const apiOrInternalTagRule = <const>{
         if (fileCommentNode !== undefined && hasConflictingVisibilityTags(fileComment)) {
           context.report({
             loc: fileCommentNode.loc,
-            messageId: MESSAGE_ID_CONFLICTING_FILE_TAGS,
+            messageId: MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT,
           });
         }
       },

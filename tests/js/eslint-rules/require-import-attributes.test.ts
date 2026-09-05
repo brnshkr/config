@@ -3,7 +3,7 @@ import { test } from 'vitest';
 import {
   MESSAGE_ID_MISSING_TYPE_PROPERTY,
   MESSAGE_ID_MISSING_WITH_KEYWORD,
-  MESSAGE_ID_WRONG_TYPE_VALUE,
+  MESSAGE_ID_UNEXPECTED_TYPE_VALUE,
   requireImportAttributesRule,
 } from '../../../src/js/eslint/configs/builtin/require-import-attributes';
 
@@ -58,12 +58,12 @@ test('requireImportAttributesRule scenarios', () => {
       buildInvalidCase(
         'wrong type value for json',
         'import data from \'./data.json\' with { type: \'text\' };\n',
-        [MESSAGE_ID_WRONG_TYPE_VALUE],
+        [MESSAGE_ID_UNEXPECTED_TYPE_VALUE],
       ),
       buildInvalidCase(
         'wrong type value for css',
         'import styles from \'./styles.css\' with { type: \'json\' };\n',
-        [MESSAGE_ID_WRONG_TYPE_VALUE],
+        [MESSAGE_ID_UNEXPECTED_TYPE_VALUE],
       ),
     ],
   });

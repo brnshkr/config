@@ -3,8 +3,8 @@ import path from 'node:path';
 import { test } from 'vitest';
 
 import {
+  MESSAGE_ID_EXPECTED_ALIAS,
   MESSAGE_ID_MISSING_ALIAS,
-  MESSAGE_ID_PREFER_ALIAS,
   requireImportAliasRule,
 } from '../../../src/js/eslint/configs/builtin/require-import-alias';
 
@@ -78,7 +78,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'relative import resolvable as alias is autofixed',
         'import { x } from \'./lib/target\';\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           output: 'import { x } from \'$test/target\';\n',
         },
@@ -86,7 +86,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'relative import prefers the alias with the fewest path segments',
         'import { x } from \'./lib/target\';\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           options: [OVERLAPPING_RULE_OPTIONS],
           output: 'import { x } from \'$lib/target\';\n',
@@ -95,7 +95,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'alias with more path segments than needed is autofixed',
         'import { x } from \'$root/lib/target\';\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           options: [OVERLAPPING_RULE_OPTIONS],
           output: 'import { x } from \'$lib/target\';\n',
@@ -109,7 +109,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'autofix preserves double-quoted source',
         'import { x } from "./lib/target";\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           output: 'import { x } from "$test/target";\n',
         },
@@ -117,7 +117,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'export-from is also checked',
         'export { x } from \'./lib/target\';\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           output: 'export { x } from \'$test/target\';\n',
         },
@@ -125,7 +125,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'export-* is also checked',
         'export * from \'./lib/target\';\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           output: 'export * from \'$test/target\';\n',
         },
@@ -133,7 +133,7 @@ test('requireImportAliasRule scenarios', () => {
       buildInvalidCase(
         'dynamic import is also checked',
         'const value = import(\'./lib/target\');\n',
-        [MESSAGE_ID_PREFER_ALIAS],
+        [MESSAGE_ID_EXPECTED_ALIAS],
         {
           output: 'const value = import(\'$test/target\');\n',
         },

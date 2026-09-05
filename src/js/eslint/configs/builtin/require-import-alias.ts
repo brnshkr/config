@@ -13,7 +13,7 @@ import type { Maybe } from '../../../shared/types/core';
 import type { TsConfigPaths } from '../../utils/tsconfig';
 import type { RuleDefinition } from '.';
 
-export const MESSAGE_ID_PREFER_ALIAS = 'preferAlias';
+export const MESSAGE_ID_EXPECTED_ALIAS = 'expectedAlias';
 export const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';
 
 const WILDCARD_SUFFIX = '/*';
@@ -147,7 +147,7 @@ export const requireImportAliasRule = <const>{
       },
     ],
     messages: {
-      [MESSAGE_ID_PREFER_ALIAS]: 'Import path \'{{ source }}\' must use the configured alias \'{{ alias }}\'.',
+      [MESSAGE_ID_EXPECTED_ALIAS]: 'Import path \'{{ source }}\' must use the configured alias \'{{ alias }}\'.',
       [MESSAGE_ID_MISSING_ALIAS]: 'Import path \'{{ source }}\' resolves outside any configured TypeScript path alias. Add an alias for this location, remove all other aliases, or disable this rule.',
     },
   },
@@ -198,7 +198,7 @@ export const requireImportAliasRule = <const>{
 
       context.report({
         node: sourceNode,
-        messageId: MESSAGE_ID_PREFER_ALIAS,
+        messageId: MESSAGE_ID_EXPECTED_ALIAS,
         data: {
           source,
           alias: replacement,

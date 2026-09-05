@@ -4,8 +4,8 @@ import { beforeEach, expect, test } from 'vitest';
 
 import {
   apiOrInternalTagRule,
-  MESSAGE_ID_CONFLICTING_FILE_TAGS,
-  MESSAGE_ID_CONFLICTING_TAGS,
+  MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT,
+  MESSAGE_ID_UNEXPECTED_TAG_CONFLICT,
   MESSAGE_ID_MISSING_TAG,
 } from '../../../src/js/eslint/configs/builtin/api-or-internal-tag';
 
@@ -127,12 +127,12 @@ test('apiOrInternalTagRule scenarios', () => {
       buildInvalidCase(
         'symbol carrying both tags errors',
         '/**\n * @api\n * @internal\n */\nexport const value = 1;\n',
-        [MESSAGE_ID_CONFLICTING_TAGS],
+        [MESSAGE_ID_UNEXPECTED_TAG_CONFLICT],
       ),
       buildInvalidCase(
         'symbol carrying both tags errors outside a public-API file',
         '/**\n * @api\n * @internal\n */\nexport const value = 1;\n',
-        [MESSAGE_ID_CONFLICTING_TAGS],
+        [MESSAGE_ID_UNEXPECTED_TAG_CONFLICT],
         { filename: FIXTURE_UNLISTED },
       ),
       buildInvalidCase(
@@ -143,7 +143,7 @@ test('apiOrInternalTagRule scenarios', () => {
       buildInvalidCase(
         'file-level block carrying both tags errors',
         '/**\n * @api\n * @internal\n */\n\n/**\n * @api\n */\nexport const value = 1;\n',
-        [MESSAGE_ID_CONFLICTING_FILE_TAGS],
+        [MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT],
       ),
     ],
   });

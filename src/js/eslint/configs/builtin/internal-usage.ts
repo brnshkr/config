@@ -29,8 +29,8 @@ import type { Maybe } from '../../../shared/types/core';
 import type { TsConfigPaths } from '../../utils/tsconfig';
 import type { RuleDefinition } from '.';
 
-export const MESSAGE_ID_INTERNAL_USAGE = 'internalUsage';
-export const MESSAGE_ID_TARGETED_INTERNAL_USAGE = 'targetedInternalUsage';
+export const MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE = 'unexpectedInternalUsage';
+export const MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE = 'unexpectedTargetedInternalUsage';
 
 const PLAIN_INTERNAL = '@internal';
 const PUBLIC_API = '@api';
@@ -575,8 +575,8 @@ export const internalUsageRule = <const>{
       },
     ],
     messages: {
-      [MESSAGE_ID_INTERNAL_USAGE]: '`{{ symbol }}` is internal and must not be used from `{{ caller }}`.',
-      [MESSAGE_ID_TARGETED_INTERNAL_USAGE]: '`{{ symbol }}` is internal to `{{ target }}` and must not be used from `{{ caller }}`.',
+      [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE]: '`{{ symbol }}` is internal and must not be used from `{{ caller }}`.',
+      [MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE]: '`{{ symbol }}` is internal to `{{ target }}` and must not be used from `{{ caller }}`.',
     },
   },
   create: (context) => {
@@ -626,8 +626,8 @@ export const internalUsageRule = <const>{
       context.report({
         node,
         messageId: internal.target === PLAIN_INTERNAL
-          ? MESSAGE_ID_INTERNAL_USAGE
-          : MESSAGE_ID_TARGETED_INTERNAL_USAGE,
+          ? MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE
+          : MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE,
         data: {
           caller: callerNamespace,
           symbol: internal.symbolId,

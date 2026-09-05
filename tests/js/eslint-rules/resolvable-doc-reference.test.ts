@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 
 import {
-  MESSAGE_ID_UNRESOLVED_REFERENCE,
+  MESSAGE_ID_MISSING_REFERENCE,
   resolvableDocReferenceRule,
 } from '../../../src/js/eslint/configs/builtin/resolvable-doc-reference';
 
@@ -75,42 +75,42 @@ test('resolvableDocReferenceRule scenarios', () => {
       buildInvalidCase(
         'inline link to an undeclared target',
         '/**\n * {@link Mailer}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'inline see to an undeclared target',
         '/**\n * {@see Mailer}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'block tag to an undeclared target',
         '/**\n * @see Mailer\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'linkcode to an undeclared target',
         '/**\n * {@linkcode Mailer}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'linkplain to an undeclared target',
         '/**\n * {@linkplain Mailer}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'member path on an undeclared target',
         '/**\n * {@link Mailer.sendNow}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'description after the target is ignored',
         '/**\n * {@link Mailer the transport this delegates to}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidCase(
         'two targets on one line',
         '/**\n * {@link Mailer} and {@link Transport}\n */\nexport const send = (): void => {};\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE, MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE, MESSAGE_ID_MISSING_REFERENCE],
       ),
     ],
   });
@@ -200,17 +200,17 @@ test('resolvableDocReferenceRule resolves members when type information is avail
       buildInvalidTypeAwareCase(
         'misspelled member of an imported namespace',
         'import type eslint from \'eslint\';\n\n/**\n * {@link eslint.Lintr}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'block tag naming a misspelled member',
         'import type eslint from \'eslint\';\n\n/**\n * @see eslint.Lintr\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'misspelled method of a local class',
         'class Mailer {\n  public send(): void {}\n}\n\n/**\n * {@link Mailer.sendNow}\n */\nexport const value = new Mailer();\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       {
         name: 'type import expression is not a namepath',
@@ -221,12 +221,12 @@ test('resolvableDocReferenceRule resolves members when type information is avail
       buildInvalidTypeAwareCase(
         'broken link in a chained namepath',
         'class Idea {\n  public consider(): void {}\n}\n\nclass Person {\n  public idea = new Idea();\n}\n\n/**\n * {@link Person#idea#missing}\n */\nexport const value = new Person();\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'misspelled instance member through the hash form',
         'class Mailer {\n  public send(): void {}\n}\n\n/**\n * {@link Mailer#sendNow}\n */\nexport const value = new Mailer();\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       {
         name: 'undeclared target with link text after a pipe',
@@ -237,37 +237,37 @@ test('resolvableDocReferenceRule resolves members when type information is avail
       buildInvalidTypeAwareCase(
         'block tag naming an undeclared target',
         '/**\n * @see Mailer\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'linkcode naming a misspelled member',
         'class Mailer {\n  public send(): void {}\n}\n\n/**\n * {@linkcode Mailer.sendNow}\n */\nexport const value = new Mailer();\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'the same target twice on one line',
         '/**\n * {@link Mailer} and {@link Mailer}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE, MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE, MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'two targets on one line',
         '/**\n * {@link Mailer} and {@link Transport}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE, MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE, MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'misspelled lowercase function in a link tag',
         'export const sendMail = (): void => {};\n\n/**\n * {@link sendMial}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'inline see is checked even though typescript does not model it',
         '/**\n * {@see Mailer}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
       buildInvalidTypeAwareCase(
         'undeclared target',
         '/**\n * {@link Mailer}\n */\nexport const value = true;\n',
-        [MESSAGE_ID_UNRESOLVED_REFERENCE],
+        [MESSAGE_ID_MISSING_REFERENCE],
       ),
     ],
   });

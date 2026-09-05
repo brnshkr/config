@@ -7,7 +7,7 @@ import type { RuleDefinition } from '.';
 
 export const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
 export const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
-export const MESSAGE_ID_WRONG_TYPE_VALUE = 'wrongTypeValue';
+export const MESSAGE_ID_UNEXPECTED_TYPE_VALUE = 'unexpectedTypeValue';
 
 const FILE_TYPE_MAP: Record<string, string> = <const>{
   '.json': 'json',
@@ -34,7 +34,7 @@ export const requireImportAttributesRule = <const>{
     messages: {
       [MESSAGE_ID_MISSING_WITH_KEYWORD]: 'Non-JavaScript import (\'{{ extension }}\') requires an import attributes object with the \'type\' property set to \'{{ expectedValue }}\'.',
       [MESSAGE_ID_MISSING_TYPE_PROPERTY]: 'Import attributes for non-JavaScript imports must include the \'type\' property.',
-      [MESSAGE_ID_WRONG_TYPE_VALUE]: 'Import attribute \'type\' for \'{{ file }}\' must be \'{{ expectedValue }}\'.',
+      [MESSAGE_ID_UNEXPECTED_TYPE_VALUE]: 'Import attribute \'type\' for \'{{ file }}\' must be \'{{ expectedValue }}\'.',
     },
   },
   create: (context) => ({
@@ -94,7 +94,7 @@ export const requireImportAttributesRule = <const>{
       if (typeProperty.value.value !== expectedValue) {
         context.report({
           node,
-          messageId: MESSAGE_ID_WRONG_TYPE_VALUE,
+          messageId: MESSAGE_ID_UNEXPECTED_TYPE_VALUE,
           data: {
             expectedValue,
             file: sourceValue,
