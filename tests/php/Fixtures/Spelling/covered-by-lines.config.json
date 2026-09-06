@@ -1,0 +1,8 @@
+{
+  "allowlist": {
+    "tests/php/Fixtures/Spelling/prose.md": [
+      "analyse:9,11",
+      "analyse:9"
+    ]
+  }
+}

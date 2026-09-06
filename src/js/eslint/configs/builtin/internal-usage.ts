@@ -8,7 +8,7 @@ import {
   doesFileExist,
   findNearestPackageJson,
   getMtime,
-  readJsonFile,
+  readJsonObjectFile,
   readTextFile,
   toPosix,
 } from '../../../shared/utils/filesystem';
@@ -199,8 +199,9 @@ const loadPackageIdentity = (directory: string): Maybe<PackageIdentity> => {
     return cacheEntry.identity;
   }
 
-  const manifest = <Maybe<{ name?: unknown }>>readJsonFile(packageJsonPath);
-  const packageName = typeof manifest?.name === 'string' ? manifest.name : '';
+  const manifest = readJsonObjectFile(packageJsonPath);
+  const declaredName = manifest?.['name'];
+  const packageName = typeof declaredName === 'string' ? declaredName : '';
 
   const identity = packageName.length === 0
     ? undefined

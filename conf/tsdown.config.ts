@@ -30,12 +30,15 @@ export default defineConfig((options) => {
         '../src/js/commitlint/index.ts',
         '../src/js/eslint/index.ts',
         '../src/js/markdownlint/index.ts',
+        '../src/js/spelling/index.ts',
+        '../src/js/spelling/spelling.test.ts',
         '../src/js/stylelint/index.ts',
       ],
       deps: {
         neverBundle: [
           '@commitlint/types',
           '@typescript-eslint/utils',
+          'vitest',
         ],
       },
     },

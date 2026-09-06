@@ -6,10 +6,12 @@ import path from 'node:path';
 
 import {
   doesFileExist,
-  readJsonFile,
+  readJsonObjectFile,
   readTextFile,
   toPosix,
 } from '../../shared/utils/filesystem';
+
+import { isPlainObject } from '../../shared/utils/object';
 
 import type { Maybe } from '../../shared/types/core';
 
@@ -62,10 +64,6 @@ const REEXPORT_NAME_PART = String.raw`(?:\*(?:\s+as\s+[\p{ID_Start}$_][\p{ID_Con
 const normalizeRoot = (value: string): string => toPosix(value)
   .replace(/^\.\//v, '')
   .replace(/\/$/v, '');
-
-const isPlainObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object'
-  && value !== null
-  && !Array.isArray(value);
 
 const collectStringEntries = (node: unknown, accumulator: string[]): void => {
   if (typeof node === 'string') {
@@ -220,9 +218,9 @@ export const resolvePackageApiSources = (
   options: PackageExportsResolverOptions,
 ): Maybe<PackageExportsResolution> => {
   const packageJsonPath = path.resolve(options.packageJsonPath);
-  const manifest = readJsonFile(packageJsonPath);
+  const manifest = readJsonObjectFile(packageJsonPath);
 
-  if (!isPlainObject(manifest) || manifest['exports'] === undefined) {
+  if (manifest === undefined || manifest['exports'] === undefined) {
     return undefined;
   }
 

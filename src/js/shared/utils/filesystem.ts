@@ -5,6 +5,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { isPlainObject } from './object';
+
 import type { Maybe } from '../types/core';
 
 export const toPosix = (value: string): string => value.replaceAll('\\', '/');
@@ -50,6 +52,12 @@ export const readJsonFile = (filePath: string): Maybe<unknown> => {
   } catch {
     return undefined;
   }
+};
+
+export const readJsonObjectFile = (filePath: string): Maybe<Record<string, unknown>> => {
+  const parsedContent = readJsonFile(filePath);
+
+  return isPlainObject(parsedContent) ? parsedContent : undefined;
 };
 
 export const findNearestPackageJson = (startDirectory: string): Maybe<string> => {

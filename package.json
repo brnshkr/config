@@ -36,6 +36,8 @@
     "./eslint": "./dist/eslint/index.mjs",
     "./markdownlint": "./dist/markdownlint/index.mjs",
     "./scripts/markdownlint": "./dist/scripts/markdownlint.mjs",
+    "./spelling": "./dist/spelling/index.mjs",
+    "./spelling/test": "./dist/spelling/spelling.test.mjs",
     "./scripts/eslint": "./dist/scripts/eslint.mjs",
     "./stylelint": "./dist/stylelint/index.mjs",
     "./scripts/stylelint": "./dist/scripts/stylelint.mjs"
@@ -44,6 +46,7 @@
     "./conf/commitlint.config.mjs.example",
     "./conf/eslint.config.mjs.example",
     "./conf/markdownlint.config.mjs.example",
+    "./conf/spelling",
     "./conf/stylelint.config.mjs.example",
     "./conf/tsconfig.json",
     "./conf/tsconfig.json.example",
@@ -106,7 +109,8 @@
     "stylelint-use-nesting": "^6.0.2",
     "svelte": "^5.55.3",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.2"
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^4.1.4"
   },
   "peerDependenciesMeta": {
     "@commitlint/config-conventional": {
@@ -251,6 +255,9 @@
       "optional": true
     },
     "typescript-eslint": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   },

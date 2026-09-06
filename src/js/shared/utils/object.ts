@@ -38,3 +38,13 @@ export const objectAssign = <TObject extends AnyObject<TObject>>(
   target: TObject,
   source: Partial<TObject>,
 ): TObject => Object.assign(target, source);
+
+export const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const prototype: unknown = Object.getPrototypeOf(value);
+
+  return prototype === null || prototype === Object.prototype;
+};

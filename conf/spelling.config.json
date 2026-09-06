@@ -1,0 +1,48 @@
+{
+  "allowlist": {
+    "conf/ai/docs/php.md": [
+      "analyse:8"
+    ],
+    "conf/ai/mate/INSTRUCTIONS.md": [
+      "analyse:20"
+    ],
+    "docs/spelling.md": [
+      "analyse:61,68"
+    ],
+    "src/php/PhpStan.php": [
+      "analyse:416,421,426,447"
+    ],
+    "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
+      "Analyser:18"
+    ],
+    "src/php/PhpStan/Rule/BoolishPrefixRule.php": [
+      "Analyser:31"
+    ],
+    "src/php/PhpStan/Rule/InterfaceSuffixRule.php": [
+      "Analyser:13"
+    ],
+    "src/php/PhpStan/Rule/InternalUsageRule.php": [
+      "Analyser:28"
+    ],
+    "src/php/PhpStan/Rule/PublicApiDocumentationRule.php": [
+      "Analyser:23"
+    ],
+    "src/php/PhpStan/Rule/ResolvableDocReferenceRule.php": [
+      "Analyser:15"
+    ],
+    "src/php/PhpStan/Rule/Trait/RuleTrait.php": [
+      "Analyser:17"
+    ],
+    "src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php": [
+      "Analyser:11"
+    ],
+    "tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php": [
+      "analyse:27"
+    ],
+    "tests/php/SpellingTest.php": [
+      "analyse:48,53,54,60,67,79,91",
+      "behaviour:38",
+      "normalises:105"
+    ]
+  }
+}

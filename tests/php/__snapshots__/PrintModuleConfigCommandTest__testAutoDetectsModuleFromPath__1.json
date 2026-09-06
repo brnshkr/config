@@ -168,7 +168,9 @@
         "./src/php/PhpStan/Rule/Trait/RuleTrait.php",
         "./src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php",
         "./src/php/Rector.php",
+        "./src/php/Spelling.php",
         "./src/php/Str.php",
+        "./src/php/Testing/SpellingTest.php",
         "./src/php/TwigCsFixer.php",
         "./tests/php/CommandTest.php",
         "./tests/php/MakeHelpTest.php",
@@ -181,6 +183,7 @@
         "./tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php",
         "./tests/php/PhpStan/Rule/ResolvableDocReferenceRuleTest.php",
         "./tests/php/PrintModuleConfigCommandTest.php",
+        "./tests/php/SpellingTest.php",
         "./tests/php/TwigCsFixerTest.php"
     ],
     "format": "txt",

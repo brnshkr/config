@@ -15,6 +15,10 @@
     <testsuite name="Brnshkr\Config">
       <directory>../tests/php</directory>
     </testsuite>
+
+    <testsuite name="Brnshkr\Config shipped">
+      <directory>../src/php/Testing</directory>
+    </testsuite>
   </testsuites>
 
   <source>

@@ -18,4 +18,5 @@ Installation and the ways to run each tool live in the [README](../README.md)
   - [FileFinder](./php/FileFinder.md)
   - [Composer Plugin](./php/Composer.md)
   - [Makefile](./php/Makefile.md)
+- [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run
 - [💻 Development](./development.md) — working on @brnshkr/config itself

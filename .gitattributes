@@ -3,6 +3,8 @@
 /conf/.gitignore.example             -export-ignore
 /Makefile                             export-ignore
 /conf/Makefile                       -export-ignore
+/conf/spelling                       -export-ignore
+/conf/spelling/*                     -export-ignore
 /conf/Makefile.example               -export-ignore
 /conf/php-cs-fixer.dist.php.example  -export-ignore
 /conf/php-cs-fixer.php.example       -export-ignore

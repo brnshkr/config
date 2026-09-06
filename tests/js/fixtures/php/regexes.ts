@@ -119,6 +119,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /\*\s+@api\b/v,
   },
   {
+    file: 'src/php/Spelling.php',
+    php: String.raw`/^(?<text>.*):(?<lineNumbers>\d+(?:,\d+)*)$/`,
+    regex: /^(?<text>.*):(?<lineNumbers>\d+(?:,\d+)*)$/v,
+  },
+  {
     file: 'tests/php/CommandTest.php',
     php: String.raw`/^Running.+\n/`,
     regex: /^Running.+\n/v,
