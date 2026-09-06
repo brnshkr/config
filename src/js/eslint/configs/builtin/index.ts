@@ -17,6 +17,7 @@ import { requireImportAliasRule } from './require-import-alias';
 import { requireImportAttributesRule } from './require-import-attributes';
 // eslint-disable-next-line unicorn/prevent-abbreviations -- Mirrors the rule id, which pairs with the PHP `ResolvableDocReferenceRule`
 import { resolvableDocReferenceRule } from './resolvable-doc-reference';
+import { typeAssertionStyleRule } from './type-assertion-style';
 
 import type { ESLint } from 'eslint';
 import type { Config } from '../../types/config';
@@ -35,6 +36,7 @@ export const RULE_DEFINITIONS = <const>{
   'require-import-attributes': requireImportAttributesRule,
   'require-import-alias': requireImportAliasRule,
   'resolvable-doc-reference': resolvableDocReferenceRule,
+  'type-assertion-style': typeAssertionStyleRule,
 } satisfies Record<string, RuleDefinition>;
 
 const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
@@ -69,6 +71,7 @@ const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Conf
         }],
         [<const>`${packageOrganization}/require-import-attributes`]: 'error',
         [<const>`${packageOrganization}/resolvable-doc-reference`]: 'error',
+        [<const>`${packageOrganization}/type-assertion-style`]: 'error',
       } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,
     },
   ];
