@@ -67,6 +67,7 @@
         "Brnshkr\\Config\\PhpStan\\Rule\\ApiOrInternalTagRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\InternalExposureRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsTagRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsUsageRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\PublicApiDocumentationRule",

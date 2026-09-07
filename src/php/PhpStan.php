@@ -12,6 +12,7 @@ use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
+use Brnshkr\Config\PhpStan\Rule\InternalExposureRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\NamedArgumentsTagRule;
 use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
@@ -224,6 +225,7 @@ final class PhpStan
                 ApiOrInternalTagRule::class,
                 BoolishPrefixRule::class,
                 InterfaceSuffixRule::class,
+                InternalExposureRule::class,
                 NamedArgumentsTagRule::class,
                 NamedArgumentsUsageRule::class,
                 PublicApiDocumentationRule::class,

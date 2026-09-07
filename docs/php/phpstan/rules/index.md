@@ -14,6 +14,8 @@ to a specific framework or architecture style — they are opt-in and configured
 
 - [`InternalUsageRule`](./InternalUsageRule.md) — `@internal` symbols may only be used
   from their own declaring namespace or below
+- [`InternalExposureRule`](./InternalExposureRule.md)
+  — an `@api` signature must not name an `@internal` type
 
 ## Documentation
 
