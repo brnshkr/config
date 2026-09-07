@@ -13,7 +13,6 @@ use PhpParser\Node\Stmt\Class_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
-use RuntimeException;
 
 use function array_filter;
 use function array_values;
@@ -56,8 +55,6 @@ final readonly class InterfaceSuffixRule implements Rule
      * @internal invoked by PHPStan
      *
      * @return list<IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array

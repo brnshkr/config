@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule\Trait;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Exception\UnreachableException;
 use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\Str;
 use PhpParser\Comment\Doc;
@@ -48,9 +49,6 @@ trait RuleTrait
     protected const string TAG_NAMED_ARGUMENTS    = 'named-arguments';
     protected const string TAG_NO_NAMED_ARGUMENTS = 'no-named-arguments';
 
-    /**
-     * @throws RuntimeException
-     */
     private static function buildRuleError(string $message, int $line, bool $isIgnorable = true): IdentifierRuleError
     {
         $className = Str::getClassShortName(self::class);
@@ -58,11 +56,13 @@ trait RuleTrait
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         $ruleName = lcfirst(Str::trimSuffix($className, 'Rule'));
 
-        $identifier = sprintf(
-            '%s.%s',
-            ComposerJson::forThisLibrary()->getPackageOrganization(),
-            $ruleName,
-        );
+        try {
+            $organization = ComposerJson::forThisLibrary()->getPackageOrganization();
+        } catch (RuntimeException $runtimeException) {
+            throw UnreachableException::wrap($runtimeException);
+        }
+
+        $identifier = sprintf('%s.%s', $organization, $ruleName);
 
         $ruleErrorBuilder = RuleErrorBuilder::message($message)
             ->identifier($identifier)

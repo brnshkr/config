@@ -32,7 +32,6 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
-use RuntimeException;
 
 use function array_any;
 use function array_filter;
@@ -218,8 +217,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @internal
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
@@ -243,8 +240,6 @@ final readonly class BoolishPrefixRule implements Rule
      * @param self::KIND_FUNCTION|self::KIND_METHOD $kind
      *
      * @return list<?IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function processFunctionOrClassMethod(Function_|ClassMethod $functionOrMethod, string $kind, Scope $scope): array
     {
@@ -265,8 +260,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @return list<?IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function processParams(FunctionLike $functionLike): array
     {
@@ -275,8 +268,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @return list<?IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function processConsts(ClassConst|ConstStmt $node): array
     {
@@ -297,8 +288,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @return list<?IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function processProperty(Property $property): array
     {
@@ -315,9 +304,6 @@ final readonly class BoolishPrefixRule implements Rule
         ));
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processParam(Param $param): ?IdentifierRuleError
     {
         if (!$param->var instanceof Variable || !is_string($param->var->name)) {
@@ -332,9 +318,6 @@ final readonly class BoolishPrefixRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processAssign(Assign $assign, Scope $scope): ?IdentifierRuleError
     {
         if (!$assign->var instanceof Variable
@@ -357,8 +340,6 @@ final readonly class BoolishPrefixRule implements Rule
     /**
      * @param self::KIND_* $kind
      * @param self::TYPE_* $type
-     *
-     * @throws RuntimeException
      */
     private static function checkSymbol(string $kind, string $name, string $type, int $line): ?IdentifierRuleError
     {
@@ -587,8 +568,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildMissingPrefixError(string $kind, string $name, int $line): IdentifierRuleError
     {
@@ -602,8 +581,6 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildReservedPrefixError(string $kind, string $name, string $prefix, int $line): IdentifierRuleError
     {

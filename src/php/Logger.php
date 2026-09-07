@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Exception\UnreachableException;
 use RuntimeException;
 
 use function fwrite;
@@ -30,8 +31,6 @@ final readonly class Logger
 
     /**
      * @param 'debug'|'error'|'info'|'notice'|'warn' $level
-     *
-     * @throws RuntimeException
      */
     public static function log(string $level, string $message): void
     {
@@ -43,10 +42,16 @@ final readonly class Logger
             'warn'   => self::ANSI_YELLOW,
         };
 
+        try {
+            $packageName = ComposerJson::forThisLibrary()->getPackageFullName();
+        } catch (RuntimeException $runtimeException) {
+            throw UnreachableException::wrap($runtimeException);
+        }
+
         $message = sprintf(
             '%s[%s]%s %s',
             $ansiColorCode,
-            ComposerJson::forThisLibrary()->getPackageFullName(),
+            $packageName,
             self::ANSI_RESET,
             $message . PHP_EOL,
         );

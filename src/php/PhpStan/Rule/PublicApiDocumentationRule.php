@@ -27,7 +27,6 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use ReflectionException;
-use RuntimeException;
 
 use function in_array;
 use function is_string;
@@ -93,7 +92,6 @@ final readonly class PublicApiDocumentationRule implements Rule
      * @return list<IdentifierRuleError>
      *
      * @throws ReflectionException
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
@@ -111,8 +109,6 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     /**
      * @return list<IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function checkClassLike(ClassLike $classLike, ?Doc $fileDoc): array
     {
@@ -131,8 +127,6 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     /**
      * @return list<IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function checkFunctionLike(ClassMethod|Function_ $node, Scope $scope, ?Doc $fileDoc): array
     {
@@ -195,7 +189,6 @@ final readonly class PublicApiDocumentationRule implements Rule
      * @return list<IdentifierRuleError>
      *
      * @throws ReflectionException
-     * @throws RuntimeException
      */
     private function checkFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): array
     {
@@ -359,8 +352,6 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildDescriptionError(string $kind, string $name, int $line): IdentifierRuleError
     {

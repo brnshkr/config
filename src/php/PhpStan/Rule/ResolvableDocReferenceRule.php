@@ -21,7 +21,6 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\FileTypeMapper;
-use RuntimeException;
 
 use function array_first;
 use function explode;
@@ -69,8 +68,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
 
     /**
      * @internal invoked by PHPStan
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
@@ -159,9 +156,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
         return Str::contains($target, '://');
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processTarget(string $target, Scope $scope, ?string $className, int $line): ?IdentifierRuleError
     {
         if (Str::contains($target, '::')) {
@@ -179,9 +173,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
         return $this->processSymbolTarget($target, $scope, $className, $line);
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processUriTarget(string $target, int $line): ?IdentifierRuleError
     {
         return self::isAbsoluteUri($target)
@@ -189,9 +180,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
             : self::buildRuleError(sprintf('Target `%s` must be an absolute URI.', $target), $line);
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processQualifiedTarget(string $target, Scope $scope, ?string $className, int $line): ?IdentifierRuleError
     {
         $classPart    = Str::beforeLast($target, '::');
@@ -211,9 +199,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
         return self::buildKeywordError($classReflection, $classPart, $member, $scope, $line);
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function buildKeywordError(
         ClassReflection $classReflection,
         string $classPart,
@@ -283,9 +268,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
             : $classReflection->getStaticProperty($name)->getDeclaringClass();
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processCallableTarget(string $target, Scope $scope, int $line): ?IdentifierRuleError
     {
         return $this->hasGlobalSymbol(Str::trimSuffix($target, '()'), $scope, true)
@@ -293,9 +275,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
             : self::buildMissingError(self::KIND_FUNCTION, $target, $line);
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processSymbolTarget(string $target, Scope $scope, ?string $className, int $line): ?IdentifierRuleError
     {
         $resolvedName = $this->resolveClassName($target, $scope, $className);
@@ -322,8 +301,6 @@ final readonly class ResolvableDocReferenceRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildMissingError(string $kind, string $name, int $line): IdentifierRuleError
     {

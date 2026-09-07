@@ -43,7 +43,7 @@
       "Analyser:23"
     ],
     "src/php/PhpStan/Rule/Trait/RuleTrait.php": [
-      "Analyser:18"
+      "Analyser:19"
     ],
     "src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php": [
       "Analyser:11"

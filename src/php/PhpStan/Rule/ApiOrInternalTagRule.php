@@ -20,7 +20,6 @@ use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\ClosureType;
-use RuntimeException;
 
 use function array_filter;
 use function array_map;
@@ -53,8 +52,6 @@ final readonly class ApiOrInternalTagRule implements Rule
 
     /**
      * @internal invoked by PHPStan
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
@@ -74,9 +71,6 @@ final readonly class ApiOrInternalTagRule implements Rule
         ));
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processFileLevelReturn(Return_ $return, Scope $scope, ?Doc $fileDoc): ?IdentifierRuleError
     {
         if ($scope->isInClass()
@@ -99,9 +93,6 @@ final readonly class ApiOrInternalTagRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processFileDoc(Namespace_ $namespace, ?Doc $fileDoc): ?IdentifierRuleError
     {
         return self::hasConflictingVisibilityTags($fileDoc)
@@ -109,9 +100,6 @@ final readonly class ApiOrInternalTagRule implements Rule
             : null;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processClassLike(ClassLike $classLike, ?Doc $fileDoc): ?IdentifierRuleError
     {
         if (self::isAnonymousClass($classLike)) {
@@ -137,9 +125,6 @@ final readonly class ApiOrInternalTagRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processFunction(Function_ $function, ?Doc $fileDoc): ?IdentifierRuleError
     {
         if (self::hasConflictingVisibilityTags($function->getDocComment())) {
@@ -157,8 +142,6 @@ final readonly class ApiOrInternalTagRule implements Rule
 
     /**
      * @return list<IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     private static function processGlobalConst(ConstStmt $constStmt, ?Doc $fileDoc): array
     {
@@ -186,9 +169,6 @@ final readonly class ApiOrInternalTagRule implements Rule
         ));
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function buildConflictError(string $subject, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
@@ -199,8 +179,6 @@ final readonly class ApiOrInternalTagRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildError(string $kind, string $name, int $line): IdentifierRuleError
     {
