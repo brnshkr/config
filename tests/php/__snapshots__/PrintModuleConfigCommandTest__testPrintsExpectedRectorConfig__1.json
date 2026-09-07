@@ -34,6 +34,7 @@
         "./src/php/Json.php",
         "./src/php/Logger.php",
         "./src/php/Module.php",
+        "./src/php/Package.php",
         "./src/php/PhpCsFixer.php",
         "./src/php/PhpStan.php",
         "./src/php/PhpStan/Rule/ApiOrInternalTagRule.php",

@@ -366,7 +366,7 @@ final readonly class PhpCsFixer
             ],
         ];
 
-        if (Module::isPackageInstalled(Module::PACKAGE_PHP_CS_FIXER_CUSTOM_FIXERS)) {
+        if (Package::PhpCsFixerCustomFixers->isInstalled()) {
             $config->registerCustomFixers(new Fixers());
 
             $rules = array_merge($rules, [

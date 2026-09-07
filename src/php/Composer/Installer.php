@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer;
 
 use Brnshkr\Config\ComposerJson;
-use Brnshkr\Config\Module;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\Installer as ComposerInstaller;
@@ -26,8 +25,6 @@ use function version_compare;
 
 /**
  * @internal Brnshkr\Config\Composer
- *
- * @phpstan-import-type PackageName from Module
  */
 final readonly class Installer
 {
@@ -55,7 +52,7 @@ final readonly class Installer
     ) {}
 
     /**
-     * @param list<PackageName> $packages
+     * @param list<non-empty-string> $packages
      *
      * @return ComposerInstaller::ERROR_*
      *
@@ -104,7 +101,7 @@ final readonly class Installer
     }
 
     /**
-     * @param list<PackageName> $packages
+     * @param list<non-empty-string> $packages
      *
      * @return list<PackageInterface>
      *

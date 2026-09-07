@@ -7,7 +7,6 @@ namespace Brnshkr\Config\Mate\Tool;
 use Brnshkr\Config\Mate\Support\Project;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Str;
-use Composer\InstalledVersions;
 use Mcp\Capability\Attribute\McpTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
@@ -23,6 +22,9 @@ use function sprintf;
  */
 final class ModuleTool
 {
+    /**
+     * @throws \RuntimeException when the project's `composer.json` cannot be read
+     */
     #[McpTool(
         name: 'project-modules-list',
         description: 'Lists all brnshkr/config modules (phpcsfixer, phpstan, rector, twigcsfixer) with their default config file and the required/optional packages including installation status.',
@@ -35,16 +37,16 @@ final class ModuleTool
             $packages = [];
 
             foreach ($info['packages']['requiredAll'] as $package) {
-                $packages[$package] = [
+                $packages[$package->value] = [
                     'isRequired'  => true,
-                    'isInstalled' => InstalledVersions::isInstalled($package),
+                    'isInstalled' => $package->isInstalled(),
                 ];
             }
 
             foreach ($info['packages']['optional'] ?? [] as $package) {
-                $packages[$package] = [
+                $packages[$package->value] = [
                     'isRequired'  => false,
-                    'isInstalled' => InstalledVersions::isInstalled($package),
+                    'isInstalled' => $package->isInstalled(),
                 ];
             }
 

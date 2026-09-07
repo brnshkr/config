@@ -8,6 +8,7 @@ use Brnshkr\Config\Composer\ComposerJsonManipulator;
 use Brnshkr\Config\Composer\Installer;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\Str;
 use Composer\Installer as ComposerInstaller;
 use Exception;
@@ -38,7 +39,6 @@ use function sprintf;
  *
  * @phpstan-import-type ModuleName from Module
  * @phpstan-import-type ModuleInfo from Module
- * @phpstan-import-type PackageName from Module
  */
 final class SetupCommand extends AbstractCommand
 {
@@ -247,38 +247,38 @@ final class SetupCommand extends AbstractCommand
     /**
      * @param ModuleInfo $moduleInfo
      *
-     * @return list<PackageName>
+     * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
     private function getPackagesToInstall(array $moduleInfo): array
     {
-        $packages = array_values(array_filter(
+        $packages = self::toPackageNames(array_filter(
             $moduleInfo['packages']['requiredAll'],
-            fn (string $package): bool => $this->doForceUpdate ? true : !Module::isPackageInstalled($package),
+            fn (Package $package): bool => $this->doForceUpdate ? true : !$package->isInstalled(),
         ));
 
         $allOptionalPackages = $moduleInfo['packages']['optional'] ?? [];
 
         if ($this->doForceUpdate && $this->doIncludeOptionalPackagesAutomatically) {
-            $optionalPackagesToInstall = $allOptionalPackages;
+            $optionalPackagesToInstall = self::toPackageNames($allOptionalPackages);
         } elseif ($this->doForceUpdate) {
-            $optionalPackagesToInstall = array_values(array_filter(
+            $optionalPackagesToInstall = self::toPackageNames(array_filter(
                 $allOptionalPackages,
-                Module::isPackageInstalled(...),
+                static fn (Package $package): bool => $package->isInstalled(),
             ));
         } elseif ($this->doIncludeOptionalPackagesAutomatically) {
-            $optionalPackagesToInstall = array_values(array_filter(
+            $optionalPackagesToInstall = self::toPackageNames(array_filter(
                 $allOptionalPackages,
-                static fn (string $package): bool => !Module::isPackageInstalled($package),
+                static fn (Package $package): bool => !$package->isInstalled(),
             ));
         } else {
             $optionalPackagesToInstall = $this->promptForOptionalPackages(
                 $moduleInfo,
-                array_values(array_filter(
+                self::toPackageNames(array_filter(
                     $allOptionalPackages,
-                    static fn (string $package): bool => !Module::isPackageInstalled($package),
+                    static fn (Package $package): bool => !$package->isInstalled(),
                 )),
             );
         }
@@ -288,9 +288,9 @@ final class SetupCommand extends AbstractCommand
 
     /**
      * @param ModuleInfo $moduleInfo
-     * @param list<PackageName> $packages
+     * @param list<non-empty-string> $packages
      *
-     * @return list<PackageName>
+     * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
@@ -340,6 +340,16 @@ final class SetupCommand extends AbstractCommand
             array_first($selectedPackages) === self::ANSWER_ALL ? $packages : $selectedPackages,
             $this->isNotAllOrNoneAnswer(...),
         ));
+    }
+
+    /**
+     * @param array<array-key, Package> $packages
+     *
+     * @return list<non-empty-string>
+     */
+    private static function toPackageNames(array $packages): array
+    {
+        return array_values(array_map(static fn (Package $package): string => $package->value, $packages));
     }
 
     /**

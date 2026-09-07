@@ -182,7 +182,7 @@ final class PhpStan
             ->setParameters([
                 'editorUrl'                                          => EditorUrl::forPhpStan(),
                 'editorUrlTitle'                                     => '%%relFile%%:%%line%%',
-                'errorFormat'                                        => Module::isPackageInstalled(Module::PACKAGE_PHP_STAN_ERROR_FORMATTER) ? 'ticketswap' : null,
+                'errorFormat'                                        => Package::PhpStanErrorFormatter->isInstalled() ? 'ticketswap' : null,
                 'checkBenevolentUnionTypes'                          => true,
                 'checkImplicitMixed'                                 => true,
                 'checkMissingCallableSignature'                      => true,
@@ -241,13 +241,13 @@ final class PhpStan
             ])
         ;
 
-        if (Module::isPackageInstalled(Module::PACKAGE_PHP_STAN_STRICT_RULES)) {
+        if (Package::PhpStanStrictRules->isInstalled()) {
             $phpStanConfig->setStrictRules([
                 'allRules' => true,
             ]);
         }
 
-        if (Module::isPackageInstalled(Module::PACKAGE_TYPE_PERFECT)) {
+        if (Package::TypePerfect->isInstalled()) {
             $phpStanConfig->setTypePerfect([
                 'narrow_return'   => true,
                 'no_mixed'        => true,
@@ -255,7 +255,7 @@ final class PhpStan
             ]);
         }
 
-        if (Module::isPackageInstalled(Module::PACKAGE_PHP_STAN_RULES)) {
+        if (Package::PhpStanRules->isInstalled()) {
             $phpStanConfig->setRules(self::getSymplifyRules());
         }
 
@@ -537,7 +537,7 @@ final class PhpStan
      */
     public function setStrictRules(array $strictRules): self
     {
-        Module::warnMissingPackages(Module::PACKAGE_PHP_STAN_STRICT_RULES);
+        Module::warnMissingPackages(Package::PhpStanStrictRules);
 
         return $this->setParameter('strictRules', $strictRules);
     }
@@ -553,7 +553,7 @@ final class PhpStan
      */
     public function setTypePerfect(array $options): self
     {
-        Module::warnMissingPackages(Module::PACKAGE_TYPE_PERFECT);
+        Module::warnMissingPackages(Package::TypePerfect);
 
         return $this->setParameter('type_perfect', $options);
     }
@@ -580,7 +580,7 @@ final class PhpStan
      */
     public function setSymfony(array $options): self
     {
-        Module::warnMissingPackages(Module::PACKAGE_PHP_STAN_SYMFONY);
+        Module::warnMissingPackages(Package::PhpStanSymfony);
 
         return $this->setParameter('symfony', $options);
     }
@@ -596,7 +596,7 @@ final class PhpStan
      */
     public function setDoctrine(array $options): self
     {
-        Module::warnMissingPackages(Module::PACKAGE_PHP_STAN_DOCTRINE);
+        Module::warnMissingPackages(Package::PhpStanDoctrine);
 
         return $this->setParameter('doctrine', $options);
     }
@@ -621,7 +621,7 @@ final class PhpStan
      */
     public function setArchitecture(array $architecture): self
     {
-        Module::warnMissingPackages(Module::PACKAGE_PHP_AT);
+        Module::warnMissingPackages(Package::PhpAt);
 
         $services = [];
 
@@ -773,7 +773,7 @@ final class PhpStan
      */
     public static function getPreferredClassesMap(): array
     {
-        Module::warnMissingPackages(Module::PACKAGE_PHP_STAN_RULES);
+        Module::warnMissingPackages(Package::PhpStanRules);
 
         $preferredClassesMap = [
             // NOTICE: Explicit use of 'DateTime' as a string to prevent php-cs-fixer from fixing this to 'DateTimeImmutable'
