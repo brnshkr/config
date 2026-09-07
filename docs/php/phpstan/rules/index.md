@@ -3,7 +3,7 @@
 The custom PHPStan rules ship in two flavors.
 **Standalone rules** are general-purpose checks enabled by the default configuration.
 **Architecture presets** are opinionated bundles of class-placement and isolation rules tailored
-to a specific framework or architecture style — they are opt-in and configured through `addArchitecture()`.
+to a specific framework or architecture style — they are opt-in and configured through `setArchitecture()`.
 
 ## Naming
 
@@ -29,9 +29,11 @@ to a specific framework or architecture style — they are opt-in and configured
   — every symbol exposing parameters must carry `@named-arguments` or `@no-named-arguments`
 - [`NamedArgumentsUsageRule`](./NamedArgumentsUsageRule.md)
   — a call to a `@named-arguments` symbol must name every argument
+- [`ServiceArgumentBindingRule`](./ServiceArgumentBindingRule.md)
+  — a service argument bound by name must name a real parameter of what it binds to
 - [`PublicApiDocumentationRule`](./PublicApiDocumentationRule.md) — `@api` symbols must be documented in prose
 
 ## Architecture presets
 
 - [Architecture presets](./architecture/index.md) — framework and architecture-style rule
-  bundles configured through `addArchitecture()`
+  bundles configured through `setArchitecture()`

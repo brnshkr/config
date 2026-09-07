@@ -104,6 +104,7 @@
         "./src/php/PhpStan/Rule/NamedArgumentsUsageRule.php",
         "./src/php/PhpStan/Rule/PublicApiDocumentationRule.php",
         "./src/php/PhpStan/Rule/ResolvableDocReferenceRule.php",
+        "./src/php/PhpStan/Rule/ServiceArgumentBindingRule.php",
         "./src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php",
         "./src/php/PhpStan/Rule/Trait/RuleTrait.php",
         "./src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php",
@@ -124,6 +125,7 @@
         "./tests/php/PhpStan/Rule/NamedArgumentsUsageRuleTest.php",
         "./tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php",
         "./tests/php/PhpStan/Rule/ResolvableDocReferenceRuleTest.php",
+        "./tests/php/PhpStan/Rule/ServiceArgumentBindingRuleTest.php",
         "./tests/php/PrintModuleConfigCommandTest.php",
         "./tests/php/SpellingTest.php",
         "./tests/php/TwigCsFixerTest.php"

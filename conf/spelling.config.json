@@ -10,7 +10,7 @@
       "analyse:61,68"
     ],
     "src/php/PhpStan.php": [
-      "analyse:420,425,430,451"
+      "analyse:427,432,437,458"
     ],
     "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
       "Analyser:18"
@@ -38,6 +38,9 @@
     ],
     "src/php/PhpStan/Rule/ResolvableDocReferenceRule.php": [
       "Analyser:15"
+    ],
+    "src/php/PhpStan/Rule/ServiceArgumentBindingRule.php": [
+      "Analyser:23"
     ],
     "src/php/PhpStan/Rule/Trait/RuleTrait.php": [
       "Analyser:18"

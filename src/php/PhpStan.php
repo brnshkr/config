@@ -18,6 +18,7 @@ use Brnshkr\Config\PhpStan\Rule\NamedArgumentsTagRule;
 use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
+use Brnshkr\Config\PhpStan\Rule\ServiceArgumentBindingRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -240,6 +241,12 @@ final class PhpStan
                 self::configureStaticThrowTypeExtension(FileFinderThrowTypeExtension::class),
             ])
         ;
+
+        if (Package::DependencyInjection->isInstalled()) {
+            $phpStanConfig->setRules([
+                ServiceArgumentBindingRule::class,
+            ]);
+        }
 
         if (Package::PhpStanStrictRules->isInstalled()) {
             $phpStanConfig->setStrictRules([

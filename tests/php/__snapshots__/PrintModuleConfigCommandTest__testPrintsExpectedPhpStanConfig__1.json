@@ -72,6 +72,7 @@
         "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsUsageRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\PublicApiDocumentationRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\ResolvableDocReferenceRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\ServiceArgumentBindingRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",
         "Symplify\\PHPStanRules\\Rules\\Complexity\\NoArrayMapWithArrayCallableRule",
