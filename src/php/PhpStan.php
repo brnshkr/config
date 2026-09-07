@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\PhpStan\ProjectKernel;
 use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
@@ -118,6 +119,9 @@ if (class_exists(PhpStan::class)) {
  */
 final class PhpStan
 {
+    private const string LOADER_CONSOLE_APPLICATION = 'console-application';
+    private const string LOADER_OBJECT_MANAGER      = 'object-manager';
+
     private const array TAG_PHP_AT_TEST                 = ['phpat.test'];
     private const array TAG_RULE                        = ['phpstan.rules.rule'];
     private const array TAG_STATIC_THROW_TYPE_EXTENSION = ['phpstan.dynamicStaticMethodThrowTypeExtension'];
@@ -252,6 +256,16 @@ final class PhpStan
             $phpStanConfig->setRules([
                 ServiceArgumentBindingRule::class,
             ]);
+        }
+
+        $symfonyDefaults = Package::PhpStanSymfony->isInstalled() ? self::getSymfonyDefaults() : [];
+
+        if ($symfonyDefaults !== []) {
+            $phpStanConfig->setSymfony($symfonyDefaults);
+        }
+
+        if (Package::PhpStanDoctrine->isInstalled()) {
+            $phpStanConfig->setDoctrine(self::getDoctrineDefaults());
         }
 
         if (Package::PhpStanStrictRules->isInstalled()) {
@@ -812,6 +826,56 @@ final class PhpStan
         }
 
         return $preferredClassesMap;
+    }
+
+    /**
+     * @return array<non-empty-string, non-empty-string>
+     *
+     * @throws DirectoryNotFoundException when the cache directory disappears mid-scan
+     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     */
+    private static function getSymfonyDefaults(): array
+    {
+        $defaults         = [];
+        $containerXmlPath = ProjectKernel::locateContainerXml();
+        $kernelPath       = ProjectKernel::locate();
+
+        if ($kernelPath !== null) {
+            $defaults['consoleApplicationLoader'] = ProjectKernel::getLoaderPath(self::LOADER_CONSOLE_APPLICATION);
+        }
+
+        if ($containerXmlPath !== null) {
+            $defaults['containerXmlPath'] = $containerXmlPath;
+        }
+
+        if ($kernelPath === null && $containerXmlPath !== null) {
+            Logger::log('notice', sprintf(
+                'A compiled container was found but the kernel class could not be resolved. Set %s to it so console commands can be analyzed.',
+                ProjectKernel::CLASS_ENVIRONMENT_VARIABLE,
+            ));
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @return array<non-empty-string, bool|non-empty-string>
+     *
+     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     */
+    private static function getDoctrineDefaults(): array
+    {
+        $defaults = [
+            'literalString'              => true,
+            'reportDynamicQueryBuilders' => true,
+            'reportUnknownTypes'         => true,
+        ];
+
+        if (ProjectKernel::locate() !== null) {
+            $defaults['objectManagerLoader'] = ProjectKernel::getLoaderPath(self::LOADER_OBJECT_MANAGER);
+        }
+
+        return $defaults;
     }
 
     /**

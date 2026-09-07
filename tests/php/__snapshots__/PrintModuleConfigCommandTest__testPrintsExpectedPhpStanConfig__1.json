@@ -62,6 +62,11 @@
                 "reportUnmatched": false
             }
         ],
+        "doctrine": {
+            "literalString": true,
+            "reportDynamicQueryBuilders": true,
+            "reportUnknownTypes": true
+        },
         "strictRules": {
             "allRules": true
         },

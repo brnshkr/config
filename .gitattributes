@@ -3,6 +3,8 @@
 /conf/.gitignore.example             -export-ignore
 /Makefile                             export-ignore
 /conf/Makefile                       -export-ignore
+/conf/phpstan                        -export-ignore
+/conf/phpstan/*                      -export-ignore
 /conf/spelling                       -export-ignore
 /conf/spelling/*                     -export-ignore
 /conf/Makefile.example               -export-ignore
