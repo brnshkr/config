@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -34,10 +33,10 @@ final readonly class CommandTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -48,23 +47,25 @@ final readonly class CommandTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [self::selectByClassnameSuffix('Command')],
-            'Command',
-            'Console commands',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Command')],
+                'Command',
+                'Console commands',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::inNamespace($this->root . '\Command'),
-            Command::class,
-            'Console commands must extend Symfony\Component\Console\Command\Command.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::inNamespace($root . '\Command'),
+                Command::class,
+                'Console commands must extend Symfony\Component\Console\Command\Command.',
+            );
 
-        yield self::buildNamespaceIsolationRule(
-            $this->root . '\Command',
-            'Symfony\Component\HttpFoundation',
-            'Console commands must not depend on Symfony\Component\HttpFoundation.',
-        );
+            yield self::buildNamespaceIsolationRule(
+                $root . '\Command',
+                'Symfony\Component\HttpFoundation',
+                'Console commands must not depend on Symfony\Component\HttpFoundation.',
+            );
+        }
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ApplicationNoInterfaceTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\DomainEventImmutableTest;
@@ -18,6 +19,9 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Ddd\ValueObjectImmutableTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\EntityAndRepositoryTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\MigrationIsolationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\RoleFoldersExhaustiveTest as DoctrineRoleFoldersExhaustiveTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\ExceptionPlacementTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\NoDevelopmentDependencyTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\NoTestDependencyTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CastTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ChannelTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CommandTest as LaravelCommandTest;
@@ -39,6 +43,10 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ValidationRuleTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\ApplicationNoInfrastructureTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoApplicationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Layered\DomainNoInfrastructureTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Library\ExceptionInterfaceTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Library\FacadeIsolatedTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Library\ModelNoFrameworkTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Library\NoApplicationDependencyTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest as ModularModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\AuthenticatorTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\CommandTest as SymfonyCommandTest;
@@ -65,7 +73,9 @@ use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use Brnshkr\Config\Str;
 use Closure;
 use InvalidArgumentException;
+use RuntimeException;
 
+use function array_diff;
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -82,24 +92,146 @@ use function sprintf;
  * `RoleFoldersExhaustiveTest` is added so stray top-level folders outside the canonical role
  * names are flagged.
  *
- * Named arguments are explicitly allowed here because callers commonly pass `domain:`,
- * `application:`, or `root:` by name for readability.
- *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/architecture/index.md
  *
  * @api
  *
- * @phpstan-import-type PhpAtService from PhpStan
+ * @named-arguments
  *
- * @phpstan-ignore brnshkr.noNamedArgumentsTag (Explicitly allow named arguments here)
+ * @phpstan-import-type PhpAtService from PhpStan
  */
 final class Architecture
 {
     use ArchitectureRuleTrait;
 
-    public const string DEFAULT_ROOT = 'App';
+    private const string DEFAULT_ROOT = 'App';
 
     private function __construct() {}
+
+    /**
+     * Build the rules every preset carries.
+     *
+     * Every namespace comes from the project's own `composer.json`, and passing one explicitly
+     * overrides the derived value. What the runtime host provides is exempt without configuration.
+     *
+     * @example
+     * ```php
+     * $baseline = Architecture::baseline();
+     * $exempted = Architecture::baseline(except: ['Composer']);
+     * ```
+     *
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param ?list<non-empty-string> $developmentNamespaces development-only namespaces, or null to read them from `autoload-dev`
+     * @param ?list<non-empty-string> $developmentPackages namespaces of development-only packages, or null to derive them
+     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     */
+    public static function baseline(
+        ?string $root = null,
+        ?array $developmentNamespaces = null,
+        ?array $developmentPackages = null,
+        array $except = [],
+    ): array {
+        $composerJson           = ComposerJson::forProjectUsingThisLibrary();
+        $root                   = self::resolveRoot($root);
+        $developmentNamespaces  = self::normalizeNamespaces($developmentNamespaces ?? $composerJson->getDevelopmentNamespaces());
+        $developmentPackages    = self::normalizeNamespaces($developmentPackages ?? $composerJson->getDevelopmentOnlyPackageNamespaces());
+        $hostProvidedNamespaces = $composerJson->getHostProvidedNamespaces();
+
+        $forbiddenNamespaces = array_values(array_diff(
+            $developmentPackages,
+            self::normalizeNamespaces([...$hostProvidedNamespaces, ...$except]),
+        ));
+
+        $services = [
+            PhpStan::configurePhpAtTest(ExceptionPlacementTest::class, [
+                'root'               => $root,
+                'excludedNamespaces' => $developmentNamespaces,
+            ]),
+        ];
+
+        if ($developmentNamespaces !== []) {
+            $services[] = PhpStan::configurePhpAtTest(NoTestDependencyTest::class, [
+                'root'                  => $root,
+                'developmentNamespaces' => $developmentNamespaces,
+            ]);
+        }
+
+        if ($forbiddenNamespaces !== []) {
+            $services[] = PhpStan::configurePhpAtTest(NoDevelopmentDependencyTest::class, [
+                'root'                => $root,
+                'forbiddenNamespaces' => $forbiddenNamespaces,
+                'excludedNamespaces'  => $developmentNamespaces,
+            ]);
+        }
+
+        return $services;
+    }
+
+    /**
+     * Build the rules a published package should hold to.
+     *
+     * @example
+     * ```php
+     * $library = Architecture::library(
+     *     exceptionInterface: 'Acme\Exception\ExceptionInterface',
+     *     model: 'Acme\Model',
+     *     isolatedFrom: ['PhpParser', 'Symfony'],
+     *     facades: ['Filter' => 'Acme\Filter'],
+     * );
+     * ```
+     *
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param ?non-empty-string $exceptionInterface the package's own exception interface, or null to skip the rule
+     * @param ?non-empty-string $model namespace the libraries populating it must not reach
+     * @param list<non-empty-string> $isolatedFrom namespaces the model must not depend on
+     * @param array<non-empty-string, non-empty-string> $facades map of label to facade class
+     * @param list<non-empty-string> $except namespaces the runtime host provides
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     */
+    public static function library(
+        ?string $root = null,
+        ?string $exceptionInterface = null,
+        ?string $model = null,
+        array $isolatedFrom = [],
+        array $facades = [],
+        array $except = [],
+    ): array {
+        $root     = self::resolveRoot($root);
+        $services = self::baseline($root, except: $except);
+
+        if ($exceptionInterface !== null) {
+            $services[] = PhpStan::configurePhpAtTest(ExceptionInterfaceTest::class, [
+                'root'      => $root,
+                'interface' => self::normalizeNonEmptyNamespace($exceptionInterface, 'exceptionInterface'),
+            ]);
+        }
+
+        if ($model !== null && $isolatedFrom !== []) {
+            $services[] = PhpStan::configurePhpAtTest(ModelNoFrameworkTest::class, [
+                'model'        => self::normalizeNonEmptyNamespace($model, 'model'),
+                'isolatedFrom' => self::normalizeNamespaces($isolatedFrom),
+            ]);
+        }
+
+        foreach ($facades as $label => $facade) {
+            $services[] = PhpStan::configurePhpAtTest(FacadeIsolatedTest::class, [
+                'facade'    => self::normalizeNonEmptyNamespace($facade, 'facades'),
+                'namespace' => self::normalizeNonEmptyNamespace($facade, 'facades'),
+                'label'     => $label,
+            ]);
+        }
+
+        return $services;
+    }
 
     /**
      * Build layered architecture rules enforcing dependency direction constraints.
@@ -120,24 +252,31 @@ final class Architecture
      * );
      * ```
      *
-     * @param non-empty-string $domain domain layer namespace
-     * @param non-empty-string $application application layer namespace
-     * @param non-empty-string $infrastructure infrastructure layer namespace
+     * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
+     * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
+     * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
     public static function layered(
-        string $domain = self::DEFAULT_ROOT . '\Domain',
-        string $application = self::DEFAULT_ROOT . '\Application',
-        string $infrastructure = self::DEFAULT_ROOT . '\Infrastructure',
+        ?string $domain = null,
+        ?string $application = null,
+        ?string $infrastructure = null,
+        ?string $root = null,
+        array $except = [],
     ): array {
-        $domain         = self::normalizeNonEmptyNamespace($domain, 'domain');
-        $application    = self::normalizeNonEmptyNamespace($application, 'application');
-        $infrastructure = self::normalizeNonEmptyNamespace($infrastructure, 'infrastructure');
+        $root           = self::resolveRoot($root);
+        $domain         = self::resolveLayer($domain, $root, 'Domain', 'domain');
+        $application    = self::resolveLayer($application, $root, 'Application', 'application');
+        $infrastructure = self::resolveLayer($infrastructure, $root, 'Infrastructure', 'infrastructure');
 
         return [
+            ...self::baseline($root, except: $except),
             PhpStan::configurePhpAtTest(DomainNoApplicationTest::class, [
                 'domain'      => $domain,
                 'application' => $application,
@@ -179,32 +318,38 @@ final class Architecture
      * );
      * ```
      *
-     * @param non-empty-string $domain domain layer namespace
-     * @param non-empty-string $application application layer namespace
-     * @param non-empty-string $infrastructure infrastructure layer namespace
+     * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
+     * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
+     * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
      * @param ?non-empty-string $interface interface layer namespace
      * @param ?non-empty-string $valueObject value object namespace requiring immutability
      * @param ?non-empty-string $domainEvent domain event namespace requiring immutability
      * @param list<non-empty-string> $isolatedFrom framework namespaces forbidden in the domain layer
      * @param list<non-empty-string> $modules module names participating in isolation rules
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
     public static function ddd(
-        string $domain = self::DEFAULT_ROOT . '\Domain',
-        string $application = self::DEFAULT_ROOT . '\Application',
-        string $infrastructure = self::DEFAULT_ROOT . '\Infrastructure',
+        ?string $domain = null,
+        ?string $application = null,
+        ?string $infrastructure = null,
         ?string $interface = null,
         ?string $valueObject = null,
         ?string $domainEvent = null,
         array $isolatedFrom = [],
         array $modules = [],
+        ?string $root = null,
+        array $except = [],
     ): array {
-        $domain         = self::normalizeNonEmptyNamespace($domain, 'domain');
-        $application    = self::normalizeNonEmptyNamespace($application, 'application');
-        $infrastructure = self::normalizeNonEmptyNamespace($infrastructure, 'infrastructure');
+        $root           = self::resolveRoot($root);
+        $domain         = self::resolveLayer($domain, $root, 'Domain', 'domain');
+        $application    = self::resolveLayer($application, $root, 'Application', 'application');
+        $infrastructure = self::resolveLayer($infrastructure, $root, 'Infrastructure', 'infrastructure');
         $interface      = $interface !== null ? self::normalizeNonEmptyNamespace($interface, 'interface') : null;
         $valueObject    = $valueObject !== null ? self::normalizeNonEmptyNamespace($valueObject, 'valueObject') : null;
         $domainEvent    = $domainEvent !== null ? self::normalizeNonEmptyNamespace($domainEvent, 'domainEvent') : null;
@@ -213,7 +358,7 @@ final class Architecture
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        $services = self::layered($domain, $application, $infrastructure);
+        $services = self::layered($domain, $application, $infrastructure, $root, $except);
 
         if ($interface !== null) {
             $services[] = PhpStan::configurePhpAtTest(DomainNoInterfaceTest::class, [
@@ -243,21 +388,17 @@ final class Architecture
         }
 
         if (count($modules) >= 2) {
-            foreach ($modules as $module) {
-                $siblings = self::findSiblingsOf($module, $modules);
+            $isolations = self::buildModuleIsolations($modules);
 
-                $services[] = PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
-                    'domain'   => $domain,
-                    'module'   => $module,
-                    'siblings' => $siblings,
-                ]);
+            $services[] = PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
+                'domain'  => $domain,
+                'modules' => $isolations,
+            ]);
 
-                $services[] = PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
-                    'application' => $application,
-                    'module'      => $module,
-                    'siblings'    => $siblings,
-                ]);
-            }
+            $services[] = PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
+                'application' => $application,
+                'modules'     => $isolations,
+            ]);
         }
 
         if ($valueObject !== null) {
@@ -292,19 +433,23 @@ final class Architecture
      *
      * @example
      * ```php
-     * $modular = Architecture::modular(['User', 'Email'], 'Acme\{name}');
+     * $modular = Architecture::modular(modules: ['User', 'Email'], pattern: 'Acme\{name}');
      * ```
      *
      * @param non-empty-list<non-empty-string> $modules module names
-     * @param non-empty-string $pattern namespace pattern containing the "{name}" placeholder
+     * @param ?non-empty-string $pattern namespace pattern containing the "{name}" placeholder, or null for `<root>\{name}`
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured module isolation rule services
      *
      * @throws InvalidArgumentException when the pattern is invalid or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
-    public static function modular(array $modules, string $pattern = self::DEFAULT_ROOT . '\{name}'): array
+    public static function modular(array $modules, ?string $pattern = null, ?string $root = null, array $except = []): array
     {
-        $pattern = self::normalizeNamespace($pattern);
+        $root    = self::resolveRoot($root);
+        $pattern = self::normalizeNamespace($pattern ?? $root . '\{name}');
 
         if (!Str::contains($pattern, '{name}')) {
             throw new InvalidArgumentException(sprintf(
@@ -319,17 +464,22 @@ final class Architecture
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        return array_map(
-            static fn (string $module): array => PhpStan::configurePhpAtTest(ModularModuleIsolatedTest::class, [
-                'module'   => self::applyNamePlaceholder($pattern, $module),
-                'label'    => $module,
-                'siblings' => array_map(
-                    static fn (string $sibling): string => self::applyNamePlaceholder($pattern, $sibling),
-                    self::findSiblingsOf($module, $modules),
+        return [
+            ...self::baseline($root, except: $except),
+            PhpStan::configurePhpAtTest(ModularModuleIsolatedTest::class, [
+                'modules' => array_map(
+                    static fn (string $module): array => [
+                        'module'   => self::applyNamePlaceholder($pattern, $module),
+                        'label'    => $module,
+                        'siblings' => array_map(
+                            static fn (string $sibling): string => self::applyNamePlaceholder($pattern, $sibling),
+                            self::findSiblingsOf($module, $modules),
+                        ),
+                    ],
+                    $modules,
                 ),
             ]),
-            $modules,
-        );
+        ];
     }
 
     /**
@@ -355,33 +505,128 @@ final class Architecture
      *
      * @example
      * ```php
-     * $symfonyDefault = Architecture::symfony('Acme');
-     * $symfonyModular = Architecture::symfony('Acme', modules: ['User', 'Email']);
+     * $symfonyDefault = Architecture::symfony(root: 'Acme');
+     * $symfonyModular = Architecture::symfony(root: 'Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root root application namespace
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Symfony architecture rule services
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
-    public static function symfony(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    public static function symfony(?string $root = null, array $modules = [], array $except = []): array
     {
-        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $root    = self::resolveRoot($root);
         $modules = self::normalizeModuleNames($modules);
 
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        return self::buildPresetServices(
+        return [...self::baseline($root, except: $except), ...self::buildPresetServices(
             $root,
             $modules,
-            self::symfonyBase(...),
-            static fn (string $module, string $moduleRoot, array $allModules): array => [
-                PhpStan::configurePhpAtTest(SymfonyRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+            self::symfonyApplicationBase(...),
+            static fn (array $moduleRoots): array => [
+                PhpStan::configurePhpAtTest(SymfonyRoleFoldersExhaustiveTest::class, ['roots' => $moduleRoots]),
             ],
-        );
+        )];
+    }
+
+    /**
+     * Build the rules a reusable Symfony bundle should hold to.
+     *
+     * The application-only fixture placement is dropped, and the bundle may not depend on the
+     * application that installs it.
+     *
+     * @example
+     * ```php
+     * $bundle = Architecture::symfonyBundle();
+     * ```
+     *
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application namespace of the installing application
+     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     */
+    public static function symfonyBundle(
+        ?string $root = null,
+        string $application = self::DEFAULT_ROOT,
+        array $except = [],
+    ): array {
+        $root = self::resolveRoot($root);
+
+        return [
+            ...self::packageBase($root, $application, $except),
+            ...self::symfonyBase([$root]),
+        ];
+    }
+
+    /**
+     * Build the rules a reusable Laravel package should hold to.
+     *
+     * @example
+     * ```php
+     * $package = Architecture::laravelPackage();
+     * ```
+     *
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application namespace of the installing application
+     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     */
+    public static function laravelPackage(
+        ?string $root = null,
+        string $application = self::DEFAULT_ROOT,
+        array $except = [],
+    ): array {
+        $root = self::resolveRoot($root);
+
+        return [
+            ...self::packageBase($root, $application, $except),
+            ...self::laravelBase([$root]),
+        ];
+    }
+
+    /**
+     * Build the rules a reusable Tempest package should hold to.
+     *
+     * @example
+     * ```php
+     * $package = Architecture::tempestPackage();
+     * ```
+     *
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application namespace of the installing application
+     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     */
+    public static function tempestPackage(
+        ?string $root = null,
+        string $application = self::DEFAULT_ROOT,
+        array $except = [],
+    ): array {
+        $root = self::resolveRoot($root);
+
+        return [
+            ...self::packageBase($root, $application, $except),
+            ...self::tempestBase([$root]),
+        ];
     }
 
     /**
@@ -396,43 +641,50 @@ final class Architecture
      *
      * @example
      * ```php
-     * $doctrineDefault = Architecture::doctrine('Acme', 'Acme\Migrations');
-     * $doctrineModular = Architecture::doctrine('Acme', modules: ['User', 'Email']);
+     * $doctrineDefault = Architecture::doctrine(root: 'Acme', migrationsNamespace: 'Acme\Migrations');
+     * $doctrineModular = Architecture::doctrine(root: 'Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root root application namespace
-     * @param non-empty-string $migrationsNamespace doctrine migrations namespace
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
+     * @param ?non-empty-string $migrationsNamespace doctrine migrations namespace, or null when the package ships none
      * @param list<non-empty-string> $modules optional module names
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Doctrine architecture rule services
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
     public static function doctrine(
-        string $root = self::DEFAULT_ROOT,
-        string $migrationsNamespace = 'DoctrineMigrations',
+        ?string $root = null,
+        ?string $migrationsNamespace = 'DoctrineMigrations',
         array $modules = [],
+        array $except = [],
     ): array {
-        $root                = self::normalizeNonEmptyNamespace($root, 'root');
-        $migrationsNamespace = self::normalizeNonEmptyNamespace($migrationsNamespace, 'migrationsNamespace');
-        $modules             = self::normalizeModuleNames($modules);
+        $root    = self::resolveRoot($root);
+        $modules = self::normalizeModuleNames($modules);
 
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        return [
+        $migrations = $migrationsNamespace === null ? [] : [
             PhpStan::configurePhpAtTest(MigrationIsolationTest::class, [
                 'root'                => $root,
-                'migrationsNamespace' => $migrationsNamespace,
+                'migrationsNamespace' => self::normalizeNonEmptyNamespace($migrationsNamespace, 'migrationsNamespace'),
             ]),
+        ];
+
+        return [
+            ...self::baseline($root, except: $except),
+            ...$migrations,
             ...self::buildPresetServices(
                 $root,
                 $modules,
-                static fn (string $namespaceRoot): array => [
-                    PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['root' => $namespaceRoot]),
+                static fn (array $namespaceRoots): array => [
+                    PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['roots' => $namespaceRoots]),
                 ],
-                static fn (string $module, string $moduleRoot, array $allModules): array => [
-                    PhpStan::configurePhpAtTest(DoctrineRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+                static fn (array $moduleRoots): array => [
+                    PhpStan::configurePhpAtTest(DoctrineRoleFoldersExhaustiveTest::class, ['roots' => $moduleRoots]),
                 ],
             ),
         ];
@@ -465,33 +717,35 @@ final class Architecture
      *
      * @example
      * ```php
-     * $laravelDefault = Architecture::laravel('Acme');
-     * $laravelModular = Architecture::laravel('Acme', ['User', 'Email']);
+     * $laravelDefault = Architecture::laravel(root: 'Acme');
+     * $laravelModular = Architecture::laravel(root: 'Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root root application namespace
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Laravel architecture rule services
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
-    public static function laravel(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    public static function laravel(?string $root = null, array $modules = [], array $except = []): array
     {
-        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $root    = self::resolveRoot($root);
         $modules = self::normalizeModuleNames($modules);
 
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        return self::buildPresetServices(
+        return [...self::baseline($root, except: $except), ...self::buildPresetServices(
             $root,
             $modules,
             self::laravelBase(...),
-            static fn (string $module, string $moduleRoot, array $allModules): array => [
-                PhpStan::configurePhpAtTest(LaravelRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+            static fn (array $moduleRoots): array => [
+                PhpStan::configurePhpAtTest(LaravelRoleFoldersExhaustiveTest::class, ['roots' => $moduleRoots]),
             ],
-        );
+        )];
     }
 
     /**
@@ -507,120 +761,133 @@ final class Architecture
      *
      * @example
      * ```php
-     * $tempestDefault = Architecture::tempest('Acme');
-     * $tempestModular = Architecture::tempest('Acme', modules: ['User', 'Email']);
+     * $tempestDefault = Architecture::tempest(root: 'Acme');
+     * $tempestModular = Architecture::tempest(root: 'Acme', modules: ['User', 'Email']);
      * ```
      *
-     * @param non-empty-string $root root application namespace
+     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
+     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Tempest architecture rule services
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws RuntimeException when the project's `composer.json` cannot be read
      */
-    public static function tempest(string $root = self::DEFAULT_ROOT, array $modules = []): array
+    public static function tempest(?string $root = null, array $modules = [], array $except = []): array
     {
-        $root    = self::normalizeNonEmptyNamespace($root, 'root');
+        $root    = self::resolveRoot($root);
         $modules = self::normalizeModuleNames($modules);
 
         self::assertNonEmptyModuleNames($modules);
         self::assertUniqueModuleNames($modules);
 
-        return self::buildPresetServices(
+        return [...self::baseline($root, except: $except), ...self::buildPresetServices(
             $root,
             $modules,
             self::tempestBase(...),
-            static function (string $module, string $moduleRoot, array $allModules) use ($root): array {
+            static function (array $moduleRoots, array $allModules) use ($root): array {
                 $services = [
-                    PhpStan::configurePhpAtTest(TempestRoleFoldersExhaustiveTest::class, ['root' => $moduleRoot]),
+                    PhpStan::configurePhpAtTest(TempestRoleFoldersExhaustiveTest::class, ['roots' => $moduleRoots]),
                 ];
 
                 if (count($allModules) >= 2) {
                     $services[] = PhpStan::configurePhpAtTest(TempestModuleIsolatedTest::class, [
-                        'root'     => $root,
-                        'module'   => $module,
-                        'siblings' => self::findSiblingsOf($module, $allModules),
+                        'root'    => $root,
+                        'modules' => self::buildModuleIsolations($allModules),
                     ]);
                 }
 
                 return $services;
             },
-        );
+        )];
     }
 
     /**
-     * @param non-empty-string $root
+     * @param non-empty-list<non-empty-string> $roots
      *
      * @return non-empty-list<PhpAtService>
      */
-    private static function symfonyBase(string $root): array
+    private static function symfonyApplicationBase(array $roots): array
     {
         return [
-            PhpStan::configurePhpAtTest(SymfonyControllerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(RepositoryTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(SymfonyCommandTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(VoterTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(FormTypeTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(SubscriberTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(MessageTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ServiceTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(EventListenerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(AuthenticatorTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(DataFixtureTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(NormalizerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => $root]),
+            ...self::symfonyBase($roots),
+            PhpStan::configurePhpAtTest(DataFixtureTest::class, ['roots' => $roots]),
         ];
     }
 
     /**
-     * @param non-empty-string $root
+     * @param non-empty-list<non-empty-string> $roots
      *
      * @return non-empty-list<PhpAtService>
      */
-    private static function laravelBase(string $root): array
+    private static function symfonyBase(array $roots): array
     {
         return [
-            PhpStan::configurePhpAtTest(LaravelControllerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ModelTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(RequestTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ResourceTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(MiddlewareTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(PolicyTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(JobTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(NotificationTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ValidationRuleTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(LaravelCommandTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ServiceProviderTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(EventTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ListenerTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ObserverTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ChannelTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ScopeTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(CastTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(SymfonyControllerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(RepositoryTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(SymfonyCommandTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(VoterTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(FormTypeTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(SubscriberTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(MessageTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ServiceTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(EventListenerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(AuthenticatorTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(NormalizerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['roots' => $roots]),
         ];
     }
 
     /**
-     * @param non-empty-string $root
+     * @param non-empty-list<non-empty-string> $roots
      *
      * @return non-empty-list<PhpAtService>
      */
-    private static function tempestBase(string $root): array
+    private static function laravelBase(array $roots): array
     {
         return [
-            PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['root' => $root]),
-            PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['root' => $root]),
+            PhpStan::configurePhpAtTest(LaravelControllerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ModelTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(RequestTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ResourceTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(MiddlewareTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(PolicyTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(JobTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(NotificationTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ValidationRuleTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(LaravelCommandTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ServiceProviderTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(EventTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ListenerTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ObserverTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ChannelTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ScopeTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(CastTest::class, ['roots' => $roots]),
+        ];
+    }
+
+    /**
+     * @param non-empty-list<non-empty-string> $roots
+     *
+     * @return non-empty-list<PhpAtService>
+     */
+    private static function tempestBase(array $roots): array
+    {
+        return [
+            PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['roots' => $roots]),
         ];
     }
 
     /**
      * @param non-empty-string $root
      * @param list<non-empty-string> $modules
-     * @param Closure(non-empty-string $moduleRoot): non-empty-list<PhpAtService> $buildFlatRules
-     * @param Closure(non-empty-string $module, non-empty-string $moduleRoot, list<non-empty-string> $modules): list<PhpAtService> $buildPerModuleRules
+     * @param Closure(non-empty-list<non-empty-string> $roots): non-empty-list<PhpAtService> $buildFlatRules
+     * @param Closure(non-empty-list<non-empty-string> $roots, list<non-empty-string> $modules): list<PhpAtService> $buildPerModuleRules
      *
      * @return non-empty-list<PhpAtService>
      */
@@ -631,22 +898,18 @@ final class Architecture
         Closure $buildPerModuleRules,
     ): array {
         if ($modules === []) {
-            return $buildFlatRules($root);
+            return $buildFlatRules([$root]);
         }
 
-        $services = [];
+        $moduleRoots = array_map(
+            static fn (string $module): string => self::getModuleRoot($root, $module),
+            $modules,
+        );
 
-        foreach ($modules as $module) {
-            $moduleRoot = self::getModuleRoot($root, $module);
-
-            $services = [
-                ...$services,
-                ...$buildFlatRules($moduleRoot),
-                ...$buildPerModuleRules($module, $moduleRoot, $modules),
-            ];
-        }
-
-        return $services;
+        return [
+            ...$buildFlatRules($moduleRoots),
+            ...$buildPerModuleRules($moduleRoots, $modules),
+        ];
     }
 
     /**
@@ -661,9 +924,9 @@ final class Architecture
     }
 
     /**
-     * @param list<string> $modules
+     * @param list<non-empty-string> $modules
      *
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private static function findSiblingsOf(string $module, array $modules): array
     {
@@ -683,6 +946,98 @@ final class Architecture
     }
 
     /**
+     * @return non-empty-string
+     *
+     * @throws InvalidArgumentException
+     */
+    /**
+     * @param non-empty-list<non-empty-string> $modules
+     *
+     * @return non-empty-list<array{module: non-empty-string, label: non-empty-string, siblings: list<non-empty-string>}>
+     */
+    private static function buildModuleIsolations(array $modules): array
+    {
+        return array_map(
+            static fn (string $module): array => [
+                'module'   => $module,
+                'label'    => $module,
+                'siblings' => self::findSiblingsOf($module, $modules),
+            ],
+            $modules,
+        );
+    }
+
+    /**
+     * @param non-empty-string $root
+     * @param non-empty-string $application
+     * @param list<non-empty-string> $except
+     *
+     * @return non-empty-list<PhpAtService>
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    private static function packageBase(string $root, string $application, array $except): array
+    {
+        return [
+            ...self::baseline($root, except: $except),
+            PhpStan::configurePhpAtTest(NoApplicationDependencyTest::class, [
+                'root'        => $root,
+                'application' => self::normalizeNonEmptyNamespace($application, 'application'),
+            ]),
+        ];
+    }
+
+    /**
+     * @param ?non-empty-string $layer
+     * @param non-empty-string $root
+     * @param non-empty-string $segment
+     * @param non-empty-string $paramName
+     *
+     * @return non-empty-string
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function resolveLayer(?string $layer, string $root, string $segment, string $paramName): string
+    {
+        return self::normalizeNonEmptyNamespace($layer ?? $root . '\\' . $segment, $paramName);
+    }
+
+    /**
+     * @param ?non-empty-string $root
+     *
+     * @return non-empty-string
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    private static function resolveRoot(?string $root): string
+    {
+        return self::normalizeNonEmptyNamespace(
+            $root ?? ComposerJson::forProjectUsingThisLibrary()->getRootNamespace() ?? self::DEFAULT_ROOT,
+            'root',
+        );
+    }
+
+    /**
+     * @param list<non-empty-string> $namespaces
+     *
+     * @return list<non-empty-string>
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function normalizeNamespaces(array $namespaces): array
+    {
+        return array_map(
+            static fn (string $namespace): string => self::normalizeNonEmptyNamespace($namespace, 'namespaces'),
+            $namespaces,
+        );
+    }
+
+    /**
+     * @param non-empty-string $namespace
+     * @param non-empty-string $paramName
+     *
      * @return non-empty-string
      *
      * @throws InvalidArgumentException

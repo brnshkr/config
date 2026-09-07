@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -33,10 +32,10 @@ final readonly class EntityAndRepositoryTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -47,20 +46,22 @@ final readonly class EntityAndRepositoryTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [Selector::appliesAttribute('Doctrine\ORM\Mapping\Entity')],
-            'Entity',
-            'Doctrine entities',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [Selector::appliesAttribute('Doctrine\ORM\Mapping\Entity')],
+                'Entity',
+                'Doctrine entities',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::AllOf(
-                Selector::inNamespace($this->root . '\Repository'),
-                self::selectByClassnameSuffix('Repository'),
-            ),
-            'Doctrine\ORM\EntityRepository',
-            'Repositories must extend Doctrine\ORM\EntityRepository.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::AllOf(
+                    Selector::inNamespace($root . '\Repository'),
+                    self::selectByClassnameSuffix('Repository'),
+                ),
+                'Doctrine\ORM\EntityRepository',
+                'Repositories must extend Doctrine\ORM\EntityRepository.',
+            );
+        }
     }
 }

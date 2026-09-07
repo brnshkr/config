@@ -1,77 +1,56 @@
-# Architecture Presets
+# Architecture presets
 
-The architecture presets are built on top of [PHPat](https://github.com/carlosas/phpat) and ship as factory methods
-on the `Architecture` class. Each preset returns a list of rule services that can be passed to `setArchitecture()`.
-The same method also accepts standalone rule services produced by `PhpStan::configurePhpAtTest()`,
-so projects can register their own PHPat rules — with or without a preset — and mix the two freely.
+The architecture presets are built on [PHPat](https://github.com/carlosas/phpat) and ship as factory methods
+on the `Architecture` class. Each returns a list of rule services for `setArchitecture()`, which also accepts
+standalone rules from `PhpStan::configurePhpAtTest()`, so a project can mix presets and its own rules freely.
 
-> ❗ **Note** ❗  
-> The same `configure*()` pattern applies outside of architecture testing: `PhpStan::configureRule()`
-> produces a service definition for `setRules()`, and `PhpStan::configureStaticThrowTypeExtension()`
-> produces one for `setServices()`.
+Namespaces are derived from the project's own `composer.json`, so a preset called
+with no arguments is correct in any repository. Passing one explicitly overrides the derived value.
 
 ## Presets
 
-- [`Architecture::layered()`](./Layered.md) — classic three-layer Domain / Application / Infrastructure isolation
-- [`Architecture::ddd()`](./Ddd.md) — full Domain-Driven Design preset built on top of `layered()`
-- [`Architecture::modular()`](./Modular.md) — lightweight sibling-module isolation with no opinion on role folders
-- [`Architecture::symfony()` / `laravel()` / `tempest()` / `doctrine()`](./Framework.md) — framework role-folder placement
-  and isolation conventions
+| Preset | Covers |
+| --- | --- |
+| [`baseline()`](./Library.md) | what every preset includes: tests, exceptions and development-only packages |
+| [`library()`](./Library.md) | a published package — its exception interface, its model, its facades |
+| [`layered()`](./Layered.md) | Domain / Application / Infrastructure isolation |
+| [`ddd()`](./Ddd.md) | full Domain-Driven Design, built on `layered()` |
+| [`modular()`](./Modular.md) | sibling-module isolation, no opinion on role folders |
+| [`symfony()` / `laravel()` / `tempest()` / `doctrine()`](./Framework.md) | framework role-folder placement and isolation |
+| [`symfonyBundle()` / `laravelPackage()` / `tempestPackage()`](./Library.md) | the same, for a package rather than an application |
 
-## Composing `setArchitecture()`
+Every preset carries the [baseline](./Library.md), so composing a second preset to get them is never necessary.
 
-`setArchitecture()` accepts presets, standalone rules, and combinations thereof in several shapes:
+## Composing
 
 ```php
-// Direct preset call
-->setArchitecture(Architecture::ddd(...))
-
-// Spread into a flat list
-->setArchitecture([...Architecture::ddd(...)])
-
-// Wrapped preset
-->setArchitecture([Architecture::ddd(...)])
-
-// Multiple presets
-->setArchitecture([Architecture::layered(...), Architecture::modular(...)])
-
-// Project-specific rules only
+->setArchitecture(Architecture::ddd())
+->setArchitecture([Architecture::layered(), Architecture::modular(modules: ['User', 'Email'])])
 ->setArchitecture([
-    PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, ['root' => 'Acme']),
-])
-
-// Preset + custom rules combined
-->setArchitecture([
-    Architecture::symfony('Acme', ['User', 'Email']),
-    PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, ['root' => 'Acme']),
+    Architecture::symfony(root: 'Acme'),
+    PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, ['roots' => ['Acme']]),
 ])
 ```
 
-`removeArchitecture()` accepts the same shapes, plus bare class-string entries for broad-stroke removal
-and full service definitions for precise (class + arguments) removal.
+Presets, single rules and lists of either are all accepted, at any nesting.
+
+Registering the same rule class twice with different arguments is an error rather than a silent loss:
+PHPat keeps one instance per test class and would drop the second. A rule that applies to several namespaces
+therefore takes a list — `['roots' => ['Acme\User', 'Acme\Email']]` — and yields one rule per entry.
 
 > ❗ **Note** ❗  
-> The rule classes live under `Brnshkr\Config\PhpStan\Rule\Architecture\<Preset>\*Test`.
-> The `*Test` suffix is the PHPat naming convention for rule definitions and does _not_ indicate PHPUnit tests.
+> The rule classes live under `Brnshkr\Config\PhpStan\Rule\Architecture\<Preset>\*Test`. The `*Test` suffix is PHPat's
+> naming convention and does _not_ indicate PHPUnit tests.
 
-## Disabling Individual Rules
+## Removing rules
 
-Individual rules can be disabled through `removeArchitecture()`. Passing a class name drops every instance of that rule
-across all modules, while passing a full service definition removes only the instance whose `class` _and_ `arguments` match
-— useful for modular layouts where the same rule class is registered once per module.
+`removeArchitecture()` takes a class-string to drop a rule entirely,
+or a full service definition to drop only the instance whose class _and_ arguments match.
 
 ```php
-use Brnshkr\Config\PhpStan;
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
-use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ControllerTest;
-use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\RoleFoldersExhaustiveTest;
-
 return PhpStan::getConfig(null, true)
-    ->setArchitecture(Architecture::symfony('Acme', ['User', 'Email']))
-    ->removeArchitecture([
-        ControllerTest::class,
-        RoleFoldersExhaustiveTest::class,
-    ])
+    ->setArchitecture(Architecture::symfony(root: 'Acme'))
+    ->removeArchitecture([ControllerTest::class])
     ->toArray()
 ;
 ```

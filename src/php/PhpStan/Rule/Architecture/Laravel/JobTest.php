@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -33,10 +32,10 @@ final readonly class JobTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -47,26 +46,28 @@ final readonly class JobTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [self::selectByClassnameSuffix('Job'), Selector::implements('Illuminate\Contracts\Queue\ShouldQueue')],
-            'Jobs',
-            'Queue jobs',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Job'), Selector::implements('Illuminate\Contracts\Queue\ShouldQueue')],
+                'Jobs',
+                'Queue jobs',
+            );
 
-        yield self::buildMustImplementRule(
-            Selector::AllOf(
-                Selector::inNamespace($this->root . '\Jobs'),
-                self::selectByClassnameSuffix('Job'),
-            ),
-            'Illuminate\Contracts\Queue\ShouldQueue',
-            'Queue jobs must implement Illuminate\Contracts\Queue\ShouldQueue.',
-        );
+            yield self::buildMustImplementRule(
+                Selector::AllOf(
+                    Selector::inNamespace($root . '\Jobs'),
+                    self::selectByClassnameSuffix('Job'),
+                ),
+                'Illuminate\Contracts\Queue\ShouldQueue',
+                'Queue jobs must implement Illuminate\Contracts\Queue\ShouldQueue.',
+            );
 
-        yield self::buildNamespaceIsolationRule(
-            $this->root . '\Jobs',
-            'Illuminate\Http',
-            'Queue jobs must not depend on Illuminate\Http; jobs run outside the HTTP lifecycle.',
-        );
+            yield self::buildNamespaceIsolationRule(
+                $root . '\Jobs',
+                'Illuminate\Http',
+                'Queue jobs must not depend on Illuminate\Http; jobs run outside the HTTP lifecycle.',
+            );
+        }
     }
 }

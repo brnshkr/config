@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -32,10 +31,10 @@ final readonly class ChannelTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -46,17 +45,19 @@ final readonly class ChannelTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [Selector::extends('Illuminate\Broadcasting\Channel')],
-            'Broadcasting',
-            'Broadcasting channels',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [Selector::extends('Illuminate\Broadcasting\Channel')],
+                'Broadcasting',
+                'Broadcasting channels',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::inNamespace($this->root . '\Broadcasting'),
-            'Illuminate\Broadcasting\Channel',
-            'Broadcasting channels must extend Illuminate\Broadcasting\Channel.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::inNamespace($root . '\Broadcasting'),
+                'Illuminate\Broadcasting\Channel',
+                'Broadcasting channels must extend Illuminate\Broadcasting\Channel.',
+            );
+        }
     }
 }

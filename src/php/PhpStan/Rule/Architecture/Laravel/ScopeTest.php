@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -32,10 +31,10 @@ final readonly class ScopeTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -46,17 +45,19 @@ final readonly class ScopeTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [Selector::implements('Illuminate\Database\Eloquent\Scope')],
-            'Scopes',
-            'Eloquent scopes',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [Selector::implements('Illuminate\Database\Eloquent\Scope')],
+                'Scopes',
+                'Eloquent scopes',
+            );
 
-        yield self::buildMustImplementRule(
-            Selector::inNamespace($this->root . '\Scopes'),
-            'Illuminate\Database\Eloquent\Scope',
-            'Eloquent scopes must implement Illuminate\Database\Eloquent\Scope.',
-        );
+            yield self::buildMustImplementRule(
+                Selector::inNamespace($root . '\Scopes'),
+                'Illuminate\Database\Eloquent\Scope',
+                'Eloquent scopes must implement Illuminate\Database\Eloquent\Scope.',
+            );
+        }
     }
 }

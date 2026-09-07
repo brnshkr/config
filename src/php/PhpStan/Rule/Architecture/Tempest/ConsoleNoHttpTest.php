@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Tempest;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -31,27 +30,31 @@ final readonly class ConsoleNoHttpTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
      * @internal
+     *
+     * @return iterable<BuildStep>
      */
     #[TestRule]
-    public function getRule(): BuildStep
+    public function getRules(): iterable
     {
-        return PHPat::rule()
-            ->classes(Selector::AllOf(
-                Selector::inNamespace($this->root),
-                Selector::appliesAttribute('Tempest\Console\ConsoleCommand'),
-            ))
-            ->shouldNot()
-            ->dependOn()
-            ->classes(Selector::inNamespace('Tempest\Http'))
-            ->because('Console commands must not depend on Tempest\Http.')
-        ;
+        foreach ($this->roots as $root) {
+            yield PHPat::rule()
+                ->classes(Selector::AllOf(
+                    Selector::inNamespace($root),
+                    Selector::appliesAttribute('Tempest\Console\ConsoleCommand'),
+                ))
+                ->shouldNot()
+                ->dependOn()
+                ->classes(Selector::inNamespace('Tempest\Http'))
+                ->because('Console commands must not depend on Tempest\Http.')
+            ;
+        }
     }
 }

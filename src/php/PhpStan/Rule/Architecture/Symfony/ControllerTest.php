@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -31,10 +30,10 @@ final readonly class ControllerTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -45,17 +44,19 @@ final readonly class ControllerTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [self::selectByClassnameSuffix('Controller')],
-            'Controller',
-            'Controllers',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Controller')],
+                'Controller',
+                'Controllers',
+            );
 
-        yield self::buildClassIsolationRule(
-            $this->root . '\Controller',
-            'Doctrine\ORM\EntityManagerInterface',
-            'Controllers must not depend on Doctrine\ORM\EntityManagerInterface.',
-        );
+            yield self::buildClassIsolationRule(
+                $root . '\Controller',
+                'Doctrine\ORM\EntityManagerInterface',
+                'Controllers must not depend on Doctrine\ORM\EntityManagerInterface.',
+            );
+        }
     }
 }

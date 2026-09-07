@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -31,22 +30,26 @@ final readonly class EntityNoHttpFoundationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace containing the `Entity` folder
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module containing the `Entity` folder
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
      * @internal
+     *
+     * @return iterable<BuildStep>
      */
     #[TestRule]
-    public function getRule(): BuildStep
+    public function getRules(): iterable
     {
-        return self::buildNamespaceIsolationRule(
-            $this->root . '\Entity',
-            'Symfony\Component\HttpFoundation',
-            'Entities must not depend on Symfony\Component\HttpFoundation.',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildNamespaceIsolationRule(
+                $root . '\Entity',
+                'Symfony\Component\HttpFoundation',
+                'Entities must not depend on Symfony\Component\HttpFoundation.',
+            );
+        }
     }
 }

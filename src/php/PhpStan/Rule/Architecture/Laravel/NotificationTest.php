@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -33,10 +32,10 @@ final readonly class NotificationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -47,20 +46,22 @@ final readonly class NotificationTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [self::selectByClassnameSuffix('Notification'), Selector::extends('Illuminate\Notifications\Notification')],
-            'Notifications',
-            'Notifications',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Notification'), Selector::extends('Illuminate\Notifications\Notification')],
+                'Notifications',
+                'Notifications',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::AllOf(
-                Selector::inNamespace($this->root . '\Notifications'),
-                self::selectByClassnameSuffix('Notification'),
-            ),
-            'Illuminate\Notifications\Notification',
-            'Notifications must extend Illuminate\Notifications\Notification.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::AllOf(
+                    Selector::inNamespace($root . '\Notifications'),
+                    self::selectByClassnameSuffix('Notification'),
+                ),
+                'Illuminate\Notifications\Notification',
+                'Notifications must extend Illuminate\Notifications\Notification.',
+            );
+        }
     }
 }

@@ -31,6 +31,12 @@ use function sprintf;
  * @api
  *
  * @no-named-arguments
+ *
+ * @phpstan-type ModuleIsolation array{
+ *     module: non-empty-string,
+ *     label: non-empty-string,
+ *     siblings: list<non-empty-string>,
+ * }
  */
 final readonly class ModuleApplicationIsolatedTest
 {
@@ -40,29 +46,35 @@ final readonly class ModuleApplicationIsolatedTest
      * @internal invoked by PHPat
      *
      * @param non-empty-string $application application layer namespace
-     * @param non-empty-string $module the module being isolated
-     * @param list<non-empty-string> $siblings sibling module names within the same Application namespace
+     * @param non-empty-list<ModuleIsolation> $modules every module, with its siblings
      */
     public function __construct(
         private string $application,
-        private string $module,
-        private array $siblings,
+        private array $modules,
     ) {}
 
     /**
      * @internal
+     *
+     * @return iterable<BuildStep>
      */
     #[TestRule]
-    public function getRule(): BuildStep
+    public function getRules(): iterable
     {
-        $siblings = array_map(fn (string $sibling): string => $this->application . '\\' . $sibling, $this->siblings);
+        foreach ($this->modules as $module) {
+            if ($module['siblings'] === []) {
+                continue;
+            }
 
-        return PHPat::rule()
-            ->classes(Selector::inNamespace($this->application . '\\' . $this->module))
-            ->shouldNot()
-            ->dependOn()
-            ->classes(...self::buildNamespaceSelectors($siblings))
-            ->because(sprintf('%s must not depend on sibling modules.', $this->module))
-        ;
+            $siblings = array_map(fn (string $sibling): string => $this->application . '\\' . $sibling, $module['siblings']);
+
+            yield PHPat::rule()
+                ->classes(Selector::inNamespace($this->application . '\\' . $module['module']))
+                ->shouldNot()
+                ->dependOn()
+                ->classes(...self::buildNamespaceSelectors($siblings))
+                ->because(sprintf('%s must not depend on sibling modules.', $module['label']))
+            ;
+        }
     }
 }

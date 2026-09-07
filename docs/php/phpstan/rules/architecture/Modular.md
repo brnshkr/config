@@ -1,9 +1,8 @@
 # `Architecture::modular()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 A lightweight modular preset that enforces only sibling-module isolation, without any opinion on role folders.
-Each configured module is forbidden from depending on its siblings.
-The `pattern` argument describes how a module short-name maps to its full namespace through a `{name}` placeholder.
-At least two modules are required.
+Each configured module is forbidden from depending on its siblings. The `pattern` argument describes how
+a module short-name maps to its full namespace through a `{name}` placeholder. At least two modules are required.
 
 ```php
 use Brnshkr\Config\PhpStan;

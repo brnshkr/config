@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -53,20 +52,24 @@ final readonly class RoleFoldersExhaustiveTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      * @param non-empty-list<non-empty-string> $allowedFolders whitelisted top-level folder names
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
         private array $allowedFolders = self::DEFAULT_ALLOWED_FOLDERS,
     ) {}
 
     /**
      * @internal
+     *
+     * @return iterable<BuildStep>
      */
     #[TestRule]
-    public function getRule(): BuildStep
+    public function getRules(): iterable
     {
-        return self::buildRoleFoldersExhaustiveRule($this->root, $this->allowedFolders, 'Symfony');
+        foreach ($this->roots as $root) {
+            yield self::buildRoleFoldersExhaustiveRule($root, $this->allowedFolders, 'Symfony');
+        }
     }
 }

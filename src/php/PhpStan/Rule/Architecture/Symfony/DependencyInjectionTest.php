@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -39,10 +38,10 @@ final readonly class DependencyInjectionTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -53,34 +52,36 @@ final readonly class DependencyInjectionTest
     #[TestRule]
     public function getRules(): iterable
     {
-        $allOfSelectorModifier = Selector::AllOf(
-            Selector::inNamespace($this->root . '\DependencyInjection'),
-            self::selectByClassnameSuffix('Extension'),
-        );
+        foreach ($this->roots as $root) {
+            $allOfSelectorModifier = Selector::AllOf(
+                Selector::inNamespace($root . '\DependencyInjection'),
+                self::selectByClassnameSuffix('Extension'),
+            );
 
-        yield self::buildMustExtendRule(
-            $allOfSelectorModifier,
-            Extension::class,
-            'DI extension classes must extend Symfony\Component\DependencyInjection\Extension\Extension.',
-        );
+            yield self::buildMustExtendRule(
+                $allOfSelectorModifier,
+                Extension::class,
+                'DI extension classes must extend Symfony\Component\DependencyInjection\Extension\Extension.',
+            );
 
-        yield PHPat::rule()
-            ->classes($allOfSelectorModifier)
-            ->should()
-            ->beFinal()
-            ->because('DI extension classes must be final.')
-        ;
+            yield PHPat::rule()
+                ->classes($allOfSelectorModifier)
+                ->should()
+                ->beFinal()
+                ->because('DI extension classes must be final.')
+            ;
 
-        yield self::buildMustImplementRule(
-            Selector::inNamespace($this->root . '\DependencyInjection\Compiler'),
-            CompilerPassInterface::class,
-            'Compiler passes must implement Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface.',
-        );
+            yield self::buildMustImplementRule(
+                Selector::inNamespace($root . '\DependencyInjection\Compiler'),
+                CompilerPassInterface::class,
+                'Compiler passes must implement Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface.',
+            );
 
-        yield self::buildMustImplementRule(
-            Selector::classname($this->root . '\DependencyInjection\Configuration'),
-            ConfigurationInterface::class,
-            'DI Configuration must implement Symfony\Component\Config\Definition\ConfigurationInterface.',
-        );
+            yield self::buildMustImplementRule(
+                Selector::classname($root . '\DependencyInjection\Configuration'),
+                ConfigurationInterface::class,
+                'DI Configuration must implement Symfony\Component\Config\Definition\ConfigurationInterface.',
+            );
+        }
     }
 }

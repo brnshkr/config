@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Ddd;
 
-use PHPat\Selector\Selector;
+use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
@@ -28,6 +28,8 @@ use PHPat\Test\PHPat;
  */
 final readonly class DomainEventImmutableTest
 {
+    use ArchitectureRuleTrait;
+
     /**
      * @internal invoked by PHPat
      *
@@ -46,14 +48,14 @@ final readonly class DomainEventImmutableTest
     public function getRules(): iterable
     {
         yield PHPat::rule()
-            ->classes(Selector::inNamespace($this->domainEvent))
+            ->classes(self::selectInstantiableClassesIn($this->domainEvent))
             ->should()
             ->beFinal()
             ->because('Domain events must be final; they are sealed records of what happened.')
         ;
 
         yield PHPat::rule()
-            ->classes(Selector::inNamespace($this->domainEvent))
+            ->classes(self::selectInstantiableClassesIn($this->domainEvent))
             ->should()
             ->beReadonly()
             ->because('Domain events must be readonly; they are immutable records of past occurrences.')

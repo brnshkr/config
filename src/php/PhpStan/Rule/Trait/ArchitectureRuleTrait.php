@@ -30,6 +30,34 @@ trait ArchitectureRuleTrait
     }
 
     /**
+     * @param non-empty-string $root
+     * @param list<non-empty-string> $excludedNamespaces
+     */
+    private static function selectProductionClassesIn(string $root, array $excludedNamespaces): SelectorInterface
+    {
+        return $excludedNamespaces === []
+            ? Selector::inNamespace($root)
+            : Selector::AllOf(
+                Selector::inNamespace($root),
+                Selector::Not(Selector::AnyOf(...self::buildNamespaceSelectors($excludedNamespaces))),
+            );
+    }
+
+    /**
+     * @param non-empty-string $namespace
+     */
+    private static function selectInstantiableClassesIn(string $namespace): SelectorInterface
+    {
+        return Selector::AllOf(
+            Selector::inNamespace($namespace),
+            Selector::Not(Selector::isInterface()),
+            Selector::Not(Selector::isEnum()),
+            Selector::Not(Selector::isTrait()),
+            Selector::Not(Selector::isAbstract()),
+        );
+    }
+
+    /**
      * @param non-empty-string $suffix
      */
     private static function selectByClassnameSuffix(string $suffix): SelectorInterface
@@ -54,6 +82,42 @@ trait ArchitectureRuleTrait
                 Str::quoteRegex($targetSegment),
             ), regex: true)
             ->because(sprintf('%s must reside in %s\%s\*.', $noun, $root, $targetSegment))
+        ;
+    }
+
+    /**
+     * @param non-empty-string $root
+     * @param non-empty-list<SelectorInterface> $detection
+     * @param non-empty-string $targetSegment
+     * @param non-empty-string $noun
+     */
+    private static function buildNestedPlacementRule(string $root, array $detection, string $targetSegment, string $noun): BuildStep
+    {
+        return PHPat::rule()
+            ->classes(Selector::AllOf(Selector::inNamespace($root), ...$detection))
+            ->should()
+            ->beNamed(sprintf(
+                '/^%s\\\(?:[^\\\]+\\\)*%s\\\[^\\\]+$/',
+                Str::quoteRegex($root),
+                Str::quoteRegex($targetSegment),
+            ), regex: true)
+            ->because(sprintf('%s must reside in a %s namespace.', $noun, $targetSegment))
+        ;
+    }
+
+    /**
+     * @param non-empty-string $sourceNamespace
+     * @param non-empty-list<non-empty-string> $forbiddenNamespaces
+     * @param non-empty-string $because
+     */
+    private static function buildNamespacesIsolationRule(string $sourceNamespace, array $forbiddenNamespaces, string $because): BuildStep
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace($sourceNamespace))
+            ->shouldNot()
+            ->dependOn()
+            ->classes(...self::buildNamespaceSelectors($forbiddenNamespaces))
+            ->because($because)
         ;
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Ddd;
 
-use PHPat\Selector\Selector;
+use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
@@ -28,6 +28,8 @@ use PHPat\Test\PHPat;
  */
 final readonly class ValueObjectImmutableTest
 {
+    use ArchitectureRuleTrait;
+
     /**
      * @internal invoked by PHPat
      *
@@ -46,14 +48,14 @@ final readonly class ValueObjectImmutableTest
     public function getRules(): iterable
     {
         yield PHPat::rule()
-            ->classes(Selector::inNamespace($this->valueObject))
+            ->classes(self::selectInstantiableClassesIn($this->valueObject))
             ->should()
             ->beFinal()
             ->because('Value objects must be final; they cannot be extended.')
         ;
 
         yield PHPat::rule()
-            ->classes(Selector::inNamespace($this->valueObject))
+            ->classes(self::selectInstantiableClassesIn($this->valueObject))
             ->should()
             ->beReadonly()
             ->because('Value objects must be readonly; they are immutable by design.')

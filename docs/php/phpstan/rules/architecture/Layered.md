@@ -1,8 +1,8 @@
 # `Architecture::layered()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 A classic three-layer separation: the `Domain` layer may not depend on either `Application` or `Infrastructure`,
-and the `Application` layer may not depend on `Infrastructure`. Serves both as the foundation that `ddd()` builds
-on and as a standalone preset for projects that want layered isolation without the rest of the DDD machinery.
+and the `Application` layer may not depend on `Infrastructure`. Serves both as the foundation that `ddd()`
+builds on and as a standalone preset for projects that want layered isolation without the rest of the DDD machinery.
 
 ```php
 use Brnshkr\Config\PhpStan;

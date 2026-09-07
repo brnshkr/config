@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -32,29 +31,33 @@ final readonly class ResourceTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
      * @internal
+     *
+     * @return iterable<BuildStep>
      */
     #[TestRule]
-    public function getRule(): BuildStep
+    public function getRules(): iterable
     {
-        return self::buildPlacementRule(
-            $this->root,
-            [
-                self::selectByClassnameSuffix('Resource'),
-                Selector::AnyOf(
-                    Selector::extends('Illuminate\Http\Resources\Json\JsonResource'),
-                    Selector::extends('Illuminate\Http\Resources\Json\ResourceCollection'),
-                ),
-            ],
-            'Http\Resources',
-            'API resources',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [
+                    self::selectByClassnameSuffix('Resource'),
+                    Selector::AnyOf(
+                        Selector::extends('Illuminate\Http\Resources\Json\JsonResource'),
+                        Selector::extends('Illuminate\Http\Resources\Json\ResourceCollection'),
+                    ),
+                ],
+                'Http\Resources',
+                'API resources',
+            );
+        }
     }
 }

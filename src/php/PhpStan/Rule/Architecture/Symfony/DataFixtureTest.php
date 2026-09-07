@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -32,10 +31,10 @@ final readonly class DataFixtureTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -46,17 +45,19 @@ final readonly class DataFixtureTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [Selector::extends('Doctrine\Bundle\FixturesBundle\Fixture')],
-            'DataFixtures',
-            'Data fixtures',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [Selector::extends('Doctrine\Bundle\FixturesBundle\Fixture')],
+                'DataFixtures',
+                'Data fixtures',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::inNamespace($this->root . '\DataFixtures'),
-            'Doctrine\Bundle\FixturesBundle\Fixture',
-            'Data fixtures must extend Doctrine\Bundle\FixturesBundle\Fixture.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::inNamespace($root . '\DataFixtures'),
+                'Doctrine\Bundle\FixturesBundle\Fixture',
+                'Data fixtures must extend Doctrine\Bundle\FixturesBundle\Fixture.',
+            );
+        }
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Test\Attributes\TestRule;
 use PHPat\Test\Builder\BuildStep;
@@ -34,10 +33,10 @@ final readonly class ServiceTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -48,16 +47,18 @@ final readonly class ServiceTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildNamespaceIsolationRule(
-            $this->root . '\Service',
-            'Symfony\Component\HttpFoundation',
-            'Services must not depend on Symfony\Component\HttpFoundation; services must be HTTP-agnostic.',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildNamespaceIsolationRule(
+                $root . '\Service',
+                'Symfony\Component\HttpFoundation',
+                'Services must not depend on Symfony\Component\HttpFoundation; services must be HTTP-agnostic.',
+            );
 
-        yield self::buildNamespaceIsolationRule(
-            $this->root . '\Service',
-            $this->root . '\Controller',
-            sprintf('Services must not depend on %s\Controller\*; services are not called upward.', $this->root),
-        );
+            yield self::buildNamespaceIsolationRule(
+                $root . '\Service',
+                $root . '\Controller',
+                sprintf('Services must not depend on %s\Controller\*; services are not called upward.', $root),
+            );
+        }
     }
 }

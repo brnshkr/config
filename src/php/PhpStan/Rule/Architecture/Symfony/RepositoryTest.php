@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule\Architecture\Symfony;
 
-use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
 use PHPat\Selector\Selector;
 use PHPat\Test\Attributes\TestRule;
@@ -32,10 +31,10 @@ final readonly class RepositoryTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root root application namespace
+     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
      */
     public function __construct(
-        private string $root = Architecture::DEFAULT_ROOT,
+        private array $roots,
     ) {}
 
     /**
@@ -46,20 +45,22 @@ final readonly class RepositoryTest
     #[TestRule]
     public function getRules(): iterable
     {
-        yield self::buildPlacementRule(
-            $this->root,
-            [self::selectByClassnameSuffix('Repository')],
-            'Repository',
-            'Repositories',
-        );
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Repository')],
+                'Repository',
+                'Repositories',
+            );
 
-        yield self::buildMustExtendRule(
-            Selector::AllOf(
-                Selector::inNamespace($this->root . '\Repository'),
-                self::selectByClassnameSuffix('Repository'),
-            ),
-            'Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository',
-            'Repositories must extend Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository.',
-        );
+            yield self::buildMustExtendRule(
+                Selector::AllOf(
+                    Selector::inNamespace($root . '\Repository'),
+                    self::selectByClassnameSuffix('Repository'),
+                ),
+                'Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository',
+                'Repositories must extend Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository.',
+            );
+        }
     }
 }
