@@ -174,7 +174,8 @@ final class PhpStan
 
         $finder->notPath('config/preload.php');
 
-        $analysisPaths = self::getAnalysisPaths($finder);
+        $analysisPaths          = self::getAnalysisPaths($finder);
+        $developmentDirectories = ComposerJson::forProjectUsingThisLibrary()->getDevelopmentDirectories();
 
         $phpStanConfig = new self()
             ->setLevel('max')
@@ -221,6 +222,11 @@ final class PhpStan
                     'message'         => '/^Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.$/',
                     'reportUnmatched' => false,
                 ],
+                ...$developmentDirectories === [] ? [] : [[
+                    'identifier'      => 'missingType.checkedException',
+                    'paths'           => $developmentDirectories,
+                    'reportUnmatched' => false,
+                ]],
             ])
             ->setRules([
                 ApiOrInternalTagRule::class,
@@ -494,13 +500,15 @@ final class PhpStan
     /**
      * Define ignore patterns for known/expected PHPStan errors.
      *
-     * Each entry is either a raw regex string or the structured `{message, identifier?, count?, path?, reportUnmatched?}` shape.
+     * Each entry is either a raw regex string or the structured
+     * `{message?, identifier?, count?, path?, paths?, reportUnmatched?}` shape.
      *
      * @param list<non-empty-string|array{
-     *     message: non-empty-string,
+     *     message?: non-empty-string,
      *     identifier?: non-empty-string,
      *     count?: positive-int,
      *     path?: non-empty-string,
+     *     paths?: list<non-empty-string>,
      *     reportUnmatched?: bool,
      * }> $ignoredErrors Ignored-error definitions
      *

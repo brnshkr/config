@@ -1,0 +1,24 @@
+{
+  "name": "acme/root",
+  "autoload": {
+    "psr-4": {
+      "Acme\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Acme\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=8.5",
+    "acme/shipped": "^1.0"
+  },
+  "require-dev": {
+    "acme/direct-dev": "^1.0",
+    "acme/suggested": "^1.0"
+  },
+  "suggest": {
+    "acme/suggested": "Enables the optional feature."
+  }
+}
