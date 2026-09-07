@@ -8,29 +8,27 @@ use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Override;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassLike;
-use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
-use RuntimeException;
 
-use function array_any;
 use function array_filter;
 use function sprintf;
 
 /**
- * Requires every public-facing declaration that exposes parameters to carry `@no-named-arguments`.
+ * Requires every public-facing declaration that exposes parameters to declare a named-arguments stance.
  *
- * PHP's named-argument syntax silently turns parameter names into part of the public contract —
- * once a caller writes `someFunction(name: 'foo')`, the parameter cannot be renamed without
- * breaking that caller. The tag keeps parameter names out of the contract, leaving them free to
- * be renamed without a backward-compatibility break.
+ * PHP's named-argument syntax turns parameter names into part of the contract the moment a caller
+ * writes `someFunction(name: 'foo')`, and the stance says whether that is allowed.
+ * `@named-arguments` is the deliberate claim that the names are the contract;
+ * `@no-named-arguments` keeps them out of it, leaving them free to be renamed.
  *
- * Symbols tagged `@internal` are exempt; anonymous classes are skipped.
+ * A class-level stance is required only where a method would otherwise be left ungoverned.
+ * Parameterless declarations, `@internal` symbols and anonymous classes are exempt.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NoNamedArgumentsTagRule.md
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NamedArgumentsTagRule.md
  *
  * @api
  *
@@ -38,7 +36,7 @@ use function sprintf;
  *
  * @implements Rule<NodeAbstract>
  */
-final readonly class NoNamedArgumentsTagRule implements Rule
+final readonly class NamedArgumentsTagRule implements Rule
 {
     use RuleTrait;
 
@@ -55,8 +53,6 @@ final readonly class NoNamedArgumentsTagRule implements Rule
      * @internal invoked by PHPStan
      *
      * @return list<IdentifierRuleError>
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
@@ -71,18 +67,15 @@ final readonly class NoNamedArgumentsTagRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function processClassLike(ClassLike $classLike): ?IdentifierRuleError
     {
-        if (self::isAnonymousClass($classLike) || !self::hasMethodsWithParameters($classLike)) {
+        if (self::isAnonymousClass($classLike) || !self::hasUngovernedMethod($classLike, self::hasNamedArgumentsStance(...))) {
             return null;
         }
 
         $doc = $classLike->getDocComment();
 
-        if (self::hasTag($doc, self::TAG_INTERNAL) || self::hasTag($doc, 'no-named-arguments')) {
+        if (self::hasNamedArgumentsStance($doc)) {
             return null;
         }
 
@@ -93,17 +86,6 @@ final readonly class NoNamedArgumentsTagRule implements Rule
         );
     }
 
-    private static function hasMethodsWithParameters(ClassLike $classLike): bool
-    {
-        return array_any(
-            $classLike->getMethods(),
-            static fn (ClassMethod $classMethod): bool => !$classMethod->isPrivate() && $classMethod->getParams() !== [],
-        );
-    }
-
-    /**
-     * @throws RuntimeException
-     */
     private static function processFunction(Function_ $function): ?IdentifierRuleError
     {
         if ($function->getParams() === []) {
@@ -112,7 +94,7 @@ final readonly class NoNamedArgumentsTagRule implements Rule
 
         $doc = $function->getDocComment();
 
-        if (self::hasTag($doc, self::TAG_INTERNAL) || self::hasTag($doc, 'no-named-arguments')) {
+        if (self::hasNamedArgumentsStance($doc)) {
             return null;
         }
 
@@ -121,13 +103,11 @@ final readonly class NoNamedArgumentsTagRule implements Rule
 
     /**
      * @param self::KIND_* $kind
-     *
-     * @throws RuntimeException
      */
     private static function buildError(string $kind, string $name, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
-            '%s `%s` must be annotated with @no-named-arguments.',
+            '%s `%s` must carry either `@named-arguments` or `@no-named-arguments`.',
             $kind,
             $name,
         ), $line);

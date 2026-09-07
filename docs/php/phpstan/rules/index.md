@@ -1,4 +1,4 @@
-# 🧩 Custom PHPStan Rules
+# 🧩 Custom PHPStan rules
 
 The custom PHPStan rules ship in two flavors.
 **Standalone rules** are general-purpose checks enabled by the default configuration.
@@ -23,10 +23,13 @@ to a specific framework or architecture style — they are opt-in and configured
 ## Public API
 
 - [`ApiOrInternalTagRule`](./ApiOrInternalTagRule.md) — every symbol must declare `@api` or `@internal`
-- [`NoNamedArgumentsTagRule`](./NoNamedArgumentsTagRule.md) — `@api` symbols must also carry `@no-named-arguments`
+- [`NamedArgumentsTagRule`](./NamedArgumentsTagRule.md)
+  — every symbol exposing parameters must carry `@named-arguments` or `@no-named-arguments`
+- [`NamedArgumentsUsageRule`](./NamedArgumentsUsageRule.md)
+  — a call to a `@named-arguments` symbol must name every argument
 - [`PublicApiDocumentationRule`](./PublicApiDocumentationRule.md) — `@api` symbols must be documented in prose
 
-## Architecture Presets
+## Architecture presets
 
 - [Architecture presets](./architecture/index.md) — framework and architecture-style rule
   bundles configured through `addArchitecture()`

@@ -2,36 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\NoNamedArgumentsTag;
+namespace Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\NamedArgumentsTag;
 
 /**
  * @no-named-arguments
  */
-enum EnumWithNoNamedArgumentsTag
+trait TraitWithNoNamedArgumentsTag
 {
-    case A;
-
     public function someMethod(string $argument): void {}
 }
 
 /**
  * @internal
  */
-enum EnumWithInternalTag
+trait TraitWithInternalTag
 {
-    case A;
-
     public function someMethod(string $argument): void {}
 }
 
-enum EnumWithoutTag // ERROR Enum|EnumWithoutTag
+trait TraitWithoutTag // ERROR Trait|TraitWithoutTag
 {
-    case A;
-
     public function someMethod(string $argument): void {}
 }
 
-enum EnumWithoutTagNoParameters
+trait TraitWithoutTagNoParameters
 {
-    case A;
+    public function someMethod(): void {}
 }

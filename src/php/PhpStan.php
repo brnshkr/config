@@ -13,7 +13,8 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
-use Brnshkr\Config\PhpStan\Rule\NoNamedArgumentsTagRule;
+use Brnshkr\Config\PhpStan\Rule\NamedArgumentsTagRule;
+use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
@@ -223,7 +224,8 @@ final class PhpStan
                 ApiOrInternalTagRule::class,
                 BoolishPrefixRule::class,
                 InterfaceSuffixRule::class,
-                NoNamedArgumentsTagRule::class,
+                NamedArgumentsTagRule::class,
+                NamedArgumentsUsageRule::class,
                 PublicApiDocumentationRule::class,
                 ResolvableDocReferenceRule::class,
                 self::configureRule(InternalUsageRule::class, [

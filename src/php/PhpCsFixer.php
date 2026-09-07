@@ -202,6 +202,10 @@ final readonly class PhpCsFixer
                         'internal',
                     ],
                     [
+                        'named-arguments',
+                        'no-named-arguments',
+                    ],
+                    [
                         'ignore',
                     ],
                     [

@@ -4,9 +4,9 @@ import { beforeEach, expect, test } from 'vitest';
 
 import {
   apiOrInternalTagRule,
+  MESSAGE_ID_MISSING_TAG,
   MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT,
   MESSAGE_ID_UNEXPECTED_TAG_CONFLICT,
-  MESSAGE_ID_MISSING_TAG,
 } from '../../../src/js/eslint/configs/builtin/api-or-internal-tag';
 
 import { TAG_API, TAG_INTERNAL } from '../../../src/js/eslint/utils/jsdoc';
@@ -33,10 +33,16 @@ beforeEach(() => {
   clearPublicApiResolutionCache();
 });
 
+// NOTICE: the trait also declares the named-argument tags, which back rules that exist only in PHP
+// because named arguments have no JavaScript equivalent. They are excluded by name rather than by
+// weakening the assertion, so a tag added on the PHP side still fails here until someone decides.
+const PHP_ONLY_TAGS = new Set<string>(['named-arguments', 'no-named-arguments']);
+
 test('apiOrInternalTagRule stays in sync with the PHP rule', () => {
   const source = readPhpRuleSource('Trait/RuleTrait.php');
+  const tags = extractPhpStringConstants(source, 'TAG_').filter((tag) => !PHP_ONLY_TAGS.has(tag));
 
-  expect(extractPhpStringConstants(source, 'TAG_')).toStrictEqual([TAG_API, TAG_INTERNAL]);
+  expect(tags).toStrictEqual([TAG_API, TAG_INTERNAL]);
 });
 
 test('apiOrInternalTagRule scenarios', () => {

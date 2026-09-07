@@ -11,6 +11,7 @@ use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
+use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Trait_;
@@ -21,6 +22,7 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\RuleErrorBuilder;
 use RuntimeException;
 
+use function array_any;
 use function lcfirst;
 use function sprintf;
 
@@ -41,8 +43,10 @@ trait RuleTrait
     protected const string KIND_TRAIT       = 'Trait';
     protected const string KIND_VARIABLE    = 'Variable';
 
-    protected const string TAG_API      = 'api';
-    protected const string TAG_INTERNAL = 'internal';
+    protected const string TAG_API                = 'api';
+    protected const string TAG_INTERNAL           = 'internal';
+    protected const string TAG_NAMED_ARGUMENTS    = 'named-arguments';
+    protected const string TAG_NO_NAMED_ARGUMENTS = 'no-named-arguments';
 
     /**
      * @throws RuntimeException
@@ -113,6 +117,37 @@ trait RuleTrait
         return self::hasTagInText($doc?->getText() ?? '', $tag);
     }
 
+    private static function hasNamedArgumentsStance(?Doc $doc): bool
+    {
+        if (self::hasTag($doc, self::TAG_INTERNAL)) {
+            return true;
+        }
+
+        if (self::hasTag($doc, self::TAG_NO_NAMED_ARGUMENTS)) {
+            return true;
+        }
+
+        return self::hasTag($doc, self::TAG_NAMED_ARGUMENTS);
+    }
+
+    /**
+     * @param callable(?Doc $doc): bool $declaresStance
+     */
+    private static function hasUngovernedMethod(ClassLike $classLike, callable $declaresStance): bool
+    {
+        return array_any(
+            $classLike->getMethods(),
+            static fn (ClassMethod $classMethod): bool => !$classMethod->isPrivate()
+                && $classMethod->getParams() !== []
+                && !$declaresStance($classMethod->getDocComment()),
+        );
+    }
+
+    private static function hasClassTag(ClassReflection $classReflection, string $tag): bool
+    {
+        return self::hasTagInText($classReflection->getNativeReflection()->getDocComment() ?: '', $tag);
+    }
+
     private static function hasTagInText(string $text, string $tag): bool
     {
         return Str::match($text, '/\*\s+@' . $tag . '\b/') !== [];
@@ -134,7 +169,7 @@ trait RuleTrait
     }
 
     /**
-     * @return ?self::TAG_*
+     * @return self::TAG_API|self::TAG_INTERNAL|null
      */
     private static function getVisibilityTag(?Doc $doc): ?string
     {

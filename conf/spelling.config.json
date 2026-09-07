@@ -10,7 +10,7 @@
       "analyse:61,68"
     ],
     "src/php/PhpStan.php": [
-      "analyse:416,421,426,447"
+      "analyse:418,423,428,449"
     ],
     "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
       "Analyser:18"
@@ -24,6 +24,12 @@
     "src/php/PhpStan/Rule/InternalUsageRule.php": [
       "Analyser:28"
     ],
+    "src/php/PhpStan/Rule/NamedArgumentsTagRule.php": [
+      "Analyser:13"
+    ],
+    "src/php/PhpStan/Rule/NamedArgumentsUsageRule.php": [
+      "Analyser:16"
+    ],
     "src/php/PhpStan/Rule/PublicApiDocumentationRule.php": [
       "Analyser:23"
     ],
@@ -31,7 +37,7 @@
       "Analyser:15"
     ],
     "src/php/PhpStan/Rule/Trait/RuleTrait.php": [
-      "Analyser:17"
+      "Analyser:18"
     ],
     "src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php": [
       "Analyser:11"
