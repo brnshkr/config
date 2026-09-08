@@ -25,7 +25,7 @@
   ],
   "ignorePatterns": [
     "(^|/)__snapshots__/",
-    "(^|/)tests/.*/[Ff]ixtures?/"
+    "(^|/)tests/(.*/)?[Ff]ixtures?/"
   ],
   "britishSpellings": {
     "acknowledgement": "acknowledgment",

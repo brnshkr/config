@@ -107,8 +107,7 @@ final readonly class FileFinder
             ->sortByCaseInsensitiveName(true)
             ->notPath([
                 'config/reference.php',
-                '/^tests(?:\/.+)?\/Fixtures/',
-                '/^tests(?:\/.+)?\/coverage/',
+                '/^tests(?:\/.+)?\/[Ff]ixtures?/',
             ])
             ->exclude([
                 '.cache',
