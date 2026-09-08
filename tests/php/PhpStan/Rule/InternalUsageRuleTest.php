@@ -7,10 +7,8 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\Internal\InternalClass;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
-use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use InvalidArgumentException;
 use Override;
-use PHPStan\DependencyInjection\MissingServiceException;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -26,28 +24,15 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/PhpStan/Rule';
 
     /**
-     * @var ?list<non-empty-string>
+     * @var ?array<array-key, non-empty-string|list<non-empty-string>>
      */
-    private ?array $allowedInternalTargets = null;
+    private ?array $allowedInternals = null;
 
     /**
-     * @var ?list<non-empty-string>
+     * @var ?array<array-key, non-empty-string|list<non-empty-string>>
      */
-    private ?array $allowedDeclaringNamespaces = null;
+    private ?array $allowedCallers = null;
 
-    /**
-     * @var ?list<non-empty-string>
-     */
-    private ?array $allowedCallingNamespaces = null;
-
-    /**
-     * @var ?list<non-empty-string>
-     */
-    private ?array $allowedSymbols = null;
-
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRule(): void
     {
         $this->assertIssuesReported(
@@ -58,9 +43,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleReportsFreeFunctions(): void
     {
         $this->assertIssuesReported(
@@ -69,9 +51,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleReportsFromGlobalNamespace(): void
     {
         $this->assertIssuesReported(
@@ -82,9 +61,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleComparesNamespacesBySubtree(): void
     {
         $this->assertIssuesReported(
@@ -94,9 +70,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleAllowsTheWholeOrganizationForAVendorTarget(): void
     {
         $this->assertIssuesReported(
@@ -106,9 +79,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleTreatsADescribedTagAsABareInternal(): void
     {
         $this->assertIssuesReported(
@@ -117,9 +87,6 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRuleIgnoresALeadingBackslashInTheTarget(): void
     {
         $this->assertIssuesReported(
@@ -129,12 +96,58 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
-    public function testRuleExemptsAllowedCallingNamespaces(): void
+    public function testAFileLevelInternalTagPlacesTheCallerInsideThatSubtree(): void
     {
-        $this->allowedCallingNamespaces = ['External\AllowedConsumer'];
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassFromFileLevelInternal.php',
+        );
+    }
+
+    public function testAFileLevelInternalTagIsFoundBelowDeclareToo(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassFromFileLevelInternalBelowDeclare.php',
+        );
+    }
+
+    public function testAFileLevelInternalTagCoversAReturnedClosure(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassInsideReturnedClosure.php',
+        );
+    }
+
+    public function testTheFileLevelTagWinsOverALaterBareInternal(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassWithTwoDocBlocks.php',
+        );
+    }
+
+    public function testAFileLevelTagCoversAnImportedInternalFunction(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/Internal/InternalFunctionsScoped.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalFunctionLikeDocsConfig.php',
+        );
+    }
+
+    public function testATagOnTheReturnPlacesTheCallerInsideThatSubtree(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassTaggedOnReturn.php',
+        );
+    }
+
+    public function testAllowedCallersExemptsTheCaller(): void
+    {
+        $this->allowedCallers = ['External\AllowedConsumer'];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -142,12 +155,11 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
-    public function testRuleIgnoresALeadingBackslashInAnAllowListEntry(): void
+    public function testAMappedEntryAllowsOnlyTheTargetsItNames(): void
     {
-        $this->allowedCallingNamespaces = ['\External\AllowedConsumer'];
+        $this->allowedCallers = [
+            'External\AllowedConsumer' => ['Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\Internal'],
+        ];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -155,12 +167,23 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
-    public function testRuleExemptsAllowedDeclaringNamespaces(): void
+    public function testAMappedEntryStillReportsATargetItDoesNotName(): void
     {
-        $this->allowedDeclaringNamespaces = ['#^Brnshkr\\\Config\\\Tests\\\Fixtures#'];
+        $this->allowedCallers = [
+            'External\NarrowedConsumer' => ['Acme\Somewhere\Else'],
+        ];
+
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassOutsideAllowedTargets.php',
+        );
+    }
+
+    public function testAMappedEntryMayNameTheSymbolItReaches(): void
+    {
+        $this->allowedCallers = [
+            'External\AllowedConsumer' => [InternalClass::class],
+        ];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -168,12 +191,11 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
-    public function testRuleExemptsAllowedInternalTargets(): void
+    public function testAMappedEntryMayNameTheInternalTargetItReaches(): void
     {
-        $this->allowedInternalTargets = ['/^Brnshkr\\\Config$/'];
+        $this->allowedCallers = [
+            'External\AllowedConsumer' => ['/^Brnshkr\\\Config$/'],
+        ];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/ScopedInternalClass.php',
@@ -181,12 +203,23 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws InvalidFixtureFile
-     */
-    public function testRuleExemptsAllowedSymbolsIncludingTheirMembers(): void
+    public function testABareEntryBesideAMappedOneKeepsItsOldMeaning(): void
     {
-        $this->allowedSymbols = [InternalClass::class . '::doSomething()', InternalClass::class];
+        $this->allowedCallers = [
+            'External\AllowedConsumer',
+            'External\NarrowedConsumer' => ['Acme\Somewhere\Else'],
+        ];
+
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassAllowed.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassOutsideAllowedTargets.php',
+        );
+    }
+
+    public function testRuleIgnoresALeadingBackslashInAnAllowListEntry(): void
+    {
+        $this->allowedCallers = ['\External\AllowedConsumer'];
 
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
@@ -194,74 +227,79 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws MissingServiceException
-     */
-    public function testRuleRejectsAnEmptyOptionEntry(): void
+    public function testAllowedInternalsMatchesTheDeclaringNamespace(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Value for option "allowedSymbols" must be a list of non-empty strings.');
+        $this->allowedInternals = ['#^Brnshkr\\\Config\\\Tests\\\Fixtures#'];
 
-        // @phpstan-ignore argument.type (Deliberately invalid input to cover the option validation)
-        $this->createRule(null, null, null, ['']);
-    }
-
-    /**
-     * @throws MissingServiceException
-     */
-    public function testRuleRejectsAnUnterminatedRegexPattern(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Entry "/^Brnshkr" for option "allowedCallingNamespaces" is neither a namespace prefix nor a delimited regex pattern.');
-
-        $this->createRule(null, null, ['/^Brnshkr']);
-    }
-
-    /**
-     * @throws MissingServiceException
-     */
-    public function testRuleRejectsABackslashOnlyEntry(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Entry "\" for option "allowedDeclaringNamespaces" is neither a namespace prefix nor a delimited regex pattern.');
-
-        $this->createRule(null, ['\\']);
-    }
-
-    /**
-     * @throws MissingServiceException
-     */
-    #[Override]
-    protected function getRule(): Rule
-    {
-        return $this->createRule(
-            $this->allowedInternalTargets,
-            $this->allowedDeclaringNamespaces,
-            $this->allowedCallingNamespaces,
-            $this->allowedSymbols,
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassAllowed.php',
         );
     }
 
+    public function testAllowedInternalsMatchesTheInternalTarget(): void
+    {
+        $this->allowedInternals = ['/^Brnshkr\\\Config$/'];
+
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/ScopedInternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeScopedInternalClassAllowed.php',
+        );
+    }
+
+    public function testAllowedInternalsMatchesASymbolAndItsMembers(): void
+    {
+        $this->allowedInternals = [InternalClass::class . '::doSomething()', InternalClass::class];
+
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalClassAllowed.php',
+        );
+    }
+
+    public function testRuleRejectsAnEmptyOptionEntry(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Value for option "allowedInternals" must be a list of non-empty strings.');
+
+        // @phpstan-ignore argument.type (Deliberately invalid input to cover the option validation)
+        $this->createRule(['']);
+    }
+
+    public function testRuleRejectsAnUnterminatedRegexPattern(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Entry "/^Brnshkr" for option "allowedCallers" is neither a namespace prefix nor a delimited regex pattern.');
+
+        $this->createRule(null, ['/^Brnshkr']);
+    }
+
+    public function testRuleRejectsABackslashOnlyEntry(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Entry "\" for option "allowedInternals" is neither a namespace prefix nor a delimited regex pattern.');
+
+        $this->createRule(['\\']);
+    }
+
+    #[Override]
+    protected function getRule(): Rule
+    {
+        return $this->createRule($this->allowedInternals, $this->allowedCallers);
+    }
+
     /**
-     * @param ?list<non-empty-string> $allowedInternalTargets
-     * @param ?list<non-empty-string> $allowedDeclaringNamespaces
-     * @param ?list<non-empty-string> $allowedCallingNamespaces
-     * @param ?list<non-empty-string> $allowedSymbols
-     *
-     * @throws MissingServiceException
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedInternals
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedCallers
      */
     private function createRule(
-        ?array $allowedInternalTargets = null,
-        ?array $allowedDeclaringNamespaces = null,
-        ?array $allowedCallingNamespaces = null,
-        ?array $allowedSymbols = null,
+        ?array $allowedInternals = null,
+        ?array $allowedCallers = null,
     ): InternalUsageRule {
         return new InternalUsageRule(
             self::getContainer()->getByType(ReflectionProvider::class),
-            $allowedInternalTargets,
-            $allowedDeclaringNamespaces,
-            $allowedCallingNamespaces,
-            $allowedSymbols,
+            $allowedInternals,
+            $allowedCallers,
         );
     }
 }

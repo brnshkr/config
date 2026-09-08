@@ -154,9 +154,14 @@
                 "phpstan.rules.rule"
             ],
             "arguments": {
-                "allowedCallingNamespaces": [
-                    "Brnshkr\\Config\\Tests"
-                ]
+                "allowedCallers": {
+                    "Brnshkr\\Config\\Tests": [
+                        "Brnshkr\\Config"
+                    ],
+                    "Brnshkr\\Config\\Mate": [
+                        "Brnshkr\\Config"
+                    ]
+                }
             }
         },
         {

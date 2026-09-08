@@ -32,31 +32,22 @@ use PHPStan\Reflection\ExtendedPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
-use RuntimeException;
 
 use function array_any;
-use function array_find;
 use function array_is_list;
 use function array_map;
+use function is_array;
+use function is_int;
 use function is_string;
 use function sprintf;
 
 /**
  * Reports calls into another package's `@internal` symbols.
  *
- * By default an `@internal` symbol may only be used from inside its own declaring namespace or
- * any sub-namespace of it; callers outside that subtree are flagged, the global namespace
- * included. The tag also accepts an optional FQCN or namespace argument (`@internal Acme\Foo`)
- * that replaces the declaring namespace as the reachable subtree, useful when an internal symbol
- * should be reachable from one specific namespace but no other — naming the bare vendor namespace
- * (`@internal Acme`) opens the symbol to every sibling package of the same organization.
- *
- * Four allow-lists widen what counts as a legitimate caller — `allowedCallingNamespaces` exempts
- * callers (useful for test suites), `allowedDeclaringNamespaces` exempts whole declaring packages,
- * `allowedInternalTargets` exempts groups of symbols that share the same target, and
- * `allowedSymbols` exempts individual symbols by their fully-qualified name. Each entry is either
- * a plain prefix (matches the exact value or anything below it) or a delimited regex pattern,
- * recognized by an opening delimiter the entry also closes with.
+ * An `@internal` symbol may only be used from its own declaring namespace or below, unless the tag
+ * names another subtree (`@internal Acme\Foo`). Two allow-lists widen that: `allowedInternals`
+ * names what may be reached, `allowedCallers` names who may reach it, and each entry is a plain
+ * prefix or a delimited pattern.
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
  *
@@ -66,10 +57,8 @@ use function sprintf;
  *     ->removeRules([InternalUsageRule::class])
  *     ->setRules([
  *         PhpStan::configureRule(InternalUsageRule::class, [
- *             'allowedCallingNamespaces'   => ['Acme\Tests'],
- *             'allowedDeclaringNamespaces' => ['/^Acme\\\Shared/'],
- *             'allowedInternalTargets'     => ['/^Acme\\\User$/'],
- *             'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash()'],
+ *             'allowedCallers'   => ['Acme\Tests'],
+ *             'allowedInternals' => ['Acme\User\Internal\PasswordHasher::hash()' => ['Acme\Security']],
  *         ]),
  *     ])
  * ;
@@ -81,7 +70,7 @@ use function sprintf;
  *
  * @implements Rule<Stmt>
  */
-final class InternalUsageRule implements Rule
+final readonly class InternalUsageRule implements Rule
 {
     use RuleTrait;
 
@@ -89,49 +78,32 @@ final class InternalUsageRule implements Rule
     private const string AT_INTERNAL = '@internal';
 
     /**
+     * @var array<array-key, non-empty-string|list<non-empty-string>>
+     */
+    private array $allowedInternals;
+
+    /**
+     * @var array<array-key, non-empty-string|list<non-empty-string>>
+     */
+    private array $allowedCallers;
+
+    /**
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?list<non-empty-string> $allowedInternalTargets plain namespace prefixes or delimited regex patterns matched against `@internal <target>` values to whitelist
-     * @param ?list<non-empty-string> $allowedDeclaringNamespaces plain namespace prefixes or delimited regex patterns matched against the declaring namespace to whitelist
-     * @param ?list<non-empty-string> $allowedCallingNamespaces plain namespace prefixes or delimited regex patterns matched against the caller's namespace to whitelist
-     * @param ?list<non-empty-string> $allowedSymbols plain prefixes or delimited regex patterns matched against the fully-qualified symbol name to whitelist
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedInternals what may be reached
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedCallers who may reach it
+     *
+     * @throws InvalidArgumentException when an entry is neither a namespace prefix nor a delimited regex pattern
      */
     public function __construct(
-        private readonly ReflectionProvider $reflectionProvider,
-        private ?array $allowedInternalTargets = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedInternalTargets) {
-                $this->allowedInternalTargets = self::getValidatedStringList('allowedInternalTargets', $allowedInternalTargets);
-            }
-        },
-        private ?array $allowedDeclaringNamespaces = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedDeclaringNamespaces) {
-                $this->allowedDeclaringNamespaces = self::getValidatedStringList('allowedDeclaringNamespaces', $allowedDeclaringNamespaces);
-            }
-        },
-        private ?array $allowedCallingNamespaces = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedCallingNamespaces) {
-                $this->allowedCallingNamespaces = self::getValidatedStringList('allowedCallingNamespaces', $allowedCallingNamespaces);
-            }
-        },
-        private ?array $allowedSymbols = null {
-            /**
-             * @throws InvalidArgumentException
-             */
-            set(?array $allowedSymbols) {
-                $this->allowedSymbols = self::getValidatedStringList('allowedSymbols', $allowedSymbols);
-            }
-        },
-    ) {}
+        private ReflectionProvider $reflectionProvider,
+        ?array $allowedInternals = null,
+        ?array $allowedCallers = null,
+    ) {
+        $this->allowedInternals = self::getValidatedStringList('allowedInternals', $allowedInternals);
+        $this->allowedCallers   = self::getValidatedStringList('allowedCallers', $allowedCallers);
+    }
 
     /**
      * @internal invoked by PHPStan
@@ -144,17 +116,15 @@ final class InternalUsageRule implements Rule
 
     /**
      * @internal invoked by PHPStan
-     *
-     * @throws RuntimeException
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
+        $callerNamespace = self::resolveCallerNamespace($node, $scope);
+
         if ($node instanceof Use_ || $node instanceof GroupUse || $node instanceof TraitUse) {
             return [];
         }
-
-        $callerNamespace = $scope->getNamespace() ?? '';
 
         foreach (self::collectNodesWithinStatement($node) as $subNode) {
             $error = $this->processSubNode($subNode, $scope, $callerNamespace);
@@ -165,6 +135,15 @@ final class InternalUsageRule implements Rule
         }
 
         return [];
+    }
+
+    private static function resolveCallerNamespace(Node $node, Scope $scope): string
+    {
+        $namespace = $scope->getNamespace() ?? '';
+        $fileDoc   = self::resolveFileLevelDoc($node, $scope);
+        $target    = self::resolveInternalTarget($fileDoc?->getText());
+
+        return $target === null || $target === self::AT_INTERNAL ? $namespace : $target;
     }
 
     /**
@@ -200,9 +179,6 @@ final class InternalUsageRule implements Rule
         return $visitor->collectedNodes;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processSubNode(Node $node, Scope $scope, string $callerNamespace): ?IdentifierRuleError
     {
         $line = $node->getStartLine();
@@ -220,9 +196,6 @@ final class InternalUsageRule implements Rule
         };
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processNameLikeNode(Node|Name $name, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$name instanceof Name) {
@@ -249,9 +222,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processFunctionCall(FuncCall $funcCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$funcCall->name instanceof Name || !$this->reflectionProvider->hasFunction($funcCall->name, $scope)) {
@@ -272,9 +242,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processConstantFetch(ConstFetch $constFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$this->reflectionProvider->hasConstant($constFetch->name, $scope)) {
@@ -299,9 +266,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processStaticCall(StaticCall $staticCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$staticCall->class instanceof Name || !$staticCall->name instanceof Identifier) {
@@ -338,9 +302,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processMethodCall(MethodCall $methodCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$methodCall->name instanceof Identifier) {
@@ -371,9 +332,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processPropertyFetch(PropertyFetch $propertyFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$propertyFetch->name instanceof Identifier) {
@@ -404,9 +362,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processClassConstFetch(ClassConstFetch $classConstFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$classConstFetch->name instanceof Identifier) {
@@ -430,9 +385,6 @@ final class InternalUsageRule implements Rule
         return null;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processClassAndConst(string $className, string $constName, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$this->reflectionProvider->hasClass($className)) {
@@ -493,17 +445,15 @@ final class InternalUsageRule implements Rule
 
     private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace, string $symbol): bool
     {
-        $patternsPerValue = [
-            [$internalTarget, $this->allowedInternalTargets],
-            [$declaringNamespace, $this->allowedDeclaringNamespaces],
-            [$callerNamespace, $this->allowedCallingNamespaces],
-            [$symbol, $this->allowedSymbols],
-        ];
+        $callerValues   = [$callerNamespace];
+        $internalValues = [$internalTarget, $declaringNamespace, $symbol];
 
-        foreach ($patternsPerValue as [$value, $patterns]) {
-            if (self::isAllowedByAny($value, $patterns)) {
-                return true;
-            }
+        if (self::isAllowedByAny($internalValues, $this->allowedInternals, $callerValues)) {
+            return true;
+        }
+
+        if (self::isAllowedByAny($callerValues, $this->allowedCallers, $internalValues)) {
+            return true;
         }
 
         return self::isInSubtree(
@@ -513,26 +463,59 @@ final class InternalUsageRule implements Rule
     }
 
     /**
-     * @param ?list<non-empty-string> $patterns
+     * @param non-empty-list<string> $values
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $entries
+     * @param non-empty-list<string> $counterparts
      */
-    private static function isAllowedByAny(string $value, ?array $patterns): bool
+    private static function isAllowedByAny(array $values, ?array $entries, array $counterparts): bool
     {
-        return array_any(
-            $patterns ?? [],
-            static fn (string $pattern): bool => self::isAllowed($value, $pattern),
+        foreach ($entries ?? [] as $key => $entry) {
+            $pattern = is_int($key) ? $entry : $key;
+
+            if (!is_string($pattern)) {
+                continue;
+            }
+
+            if (!self::isAllowedByAnyValue($values, $pattern)) {
+                continue;
+            }
+
+            if (is_int($key) || self::isAllowedByAnyCounterpart($counterparts, $entry)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param non-empty-list<string> $values
+     */
+    private static function isAllowedByAnyValue(array $values, string $pattern): bool
+    {
+        return array_any($values, static fn (string $value): bool => self::isAllowed($value, $pattern));
+    }
+
+    /**
+     * @param non-empty-list<string> $counterparts
+     * @param non-empty-string|list<non-empty-string> $patterns
+     */
+    private static function isAllowedByAnyCounterpart(array $counterparts, string|array $patterns): bool
+    {
+        return is_array($patterns) && array_any(
+            $patterns,
+            static fn (string $pattern): bool => array_any(
+                $counterparts,
+                static fn (string $counterpart): bool => self::isAllowed($counterpart, $pattern),
+            ),
         );
     }
 
     private static function isAllowed(string $value, string $pattern): bool
     {
-        return self::isRegexPattern($pattern)
+        return Str::isRegex($pattern)
             ? Str::match($value, $pattern) !== []
             : self::isInSubtree($value, $pattern);
-    }
-
-    private static function isRegexPattern(string $pattern): bool
-    {
-        return Str::match($pattern, '/^(?<delimiter>[^\w\\\]).*\k<delimiter>[A-Za-z]*$/s') !== [];
     }
 
     private static function isInSubtree(string $value, string $prefix): bool
@@ -540,9 +523,6 @@ final class InternalUsageRule implements Rule
         return $value === $prefix || Str::startsWithAny($value, [$prefix . '\\', $prefix . '::']);
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function buildViolationIfDisallowed(
         ?string $internalTarget,
         string $declaringNamespace,
@@ -556,9 +536,6 @@ final class InternalUsageRule implements Rule
             : null;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function buildError(string $kind, string $symbol, string $internalTarget, string $callerNamespace, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
@@ -574,52 +551,66 @@ final class InternalUsageRule implements Rule
      * @param non-empty-string $optionName
      * @param ?array<array-key, mixed> $input
      *
-     * @return list<non-empty-string>
+     * @return array<array-key, non-empty-string|list<non-empty-string>>
      *
      * @throws InvalidArgumentException
      */
     private static function getValidatedStringList(string $optionName, ?array $input): array
     {
-        if ($input === null) {
-            return [];
+        $entries = [];
+
+        foreach ($input ?? [] as $key => $value) {
+            if (is_int($key)) {
+                $entries[] = self::getValidatedPattern($optionName, $value);
+
+                continue;
+            }
+
+            if (!is_array($value) || !array_is_list($value)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Entry "%s" for option "%s" must map to a list of non-empty strings.',
+                    $key,
+                    $optionName,
+                ));
+            }
+
+            $entries[self::getValidatedPattern($optionName, $key)] = array_map(
+                static fn (mixed $counterpart): string => self::getValidatedPattern($optionName, $counterpart),
+                $value,
+            );
         }
 
-        if (!array_is_list($input) || array_any($input, static fn (mixed $item): bool => !is_string($item) || Str::isEmpty($item))) {
+        return $entries;
+    }
+
+    /**
+     * @return non-empty-string
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function getValidatedPattern(string $optionName, mixed $pattern): string
+    {
+        if (!is_string($pattern) || Str::isEmpty($pattern)) {
             throw new InvalidArgumentException(sprintf(
                 'Value for option "%s" must be a list of non-empty strings.',
                 $optionName,
             ));
         }
 
-        /**
-         * @var list<non-empty-string> $inputCasted
-         */
-        $inputCasted = $input;
+        if (Str::isRegex($pattern)) {
+            return $pattern;
+        }
 
-        $malformedPattern = array_find(
-            $inputCasted,
-            static fn (string $pattern): bool => !self::isRegexPattern($pattern)
-                && (Str::match($pattern, '/^[\w\\\]/') === [] || self::trimBackslashes($pattern) === ''),
-        );
+        $namespacePrefix = self::trimBackslashes($pattern);
 
-        if ($malformedPattern !== null) {
+        if (Str::match($pattern, '/^[\w\\\]/') === [] || Str::isEmpty($namespacePrefix)) {
             throw new InvalidArgumentException(sprintf(
                 'Entry "%s" for option "%s" is neither a namespace prefix nor a delimited regex pattern.',
-                $malformedPattern,
+                $pattern,
                 $optionName,
             ));
         }
 
-        /**
-         * @var list<non-empty-string> $normalizedPattern
-         */
-        $normalizedPattern = array_map(
-            static fn (string $pattern): string => self::isRegexPattern($pattern)
-                ? $pattern
-                : self::trimBackslashes($pattern),
-            $inputCasted,
-        );
-
-        return $normalizedPattern;
+        return $namespacePrefix;
     }
 }

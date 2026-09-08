@@ -10,7 +10,7 @@
       "analyse:61,68"
     ],
     "src/php/PhpStan.php": [
-      "analyse:447,452,457,478"
+      "analyse:445,450,455,476"
     ],
     "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
       "Analyser:18"

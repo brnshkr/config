@@ -6,6 +6,11 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
+use PhpParser\Node\Stmt\Declare_;
+use PhpParser\Node\Stmt\GroupUse;
+use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Stmt\Use_;
 
 use function array_key_exists;
 use function is_array;
@@ -33,7 +38,7 @@ final class FileLevelDocCache
      */
     public static function captureFrom(Node $candidate, string $filePath): void
     {
-        if (array_key_exists($filePath, self::$cache)) {
+        if (array_key_exists($filePath, self::$cache) || !self::canCarryFileLevelDoc($candidate)) {
             return;
         }
 
@@ -47,12 +52,19 @@ final class FileLevelDocCache
                 return;
             }
         }
-
-        self::$cache[$filePath] = null;
     }
 
     public static function clear(): void
     {
         self::$cache = [];
+    }
+
+    private static function canCarryFileLevelDoc(Node $node): bool
+    {
+        return $node instanceof Declare_
+            || $node instanceof Namespace_
+            || $node instanceof Use_
+            || $node instanceof GroupUse
+            || $node instanceof Return_;
     }
 }

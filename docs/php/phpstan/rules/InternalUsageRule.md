@@ -1,6 +1,7 @@
 # `InternalUsageRule` [🔍](../../../../src/php/PhpStan/Rule/InternalUsageRule.php 'Go to source')
 
-Symbols marked as `@internal` may only be used from within their own declaring namespace or a sub-namespace of it. Any attempt to reach into another package's internals is reported as a violation.
+Symbols marked as `@internal` may only be used from within their own declaring namespace or a sub-namespace of it.
+Any attempt to reach into another package's internals is reported as a violation.
 
 ```php
 namespace Acme\User\Internal;
@@ -25,7 +26,9 @@ new \Acme\User\Internal\PasswordHasher();
 
 ## Explicit `@internal` target
 
-The `@internal` tag also accepts an optional FQCN or namespace argument (`@internal Acme\User`). It replaces the declaring namespace as the reachable subtree — use it when an internal symbol lives in one namespace but should only be reachable from another.
+The `@internal` tag also accepts an optional FQCN or namespace argument (`@internal Acme\User`).
+It replaces the declaring namespace as the reachable subtree
+— use it when an internal symbol lives in one namespace but should only be reachable from another.
 
 ```php
 namespace Acme\Shared;
@@ -46,20 +49,36 @@ new \Acme\Shared\UserOnlyHelper();
 
 A bare vendor namespace (`@internal Acme`) widens that to every sibling package of the same organization.
 
-Anything after `@internal` that is not a single namespace — `@internal invoked by the framework` — counts as a description and leaves a plain `@internal`.
+Anything after `@internal` that is not a single namespace — `@internal invoked by the framework`
+— counts as a description and leaves a plain `@internal`.
 
 ## Options
 
-Four configuration options widen what counts as a legal caller:
+There is one list per side of the pair:
 
-- `allowedCallingNamespaces` — entries matched against the caller's namespace. Useful for letting test suites or other infrastructure reach into internals
-- `allowedDeclaringNamespaces` — entries matched against the namespace that declares the internal symbol. Useful for exempting whole packages from the check
-- `allowedInternalTargets` — entries matched against the FQCN or namespace argument passed to `@internal`. Useful when many symbols share the same target and should all be reachable from anywhere
-- `allowedSymbols` — entries matched against the fully-qualified name of the symbol being used, whether that is a class, enum, interface, trait, function or one of their members. Useful for exempting a single symbol without opening its namespace
+| Option | Names | Matched against |
+| --- | --- | --- |
+| `allowedCallers` | who is reaching | the caller's namespace |
+| `allowedInternals` | what is being reached | the `@internal` target, the declaring namespace, or the symbol |
 
-Each entry is either a plain prefix, which matches that value and anything below it, or a regular expression such as `/^Acme/`.
+An entry is a plain prefix, matching that value and anything below it, or a regular expression such as `/^Acme/`.
+The three values `allowedInternals` matches nest, so a namespace covers every symbol in it; anchor a regular
+expression to mean only one, as `/^Acme$/` does.
 
-The rule ships already registered, so drop the default registration before adding your own or it runs twice and reports every violation twice.
+A bare entry exempts its subject from every internal, everywhere. A list bounds it to the other side of the pair:
+
+```php
+'allowedCallers' => [
+    'Acme\Console',                    // may reach any internal at all
+    'Acme\Reporting' => ['Acme\User'], // may reach only Acme\User's internals
+],
+```
+
+Your own test suite needs none of this: every namespace in `autoload-dev` already reaches the internals
+of the namespace in `autoload`, and nothing else.
+
+The rule ships already registered, so drop the default registration before adding your own or it runs twice
+and reports every violation twice.
 
 ```php
 use Brnshkr\Config\PhpStan;
@@ -69,10 +88,8 @@ return PhpStan::getConfig(null, true)
     ->removeRules([InternalUsageRule::class])
     ->setRules([
         PhpStan::configureRule(InternalUsageRule::class, [
-            'allowedCallingNamespaces'   => ['Acme\Tests'],
-            'allowedDeclaringNamespaces' => ['/^Acme\\\Shared/'],
-            'allowedInternalTargets'     => ['/^Acme\\\User$/'],
-            'allowedSymbols'             => ['Acme\User\Internal\PasswordHasher::hash()'],
+            'allowedCallers'   => ['Acme\Console'],
+            'allowedInternals' => ['Acme\User\Internal\Hasher::hash()' => ['Acme\Security']],
         ]),
     ])
     ->toArray()

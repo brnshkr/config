@@ -242,9 +242,7 @@ final class PhpStan
                 PublicApiDocumentationRule::class,
                 ResolvableDocReferenceRule::class,
                 self::configureRule(InternalUsageRule::class, [
-                    'allowedCallingNamespaces' => [
-                        'Brnshkr\Config\Tests',
-                    ],
+                    'allowedCallers' => self::getDevelopmentNamespaceExemptions(),
                 ]),
             ])
             ->setServices([
@@ -876,6 +874,29 @@ final class PhpStan
         }
 
         return $defaults;
+    }
+
+    /**
+     * @return array<non-empty-string, non-empty-list<non-empty-string>>
+     *
+     * @throws RuntimeException
+     */
+    private static function getDevelopmentNamespaceExemptions(): array
+    {
+        $composerJson  = ComposerJson::forProjectUsingThisLibrary();
+        $rootNamespace = $composerJson->getRootNamespace();
+
+        if ($rootNamespace === null) {
+            return [];
+        }
+
+        $exemptions = [];
+
+        foreach ($composerJson->getDevelopmentNamespaces() as $namespace) {
+            $exemptions[$namespace] = [$rootNamespace];
+        }
+
+        return $exemptions;
     }
 
     /**

@@ -108,6 +108,11 @@ final readonly class Str
         return preg_quote($value, $delimiter);
     }
 
+    public static function isRegex(string $string): bool
+    {
+        return self::match($string, '/^(?<delimiter>[^\w\\\]).*\k<delimiter>[A-Za-z]*$/s') !== [];
+    }
+
     /**
      * @return array<array-key, string>
      */

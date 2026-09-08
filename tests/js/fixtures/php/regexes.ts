@@ -65,11 +65,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'src/php/PhpStan/Rule/InternalUsageRule.php',
-    php: String.raw`/^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/s`,
-    regex: /^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/sv,
-  },
-  {
-    file: 'src/php/PhpStan/Rule/InternalUsageRule.php',
     php: String.raw`/^[\w\\]/`,
     regex: /^[\w\\]/v,
   },
@@ -122,6 +117,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'src/php/Spelling.php',
     php: String.raw`/^(?<text>.*):(?<lineNumbers>\d+(?:,\d+)*)$/`,
     regex: /^(?<text>.*):(?<lineNumbers>\d+(?:,\d+)*)$/v,
+  },
+  {
+    file: 'src/php/Str.php',
+    php: String.raw`/^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/s`,
+    regex: /^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/sv,
   },
   {
     file: 'tests/php/CommandTest.php',

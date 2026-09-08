@@ -53,9 +53,11 @@ Agent knowledge beyond `docs/php/`.
   — an array in the glob expands the type to `string|array<...>` and breaks `key-of<>`.
   Rename the odd constant out of the prefix or use `key-of<self::EXPLICIT_MAP>`.
 - `InternalUsageRule` emits max one violation per statement; pre-order traversal means the deepest accessed symbol wins
-  (`Foo::method()->path` reports the property fetch). The four allow-list options accept a plain prefix
-  or a delimited regex (any delimiter, recognized by shape); `allowedSymbols` matches the fully-qualified symbol
-  and descends through `::` too. Malformed entries throw at construction.
+  (`Foo::method()->path` reports the property fetch). Two allow-list options, one per side of the pair: `allowedCallers`
+  matches the caller's namespace, `allowedInternals` matches the `@internal` target, the declaring namespace
+  or the symbol. Entries accept a plain prefix or a delimited regex (any delimiter, recognized by shape)
+  and descend through `::` too; a mapped entry bounds the exemption by the other side.
+  Malformed entries throw at construction.
 - `FileFinder` does NOT respect `.gitignore`; its exclusions are hardcoded — see `docs/php/FileFinder.md`.
 
 ## Tests + snapshots
