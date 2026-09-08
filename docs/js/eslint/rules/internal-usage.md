@@ -44,7 +44,7 @@ A module reachable through a `compilerOptions.paths` alias also answers to the n
 so a target may be written in either form. With `"@user/*": ["./src/*"]`, `src/internal/hasher.ts`
 declares into both `@acme/user/internal` and `@user/internal`. The shipped config passes the tsconfig it already
 resolves for type-aware linting; point `tsConfigPath` elsewhere to read a different one, and leave it unset to switch
-alias namespaces off. A name in `allowedSymbols` always spells the `package.json` form.
+alias namespaces off. A name in `allowedInternals` always spells the `package.json` form.
 
 ## File-level docblock
 
@@ -77,34 +77,46 @@ handle((options) => options.secret);
 
 ## Options
 
-`allowedCallingNamespaces`, `allowedDeclaringNamespaces`, `allowedInternalTargets` and `allowedSymbols`
-widen what counts as a legal caller. An entry is either a plain string, which matches that value and anything below it,
-or a regular expression. A symbol name is the module followed by `#` and the member path.
+`allowedCallers` and `allowedInternals` widen what counts as a legal caller. An entry is a plain string,
+a regular expression, or the delimited pattern string the PHP rule takes. A symbol name is the module
+followed by `#` and the member path.
 
 ```js
 // eslint.config.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
-export default getConfig(undefined, {
+export default getConfig({
   rules: {
     'brnshkr/internal-usage': ['error', {
-      allowedCallingNamespaces: ['@acme/user/tests'],
-      allowedDeclaringNamespaces: [/^@acme\/shared/v],
-      allowedSymbols: ['@acme/user/internal/hasher#PasswordHasher'],
+      allowedCallers: ['@acme/user/tests'],
+      allowedInternals: [/^@acme\/shared/v, '@acme/user/internal/hasher#PasswordHasher'],
     }],
   },
 });
 ```
 
+An object entry bounds the exemption to the counterparts it names, and mixes with bare entries in one list:
+
+```js
+const allowedCallers = [
+  // may reach any internal at all
+  '@acme/console',
+  // may reach only @acme/user's internals
+  {
+    '@acme/reporting': ['@acme/user'],
+  },
+];
+```
+
 ## Differences from the PHP rule
 
 - a module may always use the symbols it declares itself, because the module is the unit of encapsulation in JavaScript
-- an option entry takes a regular expression object where the PHP rule takes a delimited
-  pattern string, since `/` is a namespace separator here
+- `/` is the namespace separator here, so a prefix carrying both a leading and a trailing
+  separator reads as a delimited pattern instead
 - a file-level docblock carrying `@internal` covers the whole module.
   A PHP file has no such fallback; there the class docblock covers its members
 - a method or function carries `()` in its symbol name,
   matching how [`ResolvableDocReferenceRule`](../../../php/phpstan/rules/ResolvableDocReferenceRule.md)
-  tells a method from a constant. An `allowedSymbols` entry has to spell it the same way
+  tells a method from a constant. An `allowedInternals` entry has to spell it the same way
 - without type information the rule reads the imported module from disk. Only relative specifiers resolve that way,
   a property reached through a value is not checked, and a symbol name omits the `()` a declared function would carry

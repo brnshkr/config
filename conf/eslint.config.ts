@@ -47,7 +47,7 @@ export default getConfig({
   ],
   rules: {
     [<const>`${packageOrganization}/internal-usage`]: ['error', {
-      allowedDeclaringNamespaces: [
+      allowedInternals: [
         '@brnshkr/config/eslint',
       ],
     }],
@@ -59,7 +59,7 @@ export default getConfig({
   ],
   rules: {
     [<const>`${packageOrganization}/internal-usage`]: ['error', {
-      allowedCallingNamespaces: [
+      allowedCallers: [
         '@brnshkr/config/tests',
       ],
     }],

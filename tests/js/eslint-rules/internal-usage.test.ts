@@ -43,10 +43,8 @@ test('internalUsageRule mirrors the PHP option names', () => {
   const source = readPhpRuleSource('InternalUsageRule.php');
 
   for (const optionName of <const>[
-    'allowedInternalTargets',
-    'allowedDeclaringNamespaces',
-    'allowedCallingNamespaces',
-    'allowedSymbols',
+    'allowedInternals',
+    'allowedCallers',
   ]) {
     expect(source).toContain(`$${optionName}`);
   }
@@ -265,42 +263,80 @@ test('internalUsageRule option scenarios', () => {
   runRuleTests(typeAwareRuleTester, internalUsageRule, {
     valid: [
       buildValidCase(
-        'allowedCallingNamespaces exempts the caller',
+        'allowedCallers exempts the caller',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallingNamespaces: ['@acme/user/public'] }] },
+        { options: [{ allowedCallers: ['@acme/user/public'] }] },
       ),
       buildValidCase(
-        'allowedCallingNamespaces ignores a leading separator',
+        'allowedCallers ignores a leading separator',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallingNamespaces: ['/@acme/user/public'] }] },
+        { options: [{ allowedCallers: ['/@acme/user/public'] }] },
       ),
       buildValidCase(
-        'allowedCallingNamespaces matches a parent prefix',
+        'allowedCallers matches a parent prefix',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallingNamespaces: ['@acme/user'] }] },
+        { options: [{ allowedCallers: ['@acme/user'] }] },
       ),
       buildValidCase(
-        'allowedDeclaringNamespaces accepts a regular expression',
+        'allowedInternals matches the declaring namespace',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedDeclaringNamespaces: [/^@acme\/user\/internal/v] }] },
+        { options: [{ allowedInternals: [/^@acme\/user\/internal/v] }] },
       ),
       buildValidCase(
-        'allowedInternalTargets exempts a shared target',
+        'allowedInternals matches the internal target',
         'import { emailOnlyHelper } from \'./scoped\';\n\nemailOnlyHelper(\'a\');\n',
         {
           filename: CALLER_INSIDE,
-          options: [{ allowedInternalTargets: [/^@acme\/email$/v] }],
+          options: [{ allowedInternals: [/^@acme\/email$/v] }],
         },
       ),
       buildValidCase(
-        'allowedSymbols exempts one export',
+        'allowedInternals matches one export',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedSymbols: ['@acme/user/internal/hasher#hashPassword'] }] },
+        { options: [{ allowedInternals: ['@acme/user/internal/hasher#hashPassword'] }] },
       ),
       buildValidCase(
-        'allowedSymbols exempts a module and its members',
+        'allowedInternals matches a module and its members',
         'import { PasswordHasher } from \'../internal/hasher\';\n\nnew PasswordHasher().rehash(\'a\');\n',
-        { options: [{ allowedSymbols: ['@acme/user/internal/hasher'] }] },
+        { options: [{ allowedInternals: ['@acme/user/internal/hasher'] }] },
+      ),
+      buildValidCase(
+        'a delimited pattern string stands in for a regular expression',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        { options: [{ allowedInternals: [String.raw`/^@acme\/user\/internal/v`] }] },
+      ),
+      buildValidCase(
+        'a mapped entry may name a delimited pattern string as its subject',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        { options: [{ allowedCallers: [{ '/^@acme\\/user/v': ['@acme/user/internal'] }] }] },
+      ),
+      buildValidCase(
+        'a mapped entry allows the counterpart it names',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        { options: [{ allowedCallers: [{ '@acme/user/public': ['@acme/user/internal'] }] }] },
+      ),
+      buildValidCase(
+        'a mapped caller entry may name the symbol it reaches',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        {
+          options: [{
+            allowedCallers: [{ '@acme/user/public': ['@acme/user/internal/hasher#hashPassword'] }],
+          }],
+        },
+      ),
+      buildValidCase(
+        'a mapped internal entry is bounded by its caller',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        { options: [{ allowedInternals: [{ '@acme/user/internal': ['@acme/user/public'] }] }] },
+      ),
+      buildValidCase(
+        'a bare entry beside a mapped one keeps its old meaning',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        {
+          options: [{
+            allowedCallers: ['@acme/user/public', { '@acme/elsewhere': ['@acme/nowhere'] }],
+          }],
+        },
       ),
     ],
     invalid: [
@@ -308,7 +344,13 @@ test('internalUsageRule option scenarios', () => {
         'a partial segment is not a prefix match',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
-        { options: [{ allowedCallingNamespaces: ['@acme/user/pub'] }] },
+        { options: [{ allowedCallers: ['@acme/user/pub'] }] },
+      ),
+      buildInvalidCase(
+        'a mapped entry still reports a counterpart it does not name',
+        'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
+        { options: [{ allowedCallers: [{ '@acme/user/public': ['@acme/nowhere'] }] }] },
       ),
     ],
   });
@@ -353,12 +395,12 @@ test('internalUsageRule rejects an option entry that is not a namespace prefix',
         buildValidCase(
           'entry that is neither a prefix nor a pattern',
           'export const value = true;\n',
-          { options: [{ allowedCallingNamespaces: ['#^@acme'] }] },
+          { options: [{ allowedCallers: ['#^@acme'] }] },
         ),
       ],
       invalid: [],
     });
-  }).toThrow('Entry "#^@acme" for option "allowedCallingNamespaces" is neither a namespace prefix nor a regular expression.');
+  }).toThrow('Entry "#^@acme" for option "allowedCallers" is neither a namespace prefix nor a regular expression.');
 });
 
 test('internalUsageRule rejects a separator-only option entry', () => {
@@ -368,12 +410,12 @@ test('internalUsageRule rejects a separator-only option entry', () => {
         buildValidCase(
           'separator only',
           'export const value = true;\n',
-          { options: [{ allowedDeclaringNamespaces: ['/'] }] },
+          { options: [{ allowedInternals: ['/'] }] },
         ),
       ],
       invalid: [],
     });
-  }).toThrow('Entry "/" for option "allowedDeclaringNamespaces" is neither a namespace prefix nor a regular expression.');
+  }).toThrow('Entry "/" for option "allowedInternals" is neither a namespace prefix nor a regular expression.');
 });
 
 test('internalUsageRule rejects an empty option entry', () => {
@@ -383,12 +425,30 @@ test('internalUsageRule rejects an empty option entry', () => {
         buildValidCase(
           'empty entry',
           'export const value = true;\n',
-          { options: [{ allowedSymbols: [''] }] },
+          { options: [{ allowedInternals: [''] }] },
         ),
       ],
       invalid: [],
     });
-  }).toThrow('Entry "" for option "allowedSymbols" is neither a namespace prefix nor a regular expression.');
+  }).toThrow('Entry "" for option "allowedInternals" is neither a namespace prefix nor a regular expression.');
+});
+
+test('internalUsageRule rejects a mapped option entry that does not name a list', () => {
+  expect(() => {
+    runRuleTests(typeAwareRuleTester, internalUsageRule, {
+      valid: [
+        buildValidCase(
+          'mapped entry naming a bare counterpart',
+          'export const value = true;\n',
+          { options: [{ allowedCallers: [{ '@acme/user/public': <never>'@acme/user/internal' }] }] },
+        ),
+      ],
+      invalid: [],
+    });
+  }).toThrow(
+    'Entry "@acme/user/public" for option "allowedCallers" must map to a list of namespace prefixes'
+    + ' or regular expressions.',
+  );
 });
 
 test('internalUsageRule degrades to lexical resolution without type information', () => {

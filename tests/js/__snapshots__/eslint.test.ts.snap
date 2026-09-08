@@ -1347,7 +1347,7 @@ exports[`expected eslint config > base: __tests__/a.ts 1`] = `
     "brnshkr/internal-usage": [
       2,
       {
-        "allowedCallingNamespaces": [
+        "allowedCallers": [
           "@brnshkr/config/tests",
         ],
       },

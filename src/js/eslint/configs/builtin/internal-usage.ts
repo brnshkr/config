@@ -45,12 +45,11 @@ const LAYOUT_SEGMENTS = new Set<string>([
 
 const WILDCARD_SUFFIX = '/*';
 const MODULE_SPECIFIER_SEARCH_DEPTH = 4;
+const DELIMITED_PATTERN = /^(?<delimiter>[^\w\\])(?<source>.*)\k<delimiter>(?<flags>[A-Za-z]*)$/sv;
 
 const OPTION_NAMES = <const>[
-  'allowedInternalTargets',
-  'allowedDeclaringNamespaces',
-  'allowedCallingNamespaces',
-  'allowedSymbols',
+  'allowedInternals',
+  'allowedCallers',
 ];
 
 const MODULE_EXTENSIONS = <const>[
@@ -72,7 +71,8 @@ const IMPORT_SPECIFIER_TYPES = new Set<string>([
 ]);
 
 type OptionName = typeof OPTION_NAMES[number];
-type AllowEntry = string | RegExp;
+type AllowScalar = string | RegExp;
+type AllowEntry = AllowScalar | Record<string, AllowScalar[]>;
 
 interface InternalUsageOptions extends Partial<Record<OptionName, AllowEntry[]>> {
   tsConfigPath?: string;
@@ -132,9 +132,19 @@ interface InternalSymbol {
   target: string;
 }
 
-interface AllowList {
+interface AllowMatcher {
   prefixes: string[];
   patterns: RegExp[];
+}
+
+interface BoundedAllowEntry {
+  subject: AllowMatcher;
+  counterparts: AllowMatcher;
+}
+
+interface AllowList {
+  bare: AllowMatcher;
+  bounded: BoundedAllowEntry[];
 }
 
 const packageCache = new Map<string, PackageCacheEntry>();
@@ -413,18 +423,41 @@ const resolveRelativeModulePath = (fromFilePath: string, specifier: string): May
   ].find((candidate) => doesFileExist(candidate));
 };
 
-const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
+const toPattern = (entry: string): Maybe<RegExp> => {
+  const groups = DELIMITED_PATTERN.exec(entry)?.groups;
+
+  if (groups === undefined) {
+    return undefined;
+  }
+
+  try {
+    return new RegExp(groups['source'] ?? '', (groups['flags'] ?? '').replaceAll(/[gy]/gv, ''));
+  } catch {
+    return undefined;
+  }
+};
+
+const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatcher => {
   const prefixes: string[] = [];
   const patterns: RegExp[] = [];
 
-  for (const entry of entries ?? []) {
+  for (const entry of entries) {
     if (entry instanceof RegExp) {
       patterns.push(new RegExp(entry.source, entry.flags.replaceAll(/[gy]/gv, '')));
 
       continue;
     }
 
-    const prefix = typeof entry === 'string' ? trimSeparators(entry) : '';
+    const text = typeof entry === 'string' ? entry : '';
+    const pattern = toPattern(text);
+
+    if (pattern !== undefined) {
+      patterns.push(pattern);
+
+      continue;
+    }
+
+    const prefix = trimSeparators(text);
 
     if (prefix.length === 0 || !/^[\w@]/v.test(prefix)) {
       throw new Error(
@@ -441,9 +474,54 @@ const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): A
   };
 };
 
-const isAllowedBy = (value: string, allowList: AllowList): boolean => allowList.prefixes
-  .some((prefix) => isInSubtree(value, prefix))
-  || allowList.patterns.some((pattern) => pattern.test(value));
+const isMappedEntry = (entry: unknown): entry is Record<string, AllowScalar[]> => typeof entry === 'object'
+  && entry !== null
+  && !Array.isArray(entry)
+  && !(entry instanceof RegExp);
+
+const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
+  const bare: AllowScalar[] = [];
+  const bounded: BoundedAllowEntry[] = [];
+
+  for (const entry of entries ?? []) {
+    if (!isMappedEntry(entry)) {
+      bare.push(entry);
+
+      continue;
+    }
+
+    for (const [subject, counterparts] of objectEntries(entry)) {
+      if (!Array.isArray(counterparts)) {
+        throw new TypeError(
+          `Entry "${subject}" for option "${optionName}" must map to a list of namespace prefixes`
+          + ' or regular expressions.',
+        );
+      }
+
+      bounded.push({
+        subject: buildMatcher(optionName, [subject]),
+        counterparts: buildMatcher(optionName, counterparts),
+      });
+    }
+  }
+
+  return {
+    bare: buildMatcher(optionName, bare),
+    bounded,
+  };
+};
+
+const matches = (values: string[], matcher: AllowMatcher): boolean => values.some(
+  (value) => matcher.prefixes.some((prefix) => isInSubtree(value, prefix))
+    || matcher.patterns.some((pattern) => pattern.test(value)),
+);
+
+const isAllowedBy = (
+  values: string[],
+  counterparts: string[],
+  allowList: AllowList,
+): boolean => matches(values, allowList.bare)
+  || allowList.bounded.some((entry) => matches(values, entry.subject) && matches(counterparts, entry.counterparts));
 
 const hasModuleSpecifierAbove = (node: DeclarationNode): boolean => {
   let current = <Maybe<DeclarationNode>>node;
@@ -566,7 +644,7 @@ export const internalUsageRule = <const>{
             optionName,
             {
               type: 'array',
-              tsType: '(string | RegExp)[]',
+              tsType: '(string | RegExp | Record<string, (string | RegExp)[]>)[]',
             },
           ])),
           tsConfigPath: {
@@ -584,10 +662,8 @@ export const internalUsageRule = <const>{
     const options = <InternalUsageOptions>(context.options[0] ?? {});
 
     const allowLists = {
-      allowedCallingNamespaces: buildAllowList('allowedCallingNamespaces', options.allowedCallingNamespaces),
-      allowedDeclaringNamespaces: buildAllowList('allowedDeclaringNamespaces', options.allowedDeclaringNamespaces),
-      allowedInternalTargets: buildAllowList('allowedInternalTargets', options.allowedInternalTargets),
-      allowedSymbols: buildAllowList('allowedSymbols', options.allowedSymbols),
+      allowedCallers: buildAllowList('allowedCallers', options.allowedCallers),
+      allowedInternals: buildAllowList('allowedInternals', options.allowedInternals),
     };
 
     const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
@@ -611,13 +687,13 @@ export const internalUsageRule = <const>{
       return callerNamespaces.some((namespace) => roots.some((root) => isInSubtree(namespace, root)));
     };
 
-    const isUsageAllowed = (
-      internal: InternalSymbol,
-    ): boolean => isAllowedBy(internal.target, allowLists.allowedInternalTargets)
-      || internal.namespaces.some((namespace) => isAllowedBy(namespace, allowLists.allowedDeclaringNamespaces))
-      || callerNamespaces.some((namespace) => isAllowedBy(namespace, allowLists.allowedCallingNamespaces))
-      || isAllowedBy(internal.symbolId, allowLists.allowedSymbols)
-      || isReachable(internal);
+    const isUsageAllowed = (internal: InternalSymbol): boolean => {
+      const internalValues = [internal.target, ...internal.namespaces, internal.symbolId];
+
+      return isAllowedBy(internalValues, callerNamespaces, allowLists.allowedInternals)
+        || isAllowedBy(callerNamespaces, internalValues, allowLists.allowedCallers)
+        || isReachable(internal);
+    };
 
     const reportUsage = (node: TSESTree.Node, internal: InternalSymbol): void => {
       if (isUsageAllowed(internal)) {
