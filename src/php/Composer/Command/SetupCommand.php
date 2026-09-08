@@ -32,6 +32,7 @@ use function count;
 use function file_get_contents;
 use function in_array;
 use function is_file;
+use function is_readable;
 use function sprintf;
 
 /**
@@ -490,7 +491,7 @@ final class SetupCommand extends AbstractCommand
      */
     private function getFileContent(string $path): ?string
     {
-        return ($this->filesystem->exists($path) && is_file($path))
+        return (is_file($path) && is_readable($path))
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using Filesystem::readFile since this method is newer and does no necessarily exist in the version bundled with composer)
             ? (file_get_contents($path) ?: null)
             : null;

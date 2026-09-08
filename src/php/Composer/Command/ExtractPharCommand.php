@@ -21,6 +21,7 @@ use function explode;
 use function glob;
 use function is_dir;
 use function is_file;
+use function is_readable;
 use function mkdir;
 use function sprintf;
 use function Symfony\Component\String\s;
@@ -122,7 +123,7 @@ final class ExtractPharCommand extends AbstractCommand
 
         $phars = glob($vendorDirectory . '/*.phar');
 
-        if ($phars === false || $phars === [] || Str::isEmpty($phars[0]) || !is_file($phars[0])) {
+        if ($phars === false || $phars === [] || Str::isEmpty($phars[0]) || !is_file($phars[0]) || !is_readable($phars[0])) {
             throw new RuntimeException(sprintf('No .phar binary found in "%s".', $vendorDirectory));
         }
 
