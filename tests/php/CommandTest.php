@@ -14,7 +14,7 @@ use Composer\Console\Application;
 use Composer\Json\JsonValidationException;
 use Exception;
 use LogicException;
-use Override;
+use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -34,21 +34,6 @@ use function Symfony\Component\String\s;
 final class CommandTest extends TestCase
 {
     private Application $application;
-
-    /**
-     * @throws JsonValidationException
-     * @throws LogicException
-     */
-    #[Override]
-    protected function setUp(): void
-    {
-        $application = new Application();
-
-        $application->setAutoExit(false);
-        $application->addCommands(new CommandProvider()->getCommands());
-
-        $this->application = $application;
-    }
 
     /**
      * @throws Exception
@@ -184,5 +169,20 @@ EOF;
         self::assertStringContainsString('Updating required PHP extensions.', $outputString);
         self::assertStringContainsString('Skipping "ext-filter" — already present in composer.json (require-dev).', $outputString);
         self::assertStringContainsString('Skipping "ext-json" — already listed under requirements.', $outputString);
+    }
+
+    /**
+     * @throws JsonValidationException
+     * @throws LogicException
+     */
+    #[Before]
+    public function createApplication(): void
+    {
+        $application = new Application();
+
+        $application->setAutoExit(false);
+        $application->addCommands(new CommandProvider()->getCommands());
+
+        $this->application = $application;
     }
 }
