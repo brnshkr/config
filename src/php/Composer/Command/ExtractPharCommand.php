@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer\Command;
 
 use BadMethodCallException;
+use Brnshkr\Config\Exception\UnreachableException;
 use Brnshkr\Config\Str;
 use InvalidArgumentException;
-use LogicException;
 use Override;
 use Phar;
 use RuntimeException;
@@ -61,7 +61,6 @@ final class ExtractPharCommand extends AbstractCommand
      * @return self::SUCCESS
      *
      * @throws InvalidArgumentException
-     * @throws LogicException
      * @throws RuntimeException
      */
     #[Override]
@@ -134,7 +133,6 @@ final class ExtractPharCommand extends AbstractCommand
      * @param non-empty-string $pharPath
      * @param non-empty-string $targetDirectory
      *
-     * @throws LogicException
      * @throws RuntimeException
      */
     private static function extractPhar(string $pharPath, string $targetDirectory): void
@@ -145,8 +143,8 @@ final class ExtractPharCommand extends AbstractCommand
 
         try {
             new Phar($pharPath)->extractTo($targetDirectory, overwrite: true);
-        } catch (BadMethodCallException) {
-            throw new LogicException('Unreachable.');
+        } catch (BadMethodCallException $badMethodCallException) {
+            throw UnreachableException::wrap($badMethodCallException);
         }
     }
 }
