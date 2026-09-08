@@ -35,26 +35,16 @@ use function sprintf;
 /**
  * Holds every `@api` symbol to a consistent docblock standard.
  *
- * The intent is that anyone landing on a public class, function, or method gets the same level
- * of guidance regardless of where in the codebase they are: a real description in prose, one
- * `@param` per parameter with a sentence of context after the variable name, an `@return` line
- * that says what the value actually represents, and an `@example` block whenever calling the
- * symbol involves non-obvious arguments.
+ * A description in prose, one `@param` per parameter, an `@return` that says what the value is,
+ * and an `@example` wherever calling the symbol takes arguments. A file-level `@api` or
+ * `@internal` sets the default for everything in the file, and a per-symbol tag overrides it.
  *
- * A file-level docblock (the first `/** ... *\/` before `namespace`/`declare`/`use`) carrying
- * `@api` or `@internal` provides a default for every contained symbol; per-symbol tags override
- * the file-level default.
+ * A top-level `return` in an `@api` file needs a description too, either on the `return` or on
+ * the source it returns — a `new ClassName(...)` falls back to the class docblock, a
+ * `Class::method(...)` to the method docblock.
  *
- * Top-level `return` statements in an `@api`-tagged file must also carry a description, either on
- * the `return` itself or on the returned source (a `new ClassName(...)` falls back to the class
- * docblock, a `Class::method(...)` falls back to the method docblock).
- *
- * A few exemptions keep the rule pragmatic: private methods and methods tagged `@internal` are
- * skipped entirely, constructors do not need their own description (the class docblock already
- * covers the type's purpose), fluent setters returning `self` or `static` skip the
- * `@return`/`@example` checks (the return type is self-explanatory), and interface/abstract
- * methods skip `@example` since they have no implementation to demonstrate. `@throws` coverage
- * is left to PHPStan's built-in throw-type checks.
+ * Private and `@internal` methods are exempt, and so is anything the return type or an ancestor
+ * already explains.
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/PublicApiDocumentationRule.md
  *
@@ -127,6 +117,8 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     /**
      * @return list<IdentifierRuleError>
+     *
+     * @throws ReflectionException
      */
     private static function checkFunctionLike(ClassMethod|Function_ $node, Scope $scope, ?Doc $fileDoc): array
     {
@@ -138,10 +130,17 @@ final readonly class PublicApiDocumentationRule implements Rule
 
         $doc     = $node->getDocComment();
         $docText = $doc?->getText() ?? '';
-        $kind    = self::getKindForFunctionLike($node);
-        $name    = $node->name->toString();
-        $line    = $node->getStartLine();
-        $errors  = [];
+
+        if ($node instanceof ClassMethod
+            && (self::hasInheritDocTag($docText) || self::isDocumentedByAncestor($classReflection, $node))
+        ) {
+            return [];
+        }
+
+        $kind   = self::getKindForFunctionLike($node);
+        $name   = $node->name->toString();
+        $line   = $node->getStartLine();
+        $errors = [];
 
         if ($kind !== self::KIND_CONSTRUCTOR && !self::hasDescription($doc)) {
             $errors[] = self::buildDescriptionError($kind, $name, $line);
@@ -297,6 +296,37 @@ final readonly class PublicApiDocumentationRule implements Rule
         }
 
         return $class;
+    }
+
+    private static function hasInheritDocTag(string $docText): bool
+    {
+        return Str::match($docText, '/\*\s+@inheritDoc\b/i') !== [];
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private static function isDocumentedByAncestor(?ClassReflection $classReflection, ClassMethod $classMethod): bool
+    {
+        if (!$classReflection instanceof ClassReflection) {
+            return false;
+        }
+
+        $methodName = $classMethod->name->toString();
+
+        foreach ([...$classReflection->getParents(), ...$classReflection->getInterfaces()] as $ancestor) {
+            if (!$ancestor->hasNativeMethod($methodName)) {
+                continue;
+            }
+
+            if (self::hasDescription(self::wrapRawDoc(
+                $ancestor->getNativeReflection()->getMethod($methodName)->getDocComment(),
+            ))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function needsReturnProse(Node|Identifier|null $returnType): bool

@@ -99,6 +99,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /@return\s+\S+\s+(?<description>\S[^\n]*)/v,
   },
   {
+    file: 'src/php/PhpStan/Rule/PublicApiDocumentationRule.php',
+    php: String.raw`/\*\s+@inheritDoc\b/i`,
+    regex: /\*\s+@inheritDoc\b/iv,
+  },
+  {
     file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',
     php: String.raw`/(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s}]+)/`,
     regex: /(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s\}]+)/v,

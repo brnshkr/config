@@ -122,6 +122,7 @@ return $config;
 A few exemptions keep the rule pragmatic: private methods and methods tagged `@internal` are skipped,
 constructors do not need their own description (the class docblock already covers the type's purpose), fluent setters
 returning `self` or `static` skip the `@return`/`@example` checks, and interface or abstract methods skip `@example`
-since they have no implementation to demonstrate. `@throws` coverage is left to PHPStan's built-in throw-type checks.
+since they have no implementation to demonstrate, and a method an ancestor already documents is skipped,
+whether it says so with `@inheritDoc` or stays silent. `@throws` coverage is left to PHPStan's built-in throw-type checks.
 
 The JavaScript counterpart is [`brnshkr/public-api-documentation`](../../../js/eslint/rules/public-api-documentation.md).

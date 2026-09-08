@@ -34,6 +34,7 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
             __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/FileLevel.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/BareReturn.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/BareReturnUndocumented.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/PublicApiDocumentation/InheritedDocumentation.php',
         ], [
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Class', 'MissingClassDescription'), 10],
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'missingDescription'), 17],
@@ -46,6 +47,14 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'method'), 16],
             [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Class', 'UndocumentedReturnTarget'), 14],
             ['Top-level `return` in an `@api` file must carry a docblock with a description (either on the `return` statement or on its returned source).', 16],
+            [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'own'), 60],
+            [sprintf('%s `%s` is `@api`; parameter `$%s` must have an `@param` tag with a description.', 'Method', 'own', 'argument'), 60],
+            [sprintf('%s `%s` is `@api` and returns a non-void type; an `@return` tag with a description is required.', 'Method', 'own'), 60],
+            [sprintf('%s `%s` is `@api` and accepts parameters; an `@example` tag is required.', 'Method', 'own'), 60],
+            [sprintf('%s `%s` is `@api` and must carry a description before the first PHPDoc tag.', 'Method', 'render'), 83],
+            [sprintf('%s `%s` is `@api`; parameter `$%s` must have an `@param` tag with a description.', 'Method', 'render', 'markdown'), 83],
+            [sprintf('%s `%s` is `@api` and returns a non-void type; an `@return` tag with a description is required.', 'Method', 'render'), 83],
+            [sprintf('%s `%s` is `@api` and accepts parameters; an `@example` tag is required.', 'Method', 'render'), 83],
         ]);
     }
 
