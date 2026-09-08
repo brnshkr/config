@@ -11,7 +11,14 @@ import {
 } from '../../../src/js/eslint/configs/builtin/public-api-documentation';
 
 import { clearPublicApiResolutionCache } from '../../../src/js/eslint/utils/public-api';
-import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '../utils/rule-tester';
+
+import {
+  createRuleCaseBuilders,
+  createTypeAwareRuleTester,
+  runJsRuleTests,
+  runRuleTests,
+  runTsRuleTests,
+} from '../utils/rule-tester';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_INDEX = path.join(FIXTURE_ROOT, 'src/index.ts');
@@ -191,6 +198,24 @@ test('publicApiDocumentationRule scenarios', () => {
 test('publicApiDocumentationRule valid extras', () => {
   runTsRuleTests(publicApiDocumentationRule, {
     valid: [
+      buildValidCase(
+        '@inheritDoc skips a method without type information',
+        wrap(`
+          /**
+           * The default greeter.
+           *
+           * @api
+           */
+          export class Greeter {
+            /**
+             * @inheritDoc
+             */
+            public greet(name: string): string {
+              return name;
+            }
+          }
+        `),
+      ),
       buildValidCase(
         '@api fluent setter skips returns/example',
         wrap(`
@@ -393,6 +418,155 @@ test('publicApiDocumentationRule works with default ESLint parser', () => {
         [
           MESSAGE_ID_MISSING_DESCRIPTION,
           MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+    ],
+  });
+});
+
+const typeAwareRuleTester = createTypeAwareRuleTester(FIXTURE_ROOT, []);
+
+test('publicApiDocumentationRule reads ancestors when type information is available', () => {
+  runRuleTests(typeAwareRuleTester, publicApiDocumentationRule, {
+    valid: [
+      buildValidCase(
+        'a method its interface documents needs no docblock of its own',
+        wrap(`
+          /**
+           * Greets people.
+           *
+           * @api
+           */
+          export interface GreeterInterface {
+            /**
+             * Greets someone.
+             *
+             * @param name - Who to greet.
+             *
+             * @returns The greeting.
+             *
+             * @example
+             * greeter.greet('a');
+             */
+            greet(name: string): string;
+          }
+
+          /**
+           * The default greeter.
+           *
+           * @api
+           */
+          export class Greeter implements GreeterInterface {
+            public greet(name: string): string {
+              return name;
+            }
+          }
+        `),
+      ),
+      buildValidCase(
+        '@inheritDoc skips a method no ancestor documents',
+        wrap(`
+          /**
+           * A greeter.
+           *
+           * @internal
+           */
+          export abstract class BaseGreeter {
+            public greet(name: string): string {
+              return name;
+            }
+          }
+
+          /**
+           * The default greeter.
+           *
+           * @api
+           */
+          export class Greeter extends BaseGreeter {
+            /**
+             * @inheritDoc
+             */
+            public greet(name: string): string {
+              return name;
+            }
+          }
+        `),
+      ),
+      buildValidCase(
+        'a method a base class documents needs no docblock of its own',
+        wrap(`
+          /**
+           * A greeter.
+           *
+           * @api
+           */
+          export abstract class BaseGreeter {
+            /**
+             * Greets someone.
+             *
+             * @param name - Who to greet.
+             *
+             * @returns The greeting.
+             *
+             * @example
+             * greeter.greet('a');
+             */
+            public greet(name: string): string {
+              return name;
+            }
+          }
+
+          /**
+           * The default greeter.
+           *
+           * @api
+           */
+          export class Greeter extends BaseGreeter {
+            public greet(name: string): string {
+              return name;
+            }
+          }
+        `),
+      ),
+    ],
+    invalid: [
+      buildInvalidCase(
+        'an ancestor without prose documents nothing',
+        wrap(`
+          /**
+           * A greeter.
+           *
+           * @api
+           */
+          export abstract class BaseGreeter {
+            /**
+             * @api
+             */
+            public greet(name: string): string {
+              return name;
+            }
+          }
+
+          /**
+           * The default greeter.
+           *
+           * @api
+           */
+          export class Greeter extends BaseGreeter {
+            public greet(name: string): string {
+              return name;
+            }
+          }
+        `),
+        [
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_RETURNS,
+          MESSAGE_ID_MISSING_EXAMPLE,
+          MESSAGE_ID_MISSING_DESCRIPTION,
+          MESSAGE_ID_MISSING_PARAM,
+          MESSAGE_ID_MISSING_RETURNS,
           MESSAGE_ID_MISSING_EXAMPLE,
         ],
       ),

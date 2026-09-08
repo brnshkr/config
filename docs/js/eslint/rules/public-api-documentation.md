@@ -62,6 +62,9 @@ export const normalize = (user) => {
 };
 ```
 
+Reading an ancestor's documentation needs the whole program,
+so without type information only `@inheritDoc` exempts a method.
+
 ## Options
 
 Identical to [`brnshkr/api-or-internal-tag`](./api-or-internal-tag.md#options) — `packageJsonPath`, `distRoot`,

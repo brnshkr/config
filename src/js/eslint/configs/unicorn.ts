@@ -111,6 +111,11 @@ export const unicorn = async (): Promise<Config[]> => {
         'unicorn/no-unused-properties': 'error',
         'unicorn/prefer-json-parse-buffer': 'error',
         'unicorn/prefer-switch': 'off',
+        'unicorn/prevent-abbreviations': ['error', {
+          ignore: [
+            '[Ii]nheritDoc',
+          ],
+        }],
         'unicorn/string-content': ['error', {
           /* eslint-disable unicorn/string-content -- Of course we need to disable this rule here or it would trigger for its own config */
           patterns: {

@@ -29,7 +29,8 @@ import {
 
 import { isPublicApiFile } from '../../utils/public-api';
 
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type ts from 'typescript';
 import type { Maybe } from '../../../shared/types/core';
 import type { ExportedSymbol } from '../../utils/exports';
 import type { PackageExportsResolverOptions } from '../../utils/package-exports';
@@ -57,7 +58,49 @@ interface RuleContext {
   context: TSESLint.RuleContext<string, unknown[]>;
   sourceCode: TSESLint.SourceCode;
   fileComment: Maybe<string>;
+  services: Maybe<ParserServicesWithTypeInformation>;
 }
+
+interface DocumentedNode extends ts.Node {
+  jsDoc?: {
+    getText: () => string;
+  }[];
+}
+
+const readCommentText = (declaration: Maybe<DocumentedNode>): Maybe<string> => {
+  const [comment] = (declaration?.jsDoc ?? []).toReversed();
+
+  return comment?.getText();
+};
+
+const hasInheritDocTag = (comment: Maybe<string>): boolean => /\*\s+@inheritdoc\b/iv.test(comment ?? '');
+
+const isDocumentedByAncestor = (
+  services: Maybe<ParserServicesWithTypeInformation>,
+  node: TSESTree.ClassDeclaration | TSESTree.TSInterfaceDeclaration,
+  memberName: string,
+): boolean => {
+  const program = <ts.Program | null | undefined>services?.program;
+
+  const declaration = <Maybe<ts.ClassLikeDeclaration | ts.InterfaceDeclaration>>services
+    ?.esTreeNodeToTSNodeMap
+    .get(node);
+
+  if (program === null || program === undefined || declaration?.name === undefined) {
+    return false;
+  }
+
+  const checker = program.getTypeChecker();
+
+  return (declaration.heritageClauses ?? []).some(
+    (clause) => clause.types.some((typeNode) => hasDescription(
+      readCommentText(<Maybe<DocumentedNode>>checker
+        .getTypeAtLocation(typeNode)
+        .getProperty(memberName)
+        ?.declarations?.[0]),
+    )),
+  );
+};
 
 const reportMissingDescription = (
   ruleContext: RuleContext,
@@ -175,7 +218,9 @@ const checkClassMembers = (
 
     const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member), member);
 
-    if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL) {
+    if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL
+      || hasInheritDocTag(methodComment)
+      || isDocumentedByAncestor(ruleContext.services, node, getNamedKeyText(member.key))) {
       continue;
     }
 
@@ -203,7 +248,9 @@ const checkInterfaceMembers = (
 
     const methodComment = extractBlockComment(ruleContext.sourceCode.getCommentsBefore(member), member);
 
-    if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL) {
+    if (getEffectiveVisibilityTag(methodComment, ruleContext.fileComment) === TAG_INTERNAL
+      || hasInheritDocTag(methodComment)
+      || isDocumentedByAncestor(ruleContext.services, node, getNamedKeyText(member.key))) {
       continue;
     }
 
@@ -309,6 +356,7 @@ export const publicApiDocumentationRule = <const>{
       context: <TSESLint.RuleContext<string, unknown[]>><unknown>context,
       sourceCode,
       fileComment,
+      services: <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices,
     } satisfies RuleContext;
 
     return buildExportVisitors(sourceCode, (symbol) => {

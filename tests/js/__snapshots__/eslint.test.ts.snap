@@ -5399,7 +5399,11 @@ exports[`expected eslint config > base: __tests__/a.ts 1`] = `
     ],
     "unicorn/prevent-abbreviations": [
       2,
-      {},
+      {
+        "ignore": [
+          "[Ii]nheritDoc",
+        ],
+      },
     ],
     "unicorn/relative-url-style": [
       2,
