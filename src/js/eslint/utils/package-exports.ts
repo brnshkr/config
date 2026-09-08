@@ -11,7 +11,7 @@ import {
   toPosix,
 } from '../../shared/utils/filesystem';
 
-import { isPlainObject } from '../../shared/utils/object';
+import { isPlainObject, objectValues } from '../../shared/utils/object';
 
 import type { Maybe } from '../../shared/types/core';
 
@@ -84,7 +84,7 @@ const collectStringEntries = (node: unknown, accumulator: string[]): void => {
     return;
   }
 
-  for (const value of Object.values(node)) {
+  for (const value of objectValues(node)) {
     collectStringEntries(value, accumulator);
   }
 };
@@ -220,7 +220,7 @@ export const resolvePackageApiSources = (
   const packageJsonPath = path.resolve(options.packageJsonPath);
   const manifest = readJsonObjectFile(packageJsonPath);
 
-  if (manifest === undefined || manifest['exports'] === undefined) {
+  if (manifest?.['exports'] === undefined) {
     return undefined;
   }
 

@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { objectEntries } from '../../shared/utils/object';
+import { objectEntries, objectFromEntries, objectKeys } from '../../shared/utils/object';
 import { packageOrganization } from '../../shared/utils/package-json';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 
@@ -22,9 +22,9 @@ export const buildConfigName = (
 export const renameRules = (
   rules: Maybe<Record<string, any>>,
   map: Record<string, string>,
-): Record<string, any> => Object.fromEntries(
-  Object.entries(rules ?? {}).map(([key, value]) => {
-    for (const [from, to] of Object.entries(map)) {
+): Record<string, any> => objectFromEntries(
+  objectEntries(rules ?? {}).map(([key, value]) => {
+    for (const [from, to] of objectEntries(map)) {
       if (key.startsWith(`${from}/`)) {
         return [to + key.slice(from.length), value];
       }
@@ -57,7 +57,7 @@ const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
     }
   }
 
-  if (Object.keys(config).length === 0) {
+  if (objectKeys(config).length === 0) {
     return undefined;
   }
 
@@ -80,7 +80,7 @@ const ensureNamesForSyncAdditionalConfigs = (
       continue;
     }
 
-    validConfigs.push(Object.keys(config).length > 0 ? config : undefined);
+    validConfigs.push(objectKeys(config).length > 0 ? config : undefined);
 
     config.name = buildConfigName(MAIN_SCOPES.USERLAND, `${SUB_SCOPES.UNNAMED}-${String(currentIndex)}`);
     currentIndex += 1;

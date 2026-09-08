@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { objectEntries } from '../../shared/utils/object';
+import { objectEntries, objectKeys } from '../../shared/utils/object';
 import { packageOrganization } from '../../shared/utils/package-json';
 
 import type { Maybe } from '../../shared/types/core';
@@ -52,7 +52,7 @@ const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
     }
   }
 
-  if (Object.keys(config).length === 0) {
+  if (objectKeys(config).length === 0) {
     return undefined;
   }
 

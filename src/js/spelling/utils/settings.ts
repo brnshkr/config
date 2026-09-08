@@ -5,7 +5,7 @@
 import path from 'node:path';
 
 import { doesFileExist, findNearestPackageJson, readJsonObjectFile } from '../../shared/utils/filesystem';
-import { isPlainObject, objectEntries } from '../../shared/utils/object';
+import { isPlainObject, objectEntries, objectKeys } from '../../shared/utils/object';
 
 import type { AllowedLiteral, Allowlist, SpellingSettings } from '../types/options';
 
@@ -66,7 +66,7 @@ const readStringListMap = (settings: Record<string, unknown>, settingName: strin
     return stringListMap;
   }
 
-  for (const settingKey of Object.keys(declaredSetting)) {
+  for (const settingKey of objectKeys(declaredSetting)) {
     stringListMap[settingKey] = readStringList(declaredSetting, settingKey);
   }
 

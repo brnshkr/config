@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { objectKeys } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName, renameRules } from '../utils/config';
 import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
@@ -142,7 +143,7 @@ export const imports = async (): Promise<Config[]> => {
     };
   }
 
-  if (Object.keys(plugins).length === 0) {
+  if (objectKeys(plugins).length === 0) {
     return [];
   }
 
@@ -151,7 +152,7 @@ export const imports = async (): Promise<Config[]> => {
     plugins,
   };
 
-  if (Object.keys(settings).length > 0) {
+  if (objectKeys(settings).length > 0) {
     setupConfig.settings = settings;
   }
 
