@@ -8,10 +8,12 @@
     "EditorConfig.EditorConfig",
     "junstyle.php-cs-fixer",
     "mblode.twig-language-2",
+    "oven.bun-vscode",
     "SanderRonde.phpstan-vscode",
     "stylelint.vscode-stylelint",
     "tamasfe.even-better-toml",
     "usernamehw.errorlens",
+    "xdebug.php-debug",
     "yzhang.markdown-all-in-one"
   ]
 }
