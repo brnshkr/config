@@ -27,6 +27,7 @@ verbose-hidden-command: #~~ shown at verbosity >= 2 #vv
 #---vv very-verbose-group
 
 very-verbose-command: #~~ shown at verbosity >= 2
+
 very-hidden-command: #~~ shown at verbosity >= 3 (scope v2 + entry v3 marker) #vvv
 
 #---- very-verbose-sub
@@ -44,6 +45,7 @@ depth-four-command: #~~ depth-4 subsection (arbitrary nesting depth)
 #---vvv ultra-verbose-group
 
 ultra-verbose-command: #~~ shown at verbosity >= 3
+
 ultra-hidden-command: #~~ shown at verbosity >= 4 (scope v3 + entry v4 marker) #vvvv
 
 #---vvvv hyper-verbose-group
@@ -52,20 +54,18 @@ hyper-verbose-command: #~~ shown at verbosity >= 4 (arbitrary depth)
 
 #--- variables
 
-BASE_URL ?= https://example.com#~~ base URL for the application
-TIMEOUT  := 30#~~ connection timeout in seconds
-RETRIES  += 3#vv #~~ retry count
-
-UNDESCRIBED ?= raw-value
+BASE_URL          ?= https://example.com#~~ base URL for the application
+TIMEOUT           := 30#~~ connection timeout in seconds
+RETRIES           += 3#vv #~~ retry count
+UNDESCRIBED       ?= raw-value
+_PRIVATE_VARIABLE := should-not-appear
 
 CONTINUATION_VARIABLE ?= first \
 	second \
 	third#~~ value assembled from continuation lines
 
-_PRIVATE_VARIABLE := should-not-appear
-
 ifndef IFNDEF_VARIABLE
-IFNDEF_VARIABLE ?= default-value#~~ variable in ifndef block (operator always shown as ?=)
+IFNDEF_VARIABLE := default-value#~~ variable in ifndef block (operator always shown as ?=)
 endif
 
 ifndef IFNDEF_MACRO_VARIABLE
@@ -83,8 +83,8 @@ NEVER_SHOWN := should-not-appear#~~ skipped — `NEVER_DEFINED` never set
 endif
 
 ifeq ($(ENV),prod)
-IFEQ_VARIABLE     := prod-value#~~ variable inside ifeq block
-DEDUP_VARIABLE    := branch-a#~~ appears once despite being in multiple branches
+IFEQ_VARIABLE  := prod-value#~~ variable inside ifeq block
+DEDUP_VARIABLE := branch-a#~~ appears once despite being in multiple branches
 else
 IFEQ_ELSE_VARIABLE := else-value#~~ variable from else branch (dedup: `DEDUP_VARIABLE` skipped here)
 DEDUP_VARIABLE     := branch-b#~~ deduplicated — first branch wins, this is dropped
@@ -113,6 +113,7 @@ SEQUENTIAL_FIRST_VARIABLE := alpha#~~ first of two sequential ifeq blocks (prod 
 else
 SEQUENTIAL_FIRST_VARIABLE := beta#~~ first of two sequential ifeq blocks (default branch)
 endif
+
 ifeq ($(LANG),de)
 SEQUENTIAL_SECOND_VARIABLE := gamma#~~ second of two sequential ifeq blocks (de branch)
 else

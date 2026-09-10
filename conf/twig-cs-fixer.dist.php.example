@@ -2,41 +2,9 @@
 
 declare(strict_types=1);
 
-// TODO: Decide which option to use
-
-// Option 1
-// ------------------------------------
 use Brnshkr\Config\TwigCsFixer;
 
 /**
  * @internal App
  */
-return TwigCsFixer::getConfig(/* ... */)
-    // ->allowNonFixableRules(false)
-;
-// ------------------------------------
-
-// Option 2
-// ----------------------------------------------------------------------------------
-// /**
-//  * @internal App
-//  */
-// return include __DIR__ . '/../vendor/brnshkr/config/src/php/TwigCsFixer.php';
-// ----------------------------------------------------------------------------------
-
-// Option 3
-// -------------------------------------------------------------------------------------
-// use TwigCsFixer\Config\Config;
-//
-// /**
-//  * @var Config
-//  */
-// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/TwigCsFixer.php';
-//
-// /**
-//  * @internal App
-//  */
-// return $config
-//     // ->allowNonFixableRules(false)
-// ;
-// -------------------------------------------------------------------------------------
+return TwigCsFixer::getConfig();

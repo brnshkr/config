@@ -2,39 +2,9 @@
 
 declare(strict_types=1);
 
-// TODO: Decide which option to use
-
-// Option 1
-// ---------------------------------
 use Brnshkr\Config\PhpStan;
 
 /**
  * @internal App
  */
-return PhpStan::getConfig(/* ... */)
-    // ->setRules([
-    //     // ...
-    // ])
-;
-// ---------------------------------
-
-// Option 2
-// -------------------------------------------------------------------------------
-// /**
-//  * @internal App
-//  */
-// return include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpStan.php';
-// -------------------------------------------------------------------------------
-
-// Option 3
-// ----------------------------------------------------------------------------------
-// /**
-//  * @var array<string, mixed>
-//  */
-// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpStan.php';
-//
-// /**
-//  * @internal App
-//  */
-// return $config;
-// ----------------------------------------------------------------------------------
+return PhpStan::getConfig();

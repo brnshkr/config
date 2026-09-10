@@ -1,1 +1,13 @@
-include ./vendor/brnshkr/config/conf/Makefile
+STARTUP_TARGETS :=
+
+_BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile $(CURDIR)/vendor/brnshkr/config/conf/Makefile
+
+ifeq ($(wildcard $(_BRNSHKR_CONFIG_PATHS)),)
+bootstrap:
+	@$(if $(wildcard $(CURDIR)/package.json),bun install)
+	@$(if $(wildcard $(CURDIR)/composer.json),composer install --no-scripts --ignore-platform-reqs)
+	@for path in $(_BRNSHKR_CONFIG_PATHS); do [ -f "$$path" ] && exit 0; done; echo 'brnshkr/config is not installed' >&2; exit 1
+	@$(MAKE) --no-print-directory startup
+else
+include $(firstword $(wildcard $(_BRNSHKR_CONFIG_PATHS)))
+endif

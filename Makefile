@@ -1,104 +1,71 @@
-include ./conf/Makefile
-
 #-- app
 
 #!! Application Makefile of the `brnshkr/config` package
 
+STARTUP_TARGETS := build \
+	install-hooks
+
+include ./conf/Makefile
+
+PHP_UNIT_MIN_COVERAGE := 0
+VITEST_MIN_COVERAGE   := 0
+
 #---v general
 
-GREP  := grep
-MKDIR := mkdir
-MV    := mv
-RM    := rm
-RSYNC := rsync
-TAR   := tar
+MV := mv#vvv #~~ path to `mv` binary
 
 #---vv tools
 
-BUN      := bun
-COMPOSER := composer
+COMPOSER := ./scripts/composer.php
 
-#---vvv constants
+#--- build
 
-SEMVER_REGEX := (0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?#vvv
+typegen: #~~ regenerates the rule types the configs are built from
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(CURDIR)/scripts/typegen.ts
 
-#--- phpunit
+build: typegen #~~ builds the `dist/` this package publishes
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts $(ARGS)
 
-PHP_UNIT        := $(PWD)/vendor/bin/pest
-PHP_UNIT_CONFIG := $(PWD)/conf/phpunit.dist.xml
-PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug) $(if $(NO_ANSI),--colors=never)
+watch: #~~ rebuilds `dist/` as the sources change
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts --watch
 
-#--- mate
+#--- inspect
 
-MATE := $(PWD)/vendor/bin/mate
+inspect-eslint: #~~ runs `eslint-config-inspector`
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) eslint-config-inspector --config $(CURDIR)/conf/eslint.config.ts
 
-cc: #~~ removes the `./cache` directory
-	$(DEBUG_PREFIX)$(RM) -rf $(PWD)/.cache
+inspect-modules: #~~ runs `node-modules-inspector`
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector
 
-#--- test
+#--- hooks
 
-test: #~~ runs tests
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS)
-
-test-update: #~~ runs tests with snapshot update
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) --update-snapshots $(ARGS)
-
-check: rector php-cs-fixer twig-cs-fixer phpstan test #~~ runs `rector`, `php-cs-fixer`, `twig-cs-fixer`, `phpstan` and `phpunit`
+install-hooks: #~~ installs this project's git hooks
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) simple-git-hooks
 
 #--- mate
+
+MATE := $(CURDIR)/vendor/bin/mate
 
 discover: #~~ runs mate discover
 	$(DEBUG_PREFIX)$(MATE) discover
-	$(DEBUG_PREFIX)$(MAKE) -s php-cs-fixer $(PWD)/mate/extensions.php
-	$(DEBUG_PREFIX)$(_AWK) '\
+	$(DEBUG_PREFIX)$(MAKE) --no-print-directory php-cs-fixer $(CURDIR)/mate/extensions.php
+	$(DEBUG_PREFIX)$(AWK) '\
 		/This file is managed by/,/^$$/ { next } \
 		/^return/ { print "/**\n * @internal\n */" } \
 		1 \
-	' $(PWD)/mate/extensions.php > $(PWD)/mate/extensions.php.tmp \
-		&& $(MV) $(PWD)/mate/extensions.php.tmp $(PWD)/mate/extensions.php
-	$(call log,Discovery finished.,$(COLOR_NOTICE))
-
-#--- package
-
-pack: bun-pack composer-pack #~~ runs `make composer-pack bun-pack`
-
-#----vv bun
-
-bun-list: #~~ lists included bun package files
-	$(DEBUG_PREFIX)archive_file=$$($(BUN) pm pack 2>&1 | grep -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tgz') \
-		&& $(TAR) -tf "$$archive_file" | sed 's/^package\///' \
-		&& $(RM) -f "$$archive_file"
-
-bun-pack: #~~ publishes the bun package to `./.local/@<VENDOR>/<PACKAGE>`
-	$(DEBUG_PREFIX)archive_file=$$($(BUN) pm pack 2>&1 | grep -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tgz') \
-		&& $(RM) -rf $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(MKDIR) -p $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(TAR) -xzf "$$archive_file" \
-		&& $(RM) -f "$$archive_file" \
-		&& $(RSYNC) -a ./package/ $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(RM) -rf ./package
-
-#----vv composer
-
-composer: #~~ runs `composer` with this package's plugin commands registered
-	$(DEBUG_PREFIX)./scripts/composer.php $(ARGS)
-
-composer-list: #~~ lists included composer package files
-	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
-		&& $(TAR) -tf "$$archive_file" \
-		&& $(RM) -f "$$archive_file"
-
-composer-pack: #~~ publishes the composer package to `./.local/<VENDOR>/<PACKAGE>`
-	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
-		&& $(RM) -rf $(PWD)/.local/$(VENDOR)/$(PACKAGE) \
-		&& $(MKDIR) -p $(PWD)/.local/$(VENDOR)/$(PACKAGE) \
-		&& $(MV) "$$archive_file" $(PWD)/.local/$(VENDOR)/$(PACKAGE)/ \
-		&& $(TAR) -C $(PWD)/.local/$(VENDOR)/$(PACKAGE) -xf $(PWD)/.local/$(VENDOR)/$(PACKAGE)/"$$archive_file" \
-		&& $(RM) -f $(PWD)/.local/$(VENDOR)/$(PACKAGE)/"$$archive_file"
+	' $(CURDIR)/mate/extensions.php > $(CURDIR)/mate/extensions.php.tmp \
+		&& $(MV) $(CURDIR)/mate/extensions.php.tmp $(CURDIR)/mate/extensions.php
+	$(DEBUG_PREFIX)$(call log,Discovery finished.,$(COLOR_SUCCESS))
 
 #---vvv debug
 
-_MODIFIER_COLUMNS := $(EMPTY)
+_MODIFIERS := $(MODIFIER_NORMAL) \
+	$(MODIFIER_UNDERLINE) \
+	$(MODIFIER_BRIGHT) \
+	$(MODIFIER_BOLD) \
+	$(MODIFIER_REVERSE)
+
+_MODIFIER_COLUMNS :=
 
 $(foreach MODIFIER,$(_MODIFIERS), \
   $(eval _MODIFIER_COLUMNS := $(_MODIFIER_COLUMNS) $(MODIFIER)) \
@@ -111,7 +78,7 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
-_MODIFIER_COLUMN_WIDTH := $(shell $(_PRINTF) '$(_MODIFIER_COLUMNS)' | $(_AWK) '{ \
+_MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
@@ -122,7 +89,7 @@ _MODIFIER_COLUMN_WIDTH := $(shell $(_PRINTF) '$(_MODIFIER_COLUMNS)' | $(_AWK) '{
 )
 
 _TABLE_COLORS        := $(filter-out $(COLOR_NORMAL),$(_COLORS))
-_COLOR_COLUMN_WIDTHS := $(foreach COLOR,$(_TABLE_COLORS),$(shell $(_PRINTF) '$(COLOR)' | $(_AWK) '{ print length($$0) }'))
+_COLOR_COLUMN_WIDTHS  = $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
 	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s';
@@ -152,41 +119,38 @@ colors: #~~ prints a table of all supported colors with combinations with all su
 #-- helpers
 
 #**
-# Recursively repeats a string a specified number of times.
-#
-# usage:
-#  $(call _str_repeat,string,count)
-# parameters:
-#  string: string
-#  count: positive-int
-# returns: string
-#**
+#* Repeats a string a given number of times.
+#*
+#* parameters:
+#*   string: string
+#*   count: positive-int
+#*
+#* returns: string
+#*
 define _str_repeat
 $(if $(filter 1,$2),$1,$1$(call _str_repeat,$1,$(shell $(PRINTF) $$(($2 - 1)))))
 endef
 
 #**
-# Recursively enumerates the indices of each word in a list.
-#
-# usage:
-#  $(call _get_indices_internal,list)
-# parameters:
-#  list: list<1>
-# returns: list<positive-int>
-#**
+#* Enumerates the indices of each word in a list, from the back. Only the length is read.
+#*
+#* parameters:
+#*   list: list<string>
+#*
+#* returns: list<positive-int>
+#*
 define _get_indices_internal
 $(if $1,$(words $1) $(call _get_indices_internal,$(wordlist 2,$(words $1),$1)))
 endef
 
 #**
-# Returns a list of the 1-based indices of all words in a list.
-#
-# usage:
-#  $(call _get_indices,list)
-# parameters:
-#  list: list<string>
-# returns: list<positive-int>
-#**
+#* The 1-based indices of every word in a list.
+#*
+#* parameters:
+#*   list: list
+#*
+#* returns: list<positive-int>
+#*
 define _get_indices
 $(sort $(call _get_indices_internal,$1))
 endef

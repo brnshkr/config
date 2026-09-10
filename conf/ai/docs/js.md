@@ -20,17 +20,16 @@ Agent knowledge beyond `docs/js/`.
 
 ## Lint infra
 
-- `make clean` removes `.cache` wholesale, the ESLint cache included, so the next lint runs cold.
-  Remove the one cache you mean to remove.
-- This repo lints itself through scripts named after the tools:
-  `bun eslint`/`bun stylelint` → `scripts/{eslint,stylelint}.ts` (apply `conf/*.config.ts`),
-  `bun typescript` → `tsc --noEmit`. The script name wins over the same-named binary;
-  to hit the raw binary use `bun --bun x eslint --config conf/eslint.config.ts`.
+- `make cc` removes `.cache` wholesale, the ESLint cache included, so the next lint runs cold. Name the caches
+  to remove instead.
+- This repo lints itself through `make`, one target per tool, each applying `conf/<tool>.config.*`. There are
+  no manifest scripts left to shadow a binary.
 
 ## Typegen
 
-- `bun typegen` regenerates `src/js/{eslint, markdownlint}/types/declarations/typegen.d.ts` (gitignored build artifacts)
-  by introspecting installed plugins. Run after adding/upgrading ESLint or Stylelint plugins; `bun build` runs it implicitly.
+- `make typegen` regenerates `src/js/{eslint, markdownlint}/types/declarations/typegen.d.ts` (gitignored build
+  artifacts) by introspecting installed plugins. Run after adding or upgrading an ESLint or Stylelint plugin;
+  `make build` depends on it.
 
 ## Tests + snapshots
 
@@ -39,5 +38,5 @@ Agent knowledge beyond `docs/js/`.
   `git diff` the snapshot to confirm it actually updated.
 - `-u` globs the ESLint fixture files (`tests/js/fixtures/eslint/*`) as test suites and prints bogus "No test suite
   found" failures — ignore them; the real config snapshot still updates.
-- MCP `project-tests-run` with `suite=js` wraps `bun run test` / `test-update` and reports
+- MCP `project-tests-run` with `suite=js` wraps `make vitest` / `vitest-update` and reports
   changed snapshots under `tests/js/__snapshots__`.

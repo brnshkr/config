@@ -2,45 +2,9 @@
 
 declare(strict_types=1);
 
-// TODO: Decide which option to use
-
-// Option 1
-// ------------------------------------
 use Brnshkr\Config\PhpCsFixer;
 
 /**
  * @internal App
  */
-return PhpCsFixer::getConfig(/* ... */)
-    // ->setRules([
-    //     // ...
-    // ])
-;
-// ------------------------------------
-
-// Option 2
-// ----------------------------------------------------------------------------------
-// /**
-//  * @internal App
-//  */
-// return include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixer.php';
-// ----------------------------------------------------------------------------------
-
-// Option 3
-// -------------------------------------------------------------------------------------
-// use PhpCsFixer\Config;
-//
-// /**
-//  * @var Config
-//  */
-// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/PhpCsFixer.php';
-//
-// /**
-//  * @internal App
-//  */
-// return $config
-//     // ->setRules([
-//     //     //...
-//     // ])
-// ;
-// -------------------------------------------------------------------------------------
+return PhpCsFixer::getConfig();

@@ -4,8 +4,10 @@ Prose, docblocks and identifiers are written in American English across the orga
 and this check reports every British spelling with the American form to replace it.
 The word list is shipped by **@brnshkr/config**, so a repository never carries a copy of it.
 
-It runs as a test, on whichever stack a repository has, and no test file has to be written.
-On PHP, name the shipped directory as a test suite; on JavaScript, name the shipped module in the Vitest `include`.
+It runs as a test, on whichever stack a repository has.
+On PHP, name the shipped directory as a test suite;
+on JavaScript, import the shipped module from a test of your own.
+`make configs` writes both once the repository has a `tests` directory.
 
 ```xml
 <!-- ./conf/phpunit.dist.xml -->
@@ -20,17 +22,14 @@ On PHP, name the shipped directory as a test suite; on JavaScript, name the ship
 ```
 
 ```ts
-// ./conf/vitest.config.ts
-export default defineConfig({
-  test: {
-    include: ['../node_modules/@brnshkr/config/dist/spelling/spelling.test.mjs'],
-    exclude: [],
-  },
-});
+// ./tests/spelling.test.ts
+export * from '@brnshkr/config/spelling/test';
 ```
 
-`exclude` is emptied because Vitest's default excludes `node_modules`,
-which is where the shipped test lives.
+Re-exporting is what reaches it: Vitest applies `exclude` after `include`, so naming the shipped file under
+`node_modules` collects nothing unless the repository drops that exclusion for every dependency. The module
+exports nothing — importing it registers the test — and the `export` form is what keeps
+`import/no-unassigned-import` satisfied.
 
 ## What is scanned
 

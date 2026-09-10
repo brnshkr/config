@@ -3,6 +3,17 @@
 Setup and day-to-day commands for working **on** @brnshkr/config itself.
 If you only consume the package, you want the [README](../README.md) and the per-tool docs instead.
 
+## Setup
+
+With both version managers below in place, one command installs everything:
+
+```sh
+make startup
+```
+
+`startup` installs each stack, writes the tool configs this repository does not track,
+builds `dist/` and installs the git hooks.
+
 ## ☕ JS
 
 ### Node version
@@ -10,27 +21,17 @@ If you only consume the package, you want the [README](../README.md) and the per
 The required Node version is pinned in [`.nvmrc`](../.nvmrc). We use [nvm](https://github.com/nvm-sh/nvm);
 with it installed and activated, running `nvm install` from the repo root installs and selects the pinned version.
 
-### Setup
+### Targets
 
-Install dependencies and set up git hooks:
+Everything runs through `make`; `make help` lists what this checkout can actually run,
+and [`docs/Makefile.md`](./Makefile.md) is the reference.
+Frequently used:
 
-```sh
-bun install \
-  && bun install-hooks
-```
-
-### Scripts
-
-We recommend the scripts in [`package.json`](../package.json) as the primary way to run common tasks
-— have a look there for the full list. Frequently used:
-
-- `bun lint` — run ESLint, Stylelint and Commitlint
-- `bun inspect:eslint` — inspect the ESLint configuration
-- `bun check` — run TypeScript checks, linters and Vitest
-- `bun run test` — run the Vitest test suite
-- `bun test-update` — run the Vitest test suite and update snapshots
-- `bun run build` — build the project and generate types
-- `bun watch` — build the project in watch mode
+- `make ci` — every tool this project has, writing nothing
+- `make check` — the same, writing the fixes
+- `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
+- `make build` — regenerate the types and build `dist/`, `make watch` to rebuild as sources change
+- `make inspect-eslint` — inspect the ESLint configuration
 
 ## 🐘 PHP
 
@@ -40,33 +41,15 @@ The required PHP version and build configuration are pinned in [`mise.toml`](../
 We use [mise](https://github.com/jdx/mise) with the [verzly/mise-php](https://github.com/verzly/mise-php) plugin;
 with it installed and activated, running `mise install` from the repo root installs and selects the pinned version.
 
-### Setup
+### Targets
 
-Install dependencies and set up project tooling:
+The same `make` as above; [`docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
+Frequently used:
 
-```sh
-composer install \
-  && cp -v ./conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php \
-  && cp -v ./conf/rector.php.example ./conf/rector.php \
-  && cp -v ./conf/phpstan.php.example ./conf/phpstan.php \
-  && cp -v ./conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php
-```
-
-### Make
-
-We recommend [GNU Make](https://www.gnu.org/software/make) as the primary task runner.
-Run `make help` (or just `make`) to list every target;
-see the [Makefile docs](./php/Makefile.md) for the foundation it builds on.
-If you need local overrides, create a `./.local/Makefile`
-— the main Makefile includes it automatically when present. Frequently used:
-
-- `make help` — show available targets and usage
-- `make rector` — apply automated PHP refactorings
-- `make php-cs-fixer` — format and fix coding-style issues
-- `make phpstan` — run static analysis
-- `make test` — run the PHPUnit test suite
-- `make test-update` — run the PHPUnit test suite and update snapshots
-- `make check` — run Rector, PHP-CS-Fixer, Twig-CS-Fixer, PHPStan and PHPUnit
+- `make phpstan` — static analysis, `make phpstan-list` for the files it reads
+- `make rector` — automated refactorings, `make rector-dry-run` to preview them
+- `make php-cs-fixer` — coding style, `make php-cs-fixer-dry-run` to preview
+- `make phpunit` — the PHP tests, `make phpunit-update` to update their snapshots
 
 ## 🤖 AI tooling
 

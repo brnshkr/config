@@ -190,7 +190,7 @@
         "./tests/php/CommandTest.php",
         "./tests/php/ComposerJsonTest.php",
         "./tests/php/Exception/UnreachableExceptionTest.php",
-        "./tests/php/MakeHelpTest.php",
+        "./tests/php/MakefileTest.php",
         "./tests/php/Mate/ProjectTest.php",
         "./tests/php/PhpStan/ProjectKernelTest.php",
         "./tests/php/PhpStan/Rule/ApiOrInternalTagRuleTest.php",

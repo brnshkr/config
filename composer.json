@@ -16,9 +16,8 @@
   },
   "type": "composer-plugin",
   "scripts": {
-    "discover": "make discover",
-    "post-install-cmd": "@discover",
-    "post-update-cmd": "@discover"
+    "post-install-cmd": "make discover",
+    "post-update-cmd": "make discover"
   },
   "require": {
     "php": ">=8.5",

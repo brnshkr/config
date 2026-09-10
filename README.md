@@ -70,8 +70,8 @@ It helps standardizing linting, formatting, static analysis, and development wor
 ## 📚 Documentation
 
 This README covers installation and usage. The full reference — custom rules, config builders, the Composer plugin,
-and the development setup — lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs),
-organized by stack and tool.
+the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md), and the development setup
+— lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs), organized by stack and tool.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -125,53 +125,15 @@ This repository currently only provides one way to integrate configuration files
 
 Take a look at the `peerDependencies` in the [package.json](./package.json) file
 and install the ones you need for the modules you want to use.  
-You can then copy the specific configs to your project:
-
-<!-- omit in toc -->
-##### TypeScript
+Copy the starter `Makefile` once, and let it write the rest:
 
 ```sh
-cp -v ./node_modules/@brnshkr/config/conf/tsconfig.json.example ./tsconfig.json
+cp -v ./node_modules/@brnshkr/config/conf/Makefile.example ./Makefile \
+  && make configs
 ```
 
-<!-- omit in toc -->
-##### ESLint
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/eslint.config.mjs.example ./conf/eslint.config.mjs
-```
-
-<!-- omit in toc -->
-##### Stylelint
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/stylelint.config.mjs
-```
-
-<!-- omit in toc -->
-##### markdownlint
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf/markdownlint.config.mjs
-```
-
-<!-- omit in toc -->
-##### commitlint
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/commitlint.config.mjs.example ./conf/commitlint.config.mjs
-```
-
-<!-- omit in toc -->
-##### All
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/tsconfig.json.example ./tsconfig.json \
-  && cp -v ./node_modules/@brnshkr/config/conf/eslint.config.mjs.example ./conf/eslint.config.mjs \
-  && cp -v ./node_modules/@brnshkr/config/conf/markdownlint.config.mjs.example ./conf/markdownlint.config.mjs \
-  && cp -v ./node_modules/@brnshkr/config/conf/stylelint.config.mjs.example ./conf/stylelint.config.mjs \
-  && cp -v ./node_modules/@brnshkr/config/conf/commitlint.config.mjs.example ./conf/commitlint.config.mjs
-```
+`make configs` writes a config for every tool the project has installed and reads files for, and never
+touches one that is already there.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -273,10 +235,21 @@ bun commitlint --config ./conf/commitlint.config.mjs --edit
 ```
 
 <!-- omit in toc -->
-##### Option 2 — Run Helper Scripts (Bun Only, @brnshkr Convention)
+##### Option 2 — Run Make Targets (@brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the `./conf` directory
-(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf).
+For these targets to work you need to follow the convention of putting your configuration files into the `./conf` directory
+(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
+
+Your own Makefile includes this one. Copy the starter rather than writing the include by hand: it guards the
+include, so a fresh clone can `make bootstrap` before anything is installed.
+
+```sh
+cp -v ./node_modules/@brnshkr/config/conf/Makefile.example ./Makefile
+```
+
+A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
+`make check` runs all of it, and `make startup` writes any config you are still missing.
+The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
@@ -284,7 +257,7 @@ For these scripts to work you need to follow the convention of putting your conf
 Expected configuration file: `./conf/eslint.config.mjs`
 
 ```sh
-bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
+make eslint
 ```
 
 <!-- omit in toc -->
@@ -293,7 +266,7 @@ bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
 Expected configuration file: `./conf/stylelint.config.mjs`
 
 ```sh
-bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
+make stylelint
 ```
 
 <!-- omit in toc -->
@@ -302,7 +275,7 @@ bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
 Expected configuration file: `./conf/markdownlint.config.mjs`
 
 ```sh
-bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
+make markdownlint
 ```
 
 <!-- omit in toc -->
@@ -311,6 +284,18 @@ bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
 Expected configuration file: `./conf/commitlint.config.mjs`
 
 ```sh
+make commitlint
+```
+
+<!-- omit in toc -->
+##### Option 3 — Run Helper Scripts (Bun Only)
+
+The same four tools, without make. They read the same `./conf` files.
+
+```sh
+bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
+bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
+bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
 bun ./node_modules/@brnshkr/config/dist/scripts/commitlint.mjs
 ```
 
@@ -385,77 +370,14 @@ Take a look at the [plugin commands](#plugin-commands) section to see a full lis
 
 Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones
 you need for the modules you want to use.  
-You can then copy the specific configs to your project:
-
-<!-- omit in toc -->
-##### PHP CS Fixer
+Write the `Makefile` and the `.gitignore` with the plugin, and let make write the rest:
 
 ```sh
-cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php \
-  && cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.dist.php.example ./conf/php-cs-fixer.dist.php
+composer brnshkr:config:setup --make --gitignore && make configs
 ```
 
-<!-- omit in toc -->
-##### Rector
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/rector.php.example ./conf/rector.php \
-  && cp -v ./vendor/brnshkr/config/conf/rector.php.example ./conf/rector.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/rector.dist.php.example ./conf/rector.dist.php
-```
-
-<!-- omit in toc -->
-##### PHPStan
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/phpstan.php.example ./conf/phpstan.php \
-  && cp -v ./vendor/brnshkr/config/conf/phpstan.php.example ./conf/phpstan.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/phpstan.dist.php.example ./conf/phpstan.dist.php
-```
-
-<!-- omit in toc -->
-##### Twig CS Fixer
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php \
-  && cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.dist.php.example ./conf/twig-cs-fixer.dist.php
-```
-
-<!-- omit in toc -->
-##### Makefile
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile
-```
-
-<!-- omit in toc -->
-##### Gitignore
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/.gitignore.example ./.gitignore
-```
-
-<!-- omit in toc -->
-##### All
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php \
-  && cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/php-cs-fixer.dist.php.example ./conf/php-cs-fixer.dist.php \
-  && cp -v ./vendor/brnshkr/config/conf/rector.php.example ./conf/rector.php \
-  && cp -v ./vendor/brnshkr/config/conf/rector.php.example ./conf/rector.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/rector.dist.php.example ./conf/rector.dist.php \
-  && cp -v ./vendor/brnshkr/config/conf/phpstan.php.example ./conf/phpstan.php \
-  && cp -v ./vendor/brnshkr/config/conf/phpstan.php.example ./conf/phpstan.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/phpstan.dist.php.example ./conf/phpstan.dist.php \
-  && cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php \
-  && cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php.example \
-  && cp -v ./vendor/brnshkr/config/conf/twig-cs-fixer.dist.php.example ./conf/twig-cs-fixer.dist.php \
-  && cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile \
-  && cp -v ./vendor/brnshkr/config/conf/.gitignore.example ./.gitignore
-```
+`make configs` writes a config for every tool the project has installed and reads files for,
+and never touches one that is already there.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -573,17 +495,21 @@ php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
 ```
 
 <!-- omit in toc -->
-##### Option 2 — Run Helper Scripts (Make Only, @brnshkr Convention)
+##### Option 2 — Run Make Targets (@brnshkr Convention)
 
-For these scripts to work you need to follow the convention of putting your configuration files into the `./conf`
-directory (Exactly how it is done in this project as well; see
-[`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
+For these targets to work you need to follow the convention of putting your configuration files into the `./conf` directory
+(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
-Do not forget to setup your Makefile with this projects Makefile as a base:
+Your own Makefile includes this one. Let the plugin write the starter rather than writing the include by
+hand: it guards the include, so a fresh clone can `make bootstrap` before anything is installed.
 
-```Makefile
-include ./vendor/brnshkr/config/conf/Makefile
+```sh
+composer brnshkr:config:setup --make
 ```
+
+A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
+`make check` runs all of it, and `make startup` writes any config you are still missing.
+The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->
 ###### PHP CS Fixer

@@ -15,6 +15,8 @@ const SCANNED_DIRECTORIES = <const>[
 ];
 
 const CONSUMER_CALLS = <const>[
+  'assertDoesNotMatchRegularExpression(',
+  'assertMatchesRegularExpression(',
   '->match(',
   '->replaceMatches(',
   'preg_grep(',
@@ -23,6 +25,7 @@ const CONSUMER_CALLS = <const>[
   'preg_replace(',
   'preg_replace_callback(',
   'preg_split(',
+  'sprintf(',
   'Str::match(',
   'Str::matchAll(',
   'Str::replaceMatches(',
@@ -33,7 +36,7 @@ const EXCLUDED_PATTERNS = new Set([
 ]);
 
 const CALL_WINDOW_LINES = 3;
-const createRegexShapePattern = (): RegExp => /^(?<delimiter>[^\w\\]).*\k<delimiter>[a-z]*$/sv;
+const createRegexShapePattern = (): RegExp => /^(?<delimiter>[#\/~]).*\k<delimiter>[a-z]*$/sv;
 const createSingleQuotedPattern = (): RegExp => /'(?<value>(?:[^'\\]|\\.)*)'/gv;
 
 const collectPhpFiles = (): string[] => {

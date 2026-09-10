@@ -43,6 +43,7 @@ exports[`expected typescript config 1`] = `
         "./conf/stylelint.config.mjs",
         "./conf/stylelint.config.ts",
         "./conf/tsdown.config.ts",
+        "./conf/vitest.config.ts",
         "./scripts/commitlint.ts",
         "./scripts/eslint.ts",
         "./scripts/markdownlint.ts",

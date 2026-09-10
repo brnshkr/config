@@ -2,45 +2,9 @@
 
 declare(strict_types=1);
 
-// TODO: Decide which option to use
-
-// Option 1
-// -----------------------------------
 use Brnshkr\Config\Rector;
 
 /**
  * @internal App
  */
-return Rector::getConfig(/* ... */)
-    // ->withRules([
-    //     // ...
-    // ])
-;
-// -----------------------------------
-
-// Option 2
-// ------------------------------------------------------------------------------
-// /**
-//  * @internal App
-//  */
-// return include __DIR__ . '/../vendor/brnshkr/config/src/php/Rector.php';
-// ------------------------------------------------------------------------------
-
-// Option 3
-// ---------------------------------------------------------------------------------
-// use Rector\Configuration\RectorConfigBuilder;
-//
-// /**
-//  * @var RectorConfigBuilder
-//  */
-// $config = include __DIR__ . '/../vendor/brnshkr/config/src/php/Rector.php';
-//
-// /**
-//  * @internal App
-//  */
-// return $config
-//     // ->withSkip([
-//     //     //...
-//     // ])
-// ;
-// ---------------------------------------------------------------------------------
+return Rector::getConfig();

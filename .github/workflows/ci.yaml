@@ -367,11 +367,7 @@ jobs:
 
       - name: Generate Types
         if: *do-enable-js
-        run: bun typegen
-
-      - name: Run JS Checks
-        if: *do-enable-js
-        run: touch ./.git/COMMIT_EDITMSG && bun check
+        run: make typegen
 
       - &handle-composer-cache
           name: Handle Composer Cache
@@ -397,14 +393,11 @@ jobs:
           if: *do-enable-php
           run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
-      - name: Run PHP Checks
-        if: *do-enable-php
+      - name: Run Checks
         run: |
-          cp ./conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php
-          cp ./conf/rector.php.example ./conf/rector.php
-          cp ./conf/phpstan.php.example ./conf/phpstan.php
-          cp ./conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php
-          make check
+          make configs
+          touch ./.git/COMMIT_EDITMSG
+          make ci
 
   build:
     name: Build
@@ -423,7 +416,7 @@ jobs:
 
       - name: Build JS Package
         if: *do-enable-js
-        run: bun run build
+        run: make build
 
       - name: Pack JS Package
         if: *do-enable-js

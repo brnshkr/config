@@ -14,22 +14,6 @@
     "url": "https://github.com/brnshkr/config/issues"
   },
   "type": "module",
-  "scripts": {
-    "stylelint": "bun --bun ./scripts/stylelint.ts",
-    "eslint": "bun --bun ./scripts/eslint.ts",
-    "markdownlint": "bun --bun ./scripts/markdownlint.ts",
-    "commitlint": "bun --bun ./scripts/commitlint.ts",
-    "typescript": "bun --bun tsc --noEmit",
-    "inspect:eslint": "bun --bun eslint-config-inspector --config ./conf/eslint.config.ts",
-    "inspect:modules": "bun --bun node-modules-inspector",
-    "test": "bun --bun vitest --run --testTimeout 120000 --exclude '**/[Ff]ixture?(s)/**'",
-    "test-update": "bun --bun run test --update",
-    "check": "bun --bun typescript && bun --bun stylelint && bun --bun eslint && bun --bun markdownlint && bun --bun commitlint && bun --bun run test",
-    "build": "bun --bun typegen && bun --bun tsdown --config ./conf/tsdown.config.ts",
-    "watch": "bun --bun tsdown --config ./conf/tsdown.config.ts --watch",
-    "typegen": "bun --bun scripts/typegen.ts",
-    "install-hooks": "bun --bun simple-git-hooks"
-  },
   "exports": {
     "./commitlint": "./dist/commitlint/index.mjs",
     "./scripts/commitlint": "./dist/scripts/commitlint.mjs",
@@ -43,13 +27,17 @@
     "./scripts/stylelint": "./dist/scripts/stylelint.mjs"
   },
   "files": [
+    "./conf/Makefile",
+    "./conf/Makefile.example",
     "./conf/commitlint.config.mjs.example",
     "./conf/eslint.config.mjs.example",
     "./conf/markdownlint.config.mjs.example",
     "./conf/spelling",
+    "./conf/spelling.test.ts.example",
     "./conf/stylelint.config.mjs.example",
     "./conf/tsconfig.json",
     "./conf/tsconfig.json.example",
+    "./conf/vitest.config.mjs.example",
     "./dist"
   ],
   "dependencies": {
@@ -337,6 +325,6 @@
     "linting"
   ],
   "simple-git-hooks": {
-    "commit-msg": "bun commitlint"
+    "commit-msg": "make commitlint"
   }
 }

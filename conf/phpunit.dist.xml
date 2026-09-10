@@ -2,9 +2,23 @@
 <phpunit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
-  backupGlobals="false"
-  colors="true"
+  bootstrap="../vendor/autoload.php"
   cacheDirectory="../.cache/phpunit.cache"
+  colors="true"
+  displayDetailsOnAllIssues="true"
+  beStrictAboutChangesToGlobalState="true"
+  beStrictAboutCoverageMetadata="true"
+  beStrictAboutOutputDuringTests="true"
+  requireCoverageMetadata="true"
+  failOnDeprecation="true"
+  failOnEmptyTestSuite="true"
+  failOnIncomplete="true"
+  failOnNotice="true"
+  failOnPhpunitDeprecation="true"
+  failOnPhpunitNotice="true"
+  failOnRisky="true"
+  failOnSkipped="true"
+  failOnWarning="true"
 >
   <php>
     <ini name="display_errors" value="1"/>
@@ -21,7 +35,17 @@
     </testsuite>
   </testsuites>
 
-  <source>
+  <source
+    restrictNotices="true"
+    restrictWarnings="true"
+    ignoreSuppressionOfDeprecations="true"
+    ignoreSuppressionOfErrors="true"
+    ignoreSuppressionOfNotices="true"
+    ignoreSuppressionOfPhpDeprecations="true"
+    ignoreSuppressionOfPhpNotices="true"
+    ignoreSuppressionOfPhpWarnings="true"
+    ignoreSuppressionOfWarnings="true"
+  >
     <include>
       <directory suffix=".php">../src/php</directory>
     </include>

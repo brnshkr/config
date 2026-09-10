@@ -1,7 +1,7 @@
 # ☕ JS
 
-The JavaScript half of **@brnshkr/config**: a strict, bundler-first TypeScript base
-plus config builders that lazily activate every supported plugin you actually have installed.
+The JavaScript half of **@brnshkr/config**: config builders that lazily activate every supported plugin the
+project has installed, a strict bundler-first TypeScript base, and a reusable Makefile foundation.
 Per-tool pages below; the [README](../../README.md#-js) covers setup.
 
 - [commitlint](./commitlint.md) — commit-message rules, with each preset enabled when it is installed
@@ -9,3 +9,4 @@ Per-tool pages below; the [README](../../README.md#-js) covers setup.
 - [markdownlint](./markdownlint.md) — config builder for `markdownlint-cli2`, with the shared ignores
 - [Stylelint](./stylelint.md) — config builder with installable, auto-detected modules
 - [TypeScript](./typescript.md) — strict, bundler-first `tsconfig.json` base
+- [Makefile](./Makefile.md) — the JavaScript task-runner targets

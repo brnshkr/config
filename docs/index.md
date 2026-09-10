@@ -10,6 +10,7 @@ Installation and the ways to run each tool live in the [README](../README.md)
   - [markdownlint](./js/markdownlint.md)
   - [Stylelint](./js/stylelint.md)
   - [TypeScript](./js/typescript.md)
+  - [Makefile](./js/Makefile.md)
 - [🐘 PHP](./php/index.md)
   - [PHPStan](./php/phpstan/index.md) — including the [custom rules](./php/phpstan/rules/index.md)
   - [PHP-CS-Fixer](./php/PhpCsFixer.md)
@@ -18,5 +19,6 @@ Installation and the ways to run each tool live in the [README](../README.md)
   - [FileFinder](./php/FileFinder.md)
   - [Composer Plugin](./php/Composer.md)
   - [Makefile](./php/Makefile.md)
+- [🛠 Makefile](./Makefile.md) — the shared task-runner foundation both stacks include
 - [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run
 - [💻 Development](./development.md) — working on @brnshkr/config itself

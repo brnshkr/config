@@ -1,0 +1,4 @@
+src/a.ts(3,5): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/b.ts(9,1): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.
+src/b.ts(12,3): error TS2571: Object is of type 'unknown'.
+docs/a.md:2 error MD013/line-length Line length [Expected: 120; Actual: 131]

@@ -114,6 +114,26 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^\p{Uppercase_Letter}/v,
   },
   {
+    file: 'src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php',
+    php: String.raw`/.*%s$/`,
+    regex: /.*%s$/v,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php',
+    php: String.raw`/^%s\\%s\\.+$/`,
+    regex: /^%s\\%s\\.+$/v,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php',
+    php: String.raw`/^%s\\(?:%s)\\.+$/`,
+    regex: /^%s\\(?:%s)\\.+$/v,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php',
+    php: String.raw`/^%s\\(?:[^\\]+\\)*%s\\[^\\]+$/`,
+    regex: /^%s\\(?:[^\\]+\\)*%s\\[^\\]+$/v,
+  },
+  {
     file: 'src/php/PhpStan/Rule/Trait/RuleTrait.php',
     php: String.raw`/\*\s+@`,
     regex: /\*\s+@api\b/v,
@@ -129,9 +149,59 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/sv,
   },
   {
+    file: 'src/php/TwigCsFixer.php',
+    php: String.raw`/^%s\/[^\/]+\/[^\/]+\//`,
+    regex: /^%s\/[^\/]+\/[^\/]+\//v,
+  },
+  {
     file: 'tests/php/CommandTest.php',
     php: String.raw`/^Running.+\n/`,
     regex: /^Running.+\n/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/(?<![\w.-])%s(?![\w.-])/`,
+    regex: /(?<![\w.-])%s(?![\w.-])/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/^%s$/`,
+    regex: /^%s$/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/`,
+    regex: /SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/^\.PHONY:(?!.* consumer-command ).* check /m`,
+    regex: /^\.PHONY:(?!.* consumer-command ).* check /mv,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/^\.PHONY:.* consumer-command /m`,
+    regex: /^\.PHONY:.* consumer-command /mv,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/^\.PHONY:\s*$/m`,
+    regex: /^\.PHONY:\s*$/mv,
   },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

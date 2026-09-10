@@ -1,0 +1,24 @@
+{
+  "files": {
+    "a.php": {
+      "messages": [
+        {
+          "message": "First finding.",
+          "identifier": "acme.first"
+        },
+        {
+          "message": "Second finding.",
+          "identifier": "acme.second"
+        }
+      ]
+    },
+    "b.php": {
+      "messages": [
+        {
+          "message": "First finding elsewhere.",
+          "identifier": "acme.first"
+        }
+      ]
+    }
+  }
+}

@@ -12,6 +12,7 @@
 /conf/php-cs-fixer.dist.php.example  -export-ignore
 /conf/php-cs-fixer.php.example       -export-ignore
 /conf/phpstan.dist.php.example       -export-ignore
+/conf/phpunit.dist.xml.example       -export-ignore
 /conf/phpstan.php.example            -export-ignore
 /conf/rector.dist.php.example        -export-ignore
 /conf/rector.php.example             -export-ignore

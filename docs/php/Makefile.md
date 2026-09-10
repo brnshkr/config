@@ -1,39 +1,32 @@
 # Makefile [🔍](../../conf/Makefile 'Go to source')
 
-The shipped `Makefile` is a reusable foundation for downstream PHP projects.
-Include it from your own `Makefile` and get the @brnshkr tool-runner targets, an auto-generated help system,
-CLI-style argument forwarding, ANSI theming, and editor-aware hyperlinks for free.
+The PHP half of the shared [`Makefile`](../Makefile.md): one target per tool,
+present once the repository has a `composer.json` and that tool is installed.
+Each reads `./conf/<tool>.php` when it is there and the tracked `./conf/<tool>.dist.php` otherwise, so a
+developer overrides without touching the repository — [Makefile](../Makefile.md) has the full search.
+The shipped example for the local file includes the tracked one, which is the shape to keep.
 
-```Makefile
-include ./vendor/brnshkr/config/conf/Makefile
-```
+## Targets
 
-The full reference lives in the header comment block of [`conf/Makefile`](../../conf/Makefile). `make help` (and `make
-help vvv` for the complete view) lists what is currently registered.
-
-## Auto-included Makefiles
-
-When the foundation is included it also auto-imports any `Makefile` or `*.mk` it finds under the following paths:
-
-- `./`
-- `./make/`
-- `./conf/`
-- `./conf/make/`
-- `./.local/`
-- `./.local/make/`
-
-## Tool-runner targets
-
-Each tool ships a primary target plus a few variants. Every target reads its configuration from `./conf/<tool>.php` by
-convention (override with `<TOOL>_CONFIG`) and forwards trailing `ARGS` to the underlying tool.
-
-| Target | Runs | Variants |
+| Target | Variants | Description |
 | --- | --- | --- |
-| `make phpstan` | `phpstan analyze` | `-debug`, `-raw`, `-list` |
-| `make php-cs-fixer` | `php-cs-fixer fix` | `-debug` (lists rules via `describe`), `-dry-run`, `-list` |
-| `make rector` | `rector process` | `-debug`, `-dry-run`, `-list` |
-| `make twig-cs-fixer` | `twig-cs-fixer lint --fix` | `-debug`, `-dry-run` (lint without fix) |
+| `composer` | `-list`, `-pack`, `-print` | Runs `composer`. `-pack` writes the package into `./.local`. |
+| `php-cs-fixer` | `-dry-run`, `-group`, `-list`, `-print` | Fixes coding style. |
+| `phpstan` | `-debug`, `-group`, `-list`, `-print`, `-raw` | Runs `phpstan analyze`. `-raw` drops the framing. |
+| `phpunit` | `-coverage`, `-list`, `-update` | Runs the PHP tests through whichever runner is installed. |
+| `pest` | `-coverage`, `-debug`, `-list`, `-update` | The same through Pest, and says so when Pest is missing. |
+| `rector` | `-debug`, `-dry-run`, `-group`, `-list`, `-print` | Applies the automated refactorings. |
+| `twig-cs-fixer` | `-debug`, `-dry-run`, `-group` | Fixes Twig coding style. |
 
-Per-tool overrides follow the `<TOOL>` / `<TOOL>_CONFIG` / `<TOOL>_FLAGS` pattern (`PHP_STAN`, `PHP_STAN_CONFIG`,
-`PHP_STAN_FLAGS`, and so on). All defined with `?=`, so downstream Makefiles can override them before including the
-foundation.
+`-list` prints what the tool would read, which is the quickest way to see what [FileFinder](./FileFinder.md) resolved.
+The other suffixes are the shared ones, described in [Makefile](../Makefile.md).
+A tool appears once the repository tracks a file it reads — `PHP_EXTENSIONS` for the four PHP tools,
+`TWIG_CS_FIXER_EXTENSIONS` for templates.
+
+The runner is Pest when it is installed and PHPUnit otherwise.
+`PHP_UNIT` pins it, which is all a `pest` target does, and the snapshot and coverage flags follow whichever
+command that variable names, since PHPUnit rejects the options Pest adds.
+
+Its config follows the same search, `./conf/phpunit.xml` before `./conf/phpunit.dist.xml`, with one caveat:
+PHPUnit merges nothing, so a local file has to be a whole configuration rather than an `include` of the
+tracked one.

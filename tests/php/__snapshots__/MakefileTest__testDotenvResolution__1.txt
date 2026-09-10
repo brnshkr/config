@@ -1,0 +1,150 @@
+=== groups ===
+{
+    "default": [
+        "default",
+        "default-base"
+    ],
+    "test-environment": [
+        "test-environment",
+        "no-test-envs",
+        "other-default-env"
+    ],
+    "local-environment": [
+        "local-environment"
+    ],
+    "environment-wins": [
+        "environment-wins"
+    ],
+    "disabled": [
+        "disabled"
+    ],
+    "explicit-base": [
+        "explicit-base"
+    ],
+    "unknown-key": [
+        "unknown-key"
+    ],
+    "ambient-value": [
+        "ambient-value"
+    ]
+}
+
+=== base: default ===
+APP_ENV=dev
+DOTENV_FIXTURE_ADJACENT=onelater
+DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
+DOTENV_FIXTURE_COMMENT=value
+DOTENV_FIXTURE_DOLLAR=a $ b
+DOTENV_FIXTURE_DOUBLE=two  spaces
+DOTENV_FIXTURE_DOUBLE_INTERPOLATED=one and later
+DOTENV_FIXTURE_EMPTY=
+DOTENV_FIXTURE_ENVIRONMENT_FILE=dev
+DOTENV_FIXTURE_EQUALS=a=b=c
+DOTENV_FIXTURE_EXPORTED=yes
+DOTENV_FIXTURE_EXPORTED_QUOTED=quoted and exported
+DOTENV_FIXTURE_FORWARD=-tail
+DOTENV_FIXTURE_HASH_IN_QUOTES=not # a comment
+DOTENV_FIXTURE_INTERPOLATED=one-tail
+DOTENV_FIXTURE_LATER=later
+DOTENV_FIXTURE_LAYER=dev-local
+DOTENV_FIXTURE_MULTILINE=line one\nline two
+DOTENV_FIXTURE_PLAIN=one
+DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
+DOTENV_FIXTURE_SINGLE_MULTILINE=single line one\nsingle line two
+DOTENV_FIXTURE_SPACED=padded around the equals sign
+DOTENV_FIXTURE_TRAILING=trimmed
+DOTENV_FIXTURE_UNBRACED=$DOTENV_FIXTURE_PLAIN stays literal
+DOTENV_FIXTURE_UNCLOSED=${DOTENV_FIXTURE_PLAIN
+DOTENV_FIXTURE_UNSEEN=seen after the reference above
+
+=== diff: test-environment ===
+@@ @@
+-APP_ENV=dev
++APP_ENV=test
+ DOTENV_FIXTURE_ADJACENT=onelater
+ DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
+ DOTENV_FIXTURE_COMMENT=value
+@@ @@
+ DOTENV_FIXTURE_DOUBLE=two  spaces
+ DOTENV_FIXTURE_DOUBLE_INTERPOLATED=one and later
+ DOTENV_FIXTURE_EMPTY=
+-DOTENV_FIXTURE_ENVIRONMENT_FILE=dev
++DOTENV_FIXTURE_ENVIRONMENT_FILE=test
+ DOTENV_FIXTURE_EQUALS=a=b=c
+ DOTENV_FIXTURE_EXPORTED=yes
+ DOTENV_FIXTURE_EXPORTED_QUOTED=quoted and exported
+@@ @@
+ DOTENV_FIXTURE_HASH_IN_QUOTES=not # a comment
+ DOTENV_FIXTURE_INTERPOLATED=one-tail
+ DOTENV_FIXTURE_LATER=later
+-DOTENV_FIXTURE_LAYER=dev-local
++DOTENV_FIXTURE_LAYER=test-env-local
+ DOTENV_FIXTURE_MULTILINE=line one\nline two
+ DOTENV_FIXTURE_PLAIN=one
+ DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
+
+=== diff: local-environment ===
+@@ @@
+-APP_ENV=dev
++APP_ENV=local
+ DOTENV_FIXTURE_ADJACENT=onelater
+ DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
+ DOTENV_FIXTURE_COMMENT=value
+@@ @@
+ DOTENV_FIXTURE_DOUBLE=two  spaces
+ DOTENV_FIXTURE_DOUBLE_INTERPOLATED=one and later
+ DOTENV_FIXTURE_EMPTY=
+-DOTENV_FIXTURE_ENVIRONMENT_FILE=dev
+ DOTENV_FIXTURE_EQUALS=a=b=c
+ DOTENV_FIXTURE_EXPORTED=yes
+ DOTENV_FIXTURE_EXPORTED_QUOTED=quoted and exported
+@@ @@
+ DOTENV_FIXTURE_HASH_IN_QUOTES=not # a comment
+ DOTENV_FIXTURE_INTERPOLATED=one-tail
+ DOTENV_FIXTURE_LATER=later
+-DOTENV_FIXTURE_LAYER=dev-local
++DOTENV_FIXTURE_LAYER=local
+ DOTENV_FIXTURE_MULTILINE=line one\nline two
+ DOTENV_FIXTURE_PLAIN=one
+ DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
+
+=== diff: environment-wins ===
+@@ @@
+ DOTENV_FIXTURE_HASH_IN_QUOTES=not # a comment
+ DOTENV_FIXTURE_INTERPOLATED=one-tail
+ DOTENV_FIXTURE_LATER=later
+-DOTENV_FIXTURE_LAYER=dev-local
++DOTENV_FIXTURE_LAYER=from-the-environment
+ DOTENV_FIXTURE_MULTILINE=line one\nline two
+ DOTENV_FIXTURE_PLAIN=one
+ DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
+
+=== full: disabled ===
+
+=== full: explicit-base ===
+APP_ENV=dev
+DOTENV_FIXTURE_DIST=from-dist
+
+=== diff: unknown-key ===
+@@ @@
+-APP_ENV=dev
+ DOTENV_FIXTURE_ADJACENT=onelater
+ DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
+ DOTENV_FIXTURE_COMMENT=value
+@@ @@
+ DOTENV_FIXTURE_UNBRACED=$DOTENV_FIXTURE_PLAIN stays literal
+ DOTENV_FIXTURE_UNCLOSED=${DOTENV_FIXTURE_PLAIN
+ DOTENV_FIXTURE_UNSEEN=seen after the reference above
++FIXTURE_ENV=dev
+
+=== diff: ambient-value ===
+@@ @@
+ APP_ENV=dev
+ DOTENV_FIXTURE_ADJACENT=onelater
+-DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
++DOTENV_FIXTURE_AMBIENT=from-the-environment
++DOTENV_FIXTURE_AMBIENT_INTERPOLATED=from-the-environment-tail
+ DOTENV_FIXTURE_COMMENT=value
+ DOTENV_FIXTURE_DOLLAR=a $ b
+ DOTENV_FIXTURE_DOUBLE=two  spaces
+
