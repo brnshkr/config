@@ -9,12 +9,32 @@ use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+use function chdir;
+use function getcwd;
+
 /**
  * @internal
  */
 #[CoversClass(ComposerJson::class)]
 final class ComposerJsonTest extends TestCase
 {
+    public function testALookupFromAnotherDirectoryDoesNotReplaceTheOneForThisProject(): void
+    {
+        $directory    = getcwd() ?: '.';
+        $composerJson = ComposerJson::forProjectUsingThisLibrary();
+
+        chdir(__DIR__ . '/Fixtures/ComposerJson/plain');
+
+        try {
+            $elsewhere = ComposerJson::forProjectUsingThisLibrary();
+        } finally {
+            chdir($directory);
+        }
+
+        self::assertNotSame($composerJson->path, $elsewhere->path);
+        self::assertSame($composerJson->path, ComposerJson::forProjectUsingThisLibrary()->path);
+    }
+
     public function testAPluginApiRequirementProvidesTheWholeComposerNamespace(): void
     {
         self::assertSame(['Composer'], self::fixture('plugin')->getHostProvidedNamespaces());

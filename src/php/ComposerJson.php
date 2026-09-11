@@ -129,7 +129,10 @@ final class ComposerJson
 
     private static ?self $libraryInstance = null;
 
-    private static ?self $projectInstance = null;
+    /**
+     * @var array<non-empty-string, self>
+     */
+    private static array $projectInstances = [];
 
     /**
      * @param non-empty-string $path
@@ -165,10 +168,6 @@ final class ComposerJson
      */
     public static function forProjectUsingThisLibrary(): self
     {
-        if (self::$projectInstance instanceof self) {
-            return self::$projectInstance;
-        }
-
         $composer = Str::trim(match (true) {
             is_string($_SERVER['COMPOSER'] ?? null) => $_SERVER['COMPOSER'],
             is_string($_ENV['COMPOSER'] ?? null)    => $_ENV['COMPOSER'],
@@ -188,7 +187,9 @@ final class ComposerJson
             $path = (getcwd() ?: '.') . '/' . $path;
         }
 
-        return self::$projectInstance = new self($path);
+        self::$projectInstances[$path] ??= new self($path);
+
+        return self::$projectInstances[$path];
     }
 
     /**
