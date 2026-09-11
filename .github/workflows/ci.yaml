@@ -126,7 +126,7 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'release/') }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
 
 permissions:
   contents: read
@@ -149,8 +149,6 @@ jobs:
       - &checkout
           name: Checkout Repository
           uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-          with:
-            fetch-depth: 0
 
       - name: Normalize and Validate Inputs
         id: validate
@@ -383,6 +381,7 @@ jobs:
       - &setup-composer
           name: Setup Composer
           uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+          if: *do-enable-php
           with:
             php-version: ${{ needs.inputs.outputs.php-version }}
             tools: composer
@@ -452,12 +451,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - *checkout
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+        with:
+          fetch-depth: 0
+
       - *handle-bun-cache
       - *setup-bun
 
       - name: Generate Changelog
-        run: bunx -y conventional-changelog -r 0 -o CHANGELOG.md || echo "No changelog changes"
+        run: bunx conventional-changelog@7.2.0 -r 0 -o CHANGELOG.md || echo "No changelog changes"
 
       - name: Extract Release Notes
         id: release-notes
@@ -552,17 +555,44 @@ jobs:
 
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-            const retry = async (callback, attempts = 3, delay = 1000, timeout = 15000) => {
+            const { spawn } = require('child_process');
+
+            const run = (command, args, timeout = 15000) => new Promise((resolve, reject) => {
+              const child = spawn(command, args, { stdio: 'inherit' });
+
+              const timer = setTimeout(() => {
+                child.kill('SIGKILL');
+                reject(new Error(`\`${command}\` timed out after ${timeout}ms and was killed.`));
+              }, timeout);
+
+              child.on('error', (error) => {
+                clearTimeout(timer);
+                reject(error);
+              });
+
+              child.on('close', (code) => {
+                clearTimeout(timer);
+
+                if (code === 0) {
+                  resolve(code);
+                } else {
+                  reject(new Error(`\`${command}\` exited with ${code}.`));
+                }
+              });
+            });
+
+            const retry = async (callback, attempts = 3, delay = 1000) => {
               let lastError;
 
               for (let i = 1; i <= attempts; i += 1) {
                 try {
-                  return await Promise.race([
-                    callback(i),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
-                  ]);
+                  return await callback(i);
                 } catch (error) {
                   lastError = error;
+
+                  if (i === attempts) {
+                    break;
+                  }
 
                   core.info(`Attempt ${i} failed. Retrying in ${delay}ms...`);
                   await sleep(delay);
@@ -604,14 +634,12 @@ jobs:
               core.info(`Publishing ${path}`);
 
               try {
-                await retry(async () => {
-                  await exec.exec('bun', [
-                    'publish',
-                    '--access', 'public',
-                    process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
-                    path,
-                  ].filter(Boolean));
-                });
+                await retry(() => run('bun', [
+                  'publish',
+                  '--access', 'public',
+                  process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
+                  path,
+                ].filter(Boolean), 120000));
               } catch (error) {
                 failures.push(path);
               }
@@ -639,10 +667,7 @@ jobs:
 
               for (let i = 1; i <= attempts; i += 1) {
                 try {
-                  const response = await Promise.race([
-                    fetch(url, options),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
-                  ]);
+                  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeout) });
 
                   if (response.ok
                     || response.status === 401
