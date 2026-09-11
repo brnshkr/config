@@ -6,6 +6,7 @@
   cacheDirectory="../.cache/phpunit.cache"
   colors="true"
   displayDetailsOnAllIssues="true"
+  executionOrder="random"
   beStrictAboutChangesToGlobalState="true"
   beStrictAboutCoverageMetadata="true"
   beStrictAboutOutputDuringTests="true"
