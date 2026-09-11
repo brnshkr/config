@@ -27,3 +27,19 @@ return PhpCsFixer::getBuilder()
 
 Rules take `addRules()`, `setRules()` and `removeRules()`. Reach for those rather than the returned config's
 own `setRules()`, which replaces the baseline instead of merging into it.
+
+A private `./conf/php-cs-fixer.php` starts from the tracked config rather than from the defaults, so what
+the repository configured survives. `from()` takes what that file returns:
+
+```php
+// ./conf/php-cs-fixer.php
+$config = include __DIR__ . '/php-cs-fixer.dist.php';
+
+return PhpCsFixer::from($config)
+    ->addRules(['numeric_literal_separator' => true])
+    ->build()
+;
+```
+
+A repository that tracks no config of its own has nothing to include; `getBuilder()` above
+starts from the same defaults that file would have carried.

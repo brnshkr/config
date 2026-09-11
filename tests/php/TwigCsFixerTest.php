@@ -74,6 +74,20 @@ final class TwigCsFixerTest extends TestCase
         self::assertCount(count($baseline) + 1, $rules);
     }
 
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $config = TwigCsFixer::getConfig();
+
+        $rules = TwigCsFixer::from($config)
+            ->addRules([new EndBlockNameRule()])
+            ->build()
+            ->getRuleset()
+            ->getRules()
+        ;
+
+        self::assertCount(count($config->getRuleset()->getRules()), $rules);
+    }
+
     public function testSetRulesReplacesTheStandardsRuleset(): void
     {
         $ruleset = TwigCsFixer::getBuilder()

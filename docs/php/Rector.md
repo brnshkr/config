@@ -28,3 +28,19 @@ return Rector::getBuilder()
 Rules, paths and skips each take `add*`, `set*` and `remove*`.
 `removeRules()` skips instead of subtracting, because the baseline's rules arrive through prepared sets.
 Anything not wrapped here is reachable on the `RectorConfigBuilder` that `build()` returns.
+
+A private `./conf/rector.php` starts from the tracked config rather than from the defaults,
+so what the repository configured survives. `from()` takes what that file returns:
+
+```php
+// ./conf/rector.php
+$config = include __DIR__ . '/rector.dist.php';
+
+return Rector::from($config)
+    ->addSkips([SomeRector::class])
+    ->build()
+;
+```
+
+A repository that tracks no config of its own has nothing to include; `getBuilder()` above
+starts from the same defaults that file would have carried.

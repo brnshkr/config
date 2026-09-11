@@ -186,6 +186,32 @@ final class PhpStan
     }
 
     /**
+     * A config another file already built, as a builder to add to.
+     *
+     * This is what a private `conf/phpstan.php` reaches for: the tracked config it includes stays the
+     * baseline, and every verb here adds to it rather than replacing what that file configured.
+     *
+     * @example
+     * ```php
+     * // conf/phpstan.php
+     * $config = include __DIR__ . '/phpstan.dist.php';
+     *
+     * return PhpStan::from($config)
+     *     ->addIgnoredErrors(['ternary.shortNotAllowed'])
+     *     ->build()
+     * ;
+     * ```
+     *
+     * @param Config $config config to extend
+     *
+     * @return self the builder, holding that config
+     */
+    public static function from(array $config): self
+    {
+        return new self($config);
+    }
+
+    /**
      * The same baseline as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *

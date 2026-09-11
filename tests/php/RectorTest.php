@@ -91,6 +91,17 @@ final class RectorTest extends TestCase
         }
     }
 
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $baseline = Rector::getConfig();
+        $paths    = self::readRectorState($baseline, 'paths');
+
+        $rectorConfigBuilder = Rector::from($baseline)->addSkips(['src/legacy'])->build();
+
+        self::assertContains('src/legacy', self::readRectorState($rectorConfigBuilder, 'skip'));
+        self::assertSame($paths, self::readRectorState($rectorConfigBuilder, 'paths'));
+    }
+
     public function testBuildHandsOverOnlyOnce(): void
     {
         $rector = Rector::getBuilder()->addRules([SimplifyIfReturnBoolRector::class]);

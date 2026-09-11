@@ -79,6 +79,20 @@ final class PhpCsFixerTest extends TestCase
         self::assertArrayNotHasKey($name, $rules);
     }
 
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $config = PhpCsFixer::getConfig();
+
+        $rules = PhpCsFixer::from($config)
+            ->addRules(['numeric_literal_separator' => true])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertCount(count($config->getRules()), $rules);
+        self::assertTrue($rules['numeric_literal_separator'] ?? null);
+    }
+
     public function testTheFinderArgumentNarrowsTheFiles(): void
     {
         $finder = PhpCsFixer::getConfig(new Finder()->in(__DIR__ . '/../../src/php/Composer'))->getFinder();

@@ -43,6 +43,26 @@ final class PhpStanTest extends TestCase
         self::assertTrue($check['throwTypeCovariance'] ?? null);
     }
 
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $baseline = PhpStan::getConfig();
+
+        $ignoredErrors = $baseline['parameters']['ignoreErrors'] ?? null;
+
+        self::assertIsArray($ignoredErrors);
+
+        $config = PhpStan::from($baseline)
+            ->addIgnoredErrors([['identifier' => 'acme.rule']])
+            ->build()
+        ;
+
+        $extended = $config['parameters']['ignoreErrors'] ?? null;
+
+        self::assertIsArray($extended);
+        self::assertCount(count($ignoredErrors) + 1, $extended);
+        self::assertSame($baseline['parameters']['level'] ?? null, $config['parameters']['level'] ?? null);
+    }
+
     public function testAListReplacesRatherThanMerges(): void
     {
         $exceptions = PhpStan::getBuilder()

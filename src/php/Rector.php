@@ -180,6 +180,34 @@ final class Rector
     }
 
     /**
+     * A builder another file already built, to add to.
+     *
+     * This is what a private `conf/rector.php` reaches for: the tracked config it includes stays the
+     * baseline, and every verb here adds to it rather than replacing what that file configured.
+     * The paths that config resolved stay as they are, so {@see self::setPaths()} is the only way to
+     * change them from here.
+     *
+     * @example
+     * ```php
+     * // conf/rector.php
+     * $config = include __DIR__ . '/rector.dist.php';
+     *
+     * return Rector::from($config)
+     *     ->addSkips([SomeRector::class])
+     *     ->build()
+     * ;
+     * ```
+     *
+     * @param RectorConfigBuilder $rectorConfigBuilder config to extend
+     *
+     * @return self the builder, wrapping that config
+     */
+    public static function from(RectorConfigBuilder $rectorConfigBuilder): self
+    {
+        return new self($rectorConfigBuilder);
+    }
+
+    /**
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
@@ -442,7 +470,9 @@ final class Rector
      */
     public function build(): RectorConfigBuilder
     {
-        $this->rectorConfigBuilder->withPaths($this->paths);
+        if ($this->paths !== []) {
+            $this->rectorConfigBuilder->withPaths($this->paths);
+        }
 
         if ($this->rules !== []) {
             $this->rectorConfigBuilder->withRules($this->rules);

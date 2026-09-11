@@ -26,6 +26,22 @@ return PhpStan::getBuilder()
 ;
 ```
 
+A private `./conf/phpstan.php` starts from the tracked config rather than from the defaults,
+so what the repository configured survives. `from()` takes what that file returns:
+
+```php
+// ./conf/phpstan.php
+$config = include __DIR__ . '/phpstan.dist.php';
+
+return PhpStan::from($config)
+    ->addIgnoredErrors(['ternary.shortNotAllowed'])
+    ->build()
+;
+```
+
+A repository that tracks no config of its own has nothing to include; `getBuilder()` above
+starts from the same defaults that file would have carried.
+
 A method's verb says what it does to what is already there: `set*` replaces, `add*` merges, `remove*`
 drops by name. A `set*` taking an option map changes only the keys you pass. Anything without a named setter goes
 through `setParameter()`, in the shape PHPStan's own [config reference](https://phpstan.org/config-reference) documents.

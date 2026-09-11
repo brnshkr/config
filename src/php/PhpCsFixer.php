@@ -64,6 +64,32 @@ final readonly class PhpCsFixer
     }
 
     /**
+     * A config another file already built, as a builder to add to.
+     *
+     * This is what a private `conf/php-cs-fixer.php` reaches for: the tracked config it includes stays
+     * the baseline, and every verb here adds to it rather than replacing what that file configured.
+     *
+     * @example
+     * ```php
+     * // conf/php-cs-fixer.php
+     * $config = include __DIR__ . '/php-cs-fixer.dist.php';
+     *
+     * return PhpCsFixer::from($config)
+     *     ->addRules(['numeric_literal_separator' => true])
+     *     ->build()
+     * ;
+     * ```
+     *
+     * @param PhpCsFixerConfig $phpCsFixerConfig config to extend
+     *
+     * @return self the builder, wrapping that config
+     */
+    public static function from(PhpCsFixerConfig $phpCsFixerConfig): self
+    {
+        return new self($phpCsFixerConfig);
+    }
+
+    /**
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
