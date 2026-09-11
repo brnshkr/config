@@ -629,11 +629,11 @@ $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) --debug $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS) --debug
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) --list-tests $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(ARGS) --list-tests
 
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
@@ -659,7 +659,7 @@ $(call _target,phpstan): #~~ runs `phpstan analyze`
 
 $(call _target,phpstan-debug): #~~ runs `phpstan analyze` in debug mode #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --debug $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS) --debug
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -697,11 +697,11 @@ $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
 
 $(call _target,php-cs-fixer-dry-run): #~~ runs `php-cs-fixer fix` in dry run mode #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) --dry-run $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) --dry-run --format=json $(ARGS),appliedFixers)
+	$(DEBUG_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers)
 
 $(call _target,php-cs-fixer-list): #~~ lists all files that are processed by `php-cs-fixer` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -732,15 +732,15 @@ $(call _target,rector): #~~ runs `rector process`
 
 $(call _target,rector-debug): #~~ runs `rector process` in debug mode #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) --debug $(ARGS)
+	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --debug
 
 $(call _target,rector-dry-run): #~~ runs `rector process` in dry run mode #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) --dry-run $(ARGS)
+	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) --dry-run --output-format=json $(ARGS),applied_rectors)
+	$(DEBUG_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors)
 
 $(call _target,rector-list): #~~ lists all files that are processed by `rector` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -863,7 +863,7 @@ _PLAIN_CONFIGS += $(call _when_tracked,$(ESLINT_CONFIG),$(ESLINT_EXTENSIONS))
 
 $(call _target,eslint): #~~ runs `eslint` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --fix $(ARGS)
+	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) $(ARGS) --fix
 
 $(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -1033,7 +1033,7 @@ $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) --update $(ARGS)
+	$(DEBUG_PREFIX)$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update
 
 endif # /vitest
 
@@ -1553,7 +1553,7 @@ _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(s
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 
-define _GROUP_AWK
+define _GROUP_AWK_SOURCE
 function repeat(text, times,   out) { out = ""; while (times-- > 0) out = out text; return out }
 function value(record, key,   pattern) {
 	pattern = "\"" key "\"[ \t]*:[ \t]*\"";
@@ -1617,7 +1617,7 @@ END {
 }
 endef
 
-define _HELP_AWK
+define _HELP_AWK_SOURCE
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count, out) { out = ""; while (count-- > 0) out = out text; return out }
@@ -2077,5 +2077,6 @@ END {
 endef
 
 export EDITOR_URL
-export _GROUP_AWK
-export _HELP_AWK
+
+$(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
+$(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
