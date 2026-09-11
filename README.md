@@ -145,7 +145,7 @@ Take a look at the function signatures for exact details.
 ##### ESLint
 
 ```js
-// ./eslint.config.mjs
+// ./conf/eslint.config.mjs
 
 import { getConfig } from '@brnshkr/config/eslint';
 
@@ -156,7 +156,7 @@ export default getConfig(/* customize */);
 ##### Stylelint
 
 ```js
-// ./stylelint.config.mjs
+// ./conf/stylelint.config.mjs
 
 import { getConfig } from '@brnshkr/config/stylelint';
 
@@ -304,7 +304,7 @@ bun ./node_modules/@brnshkr/config/dist/scripts/commitlint.mjs
 
 When using the recommended way of putting config files into the `./conf` directory
 it might be neccesary to instruct your IDE to read these files correctly.  
-If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
+If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
 installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
@@ -389,9 +389,8 @@ Take a look at the function signatures for exact details.
 ##### PHP CS Fixer
 
 ```php
-// ./php-cs-fixer.dist.php
-
 <?php
+// ./conf/php-cs-fixer.dist.php
 
 declare(strict_types=1);
 
@@ -404,9 +403,8 @@ return PhpCsFixer::getConfig(/* customize */);
 ##### Rector
 
 ```php
-// ./rector.dist.php
-
 <?php
+// ./conf/rector.dist.php
 
 declare(strict_types=1);
 
@@ -419,9 +417,8 @@ return Rector::getConfig(/* customize */);
 ##### PHPStan
 
 ```php
-// ./phpstan.dist.php
-
 <?php
+// ./conf/phpstan.dist.php
 
 declare(strict_types=1);
 
@@ -434,9 +431,8 @@ return PhpStan::getConfig(/* customize */);
 ##### Twig CS Fixer
 
 ```php
-// ./twig-cs-fixer.dist.php
-
 <?php
+// ./conf/twig-cs-fixer.dist.php
 
 declare(strict_types=1);
 
@@ -552,7 +548,7 @@ make twig-cs-fixer
 
 When using the recommended way of putting config files into the `./conf` directory
 it might be neccesary to instruct your IDE to read these files correctly.  
-If you need a VSCode setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
+If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
 installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
 <!-- omit in toc -->
@@ -618,7 +614,7 @@ This project mostly follows the [Conventional Commits](https://www.conventionalc
 There are only a few differences. The main one is that the scope is required:  
 So **instead of** this commit message signature: `<type>[optional scope]: <description>`  
 You **should use** this one: `<type><scope>: <description>`  
-Further details can be found in the [Commitlint configuration](https://github.com/brnshkr/config/blob/master/conf/commitlint.config.mjs).
+Further details can be found in the [commitlint configuration](https://github.com/brnshkr/config/blob/master/conf/commitlint.config.mjs).
 
 ### ⚙️ Workflows
 
@@ -666,7 +662,7 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for more information
 - [ESLint](https://github.com/eslint/eslint)
 - [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
 - [Stylelint](https://github.com/stylelint/stylelint)
-- [Commitlint](https://github.com/conventional-changelog/commitlint)
+- [commitlint](https://github.com/conventional-changelog/commitlint)
 - [@antfu/eslint-config](https://github.com/antfu/eslint-config)
 - [PHP](https://www.php.net)
 - [PHPStan](https://github.com/phpstan/phpstan)
