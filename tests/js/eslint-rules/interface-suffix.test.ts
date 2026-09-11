@@ -22,7 +22,7 @@ test('interfaceSuffixRule scenarios', () => {
   runTsRuleTests(interfaceSuffixRule, {
     valid: [
       buildValidCase(
-        'class ending with the matching prefix',
+        'class ending with the matching suffix',
         'class InMemoryUserRepository implements UserRepositoryInterface {}\n',
       ),
       buildValidCase(
@@ -50,7 +50,7 @@ test('interfaceSuffixRule scenarios', () => {
         'class CachedUserStore implements Interface {}\n',
       ),
       buildValidCase(
-        'qualified interface name ending with the matching prefix',
+        'qualified interface name ending with the matching suffix',
         'class InMemoryUserRepository implements Acme.UserRepositoryInterface {}\n',
       ),
       buildValidCase(

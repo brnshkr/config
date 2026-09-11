@@ -2,7 +2,7 @@
 
 JavaScript mirror of the PHP [`InterfaceSuffixRule`](../../../php/phpstan/rules/InterfaceSuffixRule.md),
 which is the source of truth for the convention. A class implementing a single `*Interface` must end
-with the matching prefix, so the contract and the implementation stay paired at the call site.
+with the matching suffix, so the contract and the implementation stay paired at the call site.
 
 ```ts
 interface UserRepositoryInterface {}
@@ -16,7 +16,7 @@ class InMemoryUserRepository implements UserRepositoryInterface {}
 
 ## Multi-interface skip
 
-When a class implements more than one `*Interface`, no single prefix is canonical,
+When a class implements more than one `*Interface`, no single suffix is canonical,
 so the rule steps back and leaves naming to the author:
 
 ```ts
