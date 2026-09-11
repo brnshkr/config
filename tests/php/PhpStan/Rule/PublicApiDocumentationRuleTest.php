@@ -6,7 +6,6 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Override;
-use PHPStan\DependencyInjection\MissingServiceException;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
@@ -58,9 +57,6 @@ final class PublicApiDocumentationRuleTest extends RuleTestCase
         ]);
     }
 
-    /**
-     * @throws MissingServiceException
-     */
     #[Override]
     protected function getRule(): Rule
     {

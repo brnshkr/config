@@ -6,9 +6,7 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
-use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
-use PHPStan\DependencyInjection\MissingServiceException;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\FileTypeMapper;
@@ -24,9 +22,6 @@ final class ResolvableDocReferenceRuleTest extends AbstractRuleTestCase
 {
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/PhpStan/Rule/ResolvableDocReference';
 
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRule(): void
     {
         $this->assertIssuesReported(
@@ -38,9 +33,6 @@ final class ResolvableDocReferenceRuleTest extends AbstractRuleTestCase
         );
     }
 
-    /**
-     * @throws MissingServiceException
-     */
     #[Override]
     protected function getRule(): Rule
     {

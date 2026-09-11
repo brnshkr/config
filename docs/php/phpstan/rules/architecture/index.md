@@ -1,7 +1,7 @@
 # Architecture presets
 
 The architecture presets are built on [PHPat](https://github.com/carlosas/phpat) and ship as factory methods
-on the `Architecture` class. Each returns a list of rule services for `setArchitecture()`, which also accepts
+on the `Architecture` class. Each returns a list of rule services for `addArchitecture()`, which also accepts
 standalone rules from `PhpStan::configurePhpAtTest()`, so a project can mix presets and its own rules freely.
 
 Namespaces are derived from the project's own `composer.json`, so a preset called
@@ -24,12 +24,20 @@ Every preset carries the [baseline](./Library.md), so composing a second preset 
 ## Composing
 
 ```php
-->setArchitecture(Architecture::ddd())
-->setArchitecture([Architecture::layered(), Architecture::modular(modules: ['User', 'Email'])])
-->setArchitecture([
-    Architecture::symfony(root: 'Acme'),
-    PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, ['roots' => ['Acme']]),
-])
+return PhpStan::getBuilder()
+    ->addArchitecture(Architecture::ddd())
+    ->addArchitecture([
+        Architecture::layered(), 
+        Architecture::modular(modules: ['User', 'Email']),
+    ])
+    ->addArchitecture([
+        Architecture::symfony(root: 'Acme'),
+        PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, [
+          'roots' => ['Acme'],
+        ]),
+    ])
+    ->build()
+;
 ```
 
 Presets, single rules and lists of either are all accepted, at any nesting.
@@ -48,9 +56,9 @@ therefore takes a list — `['roots' => ['Acme\User', 'Acme\Email']]` — and yi
 or a full service definition to drop only the instance whose class _and_ arguments match.
 
 ```php
-return PhpStan::getConfig(null, true)
-    ->setArchitecture(Architecture::symfony(root: 'Acme'))
+return PhpStan::getBuilder()
+    ->addArchitecture(Architecture::symfony(root: 'Acme'))
     ->removeArchitecture([ControllerTest::class])
-    ->toArray()
+    ->build()
 ;
 ```

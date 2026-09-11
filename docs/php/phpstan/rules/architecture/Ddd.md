@@ -2,23 +2,23 @@
 
 A full Domain-Driven Design preset. Composes `layered()` and adds per-module `Domain` and `Application` isolation,
 an optional `Interface` layer (entry points such as HTTP controllers and CLI commands),
-`final readonly` contracts for value objects and domain events, and a configurable list of
-framework namespaces that the `Domain` layer must not depend on.
+`final readonly` contracts for value objects and domain events,
+and a configurable list of framework namespaces that the `Domain` layer must not depend on.
 Module isolation rules are emitted only when at least two modules are configured.
 
 ```php
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 
-return PhpStan::getConfig(null, true)
-    ->setArchitecture(Architecture::ddd(
+return PhpStan::getBuilder()
+    ->addArchitecture(Architecture::ddd(
         modules: ['User', 'Email'],
         interface: 'Acme\Interface',
         valueObject: 'Acme\Domain\ValueObject',
         domainEvent: 'Acme\Domain\Event',
         isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
     ))
-    ->toArray()
+    ->build()
 ;
 ```
 

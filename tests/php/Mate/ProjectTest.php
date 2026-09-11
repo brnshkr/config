@@ -7,8 +7,6 @@ namespace Brnshkr\Config\Tests\Mate;
 use Brnshkr\Config\Mate\Support\Project;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Exception\LogicException;
-use Symfony\Component\Process\Exception\RuntimeException;
 
 /**
  * @internal
@@ -50,10 +48,6 @@ final class ProjectTest extends TestCase
         'plain text'                       => ['No errors', 'No errors'],
     ];
 
-    /**
-     * @throws LogicException
-     * @throws RuntimeException
-     */
     public function testStripsControlSequencesFromOutput(): void
     {
         foreach (self::CONTROL_SEQUENCE_CASES as $name => [$input, $expected]) {
@@ -61,10 +55,6 @@ final class ProjectTest extends TestCase
         }
     }
 
-    /**
-     * @throws LogicException
-     * @throws RuntimeException
-     */
     public function testEncodesOutputContainingControlSequences(): void
     {
         $result = Project::run(['cat'], input: "\x1B[1G\x1B[2K 118/118\x00 100%");

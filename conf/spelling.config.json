@@ -10,7 +10,7 @@
       "analyse:60,67"
     ],
     "src/php/PhpStan.php": [
-      "analyse:445,450,455,476"
+      "analyse:138,596,601,606,673,697"
     ],
     "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
       "Analyser:18"
@@ -49,7 +49,10 @@
       "Analyser:11"
     ],
     "tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php": [
-      "analyse:27"
+      "analyse:26"
+    ],
+    "tests/php/PhpStanTest.php": [
+      "analyse:268,274,283"
     ],
     "tests/php/SpellingTest.php": [
       "analyse:48,53,54,60,67,79,91",

@@ -8,13 +8,13 @@ builds on and as a standalone preset for projects that want layered isolation wi
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 
-return PhpStan::getConfig(null, true)
-    ->setArchitecture(Architecture::layered(
+return PhpStan::getBuilder()
+    ->addArchitecture(Architecture::layered(
         domain: 'Acme\Domain',
         application: 'Acme\Application',
         infrastructure: 'Acme\Infrastructure',
     ))
-    ->toArray()
+    ->build()
 ;
 ```
 

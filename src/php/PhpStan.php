@@ -23,7 +23,10 @@ use Brnshkr\Config\PhpStan\Rule\ServiceArgumentBindingRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Composer\InstalledVersions;
 use DateTimeImmutable;
+use InvalidArgumentException;
+use OutOfBoundsException;
 use PhpCsFixer\Finder as PhpCsFixerFinder;
 use PhpParser\Node;
 use PHPStan\Rules\Rule;
@@ -38,12 +41,14 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\String\AbstractString;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symplify\PHPStanRules\Rules as SymplifyPhpStanRules;
+use Throwable;
 
 use function array_any;
 use function array_diff;
 use function array_filter;
 use function array_find;
 use function array_is_list;
+use function array_key_exists;
 use function array_keys;
 use function array_map;
 use function array_merge;
@@ -51,12 +56,16 @@ use function array_pop;
 use function array_unique;
 use function array_values;
 use function class_exists;
+use function dirname;
 use function explode;
+use function get_debug_type;
 use function getcwd;
 use function implode;
 use function in_array;
 use function interface_exists;
 use function is_array;
+use function is_file;
+use function is_readable;
 use function is_string;
 use function iterator_to_array;
 use function ksort;
@@ -76,7 +85,7 @@ if (class_exists(PhpStan::class)) {
  *
  * {@see self::getConfig()} returns the project-wide baseline — max level, strict exception
  * checking, this package's custom rules, editor-URL handling — and downstream projects layer
- * their own adjustments on top through the fluent setters before calling {@see self::toArray()}
+ * their own adjustments on top through the fluent setters before calling {@see self::build()}
  * to obtain the final config array.
  *
  * The three `configure*()` helpers ({@see self::configureRule()},
@@ -119,12 +128,23 @@ if (class_exists(PhpStan::class)) {
  */
 final class PhpStan
 {
+    private const string UNCHECKED_EXCEPTIONS_PATH = 'conf/phpstan/unchecked-exceptions.php';
+
+    private const string TYPE_SYMFONY_BUNDLE = 'symfony-bundle';
+
     private const string LOADER_CONSOLE_APPLICATION = 'console-application';
     private const string LOADER_OBJECT_MANAGER      = 'object-manager';
+
+    private const array EXCLUDE_PATH_GROUPS = ['analyse', 'analyseAndScan'];
 
     private const array TAG_PHP_AT_TEST                 = ['phpat.test'];
     private const array TAG_RULE                        = ['phpstan.rules.rule'];
     private const array TAG_STATIC_THROW_TYPE_EXTENSION = ['phpstan.dynamicStaticMethodThrowTypeExtension'];
+
+    /**
+     * @var array<non-empty-string, list<class-string<Throwable>>>
+     */
+    private static array $uncheckedExceptionCache = [];
 
     /**
      * @param Config $config
@@ -146,40 +166,53 @@ final class PhpStan
      * extension, and editor-URL handling. Conditionally enables strict rules, type-perfect and
      * Symplify rules when their packages are installed.
      *
-     * Returns the raw config array by default; pass `$asInstance: true` to get the builder
-     * instance for further chaining (used by `conf/phpstan.dist.php` to add architecture rules).
+     * @example
+     * ```php
+     * // conf/phpstan.php
+     * return PhpStan::getConfig();
+     * ```
+     *
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     *
+     * @return Config finalized config array
+     *
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws InvalidArgumentException when a resolved path is not a non-empty string
+     * @throws RuntimeException when a required optional PHPStan extension is missing
+     */
+    public static function getConfig(?Finder $finder = null): array
+    {
+        return self::getBuilder($finder)->build();
+    }
+
+    /**
+     * The same baseline as {@see self::getConfig()}, as a builder to extend before
+     * {@see self::build()} finalizes it.
      *
      * @example
      * ```php
      * // conf/phpstan.php
-     *
-     * // plain config
-     * return PhpStan::getConfig();
-     *
-     * // extend before returning
-     * return PhpStan::getConfig(null, true)
-     *     ->setArchitecture(Architecture::symfony('Acme'))
-     *     ->toArray();
+     * return PhpStan::getBuilder()
+     *     ->addArchitecture(Architecture::symfony('Acme'))
+     *     ->build()
+     * ;
      * ```
      *
-     * @template TAsInstance of bool
-     *
      * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
-     * @param TAsInstance $asInstance when true return the builder, otherwise the config array
      *
-     * @return (TAsInstance is true ? self : Config) builder instance or finalized config array
+     * @return self the builder, pre-configured with the baseline
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws InvalidArgumentException when a resolved path is not a non-empty string
      * @throws RuntimeException when a required optional PHPStan extension is missing
      */
-    public static function getConfig(?Finder $finder = null, bool $asInstance = false): self|array
+    public static function getBuilder(?Finder $finder = null): self
     {
         $finder ??= new Finder();
 
         $finder->notPath('config/preload.php');
 
-        $analysisPaths          = self::getAnalysisPaths($finder);
-        $developmentDirectories = ComposerJson::forProjectUsingThisLibrary()->getDevelopmentDirectories();
+        $analysisPaths = self::getAnalysisPaths($finder);
 
         $phpStanConfig = new self()
             ->setLevel('max')
@@ -221,18 +254,11 @@ final class PhpStan
                     'tooWideThrowType'                => true,
                 ],
             ])
-            ->setIgnoredErrors([
-                [
-                    'message'         => '/^Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.$/',
-                    'reportUnmatched' => false,
-                ],
-                ...$developmentDirectories === [] ? [] : [[
-                    'identifier'      => 'missingType.checkedException',
-                    'paths'           => $developmentDirectories,
-                    'reportUnmatched' => false,
-                ]],
+            ->addUncheckedExceptions(self::getRootUncheckedExceptions())
+            ->addIgnoredErrors([
+                'ternary.shortNotAllowed' => false,
             ])
-            ->setRules([
+            ->addRules([
                 ApiOrInternalTagRule::class,
                 BoolishPrefixRule::class,
                 InterfaceSuffixRule::class,
@@ -245,25 +271,52 @@ final class PhpStan
                     'allowedCallers' => self::getDevelopmentNamespaceExemptions(),
                 ]),
             ])
-            ->setServices([
+            ->addServices([
                 self::configureStaticThrowTypeExtension(FileFinderThrowTypeExtension::class),
             ])
         ;
 
-        if (Package::DependencyInjection->isInstalled()) {
-            $phpStanConfig->setRules([
-                ServiceArgumentBindingRule::class,
+        $developmentDirectories = ComposerJson::forProjectUsingThisLibrary()->getDevelopmentDirectories();
+
+        if ($developmentDirectories !== []) {
+            $phpStanConfig->addIgnoredErrors([
+                [
+                    'identifier'      => 'missingType.checkedException',
+                    'paths'           => $developmentDirectories,
+                    'reportUnmatched' => false,
+                ],
             ]);
         }
 
-        $symfonyDefaults = Package::PhpStanSymfony->isInstalled() ? self::getSymfonyDefaults() : [];
+        if (Package::DependencyInjection->isInstalled()) {
+            $phpStanConfig->addRules([ServiceArgumentBindingRule::class]);
+        }
 
-        if ($symfonyDefaults !== []) {
-            $phpStanConfig->setSymfony($symfonyDefaults);
+        if (Package::PhpStanSymfony->isInstalled()) {
+            $symfonyDefaults = self::getSymfonyDefaults();
+
+            if ($symfonyDefaults !== []) {
+                $phpStanConfig->setSymfony($symfonyDefaults);
+            }
+        }
+
+        if (ComposerJson::forProjectUsingThisLibrary()->getPackageType() === self::TYPE_SYMFONY_BUNDLE) {
+            $phpStanConfig->addIgnoredErrors([
+                [
+                    'identifier'      => 'symfony.preferAutowireAttributeOverConfigParam',
+                    'reportUnmatched' => false,
+                ],
+            ]);
         }
 
         if (Package::PhpStanDoctrine->isInstalled()) {
             $phpStanConfig->setDoctrine(self::getDoctrineDefaults());
+        }
+
+        if (Package::PhpStanPhpUnit->isInstalled()) {
+            $phpStanConfig->setPhpUnit([
+                'reportMissingDataProviderReturnType' => true,
+            ]);
         }
 
         if (Package::PhpStanStrictRules->isInstalled()) {
@@ -281,58 +334,101 @@ final class PhpStan
         }
 
         if (Package::PhpStanRules->isInstalled()) {
-            $phpStanConfig->setRules(self::getSymplifyRules());
+            $phpStanConfig->addRules(self::getSymplifyRules());
         }
 
-        return $asInstance ? $phpStanConfig : $phpStanConfig->toArray();
+        return $phpStanConfig;
     }
 
     /**
-     * Serialize the builder to its raw PHPStan config array.
+     * Finalize the builder into the raw PHPStan config array.
      *
      * @return Config finalized config with the four top-level sections (includes, parameters, rules, services)
      */
-    public function toArray(): array
+    public function build(): array
     {
         return $this->config;
     }
 
     /**
-     * Merge additional `includes` neon paths into the config (dedup-preserving order).
+     * Merge additional `includes` paths into the config, neon or php, keeping their order and
+     * dropping duplicates.
      *
-     * @param list<non-empty-string> $includePaths absolute or relative paths to neon files to merge in
+     * @param list<non-empty-string> $includePaths absolute or relative paths to merge in
      */
-    public function setIncludes(array $includePaths): self
+    public function addIncludes(array $includePaths): self
     {
-        $this->config['includes'] = array_values(array_unique([...$this->config['includes'], ...$includePaths]));
+        $this->config['includes'] = [...$this->config['includes'], ...$includePaths]
+            |> array_unique(...)
+            |> array_values(...);
 
         return $this;
     }
 
     /**
-     * Merge multiple PHPStan parameters at once, overwriting existing keys.
+     * Replace the `includes` paths outright.
+     *
+     * @param list<non-empty-string> $includePaths neon or php paths, replacing any already merged in
+     */
+    public function setIncludes(array $includePaths): self
+    {
+        $this->config['includes'] = [];
+
+        return $this->addIncludes($includePaths);
+    }
+
+    /**
+     * Set PHPStan parameters, keeping the ones not named.
+     *
+     * Nested option maps merge key by key; a list replaces the list already there.
      *
      * @param array<non-empty-string, mixed> $parameters map of parameter name to value
      */
     public function setParameters(array $parameters): self
     {
-        $this->config['parameters'] = array_merge($this->config['parameters'], $parameters);
+        $this->config['parameters'] = self::mergeOptions($this->config['parameters'], $parameters);
 
         return $this;
     }
 
     /**
-     * Set a single PHPStan parameter by key, overwriting any existing value.
+     * Set a single PHPStan parameter by key.
      *
-     * Prefer the named setters ({@see self::setLevel()}, {@see self::setPaths()} etc.) where
-     * one exists; use this only for parameters without a dedicated wrapper.
+     * Merges the way {@see self::setParameters()} does, which it calls: a nested option map merges
+     * key by key, a list replaces the list already there. Prefer the named setters
+     * ({@see self::setLevel()}, {@see self::setPaths()} etc.) where one exists, and
+     * {@see self::removeParameter()} first where a nested map has to go rather than merge.
      *
      * @param non-empty-string $key parameter name as it appears under the `parameters:` section
      * @param mixed $value parameter value
      */
     public function setParameter(string $key, mixed $value): self
     {
-        $this->config['parameters'][$key] = $value;
+        return $this->setParameters([$key => $value]);
+    }
+
+    /**
+     * Drop one `parameters` key, leaving PHPStan on its own default for it.
+     *
+     * Removing and setting again is how a nested value is replaced rather than merged into.
+     *
+     * @param non-empty-string $key parameter key to drop
+     */
+    public function removeParameter(string $key): self
+    {
+        return $this->removeParameters([$key]);
+    }
+
+    /**
+     * Drop `parameters` keys, leaving PHPStan on its own defaults for them.
+     *
+     * @param list<non-empty-string> $keys parameter keys to drop
+     */
+    public function removeParameters(array $keys): self
+    {
+        foreach ($keys as $key) {
+            unset($this->config['parameters'][$key]);
+        }
 
         return $this;
     }
@@ -345,11 +441,54 @@ final class PhpStan
      *
      * @param list<class-string|RuleService> $rules rule class-strings or pre-configured rule services
      */
+    public function addRules(array $rules): self
+    {
+        $this->config['rules'] = [...$this->config['rules'], ...array_filter($rules, is_string(...))]
+            |> array_unique(...)
+            |> array_values(...);
+
+        return $this->addServices(array_values(array_filter($rules, is_array(...))));
+    }
+
+    /**
+     * Replace the registered rules outright.
+     *
+     * Clears the `rules` list only; services registered by other means are left in place.
+     *
+     * @param list<class-string|RuleService> $rules rule class-strings or service definitions
+     */
     public function setRules(array $rules): self
     {
-        $this->config['rules'] = [...array_values(array_unique([...$this->config['rules'], ...array_filter($rules, is_string(...))]))];
+        $this->config['rules'] = [];
 
-        return $this->setServices(array_values(array_filter($rules, is_array(...))));
+        return $this->addRules($rules);
+    }
+
+    /**
+     * Replace one registered rule with the same rule under the caller's own arguments.
+     *
+     * The baseline registers its rules as services, so overriding one means dropping that service
+     * and registering it again; this does both.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()
+     *     ->replaceRule(InternalUsageRule::class, ['allowedCallers' => ['Acme\\Testing']])
+     *     ->build()
+     * ;
+     * ```
+     *
+     * @template TNode of Node
+     *
+     * @param class-string<Rule<TNode>> $rule rule class implementing PHPStan's Rule interface
+     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
+     */
+    public function replaceRule(string $rule, array $arguments = []): self
+    {
+        return $this
+            ->removeRules([$rule])
+            ->addRules([self::configureRule($rule, $arguments)])
+        ;
     }
 
     /**
@@ -377,7 +516,7 @@ final class PhpStan
      *
      * @param list<Service> $services service definitions to merge
      */
-    public function setServices(array $services): self
+    public function addServices(array $services): self
     {
         $mergedServices = [];
 
@@ -388,6 +527,18 @@ final class PhpStan
         $this->config['services'] = array_values($mergedServices);
 
         return $this;
+    }
+
+    /**
+     * Replace the registered services outright.
+     *
+     * @param list<Service> $services service definitions, replacing every service already registered
+     */
+    public function setServices(array $services): self
+    {
+        $this->config['services'] = [];
+
+        return $this->addServices($services);
     }
 
     /**
@@ -446,8 +597,8 @@ final class PhpStan
      *
      * @example
      * ```php
-     * $config->setPaths(['src', 'tests'], ['src/legacy']);
-     * $config->setPaths(['src'], ['analyse' => ['src/runtime-only']]);
+     * $builder->setPaths(['src', 'tests'], ['src/legacy']);
+     * $builder->setPaths(['src'], ['analyse' => ['src/runtime-only']]);
      * ```
      *
      * @param list<non-empty-string> $paths paths to analyze
@@ -455,9 +606,13 @@ final class PhpStan
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
      * } $excludedPaths Excluded paths (flat list or structured)
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
      */
     public function setPaths(array $paths, array $excludedPaths = []): self
     {
+        self::assertPathList($paths);
+
         $this->setParameter('paths', $paths);
 
         if ($excludedPaths !== []) {
@@ -465,6 +620,48 @@ final class PhpStan
         }
 
         return $this;
+    }
+
+    /**
+     * Add paths to analyze, keeping the ones already configured.
+     *
+     * @param list<non-empty-string> $paths absolute or relative paths to append
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
+     */
+    public function addPaths(array $paths): self
+    {
+        self::assertPathList($paths);
+
+        $existing = $this->config['parameters']['paths'] ?? [];
+
+        return $this->setParameter('paths', self::appendUnique(
+            is_array($existing) ? $existing : [],
+            $paths,
+        ));
+    }
+
+    /**
+     * Drop paths from the analyzed set.
+     *
+     * @param list<non-empty-string> $paths paths to stop analyzing
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
+     */
+    public function removePaths(array $paths): self
+    {
+        self::assertPathList($paths);
+
+        $existing = $this->config['parameters']['paths'] ?? [];
+
+        if (!is_array($existing)) {
+            return $this;
+        }
+
+        return $this->setParameter('paths', array_values(array_filter(
+            $existing,
+            static fn (mixed $path): bool => !in_array($path, $paths, true),
+        )));
     }
 
     /**
@@ -476,10 +673,14 @@ final class PhpStan
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
      * } $excludedPaths Excluded paths (flat list or structured)
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
      */
     public function setExcludedPaths(array $excludedPaths): self
     {
-        return $this->setParameter(
+        self::assertExcludedPathList($excludedPaths);
+
+        return $this->removeParameter('excludePaths')->setParameter(
             'excludePaths',
             array_is_list($excludedPaths)
                 ? ['analyseAndScan' => $excludedPaths]
@@ -488,13 +689,117 @@ final class PhpStan
     }
 
     /**
-     * Set the list of bootstrap files PHPStan should require before analysis.
+     * Add excluded paths, keeping the ones already configured.
+     *
+     * A flat list is appended to `analyseAndScan`; a structured value is appended per group.
+     *
+     * @param list<non-empty-string>|array{
+     *     analyse?: list<non-empty-string>,
+     *     analyseAndScan?: list<non-empty-string>,
+     * } $excludedPaths Excluded paths to append (flat list or structured)
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
+     */
+    public function addExcludedPaths(array $excludedPaths): self
+    {
+        self::assertExcludedPathList($excludedPaths);
+
+        $added       = array_is_list($excludedPaths) ? ['analyseAndScan' => $excludedPaths] : $excludedPaths;
+        $existing    = $this->config['parameters']['excludePaths'] ?? [];
+        $existing    = is_array($existing) ? $existing : [];
+        $mergedPaths = [];
+
+        foreach (self::EXCLUDE_PATH_GROUPS as $group) {
+            $paths = [
+                ...self::toPathList($existing[$group] ?? []),
+                ...self::toPathList($added[$group] ?? []),
+            ]
+                |> array_unique(...)
+                |> array_values(...);
+
+            if ($paths !== []) {
+                $mergedPaths[$group] = $paths;
+            }
+        }
+
+        return $mergedPaths === []
+            ? $this->removeParameter('excludePaths')
+            : $this->setExcludedPaths($mergedPaths);
+    }
+
+    /**
+     * Drop paths from every exclusion group they appear in.
+     *
+     * @param list<non-empty-string> $excludedPaths paths to stop excluding
+     *
+     * @throws InvalidArgumentException when a path is not a non-empty string
+     */
+    public function removeExcludedPaths(array $excludedPaths): self
+    {
+        self::assertPathList($excludedPaths);
+
+        $existing  = $this->config['parameters']['excludePaths'] ?? [];
+        $existing  = is_array($existing) ? $existing : [];
+        $keptPaths = [];
+
+        foreach (self::EXCLUDE_PATH_GROUPS as $group) {
+            $paths = array_values(array_filter(
+                self::toPathList($existing[$group] ?? []),
+                static fn (string $path): bool => !in_array($path, $excludedPaths, true),
+            ));
+
+            if ($paths !== []) {
+                $keptPaths[$group] = $paths;
+            }
+        }
+
+        return $keptPaths === []
+            ? $this->removeParameter('excludePaths')
+            : $this->setExcludedPaths($keptPaths);
+    }
+
+    /**
+     * Add bootstrap files PHPStan requires before analysis, keeping the ones already there.
      *
      * @param list<non-empty-string> $bootstrapFiles paths to bootstrap PHP files
      */
+    public function addBootstrapFiles(array $bootstrapFiles): self
+    {
+        $existing = $this->config['parameters']['bootstrapFiles'] ?? [];
+
+        return $this->setParameter('bootstrapFiles', self::appendUnique(
+            is_array($existing) ? $existing : [],
+            $bootstrapFiles,
+        ));
+    }
+
+    /**
+     * Replace the bootstrap files outright.
+     *
+     * @param list<non-empty-string> $bootstrapFiles paths to the files PHPStan loads before analysis
+     */
     public function setBootstrapFiles(array $bootstrapFiles): self
     {
-        return $this->setParameter('bootstrapFiles', $bootstrapFiles);
+        return $this->removeParameter('bootstrapFiles')->addBootstrapFiles($bootstrapFiles);
+    }
+
+    /**
+     * Drop bootstrap files, leaving the rest loaded.
+     *
+     * @param list<non-empty-string> $bootstrapFiles paths to stop loading
+     */
+    public function removeBootstrapFiles(array $bootstrapFiles): self
+    {
+        $existing = $this->config['parameters']['bootstrapFiles'] ?? [];
+
+        if (!is_array($existing)) {
+            return $this;
+        }
+
+        return $this->setParameter('bootstrapFiles', array_values(array_filter(
+            $existing,
+            static fn (mixed $file): bool => !in_array($file, $bootstrapFiles, true),
+        )));
     }
 
     /**
@@ -510,25 +815,107 @@ final class PhpStan
     }
 
     /**
-     * Define ignore patterns for known/expected PHPStan errors.
+     * Add ignore patterns for known or expected PHPStan errors, keeping the ones already there.
      *
-     * Each entry is either a raw regex string or the structured
-     * `{message?, identifier?, count?, path?, paths?, reportUnmatched?}` shape.
+     * Each entry is either a raw regular-expression string or a structured entry. A structured
+     * entry has to carry a `message`, an `identifier`, or both; PHPStan reports one carrying
+     * neither. The type cannot state that, because a union of two shapes each requiring one key
+     * collapses into a single shape with both optional, so it only rules out an empty entry.
      *
-     * @param list<non-empty-string|array{
+     * An entry is a bare identifier, an `identifier => reportUnmatched` pair, a delimited regular
+     * expression matched against the message, or the full array shape.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()->addIgnoredErrors([
+     *     'ternary.shortNotAllowed',
+     *     'missingType.checkedException' => false,
+     *     ['identifier' => 'brnshkr.internalUsage', 'paths' => ['src/Legacy.php']],
+     * ]);
+     * ```
+     *
+     * @param array<array-key, non-empty-string|bool|non-empty-array{
      *     message?: non-empty-string,
      *     identifier?: non-empty-string,
      *     count?: positive-int,
      *     path?: non-empty-string,
      *     paths?: list<non-empty-string>,
      *     reportUnmatched?: bool,
-     * }> $ignoredErrors Ignored-error definitions
+     * }>|non-empty-string $ignoredErrors Ignored-error definitions
      *
      * @see https://phpstan.org/user-guide/ignoring-errors#ignoring-in-configuration-file
      */
+    public function addIgnoredErrors(string|array $ignoredErrors): self
+    {
+        $existing = $this->config['parameters']['ignoreErrors'] ?? [];
+
+        return $this->setParameter('ignoreErrors', self::appendUnique(
+            is_array($existing) ? $existing : [],
+            self::normalizeIgnoredErrors(is_string($ignoredErrors) ? [$ignoredErrors] : $ignoredErrors),
+        ));
+    }
+
+    /**
+     * Replace the ignored errors outright.
+     *
+     * Takes the same shapes as {@see self::addIgnoredErrors()}, dropping every entry the baseline
+     * configured rather than appending to it.
+     *
+     * @param array<array-key, non-empty-string|bool|non-empty-array{
+     *     message?: non-empty-string,
+     *     identifier?: non-empty-string,
+     *     count?: positive-int,
+     *     path?: non-empty-string,
+     *     paths?: list<non-empty-string>,
+     *     reportUnmatched?: bool,
+     * }>|non-empty-string $ignoredErrors Ignored-error definitions, replacing every one already configured
+     */
     public function setIgnoredErrors(string|array $ignoredErrors): self
     {
-        return $this->setParameter('ignoreErrors', $ignoredErrors);
+        return $this->removeParameter('ignoreErrors')->addIgnoredErrors($ignoredErrors);
+    }
+
+    /**
+     * Drop ignored-error entries the baseline configured, by identifier or message.
+     *
+     * An entry is matched on its `identifier`, or on its `message` when it has none, so the short forms
+     * and the full shape are removed the same way.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()->removeIgnoredErrors(['ternary.shortNotAllowed']);
+     * ```
+     *
+     * @param list<non-empty-string> $ignoredErrors identifiers or messages to stop ignoring
+     */
+    public function removeIgnoredErrors(array $ignoredErrors): self
+    {
+        $existing = $this->config['parameters']['ignoreErrors'] ?? [];
+
+        return $this->setParameter('ignoreErrors', array_values(array_filter(
+            is_array($existing) ? $existing : [],
+            static fn (mixed $entry): bool => !in_array(self::getIgnoredErrorKey($entry), $ignoredErrors, true),
+        )));
+    }
+
+    /**
+     * Drop included configuration files, by path.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()->removeIncludes(['vendor/phpstan/phpstan-strict-rules/rules.neon']);
+     * ```
+     *
+     * @param list<non-empty-string> $includePaths paths to stop including
+     */
+    public function removeIncludes(array $includePaths): self
+    {
+        $this->config['includes'] = array_values(array_filter(
+            $this->config['includes'],
+            static fn (string $existing): bool => !in_array($existing, $includePaths, true),
+        ));
+
+        return $this;
     }
 
     /**
@@ -538,7 +925,17 @@ final class PhpStan
      */
     public function setFeatureToggles(array $featureToggles): self
     {
-        return $this->setParameter('featureToggles', $featureToggles);
+        return $this->setParameters(['featureToggles' => $featureToggles]);
+    }
+
+    /**
+     * Drop named feature toggles, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys toggle names to drop, leaving PHPStan on its own default for them
+     */
+    public function removeFeatureToggles(array $keys): self
+    {
+        return $this->removeParameterKeys('featureToggles', $keys);
     }
 
     /**
@@ -550,11 +947,129 @@ final class PhpStan
      */
     public function setExceptions(array $exceptions): self
     {
-        return $this->setParameter('exceptions', $exceptions);
+        return $this->setParameters(['exceptions' => $exceptions]);
     }
 
     /**
-     * Configure the `phpstan/phpstan-strict-rules` extension.
+     * Drop named exception-checking keys, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys exception-handling keys to drop
+     */
+    public function removeExceptions(array $keys): self
+    {
+        return $this->removeParameterKeys('exceptions', $keys);
+    }
+
+    /**
+     * Add exceptions the analysis must not treat as checked.
+     *
+     * An entry is a class name — covering the class and everything extending it, with none of the
+     * escaping a pattern needs — or a delimited regular expression matched against the class name.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()->addUncheckedExceptions([
+     *     UnreachableException::class,
+     *     '/\\\\Exception\\\\Unreachable[A-Za-z]*$/',
+     * ]);
+     * ```
+     *
+     * @param list<non-empty-string> $exceptions class names or delimited patterns
+     *
+     * @see https://phpstan.org/config-reference#exceptions
+     */
+    public function addUncheckedExceptions(array $exceptions): self
+    {
+        $classes  = [];
+        $patterns = [];
+
+        foreach ($exceptions as $exception) {
+            if (Str::isRegex($exception)) {
+                $patterns[] = $exception;
+            } else {
+                $classes[] = $exception;
+            }
+        }
+
+        return $this
+            ->appendException('uncheckedExceptionRegexes', $patterns)
+            ->appendException('uncheckedExceptionClasses', $classes)
+        ;
+    }
+
+    /**
+     * Replace the unchecked exceptions outright.
+     *
+     * Clears both the class list and the pattern list before adding, so the declaration is exactly
+     * what is passed here.
+     *
+     * @param list<non-empty-string> $exceptions class names or delimited patterns
+     */
+    public function setUncheckedExceptions(array $exceptions): self
+    {
+        return $this
+            ->removeParameterKeys('exceptions', ['uncheckedExceptionClasses', 'uncheckedExceptionRegexes'])
+            ->addUncheckedExceptions($exceptions)
+        ;
+    }
+
+    /**
+     * Drop unchecked exceptions, leaving the rest declared.
+     *
+     * An entry is matched as it was given: a class name drops that class, a pattern drops that
+     * pattern. Dropping a class name does not drop a pattern that happens to match it.
+     *
+     * @param list<non-empty-string> $exceptions class names or delimited patterns to stop declaring
+     */
+    public function removeUncheckedExceptions(array $exceptions): self
+    {
+        return $this
+            ->removeException('uncheckedExceptionRegexes', $exceptions)
+            ->removeException('uncheckedExceptionClasses', $exceptions)
+        ;
+    }
+
+    /**
+     * Add the unchecked exceptions a package declares for itself.
+     *
+     * Whether an exception is checked is part of a package's contract, and PHPStan cannot read it from
+     * the package, so without this every consumer restates the list and drifts from it. A package
+     * declares its own by shipping `conf/phpstan/unchecked-exceptions.php` returning a list of class
+     * names.
+     *
+     * @example
+     * ```php
+     * PhpStan::getBuilder()->addUncheckedExceptionsFrom('brnshkr/doxter');
+     * ```
+     *
+     * @param non-empty-string $package the Composer package name to read the declaration from
+     *
+     * @throws RuntimeException when the package is not installed or declares nothing
+     *
+     * @see https://phpstan.org/config-reference#exceptions
+     */
+    public function addUncheckedExceptionsFrom(string $package): self
+    {
+        return $this->addUncheckedExceptions(self::readUncheckedExceptions($package));
+    }
+
+    /**
+     * Drop the unchecked exceptions a package declares for itself.
+     *
+     * The inverse of {@see self::addUncheckedExceptionsFrom()}, for dropping a package's declaration
+     * wholesale when the consuming project wants those exceptions checked after all.
+     *
+     * @param non-empty-string $package the Composer package name to read the declaration from
+     *
+     * @throws RuntimeException when the package is not installed or declares nothing
+     */
+    public function removeUncheckedExceptionsFrom(string $package): self
+    {
+        return $this->removeUncheckedExceptions(self::readUncheckedExceptions($package));
+    }
+
+    /**
+     * Configure the `phpstan/phpstan-strict-rules` extension, keeping the options not named.
      *
      * @param array<non-empty-string, bool> $strictRules map of strict-rule name to enabled flag
      *
@@ -566,11 +1081,21 @@ final class PhpStan
     {
         Module::warnMissingPackages(Package::PhpStanStrictRules);
 
-        return $this->setParameter('strictRules', $strictRules);
+        return $this->setParameters(['strictRules' => $strictRules]);
     }
 
     /**
-     * Configure the `rector/type-perfect` extension.
+     * Drop named strict rules, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys strict-rule names to drop
+     */
+    public function removeStrictRules(array $keys): self
+    {
+        return $this->removeParameterKeys('strictRules', $keys);
+    }
+
+    /**
+     * Configure the `rector/type-perfect` extension, keeping the options not named.
      *
      * @param array<non-empty-string, bool> $options map of type-perfect option name to enabled flag
      *
@@ -582,7 +1107,17 @@ final class PhpStan
     {
         Module::warnMissingPackages(Package::TypePerfect);
 
-        return $this->setParameter('type_perfect', $options);
+        return $this->setParameters(['type_perfect' => $options]);
+    }
+
+    /**
+     * Drop named type-perfect options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys type-perfect option names to drop
+     */
+    public function removeTypePerfect(array $keys): self
+    {
+        return $this->removeParameterKeys('type_perfect', $keys);
     }
 
     /**
@@ -597,7 +1132,7 @@ final class PhpStan
     }
 
     /**
-     * Configure the `phpstan/phpstan-symfony` extension.
+     * Configure the `phpstan/phpstan-symfony` extension, keeping the options not named.
      *
      * @param array<non-empty-string, mixed> $options Symfony-extension options (containerXmlPath, consoleApplicationLoader, etc.)
      *
@@ -609,11 +1144,21 @@ final class PhpStan
     {
         Module::warnMissingPackages(Package::PhpStanSymfony);
 
-        return $this->setParameter('symfony', $options);
+        return $this->setParameters(['symfony' => $options]);
     }
 
     /**
-     * Configure the `phpstan/phpstan-doctrine` extension.
+     * Drop named Symfony extension options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys Symfony option names to drop
+     */
+    public function removeSymfony(array $keys): self
+    {
+        return $this->removeParameterKeys('symfony', $keys);
+    }
+
+    /**
+     * Configure the `phpstan/phpstan-doctrine` extension, keeping the options not named.
      *
      * @param array<non-empty-string, mixed> $options Doctrine-extension options (objectManagerLoader, queryBuilderClass, etc.)
      *
@@ -625,7 +1170,43 @@ final class PhpStan
     {
         Module::warnMissingPackages(Package::PhpStanDoctrine);
 
-        return $this->setParameter('doctrine', $options);
+        return $this->setParameters(['doctrine' => $options]);
+    }
+
+    /**
+     * Drop named Doctrine extension options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys Doctrine option names to drop
+     */
+    public function removeDoctrine(array $keys): self
+    {
+        return $this->removeParameterKeys('doctrine', $keys);
+    }
+
+    /**
+     * Configure the `phpstan/phpstan-phpunit` extension, keeping the options not named.
+     *
+     * @param array<non-empty-string, mixed> $options PHPUnit-extension options (reportMissingDataProviderReturnType, etc.)
+     *
+     * @see https://github.com/phpstan/phpstan-phpunit
+     *
+     * @throws RuntimeException when `phpstan/phpstan-phpunit` is not installed
+     */
+    public function setPhpUnit(array $options): self
+    {
+        Module::warnMissingPackages(Package::PhpStanPhpUnit);
+
+        return $this->setParameters(['phpunit' => $options]);
+    }
+
+    /**
+     * Drop named PHPUnit extension options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys PHPUnit option names to drop
+     */
+    public function removePhpUnit(array $keys): self
+    {
+        return $this->removeParameterKeys('phpunit', $keys);
     }
 
     /**
@@ -636,7 +1217,7 @@ final class PhpStan
      *
      * @example
      * ```php
-     * $config->setArchitecture([
+     * $builder->addArchitecture([
      *     ...Architecture::laravel('Acme'),
      *     ...Architecture::doctrine('Acme'),
      * ]);
@@ -644,9 +1225,10 @@ final class PhpStan
      *
      * @param list<PhpAtService|list<PhpAtService>> $architecture PHPat services or nested service lists
      *
+     * @throws InvalidArgumentException when a test class is configured twice with different arguments
      * @throws RuntimeException when `phpat/phpat` is not installed
      */
-    public function setArchitecture(array $architecture): self
+    public function addArchitecture(array $architecture): self
     {
         Module::warnMissingPackages(Package::PhpAt);
 
@@ -662,20 +1244,43 @@ final class PhpStan
             $services[] = $value;
         }
 
-        return $this->setServices($services);
+        self::assertNoConflictingPhpAtTests([...$this->config['services'], ...$services]);
+
+        return $this->addServices($services);
+    }
+
+    /**
+     * Replace the registered architecture rules outright.
+     *
+     * Drops every PHPat test already registered before adding, so the architecture is exactly what is
+     * passed here. Services that are not PHPat tests are left in place.
+     *
+     * @param list<PhpAtService|list<PhpAtService>> $architecture PHPat services or nested service lists
+     *
+     * @throws InvalidArgumentException when a test class is configured twice with different arguments
+     * @throws RuntimeException when `phpat/phpat` is not installed
+     */
+    public function setArchitecture(array $architecture): self
+    {
+        $this->config['services'] = array_values(array_filter(
+            $this->config['services'],
+            static fn (array $service): bool => ($service['tags'] ?? []) !== self::TAG_PHP_AT_TEST,
+        ));
+
+        return $this->addArchitecture($architecture);
     }
 
     /**
      * Remove previously registered architecture rules.
      *
-     * Mirrors {@see self::setArchitecture()}: accepts class-strings, service definitions, or
+     * Mirrors {@see self::addArchitecture()}: accepts class-strings, service definitions, or
      * nested lists of either, and flattens before delegating to {@see self::removeServices()}.
      * Use this to opt out of selected rules from an {@see Architecture} preset.
      *
      * @example
      * ```php
-     * $config->setArchitecture(Architecture::laravel('Acme'));
-     * $config->removeArchitecture([ServiceProviderTest::class]);
+     * $builder->addArchitecture(Architecture::laravel('Acme'));
+     * $builder->removeArchitecture([ServiceProviderTest::class]);
      * ```
      *
      * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture rules to drop
@@ -701,11 +1306,11 @@ final class PhpStan
      * Build a tagged service definition for a custom PHPStan rule with constructor arguments.
      *
      * Use when a rule needs configuration that cannot be expressed as a bare class-string
-     * passed to {@see self::setRules()}.
+     * passed to {@see self::addRules()}.
      *
      * @example
      * ```php
-     * $config->setRules([
+     * $builder->addRules([
      *     PhpStan::configureRule(MyRule::class, ['allowedNamespaces' => ['Acme\\']]),
      * ]);
      * ```
@@ -827,76 +1432,164 @@ final class PhpStan
     }
 
     /**
-     * @return array<non-empty-string, non-empty-string>
+     * Reject a path entry that is not a non-empty string, rather than dropping it silently.
      *
-     * @throws DirectoryNotFoundException when the cache directory disappears mid-scan
-     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     * @param array<array-key, mixed> $paths
+     *
+     * @throws InvalidArgumentException when an entry is not a non-empty string
      */
-    private static function getSymfonyDefaults(): array
+    private static function assertPathList(array $paths): void
     {
-        $defaults         = [];
-        $containerXmlPath = ProjectKernel::locateContainerXml();
-        $kernelPath       = ProjectKernel::locate();
-
-        if ($kernelPath !== null) {
-            $defaults['consoleApplicationLoader'] = ProjectKernel::getLoaderPath(self::LOADER_CONSOLE_APPLICATION);
+        foreach ($paths as $path) {
+            if (!is_string($path) || Str::isEmpty($path)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Every path must be a non-empty string, got %s.',
+                    is_string($path) ? 'an empty one' : sprintf('"%s"', get_debug_type($path)),
+                ));
+            }
         }
-
-        if ($containerXmlPath !== null) {
-            $defaults['containerXmlPath'] = $containerXmlPath;
-        }
-
-        if ($kernelPath === null && $containerXmlPath !== null) {
-            Logger::log('notice', sprintf(
-                'A compiled container was found but the kernel class could not be resolved. Set %s to it so console commands can be analyzed.',
-                ProjectKernel::CLASS_ENVIRONMENT_VARIABLE,
-            ));
-        }
-
-        return $defaults;
     }
 
     /**
-     * @return array<non-empty-string, bool|non-empty-string>
+     * Reject a path entry in either shape the exclusion setters accept.
      *
-     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     * @param array<array-key, mixed> $excludedPaths
+     *
+     * @throws InvalidArgumentException when an entry is not a non-empty string
      */
-    private static function getDoctrineDefaults(): array
+    private static function assertExcludedPathList(array $excludedPaths): void
     {
-        $defaults = [
-            'literalString'              => true,
-            'reportDynamicQueryBuilders' => true,
-            'reportUnknownTypes'         => true,
-        ];
+        if (array_is_list($excludedPaths)) {
+            self::assertPathList($excludedPaths);
 
-        if (ProjectKernel::locate() !== null) {
-            $defaults['objectManagerLoader'] = ProjectKernel::getLoaderPath(self::LOADER_OBJECT_MANAGER);
+            return;
         }
 
-        return $defaults;
+        foreach ($excludedPaths as $excludedPath) {
+            self::assertPathList(is_array($excludedPath) ? $excludedPath : [$excludedPath]);
+        }
     }
 
     /**
-     * @return array<non-empty-string, non-empty-list<non-empty-string>>
+     * Read one exclusion group as a list of paths, whatever shape the config happens to hold.
      *
-     * @throws RuntimeException
+     * @return list<non-empty-string>
      */
-    private static function getDevelopmentNamespaceExemptions(): array
+    private static function toPathList(mixed $paths): array
     {
-        $composerJson  = ComposerJson::forProjectUsingThisLibrary();
-        $rootNamespace = $composerJson->getRootNamespace();
+        $paths = is_string($paths) ? [$paths] : $paths;
 
-        if ($rootNamespace === null) {
+        if (!is_array($paths)) {
             return [];
         }
 
-        $exemptions = [];
+        return array_values(array_filter(
+            $paths,
+            static fn (mixed $path): bool => is_string($path) && $path !== '',
+        ));
+    }
 
-        foreach ($composerJson->getDevelopmentNamespaces() as $namespace) {
-            $exemptions[$namespace] = [$rootNamespace];
+    private static function getIgnoredErrorKey(mixed $entry): ?string
+    {
+        if (is_string($entry)) {
+            return $entry;
         }
 
-        return $exemptions;
+        if (!is_array($entry)) {
+            return null;
+        }
+
+        $key = $entry['identifier'] ?? $entry['message'] ?? null;
+
+        return is_string($key) ? $key : null;
+    }
+
+    /**
+     * @param non-empty-string $key
+     * @param list<non-empty-string> $values
+     */
+    private function appendException(string $key, array $values): self
+    {
+        if ($values === []) {
+            return $this;
+        }
+
+        $exceptions = $this->config['parameters']['exceptions'] ?? [];
+        $existing   = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
+
+        return $this->setExceptions([
+            $key => self::appendUnique(is_array($existing) ? $existing : [], $values),
+        ]);
+    }
+
+    /**
+     * Drop values out of one of the `exceptions` lists.
+     *
+     * @param non-empty-string $key the exceptions key holding the list
+     * @param list<non-empty-string> $values values to drop out of it
+     */
+    private function removeException(string $key, array $values): self
+    {
+        $exceptions = $this->config['parameters']['exceptions'] ?? [];
+        $existing   = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
+
+        if (!is_array($existing) || $existing === []) {
+            return $this;
+        }
+
+        return $this->setExceptions([
+            $key => array_values(array_filter(
+                $existing,
+                static fn (mixed $value): bool => !in_array($value, $values, true),
+            )),
+        ]);
+    }
+
+    /**
+     * Drop named keys out of a map-valued `parameters` entry, leaving the rest of the map intact.
+     *
+     * @param non-empty-string $parameter the parameter holding the map
+     * @param list<non-empty-string> $keys keys to drop out of it
+     */
+    private function removeParameterKeys(string $parameter, array $keys): self
+    {
+        $existing = $this->config['parameters'][$parameter] ?? null;
+
+        if (!is_array($existing)) {
+            return $this;
+        }
+
+        foreach ($keys as $key) {
+            unset($existing[$key]);
+        }
+
+        $this->config['parameters'][$parameter] = $existing;
+
+        return $this;
+    }
+
+    /**
+     * @param array<array-key, mixed> $ignoredErrors
+     *
+     * @return list<mixed>
+     */
+    private static function normalizeIgnoredErrors(array $ignoredErrors): array
+    {
+        $normalized = [];
+
+        foreach ($ignoredErrors as $key => $entry) {
+            if (is_string($key)) {
+                $normalized[] = ['identifier' => $key, 'reportUnmatched' => (bool) $entry];
+
+                continue;
+            }
+
+            $normalized[] = is_string($entry) && !Str::isRegex($entry)
+                ? ['identifier' => $entry]
+                : $entry;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -1061,8 +1754,25 @@ final class PhpStan
                 'str_ireplace'          => sprintf('Use "%s::replace()" instead.', $stringFunction),
                 'substr_replace'        => sprintf('Use "%s::replace()" instead.', $stringFunction),
                 'str_repeat'            => sprintf('Use "%s::repeat()" instead.', $stringFunction),
-                'str?*'                 => sprintf('Use "%s" instead. If using this function is really the only option, please disable this rule for this line.', $stringFunction),
-                'mb_str?*'              => sprintf('Use "%s instead.', $stringFunction),
+                'strpos'                => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
+                'mb_strpos'             => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
+                'stripos'               => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
+                'mb_stripos'            => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
+                'strrpos'               => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
+                'mb_strrpos'            => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
+                'strripos'              => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
+                'mb_strripos'           => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
+                'strstr'                => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
+                'mb_strstr'             => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
+                'stristr'               => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
+                'mb_stristr'            => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
+                'strrchr'               => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
+                'mb_strrchr'            => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
+                'strrev'                => sprintf('Use "%s::reverse()" instead.', $stringFunction),
+                'strtr'                 => sprintf('Use "%s::replace()" instead.', $stringFunction),
+                'wordwrap'              => sprintf('Use "%s::wordwrap()" instead.', $stringFunction),
+                'mb_strwidth'           => sprintf('Use "%s::width()" instead.', $stringFunction),
+                'mb_strimwidth'         => sprintf('Use "%s::truncate()" instead.', $stringFunction),
                 'preg_match_all'        => sprintf('Use "%s::match()" instead.', $stringFunction),
                 'preg_match'            => sprintf('Use "%s::match()" instead.', $stringFunction),
                 'preg_replace_callback' => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
@@ -1198,6 +1908,221 @@ final class PhpStan
         }
 
         return $directories;
+    }
+
+    /**
+     * @return array<non-empty-string, non-empty-string>
+     *
+     * @throws DirectoryNotFoundException when the cache directory disappears mid-scan
+     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     */
+    private static function getSymfonyDefaults(): array
+    {
+        $defaults         = [];
+        $containerXmlPath = ProjectKernel::locateContainerXml();
+        $kernelPath       = ProjectKernel::locate();
+
+        if ($kernelPath !== null) {
+            $defaults['consoleApplicationLoader'] = ProjectKernel::getLoaderPath(self::LOADER_CONSOLE_APPLICATION);
+        }
+
+        if ($containerXmlPath !== null) {
+            $defaults['containerXmlPath'] = $containerXmlPath;
+        }
+
+        if ($kernelPath === null && $containerXmlPath !== null) {
+            Logger::log('notice', sprintf(
+                'A compiled container was found but the kernel class could not be resolved. Set %s to it so console commands can be analyzed.',
+                ProjectKernel::CLASS_ENVIRONMENT_VARIABLE,
+            ));
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @return array<non-empty-string, bool|non-empty-string>
+     *
+     * @throws RuntimeException when the environment names a kernel class that cannot be located
+     */
+    private static function getDoctrineDefaults(): array
+    {
+        $defaults = [
+            'literalString'              => true,
+            'reportDynamicQueryBuilders' => true,
+            'reportUnknownTypes'         => true,
+        ];
+
+        if (ProjectKernel::locate() !== null) {
+            $defaults['objectManagerLoader'] = ProjectKernel::getLoaderPath(self::LOADER_OBJECT_MANAGER);
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @param list<Service> $services
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertNoConflictingPhpAtTests(array $services): void
+    {
+        $keysByClass = [];
+
+        foreach ($services as $service) {
+            if (($service['tags'] ?? []) !== self::TAG_PHP_AT_TEST) {
+                continue;
+            }
+
+            $key = self::getServiceKey($service);
+
+            if (($keysByClass[$service['class']] ?? $key) !== $key) {
+                throw new InvalidArgumentException(sprintf(
+                    'Architecture test "%s" is configured twice with different arguments. PHPat registers one instance per test class and drops the second without warning, so the two configurations need two test classes.',
+                    $service['class'],
+                ));
+            }
+
+            $keysByClass[$service['class']] = $key;
+        }
+    }
+
+    /**
+     * @param non-empty-string $package
+     *
+     * @return list<class-string<Throwable>>
+     *
+     * @throws RuntimeException
+     */
+    private static function readUncheckedExceptions(string $package): array
+    {
+        try {
+            $installPath = InstalledVersions::getInstallPath($package);
+        } catch (OutOfBoundsException $outOfBoundsException) {
+            throw new RuntimeException(sprintf('Package "%s" is not installed.', $package), 0, $outOfBoundsException);
+        }
+
+        $path = ($installPath ?? '') . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
+
+        if ($installPath === null || !is_file($path) || !is_readable($path)) {
+            throw new RuntimeException(sprintf(
+                'Package "%s" declares no unchecked exceptions, expected them in "%s".',
+                $package,
+                self::UNCHECKED_EXCEPTIONS_PATH,
+            ));
+        }
+
+        return self::readDeclaredExceptions($path);
+    }
+
+    /**
+     * @param non-empty-string $path
+     *
+     * @return list<class-string<Throwable>>
+     */
+    private static function readDeclaredExceptions(string $path): array
+    {
+        if (!array_key_exists($path, self::$uncheckedExceptionCache)) {
+            $declared = require $path;
+
+            /**
+             * @var list<class-string<Throwable>> $classes
+             */
+            $classes = is_array($declared) ? array_values(array_filter($declared, self::isNonEmptyString(...))) : [];
+
+            self::$uncheckedExceptionCache[$path] = $classes;
+        }
+
+        return self::$uncheckedExceptionCache[$path];
+    }
+
+    private static function isNonEmptyString(mixed $value): bool
+    {
+        return is_string($value) && !Str::isEmpty($value);
+    }
+
+    /**
+     * Reads the consuming project's own declaration, so a package never names itself. Only a _dependency's_
+     * list needs {@see self::addUncheckedExceptionsFrom()}, which is the case that argument exists for.
+     *
+     * The project is found the way {@see self::getDevelopmentNamespaceExemptions()} finds it rather than
+     * through `InstalledVersions::getRootPackage()` — PHPStan evaluates this config from inside its own
+     * phar, where the root package is `phpstan/phpstan-src` and the project is nowhere in sight.
+     *
+     * @return list<class-string<Throwable>>
+     *
+     * @throws RuntimeException
+     */
+    private static function getRootUncheckedExceptions(): array
+    {
+        $path = dirname(ComposerJson::forProjectUsingThisLibrary()->path) . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
+
+        if (!is_file($path) || !is_readable($path)) {
+            return [];
+        }
+
+        return self::readDeclaredExceptions($path);
+    }
+
+    /**
+     * @return array<non-empty-string, non-empty-list<non-empty-string>>
+     *
+     * @throws RuntimeException
+     */
+    private static function getDevelopmentNamespaceExemptions(): array
+    {
+        $composerJson  = ComposerJson::forProjectUsingThisLibrary();
+        $rootNamespace = $composerJson->getRootNamespace();
+
+        if ($rootNamespace === null) {
+            return [];
+        }
+
+        $exemptions = [];
+
+        foreach ($composerJson->getDevelopmentNamespaces() as $namespace) {
+            $exemptions[$namespace] = [$rootNamespace];
+        }
+
+        return $exemptions;
+    }
+
+    /**
+     * @template TKey of array-key
+     *
+     * @param array<TKey, mixed> $existing
+     * @param array<TKey, mixed> $overrides
+     *
+     * @return array<TKey, mixed>
+     */
+    private static function mergeOptions(array $existing, array $overrides): array
+    {
+        foreach ($overrides as $key => $value) {
+            $current = $existing[$key] ?? null;
+
+            $existing[$key] = is_array($value) && !array_is_list($value) && is_array($current)
+                ? self::mergeOptions($current, $value)
+                : $value;
+        }
+
+        return $existing;
+    }
+
+    /**
+     * @param array<array-key, mixed> $existing
+     * @param array<array-key, mixed> $additional
+     *
+     * @return list<mixed>
+     */
+    private static function appendUnique(array $existing, array $additional): array
+    {
+        $uniqueEntries = [];
+
+        foreach ([...array_values($existing), ...array_values($additional)] as $entry) {
+            $uniqueEntries[serialize($entry)] ??= $entry;
+        }
+
+        return array_values($uniqueEntries);
     }
 
     /**

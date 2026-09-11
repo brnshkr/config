@@ -7,7 +7,6 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use DaveLiddament\PhpstanRuleTestHelper\ErrorMessageFormatter;
-use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
 use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -25,9 +24,6 @@ use function sprintf;
 #[CoversNothing]
 final class BoolishPrefixRuleTest extends AbstractRuleTestCase
 {
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRule(): void
     {
         $this->assertIssuesReported(

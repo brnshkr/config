@@ -33,6 +33,10 @@ final readonly class EditorUrl
     public const string EDITOR_VSCODE   = 'vscode';
     public const string EDITOR_PHPSTORM = 'phpstorm';
 
+    private const string ENVIRONMENT_EDITOR     = 'EDITOR';
+    private const string ENVIRONMENT_EDITOR_URL = 'EDITOR_URL';
+    private const string ENVIRONMENT_WSL_DISTRO = 'WSL_DISTRO_NAME';
+
     private const string PLACEHOLDER_CWD        = '{cwd}';
     private const string PLACEHOLDER_FILE       = '{file}';
     private const string PLACEHOLDER_LINE       = '{line}';
@@ -137,30 +141,28 @@ final readonly class EditorUrl
     private static function build(?string $editor, array $placeholders): ?string
     {
         $environment = array_merge($_SERVER, $_ENV);
-        $editor ??= self::getEditor($environment);
+        $wslDistro   = self::getString($environment, self::ENVIRONMENT_WSL_DISTRO);
+        $template    = $editor === null ? self::getString($environment, self::ENVIRONMENT_EDITOR_URL) : null;
 
-        if ($editor === null) {
-            return null;
-        }
+        if ($template === null) {
+            $editor ??= self::getEditor($environment);
 
-        $config    = self::EDITORS[$editor];
-        $wslDistro = self::getWslDistroName($environment);
+            if ($editor === null) {
+                return null;
+            }
 
-        if (is_string($config['template'])) {
-            $template = $config['template'];
-        } else {
-            $template = $wslDistro === null
-                ? $config['template']['default']
-                : $config['template']['wsl'];
+            $config = self::EDITORS[$editor];
+
+            $template = is_string($config['template'])
+                ? $config['template']
+                : ($wslDistro === null ? $config['template']['default'] : $config['template']['wsl']);
         }
 
         $url = Str::replace($template, self::PLACEHOLDER_CWD, $placeholders['cwd']);
         $url = Str::replace($url, self::PLACEHOLDER_FILE, $placeholders['file']);
         $url = Str::replace($url, self::PLACEHOLDER_LINE, $placeholders['line']);
 
-        return $wslDistro === null
-            ? $url
-            : Str::replace($url, self::PLACEHOLDER_WSL_DISTRO, $wslDistro);
+        return Str::replace($url, self::PLACEHOLDER_WSL_DISTRO, $wslDistro ?? '');
     }
 
     /**
@@ -170,12 +172,19 @@ final readonly class EditorUrl
      */
     private static function getEditor(array $environment): ?string
     {
+        $configuredEditor = self::getString($environment, self::ENVIRONMENT_EDITOR);
+
+        if ($configuredEditor !== null && isset(self::EDITORS[$configuredEditor])) {
+            return $configuredEditor;
+        }
+
         foreach ($environment as $key => $value) {
             $key = (string) $key;
 
             $editor = match (true) {
                 Str::startsWith($key, 'VSCODE_')                                => self::EDITOR_VSCODE,
                 Str::startsWith($key, 'PHPSTORM')                               => self::EDITOR_PHPSTORM,
+                $key === 'TERM_PROGRAM' && $value === self::EDITOR_VSCODE       => self::EDITOR_VSCODE,
                 $key === 'TERMINAL_EMULATOR' && $value === 'JetBrains-JediTerm' => self::EDITOR_PHPSTORM,
                 default                                                         => null,
             };
@@ -199,11 +208,11 @@ final readonly class EditorUrl
     /**
      * @param array<array-key, mixed> $environment
      */
-    private static function getWslDistroName(array $environment): ?string
+    private static function getString(array $environment, string $key): ?string
     {
-        return (isset($environment['WSL_DISTRO_NAME']) && is_string($environment['WSL_DISTRO_NAME']))
-            ? $environment['WSL_DISTRO_NAME']
-            : null;
+        $value = $environment[$key] ?? null;
+
+        return (is_string($value) && $value !== '') ? $value : null;
     }
 
     /**

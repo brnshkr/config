@@ -16,6 +16,8 @@ use function array_keys;
 use function dirname;
 use function getcwd;
 use function getenv;
+use function is_file;
+use function is_readable;
 use function is_string;
 use function iterator_to_array;
 use function realpath;
@@ -39,6 +41,8 @@ final readonly class ProjectKernel
     private const string CACHE_DIRECTORY = 'var/cache';
 
     private const string CONTAINER_FILE_PATTERN = '*Container.xml';
+
+    private const string LOADER_DIRECTORY = 'conf/phpstan';
 
     private function __construct() {}
 
@@ -142,10 +146,23 @@ final readonly class ProjectKernel
      * @param non-empty-string $name
      *
      * @return non-empty-string
+     *
+     * @throws RuntimeException when the project's composer.json cannot be read
      */
     public static function getLoaderPath(string $name): string
     {
-        $path = sprintf('%s/../../../conf/phpstan/%s.php', __DIR__, $name);
+        $projectPath = sprintf(
+            '%s/%s/%s.php',
+            dirname(ComposerJson::forProjectUsingThisLibrary()->path),
+            self::LOADER_DIRECTORY,
+            $name,
+        );
+
+        if (is_file($projectPath) && is_readable($projectPath)) {
+            return $projectPath;
+        }
+
+        $path = sprintf('%s/../../../%s/%s.php', __DIR__, self::LOADER_DIRECTORY, $name);
 
         return realpath($path) ?: $path;
     }

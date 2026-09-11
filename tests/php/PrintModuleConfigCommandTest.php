@@ -9,8 +9,6 @@ use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Str;
 use Composer\Console\Application;
-use Exception;
-use LogicException;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -32,41 +30,26 @@ final class PrintModuleConfigCommandTest extends TestCase
 
     private Application $application;
 
-    /**
-     * @throws Exception
-     */
     public function testPrintsExpectedPhpCsFixerConfig(): void
     {
         $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_PHP_CS_FIXER));
     }
 
-    /**
-     * @throws Exception
-     */
     public function testPrintsExpectedPhpStanConfig(): void
     {
         $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_PHP_STAN));
     }
 
-    /**
-     * @throws Exception
-     */
     public function testPrintsExpectedRectorConfig(): void
     {
         $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_RECTOR));
     }
 
-    /**
-     * @throws Exception
-     */
     public function testPrintsExpectedTwigCsFixerConfig(): void
     {
         $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_TWIG_CS_FIXER));
     }
 
-    /**
-     * @throws Exception
-     */
     public function testAutoDetectsModuleFromPath(): void
     {
         $output = $this->runCommand(['--path' => 'conf/php-cs-fixer.dist.php']);
@@ -74,9 +57,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         $this->assertMatchesJsonSnapshot($output);
     }
 
-    /**
-     * @throws Exception
-     */
     public function testErrorsWhenModuleAndPathBothOmitted(): void
     {
         $output = $this->runCommand([], isSuccessExpected: false);
@@ -87,9 +67,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         );
     }
 
-    /**
-     * @throws Exception
-     */
     public function testErrorsOnUnknownModule(): void
     {
         $output = $this->runCommand(['module' => 'unknown-tool'], isSuccessExpected: false);
@@ -97,9 +74,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         self::assertStringContainsString('Unknown module "unknown-tool"', $output);
     }
 
-    /**
-     * @throws Exception
-     */
     public function testErrorsOnTypeMismatch(): void
     {
         $output = $this->runCommand(
@@ -116,9 +90,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         );
     }
 
-    /**
-     * @throws Exception
-     */
     public function testErrorsOnMissingConfigPath(): void
     {
         $output = $this->runCommand(
@@ -129,9 +100,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         self::assertStringContainsString('does not exist', $output);
     }
 
-    /**
-     * @throws LogicException
-     */
     #[Before]
     public function createApplication(): void
     {
@@ -143,9 +111,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         $this->application = $application;
     }
 
-    /**
-     * @throws Exception
-     */
     private function runForModule(string $module): string
     {
         return $this->runCommand(['module' => $module]);
@@ -153,8 +118,6 @@ final class PrintModuleConfigCommandTest extends TestCase
 
     /**
      * @param array<string, string> $arguments
-     *
-     * @throws Exception
      */
     private function runCommand(array $arguments, bool $isSuccessExpected = true): string
     {

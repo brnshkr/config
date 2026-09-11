@@ -68,30 +68,29 @@ expression to mean only one, as `/^Acme$/` does.
 A bare entry exempts its subject from every internal, everywhere. A list bounds it to the other side of the pair:
 
 ```php
-'allowedCallers' => [
-    'Acme\Console',                    // may reach any internal at all
-    'Acme\Reporting' => ['Acme\User'], // may reach only Acme\User's internals
-],
+PhpStan::getBuilder()->replaceRule(InternalUsageRule::class, [
+    'allowedCallers' => [
+        'Acme\Console',                    // may reach any internal at all
+        'Acme\Reporting' => ['Acme\User'], // may reach only Acme\User's internals
+    ],
+]);
 ```
 
 Your own test suite needs none of this: every namespace in `autoload-dev` already reaches the internals
 of the namespace in `autoload`, and nothing else.
 
-The rule ships already registered, so drop the default registration before adding your own or it runs twice
-and reports every violation twice.
+The rule ships already registered, so `replaceRule()` re-registers it under your arguments
+rather than adding a second copy that reports every violation twice.
 
 ```php
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 
-return PhpStan::getConfig(null, true)
-    ->removeRules([InternalUsageRule::class])
-    ->setRules([
-        PhpStan::configureRule(InternalUsageRule::class, [
-            'allowedCallers'   => ['Acme\Console'],
-            'allowedInternals' => ['Acme\User\Internal\Hasher::hash()' => ['Acme\Security']],
-        ]),
+return PhpStan::getBuilder()
+    ->replaceRule(InternalUsageRule::class, [
+        'allowedCallers'   => ['Acme\Console'],
+        'allowedInternals' => ['Acme\User\Internal\Hasher::hash()' => ['Acme\Security']],
     ])
-    ->toArray()
+    ->build()
 ;
 ```

@@ -46,11 +46,14 @@
                 "throwTypeCovariance": true,
                 "tooWideImplicitThrowType": true,
                 "tooWideThrowType": true
-            }
+            },
+            "uncheckedExceptionClasses": [
+                "Brnshkr\\Config\\Exception\\UnreachableException"
+            ]
         },
         "ignoreErrors": [
             {
-                "message": "/^Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.$/",
+                "identifier": "ternary.shortNotAllowed",
                 "reportUnmatched": false
             },
             {
@@ -66,6 +69,9 @@
             "literalString": true,
             "reportDynamicQueryBuilders": true,
             "reportUnknownTypes": true
+        },
+        "phpunit": {
+            "reportMissingDataProviderReturnType": true
         },
         "strictRules": {
             "allRules": true
@@ -255,8 +261,25 @@
                     "str_ireplace": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
                     "substr_replace": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
                     "str_repeat": "Use \"Symfony\\Component\\String\\s::repeat()\" instead.",
-                    "str?*": "Use \"Symfony\\Component\\String\\s\" instead. If using this function is really the only option, please disable this rule for this line.",
-                    "mb_str?*": "Use \"Symfony\\Component\\String\\s instead.",
+                    "strpos": "Use \"Symfony\\Component\\String\\s::indexOf()\" instead.",
+                    "mb_strpos": "Use \"Symfony\\Component\\String\\s::indexOf()\" instead.",
+                    "stripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOf()\" instead.",
+                    "mb_stripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOf()\" instead.",
+                    "strrpos": "Use \"Symfony\\Component\\String\\s::indexOfLast()\" instead.",
+                    "mb_strrpos": "Use \"Symfony\\Component\\String\\s::indexOfLast()\" instead.",
+                    "strripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOfLast()\" instead.",
+                    "mb_strripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOfLast()\" instead.",
+                    "strstr": "Use \"Symfony\\Component\\String\\s::{after,before}()\" instead.",
+                    "mb_strstr": "Use \"Symfony\\Component\\String\\s::{after,before}()\" instead.",
+                    "stristr": "Use \"Symfony\\Component\\String\\s::ignoreCase()->{after,before}()\" instead.",
+                    "mb_stristr": "Use \"Symfony\\Component\\String\\s::ignoreCase()->{after,before}()\" instead.",
+                    "strrchr": "Use \"Symfony\\Component\\String\\s::afterLast()\" instead.",
+                    "mb_strrchr": "Use \"Symfony\\Component\\String\\s::afterLast()\" instead.",
+                    "strrev": "Use \"Symfony\\Component\\String\\s::reverse()\" instead.",
+                    "strtr": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
+                    "wordwrap": "Use \"Symfony\\Component\\String\\s::wordwrap()\" instead.",
+                    "mb_strwidth": "Use \"Symfony\\Component\\String\\s::width()\" instead.",
+                    "mb_strimwidth": "Use \"Symfony\\Component\\String\\s::truncate()\" instead.",
                     "preg_match_all": "Use \"Symfony\\Component\\String\\s::match()\" instead.",
                     "preg_match": "Use \"Symfony\\Component\\String\\s::match()\" instead.",
                     "preg_replace_callback": "Use \"Symfony\\Component\\String\\s::replaceMatches()\" instead.",

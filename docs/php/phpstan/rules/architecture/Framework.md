@@ -17,9 +17,9 @@ The same factory supports two project layouts:
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 
-return PhpStan::getConfig(null, true)
-    ->setArchitecture(Architecture::symfony(root: 'Acme'))
-    ->toArray()
+return PhpStan::getBuilder()
+    ->addArchitecture(Architecture::symfony(root: 'Acme'))
+    ->build()
 ;
 ```
 
@@ -37,12 +37,12 @@ src/
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 
-return PhpStan::getConfig(null, true)
-    ->setArchitecture([
+return PhpStan::getBuilder()
+    ->addArchitecture([
         Architecture::symfony(root: 'Acme', modules: ['User', 'Email']),
         Architecture::doctrine(root: 'Acme', migrationsNamespace: 'Acme\Migrations', modules: ['User', 'Email']),
     ])
-    ->toArray()
+    ->build()
 ;
 ```
 

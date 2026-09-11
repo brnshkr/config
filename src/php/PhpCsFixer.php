@@ -15,6 +15,7 @@ use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
+use function array_diff_key;
 use function array_fill_keys;
 use function array_merge;
 
@@ -34,7 +35,9 @@ Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
  */
 final readonly class PhpCsFixer
 {
-    private function __construct() {}
+    private function __construct(
+        private PhpCsFixerConfig $phpCsFixerConfig,
+    ) {}
 
     /**
      * Build a fully configured php-cs-fixer Config.
@@ -56,6 +59,31 @@ final readonly class PhpCsFixer
      * @throws RuntimeException when required php-cs-fixer dependencies are missing
      */
     public static function getConfig(?Finder $finder = null): PhpCsFixerConfig
+    {
+        return self::getBuilder($finder)->build();
+    }
+
+    /**
+     * The same configuration as {@see self::getConfig()}, as a builder to extend before
+     * {@see self::build()} finalizes it.
+     *
+     * @example
+     * ```php
+     * // conf/php-cs-fixer.php
+     * return PhpCsFixer::getBuilder()
+     *     ->addRules(['numeric_literal_separator' => true])
+     *     ->build()
+     * ;
+     * ```
+     *
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     *
+     * @return self the builder, pre-configured with the baseline
+     *
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when required php-cs-fixer dependencies are missing
+     */
+    public static function getBuilder(?Finder $finder = null): self
     {
         $config = new PhpCsFixerConfig();
 
@@ -395,7 +423,72 @@ final readonly class PhpCsFixer
 
         $config->setRules($rules);
 
-        return $config;
+        return new self($config);
+    }
+
+    /**
+     * Add rules, keeping the ones already configured.
+     *
+     * Upstream's own `setRules()` replaces the whole set, which silently discards this package's
+     * baseline. This one merges, and {@see self::setRules()} is there when replacing is what was
+     * meant.
+     *
+     * @example
+     * ```php
+     * $builder->addRules(['numeric_literal_separator' => true]);
+     * ```
+     *
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     */
+    public function addRules(array $rules): self
+    {
+        $this->phpCsFixerConfig->setRules(array_merge($this->phpCsFixerConfig->getRules(), $rules));
+
+        return $this;
+    }
+
+    /**
+     * Set rules, discarding every rule configured so far.
+     *
+     * @example
+     * ```php
+     * $builder->setRules(['@PSR12' => true]);
+     * ```
+     *
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     */
+    public function setRules(array $rules): self
+    {
+        $this->phpCsFixerConfig->setRules($rules);
+
+        return $this;
+    }
+
+    /**
+     * Remove rules by name.
+     *
+     * @example
+     * ```php
+     * $builder->removeRules(['strict_comparison']);
+     * ```
+     *
+     * @param list<non-empty-string> $rules rule names to drop
+     */
+    public function removeRules(array $rules): self
+    {
+        $this->phpCsFixerConfig->setRules(array_diff_key($this->phpCsFixerConfig->getRules(), array_fill_keys($rules, true)));
+
+        return $this;
+    }
+
+    /**
+     * Finalize the builder into the config php-cs-fixer consumes.
+     *
+     * @return PhpCsFixerConfig configured Config instance ready for php-cs-fixer
+     */
+    public function build(): PhpCsFixerConfig
+    {
+        return $this->phpCsFixerConfig;
     }
 }
 

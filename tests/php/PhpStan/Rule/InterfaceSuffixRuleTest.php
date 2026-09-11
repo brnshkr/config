@@ -6,7 +6,6 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
-use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
 use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -19,9 +18,6 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 #[CoversNothing]
 final class InterfaceSuffixRuleTest extends AbstractRuleTestCase
 {
-    /**
-     * @throws InvalidFixtureFile
-     */
     public function testRule(): void
     {
         $this->assertIssuesReported(

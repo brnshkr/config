@@ -53,13 +53,10 @@ use function sprintf;
  *
  * @example
  * ```php
- * PhpStan::getConfig(null, true)
- *     ->removeRules([InternalUsageRule::class])
- *     ->setRules([
- *         PhpStan::configureRule(InternalUsageRule::class, [
- *             'allowedCallers'   => ['Acme\Tests'],
- *             'allowedInternals' => ['Acme\User\Internal\PasswordHasher::hash()' => ['Acme\Security']],
- *         ]),
+ * PhpStan::getBuilder()
+ *     ->replaceRule(InternalUsageRule::class, [
+ *         'allowedCallers'   => ['Acme\Tests'],
+ *         'allowedInternals' => ['Acme\User\Internal\PasswordHasher::hash()' => ['Acme\Security']],
  *     ])
  * ;
  * ```

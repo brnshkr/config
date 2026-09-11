@@ -11,9 +11,6 @@ use Brnshkr\Config\Composer\Command\SetupCommand;
 use Brnshkr\Config\Composer\Command\UpdatePhpExtensionsCommand;
 use Brnshkr\Config\ComposerJson;
 use Composer\Console\Application;
-use Composer\Json\JsonValidationException;
-use Exception;
-use LogicException;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -35,10 +32,6 @@ final class CommandTest extends TestCase
 {
     private Application $application;
 
-    /**
-     * @throws Exception
-     * @throws LogicException
-     */
     public function testMainCommand(): void
     {
         $arrayInput = new ArrayInput([
@@ -100,10 +93,6 @@ EOF;
         self::assertStringContainsStringIgnoringLineEndings($expectedOutput, $outputString);
     }
 
-    /**
-     * @throws Exception
-     * @throws LogicException
-     */
     public function testExtractPharCommand(): void
     {
         $arrayInput = new ArrayInput([
@@ -120,10 +109,6 @@ EOF;
         self::assertStringContainsString('Extracting ./vendor/phpstan/phpstan/phpstan.phar to ./vendor/phpstan/phpstan/.extracted-phar', $outputString);
     }
 
-    /**
-     * @throws Exception
-     * @throws LogicException
-     */
     public function testSetupCommand(): void
     {
         $arrayInput = new ArrayInput([
@@ -148,10 +133,6 @@ EOF;
         }
     }
 
-    /**
-     * @throws Exception
-     * @throws LogicException
-     */
     public function testUpdatePhpExtensionsCommand(): void
     {
         $arrayInput = new ArrayInput([
@@ -171,10 +152,6 @@ EOF;
         self::assertStringContainsString('Skipping "ext-json" — already listed under requirements.', $outputString);
     }
 
-    /**
-     * @throws JsonValidationException
-     * @throws LogicException
-     */
     #[Before]
     public function createApplication(): void
     {

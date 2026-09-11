@@ -17,6 +17,8 @@ Agent knowledge beyond `docs/php/`.
   The PHPStan error names the expected replacement; check `Str`/`Json` for an existing helper first.
 - Checked exceptions must be declared (`missingType.checkedException`)
   — Symfony `Process` alone adds `LogicException`/`RuntimeException` `@throws` to every caller chain.
+  The `autoload-dev` directories are exempt. A package lists the exceptions callers need not catch
+  in `conf/phpstan/unchecked-exceptions.php`; a consumer reads a dependency's list with `addUncheckedExceptionsFrom()`.
 - `@internal` symbols are only usable at or below their declaring namespace (`InternalUsageRule`); an explicit target
   (`@internal Vendor\Package`) replaces that subtree,
   and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package.

@@ -7,19 +7,24 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\TwigCsFixer;
-use JsonException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
-use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use TwigCsFixer\Environment\StubbedEnvironment;
 use TwigCsFixer\Report\Report;
 use TwigCsFixer\Report\Violation;
+use TwigCsFixer\Rules\Delimiter\EndBlockNameRule;
+use TwigCsFixer\Rules\File\DirectoryNameRule;
+use TwigCsFixer\Rules\File\FileExtensionRule;
+use TwigCsFixer\Rules\Node\NodeRuleInterface;
+use TwigCsFixer\Rules\RuleInterface;
 use TwigCsFixer\Runner\Linter;
 use TwigCsFixer\Token\Tokenizer;
 
+use function array_filter;
 use function array_map;
 use function chdir;
+use function count;
 use function getcwd;
 use function usort;
 
@@ -33,10 +38,6 @@ final class TwigCsFixerTest extends TestCase
 
     private const string PROJECT_DIRECTORY = __DIR__ . '/Fixtures/TwigCsFixer/project';
 
-    /**
-     * @throws DirectoryNotFoundException
-     * @throws JsonException
-     */
     public function testFlagsExpectedNameViolations(): void
     {
         $report = $this->lintProject();
@@ -59,9 +60,68 @@ final class TwigCsFixerTest extends TestCase
         $this->assertMatchesJsonSnapshot(Json::encode($violations));
     }
 
-    /**
-     * @throws DirectoryNotFoundException
-     */
+    public function testRulesAreAddedToTheStandardsRuleset(): void
+    {
+        $baseline = TwigCsFixer::getConfig()->getRuleset()->getRules();
+
+        $rules = TwigCsFixer::getBuilder()
+            ->addRules([new EndBlockNameRule()])
+            ->build()
+            ->getRuleset()
+            ->getRules()
+        ;
+
+        self::assertCount(count($baseline) + 1, $rules);
+    }
+
+    public function testSetRulesReplacesTheStandardsRuleset(): void
+    {
+        $ruleset = TwigCsFixer::getBuilder()
+            ->setRules([new FileExtensionRule()])
+            ->build()
+            ->getRuleset()
+        ;
+
+        $rules = array_map(
+            static fn (RuleInterface|NodeRuleInterface $rule): string => $rule::class,
+            $ruleset->getRules(),
+        );
+
+        self::assertSame([FileExtensionRule::class], $rules);
+    }
+
+    public function testRulesAreRemovedByClassName(): void
+    {
+        $rules     = TwigCsFixer::getConfig()->getRuleset()->getRules();
+        $firstRule = $rules[0] ?? null;
+
+        self::assertNotNull($firstRule);
+        self::assertCount(count($rules) - 1, TwigCsFixer::getBuilder()->removeRules([$firstRule::class])->build()->getRuleset()->getRules());
+    }
+
+    public function testRulesAreOverriddenByClass(): void
+    {
+        $configured = array_filter(
+            TwigCsFixer::getConfig()->getRuleset()->getRules(),
+            static fn (object $rule): bool => $rule instanceof DirectoryNameRule,
+        );
+
+        self::assertGreaterThan(1, count($configured));
+
+        $ruleset = TwigCsFixer::getBuilder()
+            ->overrideRules([new DirectoryNameRule()])
+            ->build()
+            ->getRuleset()
+        ;
+
+        $overridden = array_filter(
+            $ruleset->getRules(),
+            static fn (object $rule): bool => $rule instanceof DirectoryNameRule,
+        );
+
+        self::assertCount(1, $overridden);
+    }
+
     private function lintProject(): Report
     {
         $previousDirectory = getcwd() ?: '.';
