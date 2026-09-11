@@ -11,7 +11,7 @@ use Brnshkr\Config\Str;
 use Composer\Console\Application;
 use Exception;
 use LogicException;
-use Override;
+use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -31,20 +31,6 @@ final class PrintModuleConfigCommandTest extends TestCase
     use MatchesSnapshots;
 
     private Application $application;
-
-    /**
-     * @throws LogicException
-     */
-    #[Override]
-    protected function setUp(): void
-    {
-        $application = new Application();
-
-        $application->setAutoExit(false);
-        $application->addCommands(new CommandProvider()->getCommands());
-
-        $this->application = $application;
-    }
 
     /**
      * @throws Exception
@@ -141,6 +127,20 @@ final class PrintModuleConfigCommandTest extends TestCase
         );
 
         self::assertStringContainsString('does not exist', $output);
+    }
+
+    /**
+     * @throws LogicException
+     */
+    #[Before]
+    public function createApplication(): void
+    {
+        $application = new Application();
+
+        $application->setAutoExit(false);
+        $application->addCommands(new CommandProvider()->getCommands());
+
+        $this->application = $application;
     }
 
     /**
