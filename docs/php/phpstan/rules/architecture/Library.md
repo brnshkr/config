@@ -28,7 +28,7 @@ being a plugin, and Composer enforces the requirement for plugins anyway. Anythi
 Architecture::baseline(except: ['Vendor\ProvidedAtRuntime']);
 ```
 
-Classmap-only packages contribute their top-level namespace through `vendor/composer/autoload_classmap.php`
+Classmap-only packages contribute their top-level namespace through `./vendor/composer/autoload_classmap.php`
 — a classmapped class in the global namespace contributes nothing, since it has no namespace to forbid. A package autoloading
 only through `autoload.files` is not covered at all: its functions are global, and a namespace rule cannot reach them.
 

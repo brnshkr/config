@@ -26,7 +26,7 @@ How the AI/MCP system of this repository works. Source of truth for changing it.
 
 ## Lifecycle
 
-On `composer install`/`update` the `post-install-cmd`/`post-update-cmd` scripts run `make discover` (composer script `discover`).
+On `composer install`/`update` the `post-install-cmd`/`post-update-cmd` scripts run `make discover`.
 It calls `mate discover` (regenerating `extensions.php` + `mate/AGENT_INSTRUCTIONS.md` + the AGENTS.md managed block),
 then post-processes `extensions.php` — php-cs-fixer formats it and an awk pass strips mate's managed-by comment
 and inserts `@internal` — so the committed file stays lint-clean and in the linted set.
@@ -46,7 +46,7 @@ same content via the AGENTS.md managed block pointer. Keep INSTRUCTIONS.md token
   (permissions, caveman plugin via `extraKnownMarketplaces`/`enabledPlugins`).
 - Codex CLI: launch `./conf/ai/bin/codex` — registers the server via `-c mcp_servers.symfony_ai_mate.*`
   and cd's to the repo root first.
-- VSCode-native MCP consumers: `.vscode/mcp.json` with `${workspaceFolder}` absolute command
+- VS Code-native MCP consumers: `.vscode/mcp.json` with `${workspaceFolder}` absolute command
   (relative commands fail there — spawn does not cd to the workspace).
 
 ## Adding an MCP tool

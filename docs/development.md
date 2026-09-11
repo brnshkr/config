@@ -12,7 +12,7 @@ make startup
 ```
 
 `startup` installs each stack, writes the tool configs this repository does not track,
-builds `dist/` and installs the git hooks.
+builds `./dist/` and installs the git hooks.
 
 ## ☕ JS
 
@@ -24,13 +24,13 @@ with it installed and activated, running `nvm install` from the repo root instal
 ### Targets
 
 Everything runs through `make`; `make help` lists what this checkout can actually run,
-and [`docs/Makefile.md`](./Makefile.md) is the reference.
+and [`./docs/Makefile.md`](./Makefile.md) is the reference.
 Frequently used:
 
 - `make ci` — every tool this project has, writing nothing
 - `make check` — the same, writing the fixes
 - `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
-- `make build` — regenerate the types and build `dist/`, `make watch` to rebuild as sources change
+- `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
 - `make inspect-eslint` — inspect the ESLint configuration
 
 ## 🐘 PHP
@@ -43,7 +43,7 @@ with it installed and activated, running `mise install` from the repo root insta
 
 ### Targets
 
-The same `make` as above; [`docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
+The same `make` as above; [`./docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
 Frequently used:
 
 - `make phpstan` — static analysis, `make phpstan-list` for the files it reads
@@ -54,7 +54,7 @@ Frequently used:
 ## 🤖 AI tooling
 
 This repo ships a project-aware MCP server ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants,
-wired up under [`conf/ai/`](../conf/ai). It installs itself on `composer install` (the `mate/` directory is generated),
+wired up under [`./conf/ai/`](../conf/ai). It installs itself on `composer install` (the `mate/` directory is generated),
 and is picked up automatically by Claude Code (`.mcp.json`) and Codex (`./conf/ai/bin/codex`).
 Agents must read [`AGENTS.md`](../AGENTS.md) first;
-how the setup works and how to extend it lives in [`conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).
+how the setup works and how to extend it lives in [`./conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).

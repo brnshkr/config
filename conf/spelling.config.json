@@ -7,7 +7,7 @@
       "analyse:20"
     ],
     "docs/spelling.md": [
-      "analyse:60,67"
+      "analyse:62,69"
     ],
     "src/php/PhpStan.php": [
       "analyse:138,596,601,606,673,697"

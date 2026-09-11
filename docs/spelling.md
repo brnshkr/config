@@ -4,6 +4,8 @@ Prose, docblocks and identifiers are written in American English across the orga
 and this check reports every British spelling with the American form to replace it.
 The word list is shipped by **@brnshkr/config**, so a repository never carries a copy of it.
 
+## Usage
+
 It runs as a test, on whichever stack a repository has.
 On PHP, name the shipped directory as a test suite;
 on JavaScript, import the shipped module from a test of your own.
@@ -34,13 +36,13 @@ exports nothing — importing it registers the test — and the `export` form is
 ## What is scanned
 
 Every tracked file the shipped defaults name, by extension or by file name
-— see [`conf/spelling/defaults.json`](../conf/spelling/defaults.json) for the exact set.
+— see [`./conf/spelling/defaults.json`](../conf/spelling/defaults.json) for the exact set.
 The list comes from `git ls-files`, so anything gitignored is already out,
 and snapshots and test fixtures are excluded on top of that.
 
-## Settings
+## Customizing
 
-`conf/spelling.config.json` is merged over `conf/spelling/defaults.json` as shipped,
+`./conf/spelling.config.json` is merged over `./conf/spelling/defaults.json` as shipped,
 so a repository adds to any of them and restates none. Every key is optional.
 
 | Key | Adds to |

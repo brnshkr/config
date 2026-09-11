@@ -1,25 +1,24 @@
 # ESLint [🔍](../../../src/js/eslint/index.ts 'Go to source')
 
-The ESLint module is a flat-config builder consumed from `@brnshkr/config/eslint`.
-`getConfig()` returns a [`FlatConfigComposer`](https://github.com/antfu/eslint-flat-config-utils)
-that wires up the @brnshkr opinions for JavaScript, TypeScript, JSON, Markdown, YAML, TOML, Svelte, and more
-— activating each plugin lazily, only when its optional peer dependency is installed.
-The composer resolves to the final flat-config array and also exposes `.append()`, `.prepend()`,
-and similar helpers for downstream composition.
+`@brnshkr/config/eslint` is the @brnshkr lint configuration, ready to export from a flat-config file.
 
-## Custom Rules
-
-The default configuration ships a small `brnshkr` plugin,
-enabled out of the box. See [Custom ESLintRules](./rules/index.md).
-
-## Customizing
-
-`getConfig()` takes the per-module toggles (merged with global flat-config fields)
-as its first argument and any additional flat configs as the rest:
+## Usage
 
 ```js
 // ./conf/eslint.config.mjs
+export { default } from '@brnshkr/config/eslint';
+```
 
+Modules for languages and plugins — e.g. `typescript`, `svelte`, `yaml`
+— switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
+
+## Customizing
+
+`getConfig()` takes the module toggles, merged with the global flat-config fields, and any further
+flat configs after them.
+
+```js
+// ./conf/eslint.config.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({
@@ -36,3 +35,11 @@ export default getConfig({
   },
 });
 ```
+
+Set a module to `false` to keep it off even when its packages are there.
+What comes back is a [`FlatConfigComposer`](https://github.com/antfu/eslint-flat-config-utils),
+so `.append()`, `.prepend()` and `.override()` are available where a config is assembled in steps.
+
+## Rules
+
+- [Custom rules](./rules/index.md) — what the `brnshkr` plugin checks beyond the plugins above

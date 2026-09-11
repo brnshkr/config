@@ -1,19 +1,26 @@
 # markdownlint [🔍](../../src/js/markdownlint/index.ts 'Go to source')
 
-The markdownlint module is a config builder consumed from `@brnshkr/config/markdownlint`.
-`getConfig()` returns a final `markdownlint-cli2` config carrying the @brnshkr opinions for line length,
-emphasis, table style, duplicate headings, inline HTML, and more — activating each plugin lazily,
-only when its optional peer dependency is installed.
-An always-on baseline (general rule hardening and shared ignores) is layered in unconditionally.
+`@brnshkr/config/markdownlint` is the @brnshkr Markdown configuration, ready to export from a config file.
+It is the shape `markdownlint-cli2` reads, so a project needs a config file of its own
+rather than extending a shared rule set.
 
-## Customizing
-
-`getConfig()` takes the per-module toggles (merged with global `markdownlint-cli2` fields) as its first argument and
-any additional config entries as the rest:
+## Usage
 
 ```js
 // ./conf/markdownlint.config.mjs
+export { default } from '@brnshkr/config/markdownlint';
+```
 
+Modules for the optional rule groups — e.g. `links`, `tables`
+— switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
+
+## Customizing
+
+`getConfig()` takes the module toggles, merged with the global `markdownlint-cli2` fields, and any further
+config entries after them.
+
+```js
+// ./conf/markdownlint.config.mjs
 import { getConfig } from '@brnshkr/config/markdownlint';
 
 export default getConfig({
@@ -35,5 +42,5 @@ export default getConfig({
 });
 ```
 
-An override written without `combine` is given `merge` since `markdownlint-cli2` drops one
-whose value is neither `merge` nor `replace`, without reporting it.
+Set a module to `false` to keep it off even when its packages are there.
+An override needs no `combine` — one written without it merges, rather than being dropped unreported.

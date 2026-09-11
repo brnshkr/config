@@ -1,14 +1,12 @@
 # 🐘 PHP
 
-The PHP half of **@brnshkr/config**: fluent config builders for every tool, a shared file-discovery helper
-they all delegate to, a Composer plugin that bootstraps downstream projects, and a reusable Makefile
-foundation. Per-tool pages below; the [README](../../README.md#-php) covers setup.
+The PHP half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-php) covers setup.
 
-- [PHPStan](./phpstan/index.md) — fluent config builder + the custom standalone and architecture rules
-- [PHP-CS-Fixer](./PhpCsFixer.md) — @brnshkr coding-style config builder
-- [Rector](./Rector.md) — @brnshkr refactoring config builder
-- [Twig-CS-Fixer](./TwigCsFixer.md) — @brnshkr template-style config builder
-- [FileFinder](./FileFinder.md) — the file-discovery helper every tool config delegates to
-- [EditorUrl](./EditorUrl.md) — editor-jump URL template builder consumed by PHPStan and Rector
-- [Composer Plugin](./Composer.md) — `setup` and the other `brnshkr:config:*` helper commands
+- [PHPStan](./phpstan/index.md) — analysis configuration plus the custom standalone and architecture rules
+- [PHP-CS-Fixer](./PhpCsFixer.md) — coding-style configuration
+- [Rector](./Rector.md) — refactoring configuration
+- [Twig-CS-Fixer](./TwigCsFixer.md) — template-style configuration
+- [FileFinder](./FileFinder.md) — the file discovery every tool configuration runs on
+- [EditorUrl](./EditorUrl.md) — the editor links PHPStan and Rector print beside an error
+- [Composer plugin](./Composer.md) — `setup` and the other `brnshkr:config:*` helper commands
 - [Makefile](./Makefile.md) — the PHP task-runner targets

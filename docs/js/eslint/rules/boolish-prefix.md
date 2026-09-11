@@ -18,9 +18,10 @@ const isVerified = () => isActive;
 
 ## Type information
 
-With a type-aware configuration the rule asks the TypeScript checker, so it follows aliases and inferred returns. An
-`async` function is judged on what it resolves to — `isVerified(): Promise<boolean>` reads as the boolean it delivers —
-and a getter is judged as the value it exposes rather than as a method.
+With a type-aware configuration the rule asks the TypeScript checker,
+so it follows aliases and inferred returns.
+An `async` function is judged on what it resolves to, so `isVerified(): Promise<boolean>`
+reads as the boolean it delivers, and a getter is judged as the value it exposes rather than as a method.
 
 Without type information — plain JavaScript, or files outside the type-aware globs — the rule reads what the source
 spells out literally: a type annotation, an initializer, or a returned boolean literal or comparison. Anything indirect
@@ -37,11 +38,12 @@ const active = true;
 const resolvedFlag = loadUser();
 ```
 
-Object literal keys are never checked in either mode; like PHP array shapes, they routinely mirror a foreign schema the
-project does not name.
+Object literal keys are never checked in either mode;
+like PHP array shapes, they routinely mirror a foreign schema the project does not name.
 
-## Skipped symbols
+## Exemptions
 
-Where the PHP rule skips members inherited from `/vendor/`, this one skips class members that override or implement a
-declaration from an external package (`node_modules`), plus constructors and computed names. `any`, a generic, and an
-untyped parameter are the unresolvable types here.
+Where the PHP rule skips members inherited from `/vendor/`,
+this one skips class members that override or implement a declaration from an external package (`node_modules`),
+plus constructors and computed names.
+`any`, a generic, and an untyped parameter are the unresolvable types here.

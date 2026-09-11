@@ -1,4 +1,4 @@
-# Composer Plugin [🔍](../../src/php/Composer/Command/ 'Go to source')
+# Composer plugin [🔍](../../src/php/Composer/Command/ 'Go to source')
 
 The package doubles as a Composer plugin. Once you allow it to run (Composer prompts on first install),
 it registers a set of helper commands under the `brnshkr:config` namespace. The most important of them, `setup`,

@@ -7,12 +7,13 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 ## Working here
 
 - **Rules** (code style, tooling, commits) are injected every session as MCP server instructions.
-  Without MCP, read [`conf/ai/mate/INSTRUCTIONS.md`](conf/ai/mate/INSTRUCTIONS.md) before writing code.
+  Without MCP, read [`conf/ai/mate/INSTRUCTIONS.md`](./conf/ai/mate/INSTRUCTIONS.md) before writing code.
 - **Prefer the `project-*` MCP tools** over raw CLI (quality, tests, version sync, commit lint).
   They return compact, structured output.
-- **Commands, setup, tool/rule reference** live in [`docs/`](docs/)
-  — start at [`docs/development.md`](docs/development.md). Never duplicate that here.
-- **Deep agent references** live in [`conf/ai/docs/`](conf/ai/docs/): `ai` (this AI/MCP setup), `commit`, `php`, `js`, `make`.
+- **Commands, setup, tool/rule reference** live in [`docs/`](./docs/)
+  — start at [`docs/development.md`](./docs/development.md). Never duplicate that here.
+- **Deep agent references** live in [`conf/ai/docs/`](./conf/ai/docs/):
+  `ai` (this AI/MCP setup), `commit`, `php`, `js`, `make`.
 - **Codex**: launch `./conf/ai/bin/codex` — it registers the MCP server and runs from the repo root.
 
 ## Map

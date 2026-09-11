@@ -24,7 +24,7 @@ Agent knowledge beyond `docs/php/`.
   and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package.
   A tag argument that is not a single namespace is a description and leaves a plain `@internal`.
 - Rector rewrites on `make rector`: adds `#[\Override]` to overridden methods,
-  adds `#[\SensitiveParameter]` to secret-named params (`password`, `apiToken`, ...)
+  adds `#[\SensitiveParameter]` to secret-named params (`password`, `apiToken`, …)
   — generate code that way up front. Full builder behavior in `docs/php/Rector.md`.
 
 ## Composer plugin
@@ -50,7 +50,7 @@ Agent knowledge beyond `docs/php/`.
   One marker per line only — a rule that reports two errors on one line (e.g. `PublicApiDocumentationRule`)
   keeps PHPStan's raw `RuleTestCase` with an explicit `[message, line]` list.
 - Architecture rules are PHPat-based `*Test` classes under `src/php/PhpStan/Rule/Architecture/<Framework>/`,
-  bundled through the `Architecture` facade factories (`layered`, `ddd`, `symfony`, ...).
+  bundled through the `Architecture` facade factories (`layered`, `ddd`, `symfony`, …).
 - Constant globs like `Module::NAME_*` match ALL constants with that prefix, array constants included
   — an array in the glob expands the type to `string|array<...>` and breaks `key-of<>`.
   Rename the odd constant out of the prefix or use `key-of<self::EXPLICIT_MAP>`.

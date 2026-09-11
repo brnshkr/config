@@ -1,4 +1,4 @@
-# brnshkr/config — agent rules
+# @brnshkr/config — agent rules
 
 Principles: less code is better code.
 Simplicity, brevity, maintainability, readability, correctness, flexibility.
@@ -35,7 +35,7 @@ follow them, don't restate them. Beyond what tooling catches:
   Never `array{a: int, b: string}` on one line.
 - Plain `@param`/`@return`/`@var`; reach for `@phpstan-*` only when the type uses `self::*` or sits on a typed
   `const array` (`no_superfluous_phpdoc_tags` strips a plain `@var` there).
-- Type hardening (`non-empty-*`, `positive-int`, `key-of<>`, ...) only where the domain demands it;
+- Type hardening (`non-empty-*`, `positive-int`, `key-of<>`, …) only where the domain demands it;
   generic utilities take arbitrary input.
 - Naming that drives generation: boolean symbols need a boolish prefix (`is`/`has`/`can`; `as` for flag params/props),
   single-`*Interface` implementers take the matching suffix, traits suffix `Trait`, `@api` classes also carry `@no-named-arguments`.

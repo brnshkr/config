@@ -6,12 +6,12 @@ A symbol marked `@internal` may only be used from inside its own namespace or a 
 
 A module's namespace is the `name` of its nearest `package.json` followed by the module's directory relative
 to that package root, with leading `dist`, `js`, `lib` and `src` segments dropped so that the namespace
-reads like the specifier a consumer writes. So `src/internal/hasher.ts` in the package `@acme/user`
+reads like the specifier a consumer writes. So `./src/internal/hasher.ts` in the package `@acme/user`
 declares into `@acme/user/internal`, and the module itself is `@acme/user/internal/hasher`.
 `package.json#exports` play no part: the modules this rule protects are the ones `exports` does not name.
 
 ```js
-// src/internal/hasher.ts
+// ./src/internal/hasher.ts
 /**
  * @internal
  */
@@ -41,7 +41,7 @@ the shipped config stops applying `jsdoc/empty-tags` to `@internal` whenever the
 ## Path aliases
 
 A module reachable through a `compilerOptions.paths` alias also answers to the namespace that alias spells,
-so a target may be written in either form. With `"@user/*": ["./src/*"]`, `src/internal/hasher.ts`
+so a target may be written in either form. With `"@user/*": ["./src/*"]`, `./src/internal/hasher.ts`
 declares into both `@acme/user/internal` and `@user/internal`. The shipped config passes the tsconfig it already
 resolves for type-aware linting; point `tsConfigPath` elsewhere to read a different one, and leave it unset to switch
 alias namespaces off. A name in `allowedInternals` always spells the `package.json` form.
@@ -82,7 +82,7 @@ a regular expression, or the delimited pattern string the PHP rule takes. A symb
 followed by `#` and the member path.
 
 ```js
-// eslint.config.mjs
+// ./conf/eslint.config.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({

@@ -31,10 +31,16 @@ while `do` marks a command, allowed anywhere but never reserved.
 A method named `as`/`to` + `bool`/`boolean` is itself a converter, satisfying the rule by naming `bool` as its target.
 
 ```php
-public bool $hasErrors;
-public function containsKey(string $key): bool {}
-public function toArray(bool $asAssociative): array {} // 'as' flags a value-holder
-public function asBoolean(): bool {}                   // 'as'/'to' + bool/boolean is a converter
+final class Report
+{
+    public bool $hasErrors;
+
+    public function containsKey(string $key): bool {}
+
+    public function toArray(bool $asAssociative): array {} // 'as' flags a value-holder
+
+    public function asBoolean(): bool {}                   // 'as'/'to' + bool/boolean is a converter
+}
 ```
 
 ## Reserved prefixes
@@ -43,15 +49,26 @@ The reverse keeps names honest: a non-boolean symbol must not start with a reser
 
 ```php
 // ❌ Bad — these read as boolean but are not
-public function hasName(): string {}
-public int $isCount;
-const IS_LABEL = 'draft';
-public function asBoolean(): string {}
+final class BadReport
+{
+    public const string IS_LABEL = 'draft';
+
+    public int $isCount;
+
+    public function hasName(): string {}
+
+    public function asBoolean(): string {}
+}
 
 // ✅ Good
-public function getName(): string {}
-public int $count;
-const LABEL = 'draft';
+final class GoodReport
+{
+    public const string LABEL = 'draft';
+
+    public int $count;
+
+    public function getName(): string {}
+}
 ```
 
 Two exemptions cover routine, legitimate collisions:
@@ -62,7 +79,7 @@ Two exemptions cover routine, legitimate collisions:
   so `$matches` (a `preg_match` result), `$startsAt`, and `$endsAt` stay free,
   while `startsWith(): array` is still flagged.
 
-## Skipped symbols
+## Exemptions
 
 The rule only governs names the project is free to choose.
 A method that overrides or implements a declaration from a vendor (`/vendor/`) parent, interface, or trait is skipped,

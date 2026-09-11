@@ -1,7 +1,8 @@
 # `brnshkr/type-assertion-style` [🔍](../../../../src/js/eslint/configs/builtin/type-assertion-style.ts 'Go to source')
 
-An operand that begins with a keyword must be parenthesized, and every other operand must
-sit against the closing angle bracket with no space, so an assertion reads the same way everywhere.
+An operand that begins with a keyword must be parenthesized,
+and every other operand must sit against the closing angle bracket with no space,
+so an assertion reads the same way everywhere.
 [`style/keyword-spacing`](https://eslint.style/rules/keyword-spacing) requires a space before a keyword that follows `>`,
 and the parenthesis is what removes that requirement; without it the two rules reverse each other on every pass.
 The autofix adds or removes the parentheses and closes the gap in one edit,
@@ -43,11 +44,12 @@ const total = (<Total>price) + tax;
 const total = <Total>(price + tax);
 ```
 
-## Assertions written with as
+## Assertions written with `as`
 
 `as` binds loosely, so `await load() as Config` already parses as `(await load()) as Config`
-and the parentheses carry shape alone. The rule applies them anyway, so the same form holds when
-[`ts/consistent-type-assertions`](https://typescript-eslint.io/rules/consistent-type-assertions/) is set to `as`.
+and the parentheses carry shape alone.
+The rule applies them anyway, so the same form holds where a project sets
+[`ts/consistent-type-assertions`](https://typescript-eslint.io/rules/consistent-type-assertions/) to `as`.
 Spacing is not checked there, since `as` is separated by its own keyword spacing.
 
 ```ts
@@ -69,7 +71,7 @@ const config = (await load()) as Config;
 so it needs either `spacing: 'always'` or that rule turned off.
 
 ```js
-// eslint.config.mjs
+// ./conf/eslint.config.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({

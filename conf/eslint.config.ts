@@ -121,6 +121,7 @@ export default getConfig({
     [<const>`${packageOrganization}/type-assertion-style`]: 'off',
     'class-methods-use-this': 'off',
     'max-classes-per-file': 'off',
+    'no-restricted-exports': 'off',
     'import/export': 'off',
     'import/extensions': 'off',
     'import/no-duplicates': 'off',

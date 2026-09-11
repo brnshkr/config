@@ -2,8 +2,9 @@
 
 The PHP half of the shared [`Makefile`](../Makefile.md): one target per tool,
 present once the repository has a `composer.json` and that tool is installed.
-Each reads `./conf/<tool>.php` when it is there and the tracked `./conf/<tool>.dist.php` otherwise, so a
-developer overrides without touching the repository — [Makefile](../Makefile.md) has the full search.
+Each reads `./conf/<tool>.php` when it is there and the tracked `./conf/<tool>.dist.php` otherwise,
+so a developer overrides without touching the repository
+— [Makefile](../Makefile.md) has the full search.
 The shipped example for the local file includes the tracked one, which is the shape to keep.
 
 ## Targets
@@ -28,5 +29,5 @@ The runner is Pest when it is installed and PHPUnit otherwise.
 command that variable names, since PHPUnit rejects the options Pest adds.
 
 Its config follows the same search, `./conf/phpunit.xml` before `./conf/phpunit.dist.xml`, with one caveat:
-PHPUnit merges nothing, so a local file has to be a whole configuration rather than an `include` of the
-tracked one.
+PHPUnit merges nothing, so a local file has to be a whole configuration
+rather than an `include` of the tracked one.

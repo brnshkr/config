@@ -1,19 +1,24 @@
 # Stylelint [🔍](../../src/js/stylelint/index.ts 'Go to source')
 
-The Stylelint module is a config builder consumed from `@brnshkr/config/stylelint`.
-`getConfig()` returns a final Stylelint `Config` that wires up the @brnshkr opinions for
-plain CSS, SCSS, CSS Modules, HTML-embedded styles, Recess-style ordering, design-token enforcement, and more
-— activating each plugin lazily, only when its optional peer dependency is installed.
-An always-on CSS baseline (general rule hardening and shared ignores) is layered in unconditionally.
+`@brnshkr/config/stylelint` is the @brnshkr stylesheet configuration, ready to export from a config file.
 
-## Customizing
-
-`getConfig()` takes the per-module toggles (merged with global Stylelint fields) as its first argument
-and any additional config entries as the rest:
+## Usage
 
 ```js
 // ./conf/stylelint.config.mjs
+export { default } from '@brnshkr/config/stylelint';
+```
 
+Modules for dialects and plugins — e.g. `scss`, `modules`, `order`
+— switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
+
+## Customizing
+
+`getConfig()` takes the module toggles, merged with the global Stylelint fields, and any further
+config entries after them.
+
+```js
+// ./conf/stylelint.config.mjs
 import { getConfig } from '@brnshkr/config/stylelint';
 
 export default getConfig({
@@ -23,7 +28,9 @@ export default getConfig({
   ],
 }, {
   rules: {
-    'color-no-hex': null,
+    'declaration-no-important': null,
   },
 });
 ```
+
+Set a module to `false` to keep it off even when its packages are there.

@@ -23,10 +23,10 @@ COMPOSER := ./scripts/composer.php
 typegen: #~~ regenerates the rule types the configs are built from
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(CURDIR)/scripts/typegen.ts
 
-build: typegen #~~ builds the `dist/` this package publishes
+build: typegen #~~ builds the `./dist/` this package publishes
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts $(ARGS)
 
-watch: #~~ rebuilds `dist/` as the sources change
+watch: #~~ rebuilds `./dist/` as the sources change
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts --watch
 
 #--- inspect

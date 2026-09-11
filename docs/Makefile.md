@@ -14,7 +14,7 @@ include ./vendor/brnshkr/config/conf/Makefile
 
 For a JavaScript package the path is `./node_modules/@brnshkr/config/conf/Makefile`.
 
-Neither path resolves before that stack is installed, so [`conf/Makefile.example`](../conf/Makefile.example)
+Neither path resolves before that stack is installed, so [`./conf/Makefile.example`](../conf/Makefile.example)
 guards the include and adds a `bootstrap` target that installs and runs `startup`.
 `composer brnshkr:config:setup --make` writes it; a JavaScript repository copies it.
 
@@ -56,10 +56,11 @@ and `-coverage` measures how much of the source the tests reach.
 Anything after a target reaches the tool, so `make phpstan src/Service` and `make composer require symfony/finder`
 both work. A word that is itself a target is run as one, which is why `make cc phpstan` runs both rather
 than clearing one cache. Several targets run in the order given and stop at the first failure, `make -k` runs the rest.
-Make claims two shapes for itself: `name=value` becomes a variable of its own, and anything starting with a
-dash becomes one of its own options. Write the value with a space, and put `--` in front of the flags:
-`make phpunit -- --filter Name`. A target of your own reads them as `ARGS`, one at a time as `ARG1` through
-`ARG9`, and `TARGET` names the target they followed.
+Make claims two shapes for itself: `name=value` becomes a variable of its own,
+and anything starting with a dash becomes one of its own options.
+Write the value with a space, and put `--` in front of the flags: `make phpunit -- --filter Name`.
+A target of your own reads them as `ARGS`, one at a time as `ARG1` through `ARG9`,
+and `TARGET` names the target they followed.
 
 ## Configuration
 
@@ -87,14 +88,15 @@ A flag is off when it is empty, `0`, `false`, `off` or `no`, and on for anything
 `SEMVER_REGEX`, and the four parts it is built from, are there for a repository that has to match a version string itself.
 Every tool reads the first config that is there: `./conf/<tool>.<extension>`, then the tracked
 `./conf/<tool>.dist.<extension>` beside it, then that name under either installation of the package.
-So a repository tracks the `.dist` file and edits that, a developer who wants private settings adds the
-undotted one — which should `include` the tracked file rather than restate it — and a repository content
-with the shipped defaults keeps neither.
+So a repository tracks the `.dist` file and edits that,
+a developer who wants private settings adds the undotted one
+— which should `include` the tracked file rather than restate it —
+and a repository content with the shipped defaults keeps neither.
 `<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
 at once — which is how a developer with a private file checks what the gate will read.
 
 `make configs` writes the tracked half of every config the repository is missing, from its own
-`conf/<name>.example` when there is one and from either installation of the package otherwise.
+`./conf/<name>.example` when there is one and from either installation of the package otherwise.
 `make configs local` writes the private halves as well.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.
 
@@ -116,8 +118,8 @@ A `.env` is loaded the way `symfony/dotenv` loads it, so one set of files serves
 
 - Load order is `.env`, `.env.local`, `.env.<APP_ENV>`, `.env.<APP_ENV>.local`.
   Later wins, and a real environment variable beats all. `DOTENV_ENV_KEY` renames the variable.
-- `.env` is tracked and holds what is true everywhere. A repository that would rather not track it
-  ships `.env.dist` instead, which is read only when `.env` is absent.
+- `.env` is tracked and holds what is true everywhere.
+  A repository that would rather not track it ships `.env.dist` instead, read only when `.env` is absent.
 - One `.env.<environment>` per environment may be tracked, each with its own untracked `.env.<environment>.local`.
   `DOTENV_DEFAULT_ENV` is the environment assumed when the variable is unset, and `DOTENV_TEST_ENVS`
   lists every environment that skips `.env.local` — a test run has to be reproducible — while still

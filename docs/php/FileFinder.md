@@ -1,29 +1,26 @@
 # FileFinder [🔍](../../src/php/FileFinder.php 'Go to source')
 
-`Brnshkr\Config\FileFinder` is the shared file-discovery helper that every PHP tool config in this package
-delegates to. Passing `null` as an argument for the `$finder` parameter
-of [`PhpCsFixer`](./PhpCsFixer.md), [`Rector`](./Rector.md), [`TwigCsFixer`](./TwigCsFixer.md),
-and [`PhpStan`](./phpstan/index.md) hands scope resolution to `FileFinder`.
-
-## What it does
-
-- Scans the current working directory (or a caller-provided
-  [Symfony Finder](https://symfony.com/doc/current/components/finder.html), narrowed further).
-- Filters by extension — PHP, Twig, or both. The supported set is exposed as `FileFinder::EXTENSIONS`,
-  with the individual values available as `FileFinder::EXTENSION_PHP` and `FileFinder::EXTENSION_TWIG`.
-  Passing an unsupported extension throws `InvalidArgumentException`.
-- Excludes project-wide noise: dependencies, caches, build artifacts, generated files and test fixtures.
-  See the [source](../../src/php/FileFinder.php) for the exact set.
-- Also picks up `bin/console` when PHP files are requested.
+`Brnshkr\Config\FileFinder` is the file discovery every PHP tool configuration in this package runs on.
 
 ## Usage
 
 ```php
 use Brnshkr\Config\FileFinder;
 
-$phpFiles        = FileFinder::get();
-$phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
-$scopedTwigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+$phpFiles = FileFinder::get();
 ```
 
-`FileFinder::getFilePaths()` returns the same selection as a flat array of paths instead of a `Finder`.
+It collects the PHP files below the working directory, `./bin/console` included, and leaves out what no tool
+should read — e.g. dependencies, caches, build output and fixtures.
+`getFilePaths()` returns the same selection as plain paths instead of a `Finder`.
+
+## Customizing
+
+Both take a [Finder](https://symfony.com/doc/current/components/finder.html) to narrow the scope,
+and the extensions to collect.
+
+```php
+$twigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+```
+
+`FileFinder::EXTENSIONS` holds what is supported; anything else throws `InvalidArgumentException`.

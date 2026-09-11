@@ -17,7 +17,8 @@ Installation and the ways to run each tool live in the [README](../README.md)
   - [Rector](./php/Rector.md)
   - [Twig-CS-Fixer](./php/TwigCsFixer.md)
   - [FileFinder](./php/FileFinder.md)
-  - [Composer Plugin](./php/Composer.md)
+  - [EditorUrl](./php/EditorUrl.md)
+  - [Composer plugin](./php/Composer.md)
   - [Makefile](./php/Makefile.md)
 - [🛠 Makefile](./Makefile.md) — the shared task-runner foundation both stacks include
 - [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run

@@ -4,8 +4,8 @@ The JavaScript half of the shared [`Makefile`](../Makefile.md): one target per t
 present once the repository has a `package.json` and that tool is installed.
 Each reads a config under `./conf/`, overridable through `<TOOL>_CONFIG`;
 `typescript` reads the repository's own `tsconfig.json`.
-`eslint` and `vitest` take a TypeScript config where there is one, `conf/<tool>.config.ts` before the
-`.mjs`, since both load it natively.
+`eslint` and `vitest` take a TypeScript config where there is one,
+`./conf/<tool>.config.ts` before the `.mjs`, since both load it natively.
 
 ## Targets
 

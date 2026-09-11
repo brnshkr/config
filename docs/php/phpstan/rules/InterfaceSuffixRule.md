@@ -1,6 +1,6 @@
 # `InterfaceSuffixRule` [🔍](../../../../src/php/PhpStan/Rule/InterfaceSuffixRule.php 'Go to source')
 
-Classes that implement a single `*Interface` must end with the matching prefix.
+Classes that implement a single `*Interface` must end with the matching suffix.
 Pairs the contract and the implementation visibly at the call site and keeps grep-able naming consistent
 across the codebase. Only triggered when exactly one `*Interface`-suffixed interface is implemented
 — zero or many such interfaces make the canonical suffix ambiguous and are skipped.
@@ -17,7 +17,7 @@ final class DoctrineUserRepository implements UserRepositoryInterface {}
 
 ## Multi-interface skip
 
-When a class implements more than one `*Interface`-suffixed interface, no single prefix is canonical,
+When a class implements more than one `*Interface`-suffixed interface, no single suffix is canonical,
 so the rule steps back and leaves naming to the author:
 
 ```php
@@ -30,5 +30,9 @@ final class CachedUserStore implements UserRepositoryInterface, CacheableInterfa
 
 Non-`*Interface` parents (a base class, a non-suffixed interface, a marker like `\Stringable`) are ignored for the count
 — they neither trigger nor suppress the check.
+
+## Exemptions
+
+- **Anonymous classes.** They have no name to import, and no caller beyond the expression building them.
 
 The JavaScript counterpart is [`brnshkr/interface-suffix`](../../../js/eslint/rules/interface-suffix.md).

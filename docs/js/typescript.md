@@ -1,24 +1,22 @@
 # TypeScript [🔍](../../conf/tsconfig.json 'Go to source')
 
-The TypeScript module is a shareable `tsconfig.json` base, copied into a project and extended through `extends`.
-Unlike the other modules it is not a builder — it is a plain config file, so customizing means overriding fields
-in your own `tsconfig.json`.
+The shipped `tsconfig.json` is the @brnshkr compiler baseline: strict beyond `strict`, bundler-first,
+type-checking only. Unlike the other modules it is a plain config file rather than a builder.
 
-## What the base config sets
+## Usage
 
-The base leans on a strict, bundler-first, ESNext setup:
+```jsonc
+// ./tsconfig.json
+{
+  "extends": "./node_modules/@brnshkr/config/conf/tsconfig.json"
+}
+```
 
-- **Strict type checking** beyond `strict` — `noUncheckedIndexedAccess`, `noImplicitOverride`, `noImplicitReturns`,
-  `noPropertyAccessFromIndexSignature`, `noUnusedLocals`/`noUnusedParameters`, `noFallthroughCasesInSwitch`, and friends
-- **Modern modules** — `module: "preserve"` with `moduleResolution: "bundler"`,
-  `verbatimModuleSyntax`, and `allowImportingTsExtensions`
-- **No emit** — type-checking only (`noEmit`); bundling is left to your build tool
-- **JavaScript checked too** — `allowJs` and `checkJs` are on
-- A broad `exclude` list so caches, build output, vendored code, and snapshots stay out of the program.
+Emitting is left to the build tool, and JavaScript files are checked alongside TypeScript ones.
 
-## Extending
+## Customizing
 
-Copy the example and point `extends` at the shipped config, then layer your project-specific paths and options on top:
+Override a field in your own `tsconfig.json`; it wins over the base.
 
 ```jsonc
 // ./tsconfig.json
@@ -33,5 +31,5 @@ Copy the example and point `extends` at the shipped config, then layer your proj
 }
 ```
 
-The `paths` you define here are also what [`brnshkr/require-import-alias`](./eslint/rules/require-import-alias.md)
+The `paths` defined here are what [`brnshkr/require-import-alias`](./eslint/rules/require-import-alias.md)
 reads to enforce alias imports.
