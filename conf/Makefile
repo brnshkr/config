@@ -153,6 +153,7 @@ RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#vvv #~~ path to `rm`
 MKDIR  ?= mkdir#vvv #~~ path to `mkdir` binary
 PRINTF ?= printf#vvv #~~ path to `printf` binary
 AWK    ?= awk#vvv #~~ path to `awk` binary
+PHP    ?= $(_RUN) php#vvv #~~ command that runs `php`
 TAR    ?= tar#vvv #~~ path to `tar` binary
 GIT    ?= git#vvv #~~ path to `git` binary
 
@@ -420,6 +421,7 @@ endef
 _PACKAGE_CONF_DIRS = $(WORKDIR)/vendor/brnshkr/config/conf \
 	$(WORKDIR)/node_modules/@brnshkr/config/conf
 
+_AUTOLOADER          = $(WORKDIR)/vendor/autoload.php
 _TRACKED_EXTENSIONS := $(sort $(suffix $(shell $(GIT) ls-files 2>/dev/null)))
 _FIXER_NAMES        :=
 _ANALYZER_NAMES     :=
@@ -427,7 +429,7 @@ _GROUP_NAMES        :=
 _TEST_NAMES         :=
 _COVERAGE_NAMES     :=
 _PACK_NAMES         :=
-_PLAIN_CONFIGS       =
+_PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
 _LAYERED_CONFIGS     =
 
 _STARTUP := $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
@@ -457,26 +459,49 @@ $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable s
 CONFIG ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
-_EXAMPLE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
+_TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
 
-_CONFIGS = $(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG))) \
-	$(if $(filter local l,$(_ARG_WORDS)),$(subst .dist.,.,$(_LAYERED_CONFIGS)))
+_CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG))) \
+	$(if $(filter local l,$(_ARG_WORDS)),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
 
 $(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
 	$(DEBUG_PREFIX)for target in $(call _host_path,$(_CONFIGS)); do \
-		example="$${target}.example"; \
-		for directory in $(_EXAMPLE_DIRS); do \
-			[ -f "$$example" ] && break; \
-			example="$$directory/$${target##*/}.example"; \
-		done; \
-		[ -f "$$example" ] || continue; \
 		if [ -f "$$target" ]; then \
 			$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}"); \
 			continue; \
 		fi; \
+		name="$${target##*/}"; \
+		source="$${target}.example"; \
+		case "$$name" in \
+			*.dist.*) shipped="$$name"; tracked="";; \
+			*.php) shipped=""; tracked="";; \
+			*) shipped=""; tracked="$${name%%.*}.dist.$${name##*.}";; \
+		esac; \
+		for directory in $(_TEMPLATE_DIRS); do \
+			[ -f "$$source" ] && break; \
+			for candidate in "$$shipped" "$$name.example" "$$tracked"; do \
+				[ -n "$$candidate" ] || continue; \
+				source="$$directory/$$candidate"; \
+				[ -f "$$source" ] && break; \
+			done; \
+		done; \
 		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
-		$(CP) "$$example" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		if [ -f "$$source" ]; then \
+			$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		elif [ "$$name" = "$${name%.php}" ]; then \
+			continue; \
+		else \
+			extended="$${target%/*}/$${name%.php}.dist.php"; \
+			$(PRINTF) '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
+				"\$$config = include __DIR__ . '/$${extended##*/}';" '' 'return $$config;' > "$$target" \
+				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		fi; \
+		case "$$target" in $(CURDIR)/*.php) $(call _name_internal_tag,$${target#$(CURDIR)/});; esac; \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
+		if [ -n "$$extended" ]; then \
+			$(call log,Built on `%s` — keep that include.,$(COLOR_NOTICE),"./$${extended#$(CURDIR)/}"); \
+			extended=""; \
+		fi; \
 	done
 
 CACHE_DIR   ?= $(CURDIR)/.cache#v #~~ directory the tools keep their caches in
@@ -1192,6 +1217,35 @@ $(if $(findstring .dist.,$1),$1,$(basename $1).dist$(suffix $1))
 endef
 
 #**
+#* The same paths, with anything the config search resolved inside an installation of this package moved
+#* back to the project's own `conf/`, so a write never lands in `vendor/` or `node_modules/`.
+#*
+#* parameters:
+#*   paths: list<string>
+#*
+#* returns: list<string>
+#*
+define _in_project
+$(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG)),$(WORKDIR)/conf/$(notdir $(CONFIG)),$(CONFIG)))
+endef
+
+#**
+#* Name the project's root namespace in a copied PHP config's `@internal` tag, so a file with no
+#* namespace still says where it belongs. Falls back to `App`, and does nothing without an autoloader.
+#*
+#* parameters:
+#*   path: string
+#*
+#* returns: void
+#*
+define _name_internal_tag
+if [ -f "$(call _host_path,$(_AUTOLOADER))" ]; then \
+	$(PHP) -r "$$_NAME_INTERNAL_TAG_PROGRAM" "$(_AUTOLOADER)" "$(WORKDIR)/$1" \
+		|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+fi
+endef
+
+#**
 #* The first config in the list that is there, then the same names under either installation of this
 #* package, so a project reads its own file, falls back to the tracked one, and may keep neither.
 #* The last candidate is what a project is told to create when it has none, and `CONFIG` pins the choice.
@@ -1552,6 +1606,15 @@ _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(s
 ))
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
+
+define _NAME_INTERNAL_TAG_PROGRAM_SOURCE
+require $$argv[1];
+
+$$path = $$argv[2];
+$$namespace = Brnshkr\Config\ComposerJson::forProjectUsingThisLibrary()->getRootNamespace() ?? 'App';
+
+file_put_contents($$path, preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, file_get_contents($$path), 1));
+endef
 
 define _GROUP_AWK_SOURCE
 function repeat(text, times,   out) { out = ""; while (times-- > 0) out = out text; return out }
@@ -2078,5 +2141,6 @@ endef
 
 export EDITOR_URL
 
+$(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

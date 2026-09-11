@@ -47,12 +47,21 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - `configs` is the write side and follows each tool's own `<TOOL>_CONFIG`, so an override is respected.
   `_LAYERED_CONFIGS` goes through `_tracked` — idempotent, so a variable already resolved to the `.dist`
   file stays put — and the `local` argument adds the undotted halves; `_PLAIN_CONFIGS` is written as it
-  stands. Each comes from `<config>.example` in the project, then from each of `_EXAMPLE_DIRS`. Anything
-  keyed to tests waits for a `tests` directory, or a run creates what the next keys off.
+  stands, `.gitignore` included. Sources, in order: the project's own `<config>.example`,
+  the shipped file under `_TEMPLATE_DIRS`, then `<name>.example` there.
+  A PHP private half has none and is printed as an `include` of its tracked half;
+  `_name_internal_tag` writes the project's root namespace into every copied PHP file,
+  and `_in_project` keeps all of it out of `vendor/`.
 
 ## Recipes
 
 - Recipes take `$(DEBUG_PREFIX)`, guards `$(TRACE_PREFIX)`, recursive calls `$(_MAKE_FLAGS)`.
+- `$(ARGS)` goes before a trailing flag: an option taking an optional value binds the next word,
+  which is how `--update $(ARGS)` fed vitest the filter and ran everything.
+  `--print-config $(ARGS)` is the exception, its argument being the value.
+- A long program is a `define … _SOURCE` exported for the target that reads it.
+  Plain `target: export VAR` is two prerequisites to GNU make, and a recursive assignment may not name
+  itself — hence the suffix.
 - `log` renders backticks as inline code and its message is a `printf` format: anything that could hold a
   `%` goes in as an argument. `_named_path` names a path in one, relative to the checkout.
 - A piped tool runs through `_capture`, or the pipe reports awk's status and a crash reads as an empty list.
@@ -79,9 +88,9 @@ the general make and awk traps are in `vision/TRAPS.md`.
 ## The awk programs
 
 - POSIX only: no `{m,n}`, no `%*s`. Verified against gawk, mawk and busybox awk.
-- `_HELP_AWK` reaches its recipe through `export`. `_DOTENV_AWK` runs at parse time, so it is inlined in
-  single quotes, may contain none, and doubles every `$` — error messages included — because `$(eval)`
-  expands its output once more.
+- `_HELP_AWK` reaches its recipe through a target-specific `export`. `_DOTENV_AWK` runs at parse time, so
+  it is inlined in single quotes, may contain none, and doubles every `$` — error messages included —
+  because `$(eval)` expands its output once more.
 - `EDITOR ?= $(_DETECTED_EDITOR)` is the whole editor logic: unset takes the detection, an explicit empty
   disables the links, a known name wins, and an unknown one warns — except from the environment, where
   `EDITOR` is the standard shell variable and anything unrecognized is ignored. An `?=` cannot sit above an
@@ -115,9 +124,8 @@ the general make and awk traps are in `vision/TRAPS.md`.
   outside the include set and asserted absent.
 - `ConfigFallback/` includes the shared file through a symlink under `node_modules/@brnshkr/config/conf` —
   the only way `_BRNSHKR_CONFIG_DIR` is not this repository.
-- `ConfigVendor/` keeps no config of its own, so the search has to reach `vendor/brnshkr/config/conf`;
-  `ConfigFallback/` must therefore keep only `.example` files there, or the search satisfies itself and the
-  example hunt never runs.
+- `ConfigVendor/` keeps no config of its own, so the search has to reach `vendor/brnshkr/config/conf`.
+- `Configs/` symlinks `vendor/autoload.php` to this repository's own, so `_name_internal_tag` runs there.
 - One hook runs `#[Before]` as well as `#[After]`, so an interrupted run cannot fail the next.
 - Assert names with the symbol helpers, and clear `MAKEFLAGS`: an outer make's command-line variables travel
   in it. The fixture directory comes from `-C`.

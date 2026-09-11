@@ -14,7 +14,6 @@ use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -84,7 +83,7 @@ Available commands:
   {$packageOrganization}:{$packageName}                        [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}] Displays {$packageOrganization}/{$packageName} composer plugin overview
   {$packageOrganization}:{$packageName}:extract-phar           [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:ep] Extracts a .phar file from a given vendor package
   {$packageOrganization}:{$packageName}:print-module-config    [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:pmc] Prints the resolved configuration as JSON for any supported {$packageOrganization}/{$packageName} module
-  {$packageOrganization}:{$packageName}:setup                  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:s] Runs the {$packageOrganization}/{$packageName} setup process
+  {$packageOrganization}:{$packageName}:setup                  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:s] Installs the packages the {$packageOrganization}/{$packageName} modules you pick need
   {$packageOrganization}:{$packageName}:update-php-extensions  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:upe] Updates required PHP extensions in composer.json based on installed vendor files
 
 EOF;
@@ -125,12 +124,6 @@ EOF;
 
         self::assertSame(0, $exitCode);
         self::assertStringContainsString('All packages are already installed.', $outputString);
-
-        try {
-            ComposerJson::forThisLibrary()->getVersionConstraintsOfOptionalPackages();
-        } catch (RuntimeException $runtimeException) {
-            self::fail($runtimeException->getMessage());
-        }
     }
 
     public function testUpdatePhpExtensionsCommand(): void

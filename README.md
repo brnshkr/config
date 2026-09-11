@@ -32,15 +32,12 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 - [☕ JS](#-js)
   - [🧰 Prerequisites](#-prerequisites)
   - [🚀 Installation](#-installation)
-    - [✋ Manual](#-manual)
     - [🎨 Custom](#-custom)
   - [👀 Usage](#-usage)
   - [🧩 Custom ESLint Rules](#-custom-eslint-rules)
 - [🐘 PHP](#-php)
   - [🧰 Prerequisites](#-prerequisites-1)
   - [🚀 Installation](#-installation-1)
-    - [🤖 Automatic](#-automatic)
-    - [✋ Manual](#-manual-1)
     - [🎨 Custom](#-custom-1)
   - [👀 Usage](#-usage-1)
   - [🧩 Custom PHPStan Rules](#-custom-phpstan-rules)
@@ -114,26 +111,17 @@ pnpm add -D -E @brnshkr/config
 npm i -D -E @brnshkr/config
 ```
 
-This repository currently only provides one way to integrate configuration files
-(An automatic setup is planned, See [🔨 TODOs / Roadmap](#-todos--roadmap)):
-
-- [**Manual setup**](#-manual) by copying the example configuration files yourself
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-#### ✋ Manual
-
 Take a look at the `peerDependencies` in the [package.json](./package.json) file
 and install the ones you need for the modules you want to use.  
 Copy the starter `Makefile` once, and let it write the rest:
 
 ```sh
 cp -v ./node_modules/@brnshkr/config/conf/Makefile.example ./Makefile \
-  && make configs
+  && make startup
 ```
 
-`make configs` writes a config for every tool the project has installed and reads files for, and never
-touches one that is already there.
+`make startup` installs each stack, writes every config and `.gitignore` the project is missing, and never
+touches a file that is already there.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -338,46 +326,23 @@ in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/
 composer r --dev brnshkr/config
 ```
 
-This repository provides two ways to integrate configuration files and setup tools into your project:
+Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones
+you need for the modules you want to use.  
+Copy the starter `Makefile` once, and let it write the rest:
 
-- [**Automatic setup**](#-automatic) via the Composer plugin
-- [**Manual setup**](#-manual-1) by copying the example configuration files yourself
+```sh
+cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile \
+  && make startup
+```
 
-#### 🤖 Automatic
+`make startup` installs each stack, writes every config and `.gitignore` the project is missing, and never
+touches a file that is already there.
 
-If you allow this package to run as a Composer plugin (Composer will prompt you on first install),
-several helper commands become available.   The most commonly used is the automatic setup command
-which installs packages for selected modules, copies example config files into your repository,
-and can optionally create a `Makefile` and/or a `.gitignore` file.
-
-Run the automatic setup with defaults:
+To have the packages installed for you, pick the modules interactively:
 
 ```sh
 composer brnshkr:config:setup
 ```
-
-Run the automatic setup with all flags enabled:
-
-```sh
-composer brnshkr:config:setup -gofacme
-```
-
-Take a look at the [plugin commands](#plugin-commands) section to see a full list of available commands.
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-#### ✋ Manual
-
-Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones
-you need for the modules you want to use.  
-Write the `Makefile` and the `.gitignore` with the plugin, and let make write the rest:
-
-```sh
-composer brnshkr:config:setup --make --gitignore && make configs
-```
-
-`make configs` writes a config for every tool the project has installed and reads files for,
-and never touches one that is already there.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -496,11 +461,11 @@ php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
 For these targets to work you need to follow the convention of putting your configuration files into the `./conf` directory
 (Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
-Your own Makefile includes this one. Let the plugin write the starter rather than writing the include by
-hand: it guards the include, so a fresh clone can `make bootstrap` before anything is installed.
+Your own Makefile includes this one. Copy the shipped starter rather than writing the include by hand:
+it guards the include, so a fresh clone can `make bootstrap` before anything is installed.
 
 ```sh
-composer brnshkr:config:setup --make
+cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
@@ -560,7 +525,6 @@ For full usage run `composer help <command>`, `composer <command> --help` or `co
 | Command | Alias | Description |
 | --- | --- | --- |
 | `brnshkr:config` | `b:c` | Displays the plugin overview and a list of available commands. Useful to quickly discover what the plugin exposes. |
-| `brnshkr:config:setup [<modules>...]` | `b:c:s` | Interactive setup helper: installs suggested packages for modules, copies example config files, and can create a `Makefile` and/or a `.gitignore` file. |
 | `brnshkr:config:update-php-extensions` | `b:c:upe` | Scans installed packages and updates `composer.json` with required `ext-*` platform packages. |
 | `brnshkr:config:extract-phar <package>` | `b:c:ep` | Extracts a `.phar` file from a given vendor package. |
 
@@ -578,7 +542,6 @@ Both are documented with examples in the [Custom PHPStan Rules docs](https://git
 
 ## 🔨 TODOs / Roadmap
 
-- Add setup command for JS package (like `composer brnshkr:config:setup`)
 - Expand [`⚙️ Worflows`](#️-workflows) section in readme
 - Add Vue support
 - Add React support

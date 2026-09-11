@@ -19,7 +19,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
 use function array_filter;
 use function array_first;
@@ -58,16 +57,10 @@ final class SetupCommand extends AbstractCommand
 
     private bool $doIncludeOptionalPackagesAutomatically = false;
 
-    private bool $doCopyConfigFilesAutomatically = false;
-
-    private bool $doCreateMakeFileAutomatically = false;
-
-    private bool $doCreateGitignoreFileAutomatically = false;
-
     #[Override]
     protected function getDescriptionTemplate(): string
     {
-        return 'Runs the {{ package_full_name }} setup process';
+        return 'Installs the packages the {{ package_full_name }} modules you pick need';
     }
 
     /**
@@ -100,9 +93,6 @@ final class SetupCommand extends AbstractCommand
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force update to the latest package versions from ' . $this->libraryComposerJson->getPackageFullName())
             ->addOption('exact', 'e', InputOption::VALUE_NONE, 'Install exact versions of dependencies')
             ->addOption('optional', 'o', InputOption::VALUE_NONE, 'Automatically include all optional packages')
-            ->addOption('copy', 'c', InputOption::VALUE_NONE, 'Automatically copy config files for selected modules')
-            ->addOption('make', 'm', InputOption::VALUE_NONE, 'Automatically create Makefile')
-            ->addOption('gitignore', 'g', InputOption::VALUE_NONE, 'Automatically create .gitignore file')
         ;
     }
 
@@ -118,9 +108,6 @@ final class SetupCommand extends AbstractCommand
         $this->doForceUpdate                          = $this->isBoolOptionEnabled('force');
         $this->doInstallExactVersions                 = $this->isBoolOptionEnabled('exact');
         $this->doIncludeOptionalPackagesAutomatically = $this->isBoolOptionEnabled('optional');
-        $this->doCopyConfigFilesAutomatically         = $this->isBoolOptionEnabled('copy');
-        $this->doCreateMakeFileAutomatically          = $this->isBoolOptionEnabled('make');
-        $this->doCreateGitignoreFileAutomatically     = $this->isBoolOptionEnabled('gitignore');
 
         $modules              = $this->getStringListArgument('modules');
         $doInstallAllModules  = $this->isBoolOptionEnabled('all');
@@ -165,8 +152,6 @@ final class SetupCommand extends AbstractCommand
                 $this->libraryComposerJson->getPackageFullName(),
             ));
 
-            $this->copyFilesIfApplicable($modulesToInstall);
-
             return self::SUCCESS;
         }
 
@@ -206,7 +191,6 @@ final class SetupCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        $this->copyFilesIfApplicable($modulesToInstall);
         $this->console->writeNotice('Setup process completed successfully.');
 
         return self::SUCCESS;
@@ -351,135 +335,6 @@ final class SetupCommand extends AbstractCommand
     private static function toPackageNames(array $packages): array
     {
         return array_values(array_map(static fn (Package $package): string => $package->value, $packages));
-    }
-
-    /**
-     * @param list<ModuleInfo> $moduleInfos
-     *
-     * @throws IOException
-     * @throws RuntimeException
-     */
-    private function copyFilesIfApplicable(array $moduleInfos): void
-    {
-        if (!$this->doCopyConfigFilesAutomatically && !$this->doCreateMakeFileAutomatically && !$this->doCreateGitignoreFileAutomatically) {
-            return;
-        }
-
-        $projectRootPath = Path::getDirectory($this->projectComposerJson->path);
-        $libraryRootPath = Path::getDirectory($this->libraryComposerJson->path);
-
-        if ($this->doCreateMakeFileAutomatically) {
-            $this->console->writeNotice('Copying Makefile');
-            $this->copyFile($libraryRootPath . '/conf/Makefile.example', $projectRootPath . '/Makefile');
-        }
-
-        if ($this->doCreateGitignoreFileAutomatically) {
-            $this->console->writeNotice('Copying .gitignore file');
-            $this->copyFile($libraryRootPath . '/conf/.gitignore.example', $projectRootPath . '/.gitignore');
-        }
-
-        if (!$this->doCopyConfigFilesAutomatically) {
-            return;
-        }
-
-        foreach ($moduleInfos as $moduleInfo) {
-            $files = match ($moduleInfo['name']) {
-                Module::NAME_PHP_CS_FIXER => [[
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_PHP_STAN => [[
-                    'source'      => $libraryRootPath . '/conf/phpstan.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/phpstan.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/phpstan.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_RECTOR => [[
-                    'source'      => $libraryRootPath . '/conf/rector.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/rector.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/rector.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_TWIG_CS_FIXER => [[
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.php',
-                    'isVersioned' => false,
-                ]],
-            };
-
-            $this->console->writeNotice(sprintf('Copying files for module "%s".', $moduleInfo['name']));
-
-            foreach ($files as $file) {
-                $this->copyFile($file['source'], $file['target'], $file['isVersioned']);
-            }
-        }
-    }
-
-    /**
-     * @param non-empty-string $sourceFilePath
-     * @param non-empty-string $targetFilePath
-     *
-     * @throws RuntimeException
-     */
-    private function copyFile(string $sourceFilePath, string $targetFilePath, bool $isVersioned = true): void
-    {
-        if ($this->isCopyAllowed($targetFilePath)) {
-            $this->filesystem->copy($sourceFilePath, $targetFilePath, true);
-            $this->console->writeInfo(sprintf('Copied file "%s" to "%s".', $sourceFilePath, $targetFilePath));
-
-            if (!$isVersioned) {
-                $this->console->writeWarning(sprintf(
-                    'Make sure to exclude %s from versioning.',
-                    $targetFilePath,
-                ));
-            }
-        }
-    }
-
-    /**
-     * @param non-empty-string $targetFilePath
-     *
-     * @throws RuntimeException
-     */
-    private function isCopyAllowed(string $targetFilePath): bool
-    {
-        return $this->filesystem->exists($targetFilePath)
-            ? $this->console->isConfirmed(sprintf(
-                'File "%s" already exists. Do you want to overwrite it?',
-                $targetFilePath,
-            ), isDefaultAnswerYes: false)
-            : true;
     }
 
     /**

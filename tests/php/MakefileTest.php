@@ -14,6 +14,7 @@ use RuntimeException;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Spatie\Snapshots\MatchesSnapshots;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 use function array_diff;
@@ -49,6 +50,8 @@ final class MakefileTest extends TestCase
     private const string CACHES_DIRECTORY   = __DIR__ . '/Fixtures/Make/Caches';
     private const string COVERAGE_DIRECTORY = __DIR__ . '/Fixtures/Make/Coverage';
     private const string FALLBACK_DIRECTORY = __DIR__ . '/Fixtures/Make/ConfigFallback';
+    private const string VENDOR_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigVendor';
+    private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
 
     /**
      * Deterministic environment baseline for every help invocation. Tests merge
@@ -468,6 +471,34 @@ final class MakefileTest extends TestCase
         }
     }
 
+    public function testThePrivateHalfIsWrittenFromATemplateWhenTheProjectHasNone(): void
+    {
+        $this->runMake(['configs', 'local'], directory: self::CONFIGS_DIRECTORY);
+
+        $shim = new Filesystem()->readFile(self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.php');
+
+        self::assertStringContainsString('$config = include __DIR__ . \'/php-cs-fixer.dist.php\';', $shim);
+        self::assertStringContainsString('@internal App', $shim);
+    }
+
+    public function testAPrivateHalfThatCannotIncludeIsACopy(): void
+    {
+        $this->runMake(['configs', 'local'], directory: self::CONFIGS_DIRECTORY);
+
+        self::assertFileEquals(
+            self::CONFIGS_DIRECTORY . '/conf/phpunit.dist.xml',
+            self::CONFIGS_DIRECTORY . '/conf/phpunit.xml',
+        );
+    }
+
+    public function testNothingIsWrittenIntoAnInstallationOfThisPackage(): void
+    {
+        $this->runMake(['configs', 'local'], directory: self::VENDOR_DIRECTORY);
+
+        self::assertFileExists(self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php');
+        self::assertFileDoesNotExist(self::VENDOR_DIRECTORY . '/vendor/brnshkr/config/conf/phpstan.php');
+    }
+
     public function testTheConfigAToolReadsIsTheFirstOneThatIsThere(): void
     {
         $resolve = ['help', 'resolve', 'vv'];
@@ -588,7 +619,7 @@ final class MakefileTest extends TestCase
         $result = $this->runMake(
             ['startup'],
             ['COMPOSER' => 'echo composer', 'BUN' => 'echo bun'],
-            directory: __DIR__ . '/Fixtures/Make/Startup',
+            directory: self::STARTUP_DIRECTORY,
         );
 
         self::assertStringContainsString('composer install', $result);
@@ -745,12 +776,22 @@ final class MakefileTest extends TestCase
     public function removeWhatTheFixturesWrote(): void
     {
         $written = [
-            self::CONFIGS_DIRECTORY . '/conf/phpstan.php',
+            self::CONFIGS_DIRECTORY . '/.gitignore',
+            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.dist.php',
+            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.php',
             self::CONFIGS_DIRECTORY . '/conf/phpstan.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.php',
+            self::CONFIGS_DIRECTORY . '/conf/phpstan.php',
+            self::CONFIGS_DIRECTORY . '/conf/phpunit.dist.xml',
+            self::CONFIGS_DIRECTORY . '/conf/phpunit.xml',
             self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.dist.php',
-            self::FALLBACK_DIRECTORY . '/conf/phpstan.php',
+            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.php',
+            self::FALLBACK_DIRECTORY . '/.gitignore',
             self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php',
+            self::FALLBACK_DIRECTORY . '/conf/phpstan.php',
+            self::VENDOR_DIRECTORY . '/.gitignore',
+            self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php',
+            self::VENDOR_DIRECTORY . '/conf/phpstan.php',
+            self::STARTUP_DIRECTORY . '/.gitignore',
         ];
 
         foreach ($written as $path) {

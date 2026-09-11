@@ -5,7 +5,7 @@ present once the repository has a `composer.json` and that tool is installed.
 Each reads `./conf/<tool>.php` when it is there and the tracked `./conf/<tool>.dist.php` otherwise,
 so a developer overrides without touching the repository
 — [Makefile](../Makefile.md) has the full search.
-The shipped example for the local file includes the tracked one, which is the shape to keep.
+`make configs local` writes that local file as an `include` of the tracked one, which is the shape to keep.
 
 ## Targets
 

@@ -4,9 +4,9 @@ Agent knowledge beyond `docs/php/`.
 
 ## Local tool configs
 
-`conf/{phpstan,php-cs-fixer,rector,twig-cs-fixer}.php` are gitignored working copies created from the committed
-`*.example` files (see `docs/development.md` setup). Make targets and the `phpstan-analyse` MCP tool
-(`configuration=conf/phpstan.php`) resolve against these, not the `*.dist.php` shipped defaults.
+`conf/{phpstan,php-cs-fixer,rector,twig-cs-fixer}.php` are gitignored copies `make configs local` writes as
+an `include` of the tracked `*.dist.php`. Make targets and the `phpstan-analyse` MCP tool
+(`configuration=conf/phpstan.php`) resolve against these; `<Tool>::from()` adds to what they include.
 
 ## Writing conforming code
 
@@ -30,7 +30,7 @@ Agent knowledge beyond `docs/php/`.
 ## Composer plugin
 
 - Plugin commands:
-  `php scripts/composer.php list` → `brnshkr:config:{setup, print-module-config, extract-phar, update-php-extensions}`
+  `php scripts/composer.php list` → `brnshkr:config:{print-module-config, extract-phar, update-php-extensions}`
   (also reachable through `composer` in consuming projects).
 - The module registry (`src/php/Module.php`) maps the four tool modules to required/optional packages
   — MCP `project-modules-list`/`project-module-config` expose it.

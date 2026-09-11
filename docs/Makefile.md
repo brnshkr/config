@@ -95,9 +95,11 @@ and a repository content with the shipped defaults keeps neither.
 `<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
 at once — which is how a developer with a private file checks what the gate will read.
 
-`make configs` writes the tracked half of every config the repository is missing, from its own
-`./conf/<name>.example` when there is one and from either installation of the package otherwise.
-`make configs local` writes the private halves as well.
+`make configs` writes what the repository is missing: each tool's tracked config half, and a `.gitignore`.
+Each comes from the package, or from the repository's own `./conf/<name>.example` where it keeps one,
+and a copied PHP config is given the project's root namespace in its `@internal` tag.
+`make configs local` writes the private halves as well: an `include` of the tracked file for a PHP tool,
+a full copy for anything that cannot include one.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.
 
 ## Containers
