@@ -1986,7 +1986,7 @@ Available commands:
   [35mcommon[0m
    [36m]8;;vscode://file/./conf/Makefile:459\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
    [36m]8;;vscode://file/./conf/Makefile:511\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1126\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1151\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
   [35msemver[0m
    [35mconstants[0m
     [36m]8;;vscode://file/./conf/Makefile:542\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
@@ -2025,7 +2025,7 @@ Available commands:
 [35mFunctions:[0m
  [35mbrnshkr[0m
   [35mhelpers[0m
-   [36m]8;;vscode://file/./conf/Makefile:1182\text]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1207\text]8;;\[0m
     [90mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [90mThe color and the modifiers may be given together or apart.[0m
 
@@ -2036,7 +2036,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1384\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1428\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label, rendering anything in backticks as[0m
     [90minline code. The message is a [35mprintf[0m[90m format, so a value goes in as an argument rather than[0m
     [90mbeing pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2082,13 +2082,13 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:455\startup]8;;\                   [0m  [90mbrings a fresh checkout to a workable state[0m
    [36m]8;;vscode://file/./conf/Makefile:467\configs]8;;\                   [0m  [90mwrites the tool configs this project is missing, [35mlocal[0m[90m its private ones too[0m
    [36m]8;;vscode://file/./conf/Makefile:514\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36m]8;;vscode://file/./conf/Makefile:1079\check]8;;\                     [0m  [90mruns every tool this project has, writing the fixes[0m
-   [36m]8;;vscode://file/./conf/Makefile:1082\ci]8;;\                        [0m  [90mruns every tool this project has without writing fixes[0m
-   [36m]8;;vscode://file/./conf/Makefile:1085\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36m]8;;vscode://file/./conf/Makefile:1088\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
-   [36m]8;;vscode://file/./conf/Makefile:1092\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
-   [36m]8;;vscode://file/./conf/Makefile:1095\test]8;;\                      [0m  [90mruns the tests of every stack this project has[0m
-   [36m]8;;vscode://file/./conf/Makefile:1098\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
+   [36m]8;;vscode://file/./conf/Makefile:1104\check]8;;\                     [0m  [90mruns every tool this project has, writing the fixes[0m
+   [36m]8;;vscode://file/./conf/Makefile:1107\ci]8;;\                        [0m  [90mruns every tool this project has without writing fixes[0m
+   [36m]8;;vscode://file/./conf/Makefile:1110\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36m]8;;vscode://file/./conf/Makefile:1113\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
+   [36m]8;;vscode://file/./conf/Makefile:1117\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
+   [36m]8;;vscode://file/./conf/Makefile:1120\test]8;;\                      [0m  [90mruns the tests of every stack this project has[0m
+   [36m]8;;vscode://file/./conf/Makefile:1123\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
  [35mapp[0m
   [35mcommands[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [90mcommand from root Makefile auto-include[0m
@@ -2218,7 +2218,7 @@ Available commands:
   [33mcommon[0m
    [32m]8;;vscode://file/./conf/Makefile:459\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
    [32m]8;;vscode://file/./conf/Makefile:511\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1126\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1151\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
   [33msemver[0m
    [33mconstants[0m
     [32m]8;;vscode://file/./conf/Makefile:542\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
@@ -2257,7 +2257,7 @@ Available commands:
 [33mFunctions:[0m
  [33mbrnshkr[0m
   [33mhelpers[0m
-   [32m]8;;vscode://file/./conf/Makefile:1182\text]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1207\text]8;;\[0m
     [0mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [0mThe color and the modifiers may be given together or apart.[0m
 
@@ -2268,7 +2268,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1384\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1428\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label, rendering anything in backticks as[0m
     [0minline code. The message is a [33mprintf[0m[0m format, so a value goes in as an argument rather than[0m
     [0mbeing pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
@@ -2314,13 +2314,13 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:455\startup]8;;\                   [0m  [0mbrings a fresh checkout to a workable state[0m
    [32m]8;;vscode://file/./conf/Makefile:467\configs]8;;\                   [0m  [0mwrites the tool configs this project is missing, [33mlocal[0m[0m its private ones too[0m
    [32m]8;;vscode://file/./conf/Makefile:514\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32m]8;;vscode://file/./conf/Makefile:1079\check]8;;\                     [0m  [0mruns every tool this project has, writing the fixes[0m
-   [32m]8;;vscode://file/./conf/Makefile:1082\ci]8;;\                        [0m  [0mruns every tool this project has without writing fixes[0m
-   [32m]8;;vscode://file/./conf/Makefile:1085\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32m]8;;vscode://file/./conf/Makefile:1088\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
-   [32m]8;;vscode://file/./conf/Makefile:1092\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
-   [32m]8;;vscode://file/./conf/Makefile:1095\test]8;;\                      [0m  [0mruns the tests of every stack this project has[0m
-   [32m]8;;vscode://file/./conf/Makefile:1098\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
+   [32m]8;;vscode://file/./conf/Makefile:1104\check]8;;\                     [0m  [0mruns every tool this project has, writing the fixes[0m
+   [32m]8;;vscode://file/./conf/Makefile:1107\ci]8;;\                        [0m  [0mruns every tool this project has without writing fixes[0m
+   [32m]8;;vscode://file/./conf/Makefile:1110\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32m]8;;vscode://file/./conf/Makefile:1113\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
+   [32m]8;;vscode://file/./conf/Makefile:1117\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
+   [32m]8;;vscode://file/./conf/Makefile:1120\test]8;;\                      [0m  [0mruns the tests of every stack this project has[0m
+   [32m]8;;vscode://file/./conf/Makefile:1123\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
  [33mapp[0m
   [33mcommands[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [0mcommand from root Makefile auto-include[0m

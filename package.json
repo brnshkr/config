@@ -16,15 +16,11 @@
   "type": "module",
   "exports": {
     "./commitlint": "./dist/commitlint/index.mjs",
-    "./scripts/commitlint": "./dist/scripts/commitlint.mjs",
     "./eslint": "./dist/eslint/index.mjs",
     "./markdownlint": "./dist/markdownlint/index.mjs",
-    "./scripts/markdownlint": "./dist/scripts/markdownlint.mjs",
     "./spelling": "./dist/spelling/index.mjs",
     "./spelling/test": "./dist/spelling/spelling.test.mjs",
-    "./scripts/eslint": "./dist/scripts/eslint.mjs",
     "./stylelint": "./dist/stylelint/index.mjs",
-    "./scripts/stylelint": "./dist/scripts/stylelint.mjs",
     "./vitest": "./dist/vitest/index.mjs"
   },
   "files": [

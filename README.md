@@ -287,18 +287,6 @@ make commitlint
 ```
 
 <!-- omit in toc -->
-##### Option 3 — Run Helper Scripts (Bun Only)
-
-The same four tools, without make. They read the same `./conf` files.
-
-```sh
-bun ./node_modules/@brnshkr/config/dist/scripts/eslint.mjs
-bun ./node_modules/@brnshkr/config/dist/scripts/stylelint.mjs
-bun ./node_modules/@brnshkr/config/dist/scripts/markdownlint.mjs
-bun ./node_modules/@brnshkr/config/dist/scripts/commitlint.mjs
-```
-
-<!-- omit in toc -->
 #### IDE Setup
 
 When using the recommended way of putting config files into the `./conf` directory

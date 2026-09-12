@@ -918,21 +918,24 @@ MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~
 MARKDOWNLINT_FLAGS      ?= $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
 
+_MARKDOWNLINT_VALUE_FLAGS := --config \
+	--configPointer
+
 _FIXER_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/markdownlint.mjs,$(MARKDOWNLINT_EXTENSIONS))
 
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) --fix $(if $(ARGS),$(ARGS),'$(MARKDOWNLINT_GLOB)')
+	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) --fix $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)')
 
 $(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writing fixes #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(ARGS),$(ARGS),'$(MARKDOWNLINT_GLOB)')
+	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)')
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(ARGS),$(ARGS),'$(MARKDOWNLINT_GLOB)'))
+	$(DEBUG_PREFIX)$(call _group,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)'))
 
 endif # /markdownlint
 
@@ -960,9 +963,31 @@ STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.mjs $(WORKDIR)/conf
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
 STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
 
+_STYLELINT_VALUE_FLAGS := --cache-location \
+	--cache-strategy \
+	--config-basedir \
+	--config \
+	--custom-formatter \
+	--custom-syntax \
+	--formatter \
+	--globby-options \
+	--go \
+	--ignore-path \
+	--ignore-pattern \
+	--ip \
+	--max-warnings \
+	--mw \
+	--output-file \
+	--stdin-filename \
+	--suppress-location \
+	-c \
+	-f \
+	-i \
+	-o
+
 _STYLELINT_EXTENSIONS := css \
 	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
-	$(call _when_installed,html svelte vue astro xml,node_modules/stylelint-config-html)
+	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html)
 
 STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` can parse, which follows the syntaxes its config pulls in
 
@@ -972,15 +997,15 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/stylelint.mjs,$(STYLELI
 
 $(call _target,stylelint): #~~ runs `stylelint` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --fix $(if $(ARGS),$(ARGS),'$(STYLELINT_GLOB)')
+	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --fix $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)')
 
 $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) $(if $(ARGS),$(ARGS),'$(STYLELINT_GLOB)')
+	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)')
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --formatter json $(if $(ARGS),$(ARGS),'$(STYLELINT_GLOB)'),rule,text)
+	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1205,6 +1230,25 @@ endef
 #*
 define _brace_glob
 **/*.{$(subst $(_SPACE),$(_COMMA),$(strip $1))}
+endef
+
+#**
+#* Whether the given words contain a real positional argument — not a flag, and not the value a
+#* preceding flag from the second list consumes.
+#*
+#* parameters:
+#*   words: list<string>
+#*   valueFlags: list<string>
+#*
+#* returns: string
+#*
+define _has_positional_arg
+$(strip $(shell $(PRINTF) '%s\n' $1 | $(AWK) -v value_flags=' $(strip $2) ' '\
+	{ \
+		if (skip) { skip = 0; next } \
+		if (index(value_flags, " " $$0 " ") > 0) { skip = 1; next } \
+		if ($$0 != "" && substr($$0, 1, 1) != "-") { print 1; exit } \
+	}'))
 endef
 
 #**
