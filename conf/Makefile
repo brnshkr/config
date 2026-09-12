@@ -657,8 +657,7 @@ $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOOR),,1)),:,$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(_PHP_UNIT_FLOOR),PHP_UNIT_COVERAGE_FILE))
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
-	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS) --debug
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit) -- --debug $(ARGS)
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
@@ -687,8 +686,7 @@ $(call _target,phpstan): #~~ runs `phpstan analyze`
 	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS)
 
 $(call _target,phpstan-debug): #~~ runs `phpstan analyze` in debug mode #vvv
-	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS) --debug
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan) -- --debug $(ARGS)
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -725,8 +723,7 @@ $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
 	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS)
 
 $(call _target,php-cs-fixer-dry-run): #~~ runs `php-cs-fixer fix` in dry run mode #v
-	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,php-cs-fixer) -- --dry-run $(ARGS)
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -760,12 +757,10 @@ $(call _target,rector): #~~ runs `rector process`
 	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS)
 
 $(call _target,rector-debug): #~~ runs `rector process` in debug mode #vvv
-	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --debug
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --debug $(ARGS)
 
 $(call _target,rector-dry-run): #~~ runs `rector process` in dry run mode #v
-	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --dry-run $(ARGS)
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -794,17 +789,15 @@ _FIXER_NAMES     += $(call _when_tracked,twig-cs-fixer,$(TWIG_CS_FIXER_EXTENSION
 _GROUP_NAMES     += $(call _when_tracked,twig-cs-fixer,$(TWIG_CS_FIXER_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(TWIG_CS_FIXER_CONFIG),$(TWIG_CS_FIXER_EXTENSIONS))
 
-$(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`
+$(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --fix --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(call _without_dry_run,$(ARGS))
 
 $(call _target,twig-cs-fixer-debug): #~~ runs `twig-cs-fixer` in debug mode #vvv
-	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --fix --debug --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --debug $(ARGS)
 
 $(call _target,twig-cs-fixer-dry-run): #~~ runs `twig-cs-fixer` in dry run mode #v
-	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --dry-run $(ARGS)
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
@@ -890,13 +883,12 @@ _FIXER_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(WORKDIR)/conf/eslint.mjs,$(ESLINT_CONFIG)),$(ESLINT_EXTENSIONS))
 
-$(call _target,eslint): #~~ runs `eslint` and writes its fixes
+$(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) $(ARGS) --fix
+	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) $(call _without_dry_run,$(ARGS)) $(if $(call _is_dry_run,$(ARGS)),,--fix)
 
 $(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
-	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint) -- --dry-run $(ARGS)
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -925,13 +917,16 @@ _FIXER_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS)
 _GROUP_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/markdownlint.mjs,$(MARKDOWNLINT_EXTENSIONS))
 
-$(call _target,markdownlint): #~~ runs `markdownlint-cli2` and writes its fixes
+$(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) --fix $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)')
+	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
+		$(if $(call _is_dry_run,$(ARGS)),,--fix) \
+		$(if $(call _has_positional_arg,$(call _without_dry_run,$(ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
+			$(call _without_dry_run,$(ARGS)), \
+			$(call _without_dry_run,$(ARGS)) '$(MARKDOWNLINT_GLOB)')
 
 $(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writing fixes #v
-	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)')
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,markdownlint) -- --dry-run $(ARGS)
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
@@ -995,13 +990,16 @@ _FIXER_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/stylelint.mjs,$(STYLELINT_EXTENSIONS))
 
-$(call _target,stylelint): #~~ runs `stylelint` and writes its fixes
+$(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --fix $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)')
+	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) \
+		$(if $(call _is_dry_run,$(ARGS)),,--fix) \
+		$(if $(call _has_positional_arg,$(call _without_dry_run,$(ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
+			$(call _without_dry_run,$(ARGS)), \
+			$(call _without_dry_run,$(ARGS)) '$(STYLELINT_GLOB)')
 
 $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
-	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)')
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,stylelint) -- --dry-run $(ARGS)
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1230,6 +1228,31 @@ endef
 #*
 define _brace_glob
 **/*.{$(subst $(_SPACE),$(_COMMA),$(strip $1))}
+endef
+
+#**
+#* Whether `--dry-run` is among the given words — the Makefile's own pseudo-flag, since none of these
+#* fixers understand it natively; its presence tells the plain target to skip `--fix`.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: string
+#*
+define _is_dry_run
+$(filter --dry-run,$1)
+endef
+
+#**
+#* The given words with the Makefile's own `--dry-run` pseudo-flag removed, so it never reaches the tool.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _without_dry_run
+$(filter-out --dry-run,$1)
 endef
 
 #**
