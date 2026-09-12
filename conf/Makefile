@@ -161,13 +161,12 @@ PHP    ?= $(_RUN) php#vvv #~~ command that runs `php`
 TAR    ?= tar#vvv #~~ path to `tar` binary
 GIT    ?= git#vvv #~~ path to `git` binary
 
-#---v general
+#---v settings
 
 RUN  ?= #v #~~ command the tools are run through, such as `docker compose exec <service>`
 _RUN  = $(if $(wildcard /.dockerenv),,$(RUN))
 
-WORKDIR         ?= $(if $(_RUN),/app,$(CURDIR))#v #~~ where the tools see the sources, which differs from `CURDIR` in a container
-STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after the dependencies
+WORKDIR ?= $(if $(_RUN),/app,$(CURDIR))#v #~~ where the tools see the sources, which differs from `CURDIR` in a container
 
 TARGET_PREFIX  ?= #v #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
@@ -436,9 +435,6 @@ _PACK_NAMES         :=
 _PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
 _LAYERED_CONFIGS     =
 
-_STARTUP := $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
-	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install)
-
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_CURDIR="$(abspath $(CURDIR))" \
@@ -455,6 +451,11 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
+
+STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after the dependencies
+
+_STARTUP := $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
+	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install)
 
 $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,configs)
