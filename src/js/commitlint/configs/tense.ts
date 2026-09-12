@@ -23,6 +23,7 @@ const ALLOWLIST = <const>[
   'promote',
   'spell',
   'throw',
+  'widen',
 ];
 
 export const tense = (options?: Partial<TenseOptions>): Config[] => {
