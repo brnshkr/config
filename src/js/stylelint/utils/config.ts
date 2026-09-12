@@ -147,16 +147,16 @@ export const includeConfigs = (config: Config, configsToInclude: Config[]): void
     }
 
     if (configToInclude.overrides !== undefined) {
-      const overridesToIncude = configToInclude.overrides;
+      const overridesToInclude = configToInclude.overrides;
 
       config.overrides = [
         ...(config.overrides ?? []).filter(
-          (existingOverride) => !overridesToIncude.some(
-            (overrideToIncude) => overrideToIncude.name !== undefined
-              && overrideToIncude.name === existingOverride.name,
+          (existingOverride) => !overridesToInclude.some(
+            (overrideToInclude) => overrideToInclude.name !== undefined
+              && overrideToInclude.name === existingOverride.name,
           ),
         ),
-        ...overridesToIncude,
+        ...overridesToInclude,
       ];
     }
 

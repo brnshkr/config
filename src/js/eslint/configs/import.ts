@@ -14,7 +14,7 @@ import type { Config } from '../types/config';
 export const imports = async (): Promise<Config[]> => {
   const {
     requiredAny: [pluginImport, pluginAntfu],
-    optional: [importResovlerTypescript],
+    optional: [importResolverTypescript],
   } = await resolvePackages(MODULES.import);
 
   const plugins: Config['plugins'] = {};
@@ -28,9 +28,9 @@ export const imports = async (): Promise<Config[]> => {
 
     settings['import-x/resolver-next'] = [
       pluginImport.createNodeResolver(),
-      importResovlerTypescript === undefined
+      importResolverTypescript === undefined
         ? undefined
-        : importResovlerTypescript.createTypeScriptImportResolver({
+        : importResolverTypescript.createTypeScriptImportResolver({
           bun: true,
         }),
     ].filter(Boolean);

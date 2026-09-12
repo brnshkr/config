@@ -28,7 +28,7 @@ use function version_compare;
  */
 final readonly class Installer
 {
-    private const int STABILTY_RANK_STABLE = 4;
+    private const int STABILITY_RANK_STABLE = 4;
 
     /**
      * @phpstan-var non-empty-array<non-empty-string, int<0, 4>>
@@ -41,7 +41,7 @@ final readonly class Installer
         'b'      => 2,
         'RC'     => 3,
         'rc'     => 3,
-        'stable' => self::STABILTY_RANK_STABLE,
+        'stable' => self::STABILITY_RANK_STABLE,
     ];
 
     public function __construct(
@@ -145,7 +145,7 @@ final readonly class Installer
     private function findPackage(string $package, string $versionConstraint): ?PackageInterface
     {
         $minimumStability     = $this->composer->getConfig()->get('minimum-stability');
-        $minimumStabilityRank = is_string($minimumStability) ? self::getStabilityRank($minimumStability) : self::STABILTY_RANK_STABLE;
+        $minimumStabilityRank = is_string($minimumStability) ? self::getStabilityRank($minimumStability) : self::STABILITY_RANK_STABLE;
 
         $packagesToInstall = array_filter(
             $this->composer->getRepositoryManager()->findPackages($package, $versionConstraint),
@@ -171,6 +171,6 @@ final readonly class Installer
      */
     private static function getStabilityRank(string $stability): int
     {
-        return self::STABILITY_RANKS[$stability] ?? self::STABILTY_RANK_STABLE;
+        return self::STABILITY_RANKS[$stability] ?? self::STABILITY_RANK_STABLE;
     }
 }

@@ -290,7 +290,7 @@ make commitlint
 #### IDE Setup
 
 When using the recommended way of putting config files into the `./conf` directory
-it might be neccesary to instruct your IDE to read these files correctly.  
+it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
 installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
@@ -511,7 +511,7 @@ make twig-cs-fixer
 #### IDE Setup
 
 When using the recommended way of putting config files into the `./conf` directory
-it might be neccesary to instruct your IDE to read these files correctly.  
+it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
 installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
 
@@ -541,7 +541,7 @@ Both are documented with examples in the [Custom PHPStan Rules docs](https://git
 
 ## 🔨 TODOs / Roadmap
 
-- Expand [`⚙️ Worflows`](#️-workflows) section in readme
+- Expand [`⚙️ Workflows`](#️-workflows) section in readme
 - Add Vue support
 - Add React support
 - Add Tailwind support via <https://github.com/schoero/eslint-plugin-better-tailwindcss>

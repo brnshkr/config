@@ -9,7 +9,7 @@ import { interopImport } from './interop-import';
 export const ESLINT_PACKAGES = <const>{
   ESLINT_CSS: '@eslint/css',
   ESLINT_FLAT_CONFIG_GITIGNORE: 'eslint-config-flat-gitignore',
-  ESLINT_IMPORT_RESOVLER_TYPESCRIPT: 'eslint-import-resolver-typescript',
+  ESLINT_IMPORT_RESOLVER_TYPESCRIPT: 'eslint-import-resolver-typescript',
   ESLINT_JSON: '@eslint/json',
   ESLINT_MARKDOWN: '@eslint/markdown',
   ESLINT_MERGE_PROCESSORS: 'eslint-merge-processors',
@@ -48,7 +48,7 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   [ESLINT_PACKAGES.ESLINT_JSON]: async () => await interopImport(
     import('@eslint/json'),
   ),
-  [ESLINT_PACKAGES.ESLINT_IMPORT_RESOVLER_TYPESCRIPT]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_IMPORT_RESOLVER_TYPESCRIPT]: async () => await interopImport(
     import('eslint-import-resolver-typescript'),
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU]: async () => await interopImport(

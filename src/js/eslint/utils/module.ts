@@ -48,7 +48,7 @@ export const MODULES = <const>{
         ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU,
       ],
       optional: [
-        ESLINT_PACKAGES.ESLINT_IMPORT_RESOVLER_TYPESCRIPT,
+        ESLINT_PACKAGES.ESLINT_IMPORT_RESOLVER_TYPESCRIPT,
       ],
     },
   },

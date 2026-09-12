@@ -118,7 +118,7 @@ final class SetupCommand extends AbstractCommand
         if ($modules === []) {
             $moduleNamesToInstall = $doInstallAllModules ? array_keys(Module::MAP) : $this->getModuleNamesToInstall();
         } elseif ($doInstallAllModules) {
-            throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifing modules via the arguments.');
+            throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifying modules via the arguments.');
         } else {
             foreach ($modules as $module) {
                 if (!array_key_exists($module, Module::MAP)) {
