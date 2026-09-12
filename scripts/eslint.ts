@@ -32,7 +32,7 @@ const command = [
   'x',
   'eslint',
   '--config',
-  './conf/eslint.config.ts',
+  './conf/eslint.ts',
   '--cache',
   '--cache-location',
   './.cache/eslint.cache.json',

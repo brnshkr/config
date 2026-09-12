@@ -9,7 +9,7 @@ import { snapshotConfigs } from './utils/config-snapshot';
 
 import type { JsonObject } from './utils/json-diff';
 
-const CONFIG_FILE = path.join(process.cwd(), 'conf/stylelint.config.mjs');
+const CONFIG_FILE = path.join(process.cwd(), 'conf/stylelint.mjs');
 
 test('expected stylelint config', async () => {
   await snapshotConfigs({

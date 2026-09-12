@@ -5,7 +5,7 @@
 ## Usage
 
 ```js
-// ./conf/vitest.config.mjs
+// ./conf/vitest.mjs
 export { default } from '@brnshkr/config/vitest';
 ```
 
@@ -20,7 +20,7 @@ Set `spelling` to `false` to collect the project's own tests only.
 config entries after them.
 
 ```js
-// ./conf/vitest.config.mjs
+// ./conf/vitest.mjs
 import { getConfig } from '@brnshkr/config/vitest';
 
 export default getConfig({

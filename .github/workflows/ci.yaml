@@ -334,7 +334,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
         with:
-          configFile: ./conf/commitlint.config.mjs
+          configFile: ./conf/commitlint.mjs
 
       - name: Setup Node
         if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)

@@ -22,9 +22,9 @@ use function sprintf;
 #[CoversClass(Spelling::class)]
 final class SpellingTest extends TestCase
 {
-    private const string CORPUS_CONFIG = 'tests/php/Fixtures/Spelling/spelling.config.json';
+    private const string CORPUS_CONFIG = 'tests/php/Fixtures/Spelling/spelling.json';
 
-    private const string EXTRA_SUFFIX_CONFIG = 'tests/php/Fixtures/Spelling/extra-suffix.config.json';
+    private const string EXTRA_SUFFIX_CONFIG = 'tests/php/Fixtures/Spelling/extra-suffix.json';
 
     private const array CORPUS_PATHS = [
         'tests/php/Fixtures/Spelling/prose.md',
@@ -68,7 +68,7 @@ final class SpellingTest extends TestCase
 
         Spelling::scan(
             $this->getRepositoryRoot(),
-            'tests/php/Fixtures/Spelling/covered-everywhere.config.json',
+            'tests/php/Fixtures/Spelling/covered-everywhere.json',
             self::CORPUS_PATHS,
         );
     }
@@ -80,7 +80,7 @@ final class SpellingTest extends TestCase
 
         Spelling::scan(
             $this->getRepositoryRoot(),
-            'tests/php/Fixtures/Spelling/covered-by-file.config.json',
+            'tests/php/Fixtures/Spelling/covered-by-file.json',
             self::CORPUS_PATHS,
         );
     }
@@ -92,7 +92,7 @@ final class SpellingTest extends TestCase
 
         Spelling::scan(
             $this->getRepositoryRoot(),
-            'tests/php/Fixtures/Spelling/covered-by-lines.config.json',
+            'tests/php/Fixtures/Spelling/covered-by-lines.json',
             self::CORPUS_PATHS,
         );
     }

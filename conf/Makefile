@@ -474,8 +474,9 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		source="$${target}.example"; \
 		case "$$name" in \
 			*.dist.*) shipped="$$name"; tracked="";; \
-			*.php) shipped=""; tracked="";; \
-			*) shipped=""; tracked="$${name%%.*}.dist.$${name##*.}";; \
+			*.mjs|*.php) shipped=""; tracked="";; \
+			?*.?*) shipped=""; tracked="$${name%.*}.dist.$${name##*.}";; \
+			*) shipped=""; tracked="$${name}.dist";; \
 		esac; \
 		for directory in $(_TEMPLATE_DIRS); do \
 			[ -f "$$source" ] && break; \
@@ -488,13 +489,16 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
 		if [ -f "$$source" ]; then \
 			$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		elif [ "$$name" = "$${name%.php}" ]; then \
-			continue; \
 		else \
-			extended="$${target%/*}/$${name%.php}.dist.php"; \
-			$(PRINTF) '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
-				"\$$config = include __DIR__ . '/$${extended##*/}';" '' 'return $$config;' > "$$target" \
-				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			extended="$${target%/*}/$${name%.*}.dist.$${name##*.}"; \
+			case "$$name" in \
+				*.mjs) $(PRINTF) '%s\n' "export { default } from './$${extended##*/}';" > "$$target" \
+					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+				*.php) $(PRINTF) '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
+					"\$$config = include __DIR__ . '/$${extended##*/}';" '' 'return $$config;' > "$$target" \
+					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+				*) extended=""; continue;; \
+			esac; \
 		fi; \
 		case "$$target" in $(CURDIR)/*.php) $(call _name_internal_tag,$${target#$(CURDIR)/});; esac; \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
@@ -844,12 +848,12 @@ _$(_TARGET_PREFIX)bun-install:
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/commitlint),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
-COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.config.mjs)#v #~~ path to `commitlint` config
+COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.mjs $(WORKDIR)/conf/commitlint.dist.mjs)#v #~~ path to `commitlint` config
 COMMITLINT_SOURCE ?= $(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last)#vv #~~ which message `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_DEBUG),--verbose) $(if $(_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
 
 _ANALYZER_NAMES  += commitlint
-_PLAIN_CONFIGS += $(COMMITLINT_CONFIG)
+_LAYERED_CONFIGS += $(WORKDIR)/conf/commitlint.mjs
 
 $(call _target,commitlint): #~~ lints a commit message
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
@@ -866,7 +870,7 @@ endif # /commitlint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint),) # eslint
 
 ESLINT        ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
-ESLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/eslint.config.ts $(WORKDIR)/conf/eslint.config.mjs)#v #~~ path to `eslint` config
+ESLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint.mjs $(WORKDIR)/conf/eslint.dist.mjs)#v #~~ path to `eslint` config
 ESLINT_CACHE  ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
 ESLINT_FLAGS  ?= --max-warnings 0 $(if $(_DEBUG),--debug) $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
 
@@ -884,7 +888,7 @@ ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, whi
 
 _FIXER_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
-_PLAIN_CONFIGS += $(call _when_tracked,$(ESLINT_CONFIG),$(ESLINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(WORKDIR)/conf/eslint.mjs,$(ESLINT_CONFIG)),$(ESLINT_EXTENSIONS))
 
 $(call _target,eslint): #~~ runs `eslint` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -909,14 +913,14 @@ endif # /eslint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2),) # markdownlint
 
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
-MARKDOWNLINT_CONFIG     ?= $(call _config,$(WORKDIR)/conf/markdownlint.config.mjs)#v #~~ path to `markdownlint` config
+MARKDOWNLINT_CONFIG     ?= $(call _config,$(WORKDIR)/conf/markdownlint.mjs $(WORKDIR)/conf/markdownlint.dist.mjs)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
 MARKDOWNLINT_FLAGS      ?= $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
 
 _FIXER_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
-_PLAIN_CONFIGS += $(call _when_tracked,$(MARKDOWNLINT_CONFIG),$(MARKDOWNLINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/markdownlint.mjs,$(MARKDOWNLINT_EXTENSIONS))
 
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
@@ -952,7 +956,7 @@ endef
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/stylelint),) # stylelint
 
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
-STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.config.mjs)#v #~~ path to `stylelint` config
+STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.mjs $(WORKDIR)/conf/stylelint.dist.mjs)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
 STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
 
@@ -964,7 +968,7 @@ STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` c
 
 _FIXER_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
-_PLAIN_CONFIGS += $(call _when_tracked,$(STYLELINT_CONFIG),$(STYLELINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_tracked,$(WORKDIR)/conf/stylelint.mjs,$(STYLELINT_EXTENSIONS))
 
 $(call _target,stylelint): #~~ runs `stylelint` and writes its fixes
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1020,7 +1024,7 @@ endif # /typescript
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
 
 VITEST            ?= $(BUN) $(BUN_FLAGS) vitest#v #~~ command that runs `vitest`
-VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.config.ts $(WORKDIR)/conf/vitest.config.mjs)#v #~~ path to `vitest` config
+VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vitest.mjs $(WORKDIR)/conf/vitest.dist.mjs)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
@@ -1037,7 +1041,7 @@ _VITEST_COVERAGE_PROVIDER := $(firstword $(wildcard \
 
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS)))
 _COVERAGE_NAMES  += $(if $(_VITEST_COVERAGE_PROVIDER),$(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS))))
-_PLAIN_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(VITEST_CONFIG),$(VITEST_EXTENSIONS)))
+_LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(WORKDIR)/conf/vitest.mjs,$(VITEST_CONFIG)),$(VITEST_EXTENSIONS)))
 
 $(call _target,vitest): #~~ runs `vitest`
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
@@ -1213,6 +1217,19 @@ endef
 #*
 define _tracked
 $(if $(findstring .dist.,$1),$1,$(basename $1).dist$(suffix $1))
+endef
+
+#**
+#* The layered path to register, empty where the tool resolved a config outside that pair.
+#*
+#* parameters:
+#*   path: string
+#*   resolved: string
+#*
+#* returns: string
+#*
+define _layered
+$(if $(filter $2,$1 $(call _tracked,$1)),$1)
 endef
 
 #**

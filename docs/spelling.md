@@ -42,7 +42,7 @@ and snapshots and test fixtures are excluded on top of that.
 
 ## Customizing
 
-`./conf/spelling.config.json` is merged over `./conf/spelling/defaults.json` as shipped,
+`./conf/spelling.json` is merged over `./conf/spelling/defaults.json` as shipped,
 so a repository adds to any of them and restates none. Every key is optional.
 
 | Key | Adds to |

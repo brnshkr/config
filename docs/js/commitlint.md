@@ -6,7 +6,7 @@ It belongs on the `commit-msg` hook, where a bad message is rejected while it is
 ## Usage
 
 ```js
-// ./conf/commitlint.config.mjs
+// ./conf/commitlint.mjs
 export { default } from '@brnshkr/config/commitlint';
 ```
 
@@ -19,7 +19,7 @@ Modules for the presets — e.g. `conventional`
 config entries after them.
 
 ```js
-// ./conf/commitlint.config.mjs
+// ./conf/commitlint.mjs
 import { getConfig } from '@brnshkr/config/commitlint';
 
 export default getConfig({

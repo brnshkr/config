@@ -7,7 +7,7 @@ rather than extending a shared rule set.
 ## Usage
 
 ```js
-// ./conf/markdownlint.config.mjs
+// ./conf/markdownlint.mjs
 export { default } from '@brnshkr/config/markdownlint';
 ```
 
@@ -20,7 +20,7 @@ Modules for the optional rule groups — e.g. `links`, `tables`
 config entries after them.
 
 ```js
-// ./conf/markdownlint.config.mjs
+// ./conf/markdownlint.mjs
 import { getConfig } from '@brnshkr/config/markdownlint';
 
 export default getConfig({

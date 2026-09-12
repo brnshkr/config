@@ -5404,6 +5404,7 @@ exports[`expected eslint config > base: __tests__/a.ts 1`] = `
       {
         "ignore": [
           "[Ii]nheritDoc",
+          "\\.dist$",
         ],
       },
     ],

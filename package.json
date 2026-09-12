@@ -28,16 +28,17 @@
     "./vitest": "./dist/vitest/index.mjs"
   },
   "files": [
+    "./conf/.gitignore.dist",
     "./conf/Makefile",
-    "./conf/Makefile.example",
-    "./conf/commitlint.config.mjs.example",
-    "./conf/eslint.config.mjs.example",
-    "./conf/markdownlint.config.mjs.example",
+    "./conf/Makefile.dist",
+    "./conf/commitlint.dist.mjs",
+    "./conf/eslint.dist.mjs",
+    "./conf/markdownlint.dist.mjs",
     "./conf/spelling",
-    "./conf/stylelint.config.mjs.example",
+    "./conf/stylelint.dist.mjs",
+    "./conf/tsconfig.dist.json",
     "./conf/tsconfig.json",
-    "./conf/tsconfig.json.example",
-    "./conf/vitest.config.mjs.example",
+    "./conf/vitest.dist.mjs",
     "./dist"
   ],
   "dependencies": {

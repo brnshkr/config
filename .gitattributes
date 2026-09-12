@@ -1,14 +1,14 @@
 .*                                    export-ignore
 /conf/*                               export-ignore
-/conf/.gitignore.example             -export-ignore
+/conf/.gitignore.dist                -export-ignore
 /Makefile                             export-ignore
 /conf/Makefile                       -export-ignore
 /conf/phpstan                        -export-ignore
 /conf/phpstan/*                      -export-ignore
 /conf/spelling                       -export-ignore
 /conf/spelling/*                     -export-ignore
-/conf/Makefile.example               -export-ignore
-/conf/launch.json.example            -export-ignore
+/conf/Makefile.dist                  -export-ignore
+/conf/launch.dist.json               -export-ignore
 /conf/php-cs-fixer.dist.php          -export-ignore
 /conf/phpstan.dist.php               -export-ignore
 /conf/phpunit.dist.xml               -export-ignore

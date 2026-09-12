@@ -74,7 +74,7 @@ the general make and awk traps are in `vision/TRAPS.md`.
 
 ## Per tool
 
-- `Makefile.example` bootstraps on the host, so its `composer install` passes `--no-scripts`
+- `Makefile.dist` bootstraps on the host, so its `composer install` passes `--no-scripts`
   `--ignore-platform-reqs`: it only has to make the include resolvable, and `startup` installs again through
   `RUN`, where the platform is real.
 - A `pest` target is a guarded alias re-entering the `phpunit` one with `PHP_UNIT` set to `PEST`, so
@@ -82,8 +82,9 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - `PHP_UNIT_SNAPSHOT_FLAGS` carries `--do-not-fail-on-incomplete`: a rewritten snapshot reports incomplete.
 - PHPUnit merges nothing — one file, no `extends` — so `conf/phpunit.xml` replaces the `.dist` one rather
   than layering on it the way a PHP config does.
-- Consumers get `conf/vitest.config.mjs`; this repository keeps a `.ts` one through a `VITEST_CONFIG`
-  override, whose `testTimeout` is deliberately not in the example.
+- Every JavaScript config layers the way a PHP one does: `conf/<tool>.dist.mjs` is tracked and shipped,
+  `conf/<tool>.mjs` is the project's private half and re-exports it. `eslint` and `vitest` take a `.ts`
+  ahead of either, which is how this repository configures itself.
 
 ## The awk programs
 

@@ -5,7 +5,7 @@
 ## Usage
 
 ```js
-// ./conf/stylelint.config.mjs
+// ./conf/stylelint.mjs
 export { default } from '@brnshkr/config/stylelint';
 ```
 
@@ -18,7 +18,7 @@ Modules for dialects and plugins — e.g. `scss`, `modules`, `order`
 config entries after them.
 
 ```js
-// ./conf/stylelint.config.mjs
+// ./conf/stylelint.mjs
 import { getConfig } from '@brnshkr/config/stylelint';
 
 export default getConfig({

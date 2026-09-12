@@ -116,7 +116,7 @@ and install the ones you need for the modules you want to use.
 Copy the starter `Makefile` once, and let it write the rest:
 
 ```sh
-cp -v ./node_modules/@brnshkr/config/conf/Makefile.example ./Makefile \
+cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile \
   && make startup
 ```
 
@@ -133,7 +133,7 @@ Take a look at the function signatures for exact details.
 ##### ESLint
 
 ```js
-// ./conf/eslint.config.mjs
+// ./conf/eslint.mjs
 
 import { getConfig } from '@brnshkr/config/eslint';
 
@@ -144,7 +144,7 @@ export default getConfig(/* customize */);
 ##### Stylelint
 
 ```js
-// ./conf/stylelint.config.mjs
+// ./conf/stylelint.mjs
 
 import { getConfig } from '@brnshkr/config/stylelint';
 
@@ -155,7 +155,7 @@ export default getConfig(/* customize */);
 ##### markdownlint
 
 ```js
-// ./conf/markdownlint.config.mjs
+// ./conf/markdownlint.mjs
 
 import { getConfig } from '@brnshkr/config/markdownlint';
 
@@ -166,7 +166,7 @@ export default getConfig(/* customize */);
 ##### commitlint
 
 ```js
-// ./conf/commitlint.config.mjs
+// ./conf/commitlint.mjs
 
 import { getConfig } from '@brnshkr/config/commitlint';
 
@@ -177,7 +177,7 @@ export default getConfig(/* customize */);
 ##### Vitest
 
 ```js
-// ./conf/vitest.config.mjs
+// ./conf/vitest.mjs
 
 import { getConfig } from '@brnshkr/config/vitest';
 
@@ -203,7 +203,7 @@ A few possible ways are listed below:
 Example call, adjust as needed
 
 ```sh
-bun eslint --config ./conf/eslint.config.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
+bun eslint --config ./conf/eslint.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
 ```
 
 <!-- omit in toc -->
@@ -212,7 +212,7 @@ bun eslint --config ./conf/eslint.config.mjs --cache --cache-location ./.cache/e
 Example call, adjust as needed
 
 ```sh
-bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 "**/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}"
+bun stylelint --config ./conf/stylelint.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 "**/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}"
 ```
 
 <!-- omit in toc -->
@@ -221,7 +221,7 @@ bun stylelint --config ./conf/stylelint.config.mjs --config-basedir ./ --cache -
 Example call, adjust as needed
 
 ```sh
-bun markdownlint-cli2 --config ./conf/markdownlint.config.mjs "**/*.md"
+bun markdownlint-cli2 --config ./conf/markdownlint.mjs "**/*.md"
 ```
 
 <!-- omit in toc -->
@@ -230,7 +230,7 @@ bun markdownlint-cli2 --config ./conf/markdownlint.config.mjs "**/*.md"
 Example call, adjust as needed
 
 ```sh
-bun commitlint --config ./conf/commitlint.config.mjs --edit
+bun commitlint --config ./conf/commitlint.mjs --edit
 ```
 
 <!-- omit in toc -->
@@ -243,7 +243,7 @@ Your own Makefile includes this one. Copy the starter rather than writing the in
 include, so a fresh clone can `make bootstrap` before anything is installed.
 
 ```sh
-cp -v ./node_modules/@brnshkr/config/conf/Makefile.example ./Makefile
+cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
@@ -253,7 +253,7 @@ The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blo
 <!-- omit in toc -->
 ###### ESLint (TypeScript Only)
 
-Expected configuration file: `./conf/eslint.config.mjs`
+Expected configuration file: `./conf/eslint.mjs`
 
 ```sh
 make eslint
@@ -262,7 +262,7 @@ make eslint
 <!-- omit in toc -->
 ###### Stylelint
 
-Expected configuration file: `./conf/stylelint.config.mjs`
+Expected configuration file: `./conf/stylelint.mjs`
 
 ```sh
 make stylelint
@@ -271,7 +271,7 @@ make stylelint
 <!-- omit in toc -->
 ###### markdownlint
 
-Expected configuration file: `./conf/markdownlint.config.mjs`
+Expected configuration file: `./conf/markdownlint.mjs`
 
 ```sh
 make markdownlint
@@ -280,7 +280,7 @@ make markdownlint
 <!-- omit in toc -->
 ###### commitlint
 
-Expected configuration file: `./conf/commitlint.config.mjs`
+Expected configuration file: `./conf/commitlint.mjs`
 
 ```sh
 make commitlint
@@ -342,7 +342,7 @@ you need for the modules you want to use.
 Copy the starter `Makefile` once, and let it write the rest:
 
 ```sh
-cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile \
+cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile \
   && make startup
 ```
 
@@ -476,7 +476,7 @@ Your own Makefile includes this one. Copy the shipped starter rather than writin
 it guards the include, so a fresh clone can `make bootstrap` before anything is installed.
 
 ```sh
-cp -v ./vendor/brnshkr/config/conf/Makefile.example ./Makefile
+cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
@@ -588,7 +588,7 @@ This project mostly follows the [Conventional Commits](https://www.conventionalc
 There are only a few differences. The main one is that the scope is required:  
 So **instead of** this commit message signature: `<type>[optional scope]: <description>`  
 You **should use** this one: `<type><scope>: <description>`  
-Further details can be found in the [commitlint configuration](https://github.com/brnshkr/config/blob/master/conf/commitlint.config.mjs).
+Further details can be found in the [commitlint configuration](https://github.com/brnshkr/config/blob/master/conf/commitlint.mjs).
 
 ### ⚙️ Workflows
 

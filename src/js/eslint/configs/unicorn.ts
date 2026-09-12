@@ -114,6 +114,7 @@ export const unicorn = async (): Promise<Config[]> => {
         'unicorn/prevent-abbreviations': ['error', {
           ignore: [
             '[Ii]nheritDoc',
+            String.raw`\.dist$`,
           ],
         }],
         'unicorn/string-content': ['error', {

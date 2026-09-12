@@ -5,7 +5,7 @@
 ## Usage
 
 ```js
-// ./conf/eslint.config.mjs
+// ./conf/eslint.mjs
 export { default } from '@brnshkr/config/eslint';
 ```
 
@@ -18,7 +18,7 @@ Modules for languages and plugins — e.g. `typescript`, `svelte`, `yaml`
 flat configs after them.
 
 ```js
-// ./conf/eslint.config.mjs
+// ./conf/eslint.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({

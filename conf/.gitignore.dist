@@ -1,9 +1,14 @@
 /.cache/
 /.local/
+/conf/commitlint.mjs
+/conf/eslint.mjs
+/conf/markdownlint.mjs
 /conf/php-cs-fixer.php
 /conf/phpstan.php
 /conf/phpunit.xml
 /conf/rector.php
+/conf/stylelint.mjs
 /conf/twig-cs-fixer.php
+/conf/vitest.mjs
 /node_modules/
 /vendor/

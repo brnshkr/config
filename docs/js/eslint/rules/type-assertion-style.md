@@ -71,7 +71,7 @@ const config = (await load()) as Config;
 so it needs either `spacing: 'always'` or that rule turned off.
 
 ```js
-// ./conf/eslint.config.mjs
+// ./conf/eslint.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({

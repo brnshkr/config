@@ -57,7 +57,7 @@ export default defineConfig((options) => {
         {
           name: 'rewrite-config-extension',
           renderChunk: (code, chunk): Maybe<string> => (chunk.name === 'eslint'
-            ? code.replaceAll('eslint.config.ts', 'eslint.config.mjs')
+            ? code.replaceAll('eslint.ts', 'eslint.mjs')
             : undefined),
         },
       ],

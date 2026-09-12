@@ -24,15 +24,15 @@ typegen: #~~ regenerates the rule types the configs are built from
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(CURDIR)/scripts/typegen.ts
 
 build: typegen #~~ builds the `./dist/` this package publishes
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts $(ARGS)
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts $(ARGS)
 
 watch: #~~ rebuilds `./dist/` as the sources change
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.config.ts --watch
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts --watch
 
 #--- inspect
 
 inspect-eslint: #~~ runs `eslint-config-inspector`
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) eslint-config-inspector --config $(CURDIR)/conf/eslint.config.ts
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) eslint-config-inspector --config $(CURDIR)/conf/eslint.ts
 
 inspect-modules: #~~ runs `node-modules-inspector`
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector

@@ -8,7 +8,7 @@ const command = [
   'x',
   'commitlint',
   '--config',
-  './conf/commitlint.config.mjs',
+  './conf/commitlint.mjs',
   ...argv.length > 0 ? argv : [source],
 ];
 

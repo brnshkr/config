@@ -57,7 +57,7 @@ follow them, don't restate them. Beyond what tooling catches:
   — inline at the single call site or a `(): RegExp =>` factory, never `UPPER_SNAKE`.
 - Extract a helper only at ≥2 call sites or >~50 lines; export only what consumers use.
 - `@example` code is linted — when a rule misfires there, disable it in the jsdoc-examples overrides in
-  `src/js/eslint/configs/overrides.ts` or `conf/eslint.config.ts` depending on the case, never rewrite the example.
+  `src/js/eslint/configs/overrides.ts` or `conf/eslint.ts` depending on the case, never rewrite the example.
 
 ### Docs + docblocks
 
@@ -69,7 +69,7 @@ follow them, don't restate them. Beyond what tooling catches:
 ## Commits
 
 Conventional Commits basics live in `README.md`; commit workflow + git mechanics in `conf/ai/docs/commit.md`.
-The rules `commitlint` enforces (`conf/commitlint.config.mjs`):
+The rules `commitlint` enforces (`conf/commitlint.mjs`):
 
 - Header lower-case, no trailing period, ≤100 chars; subject ≥5 chars.
 - Scope required, lower-case, ≥2 chars; delimiters only `/` or `-` (no commas).

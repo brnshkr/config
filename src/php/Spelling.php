@@ -43,7 +43,7 @@ use const STDERR;
  * Reports British spellings in a repository's tracked prose, docblocks and identifiers.
  *
  * The word list and the scanned file surface are shipped by `brnshkr/config`, so every repository checks the same words.
- * A repository's `conf/spelling.config.json` may add to any of it and may allow words the list still rejects,
+ * A repository's `conf/spelling.json` may add to any of it and may allow words the list still rejects,
  * but it may not remove a rule. The JavaScript implementation reports the same findings
  * and is held to it by a parity test.
  *
@@ -55,7 +55,7 @@ use const STDERR;
  */
 final class Spelling
 {
-    public const string DEFAULT_CONFIG_PATH = 'conf/spelling.config.json';
+    public const string DEFAULT_CONFIG_PATH = 'conf/spelling.json';
 
     private const string DEFAULTS_PATH = 'conf/spelling/defaults.json';
 

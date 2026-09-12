@@ -15,7 +15,7 @@ import type {
 } from './types/options';
 
 const EVERY_PATH = '*';
-const DEFAULT_CONFIG_PATH = 'conf/spelling.config.json';
+const DEFAULT_CONFIG_PATH = 'conf/spelling.json';
 const REGEX_METACHARACTERS = /[$\(\)*+.?\[\\\]^\{\|\}]/gv;
 const escapeRegexLiteral = (value: string): string => value.replaceAll(REGEX_METACHARACTERS, String.raw`\$&`);
 

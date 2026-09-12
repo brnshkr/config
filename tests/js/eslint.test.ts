@@ -3,7 +3,7 @@ import path from 'node:path';
 import { ESLint } from 'eslint';
 import { test } from 'vitest';
 
-import eslintConfig from '../../conf/eslint.config';
+import eslintConfig from '../../conf/eslint';
 import { getConfig } from '../../src/js/eslint';
 
 import { snapshotConfigs } from './utils/config-snapshot';

@@ -20,9 +20,9 @@ Agent knowledge beyond `docs/js/`.
   `@vitest-environment` and its options tag only when the test module is on.
 - Rule-group overrides for special globs sit in `src/js/eslint/configs/overrides.ts`
   — e.g. the `GLOB_EXAMPLES` block relaxing rules inside JSDoc `@example` code.
-- That file ships to consumers; exceptions for this repo's own sources belong in `conf/eslint.config.ts`.
-- Build: tsdown bundles `src/js/` to `dist/` per `conf/tsdown.config.ts`; entry points in `package.json#exports`.
-  The scripts chunk rewrites `eslint.config.ts` → `eslint.config.mjs` via a renderChunk plugin.
+- That file ships to consumers; exceptions for this repo's own sources belong in `conf/eslint.ts`.
+- Build: tsdown bundles `src/js/` to `dist/` per `conf/tsdown.ts`; entry points in `package.json#exports`.
+  The scripts chunk rewrites `eslint.ts` → `eslint.mjs` via a renderChunk plugin.
 
 ## Lint infra
 

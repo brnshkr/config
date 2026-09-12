@@ -1,3 +1,10 @@
 {
-  "extends": "./conf/tsconfig.json"
+  "extends": "./conf/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@brnshkr/config/*": [
+        "./src/js/*/index.ts"
+      ]
+    }
+  }
 }

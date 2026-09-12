@@ -11,7 +11,7 @@ const command = [
   'x',
   'markdownlint-cli2',
   '--config',
-  './conf/markdownlint.config.mjs',
+  './conf/markdownlint.mjs',
   ...withDefaultGlobs(process.argv.slice(2), ['**/*.md'], VALUE_FLAGS),
 ];
 

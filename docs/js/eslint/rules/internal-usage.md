@@ -82,7 +82,7 @@ a regular expression, or the delimited pattern string the PHP rule takes. A symb
 followed by `#` and the member path.
 
 ```js
-// ./conf/eslint.config.mjs
+// ./conf/eslint.mjs
 import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({

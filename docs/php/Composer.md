@@ -16,4 +16,4 @@ For full usage of any command run `composer help <command>`, `composer <command>
 | `brnshkr:config:setup [<modules>...]` | `b:c:s` | Installs the packages the modules you pick need. |
 
 `setup` installs packages and nothing else. Files are `make` work:
-copy `./conf/Makefile.example` to `./Makefile`, then `make startup` — see [Makefile](./Makefile.md).
+copy `./conf/Makefile.dist` to `./Makefile`, then `make startup` — see [Makefile](./Makefile.md).
