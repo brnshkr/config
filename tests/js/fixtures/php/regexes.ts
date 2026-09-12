@@ -203,5 +203,35 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/^\.PHONY:\s*$/m`,
     regex: /^\.PHONY:\s*$/mv,
   },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/--dry-run\n.*phpstan analyze.*\n.*phpunit/s`,
+    regex: /--dry-run\n.*phpstan analyze.*\n.*phpunit/sv,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s`,
+    regex: /php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/sv,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/rector done\n(?:.*\n)*php-cs-fixer fix/`,
+    regex: /rector done\n(?:.*\n)*php-cs-fixer fix/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
+    regex: /php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/rector process [^\n]*--dry-run\nrector done/`,
+    regex: /rector process [^\n]*--dry-run\nrector done/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/phpstan analyze [^\n]*\nphpstan done/`,
+    regex: /phpstan analyze [^\n]*\nphpstan done/v,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

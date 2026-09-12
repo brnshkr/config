@@ -27,8 +27,9 @@ Everything runs through `make`; `make help` lists what this checkout can actuall
 and [`./docs/Makefile.md`](./Makefile.md) is the reference.
 Frequently used:
 
-- `make ci` — every tool this project has, writing nothing
-- `make check` — the same, writing the fixes
+- `make fix` — every fixer, writing its fixes
+- `make check` — every fixer and analyzer, writing nothing
+- `make ci` — `make check` then `make test`
 - `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
 - `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
 - `make inspect-eslint` — inspect the ESLint configuration

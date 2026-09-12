@@ -33,15 +33,18 @@ Across both stacks:
 | Target | Description |
 | --- | --- |
 | `startup` | Installs each stack, writes any missing tool config, then runs `STARTUP_TARGETS`. |
-| `check` | Runs every tool the repository has and writes its fixes. |
-| `ci` | Runs the same tools without writing anything. |
+| `fix` | Runs every fixer and writes its fixes. |
+| `check` | Runs every fixer and analyzer without writing anything. |
 | `test` | Runs every stack's tests. |
+| `ci` | Runs `CI_TARGETS` in order — `check` then `test`, unless set to include `fix` first. |
 | `test-update` | Runs them and updates their snapshots. |
 | `configs` | Writes any tool config the repository is missing, and never touches one it has. |
 | `pack` | Packs every stack's package into `./.local`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them. |
 | `cc` | Removes cached tool state, naming what it will remove and asking first. |
+
+`make -j` runs tools in parallel, keeping fixers that write the same files in order.
 
 A tool's target takes suffixes, the same ones on both stacks:
 `-dry-run` writes nothing,

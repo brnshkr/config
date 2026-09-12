@@ -72,6 +72,7 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - A `-group` table names the tool flush, like a help section label, indents its rows one step, and colors
   the count with `COLOR_ENTRY` rather than `COLOR_HIGHLIGHT` — the highlight is the section color under the
   symfony theme, where the two would read as one.
+- `fix`, `check` and `test` sync output under `-j`. `fix` runs `_FIX_ORDER` chains: serial inside, parallel across.
 - `NO_ANSI` lives in each tool's `*_FLAGS` default, `_NO_ANSI_OPTION` being the Symfony-console spelling.
 
 ## Per tool
@@ -100,7 +101,7 @@ the general make and awk traps are in `vision/TRAPS.md`.
   `$(origin …),undefined` conditional; it would define the variable and make that branch unreachable, and a
   variable declared inside one never reaches help, which evaluates conditionals and keeps the live branch.
 - Verbosity is a ladder, not a sum: a `#v` inside a `#---v` scope still shows at 1. Level 0 is `help`,
-  `check`, `test` and each tool's own target; 1 adds the everyday extras — `startup`, `configs`, `cc`,
+  `fix`, `check`, `test` and each tool's own target; 1 adds the everyday extras — `startup`, `configs`, `cc`,
   `group`, `test-update`, every `-dry-run`, `-group`, `-update` and `-coverage` — and each tool's command,
   config and flags; 2 adds `ci`, `coverage`, every `-list` and `-print`, and the knobs behind them, the
   extension lists and globs among them; 3 is what is rarely reached for: `pack`, every `-debug` and `-raw`,

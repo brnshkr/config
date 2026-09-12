@@ -352,6 +352,66 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('unterminated.env', $result);
     }
 
+    public function testFixWritesCheckOnlyReadsAndTestOnlyTests(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $fix       = $this->runMake(['fix'], directory: $directory);
+        $check     = $this->runMake(['check'], directory: $directory);
+        $test      = $this->runMake(['test'], directory: $directory);
+
+        self::assertStringContainsString('php-cs-fixer fix', $fix);
+        self::assertStringNotContainsString('--dry-run', $fix);
+        self::assertStringNotContainsString('phpstan', $fix);
+        self::assertStringNotContainsString('phpunit', $fix);
+        self::assertStringContainsString('--dry-run', $check);
+        self::assertStringContainsString('phpstan analyze', $check);
+        self::assertStringNotContainsString('phpunit', $check);
+        self::assertStringContainsString('phpunit', $test);
+        self::assertStringNotContainsString('php-cs-fixer', $test);
+        self::assertStringNotContainsString('phpstan', $test);
+    }
+
+    public function testCiRunsItsTargetsInTheOrderTheyAreListed(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $default   = $this->runMake(['ci'], directory: $directory);
+        $fixing    = $this->runMake(['ci'], ['CI_TARGETS' => 'fix check test'], $directory);
+
+        self::assertMatchesRegularExpression('/--dry-run\n.*phpstan analyze.*\n.*phpunit/s', $default);
+        self::assertStringNotContainsString(" -v\n", $default);
+        self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s', $fixing);
+    }
+
+    public function testFixRunsRectorBeforePhpCsFixerEvenInParallel(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+
+        foreach ([[], ['-j4']] as $flags) {
+            $fix = $this->runMake([...$flags, 'fix'], directory: $directory);
+
+            self::assertMatchesRegularExpression('/rector done\n(?:.*\n)*php-cs-fixer fix/', $fix);
+            self::assertStringNotContainsString('warning', $fix);
+        }
+    }
+
+    public function testAParallelCheckPrintsEachToolWhole(): void
+    {
+        $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/Fixtures/Make/Verbs');
+
+        self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/', $check);
+        self::assertMatchesRegularExpression('/rector process [^\n]*--dry-run\nrector done/', $check);
+        self::assertMatchesRegularExpression('/phpstan analyze [^\n]*\nphpstan done/', $check);
+    }
+
+    public function testAVerbWithNothingToRunSaysSo(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Consumer';
+
+        self::assertStringContainsString('No fixer to run.', $this->runMake(['fix'], directory: $directory));
+        self::assertStringContainsString('No tool to run.', $this->runMake(['check'], directory: $directory));
+        self::assertStringContainsString('No test to run.', $this->runMake(['test'], directory: $directory));
+    }
+
     public function testACollidingNameStaysWithTheProjectAndTheSharedOneMovesAside(): void
     {
         $directory = __DIR__ . '/Fixtures/Make/Collision';

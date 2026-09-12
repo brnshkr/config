@@ -21,7 +21,7 @@ User splits aggressively (docs vs behavior = two commits). No destructive git op
 without explicit confirmation. Substantial untracked code gets a style/review pass before staging.
 Match tone of recent `git log` — short bodies, one short paragraph max.
 
-Verification after each commit: `make check` clean
+Verification after each commit: `make ci` clean
 (heavy on the JS side — prefer a filtered `make vitest -- <filter>`).
 
 ## Scope

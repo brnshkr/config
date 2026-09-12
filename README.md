@@ -247,7 +247,7 @@ cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make check` runs all of it, and `make startup` writes any config you are still missing.
+`make ci` runs all of it, and `make startup` writes any config you are still missing.
 The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->
@@ -468,7 +468,7 @@ cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make check` runs all of it, and `make startup` writes any config you are still missing.
+`make ci` runs all of it, and `make startup` writes any config you are still missing.
 The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->

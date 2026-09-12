@@ -197,6 +197,8 @@ _TRUE  := 1 true on yes
 _CI = $(filter-out $(_FALSE),$(CI))
 
 _MAKE_FLAGS = $(if $(or $(_DEBUG),$(_TRACE)),--no-print-directory,-s)
+_PARALLEL   = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
+_SYNC       = $(if $(_PARALLEL),--output-sync=target)
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
 
@@ -1099,20 +1101,48 @@ endif # /js
 #--- common
 
 _FIXERS    := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)))
+_DRY_RUNS  := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)-dry-run))
 _ANALYZERS := $(foreach ANALYZER_NAME,$(_ANALYZER_NAMES),$(call _target,$(ANALYZER_NAME)))
 _TESTS     := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)))
+_UPDATES   := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)-update))
 _COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERAGE_NAME)-coverage))
 _GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
 _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 
-$(call _target,check): $(_FIXERS) $(_ANALYZERS) $(_TESTS) #~~ runs every tool this project has, writing the fixes
-	$(TRACE_PREFIX)$(if $(_FIXERS)$(_ANALYZERS)$(_TESTS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+_FIX_ORDER := rector+php-cs-fixer \
+	twig-cs-fixer \
+	eslint+stylelint+markdownlint
 
-$(call _target,ci): $(foreach FIXER_NAME,$(addsuffix -dry-run,$(_FIXER_NAMES)),$(call _target,$(FIXER_NAME))) $(_ANALYZERS) $(_TESTS) #~~ runs every tool this project has without writing fixes #vv
-	$(TRACE_PREFIX)$(if $(_FIXERS)$(_ANALYZERS)$(_TESTS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+_FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(_FIX_ORDER)),$(_FIXER_NAMES)), \
+	$(if $(filter $(_FIXER_NAMES),$(subst +, ,$(CHAIN))),_$(_TARGET_PREFIX)fix-$(CHAIN)) \
+))
 
-$(call _target,coverage): $(_COVERAGE) #~~ runs the tests and fails below the minimum coverage #vv
+_CI_TARGETS := $(call _target,check) \
+	$(call _target,test)
+
+CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+
+$(call _target,check): #~~ runs the fixers without writing, and every analyzer
+	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_DRY_RUNS) $(_ANALYZERS),:)
+
+$(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
+	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
+		$(MAKE) $(_MAKE_FLAGS) $(TARGET) && \
+	):
+
+$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage #vv
 	$(TRACE_PREFIX)$(if $(_COVERAGE),:,$(call log,No test to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_COVERAGE),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_COVERAGE),:)
+
+$(call _target,fix): #~~ runs every fixer this project has, writing its fixes
+	$(TRACE_PREFIX)$(if $(_FIX_CHAINS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_FIX_CHAINS),:)
+
+_$(_TARGET_PREFIX)fix-%:
+	$(DEBUG_PREFIX)$(foreach NAME,$(filter $(_FIXER_NAMES),$(subst +, ,$*)), \
+		$(MAKE) $(_MAKE_FLAGS) $(call _target,$(NAME)) && \
+	):
 
 $(call _target,group): #~~ counts every tool's findings by identifier #v
 	$(TRACE_PREFIX)$(if $(_GROUPS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
@@ -1121,11 +1151,13 @@ $(call _target,group): #~~ counts every tool's findings by identifier #v
 $(call _target,pack): $(_PACKS) #~~ packs every stack's package into `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
-$(call _target,test): $(_TESTS) #~~ runs the tests of every stack this project has
+$(call _target,test): #~~ runs the tests of every stack this project has
 	$(TRACE_PREFIX)$(if $(_TESTS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_TESTS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_TESTS),:)
 
-$(call _target,test-update): $(foreach TEST_NAME,$(addsuffix -update,$(_TEST_NAMES)),$(call _target,$(TEST_NAME))) #~~ runs those tests and updates their snapshots #v
-	$(TRACE_PREFIX)$(if $(_TESTS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
+$(call _target,test-update): #~~ runs those tests and updates their snapshots #v
+	$(TRACE_PREFIX)$(if $(_UPDATES),:,$(call log,No test to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_UPDATES),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_UPDATES),:)
 
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
