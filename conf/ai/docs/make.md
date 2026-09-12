@@ -67,12 +67,13 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - `log` renders backticks as inline code and its message is a `printf` format: anything that could hold a
   `%` goes in as an argument. `_named_path` names a path in one, relative to the checkout.
 - A piped tool runs through `_capture`, or the pipe reports awk's status and a crash reads as an empty list.
-  `_group` prints its table first and re-raises the status, since a tool with findings exits nonzero; the
-  `group` aggregate runs its children under `--keep-going` for the same reason.
-- A `-group` table names the tool flush, like a help section label, indents its rows one step, and colors
-  the count with `COLOR_ENTRY` rather than `COLOR_HIGHLIGHT` — the highlight is the section color under the
-  symfony theme, where the two would read as one.
+  `_group` is the exception: the awk's status is the recipe's, 0 whenever the report parsed and the tool's own
+  code when it exited nonzero with nothing parsed. make reports every failed recipe, so a finding must not be one.
+- A `-group` table names the tool flush before it runs, like a help section label, indents its rows one step,
+  and closes on one status line. The count takes `COLOR_ENTRY` rather than `COLOR_HIGHLIGHT` — the highlight
+  is the section color under the symfony theme, where the two would read as one.
 - `fix`, `check` and `test` sync output under `-j`. `fix` runs `_FIX_ORDER` chains: serial inside, parallel across.
+- `_group` output: spinner on a serial terminal, per-tool announcement under `-j`, plain otherwise.
 - `NO_ANSI` lives in each tool's `*_FLAGS` default, `_NO_ANSI_OPTION` being the Symfony-console spelling.
 
 ## Per tool

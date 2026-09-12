@@ -233,5 +233,10 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/phpstan analyze [^\n]*\nphpstan done/`,
     regex: /phpstan analyze [^\n]*\nphpstan done/v,
   },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/^group-crash$/m`,
+    regex: /^group-crash$/mv,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

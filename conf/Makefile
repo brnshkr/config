@@ -1437,9 +1437,11 @@ test -f '$(call _host_path,$1)' || { \
 }
 endef
 
+_GROUP_PARALLEL   = $(if $(filter -O%,$(MAKEFLAGS)),,$(_PARALLEL))
+_SPINNER_SECONDS := 0.15
+
 #**
-#* Runs a command that reports findings as JSON and prints them grouped by identifier, keeping the
-#* command's exit status so a failing tool still fails the recipe.
+#* Runs a tool and prints its findings grouped by identifier, failing only when it reported nothing.
 #*
 #* parameters:
 #*   command: string
@@ -1449,9 +1451,17 @@ endef
 #* returns: void
 #*
 define _group
-output=$$($1 2>&1); status=$$?; $(PRINTF) '%s\n' "$$output" \
-	| $(AWK) -v _tool='$@' -v _indent='$(INDENT)' -v _identifier='$2' -v _message='$3' "$$_GROUP_AWK"; \
-exit $$status
+label=$$($(PRINTF) '$(call text,%s,$(COLOR_SECTION_LABEL))' '$(patsubst %-group,%,$@)'); \
+live=; $(if $(or $(_GROUP_PARALLEL),$(_NO_ANSI)),,[ -t 1 ] && live=1;) \
+$(if $(_GROUP_PARALLEL),$(PRINTF) '%s  %b\n' "$$label" '$(call text,Running…,$(COLOR_DESCRIPTION))';,$(PRINTF) '%s\n' "$$label"; \
+	[ -z "$$live" ] || { trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r\033[2K"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
+		$(PRINTF) '\r  $(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
+	done; done & spinner=$$!; };) \
+output=$$($1 2>&1); status=$$?; \
+report=$$($(PRINTF) '%s\n' "$$output" \
+	| $(AWK) -v _indent='$(INDENT)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
+$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n%s\n' "$$label" "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r\033[2K'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+exit $$code
 endef
 
 #**
@@ -1788,7 +1798,16 @@ function add(identifier, message) {
 }
 BEGIN { if (_identifier != "" && _message != "") RS = "}" }
 _identifier == "" && match($$0, / error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART + 7, RLENGTH - 8); sub(/:$$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
-_identifier != "" && _message != "" { add(value($$0, _identifier), value($$0, _message)) }
+_identifier != "" && _message != "" {
+	pending = pending $$0;
+	quotes = pending;
+	gsub(/\\./, "", quotes);
+	if (gsub(/"/, "", quotes) % 2) { pending = pending "}"; next }
+	if (index(pending, "\"suppressedMessages\"")) suppressed = 1;
+	if (!suppressed) add(value(pending, _identifier), value(pending, _message));
+	if (index(pending, "\"errorCount\"")) suppressed = 0;
+	pending = "";
+}
 _identifier != "" && _message == "" { buffer = buffer " " $$0 }
 END {
 	pattern = "\"" _identifier "\":[ \t]*\\[";
@@ -1808,14 +1827,14 @@ END {
 			if (count[order[inner]] < count[order[inner + 1]]) {
 				swap = order[inner]; order[inner] = order[inner + 1]; order[inner + 1] = swap;
 			}
-	if (total == 0) exit;
+	if (total == 0 && _status != 0) exit _status;
+	padding = repeat(" ", 2 * _indent);
+	if (total == 0) { printf "%s$(call text,✔,$(COLOR_SUCCESS)) $(call text,No findings,$(COLOR_DESCRIPTION))\n", padding; exit }
 	for (position = 1; position <= total; position += 1) {
 		if (length(order[position]) > width) width = length(order[position]);
 		if (length(count[order[position]]) > number_width) number_width = length(count[order[position]]);
+		findings += count[order[position]];
 	}
-	sub(/-group$$/, "", _tool);
-	printf "$(call text,%s,$(COLOR_SECTION_LABEL))\n", _tool;
-	padding = repeat(" ", 2 * _indent);
 	for (position = 1; position <= total; position += 1) {
 		identifier = order[position];
 		message = example[identifier];
@@ -1824,6 +1843,7 @@ END {
 			(message == "" ? "\n" : repeat(" ", width - length(identifier)) "  ");
 		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", message;
 	}
+	printf "%s$(call text,✘,$(COLOR_ERROR)) $(call text,%s %s,$(COLOR_DESCRIPTION))\n", padding, findings, (findings == 1 ? "finding" : "findings");
 }
 endef
 

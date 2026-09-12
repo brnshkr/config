@@ -797,6 +797,68 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('Argument of type \'string\'', $text);
     }
 
+    public function testSuppressedFindingsAreNotCounted(): void
+    {
+        $eslint = $this->runMake(['group-eslint'], directory: __DIR__ . '/Fixtures/Make/Group');
+
+        self::assertStringContainsString('2  acme/real  Real finding.', $eslint);
+        self::assertStringNotContainsString('acme/suppressed', $eslint);
+    }
+
+    public function testAMessageContainingBracesKeepsItsText(): void
+    {
+        $braces = $this->runMake(['group-braces'], directory: __DIR__ . '/Fixtures/Make/Group');
+
+        self::assertStringContainsString('2  acme.shape  Offset \'x\' does not exist on array{a: int}.', $braces);
+        self::assertStringContainsString("✘ 2 findings\n", $braces);
+    }
+
+    public function testAToolSaysHowManyFindingsItHasOrThatItHasNone(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Group';
+
+        self::assertStringContainsString("✘ 3 findings\n", $this->runMake(['group-pairs'], directory: $directory));
+        self::assertStringContainsString("✘ 1 finding\n", $this->runMake(['group-single'], directory: $directory));
+        self::assertStringContainsString("✔ No findings\n", $this->runMake(['group-clean'], directory: $directory));
+        self::assertStringContainsString(
+            "  9  acme.frequent  Frequent finding.\n  1  acme.rare      Rare finding.\n  ✘ 10 findings\n",
+            $this->runMake(['group-wide'], directory: $directory),
+        );
+    }
+
+    public function testOutputThatIsNotATerminalGetsNoProgressLine(): void
+    {
+        $output = $this->runMake(['group-pairs'], directory: __DIR__ . '/Fixtures/Make/Group');
+
+        self::assertStringStartsWith("group-pairs\n  2  acme.first", $output);
+        self::assertStringNotContainsString('Running', $output);
+    }
+
+    public function testParallelGroupsAnnounceThemselvesAndPrintEachReportWhole(): void
+    {
+        $output = $this->runMake(['-j2', 'group-pairs', 'group-single'], directory: __DIR__ . '/Fixtures/Make/Group');
+
+        self::assertStringContainsString("group-pairs  Running…\n", $output);
+        self::assertStringContainsString("group-single  Running…\n", $output);
+        self::assertStringContainsString("group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
+
+        self::assertStringContainsString(
+            "group-pairs\n  2  acme.first   First finding.\n  1  acme.second  Second finding.\n  ✘ 3 findings\n",
+            $output,
+        );
+    }
+
+    public function testOnlyAToolThatReportedNothingFailsTheTarget(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $failing   = $this->runMake(['group-failing'], directory: $directory);
+        $crashed   = $this->runMake(['group-crash'], directory: $directory, doExpectFailure: true);
+
+        self::assertStringContainsString("✘ 3 findings\n", $failing);
+        self::assertMatchesRegularExpression('/^group-crash$/m', $crashed);
+        self::assertStringNotContainsString('No findings', $crashed);
+    }
+
     public function testEveryPestTargetRefusesWhenPestIsNotInstalled(): void
     {
         foreach (['pest', 'pest-debug', 'pest-list', 'pest-update', 'pest-coverage'] as $target) {

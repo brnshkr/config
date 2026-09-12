@@ -1,0 +1,48 @@
+{
+  "files": {
+    "a.php": {
+      "messages": [
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Frequent finding.",
+          "identifier": "acme.frequent"
+        },
+        {
+          "message": "Rare finding.",
+          "identifier": "acme.rare"
+        }
+      ]
+    }
+  }
+}

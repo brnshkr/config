@@ -41,7 +41,7 @@ Across both stacks:
 | `configs` | Writes any tool config the repository is missing, and never touches one it has. |
 | `pack` | Packs every stack's package into `./.local`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
-| `group` | Runs every tool that reports identifiers and counts its findings by them. |
+| `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
 | `cc` | Removes cached tool state, naming what it will remove and asking first. |
 
 `make -j` runs tools in parallel, keeping fixers that write the same files in order.
