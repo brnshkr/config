@@ -173,6 +173,17 @@ import { getConfig } from '@brnshkr/config/commitlint';
 export default getConfig(/* customize */);
 ```
 
+<!-- omit in toc -->
+##### Vitest
+
+```js
+// ./conf/vitest.config.mjs
+
+import { getConfig } from '@brnshkr/config/vitest';
+
+export default getConfig(/* customize */);
+```
+
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
 ### 👀 Usage

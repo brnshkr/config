@@ -2,6 +2,17 @@
  * @internal @brnshkr/config
  */
 
+export const GLOB_TEST_FILES = <const>[
+  '**/__tests__/**/*.?(c|m)[jt]s?(x)',
+  '**/*.spec.?(c|m)[jt]s?(x)',
+  '**/*.test.?(c|m)[jt]s?(x)',
+] satisfies string[];
+
+export const GLOB_BENCHMARK_FILES = <const>[
+  '**/*.bench.?(c|m)[jt]s?(x)',
+  '**/*.benchmark.?(c|m)[jt]s?(x)',
+] satisfies string[];
+
 export const GLOB_IGNORES = <const>[
   '**/.cache/**',
   '**/.changeset/**',
@@ -10,6 +21,7 @@ export const GLOB_IGNORES = <const>[
   '**/.hg/store/**',
   '**/.history/**',
   '**/.idea/**',
+  '**/.local/**',
   '**/.next/**',
   '**/.nuxt/**',
   '**/.output/**',

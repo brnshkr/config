@@ -1,13 +1,7 @@
-import { configDefaults, defineConfig } from 'vitest/config';
+import { getConfig } from '../src/js/vitest';
 
-export default defineConfig({
+export default getConfig({
   test: {
     testTimeout: 120_000,
-    exclude: [
-      ...configDefaults.exclude,
-      '**/dist/**',
-      '**/.local/**',
-      '**/[Ff]ixture?(s)/**',
-    ],
   },
 });

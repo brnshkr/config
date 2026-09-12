@@ -1038,7 +1038,6 @@ _VITEST_COVERAGE_PROVIDER := $(firstword $(wildcard \
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS)))
 _COVERAGE_NAMES  += $(if $(_VITEST_COVERAGE_PROVIDER),$(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS))))
 _PLAIN_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(VITEST_CONFIG),$(VITEST_EXTENSIONS)))
-_PLAIN_CONFIGS += $(if $(and $(wildcard $(CURDIR)/tests),$(wildcard $(CURDIR)/node_modules/@brnshkr/config)),$(WORKDIR)/tests/spelling.test.ts)
 
 $(call _target,vitest): #~~ runs `vitest`
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)

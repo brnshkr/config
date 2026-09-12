@@ -11,7 +11,7 @@ export default defineConfig((options) => {
     treeshake: !isWatchMode,
     outputOptions: {
       chunkFileNames: 'shared.mjs',
-      advancedChunks: {
+      codeSplitting: {
         groups: [
           {
             name: 'shared',
@@ -33,11 +33,13 @@ export default defineConfig((options) => {
         '../src/js/spelling/index.ts',
         '../src/js/spelling/spelling.test.ts',
         '../src/js/stylelint/index.ts',
+        '../src/js/vitest/index.ts',
       ],
       deps: {
         neverBundle: [
           '@commitlint/types',
           '@typescript-eslint/utils',
+          'vite',
           'vitest',
         ],
       },

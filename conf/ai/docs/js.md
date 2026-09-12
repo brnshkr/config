@@ -12,6 +12,12 @@ Agent knowledge beyond `docs/js/`.
   Verify pairing and cross-stack parity with MCP `project-rule-docs-audit`.
 - Stylelint builder: `src/js/stylelint/index.ts` with named modes in `src/js/stylelint/configs/`
   (baseline, defensive, logical, scss, strict, …).
+- Vitest builder: `src/js/vitest/index.ts`. Its `spelling` module names the shipped spelling test in
+  `include`, so a consumer writes no test file for it and drops it with `spelling: false`, the way a PHP
+  project omits the shipped testsuite. It narrows the `node_modules` and `dist` ignores that would hide it.
+  Extra configs merge through Vitest's own `mergeConfig`, not a hand-written chain.
+- `jsdoc`'s `definedTags` grows per module — `TAGS_BY_MODULE` in `src/js/eslint/configs/jsdoc.ts` adds
+  `@vitest-environment` and its options tag only when the test module is on.
 - Rule-group overrides for special globs sit in `src/js/eslint/configs/overrides.ts`
   — e.g. the `GLOB_EXAMPLES` block relaxing rules inside JSDoc `@example` code.
 - That file ships to consumers; exceptions for this repo's own sources belong in `conf/eslint.config.ts`.

@@ -223,3 +223,26 @@ export const STYLELINT_PACKAGE_RESOLVERS = <const>{
     STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG,
   ),
 } satisfies Record<StylelintPackage, () => boolean>;
+
+export const VITEST_PACKAGES = <const>{
+  HAPPY_DOM: 'happy-dom',
+  JSDOM: 'jsdom',
+  VITE_TSCONFIG_PATHS: 'vite-tsconfig-paths',
+  VITEST_UI: '@vitest/ui',
+};
+
+export type VitestPackage = typeof VITEST_PACKAGES[keyof typeof VITEST_PACKAGES];
+
+export const VITEST_PACKAGE_RESOLVERS = <const>{
+  [VITEST_PACKAGES.HAPPY_DOM]: () => isPackageExists(VITEST_PACKAGES.HAPPY_DOM),
+  [VITEST_PACKAGES.JSDOM]: () => isPackageExists(VITEST_PACKAGES.JSDOM),
+  [VITEST_PACKAGES.VITE_TSCONFIG_PATHS]: () => isPackageExists(VITEST_PACKAGES.VITE_TSCONFIG_PATHS),
+  [VITEST_PACKAGES.VITEST_UI]: () => isPackageExists(VITEST_PACKAGES.VITEST_UI),
+} satisfies Record<VitestPackage, () => boolean>;
+
+// NOTICE: Package names must be duplicated here to allow for type inference of dynamic imports
+export const VITEST_PACKAGE_LOADERS = <const>{
+  [VITEST_PACKAGES.VITE_TSCONFIG_PATHS]: async () => await interopImport(
+    import('vite-tsconfig-paths'),
+  ),
+} satisfies Partial<Record<VitestPackage, () => Promise<unknown>>>;

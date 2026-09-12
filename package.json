@@ -24,7 +24,8 @@
     "./spelling/test": "./dist/spelling/spelling.test.mjs",
     "./scripts/eslint": "./dist/scripts/eslint.mjs",
     "./stylelint": "./dist/stylelint/index.mjs",
-    "./scripts/stylelint": "./dist/scripts/stylelint.mjs"
+    "./scripts/stylelint": "./dist/scripts/stylelint.mjs",
+    "./vitest": "./dist/vitest/index.mjs"
   },
   "files": [
     "./conf/Makefile",
@@ -33,7 +34,6 @@
     "./conf/eslint.config.mjs.example",
     "./conf/markdownlint.config.mjs.example",
     "./conf/spelling",
-    "./conf/spelling.test.ts.example",
     "./conf/stylelint.config.mjs.example",
     "./conf/tsconfig.json",
     "./conf/tsconfig.json.example",
@@ -59,6 +59,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/stylelint-config": "^5.0.0",
     "@vitest/eslint-plugin": "^1.6.15",
+    "@vitest/ui": "^4.1.4",
     "commitlint": "^20.5.0",
     "commitlint-plugin-function-rules": "^5.0.1",
     "commitlint-plugin-tense": "^1.0.10",
@@ -78,6 +79,8 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
     "eslint-plugin-yml": "^3.3.1",
+    "happy-dom": "^20.14.5",
+    "jsdom": "^30.0.1",
     "markdownlint-cli2": "^0.23.2",
     "markdownlint-rule-no-trailing-slash-in-links": "^0.0.2",
     "markdownlint-rule-relative-links": "^5.1.2",
@@ -98,6 +101,7 @@
     "svelte": "^5.55.3",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.2",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4"
   },
   "peerDependenciesMeta": {
@@ -129,6 +133,9 @@
       "optional": true
     },
     "@vitest/eslint-plugin": {
+      "optional": true
+    },
+    "@vitest/ui": {
       "optional": true
     },
     "commitlint": {
@@ -183,6 +190,12 @@
       "optional": true
     },
     "eslint-plugin-yml": {
+      "optional": true
+    },
+    "happy-dom": {
+      "optional": true
+    },
+    "jsdom": {
       "optional": true
     },
     "markdownlint-cli2": {
@@ -245,6 +258,9 @@
     "typescript-eslint": {
       "optional": true
     },
+    "vite-tsconfig-paths": {
+      "optional": true
+    },
     "vitest": {
       "optional": true
     }
@@ -266,6 +282,7 @@
     "@types/confusing-browser-globals": "1.0.3",
     "@typescript-eslint/utils": "8.58.2",
     "@vitest/eslint-plugin": "1.6.15",
+    "@vitest/ui": "4.1.4",
     "commitlint": "20.5.0",
     "commitlint-plugin-function-rules": "5.0.1",
     "commitlint-plugin-tense": "1.0.10",
@@ -314,6 +331,7 @@
     "type-fest": "5.5.0",
     "typescript": "6.0.2",
     "typescript-eslint": "8.58.2",
+    "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.4"
   },
   "keywords": [

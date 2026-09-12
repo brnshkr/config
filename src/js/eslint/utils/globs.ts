@@ -2,6 +2,8 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { GLOB_BENCHMARK_FILES, GLOB_TEST_FILES as GLOB_TEST_FILES_SHARED } from '../../shared/utils/globs';
+
 export const GLOB_CJS = '**/*.cjs';
 export const GLOB_TS = '**/*.?(c|m)ts?(x)';
 export const GLOB_DTS = '**/*.d.?(c|m)ts';
@@ -44,9 +46,6 @@ export const GLOB_YAML_FIXED_EXTENSION_FILES = <const>[
 ] satisfies string[];
 
 export const GLOB_TEST_FILES = <const>[
-  '**/__tests__/**/*.?(c|m)[jt]s',
-  '**/*.spec.?(c|m)[jt]s',
-  '**/*.test.?(c|m)[jt]s',
-  '**/*.bench.?(c|m)[jt]s',
-  '**/*.benchmark.?(c|m)[jt]s',
+  ...GLOB_TEST_FILES_SHARED,
+  ...GLOB_BENCHMARK_FILES,
 ] satisfies string[];

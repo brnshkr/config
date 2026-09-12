@@ -1695,6 +1695,8 @@ exports[`expected eslint config > base: __tests__/a.ts 1`] = `
       {
         "definedTags": [
           "api",
+          "vitest-environment",
+          "vitest-environment-options",
         ],
         "typed": true,
       },
@@ -7678,6 +7680,8 @@ exports[`expected eslint config > diff: 1.js 1`] = `
         {
           "definedTags": [
             "api",
+            "vitest-environment",
+            "vitest-environment-options",
           ],
         },
       ],
@@ -7816,6 +7820,8 @@ exports[`expected eslint config > diff: 3.cjs 1`] = `
         {
           "definedTags": [
             "api",
+            "vitest-environment",
+            "vitest-environment-options",
           ],
         },
       ],
@@ -8920,6 +8926,8 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
         {
           "definedTags": [
             "api",
+            "vitest-environment",
+            "vitest-environment-options",
           ],
         },
       ],
@@ -15417,6 +15425,8 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
         {
           "definedTags": [
             "api",
+            "vitest-environment",
+            "vitest-environment-options",
           ],
         },
       ],
@@ -15500,6 +15510,8 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
         {
           "definedTags": [
             "api",
+            "vitest-environment",
+            "vitest-environment-options",
           ],
         },
       ],

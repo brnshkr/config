@@ -6,11 +6,18 @@ import { objectEntries } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
 
 import { getTsEslintParserIfExists } from './typescript';
 
 import type { Config } from '../types/config';
+
+const TAGS_BY_MODULE = <const>{
+  test: [
+    'vitest-environment',
+    'vitest-environment-options',
+  ],
+} satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
 
 export const jsdoc = async (): Promise<Config[]> => {
   const {
@@ -21,6 +28,11 @@ export const jsdoc = async (): Promise<Config[]> => {
   if (!pluginJsdoc) {
     return [];
   }
+
+  const definedTags = [
+    'api',
+    ...isModuleEnabled(MODULES.test) ? TAGS_BY_MODULE.test : [],
+  ];
 
   const createSetupConfig = (isForTypescript: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.SETUP}${isForTypescript ? '-typescript' : ''}`),
@@ -54,7 +66,7 @@ export const jsdoc = async (): Promise<Config[]> => {
               .filter(Boolean),
           )),
           'jsdoc/check-tag-names': ['error', {
-            definedTags: ['api'],
+            definedTags,
             typed: true,
           }],
           'jsdoc/require-param': 'off',
@@ -63,7 +75,7 @@ export const jsdoc = async (): Promise<Config[]> => {
         : {
           ...pluginJsdoc.configs['flat/recommended-error'].rules,
           'jsdoc/check-tag-names': ['error', {
-            definedTags: ['api'],
+            definedTags,
           }],
           'jsdoc/check-indentation': ['error', {
             allowIndentedSections: true,

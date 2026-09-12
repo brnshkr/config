@@ -91,6 +91,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "<root>/**/.hg/store/**",
     "<root>/**/.history/**",
     "<root>/**/.idea/**",
+    "<root>/**/.local/**",
     "<root>/**/.next/**",
     "<root>/**/.nuxt/**",
     "<root>/**/.output/**",

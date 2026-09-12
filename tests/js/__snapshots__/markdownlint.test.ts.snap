@@ -227,6 +227,7 @@ exports[`expected markdownlint config 1`] = `
     "**/.hg/store/**",
     "**/.history/**",
     "**/.idea/**",
+    "**/.local/**",
     "**/.next/**",
     "**/.nuxt/**",
     "**/.output/**",
