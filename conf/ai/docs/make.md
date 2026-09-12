@@ -36,17 +36,20 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - `_TRACKED_EXTENSIONS` is one `git ls-files`. Every membership list and every config entry goes through
   `_when_tracked`, so `ci` cannot demand a config `configs` declined to write. Empty means git could not
   say, so everything stays.
-- `_config` is the read side: the first candidate that exists, then those names under
-  `_PACKAGE_CONF_DIRS`, falling back to the last candidate — which is what the guard then tells the project
-  to create. Candidates are spelled out at each call site rather than derived, so a tool with no `.dist`
-  half names one path and a layered tool names two.
+- `_config` is the read side: the first candidate that exists across `_config_dirs`, then those names
+  under `_PACKAGE_CONF_DIRS`, falling back to the last candidate — which is what the guard then tells the
+  project to create. `_SEARCH_BASES` is the one list both sides derive from: includes prefix `$(CURDIR)`
+  and add a `make` subdirectory, `_config_dirs` reverses it and adds a stack one. Candidates are
+  spelled out at each call site rather than derived, so a tool with no `.dist` half names one path and a
+  layered tool names two.
   `CONFIG` pins the choice to the first or last candidate and skips the search, so the guard reports the
   pinned file when it is not there.
 - `eslint` and `vitest` list their `.ts` config first, which is why this repository needs no override for
   either; the other JS tools cannot load TypeScript and their `.mjs` jiti-loads it instead.
 - `configs` is the write side and follows each tool's own `<TOOL>_CONFIG`, so an override is respected.
-  `_LAYERED_CONFIGS` goes through `_tracked` — idempotent, so a variable already resolved to the `.dist`
-  file stays put — and the `local` argument adds the undotted halves; `_PLAIN_CONFIGS` is written as it
+  `_LAYERED_CONFIGS` takes `_layered`'s private half of what the tool resolved, so a write lands beside it
+  rather than always in `conf/`, then `_tracked` — idempotent, so a variable already resolved to the
+  `.dist` file stays put — and the `local` argument adds the undotted halves; `_PLAIN_CONFIGS` is written as it
   stands, `.gitignore` included. Sources, in order: the project's own `<config>.example`,
   the shipped file under `_TEMPLATE_DIRS`, then `<name>.example` there.
   A PHP private half has none and is printed as an `include` of its tracked half;
@@ -56,8 +59,7 @@ the general make and awk traps are in `vision/TRAPS.md`.
 ## Recipes
 
 - Recipes take `$(DEBUG_PREFIX)`, guards `$(TRACE_PREFIX)`, recursive calls `$(_MAKE_FLAGS)`.
-- `$(ARGS)` goes before a trailing flag: an option taking an optional value binds the next word,
-  which is how `--update $(ARGS)` fed vitest the filter and ran everything.
+- `$(ARGS)` goes before a trailing flag: an option taking an optional value binds the next word.
   `--print-config $(ARGS)` is the exception, its argument being the value.
 - A long program is a `define … _SOURCE` exported for the target that reads it.
   Plain `target: export VAR` is two prerequisites to GNU make, and a recursive assignment may not name

@@ -52,6 +52,7 @@ final class MakefileTest extends TestCase
     private const string FALLBACK_DIRECTORY = __DIR__ . '/Fixtures/Make/ConfigFallback';
     private const string VENDOR_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigVendor';
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
+    private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
 
     /**
      * Deterministic environment baseline for every help invocation. Tests merge
@@ -761,6 +762,29 @@ final class MakefileTest extends TestCase
             '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/',
             $resolved,
         );
+    }
+
+    public function testTheSearchTakesTheMostSpecificDirectoryThatHasAConfig(): void
+    {
+        $resolved = $this->runMake(
+            ['help', 'resolve', 'vv'],
+            ['VALUE_WIDTH' => '200'],
+            self::SEARCH_DIRECTORY,
+        );
+
+        $expected = [
+            'PHP_STAN_CONFIG'     => '\.local\/conf\/php\/phpstan\.php',
+            'RECTOR_CONFIG'       => '\.local\/rector\.php',
+            'PHP_CS_FIXER_CONFIG' => 'conf\/php\/php-cs-fixer\.php',
+        ];
+
+        foreach ($expected as $variable => $path) {
+            self::assertMatchesRegularExpression(
+                '/' . $variable . '\s+\?=\s+\S+' . $path . '/',
+                $resolved,
+                $variable,
+            );
+        }
     }
 
     public function testAnExampleComesFromTheOtherInstallationWhenThisOneHasNone(): void

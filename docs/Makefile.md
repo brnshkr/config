@@ -86,8 +86,10 @@ Every tool is three variables
 
 A flag is off when it is empty, `0`, `false`, `off` or `no`, and on for anything else.
 `SEMVER_REGEX`, and the four parts it is built from, are there for a repository that has to match a version string itself.
-Every tool reads the first config that is there: `./conf/<tool>.<extension>`, then the tracked
-`./conf/<tool>.dist.<extension>` beside it, then that name under either installation of the package.
+Every tool reads the first config that is there, looking in `./.local/conf/<stack>`, `./.local/conf`,
+`./.local/<stack>`, `./.local`, `./conf/<stack>` and `./conf`, then either installation of the package.
+`<stack>` is `php` or `js`, and within a directory `<tool>.<extension>` comes before the tracked
+`<tool>.dist.<extension>`.
 So a repository tracks the `.dist` file and edits that,
 a developer who wants private settings adds the undotted one
 — which should delegate to the tracked file rather than restate it —
