@@ -82,7 +82,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "@stylistic/value-list-comma-space-before": {},
     "@stylistic/value-list-max-empty-lines": {},
   },
-  "customSyntax": {},
   "ignoreFiles": [
     "<root>/**/.cache/**",
     "<root>/**/.changeset/**",
@@ -131,7 +130,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
-    "<root>/node_modules/stylelint-scss/src/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
   ],
   "reportDescriptionlessDisables": true,
@@ -376,9 +374,15 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         ],
       },
     ],
-    "annotation-no-unknown": null,
-    "at-rule-descriptor-no-unknown": null,
-    "at-rule-descriptor-value-no-unknown": null,
+    "annotation-no-unknown": [
+      true,
+    ],
+    "at-rule-descriptor-no-unknown": [
+      true,
+    ],
+    "at-rule-descriptor-value-no-unknown": [
+      true,
+    ],
     "at-rule-disallowed-list": [
       [
         "debug",
@@ -413,7 +417,14 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "at-rule-no-vendor-prefix": [
       true,
     ],
-    "at-rule-prelude-no-invalid": null,
+    "at-rule-prelude-no-invalid": [
+      true,
+      {
+        "ignoreAtRules": [
+          "media",
+        ],
+      },
+    ],
     "at-rule-property-required-list": [
       {
         "font-face": [
@@ -457,7 +468,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         ],
       },
     ],
-    "comment-no-empty": null,
+    "comment-no-empty": [
+      true,
+    ],
     "comment-whitespace-inside": [
       "always",
     ],
@@ -569,7 +582,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "declaration-property-value-keyword-no-deprecated": [
       true,
     ],
-    "declaration-property-value-no-unknown": null,
+    "declaration-property-value-no-unknown": [
+      true,
+    ],
     "defensive-css/no-accidental-hover": [
       true,
       {
@@ -1327,7 +1342,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       "angle",
     ],
     "import-notation": [
-      "string",
+      "url",
     ],
     "keyframe-block-no-duplicate-selectors": [
       true,
@@ -1351,10 +1366,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       {
         "ignore": [
           "custom-properties",
-        ],
-        "ignorePreludeOfAtRules": [
-          "function",
-          "mixin",
         ],
       },
     ],
@@ -1393,11 +1404,15 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "media-feature-name-no-vendor-prefix": [
       true,
     ],
-    "media-feature-name-value-no-unknown": null,
+    "media-feature-name-value-no-unknown": [
+      true,
+    ],
     "media-feature-range-notation": [
       "context",
     ],
-    "media-query-no-invalid": null,
+    "media-query-no-invalid": [
+      true,
+    ],
     "media-type-no-deprecated": [
       true,
     ],
@@ -1406,17 +1421,16 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "nesting-selector-no-missing-scoping-root": [
       true,
-      {
-        "ignoreAtRules": [
-          "mixin",
-        ],
-      },
     ],
-    "no-descending-specificity": null,
+    "no-descending-specificity": [
+      true,
+    ],
     "no-duplicate-at-import-rules": [
       true,
     ],
-    "no-duplicate-selectors": null,
+    "no-duplicate-selectors": [
+      true,
+    ],
     "no-empty-source": [
       true,
     ],
@@ -1425,12 +1439,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "no-invalid-position-at-import-rule": [
       true,
-      {
-        "ignoreAtRules": [
-          "use",
-          "forward",
-        ],
-      },
     ],
     "no-invalid-position-declaration": [
       true,
@@ -2116,7 +2124,19 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "property-no-deprecated": [
       true,
     ],
-    "property-no-unknown": null,
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": [
+          "composes",
+          "compose-with",
+        ],
+        "ignoreSelectors": [
+          ":export",
+          {},
+        ],
+      },
+    ],
     "property-no-vendor-prefix": [
       true,
     ],
@@ -2137,210 +2157,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         "font-size",
         "z-index",
       ],
-    ],
-    "scss/at-each-key-value-single-line": [
-      true,
-    ],
-    "scss/at-else-closing-brace-newline-after": [
-      "always-last-in-chain",
-    ],
-    "scss/at-else-closing-brace-space-after": [
-      "always-intermediate",
-    ],
-    "scss/at-else-empty-line-before": [
-      "never",
-    ],
-    "scss/at-else-if-parentheses-space-before": [
-      "always",
-    ],
-    "scss/at-extend-no-missing-placeholder": [
-      true,
-    ],
-    "scss/at-function-parentheses-space-before": [
-      "never",
-    ],
-    "scss/at-function-pattern": [
-      "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
-      {},
-    ],
-    "scss/at-if-closing-brace-newline-after": [
-      "always-last-in-chain",
-    ],
-    "scss/at-if-closing-brace-space-after": [
-      "always-intermediate",
-    ],
-    "scss/at-if-no-null": [
-      true,
-    ],
-    "scss/at-import-partial-extension-disallowed-list": [
-      "scss",
-    ],
-    "scss/at-mixin-argumentless-call-parentheses": [
-      "always",
-    ],
-    "scss/at-mixin-no-risky-nesting-selector": [
-      true,
-    ],
-    "scss/at-mixin-parentheses-space-before": [
-      "never",
-    ],
-    "scss/at-mixin-pattern": [
-      "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
-      {},
-    ],
-    "scss/at-root-no-redundant": [
-      true,
-    ],
-    "scss/at-rule-conditional-no-parentheses": [
-      true,
-    ],
-    "scss/at-rule-no-unknown": [
-      true,
-    ],
-    "scss/at-use-no-redundant-alias": [
-      true,
-    ],
-    "scss/block-no-redundant-nesting": [
-      true,
-    ],
-    "scss/comment-no-empty": [
-      true,
-    ],
-    "scss/declaration-nested-properties": [
-      "never",
-    ],
-    "scss/declaration-nested-properties-no-divided-groups": [
-      true,
-    ],
-    "scss/dimension-no-non-numeric-values": [
-      true,
-    ],
-    "scss/dollar-variable-colon-space-after": [
-      "always-single-line",
-    ],
-    "scss/dollar-variable-colon-space-before": [
-      "never",
-    ],
-    "scss/dollar-variable-empty-line-before": [
-      "always",
-      {
-        "except": [
-          "after-dollar-variable",
-          "first-nested",
-        ],
-        "ignore": [
-          "after-comment",
-          "inside-single-line-block",
-        ],
-      },
-    ],
-    "scss/dollar-variable-first-in-block": [
-      true,
-      {
-        "except": [
-          "function",
-          "mixin",
-          "if-else",
-          "loops",
-        ],
-        "ignore": [
-          "comments",
-          "imports",
-        ],
-      },
-    ],
-    "scss/dollar-variable-no-missing-interpolation": [
-      true,
-    ],
-    "scss/dollar-variable-no-namespaced-assignment": [
-      true,
-    ],
-    "scss/dollar-variable-pattern": [
-      "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
-      {},
-    ],
-    "scss/double-slash-comment-empty-line-before": [
-      "always",
-      {
-        "except": [
-          "first-nested",
-        ],
-        "ignore": [
-          "between-comments",
-          "stylelint-commands",
-        ],
-      },
-    ],
-    "scss/double-slash-comment-inline": [
-      "never",
-    ],
-    "scss/double-slash-comment-whitespace-inside": [
-      "always",
-    ],
-    "scss/function-color-channel": [
-      true,
-    ],
-    "scss/function-color-relative": [
-      true,
-    ],
-    "scss/function-quote-no-quoted-strings-inside": [
-      true,
-    ],
-    "scss/function-unquote-no-unquoted-strings-inside": [
-      true,
-    ],
-    "scss/load-no-partial-leading-underscore": [
-      true,
-    ],
-    "scss/load-partial-extension": [
-      "never",
-    ],
-    "scss/map-keys-quotes": [
-      "always",
-    ],
-    "scss/no-duplicate-dollar-variables": [
-      true,
-      {
-        "ignoreDefaults": false,
-        "ignoreInsideAtRules": [
-          "if",
-          "mixin",
-        ],
-      },
-    ],
-    "scss/no-duplicate-load-rules": [
-      true,
-    ],
-    "scss/no-duplicate-mixins": [
-      true,
-    ],
-    "scss/no-global-function-names": [
-      true,
-    ],
-    "scss/no-unused-private-members": [
-      true,
-    ],
-    "scss/operator-no-newline-after": [
-      true,
-    ],
-    "scss/operator-no-newline-before": [
-      true,
-    ],
-    "scss/operator-no-unspaced": [
-      true,
-    ],
-    "scss/partial-no-import": [
-      true,
-    ],
-    "scss/percent-placeholder-pattern": [
-      "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
-      {},
-    ],
-    "scss/property-no-unknown": [
-      true,
-    ],
-    "scss/selector-no-redundant-nesting-selector": [
-      true,
     ],
     "selector-anb-no-unmatchable": [
       true,
@@ -2444,19 +2260,248 @@ exports[`expected stylelint config > config-groups 1`] = `
   "4.svelte": [
     "4.svelte",
   ],
+  "5.less": [
+    "5.less",
+  ],
 }
 `;
 
 exports[`expected stylelint config > diff: 2.scss 1`] = `
 {
+  "+customSyntax": {},
   "+name": "brnshkr/scss",
+  "plugins": [
+    "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
+    "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-use-nesting/index.mjs",
+    "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
+    "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-order/index.js",
+    "<root>/node_modules/stylelint-scss/src/index.js",
+    "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+  ],
   "rules": {
     "addedValues": {
+      "scss/at-each-key-value-single-line": [
+        true,
+      ],
+      "scss/at-else-closing-brace-newline-after": [
+        "always-last-in-chain",
+      ],
+      "scss/at-else-closing-brace-space-after": [
+        "always-intermediate",
+      ],
+      "scss/at-else-empty-line-before": [
+        "never",
+      ],
+      "scss/at-else-if-parentheses-space-before": [
+        "always",
+      ],
+      "scss/at-extend-no-missing-placeholder": [
+        true,
+      ],
+      "scss/at-function-parentheses-space-before": [
+        "never",
+      ],
+      "scss/at-function-pattern": [
+        "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+        {},
+      ],
+      "scss/at-if-closing-brace-newline-after": [
+        "always-last-in-chain",
+      ],
+      "scss/at-if-closing-brace-space-after": [
+        "always-intermediate",
+      ],
+      "scss/at-if-no-null": [
+        true,
+      ],
+      "scss/at-import-partial-extension-disallowed-list": [
+        "scss",
+      ],
+      "scss/at-mixin-argumentless-call-parentheses": [
+        "always",
+      ],
+      "scss/at-mixin-no-risky-nesting-selector": [
+        true,
+      ],
+      "scss/at-mixin-parentheses-space-before": [
+        "never",
+      ],
+      "scss/at-mixin-pattern": [
+        "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+        {},
+      ],
+      "scss/at-root-no-redundant": [
+        true,
+      ],
+      "scss/at-rule-conditional-no-parentheses": [
+        true,
+      ],
+      "scss/at-rule-no-unknown": [
+        true,
+      ],
+      "scss/at-use-no-redundant-alias": [
+        true,
+      ],
+      "scss/block-no-redundant-nesting": [
+        true,
+      ],
+      "scss/comment-no-empty": [
+        true,
+      ],
       "scss/comment-no-loud": [
+        true,
+      ],
+      "scss/declaration-nested-properties": [
+        "never",
+      ],
+      "scss/declaration-nested-properties-no-divided-groups": [
+        true,
+      ],
+      "scss/declaration-property-value-no-unknown": [
+        true,
+      ],
+      "scss/dimension-no-non-numeric-values": [
+        true,
+      ],
+      "scss/dollar-variable-colon-space-after": [
+        "always-single-line",
+      ],
+      "scss/dollar-variable-colon-space-before": [
+        "never",
+      ],
+      "scss/dollar-variable-empty-line-before": [
+        "always",
+        {
+          "except": [
+            "after-dollar-variable",
+            "first-nested",
+          ],
+          "ignore": [
+            "after-comment",
+            "inside-single-line-block",
+          ],
+        },
+      ],
+      "scss/dollar-variable-first-in-block": [
+        true,
+        {
+          "except": [
+            "function",
+            "mixin",
+            "if-else",
+            "loops",
+          ],
+          "ignore": [
+            "comments",
+            "imports",
+          ],
+        },
+      ],
+      "scss/dollar-variable-no-missing-interpolation": [
+        true,
+      ],
+      "scss/dollar-variable-no-namespaced-assignment": [
+        true,
+      ],
+      "scss/dollar-variable-pattern": [
+        "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+        {},
+      ],
+      "scss/double-slash-comment-empty-line-before": [
+        "always",
+        {
+          "except": [
+            "first-nested",
+          ],
+          "ignore": [
+            "between-comments",
+            "stylelint-commands",
+          ],
+        },
+      ],
+      "scss/double-slash-comment-inline": [
+        "never",
+      ],
+      "scss/double-slash-comment-whitespace-inside": [
+        "always",
+      ],
+      "scss/function-color-channel": [
+        true,
+      ],
+      "scss/function-color-relative": [
+        true,
+      ],
+      "scss/function-no-unknown": [
+        true,
+      ],
+      "scss/function-quote-no-quoted-strings-inside": [
+        true,
+      ],
+      "scss/function-unquote-no-unquoted-strings-inside": [
+        true,
+      ],
+      "scss/load-no-partial-leading-underscore": [
+        true,
+      ],
+      "scss/load-partial-extension": [
+        "never",
+      ],
+      "scss/map-keys-quotes": [
+        "always",
+      ],
+      "scss/no-duplicate-dollar-variables": [
+        true,
+        {
+          "ignoreDefaults": false,
+          "ignoreInsideAtRules": [
+            "if",
+            "mixin",
+          ],
+        },
+      ],
+      "scss/no-duplicate-load-rules": [
+        true,
+      ],
+      "scss/no-duplicate-mixins": [
+        true,
+      ],
+      "scss/no-global-function-names": [
+        true,
+      ],
+      "scss/no-unused-private-members": [
+        true,
+      ],
+      "scss/operator-no-newline-after": [
+        true,
+      ],
+      "scss/operator-no-newline-before": [
+        true,
+      ],
+      "scss/operator-no-unspaced": [
+        true,
+      ],
+      "scss/partial-no-import": [
+        true,
+      ],
+      "scss/percent-placeholder-pattern": [
+        "^(-?[a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+        {},
+      ],
+      "scss/property-no-unknown": [
+        true,
+      ],
+      "scss/selector-no-redundant-nesting-selector": [
         true,
       ],
     },
     "changedValues": {
+      "annotation-no-unknown": null,
+      "at-rule-descriptor-no-unknown": null,
+      "at-rule-descriptor-value-no-unknown": null,
       "at-rule-empty-line-before": [
         "always",
         {
@@ -2469,11 +2514,50 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
           ],
           "ignoreAtRules": [
             "else",
-            "value",
           ],
         },
       ],
       "at-rule-no-unknown": null,
+      "at-rule-prelude-no-invalid": null,
+      "comment-no-empty": null,
+      "declaration-property-value-no-unknown": null,
+      "function-no-unknown": null,
+      "import-notation": [
+        "string",
+      ],
+      "length-zero-no-unit": [
+        true,
+        {
+          "ignore": [
+            "custom-properties",
+          ],
+          "ignorePreludeOfAtRules": [
+            "function",
+            "mixin",
+          ],
+        },
+      ],
+      "media-feature-name-value-no-unknown": null,
+      "media-query-no-invalid": null,
+      "nesting-selector-no-missing-scoping-root": [
+        true,
+        {
+          "ignoreAtRules": [
+            "mixin",
+          ],
+        },
+      ],
+      "no-descending-specificity": null,
+      "no-duplicate-selectors": null,
+      "no-invalid-position-at-import-rule": [
+        true,
+        {
+          "ignoreAtRules": [
+            "use",
+            "forward",
+          ],
+        },
+      ],
       "plugin/use-baseline": [
         true,
         {
@@ -2482,11 +2566,15 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
           ],
         },
       ],
-      "scss/at-rule-no-unknown": [
+      "property-no-unknown": null,
+      "selector-pseudo-class-no-unknown": [
+        true,
+      ],
+      "selector-type-no-unknown": [
         true,
         {
-          "ignoreAtRules": [
-            "value",
+          "ignore": [
+            "custom-elements",
           ],
         },
       ],
@@ -2498,14 +2586,14 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
 
 exports[`expected stylelint config > diff: 3.html 1`] = `
 {
-  "customSyntax": "postcss-html",
+  "+customSyntax": "postcss-html",
 }
 `;
 
 exports[`expected stylelint config > diff: 4.svelte 1`] = `
 {
+  "+customSyntax": "postcss-html",
   "+name": "brnshkr/svelte",
-  "customSyntax": "postcss-html",
   "rules": {
     "addedValues": {},
     "changedValues": {
@@ -2518,6 +2606,95 @@ exports[`expected stylelint config > diff: 4.svelte 1`] = `
         {
           "ignorePseudoClasses": [
             "global",
+          ],
+        },
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected stylelint config > diff: 5.less 1`] = `
+{
+  "+customSyntax": {},
+  "+name": "brnshkr/less",
+  "plugins": [
+    "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
+    "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-use-nesting/index.mjs",
+    "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
+    "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
+    "<root>/node_modules/stylelint-order/index.js",
+    "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+    "<root>/node_modules/stylelint-less/src/index.js",
+  ],
+  "rules": {
+    "addedValues": {
+      "less/color-hex-case": [
+        "lower",
+      ],
+      "less/color-no-invalid-hex": [
+        true,
+      ],
+      "less/container-name-pattern": [
+        "^(--)?([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+      ],
+      "less/declaration-property-value-no-unknown": [
+        true,
+      ],
+      "less/no-duplicate-variables": [
+        true,
+      ],
+    },
+    "changedValues": {
+      "at-rule-empty-line-before": [
+        "always",
+        {
+          "except": [
+            "blockless-after-same-name-blockless",
+            "first-nested",
+          ],
+          "ignore": [
+            "after-comment",
+          ],
+        },
+      ],
+      "at-rule-no-unknown": [
+        true,
+        {
+          "ignoreAtRules": [
+            "plugin",
+          ],
+        },
+      ],
+      "at-rule-prelude-no-invalid": null,
+      "container-name-pattern": null,
+      "declaration-property-value-no-unknown": null,
+      "function-no-unknown": null,
+      "import-notation": [
+        "string",
+      ],
+      "media-query-no-invalid": null,
+      "no-invalid-position-at-import-rule": null,
+      "property-no-unknown": [
+        true,
+      ],
+      "selector-pseudo-class-no-unknown": [
+        true,
+        {
+          "ignorePseudoClasses": [
+            "global",
+          ],
+        },
+      ],
+      "selector-type-no-unknown": [
+        true,
+        {
+          "ignore": [
+            "custom-elements",
           ],
         },
       ],

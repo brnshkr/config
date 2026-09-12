@@ -981,6 +981,7 @@ _STYLELINT_VALUE_FLAGS := --cache-location \
 	-o
 
 _STYLELINT_EXTENSIONS := css \
+	$(call _when_installed,less,node_modules/stylelint-config-standard-less) \
 	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
 	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html)
 

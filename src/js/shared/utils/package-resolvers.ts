@@ -173,6 +173,7 @@ export const STYLELINT_PACKAGES = <const>{
   STYLELINT_CONFIG_CSS_MODULES: 'stylelint-config-css-modules',
   STYLELINT_CONFIG_HTML: 'stylelint-config-html',
   STYLELINT_CONFIG_RECESS_ORDER: 'stylelint-config-recess-order',
+  STYLELINT_CONFIG_STANDARD_LESS: 'stylelint-config-standard-less',
   STYLELINT_CONFIG_STANDARD_SCSS: 'stylelint-config-standard-scss',
   STYLELINT_DECLARATION_STRICT_VALUE: 'stylelint-declaration-strict-value',
   STYLELINT_ORDER: 'stylelint-order',
@@ -197,6 +198,9 @@ export const STYLELINT_PACKAGE_RESOLVERS = <const>{
   ),
   [STYLELINT_PACKAGES.STYLELINT_CONFIG_RECESS_ORDER]: () => isPackageExists(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_RECESS_ORDER,
+  ),
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS]: () => isPackageExists(
+    STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
   ),
   [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS]: () => isPackageExists(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,

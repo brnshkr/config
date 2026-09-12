@@ -36,6 +36,15 @@ export interface ConfigOptions {
   html: boolean;
 
   /**
+   * Enables `stylelint-config-standard-less`.
+   *
+   * @default `Enabled when "stylelint-config-standard-less" is installed.`
+   *
+   * @see https://github.com/stylelint-less/stylelint-less/tree/main/packages/stylelint-config-standard-less
+   */
+  less: boolean;
+
+  /**
    * Enables `stylelint-plugin-logical-css`.
    *
    * @default `Enabled when "stylelint-plugin-logical-css" is installed.`

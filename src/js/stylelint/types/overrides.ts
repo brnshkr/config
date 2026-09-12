@@ -3,6 +3,7 @@
  */
 
 export const OVERRIDES = <const>{
+  LESS: 'less',
   SCSS: 'scss',
   SVELTE: 'svelte',
   // eslint-disable-next-line no-warning-comments -- (vue-support)

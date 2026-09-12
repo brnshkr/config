@@ -154,6 +154,7 @@ exports[`expected typescript config 1`] = `
         "./src/js/stylelint/configs/html.ts",
         "./src/js/stylelint/configs/ignores.ts",
         "./src/js/stylelint/configs/index.ts",
+        "./src/js/stylelint/configs/less.ts",
         "./src/js/stylelint/configs/logical.ts",
         "./src/js/stylelint/configs/modules.ts",
         "./src/js/stylelint/configs/nesting.ts",

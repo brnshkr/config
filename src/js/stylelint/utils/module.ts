@@ -37,6 +37,14 @@ export const MODULES = <const>{
       ],
     },
   },
+  less: {
+    name: 'less',
+    packages: {
+      requiredAll: [
+        STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
+      ],
+    },
+  },
   logical: {
     name: 'logical',
     packages: {

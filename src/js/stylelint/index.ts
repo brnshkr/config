@@ -10,7 +10,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
 /**
  * Build the `@brnshkr` Stylelint config object.
  *
- * Merges sensible defaults for every supported module (scss, html, logical, etc.) with user
+ * Merges sensible defaults for every supported module (scss, less, html, etc.) with user
  * overrides and any additional configs.
  *
  * @api
@@ -47,6 +47,7 @@ export const getConfig = (
     baseline: isModuleEnabledByDefault(MODULES.baseline),
     defensive: isModuleEnabledByDefault(MODULES.defensive),
     html: isModuleEnabledByDefault(MODULES.html),
+    less: isModuleEnabledByDefault(MODULES.less),
     logical: isModuleEnabledByDefault(MODULES.logical),
     modules: isModuleEnabledByDefault(MODULES.modules),
     nesting: isModuleEnabledByDefault(MODULES.nesting),
@@ -60,6 +61,7 @@ export const getConfig = (
   setModuleEnabled(MODULES.baseline, resolvedOptions.baseline);
   setModuleEnabled(MODULES.defensive, resolvedOptions.defensive);
   setModuleEnabled(MODULES.html, resolvedOptions.html);
+  setModuleEnabled(MODULES.less, resolvedOptions.less);
   setModuleEnabled(MODULES.logical, resolvedOptions.logical);
   setModuleEnabled(MODULES.modules, resolvedOptions.modules);
   setModuleEnabled(MODULES.nesting, resolvedOptions.nesting);
@@ -91,6 +93,10 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.order)) {
     includeConfigs(config, configs.order());
+  }
+
+  if (isModuleEnabled(MODULES.less)) {
+    includeConfigs(config, configs.less());
   }
 
   if (isModuleEnabled(MODULES.scss)) {
