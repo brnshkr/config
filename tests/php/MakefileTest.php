@@ -395,6 +395,15 @@ final class MakefileTest extends TestCase
         }
     }
 
+    public function testEveryBunToolRunsItsBinaryRatherThanAScriptOfTheSameName(): void
+    {
+        $help = $this->runMake(['help', 'resolve', 'v'], directory: __DIR__ . '/Fixtures/Make/Bun');
+
+        foreach (['commitlint', 'eslint', 'markdownlint-cli2', 'stylelint', 'tsc', 'vitest'] as $binary) {
+            self::assertStringContainsString('bun --bun x ' . $binary . ' ', $help);
+        }
+    }
+
     public function testAParallelCheckPrintsEachToolWhole(): void
     {
         $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/Fixtures/Make/Verbs');

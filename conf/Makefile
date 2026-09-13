@@ -1024,7 +1024,7 @@ endif # /stylelint
 
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/tsc),) # typescript
 
-TYPESCRIPT        ?= $(BUN) $(BUN_FLAGS) tsc#v #~~ command that runs `tsc`
+TYPESCRIPT        ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
 TYPESCRIPT_CONFIG ?= $(WORKDIR)/tsconfig.json#v #~~ path to the `tsc` project
 TYPESCRIPT_FLAGS  ?= --noEmit#v #~~ additional flags passed to `tsc`
 TYPESCRIPT_EXTENSIONS ?= ts tsx cts mts#vv #~~ extensions `tsc` type checks
@@ -1055,7 +1055,7 @@ endif # /typescript
 
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
 
-VITEST            ?= $(BUN) $(BUN_FLAGS) vitest#v #~~ command that runs `vitest`
+VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vitest.mjs $(WORKDIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
