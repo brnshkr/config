@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\ComposerJsonTest;
 use Composer\InstalledVersions;
 use JsonException;
 use RuntimeException;
@@ -39,6 +40,8 @@ use const PHP_EOL;
 
 /**
  * @internal
+ *
+ * @see ComposerJsonTest
  */
 final class ComposerJson
 {
@@ -185,6 +188,10 @@ final class ComposerJson
 
         if ($path[0] !== '/') {
             $path = (getcwd() ?: '.') . '/' . $path;
+        }
+
+        if (!Str::isNonDecimalIntString($path)) {
+            return new self($path);
         }
 
         self::$projectInstances[$path] ??= new self($path);
@@ -867,6 +874,10 @@ final class ComposerJson
                 }
 
                 if (Str::isEmpty($namespacePrefix)) {
+                    continue;
+                }
+
+                if (!Str::isNonDecimalIntString($namespacePrefix)) {
                     continue;
                 }
 

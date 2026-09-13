@@ -263,7 +263,12 @@ final class PrintModuleConfigCommand extends AbstractCommand
         $configArray     = [];
 
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $name               = $reflectionProperty->getName();
+            $name = $reflectionProperty->getName();
+
+            if (!Str::isNonDecimalIntString($name)) {
+                continue;
+            }
+
             $configArray[$name] = self::normalizePropertyValue($name, $reflectionProperty->getValue($rawConfig));
         }
 
@@ -285,7 +290,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
 
         if (is_iterable($value)) {
             return array_map(
-                static fn ($item) => is_object($item) ? $item::class : $item,
+                static fn (mixed $item): mixed => is_object($item) ? $item::class : $item,
                 iterator_to_array($value),
             );
         }

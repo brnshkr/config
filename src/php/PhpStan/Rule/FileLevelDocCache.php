@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule;
 
+use Brnshkr\Config\Str;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Declare_;
@@ -38,7 +39,9 @@ final class FileLevelDocCache
      */
     public static function captureFrom(Node $candidate, string $filePath): void
     {
-        if (array_key_exists($filePath, self::$cache) || !self::canCarryFileLevelDoc($candidate)) {
+        if (array_key_exists($filePath, self::$cache)
+            || !self::canCarryFileLevelDoc($candidate)
+            || !Str::isNonDecimalIntString($filePath)) {
             return;
         }
 

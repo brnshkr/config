@@ -72,7 +72,7 @@ final class Module
                 Package::PhpStanStrictRules,
                 Package::PhpStanSymfony,
                 Package::PhpStanWebmozartAssert,
-                Package::TypePerfect,
+                Package::TypeCoverage,
             ],
         ],
     ];

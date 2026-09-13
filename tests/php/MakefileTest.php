@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
+use SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -22,6 +22,7 @@ use function array_first;
 use function array_unique;
 use function count;
 use function dirname;
+use function getenv;
 use function is_dir;
 use function is_file;
 use function md5;
@@ -393,6 +394,18 @@ final class MakefileTest extends TestCase
             self::assertMatchesRegularExpression('/rector done\n(?:.*\n)*php-cs-fixer fix/', $fix);
             self::assertStringNotContainsString('warning', $fix);
         }
+    }
+
+    public function testSnapshotsAreUpdatedThroughTheRunnersOwnMechanism(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $phpunit   = $this->runMake(['phpunit-update'], directory: $directory);
+        $pest      = $this->runMake(['phpunit-update'], ['PHP_UNIT' => 'echo pest'], $directory);
+
+        self::assertStringContainsString('update-snapshots --configuration', $phpunit);
+        self::assertStringContainsString('--do-not-fail-on-incomplete', $phpunit);
+        self::assertStringNotContainsString('-d --update-snapshots', $phpunit);
+        self::assertStringContainsString('--update-snapshots --do-not-fail-on-incomplete', $pest);
     }
 
     public function testEveryBunToolRunsItsBinaryRatherThanAScriptOfTheSameName(): void
@@ -1119,7 +1132,10 @@ final class MakefileTest extends TestCase
             $baseOutput,
         );
 
-        $differ = new Differ(new UnifiedDiffOutputBuilder('', false));
+        $differ = new Differ(new StrictUnifiedDiffOutputBuilder([
+            'addLineNumbers' => false,
+            'header'         => '',
+        ]));
 
         foreach ($outputGroups as $outputGroup) {
             if ($outputGroup['representative'] === $baseScenario) {
@@ -1163,8 +1179,8 @@ final class MakefileTest extends TestCase
             $directory ?? self::FIXTURES_DIRECTORY,
             ...$args,
         ], env: [
-            'HOME' => $_SERVER['HOME'] ?? '',
-            'PATH' => $_SERVER['PATH'] ?? '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+            'HOME' => getenv('HOME'),
+            'PATH' => getenv('PATH') ?: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
             ...self::BASELINE_ENV,
             ...$env,
         ]);

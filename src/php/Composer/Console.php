@@ -170,7 +170,6 @@ final readonly class Console
      * @template T of array<int|string, int|string>
      * @template U of bool
      *
-     * @param mixed $default
      * @param T $choices
      * @param key-of<T>|value-of<T>|list<value-of<T>>|list<key-of<T>>|array<key-of<T>, value-of<T>> $default
      * @param U $isMultiselect
@@ -183,7 +182,7 @@ final readonly class Console
     public function select(
         string $question,
         array $choices,
-        $default,
+        int|string|array $default,
         bool $isMultiselect = false,
     ): int|string|array {
         $default = is_array($default)
@@ -204,7 +203,7 @@ final readonly class Console
             question: $question,
             choices: array_map(strval(...), $choices),
             default: $default,
-            multiselect: (bool) $isMultiselect,
+            multiselect: $isMultiselect,
         );
 
         if (is_array($answerIndex)) {

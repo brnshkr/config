@@ -9,6 +9,7 @@ use LogicException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
+use function array_diff;
 use function array_keys;
 use function array_map;
 use function implode;
@@ -81,13 +82,14 @@ final readonly class FileFinder
 
         $extensions = is_array($extensions) ? $extensions : [$extensions];
 
-        $namePatterns = array_map(static function (string $extension): string {
-            if (!in_array($extension, self::EXTENSIONS, true)) {
-                throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, implode(', ', self::EXTENSIONS)));
-            }
+        foreach (array_diff($extensions, self::EXTENSIONS) as $extension) {
+            throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, implode(', ', self::EXTENSIONS)));
+        }
 
-            return '/\.' . $extension . '$/';
-        }, $extensions);
+        $namePatterns = array_map(
+            static fn (string $extension): string => '/\.' . $extension . '$/',
+            $extensions,
+        );
 
         if ($namePatterns !== []) {
             $finder->name($namePatterns);

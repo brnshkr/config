@@ -16,6 +16,7 @@ enum Package: string
     case DependencyInjection     = 'symfony/dependency-injection';
     case ExtensionInstaller      = 'phpstan/extension-installer';
     case Finder                  = 'symfony/finder';
+    case Laravel                 = 'laravel/framework';
     case PhpAt                   = 'phpat/phpat';
     case PhpCsFixer              = 'friendsofphp/php-cs-fixer';
     case PhpCsFixerCustomFixers  = 'kubawerlos/php-cs-fixer-custom-fixers';
@@ -30,7 +31,7 @@ enum Package: string
     case PhpStanWebmozartAssert  = 'phpstan/phpstan-webmozart-assert';
     case Rector                  = 'rector/rector';
     case TwigCsFixer             = 'vincentlanglet/twig-cs-fixer';
-    case TypePerfect             = 'rector/type-perfect';
+    case TypeCoverage            = 'tomasvotruba/type-coverage';
 
     /**
      * @throws RuntimeException

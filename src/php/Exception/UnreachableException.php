@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Exception;
 
+use Brnshkr\Config\Tests\Exception\UnreachableExceptionTest;
 use LogicException;
 use Throwable;
 
 /**
  * @internal Brnshkr\Config
+ *
+ * @see UnreachableExceptionTest
  */
 final class UnreachableException extends LogicException
 {

@@ -21,6 +21,7 @@ use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use Brnshkr\Config\PhpStan\Rule\ServiceArgumentBindingRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
+use Brnshkr\Config\Tests\PhpStanTest;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Composer\InstalledVersions;
@@ -125,6 +126,8 @@ if (class_exists(PhpStan::class)) {
  *     rules: list<class-string>,
  *     services: list<Service>,
  * }
+ *
+ * @see PhpStanTest
  */
 final class PhpStan
 {
@@ -263,6 +266,7 @@ final class PhpStan
                 'reportNonIntStringArrayKey'                         => true,
                 'reportPossiblyNonexistentConstantArrayOffset'       => true,
                 'reportPossiblyNonexistentGeneralArrayOffset'        => true,
+                'reportUnsafeArrayStringKeyCasting'                  => 'prevent',
             ])
             ->setFeatureToggles([
                 'checkParameterCastableToNumberFunctions'     => true,
@@ -351,16 +355,36 @@ final class PhpStan
             ]);
         }
 
-        if (Package::TypePerfect->isInstalled()) {
-            $phpStanConfig->setTypePerfect([
-                'narrow_return'   => true,
-                'no_mixed'        => true,
-                'null_over_false' => true,
-            ]);
+        if (Package::TypeCoverage->isInstalled()) {
+            $phpStanConfig
+                ->setTypeCoverage([
+                    'constant_type' => 100,
+                    'declare'       => 100,
+                    'param_type'    => 100,
+                    'property_type' => 100,
+                    'return_type'   => 100,
+                ])
+                ->setTypePerfect([
+                    'narrow_return'         => true,
+                    'no_empty_on_object'    => true,
+                    'no_isset_on_object'    => true,
+                    'no_mixed'              => true,
+                    'no_param_type_removal' => true,
+                    'null_over_false'       => true,
+                ])
+            ;
         }
 
         if (Package::PhpStanRules->isInstalled()) {
-            $phpStanConfig->addRules(self::getSymplifyRules());
+            $phpStanConfig
+                ->addRules(self::getSymplifyRules())
+                ->setSymplify([
+                    'ctor'              => true,
+                    'laravelReturnType' => Package::Laravel->isInstalled(),
+                    'mocks'             => Package::PhpStanPhpUnit->isInstalled(),
+                    'symfonyReturnType' => Package::DependencyInjection->isInstalled(),
+                ])
+            ;
         }
 
         return $phpStanConfig;
@@ -412,7 +436,9 @@ final class PhpStan
      */
     public function setParameters(array $parameters): self
     {
-        $this->config['parameters'] = self::mergeOptions($this->config['parameters'], $parameters);
+        foreach ($parameters as $key => $value) {
+            $this->config['parameters'][$key] = self::mergeOption($this->config['parameters'][$key] ?? null, $value);
+        }
 
         return $this;
     }
@@ -425,7 +451,7 @@ final class PhpStan
      * ({@see self::setLevel()}, {@see self::setPaths()} etc.) where one exists, and
      * {@see self::removeParameter()} first where a nested map has to go rather than merge.
      *
-     * @param non-empty-string $key parameter name as it appears under the `parameters:` section
+     * @param non-empty-string&non-decimal-int-string $key parameter name as it appears under the `parameters:` section
      * @param mixed $value parameter value
      */
     public function setParameter(string $key, mixed $value): self
@@ -1121,17 +1147,43 @@ final class PhpStan
     }
 
     /**
-     * Configure the `rector/type-perfect` extension, keeping the options not named.
+     * Configure the coverage thresholds of `tomasvotruba/type-coverage`, keeping the options not named.
+     *
+     * @param array<non-empty-string, bool|float|int|null> $options map of type-coverage option name to its value
+     *
+     * @see https://github.com/TomasVotruba/type-coverage
+     *
+     * @throws RuntimeException when `tomasvotruba/type-coverage` is not installed
+     */
+    public function setTypeCoverage(array $options): self
+    {
+        Module::warnMissingPackages(Package::TypeCoverage);
+
+        return $this->setParameters(['type_coverage' => $options]);
+    }
+
+    /**
+     * Drop named type-coverage options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys type-coverage option names to drop
+     */
+    public function removeTypeCoverage(array $keys): self
+    {
+        return $this->removeParameterKeys('type_coverage', $keys);
+    }
+
+    /**
+     * Configure the type-perfect rules of `tomasvotruba/type-coverage`, keeping the options not named.
      *
      * @param array<non-empty-string, bool> $options map of type-perfect option name to enabled flag
      *
-     * @see https://github.com/rectorphp/type-perfect
+     * @see https://github.com/TomasVotruba/type-coverage
      *
-     * @throws RuntimeException when `rector/type-perfect` is not installed
+     * @throws RuntimeException when `tomasvotruba/type-coverage` is not installed
      */
     public function setTypePerfect(array $options): self
     {
-        Module::warnMissingPackages(Package::TypePerfect);
+        Module::warnMissingPackages(Package::TypeCoverage);
 
         return $this->setParameters(['type_perfect' => $options]);
     }
@@ -1233,6 +1285,32 @@ final class PhpStan
     public function removePhpUnit(array $keys): self
     {
         return $this->removeParameterKeys('phpunit', $keys);
+    }
+
+    /**
+     * Configure the opt-in rule groups and return type extensions of `symplify/phpstan-rules`, keeping the options not named.
+     *
+     * @param array<non-empty-string, bool> $options map of symplify option name to enabled flag
+     *
+     * @see https://github.com/symplify/phpstan-rules
+     *
+     * @throws RuntimeException when `symplify/phpstan-rules` is not installed
+     */
+    public function setSymplify(array $options): self
+    {
+        Module::warnMissingPackages(Package::PhpStanRules);
+
+        return $this->setParameters(['symplify' => $options]);
+    }
+
+    /**
+     * Drop named symplify options, leaving the options not named.
+     *
+     * @param list<non-empty-string> $keys symplify option names to drop
+     */
+    public function removeSymplify(array $keys): self
+    {
+        return $this->removeParameterKeys('symplify', $keys);
     }
 
     /**
@@ -1444,7 +1522,7 @@ final class PhpStan
         // @phpstan-ignore symplify.forbiddenFuncCall (nesbot/carbon is not a dependency of brnshkr/config)
         if (class_exists(Carbon::class)) {
             /** @disregard P1009 nesbot/carbon is not a dependency of brnshkr/config */
-            // @phpstan-ignore class.notFound (See ->), class.notFound (nesbot/carbon is not a dependency of brnshkr/config)
+            // @phpstan-ignore class.notFound (nesbot/carbon is not a dependency of brnshkr/config)
             $preferredClassesMap[Carbon::class] = CarbonImmutable::class;
         }
 
@@ -1531,7 +1609,7 @@ final class PhpStan
     }
 
     /**
-     * @param non-empty-string $key
+     * @param non-empty-string&non-decimal-int-string $key
      * @param list<non-empty-string> $values
      */
     private function appendException(string $key, array $values): self
@@ -1551,7 +1629,7 @@ final class PhpStan
     /**
      * Drop values out of one of the `exceptions` lists.
      *
-     * @param non-empty-string $key the exceptions key holding the list
+     * @param non-empty-string&non-decimal-int-string $key the exceptions key holding the list
      * @param list<non-empty-string> $values values to drop out of it
      */
     private function removeException(string $key, array $values): self
@@ -1605,7 +1683,10 @@ final class PhpStan
 
         foreach ($ignoredErrors as $key => $entry) {
             if (is_string($key)) {
-                $normalized[] = ['identifier' => $key, 'reportUnmatched' => (bool) $entry];
+                $normalized[] = [
+                    'identifier'      => $key,
+                    'reportUnmatched' => (bool) $entry,
+                ];
 
                 continue;
             }
@@ -1668,11 +1749,13 @@ final class PhpStan
             SymplifyPhpStanRules\Symfony\ConfigClosure\PreferAutowireAttributeOverConfigParamRule::class,
             SymplifyPhpStanRules\Symfony\ConfigClosure\ServicesExcludedDirectoryMustExistRule::class,
             SymplifyPhpStanRules\Symfony\ConfigClosure\TaggedIteratorOverRepeatedServiceCallRule::class,
+            SymplifyPhpStanRules\Symfony\FormTypeClassNameRule::class,
             SymplifyPhpStanRules\Symfony\NoAbstractControllerConstructorRule::class,
             SymplifyPhpStanRules\Symfony\NoBareAndSecurityIsGrantedContentsRule::class,
             SymplifyPhpStanRules\Symfony\NoClassLevelRouteRule::class,
             SymplifyPhpStanRules\Symfony\NoConstructorAndRequiredTogetherRule::class,
             SymplifyPhpStanRules\Symfony\NoControllerMethodInjectionRule::class,
+            SymplifyPhpStanRules\Symfony\NoFindTaggedServiceIdsCallRule::class,
             SymplifyPhpStanRules\Symfony\NoGetDoctrineInControllerRule::class,
             SymplifyPhpStanRules\Symfony\NoGetInCommandRule::class,
             SymplifyPhpStanRules\Symfony\NoGetInControllerRule::class,
@@ -1685,6 +1768,7 @@ final class PhpStan
             SymplifyPhpStanRules\Symfony\RequireIsGrantedEnumRule::class,
             SymplifyPhpStanRules\Symfony\RequireRouteNameToGenerateControllerRouteRule::class,
             SymplifyPhpStanRules\Symfony\SingleArgEventDispatchRule::class,
+            SymplifyPhpStanRules\Symfony\SingleRequiredMethodRule::class,
             SymplifyPhpStanRules\UppercaseConstantRule::class,
             self::configureRule(SymplifyPhpStanRules\ForbiddenNodeRule::class, [
                 'forbiddenNodes' => self::getForbiddenNodes(),
@@ -1809,7 +1893,6 @@ final class PhpStan
         /** @disregard P1009 symfony/http-client-contracts is not a dependency of brnshkr/config */
         // @phpstan-ignore symplify.forbiddenFuncCall (symfony/http-client-contracts is not a dependency of brnshkr/config)
         if (interface_exists(HttpClientInterface::class)) {
-            // @phpstan-ignore class.notFound (symfony/http-client-contracts is not a dependency of brnshkr/config)
             $forbiddenFunctions['curl_*'] = sprintf('Use an implementation of "%s" or any alternative HTTP client instead.', HttpClientInterface::class);
         }
 
@@ -2048,18 +2131,22 @@ final class PhpStan
      */
     private static function readDeclaredExceptions(string $path): array
     {
-        if (!array_key_exists($path, self::$uncheckedExceptionCache)) {
-            $declared = require $path;
+        if (array_key_exists($path, self::$uncheckedExceptionCache)) {
+            return self::$uncheckedExceptionCache[$path];
+        }
 
-            /**
-             * @var list<class-string<Throwable>> $classes
-             */
-            $classes = is_array($declared) ? array_values(array_filter($declared, self::isNonEmptyString(...))) : [];
+        $declared = require $path;
 
+        /**
+         * @var list<class-string<Throwable>> $classes
+         */
+        $classes = is_array($declared) ? array_values(array_filter($declared, self::isNonEmptyString(...))) : [];
+
+        if (Str::isNonDecimalIntString($path)) {
             self::$uncheckedExceptionCache[$path] = $classes;
         }
 
-        return self::$uncheckedExceptionCache[$path];
+        return $classes;
     }
 
     private static function isNonEmptyString(mixed $value): bool
@@ -2107,31 +2194,27 @@ final class PhpStan
         $exemptions = [];
 
         foreach ($composerJson->getDevelopmentNamespaces() as $namespace) {
+            if (!Str::isNonDecimalIntString($namespace)) {
+                continue;
+            }
+
             $exemptions[$namespace] = [$rootNamespace];
         }
 
         return $exemptions;
     }
 
-    /**
-     * @template TKey of array-key
-     *
-     * @param array<TKey, mixed> $existing
-     * @param array<TKey, mixed> $overrides
-     *
-     * @return array<TKey, mixed>
-     */
-    private static function mergeOptions(array $existing, array $overrides): array
+    private static function mergeOption(mixed $current, mixed $override): mixed
     {
-        foreach ($overrides as $key => $value) {
-            $current = $existing[$key] ?? null;
-
-            $existing[$key] = is_array($value) && !array_is_list($value) && is_array($current)
-                ? self::mergeOptions($current, $value)
-                : $value;
+        if (!is_array($override) || array_is_list($override) || !is_array($current)) {
+            return $override;
         }
 
-        return $existing;
+        foreach ($override as $key => $value) {
+            $current[$key] = self::mergeOption($current[$key] ?? null, $value);
+        }
+
+        return $current;
     }
 
     /**

@@ -8,16 +8,14 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\RectorTest;
 use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRector;
 use Rector\CodingStyle\Rector\ClassLike\NewlineBetweenClassLikeStmtsRector;
 use Rector\CodingStyle\Rector\ClassMethod\NewlineBeforeNewAssignSetRector;
-use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\CodingStyle\Rector\String_\SimplifyQuoteEscapeRector;
 use Rector\Config\RectorConfig;
 use Rector\Configuration\RectorConfigBuilder;
 use Rector\Contract\Rector\RectorInterface;
-use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
-use Rector\Php82\Rector\Param\AddSensitiveParameterAttributeRector;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use RuntimeException;
@@ -25,7 +23,6 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 use function array_filter;
-use function array_map;
 use function array_unique;
 use function array_values;
 use function in_array;
@@ -36,109 +33,14 @@ Module::warnMissingPackages(Module::MODULE_RECTOR);
 /**
  * Builds a ready-to-use Rector config that captures the @brnshkr refactoring decisions.
  *
- * The `#[\SensitiveParameter]` attribute rule is pre-wired to a list of parameter names commonly
- * associated with secrets (e.g. `password`, `apiToken`, `clientSecret`, plus plural variants
- * generated at runtime), so newly introduced sensitive parameters automatically get the
- * attribute added.
- *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/Rector.md
  *
  * @no-named-arguments
+ *
+ * @see RectorTest
  */
 final class Rector
 {
-    /**
-     * @phpstan-var non-empty-list<non-empty-string>
-     */
-    private const array SENSITIVE_PARAMETERS = [
-        'accessKey',
-        'accessKeyId',
-        'accessToken',
-        'accountKey',
-        'accountSecret',
-        'amqpDsn',
-        'apiKey',
-        'apiKeyId',
-        'apiSecret',
-        'apiSecretKey',
-        'apiToken',
-        'appSecret',
-        'authenticationToken',
-        'authHeader',
-        'authorization',
-        'authorizationHeader',
-        'authorizationToken',
-        'authToken',
-        'basicAuthPassword',
-        'basicAuthUsername',
-        'bcc',
-        'bccAddress',
-        'bccEmailAddress',
-        'bearerToken',
-        'cc',
-        'ccAddress',
-        'ccEmailAddress',
-        'certificate',
-        'certificateKey',
-        'clientAssertion',
-        'clientId',
-        'clientSecret',
-        'connectionString',
-        'consumerKey',
-        'consumerSecret',
-        'credentials',
-        'csrfToken',
-        'databasePassword',
-        'dbPassword',
-        'decryptionKey',
-        'doctrineDsn',
-        'dsn',
-        'email',
-        'emailAddress',
-        'encryptionKey',
-        'fromAddress',
-        'fromEmailAddress',
-        'idToken',
-        'jwt',
-        'jwtToken',
-        'keyStorePassword',
-        'lockDsn',
-        'mailerDsn',
-        'oAuthToken',
-        'passphrase',
-        'password',
-        'privateKey',
-        'redisDsn',
-        'refreshToken',
-        'replyAddress',
-        'replyToAddress',
-        'secret',
-        'secretAccessKey',
-        'secretKey',
-        'secretToken',
-        'serviceAccountJson',
-        'serviceAccountKey',
-        'sessionId',
-        'sessionToken',
-        'signature',
-        'signatureKey',
-        'signedUrl',
-        'signingKey',
-        'sshKey',
-        'sshPrivateKey',
-        'tlsCertificate',
-        'tlsKey',
-        'tlsPrivateKey',
-        'toAddress',
-        'toEmailAddress',
-        'token',
-        'tokenId',
-        'trustStorePassword',
-        'username',
-        'verificationKey',
-        'webhookSecret',
-    ];
-
     private function __construct(
         private readonly RectorConfigBuilder $rectorConfigBuilder,
         /**
@@ -241,31 +143,23 @@ final class Rector
                 typeDeclarations: true,
                 privatization: true,
                 naming: true,
-                instanceOf: true,
-                earlyReturn: true,
                 rectorPreset: true,
                 phpunitCodeQuality: true,
+                phpunitNarrowAsserts: true,
+                phpunitMockToStub: true,
                 doctrineCodeQuality: true,
                 symfonyCodeQuality: true,
                 symfonyConfigs: true,
             )
+            ->withComposerBased(
+                twig: true,
+                doctrine: true,
+                phpunit: true,
+                symfony: true,
+            )
             ->withConfiguredRule(AddOverrideAttributeToOverriddenMethodsRector::class, [
                 AddOverrideAttributeToOverriddenMethodsRector::ADD_TO_INTERFACE_METHODS    => true,
                 AddOverrideAttributeToOverriddenMethodsRector::ALLOW_OVERRIDE_EMPTY_METHOD => true,
-            ])
-            ->withConfiguredRule(AddSensitiveParameterAttributeRector::class, [
-                AddSensitiveParameterAttributeRector::SENSITIVE_PARAMETERS => [
-                    ...self::SENSITIVE_PARAMETERS,
-                    ...array_map(
-                        static fn (string $parameter): string => Str::endsWith($parameter, 's')
-                            ? ($parameter . 'es')
-                            : ($parameter . 's'),
-                        self::SENSITIVE_PARAMETERS,
-                    ),
-                ],
-            ])
-            ->withConfiguredRule(EncapsedStringsToSprintfRector::class, [
-                EncapsedStringsToSprintfRector::ALWAYS => true,
             ])
         ;
 
@@ -280,7 +174,6 @@ final class Rector
             LocallyCalledStaticMethodToNonStaticRector::class,
             NewlineBeforeNewAssignSetRector::class,
             NewlineBetweenClassLikeStmtsRector::class,
-            NullToStrictStringFuncCallArgRector::class,
             PreferPHPUnitThisCallRector::class,
             SimplifyQuoteEscapeRector::class,
         ]);
@@ -352,7 +245,7 @@ final class Rector
      *
      * @example
      * ```php
-     * Rector::getBuilder()->removeRules([AddSensitiveParameterAttributeRector::class]);
+     * Rector::getBuilder()->removeRules([AddOverrideAttributeToOverriddenMethodsRector::class]);
      * ```
      *
      * @param list<class-string<RectorInterface>> $rules rule classes to stop running
@@ -425,7 +318,7 @@ final class Rector
      *
      * @example
      * ```php
-     * $builder->setSkips([NullToStrictStringFuncCallArgRector::class]);
+     * $builder->setSkips([NewlineBetweenClassLikeStmtsRector::class]);
      * ```
      *
      * @param array<array-key, mixed> $skips skip entries, replacing every one already configured

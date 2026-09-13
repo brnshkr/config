@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\SpellingTest;
 use Composer\InstalledVersions;
 use JsonException;
 use OutOfBoundsException;
@@ -52,6 +53,8 @@ use const STDERR;
  * @api
  *
  * @no-named-arguments
+ *
+ * @see SpellingTest
  */
 final class Spelling
 {
@@ -140,7 +143,7 @@ final class Spelling
      *     britishPrefix: string,
      *     americanPrefix: string,
      * }> $patterns
-     * @param array<string, list<array{
+     * @param array<array-key, list<array{
      *     text: string,
      *     lineNumbers: ?list<int>,
      * }>> $allowlist
@@ -216,7 +219,7 @@ final class Spelling
     /**
      * @param array<string, mixed> $settings
      *
-     * @return array<string, list<array{
+     * @return array<array-key, list<array{
      *     text: string,
      *     lineNumbers: ?list<int>,
      * }>>
@@ -229,7 +232,7 @@ final class Spelling
         $allowlist         = [];
 
         foreach ($declaredAllowlist as $allowedPath => $declaredLiterals) {
-            $allowlist[(string) $allowedPath] = self::parseAllowedLiterals(
+            $allowlist[$allowedPath] = self::parseAllowedLiterals(
                 array_values(is_array($declaredLiterals) ? $declaredLiterals : []),
             );
         }
@@ -267,7 +270,7 @@ final class Spelling
     }
 
     /**
-     * @param array<string, list<array{
+     * @param array<array-key, list<array{
      *     text: string,
      *     lineNumbers: ?list<int>,
      * }>> $allowlist
@@ -633,7 +636,7 @@ final class Spelling
      *
      * @throws RuntimeException
      */
-    private static function readUntilEndOfFile($process, $pipe, array $command): string
+    private static function readUntilEndOfFile(mixed $process, mixed $pipe, array $command): string
     {
         stream_set_blocking($pipe, false);
 

@@ -7,7 +7,7 @@
   or Symfony String.
 - Checked exceptions are declared with `@throws`, except in the `autoload-dev` directories.
 - An `@internal` symbol is usable at or below its own namespace, or below the namespace its tag names.
-- Write `#[\Override]` and `#[\SensitiveParameter]` up front; Rector adds them otherwise.
+- Write `#[\Override]` up front; Rector adds it otherwise.
 - A constant glob such as `Module::NAME_*` also matches array constants, so keep arrays out of the prefix.
 - `FileFinder` ignores `.gitignore`; its exclusions are hardcoded.
 

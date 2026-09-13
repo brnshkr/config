@@ -7,6 +7,7 @@ namespace Brnshkr\Config\PhpStan;
 use App\Kernel;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\PhpStan\ProjectKernelTest;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
@@ -29,6 +30,8 @@ use function uksort;
  * @internal Brnshkr\Config
  *
  * @no-named-arguments
+ *
+ * @see ProjectKernelTest
  */
 final readonly class ProjectKernel
 {

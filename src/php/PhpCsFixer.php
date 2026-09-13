@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\PhpCsFixerTest;
 use PhpCsFixer\Config as PhpCsFixerConfig;
 use PhpCsFixerCustomFixers\Fixer;
 use PhpCsFixerCustomFixers\Fixers;
@@ -17,7 +18,10 @@ use Symfony\Component\Finder\Finder;
 
 use function array_diff_key;
 use function array_fill_keys;
+use function array_filter;
 use function array_merge;
+
+use const ARRAY_FILTER_USE_KEY;
 
 Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
 
@@ -32,6 +36,8 @@ Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
  * @see https://github.com/brnshkr/config/blob/master/docs/php/PhpCsFixer.md
  *
  * @no-named-arguments
+ *
+ * @see PhpCsFixerTest
  */
 final readonly class PhpCsFixer
 {
@@ -447,7 +453,7 @@ final readonly class PhpCsFixer
             ]);
         }
 
-        $config->setRules($rules);
+        $config->setRules(array_filter($rules, Str::isNonDecimalIntString(...), ARRAY_FILTER_USE_KEY));
 
         return new self($config);
     }

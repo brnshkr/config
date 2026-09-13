@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
+use Brnshkr\Config\Tests\PhpStan\Rule\NamedArgumentsUsageRuleTest;
 use Override;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -42,6 +43,8 @@ use function sprintf;
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
+ *
+ * @see NamedArgumentsUsageRuleTest
  */
 final readonly class NamedArgumentsUsageRule implements Rule
 {

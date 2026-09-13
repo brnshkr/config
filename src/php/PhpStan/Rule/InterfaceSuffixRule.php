@@ -6,6 +6,7 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\PhpStan\Rule\InterfaceSuffixRuleTest;
 use Override;
 use PhpParser\Node;
 use PhpParser\Node\Name;
@@ -35,6 +36,8 @@ use function sprintf;
  * @no-named-arguments
  *
  * @implements Rule<Class_>
+ *
+ * @see InterfaceSuffixRuleTest
  */
 final readonly class InterfaceSuffixRule implements Rule
 {

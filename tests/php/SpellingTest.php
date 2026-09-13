@@ -64,7 +64,7 @@ final class SpellingTest extends TestCase
     public function testRejectsAnAllowedWordAlreadyAllowedEverywhere(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('is already covered by "analyse"');
+        $this->expectExceptionMessageIsOrContains('is already covered by "analyse"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -76,7 +76,7 @@ final class SpellingTest extends TestCase
     public function testRejectsALineSuppressionTheWholeFileAlreadyAllows(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Allowed word "analyse:9"');
+        $this->expectExceptionMessageIsOrContains('Allowed word "analyse:9"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -88,7 +88,7 @@ final class SpellingTest extends TestCase
     public function testRejectsALineSuppressionABroaderLineListAlreadyAllows(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('is already covered by "analyse:9,11"');
+        $this->expectExceptionMessageIsOrContains('is already covered by "analyse:9,11"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -145,10 +145,6 @@ final class SpellingTest extends TestCase
      */
     private function getRepositoryRoot(): string
     {
-        $root = dirname(__DIR__, 2);
-
-        self::assertNotSame('', $root);
-
-        return $root;
+        return dirname(__DIR__, 2);
     }
 }

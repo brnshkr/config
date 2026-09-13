@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests;
 
 use Brnshkr\Config\Exception\UnreachableException;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
@@ -15,6 +16,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symplify\PHPStanRules\Rules\Symfony\NoFindTaggedServiceIdsCallRule;
 
 use function array_filter;
 use function array_values;
@@ -230,7 +232,7 @@ final class PhpStanTest extends TestCase
     public function testTheSamePhpAtTestRegisteredTwiceWithDifferentArgumentsFails(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(ModuleIsolatedTest::class);
+        $this->expectExceptionMessageIsOrContains(ModuleIsolatedTest::class);
 
         PhpStan::getBuilder()->addArchitecture([
             PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
@@ -373,6 +375,8 @@ final class PhpStanTest extends TestCase
         $parameters = PhpStan::getBuilder()
             ->setStrictRules(['allRules' => false])
             ->setTypePerfect(['null_over_false' => true])
+            ->setTypeCoverage(['return_type' => 90])
+            ->setSymplify(['ctor' => false])
             ->setSymfony(['containerXmlPath' => 'var/container.xml'])
             ->setDoctrine(['literalString' => false])
             ->setPhpUnit(['reportMissingDataProviderReturnType' => false])
@@ -381,6 +385,8 @@ final class PhpStanTest extends TestCase
 
         self::assertFalse($parameters['strictRules']['allRules'] ?? null);
         self::assertTrue($parameters['type_perfect']['null_over_false'] ?? null);
+        self::assertSame(90, $parameters['type_coverage']['return_type'] ?? null);
+        self::assertFalse($parameters['symplify']['ctor'] ?? null);
         self::assertSame('var/container.xml', $parameters['symfony']['containerXmlPath'] ?? null);
         self::assertFalse($parameters['doctrine']['literalString'] ?? null);
         self::assertFalse($parameters['phpunit']['reportMissingDataProviderReturnType'] ?? null);
@@ -391,6 +397,8 @@ final class PhpStanTest extends TestCase
         $dropped = PhpStan::getBuilder()
             ->removeStrictRules(['allRules'])
             ->removeTypePerfect(['null_over_false'])
+            ->removeTypeCoverage(['return_type'])
+            ->removeSymplify(['ctor'])
             ->removeSymfony(['containerXmlPath'])
             ->removeDoctrine(['literalString'])
             ->removePhpUnit(['reportMissingDataProviderReturnType'])
@@ -399,9 +407,51 @@ final class PhpStanTest extends TestCase
 
         self::assertArrayNotHasKey('allRules', $dropped['strictRules'] ?? []);
         self::assertArrayNotHasKey('null_over_false', $dropped['type_perfect'] ?? []);
+        self::assertArrayNotHasKey('return_type', $dropped['type_coverage'] ?? []);
+        self::assertArrayNotHasKey('ctor', $dropped['symplify'] ?? []);
         self::assertArrayNotHasKey('containerXmlPath', $dropped['symfony'] ?? []);
         self::assertArrayNotHasKey('literalString', $dropped['doctrine'] ?? []);
         self::assertArrayNotHasKey('reportMissingDataProviderReturnType', $dropped['phpunit'] ?? []);
+    }
+
+    public function testTheBaselineTurnsOnTypeChecksAndTheSymplifyGroupsTheProjectCanUse(): void
+    {
+        $config = PhpStan::getConfig();
+
+        self::assertSame(
+            [
+                'constant_type' => 100,
+                'declare'       => 100,
+                'param_type'    => 100,
+                'property_type' => 100,
+                'return_type'   => 100,
+            ],
+            $config['parameters']['type_coverage'] ?? null,
+        );
+
+        self::assertSame(
+            [
+                'narrow_return'         => true,
+                'no_empty_on_object'    => true,
+                'no_isset_on_object'    => true,
+                'no_mixed'              => true,
+                'no_param_type_removal' => true,
+                'null_over_false'       => true,
+            ],
+            $config['parameters']['type_perfect'] ?? null,
+        );
+
+        self::assertSame(
+            [
+                'ctor'              => true,
+                'laravelReturnType' => Package::Laravel->isInstalled(),
+                'mocks'             => Package::PhpStanPhpUnit->isInstalled(),
+                'symfonyReturnType' => Package::DependencyInjection->isInstalled(),
+            ],
+            $config['parameters']['symplify'] ?? null,
+        );
+
+        self::assertContains(NoFindTaggedServiceIdsCallRule::class, $config['rules']);
     }
 
     public function testServicesAreAddedReplacedAndRemoved(): void
@@ -500,7 +550,7 @@ final class PhpStanTest extends TestCase
     public function testAPathThatIsNotANonEmptyStringIsRejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('non-empty string');
+        $this->expectExceptionMessageIsOrContains('non-empty string');
 
         // @phpstan-ignore argument.type (the guard exists for a caller who ignores the signature, so the test has to)
         PhpStan::getBuilder()->setPaths(['src', '']);

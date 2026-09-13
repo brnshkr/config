@@ -6,6 +6,7 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\PhpStan\Rule\InternalUsageRuleTest;
 use InvalidArgumentException;
 use Override;
 use PhpParser\Node;
@@ -66,6 +67,8 @@ use function sprintf;
  * @no-named-arguments
  *
  * @implements Rule<Stmt>
+ *
+ * @see InternalUsageRuleTest
  */
 final readonly class InternalUsageRule implements Rule
 {

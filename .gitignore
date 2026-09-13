@@ -1,7 +1,9 @@
+/.agents/
 /.cache/
 /.idea/
 /.local/
 /conf/ai/claude/settings.local.json
+/conf/ai/claude/skills/
 /conf/php-cs-fixer.php
 /conf/phpstan.php
 /conf/phpunit.xml

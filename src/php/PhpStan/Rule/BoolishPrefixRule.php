@@ -6,6 +6,7 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\PhpStan\Rule\BoolishPrefixRuleTest;
 use Override;
 use PhpParser\Node;
 use PhpParser\Node\Const_;
@@ -56,6 +57,8 @@ use function sprintf;
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
+ *
+ * @see BoolishPrefixRuleTest
  */
 final readonly class BoolishPrefixRule implements Rule
 {

@@ -174,6 +174,7 @@ final class SetupCommand extends AbstractCommand
                         ComposerInstaller::ERROR_LOCK_FILE_INVALID               => 'ERROR_LOCK_FILE_INVALID',
                         ComposerInstaller::ERROR_DEPENDENCY_RESOLUTION_FAILED    => 'ERROR_DEPENDENCY_RESOLUTION_FAILED',
                         ComposerInstaller::ERROR_AUDIT_FAILED                    => 'ERROR_AUDIT_FAILED',
+                        ComposerInstaller::ERROR_PSR_AUTOLOAD_VIOLATION          => 'ERROR_PSR_AUTOLOAD_VIOLATION',
                         ComposerInstaller::ERROR_TRANSPORT_EXCEPTION             => 'ERROR_TRANSPORT_EXCEPTION',
                         -1                                                       => 'ERROR_UNKNOWN',
                     ][$exitCode],

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\TwigCsFixerTest;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use TwigCsFixer\Config\Config as TwigCsFixerConfig;
@@ -33,6 +34,8 @@ Module::warnMissingPackages(Module::MODULE_TWIG_CS_FIXER);
  * @see https://github.com/brnshkr/config/blob/master/docs/php/TwigCsFixer.md
  *
  * @no-named-arguments
+ *
+ * @see TwigCsFixerTest
  */
 final readonly class TwigCsFixer
 {

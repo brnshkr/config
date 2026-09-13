@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\StrTest;
 use Closure;
 
 use function array_any;
@@ -37,6 +38,8 @@ use const PREG_UNMATCHED_AS_NULL;
 
 /**
  * @internal
+ *
+ * @see StrTest
  */
 final readonly class Str
 {
@@ -48,6 +51,14 @@ final readonly class Str
     public static function isEmpty(string $string): bool
     {
         return $string === '';
+    }
+
+    /**
+     * @phpstan-assert-if-true non-decimal-int-string $string
+     */
+    public static function isNonDecimalIntString(string $string): bool
+    {
+        return (string) (int) $string !== $string;
     }
 
     public static function length(string $string): int

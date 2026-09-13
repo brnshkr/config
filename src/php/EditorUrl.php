@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\EditorUrlTest;
+
 use function array_any;
 use function array_merge;
 use function explode;
@@ -27,6 +29,8 @@ use const PATH_SEPARATOR;
  * @api
  *
  * @no-named-arguments
+ *
+ * @see EditorUrlTest
  */
 final readonly class EditorUrl
 {

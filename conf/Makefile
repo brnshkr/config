@@ -623,7 +623,7 @@ PEST                    ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pe
 PHP_UNIT                ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
 PHP_UNIT_CONFIG         ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
 PHP_UNIT_FLAGS          ?= $(if $(_DEBUG),--debug) $(if $(_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
-PHP_UNIT_SNAPSHOT_FLAGS ?= $(if $(_IS_PEST),,-d )--update-snapshots --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
+PHP_UNIT_SNAPSHOT_FLAGS ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR   ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
 PHP_UNIT_COVERAGE_FILE  ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
 PHP_UNIT_MIN_COVERAGE   ?= 100#v #~~ percentage the suite must reach, `0` to collect coverage without a floor
@@ -631,6 +631,7 @@ PHP_UNIT_COVERAGE_FLAGS ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),-
 
 _PEST_BINARY     := $(WORKDIR)/vendor/bin/pest
 _IS_PEST          = $(findstring pest,$(PHP_UNIT))
+_PHP_UNIT_UPDATE  = $(if $(wildcard $(CURDIR)/vendor/bin/update-snapshots),$(subst /vendor/bin/phpunit,/vendor/bin/update-snapshots,$(PHP_UNIT)),$(PHP_UNIT))
 _PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE)))
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
 _COVERAGE_NAMES  += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
@@ -676,7 +677,7 @@ $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
 
 endif # /phpunit
 
