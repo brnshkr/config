@@ -10,13 +10,10 @@ include ./conf/Makefile
 PHP_UNIT_MIN_COVERAGE := 0
 VITEST_MIN_COVERAGE   := 0
 
-#---v general
-
-MV := mv#vvv #~~ path to `mv` binary
-
 #---vv tools
 
 COMPOSER := ./scripts/composer.php
+MV       := mv#vvv #~~ path to `mv` binary
 
 #--- build
 

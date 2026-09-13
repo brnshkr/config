@@ -90,6 +90,7 @@ final class MakefileTest extends TestCase
         'resolve'                => ['args' => ['resolve']],
         'resolve-alias'          => ['args' => ['--', '-r']],
         'list-scopes-alias'      => ['args' => ['ls']],
+        'list-scopes-vvvv'       => ['args' => ['ls', 'vvvv']],
         'scope-filter-single'    => ['args' => ['app.commands']],
         'scope-filter-group'     => ['args' => ['app']],
         'scope-filter-multiple'  => ['args' => ['app.commands', 'local']],
@@ -410,6 +411,38 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('No fixer to run.', $this->runMake(['fix'], directory: $directory));
         self::assertStringContainsString('No tool to run.', $this->runMake(['check'], directory: $directory));
         self::assertStringContainsString('No test to run.', $this->runMake(['test'], directory: $directory));
+    }
+
+    public function testTheScopeListNamesOnlyScopesWithSomethingToShow(): void
+    {
+        $plain   = $this->runMakeHelp(['ls']);
+        $verbose = $this->runMakeHelp(['ls', 'vvvv']);
+
+        self::assertStringContainsString("app.commands\n", $plain);
+        self::assertStringNotContainsString("app.verbose-group\n", $plain);
+        self::assertStringContainsString("app.hyper-verbose-group\n", $verbose);
+        self::assertStringNotContainsString('app.empty-group', $verbose);
+        self::assertStringNotContainsString('brnshkr.ansi', $verbose);
+    }
+
+    public function testFilteringByAScopeHiddenAtThisVerbosityNamesTheLevel(): void
+    {
+        $hiddenEntries = $this->runMakeHelp(['app.hidden-group'], doExpectFailure: true);
+        $hiddenScope   = $this->runMakeHelp(['app.very-verbose-group'], doExpectFailure: true);
+        $visible       = $this->runMakeHelp(['app.hidden-group', 'app.very-verbose-group', 'vv']);
+
+        self::assertStringContainsString('Scope "app.hidden-group" shows nothing below vv.', $hiddenEntries);
+        self::assertStringContainsString('Scope "app.very-verbose-group" shows nothing below vv.', $hiddenScope);
+        self::assertStringContainsString('HIDDEN_GROUP_VARIABLE', $visible);
+        self::assertStringContainsString('very-verbose-command', $visible);
+    }
+
+    public function testFilteringByAScopeWithNothingToShowIsRefused(): void
+    {
+        $result = $this->runMakeHelp(['app.empty-group', 'vvvv'], doExpectFailure: true);
+
+        self::assertStringContainsString('Unknown scope', $result);
+        self::assertStringContainsString('app.empty-group', $result);
     }
 
     public function testACollidingNameStaysWithTheProjectAndTheSharedOneMovesAside(): void

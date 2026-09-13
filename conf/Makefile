@@ -88,9 +88,10 @@
 #     make help -- -vv  —  verbosity 2 (alias form)
 #     make help V=10    —  verbosity 10 (numeric form via env var)
 #
-#   Listing all known scope dot-paths:
+#   Listing the scope dot-paths with something to show at the chosen verbosity:
 #     make help list-scopes
 #     make help ls
+#     make help ls vvv
 #     make help ls brnshkr
 #     make help ls brnshkr.theming app
 #
@@ -149,29 +150,29 @@ $(foreach INCLUDE_DIRECTORY,$(_INCLUDE_DIRECTORIES), \
 
 _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST))
 
-#---v tools
+#---vvv tools
 
-SHELL  := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#vvv #~~ shell the recipes run in
-CP     ?= cp#vvv #~~ path to `cp` binary
-RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#vvv #~~ path to `rm` binary
-MKDIR  ?= mkdir#vvv #~~ path to `mkdir` binary
-PRINTF ?= printf#vvv #~~ path to `printf` binary
-AWK    ?= awk#vvv #~~ path to `awk` binary
-PHP    ?= $(_RUN) php#vvv #~~ command that runs `php`
-TAR    ?= tar#vvv #~~ path to `tar` binary
-GIT    ?= git#vvv #~~ path to `git` binary
+SHELL  := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
+CP     ?= cp#~~ path to `cp` binary
+RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
+MKDIR  ?= mkdir#~~ path to `mkdir` binary
+PRINTF ?= printf#~~ path to `printf` binary
+AWK    ?= awk#~~ path to `awk` binary
+PHP    ?= $(_RUN) php#~~ command that runs `php`
+TAR    ?= tar#~~ path to `tar` binary
+GIT    ?= git#~~ path to `git` binary
 
 #---v settings
 
-RUN  ?= #v #~~ command the tools are run through, such as `docker compose exec <service>`
+RUN  ?= #~~ command the tools are run through, such as `docker compose exec <service>`
 _RUN  = $(if $(wildcard /.dockerenv),,$(RUN))
 
-WORKDIR ?= $(if $(_RUN),/app,$(CURDIR))#v #~~ where the tools see the sources, which differs from `CURDIR` in a container
+WORKDIR ?= $(if $(_RUN),/app,$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
 
-TARGET_PREFIX  ?= #v #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
+TARGET_PREFIX  ?= #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
 
-COLLISION_PREFIX  ?= brnshkr#v #~~ namespace given to a shared target whose name this project already uses
+COLLISION_PREFIX  ?= brnshkr#~~ namespace given to a shared target whose name this project already uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
 ifneq ($(filter undefined,$(origin VENDOR) $(origin PACKAGE)),) # manifest
@@ -179,16 +180,16 @@ _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/compos
 _MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '/^[ \t]*"name"[ \t]*:/ { match($$0, /^[ \t]*/); if (found == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found = parts[4] } } END { print found }' $(_MANIFEST)))
 endif # /manifest
 
-VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#v #~~ package name, taken from the manifest or the directory when unset
+VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#~~ vendor name, taken from the manifest when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#~~ package name, taken from the manifest or the directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
-DEBUG        ?= #v #~~ whether the commands are echoed before they run
+DEBUG        ?= #~~ whether the commands are echoed before they run
 DEBUG_PREFIX ?= $(if $(or $(_DEBUG),$(_TRACE)),,@)#vvv #~~ prefix for a command
 _DEBUG        = $(filter-out $(_FALSE),$(DEBUG))
 
-TRACE        ?= #v #~~ whether the guards are echoed too, which `DEBUG` leaves out
+TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
 TRACE_PREFIX ?= $(if $(_TRACE),,@)#vvv #~~ prefix for a guard command
 _TRACE        = $(filter-out $(_FALSE),$(TRACE))
 
@@ -204,14 +205,14 @@ BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown 
 
 #---vv theming
 
-INDENT      ?= 1#v #~~ indent used in `make help` output
-VALUE_WIDTH ?= 48#vv #~~ widest a value column gets in `make help`, past which a value is truncated
+INDENT      ?= 1#~~ indent used in `make help` output
+VALUE_WIDTH ?= 48#~~ widest a value column gets in `make help`, past which a value is truncated
 
-NO_ANSI         ?= #v #~~ whether ANSI escapes are suppressed
+NO_ANSI         ?= #~~ whether ANSI escapes are suppressed
 _NO_ANSI         = $(filter-out $(_FALSE),$(NO_ANSI))
 _NO_ANSI_OPTION  = $(if $(_NO_ANSI),--no-ansi)
 
-THEME         ?= #v #~~ the theme to use
+THEME         ?= #~~ the theme to use
 THEME_BRNSHKR := brnshkr
 THEME_SYMFONY := symfony
 
@@ -221,7 +222,7 @@ _THEMES := $(THEME_BRNSHKR) \
 _THEME_DEFAULT := $(THEME_BRNSHKR)
 _THEME         := $(if $(filter $(THEME),$(_THEMES)),$(THEME),$(_THEME_DEFAULT))
 
-EDITOR_URL      ?= #vv #~~ URL template the entries link to, in `{cwd}`, `{file}`, `{line}` and `{wslDistro}`
+EDITOR_URL      ?= #~~ URL template the entries link to, in `{cwd}`, `{file}`, `{line}` and `{wslDistro}`
 EDITOR_VSCODE   := vscode
 EDITOR_PHPSTORM := phpstorm
 
@@ -233,7 +234,7 @@ _EDITOR_URL_VSCODE_WSL := vscode://vscode-remote/wsl+{wslDistro}{file}:{line}
 _EDITOR_URL_PHPSTORM   := phpstorm://open?file={file}&line={line}
 _DETECTED_EDITOR        = $(or $(call _editor_from_env),$(call _editor_from_command))
 
-EDITOR          ?= $(_DETECTED_EDITOR)#v #~~ the editor to use, empty for no links
+EDITOR          ?= $(_DETECTED_EDITOR)#~~ the editor to use, empty for no links
 _EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR)))
 _EDITOR_UNKNOWN  = $(if $(_EDITOR),,$(strip $(EDITOR)))
 
@@ -315,7 +316,7 @@ MODIFIER_BRIGHT    := bright
 MODIFIER_BOLD      := bold
 MODIFIER_REVERSE   := reverse
 
-#---v arguments
+#---vv arguments
 
 _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(CURDIR)' \
 	'function exists(path,   line, found) { found = (getline line < path) >= 0; close(path); return found } \
@@ -401,17 +402,17 @@ _ALL_TARGETS       := $(sort $(_CONSUMER_TARGETS) $(_SHARED_TARGETS))
 _DUPLICATE_TARGETS := $(strip $(foreach NAME,$(_CONSUMER_TARGETS),$(if $(word 2,$(filter $(_CONSUMER_MAKEFILES),$(call _files_defining,$(NAME)))),$(NAME))))
 .DEFAULT_GOAL      := $(or $(_DEFAULT_GOAL),$(call _target,help))
 
-TARGET := $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))#vv #~~ the first target of this run
-ARG1    = $(word 1,$(ARGS))#vv #~~ the running target's first argument, and so on through `ARG9`
-ARG2    = $(word 2,$(ARGS))#vv
-ARG3    = $(word 3,$(ARGS))#vv
-ARG4    = $(word 4,$(ARGS))#vv
-ARG5    = $(word 5,$(ARGS))#vv
-ARG6    = $(word 6,$(ARGS))#vv
-ARG7    = $(word 7,$(ARGS))#vv
-ARG8    = $(word 8,$(ARGS))#vv
-ARG9    = $(word 9,$(ARGS))#vv
-ARGS    = $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))#vv #~~ every argument the running target was handed
+TARGET := $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))#~~ the first target of this run
+ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on through `ARG9`
+ARG2    = $(word 2,$(ARGS))
+ARG3    = $(word 3,$(ARGS))
+ARG4    = $(word 4,$(ARGS))
+ARG5    = $(word 5,$(ARGS))
+ARG6    = $(word 6,$(ARGS))
+ARG7    = $(word 7,$(ARGS))
+ARG8    = $(word 8,$(ARGS))
+ARG9    = $(word 9,$(ARGS))
+ARGS    = $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))#~~ every argument the running target was handed
 
 #--- common
 
@@ -542,22 +543,22 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
 	fi
 
-#--- semver
+#---vvv semver
 
 #---- constants
 
-SEMVER_NUMBER            ?= (0|[1-9][0-9]*)#vvv #~~ a numeric identifier, which carries no leading zero
-SEMVER_PRERELEASE        ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#vvv #~~ the prerelease grammar semver itself permits
-SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#vvv #~~ the narrower one: what npm and Composer can both express, spelled npm's way
-SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#vvv #~~ build metadata, which neither registry accepts in a published version
-SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#vvv #~~ the semantic version grammar, as a POSIX extended regular expression
+SEMVER_NUMBER            ?= (0|[1-9][0-9]*)#~~ a numeric identifier, which carries no leading zero
+SEMVER_PRERELEASE        ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ the prerelease grammar semver itself permits
+SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower one: what npm and Composer can both express, spelled npm's way
+SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry accepts in a published version
+SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semantic version grammar, as a POSIX extended regular expression
 
-#--- dotenv
+#---v dotenv
 
-DOTENV             ?= 1#v #~~ base path of the environment files, `1` for `.env`, or `0` to load none
-DOTENV_ENV_KEY     ?= APP_ENV#v #~~ variable naming the current environment
-DOTENV_DEFAULT_ENV ?= dev#v #~~ environment assumed when the variable is unset
-DOTENV_TEST_ENVS   ?= test#v #~~ environments that skip the `.local` file, as a test run must be reproducible
+DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, or `0` to load none
+DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
+DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
+DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.local` file, as a test run must be reproducible
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 
@@ -1860,7 +1861,7 @@ function render_url(template, file, line) {
 	return template;
 }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
-function line_verbosity(verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); return length(verbosity_match) }
+function line_verbosity(verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
 function render_inline_code(text, out, ansi_open, ansi_close) {
 	ansi_open = ENVIRON["_INLINE_CODE_OPEN"];
@@ -1977,21 +1978,13 @@ function scope_is_target(path, i, f) {
 	}
 	return 0;
 }
-function scope_v_visible(path, i, f) {
-	for (i = 1; i <= scope_filter_count; i += 1) {
-		f = scope_filter[i];
-		if (f == "") continue;
-		if (path == f) return 1;
-		if (index(f, path "/") == 1) return 1;
-	}
-	return (scope_verbosity[path] + 0 <= ENVIRON["_VERBOSITY"] + 0);
-}
+function scope_v_visible(path) { return scope_verbosity[path] + 0 <= verbosity }
 function scope_has_visible_entries(scope_path, section, idx) {
 	if (!scope_matches(scope_path)) return 0;
 	if (!scope_is_target(scope_path)) return 0;
 	if (!scope_v_visible(scope_path)) return 0;
 	for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1)
-		if (section_verbosity[scope_path, section, idx] + 0 <= ENVIRON["_VERBOSITY"] + 0) return 1;
+		if (section_verbosity[scope_path, section, idx] + 0 <= verbosity) return 1;
 	return 0;
 }
 function push_scope(level, name, verbosity, current, parent_verbosity, parent) {
@@ -2047,11 +2040,21 @@ function has_content(scope_path, section, idx) {
 		if (has_content(children[scope_path, idx], section)) return 1;
 	return 0;
 }
+function has_any_content(scope_path) {
+	return has_content(scope_path, "description") || has_content(scope_path, "variables") \
+		|| has_content(scope_path, "functions") || has_content(scope_path, "commands");
+}
+function lowest_verbosity(scope_path, shown, level) {
+	shown = verbosity;
+	for (level = 0; level <= max_verbosity; level += 1) { verbosity = level; if (has_any_content(scope_path)) break }
+	verbosity = shown;
+	return (level <= max_verbosity ? level : -1);
+}
 function tree_max(scope_path, depth, section, mode, best, idx, width, child_width, value) {
 	if (!scope_matches(scope_path)) return 0;
 	if (scope_v_visible(scope_path) && scope_is_target(scope_path)) {
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > ENVIRON["_VERBOSITY"] + 0) continue;
+			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue;
 			if (mode == "value" && section_description[scope_path, section, idx] == "") continue;
 			value = section_text[scope_path, section, idx];
 			if (mode == "value" && ENVIRON["_RESOLVE"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]]);
@@ -2076,7 +2079,7 @@ function walk(scope_path, depth, section, column, render_scope, padding, width, 
 		padding = repeat(" ", (depth + 2) * ENVIRON["INDENT"]);
 		width = column - (depth + 2) * ENVIRON["INDENT"];
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > ENVIRON["_VERBOSITY"] + 0) continue;
+			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue;
 			entry = section_name[scope_path, section, idx];
 			text = section_text[scope_path, section, idx];
 			extra = section_extra[scope_path, section, idx];
@@ -2117,18 +2120,18 @@ function walk(scope_path, depth, section, column, render_scope, padding, width, 
 			} else if (section == "commands") {
 				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, text;
 			} else if (section == "functions") {
-				if (function_printed && ENVIRON["_VERBOSITY"] + 0 >= 2 && text != "") printf "\n";
-				function_printed = (text != "" && ENVIRON["_VERBOSITY"] + 0 >= 2);
-				if (extra != "" && (ENVIRON["_VERBOSITY"] + 0 < 2 || text == "")) {
+				if (function_printed && verbosity >= 2 && text != "") printf "\n";
+				function_printed = (text != "" && verbosity >= 2);
+				if (extra != "" && (verbosity < 2 || text == "")) {
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra;
 				} else {
 					printf "%s$(call text,%s,$(COLOR_ENTRY))\n", padding, entry_linked;
 				}
-				if (ENVIRON["_VERBOSITY"] + 0 >= 2 && text != "") {
+				if (verbosity >= 2 && text != "") {
 					count = split(text, lines, "\n");
 					blank = 0;
 					for (line_idx = 1; line_idx <= count; line_idx += 1) {
-						if (lines[line_idx] == "") { if (ENVIRON["_VERBOSITY"] + 0 < 3) break; blank = 1; continue }
+						if (lines[line_idx] == "") { if (verbosity < 3) break; blank = 1; continue }
 						if (blank) { printf "\n"; blank = 0 }
 						printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding " ", lines[line_idx];
 					}
@@ -2150,11 +2153,11 @@ function print_section(has_previous, section, label, column, top_idx, top_path, 
 		if (!found++) { if (has_previous) printf "\n"; printf "$(call text,%s,$(COLOR_SECTION_LABEL))\n", label }
 		else if (needs_separator) printf "\n";
 		walk(top_path, 0, section, column);
-		needs_separator = (section == "functions" && ENVIRON["_VERBOSITY"] + 0 >= 2);
+		needs_separator = (section == "functions" && verbosity >= 2);
 	}
 	return found + 0;
 }
-BEGIN { SQ = sprintf("%c", 39); seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
+BEGIN { SQ = sprintf("%c", 39); verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
 current_file != FILENAME { current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = 0; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
 is_in_define { next }
@@ -2244,14 +2247,13 @@ END {
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
 		filter = scope_filter[filter_idx];
 		if (filter == "") continue;
-		filter_found = 0;
-		for (scope_path in seen_scope)
-			if (scope_path == filter || index(scope_path, filter "/") == 1) { filter_found = 1; break }
-		if (!filter_found) {
-			filter_display = filter; gsub(/\//, ".", filter_display);
-			unknown_filters[++unknown_filter_count] = filter_display;
-		}
+		filter_verbosity = lowest_verbosity(filter);
+		if (filter_verbosity >= 0 && filter_verbosity <= verbosity) continue;
+		filter_display = filter; gsub(/\//, ".", filter_display);
+		if (filter_verbosity < 0) unknown_filters[++unknown_filter_count] = filter_display;
+		else { printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" shows nothing below %s.\n", filter_display, repeat("v", filter_verbosity); is_hidden = 1 }
 	}
+	if (is_hidden && !unknown_filter_count) exit $(BRNSHKR_CONFIG_ERROR_CODE);
 	if (unknown_filter_count > 0) {
 		unknown_message = "";
 		for (filter_idx = 1; filter_idx <= unknown_filter_count; filter_idx += 1) {
@@ -2269,6 +2271,7 @@ END {
 			if (scope_path == "main") continue;
 			if (!scope_matches(scope_path)) continue;
 			if (!scope_is_target(scope_path) && scope_filter_count > 0) continue;
+			if (!has_any_content(scope_path)) continue;
 			listed_paths[++listed_count] = scope_path;
 		}
 		for (sort_idx = 2; sort_idx <= listed_count; sort_idx += 1) {

@@ -188,3 +188,11 @@ endef
 define VERBOSE_MACRO #~~ macro variable shown at verbosity >= 2 #vv
 vv-macro-value
 endef
+
+#--- empty-group
+
+_EMPTY_GROUP_PRIVATE := private-empty-group-variable
+
+#--- hidden-group
+
+HIDDEN_GROUP_VARIABLE ?= hidden-group-value#vv #~~ variable shown at verbosity >= 2
