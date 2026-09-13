@@ -1,75 +1,24 @@
 # PHP tooling — agent notes
 
-Agent knowledge beyond `docs/php/`.
+## Writing code
 
-## Local tool configs
+- `conf/*.php` are gitignored private halves that `make configs local` writes as an `include` of the tracked `*.dist.php`.
+- Native functions such as `trim` or `json_decode` are forbidden. PHPStan names the replacement, usually in `Str`, `Json`
+  or Symfony String.
+- Checked exceptions are declared with `@throws`, except in the `autoload-dev` directories.
+- An `@internal` symbol is usable at or below its own namespace, or below the namespace its tag names.
+- Write `#[\Override]` and `#[\SensitiveParameter]` up front; Rector adds them otherwise.
+- A constant glob such as `Module::NAME_*` also matches array constants, so keep arrays out of the prefix.
+- `FileFinder` ignores `.gitignore`; its exclusions are hardcoded.
 
-`conf/{phpstan,php-cs-fixer,rector,twig-cs-fixer}.php` are gitignored copies `make configs local` writes as
-an `include` of the tracked `*.dist.php`. Make targets and the `phpstan-analyse` MCP tool
-(`configuration=conf/phpstan.php`) resolve against these; `<Tool>::from()` adds to what they include.
+## Rules and tests
 
-## Writing conforming code
-
-- Many native functions are forbidden (symplify `forbiddenFuncCall`) in favor of wrappers — e.g.
-  `trim`/`strlen` → `Brnshkr\Config\Str` helpers or Symfony String `s()`,
-  `json_decode` → `Brnshkr\Config\Json::decode`,
-  `file_get_contents` → `Filesystem::readFile`.
-  The PHPStan error names the expected replacement; check `Str`/`Json` for an existing helper first.
-- Checked exceptions must be declared (`missingType.checkedException`)
-  — Symfony `Process` alone adds `LogicException`/`RuntimeException` `@throws` to every caller chain.
-  The `autoload-dev` directories are exempt. A package lists the exceptions callers need not catch
-  in `conf/phpstan/unchecked-exceptions.php`; a consumer reads a dependency's list with `addUncheckedExceptionsFrom()`.
-- `@internal` symbols are only usable at or below their declaring namespace (`InternalUsageRule`); an explicit target
-  (`@internal Vendor\Package`) replaces that subtree,
-  and a bare vendor target (`@internal Vendor`) opens the symbol to every sibling package.
-  A tag argument that is not a single namespace is a description and leaves a plain `@internal`.
-- Rector rewrites on `make rector`: adds `#[\Override]` to overridden methods,
-  adds `#[\SensitiveParameter]` to secret-named params (`password`, `apiToken`, …)
-  — generate code that way up front. Full builder behavior in `docs/php/Rector.md`.
-
-## Composer plugin
-
-- Plugin commands:
-  `php scripts/composer.php list` → `brnshkr:config:{print-module-config, extract-phar, update-php-extensions}`
-  (also reachable through `composer` in consuming projects).
-- The module registry (`src/php/Module.php`) maps the four tool modules to required/optional packages
-  — MCP `project-modules-list`/`project-module-config` expose it.
-
-## Custom PHPStan rules
-
-- New rule = class in `src/php/PhpStan/Rule/` + Pest test in `tests/php/PhpStan/Rule/` + fixtures
-  in `tests/php/Fixtures/PhpStan/Rule/<Name>/` + doc page `docs/php/phpstan/rules/<Name>.md` (PascalCase).
-  Verify pairing and cross-stack parity with MCP `project-rule-docs-audit`
-  — a rule without a counterpart on the other stack is reported unless it is listed as deliberate in `ProjectTool`.
-- Most rule tests extend `DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase` (dev dep) and call
-  `assertIssuesReported(...$fixturePaths)`;
-  expected errors live as `// ERROR <context>` markers in the fixtures, not as hand-kept `[message, line]` lists,
-  so line numbers never need maintaining. Marker text is the message verbatim by default;
-  override `getErrorFormatter()` to return a `{0}`/`{1}` template (filled from `|`-separated context)
-  or an `ErrorMessageFormatter` subclass for branching messages.
-  One marker per line only — a rule that reports two errors on one line (e.g. `PublicApiDocumentationRule`)
-  keeps PHPStan's raw `RuleTestCase` with an explicit `[message, line]` list.
-- Architecture rules are PHPat-based `*Test` classes under `src/php/PhpStan/Rule/Architecture/<Framework>/`,
-  bundled through the `Architecture` facade factories (`layered`, `ddd`, `symfony`, …).
-- Constant globs like `Module::NAME_*` match ALL constants with that prefix, array constants included
-  — an array in the glob expands the type to `string|array<...>` and breaks `key-of<>`.
-  Rename the odd constant out of the prefix or use `key-of<self::EXPLICIT_MAP>`.
-- `InternalUsageRule` emits max one violation per statement; pre-order traversal means the deepest accessed symbol wins
-  (`Foo::method()->path` reports the property fetch). Two allow-list options, one per side of the pair: `allowedCallers`
-  matches the caller's namespace, `allowedInternals` matches the `@internal` target, the declaring namespace
-  or the symbol. Entries accept a plain prefix or a delimited regex (any delimiter, recognized by shape)
-  and descend through `::` too; a mapped entry bounds the exemption by the other side.
-  Malformed entries throw at construction.
-- `FileFinder` does NOT respect `.gitignore`; its exclusions are hardcoded — see `docs/php/FileFinder.md`.
-
-## Tests + snapshots
-
-- Prefer MCP `project-tests-run` with `doesUpdateSnapshots=true` for regeneration
-  — it reports which snapshot files changed (commands: `docs/development.md`).
-- `PrintModuleConfigCommandTest` snapshots embed resolved config file path lists
-  — adding/removing PHP files under `conf/` changes them by design.
-- Test fixtures (`tests/**/Fixtures`) are excluded from analysis;
-  like the rest of the project they use the Acme universe (vendor `Acme`, modules `User`/`Email`).
-- Commands extending `AbstractCommand` swallow exceptions
-  (`execute()` wraps `wrappedExecute()` in try/catch + Console output).
-  Tests assert `$exitCode !== 0` + buffered output text, never `expectException`.
+- A PHPStan rule is a class in `src/php/PhpStan/Rule/`, a test in `tests/php/PhpStan/Rule/`,
+  fixtures in `tests/php/Fixtures/PhpStan/Rule/<Name>/` and a page `docs/php/phpstan/rules/<Name>.md`.
+  Check the pairing with MCP `project-rule-docs-audit`.
+- A rule test marks expected errors with `// ERROR <context>` in its fixture. A rule reporting two errors on one line
+  uses PHPStan's `RuleTestCase` with an explicit list instead.
+- Fixtures use the vendor `Acme` and are not analyzed.
+- A command extending `AbstractCommand` catches its exceptions, so assert its exit code and output, never
+  `expectException`.
+- Regenerate snapshots with MCP `project-tests-run` and `doesUpdateSnapshots=true`.
