@@ -9,10 +9,7 @@ import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
 import type { VitestPackage } from '../../shared/utils/package-resolvers';
 import type { configs } from '../configs';
 
-export {
-  VITEST_PACKAGE_LOADERS as LOADERS,
-  VITEST_PACKAGES as PACKAGES,
-} from '../../shared/utils/package-resolvers';
+export { VITEST_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
 
 export const MODULES = <const>{
   environment: {
@@ -21,14 +18,6 @@ export const MODULES = <const>{
       requiredAny: [
         VITEST_PACKAGES.HAPPY_DOM,
         VITEST_PACKAGES.JSDOM,
-      ],
-    },
-  },
-  paths: {
-    name: 'paths',
-    packages: {
-      requiredAll: [
-        VITEST_PACKAGES.VITE_TSCONFIG_PATHS,
       ],
     },
   },

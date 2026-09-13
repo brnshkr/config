@@ -14,6 +14,9 @@ const NARROWED_IGNORES: Record<string, string> = {
 
 export const test = (): Config[] => [
   {
+    resolve: {
+      tsconfigPaths: true,
+    },
     test: {
       include: GLOB_TEST_FILES,
       exclude: GLOB_IGNORES.map((glob) => NARROWED_IGNORES[glob] ?? glob),

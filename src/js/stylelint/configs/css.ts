@@ -11,6 +11,12 @@ export const css = (): Config[] => [
     reportInvalidScopeDisables: true,
     reportNeedlessDisables: true,
     reportUnscopedDisables: true,
+    languageOptions: {
+      directionality: {
+        block: 'top-to-bottom',
+        inline: 'left-to-right',
+      },
+    },
     rules: {
       'at-rule-disallowed-list': [
         'debug',
@@ -52,6 +58,8 @@ export const css = (): Config[] => [
       'no-unknown-animations': true,
       'no-unknown-custom-media': true,
       'no-unknown-custom-properties': true,
+      'property-layout-mappings': 'flow-relative',
+      'relative-selector-nesting-notation': 'implicit',
       'selector-class-pattern': [
         '^[a-z]([-]?[a-z0-9]+)*(__[a-z0-9]([-]?[a-z0-9]+)*)?(--[a-z0-9]([-]?[a-z0-9]+)*)?$',
         {
@@ -59,12 +67,17 @@ export const css = (): Config[] => [
           message: (value: string): string => `Expected class selector "${value}" to match BEM methodology (https://getbem.com/). Selector validation tool: https://regexr.com/3apms`,
         },
       ],
+      'selector-no-deprecated': true,
+      'selector-no-invalid': true,
+      'selector-no-unmatchable': true,
       'string-no-newline': true,
+      'unit-layout-mappings': 'flow-relative',
       'unit-no-unknown': true,
       'value-keyword-case': ['lower', {
         camelCaseSvgKeywords: true,
         ignoreKeywords: [/^geometricPrecision$/v],
       }],
+      'value-keyword-layout-mappings': 'flow-relative',
     },
   },
 ];

@@ -10,8 +10,9 @@ export { default } from '@brnshkr/config/vitest';
 ```
 
 It collects the project's own tests and the spelling test this package ships, so a project writes none for it.
-Modules for the optional packages — e.g. `environment`, `paths`
+Modules for the optional packages — e.g. `environment`, `ui`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
+Imports resolve through the `paths` of `tsconfig.json`.
 Set `spelling` to `false` to collect the project's own tests only.
 
 ## Customizing
@@ -24,7 +25,7 @@ config entries after them.
 import { getConfig } from '@brnshkr/config/vitest';
 
 export default getConfig({
-  paths: false,
+  spelling: false,
   test: {
     testTimeout: 120_000,
   },

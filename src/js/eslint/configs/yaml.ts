@@ -34,16 +34,13 @@ export const yaml = async (): Promise<Config[]> => {
         /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...renameRules(pluginYaml.configs.standard[2]?.rules, { yml: 'yaml' }),
         /* eslint-enable no-magic-numbers -- Restore rule */
-        'yaml/block-mapping-colon-indicator-newline': ['error', 'never'],
         'yaml/file-extension': 'error',
         'yaml/flow-mapping-curly-spacing': ['error', 'always', {
           emptyObjects: 'never',
         }],
         'yaml/indent': ['error', INDENT],
-        'yaml/no-multiple-empty-lines': 'error',
-        'yaml/no-trailing-zeros': 'error',
+        'yaml/no-boolean-key': 'error',
         'yaml/quotes': ['error', {
-          avoidEscape: true,
           prefer: QUOTES,
         }],
         'yaml/require-string-key': 'error',

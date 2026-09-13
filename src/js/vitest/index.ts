@@ -30,7 +30,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * getConfig({});
  *
  * getConfig({
- *   paths: false,
+ *   spelling: false,
  *   test: { testTimeout: 120_000 },
  * });
  */
@@ -40,14 +40,12 @@ export const getConfig = (
 ): Config => {
   const resolvedOptions = <const>{
     environment: isModuleEnabledByDefault(MODULES.environment),
-    paths: isModuleEnabledByDefault(MODULES.paths),
     spelling: isModuleEnabledByDefault(MODULES.spelling),
     ui: isModuleEnabledByDefault(MODULES.ui),
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
   setModuleEnabled(MODULES.environment, resolvedOptions.environment);
-  setModuleEnabled(MODULES.paths, resolvedOptions.paths);
   setModuleEnabled(MODULES.spelling, resolvedOptions.spelling);
   setModuleEnabled(MODULES.ui, resolvedOptions.ui);
 
@@ -57,10 +55,6 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.environment)) {
     includeConfigs(config, configs.environment());
-  }
-
-  if (isModuleEnabled(MODULES.paths)) {
-    includeConfigs(config, configs.paths());
   }
 
   if (isModuleEnabled(MODULES.spelling)) {

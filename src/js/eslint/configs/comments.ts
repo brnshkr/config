@@ -35,7 +35,16 @@ export const comments = async (): Promise<Config[]> => {
         ...renameRules(recommendedRules, {
           '@eslint-community/eslint-comments': 'comments',
         }),
-        'comments/require-description': 'error',
+        'comments/require-description': ['error', {
+          additionalDirectives: [
+            '@ts-expect-error',
+            'c8 ignore',
+            'istanbul ignore',
+            'node:coverage ignore',
+            'svelte-ignore',
+            'v8 ignore',
+          ],
+        }],
       },
     },
   ];

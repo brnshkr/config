@@ -8,7 +8,6 @@ import { buildConfigName, renameRules } from '../utils/config';
 import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
 import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
 
-import type { ESLint } from 'eslint';
 import type { Config } from '../types/config';
 
 export const imports = async (): Promise<Config[]> => {
@@ -24,7 +23,7 @@ export const imports = async (): Promise<Config[]> => {
   let pluginAntfuRules: Config['rules'] = {};
 
   if (pluginImport) {
-    plugins['import'] = <ESLint.Plugin><unknown>pluginImport;
+    plugins['import'] = pluginImport;
 
     settings['import-x/resolver-next'] = [
       pluginImport.createNodeResolver(),
@@ -34,6 +33,19 @@ export const imports = async (): Promise<Config[]> => {
           bun: true,
         }),
     ].filter(Boolean);
+
+    if (isModuleEnabled(MODULES.typescript)) {
+      settings['import-x/extensions'] = [
+        '.cjs',
+        '.cts',
+        '.js',
+        '.jsx',
+        '.mjs',
+        '.mts',
+        '.ts',
+        '.tsx',
+      ];
+    }
 
     settings['import-x/core-modules'] = [
       'bun',
@@ -48,12 +60,21 @@ export const imports = async (): Promise<Config[]> => {
 
     pluginImportRules = {
       ...renameRules(pluginImport.flatConfigs.recommended.rules, { 'import-x': 'import' }),
-      'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      'import/consistent-type-specifier-style': 'error',
       'import/extensions': ['error', 'ignorePackages', {
-        js: 'never',
-        ts: 'never',
-        cts: 'never',
-        mts: 'never',
+        checkTypeImports: true,
+        pattern: {
+          js: 'never',
+          ts: 'never',
+          cts: 'never',
+          mts: 'never',
+        },
+        pathGroupOverrides: [
+          {
+            pattern: '{{.,..,../..,../../..,../../../..,../../../../..}/**/declarations,$types/declarations,$declarations}{,/**}',
+            action: 'ignore',
+          },
+        ],
       }],
       'import/first': 'error',
       'import/max-dependencies': ['error', {
@@ -64,6 +85,7 @@ export const imports = async (): Promise<Config[]> => {
       'import/no-absolute-path': 'error',
       'import/no-amd': 'error',
       'import/no-cycle': ['error', {
+        ignoreExternal: true,
         maxDepth: 3,
       }],
       'import/no-default-export': 'error',
@@ -73,6 +95,7 @@ export const imports = async (): Promise<Config[]> => {
       'import/no-empty-named-blocks': 'error',
       'import/no-extraneous-dependencies': ['error', {
         devDependencies: GLOB_DEVELOPMENT_FILES,
+        includeTypes: true,
       }],
       'import/no-import-module-exports': 'error',
       'import/no-mutable-exports': 'error',
@@ -93,7 +116,7 @@ export const imports = async (): Promise<Config[]> => {
       }],
       'import/no-unresolved': ['error', {
         commonjs: true,
-        caseSensitive: true,
+        caseSensitiveStrict: true,
       }],
       'import/no-webpack-loader-syntax': 'error',
       'import/order': [

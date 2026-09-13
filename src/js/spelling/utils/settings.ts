@@ -101,7 +101,8 @@ const mergeSettings = (
 });
 
 export const readSettings = (rootDirectory: string, configPath: string): SpellingSettings => {
-  const shippedSettings = toSettings(readSettingsFile(path.join(findShippedDirectory(), DEFAULTS_FILE)));
+  const shippedPath = path.join(findShippedDirectory(), DEFAULTS_FILE);
+  const shippedSettings = toSettings(readSettingsFile(shippedPath));
   const settingsPath = path.resolve(rootDirectory, configPath);
 
   return doesFileExist(settingsPath)
@@ -161,8 +162,9 @@ const rejectCoveredLiterals = (allowlist: Allowlist): void => {
 
 export const readAllowlist = (settings: SpellingSettings): Allowlist => {
   const allowlist: Allowlist = {};
+  const allowlistEntries = objectEntries(settings.allowlist ?? {});
 
-  for (const [allowedPath, declaredLiterals] of objectEntries(settings.allowlist ?? {})) {
+  for (const [allowedPath, declaredLiterals] of allowlistEntries) {
     allowlist[allowedPath] = parseAllowedLiterals(declaredLiterals);
   }
 

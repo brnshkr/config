@@ -40,6 +40,8 @@ const isValidGlobalAdditionalConfigKey = (
   'cache',
   'fix',
   'validate',
+  'maxWarnings',
+  'referenceFiles',
 ] satisfies (keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>)[]).includes(key);
 
 const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
@@ -151,9 +153,9 @@ export const includeConfigs = (config: Config, configsToInclude: Config[]): void
 
       config.overrides = [
         ...(config.overrides ?? []).filter(
-          (existingOverride) => !overridesToInclude.some(
-            (overrideToInclude) => overrideToInclude.name !== undefined
-              && overrideToInclude.name === existingOverride.name,
+          (existingOverride) => overridesToInclude.every(
+            (overrideToInclude) => overrideToInclude.name === undefined
+              || overrideToInclude.name !== existingOverride.name,
           ),
         ),
         ...overridesToInclude,

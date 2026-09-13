@@ -39,7 +39,7 @@ test('isPublicApiFile invalidates cache when package.json mtime advances', () =>
     },
   }));
 
-  const millisecondsPerSecond = 1000;
+  const millisecondsPerSecond = 1_000;
   const futureDeltaSeconds = 5;
   const future = (Date.now() / millisecondsPerSecond) + futureDeltaSeconds;
 

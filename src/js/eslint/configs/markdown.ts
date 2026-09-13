@@ -5,9 +5,8 @@
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_MD } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
 
-import type { ESLint } from 'eslint';
 import type { Config } from '../types/config';
 import type { MarkdownOptions } from '../types/options';
 
@@ -20,10 +19,10 @@ const extractRelevantValues = <
   key: string,
 ): NonNullable<TConfig[TIdentifier]> => {
   for (const config of configs) {
-    if (config.name === `markdown/${key}`
-      && config[identifier] !== undefined
-      && config[identifier] !== null) {
-      return config[identifier];
+    const value = config[identifier] ?? undefined;
+
+    if (value !== undefined && config.name === `markdown/${key}`) {
+      return value;
     }
   }
 
@@ -47,7 +46,7 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
     {
       name: buildConfigName(MAIN_SCOPES.MARKDOWN, SUB_SCOPES.SETUP),
       plugins: {
-        markdown: <ESLint.Plugin>pluginMarkdown,
+        markdown: pluginMarkdown,
       },
     },
     {
@@ -97,6 +96,17 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
             'var',
           ],
         }],
+        'markdown/no-space-in-emphasis': ['error', {
+          checkStrikethrough: true,
+        }],
+        'markdown/table-column-count': ['error', {
+          checkMissingCells: true,
+        }],
+        ...(isModuleEnabled(MODULES.unicorn)
+          ? {
+            'unicorn/no-missing-local-resource': 'error',
+          }
+          : undefined),
       },
     },
     {
@@ -114,6 +124,7 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
         'node/no-missing-import': 'off',
         'ts/no-redeclare': 'off',
         'ts/no-unused-vars': 'off',
+        'unicorn/no-barrel-files': 'off',
         'unused/no-unused-imports': 'off',
         'unused/no-unused-vars': 'off',
       },

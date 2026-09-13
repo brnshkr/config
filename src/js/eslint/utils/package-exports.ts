@@ -195,19 +195,18 @@ const collectApiSourceFiles = (
   const apiSourceFiles = new Set<string>();
 
   for (const distributionRelativePath of distributionRelativePaths) {
-    for (const sourceRoot of sourceRoots) {
-      const resolvedPath = resolveSourceForDistributionFile(
+    const resolvedPath = sourceRoots
+      .values()
+      .map((sourceRoot) => resolveSourceForDistributionFile(
         distributionRelativePath,
         packageRoot,
         sourceRoot,
         sourceExtensions,
-      );
+      ))
+      .find((candidatePath) => candidatePath !== undefined);
 
-      if (resolvedPath !== undefined) {
-        collectReexports(resolvedPath, sourceExtensions, apiSourceFiles);
-
-        break;
-      }
+    if (resolvedPath !== undefined) {
+      collectReexports(resolvedPath, sourceExtensions, apiSourceFiles);
     }
   }
 

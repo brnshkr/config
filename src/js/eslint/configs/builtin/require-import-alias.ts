@@ -96,12 +96,14 @@ const isRelativeSpecifier = (source: string): boolean => RELATIVE_SPECIFIER_PREF
   (prefix) => source.startsWith(prefix),
 );
 
-/* eslint-disable node/no-unsupported-features/node-builtins -- 'path.matchesGlob' is stable enough for our supported runtimes (Bun + Node 22+) */
-const isFileIgnored = (filename: string, patterns: string[]): boolean => patterns.some(
-  (pattern) => path.matchesGlob(toPosix(filename), pattern)
-    || path.matchesGlob(toPosix(path.relative(process.cwd(), filename)), pattern),
-);
-/* eslint-enable node/no-unsupported-features/node-builtins -- Restore rule */
+const isFileIgnored = (filename: string, patterns: string[]): boolean => {
+  const absoluteFilename = toPosix(filename);
+  const relativeFilename = toPosix(path.relative(process.cwd(), filename));
+
+  return patterns.some(
+    (pattern) => path.matchesGlob(absoluteFilename, pattern) || path.matchesGlob(relativeFilename, pattern),
+  );
+};
 
 const getQuote = (sourceNode: TSESTree.Node): string => (('raw' in sourceNode
   && typeof sourceNode.raw === 'string'

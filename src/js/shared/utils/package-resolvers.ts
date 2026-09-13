@@ -8,7 +8,6 @@ import { interopImport } from './interop-import';
 
 export const ESLINT_PACKAGES = <const>{
   ESLINT_CSS: '@eslint/css',
-  ESLINT_FLAT_CONFIG_GITIGNORE: 'eslint-config-flat-gitignore',
   ESLINT_IMPORT_RESOLVER_TYPESCRIPT: 'eslint-import-resolver-typescript',
   ESLINT_JSON: '@eslint/json',
   ESLINT_MARKDOWN: '@eslint/markdown',
@@ -39,67 +38,64 @@ export type EslintPackage = typeof ESLINT_PACKAGES[keyof typeof ESLINT_PACKAGES]
 
 // NOTICE: Package names must be duplicated here to allow for type inference of dynamic imports
 export const ESLINT_PACKAGE_RESOLVERS = <const>{
-  [ESLINT_PACKAGES.ESLINT_CSS]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_CSS]: async () => interopImport(
     import('@eslint/css'),
   ),
-  [ESLINT_PACKAGES.ESLINT_FLAT_CONFIG_GITIGNORE]: async () => await interopImport(
-    import('eslint-config-flat-gitignore'),
-  ),
-  [ESLINT_PACKAGES.ESLINT_JSON]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_JSON]: async () => interopImport(
     import('@eslint/json'),
   ),
-  [ESLINT_PACKAGES.ESLINT_IMPORT_RESOLVER_TYPESCRIPT]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_IMPORT_RESOLVER_TYPESCRIPT]: async () => interopImport(
     import('eslint-import-resolver-typescript'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU]: async () => interopImport(
     import('eslint-plugin-antfu'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_ESLINT_COMMENTS]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_ESLINT_COMMENTS]: async () => interopImport(
     import('@eslint-community/eslint-plugin-eslint-comments'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_IMPORT_X]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_IMPORT_X]: async () => interopImport(
     import('eslint-plugin-import-x'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSDOC]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSDOC]: async () => interopImport(
     import('eslint-plugin-jsdoc'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSONC]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSONC]: async () => interopImport(
     import('eslint-plugin-jsonc'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSDOC_PROCESSOR]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_JSDOC_PROCESSOR]: async () => interopImport(
     import('eslint-plugin-jsdoc/getJsdocProcessorPlugin.js'),
   ),
-  [ESLINT_PACKAGES.ESLINT_MARKDOWN]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_MARKDOWN]: async () => interopImport(
     import('@eslint/markdown'),
   ),
-  [ESLINT_PACKAGES.ESLINT_MERGE_PROCESSORS]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_MERGE_PROCESSORS]: async () => interopImport(
     import('eslint-merge-processors'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_N]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_N]: async () => interopImport(
     import('eslint-plugin-n'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_PERFECTIONIST]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_PERFECTIONIST]: async () => interopImport(
     import('eslint-plugin-perfectionist'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_REGEXP]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_REGEXP]: async () => interopImport(
     import('eslint-plugin-regexp'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_STYLISTIC]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_STYLISTIC]: async () => interopImport(
     import('@stylistic/eslint-plugin'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_SVELTE]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_SVELTE]: async () => interopImport(
     import('eslint-plugin-svelte'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_TOML]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_TOML]: async () => interopImport(
     import('eslint-plugin-toml'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_UNICORN]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_UNICORN]: async () => interopImport(
     import('eslint-plugin-unicorn'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_UNUSED_IMPORTS]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_UNUSED_IMPORTS]: async () => interopImport(
     import('eslint-plugin-unused-imports'),
   ),
-  [ESLINT_PACKAGES.ESLINT_PLUGIN_YML]: async () => await interopImport(
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_YML]: async () => interopImport(
     import('eslint-plugin-yml'),
   ),
   // Do not import, just check for existence
@@ -108,10 +104,10 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   [ESLINT_PACKAGES.TAILWINDCSS]: () => isPackageExists(ESLINT_PACKAGES.TAILWINDCSS),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.TYPESCRIPT]: () => isPackageExists(ESLINT_PACKAGES.TYPESCRIPT),
-  [ESLINT_PACKAGES.TYPESCRIPT_ESLINT]: async () => await interopImport(
+  [ESLINT_PACKAGES.TYPESCRIPT_ESLINT]: async () => interopImport(
     import('typescript-eslint'),
   ),
-  [ESLINT_PACKAGES.VITEST_ESLINT_PLUGIN]: async () => await interopImport(
+  [ESLINT_PACKAGES.VITEST_ESLINT_PLUGIN]: async () => interopImport(
     import('@vitest/eslint-plugin'),
   ),
 } satisfies Record<EslintPackage, (() => Promise<unknown>) | (() => boolean)>;
@@ -178,7 +174,6 @@ export const STYLELINT_PACKAGES = <const>{
   STYLELINT_DECLARATION_STRICT_VALUE: 'stylelint-declaration-strict-value',
   STYLELINT_ORDER: 'stylelint-order',
   STYLELINT_PLUGIN_DEFENSIVE_CSS: 'stylelint-plugin-defensive-css',
-  STYLELINT_PLUGIN_LOGICAL_CSS: 'stylelint-plugin-logical-css',
   STYLELINT_PLUGIN_USE_BASELINE: 'stylelint-plugin-use-baseline',
   STYLELINT_USE_NESTING: 'stylelint-use-nesting',
   STYLISTIC_STYLELINT_CONFIG: '@stylistic/stylelint-config',
@@ -214,9 +209,6 @@ export const STYLELINT_PACKAGE_RESOLVERS = <const>{
   [STYLELINT_PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS]: () => isPackageExists(
     STYLELINT_PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_PLUGIN_LOGICAL_CSS]: () => isPackageExists(
-    STYLELINT_PACKAGES.STYLELINT_PLUGIN_LOGICAL_CSS,
-  ),
   [STYLELINT_PACKAGES.STYLELINT_PLUGIN_USE_BASELINE]: () => isPackageExists(
     STYLELINT_PACKAGES.STYLELINT_PLUGIN_USE_BASELINE,
   ),
@@ -231,7 +223,6 @@ export const STYLELINT_PACKAGE_RESOLVERS = <const>{
 export const VITEST_PACKAGES = <const>{
   HAPPY_DOM: 'happy-dom',
   JSDOM: 'jsdom',
-  VITE_TSCONFIG_PATHS: 'vite-tsconfig-paths',
   VITEST_UI: '@vitest/ui',
 };
 
@@ -240,13 +231,5 @@ export type VitestPackage = typeof VITEST_PACKAGES[keyof typeof VITEST_PACKAGES]
 export const VITEST_PACKAGE_RESOLVERS = <const>{
   [VITEST_PACKAGES.HAPPY_DOM]: () => isPackageExists(VITEST_PACKAGES.HAPPY_DOM),
   [VITEST_PACKAGES.JSDOM]: () => isPackageExists(VITEST_PACKAGES.JSDOM),
-  [VITEST_PACKAGES.VITE_TSCONFIG_PATHS]: () => isPackageExists(VITEST_PACKAGES.VITE_TSCONFIG_PATHS),
   [VITEST_PACKAGES.VITEST_UI]: () => isPackageExists(VITEST_PACKAGES.VITEST_UI),
 } satisfies Record<VitestPackage, () => boolean>;
-
-// NOTICE: Package names must be duplicated here to allow for type inference of dynamic imports
-export const VITEST_PACKAGE_LOADERS = <const>{
-  [VITEST_PACKAGES.VITE_TSCONFIG_PATHS]: async () => await interopImport(
-    import('vite-tsconfig-paths'),
-  ),
-} satisfies Partial<Record<VitestPackage, () => Promise<unknown>>>;

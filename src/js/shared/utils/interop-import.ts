@@ -10,7 +10,7 @@ export const interopImport = async <TModule>(
   const resolved = await thePackage;
 
   return <TModule extends { default: infer TEsModule } ? TEsModule : TModule>(
-    (typeof resolved === 'object' && resolved !== null && 'default' in resolved)
+    (typeof resolved === 'object' && resolved && 'default' in resolved)
       ? resolved.default
       : resolved
   );

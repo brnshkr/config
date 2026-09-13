@@ -20,7 +20,7 @@ const hasProseAfter = (pattern: RegExp, comment: string): boolean => {
 export const isBlockComment = (
   comment: Maybe<TSESTree.Comment>,
 // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
-): comment is TSESTree.Comment => comment?.type === 'Block' && comment.value.startsWith('*');
+): comment is TSESTree.BlockComment => comment?.type === 'Block' && comment.value.startsWith('*');
 
 export const extractBlockComment = (comments: TSESTree.Comment[], node: TSESTree.Node): Maybe<string> => {
   let expectedEndLine = node.loc.start.line - 1;
@@ -86,7 +86,7 @@ export const getVisibilityTag = (comment: Maybe<string>): Maybe<VisibilityTag> =
 export const hasConflictingVisibilityTags = (comment: Maybe<string>): boolean => hasTag(comment, TAG_API)
   && hasTag(comment, TAG_INTERNAL);
 
-const hasModuleSource = (node: TSESTree.Node): boolean => 'source' in node && node.source !== null;
+const hasModuleSource = (node: TSESTree.Node): boolean => 'source' in node && (node.source ?? undefined) !== undefined;
 
 export const findFileLevelComment = (sourceCode: TSESLint.SourceCode): Maybe<TSESTree.Comment> => {
   const [firstStatement] = sourceCode.ast.body;

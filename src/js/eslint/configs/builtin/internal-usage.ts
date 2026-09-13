@@ -265,8 +265,9 @@ const toAliasModuleId = (pattern: string, target: string, absolutePath: string):
 
 const buildAliasNamespaces = (absolutePath: string, aliasPaths: Maybe<TsConfigPaths>): string[] => {
   const namespaces: string[] = [];
+  const aliasEntries = objectEntries(aliasPaths ?? {});
 
-  for (const [pattern, targets] of objectEntries(aliasPaths ?? {})) {
+  for (const [pattern, targets] of aliasEntries) {
     for (const target of targets) {
       const aliasModuleId = toAliasModuleId(pattern, target, absolutePath);
 
@@ -309,7 +310,7 @@ const createExportPattern = (): RegExp => new RegExp(
 const readExportName = (following: string): Maybe<string> => {
   const match = createExportPattern().exec(following);
 
-  if (match === null) {
+  if (!match) {
     return undefined;
   }
 
@@ -335,15 +336,11 @@ const isCallableExport = (following: string): boolean => createExportPattern()
   .exec(following)
   ?.groups?.['keyword'] === 'function';
 
-const startsWithBlankLine = (following: string): boolean => {
-  const [, blankLine, nextLine] = following.split('\n');
-
-  return nextLine !== undefined && (blankLine ?? '').trim().length === 0;
-};
+const startsWithBlankLine = (following: string): boolean => /^[^\n]*\n[^\S\n]*\n/v.test(following);
 
 const isFileLevelComment = (following: string): boolean => {
   const trimmed = following.trimStart();
-  const [firstLine = ''] = trimmed.split('\n');
+  const [firstLine = ''] = trimmed.split('\n', 1);
 
   return startsWithBlankLine(following)
     || trimmed.startsWith('/**')
@@ -351,8 +348,8 @@ const isFileLevelComment = (following: string): boolean => {
     || (firstLine.startsWith('export ') && firstLine.includes(' from '));
 };
 
-const resolveLexicalFileVisibility = (content: string, matches: RegExpExecArray[]): Maybe<string> => {
-  const [fileComment] = matches;
+const resolveLexicalFileVisibility = (content: string, docblockMatches: RegExpExecArray[]): Maybe<string> => {
+  const [fileComment] = docblockMatches;
 
   if (fileComment === undefined || !isFileLevelComment(content.slice(fileComment.index + fileComment[0].length))) {
     return undefined;
@@ -363,11 +360,11 @@ const resolveLexicalFileVisibility = (content: string, matches: RegExpExecArray[
 
 const buildModuleVisibility = (filePath: string): ModuleVisibility => {
   const content = readTextFile(filePath) ?? '';
-  const matches = [...content.matchAll(/\/\*\*(?:[^*]|\*(?!\/))*\*\//gv)];
+  const docblockMatches = content.matchAll(/\/\*\*(?:[^*]|\*(?!\/))*\*\//gv).toArray();
   const visibilityByExportName = new Map<string, string>();
   const callableExportNames = new Set<string>();
 
-  for (const match of matches) {
+  for (const match of docblockMatches) {
     const visibility = resolveVisibility(match[0]);
     const following = content.slice(match.index + match[0].length);
     const exportName = readExportName(following);
@@ -386,7 +383,7 @@ const buildModuleVisibility = (filePath: string): ModuleVisibility => {
   }
 
   return {
-    fileVisibility: resolveLexicalFileVisibility(content, matches),
+    fileVisibility: resolveLexicalFileVisibility(content, docblockMatches),
     visibilityByExportName,
     callableExportNames,
   };
@@ -430,8 +427,11 @@ const toPattern = (entry: string): Maybe<RegExp> => {
     return undefined;
   }
 
+  const source = groups['source'] ?? '';
+  const flags = (groups['flags'] ?? '').replaceAll(/[gy]/gv, '');
+
   try {
-    return new RegExp(groups['source'] ?? '', (groups['flags'] ?? '').replaceAll(/[gy]/gv, ''));
+    return new RegExp(source, flags);
   } catch {
     return undefined;
   }
@@ -475,15 +475,16 @@ const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatc
 };
 
 const isMappedEntry = (entry: unknown): entry is Record<string, AllowScalar[]> => typeof entry === 'object'
-  && entry !== null
+  && (entry ?? undefined) !== undefined
   && !Array.isArray(entry)
   && !(entry instanceof RegExp);
 
 const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
   const bare: AllowScalar[] = [];
   const bounded: BoundedAllowEntry[] = [];
+  const allowEntries = entries ?? [];
 
-  for (const entry of entries ?? []) {
+  for (const entry of allowEntries) {
     if (!isMappedEntry(entry)) {
       bare.push(entry);
 
@@ -531,7 +532,7 @@ const hasModuleSpecifierAbove = (node: DeclarationNode): boolean => {
       return true;
     }
 
-    current = <Maybe<DeclarationNode>>current.parent;
+    current = current.parent;
   }
 
   return false;
@@ -541,7 +542,9 @@ const findDeclaredVisibility = (declaration: DeclarationNode): Maybe<string> => 
   let current = <Maybe<DeclarationNode>>declaration;
 
   while (current !== undefined) {
-    for (const commentNode of (current.jsDoc ?? []).toReversed()) {
+    const commentNodes = (current.jsDoc ?? []).toReversed();
+
+    for (const commentNode of commentNodes) {
       const visibility = resolveVisibility(commentNode.getText());
 
       if (visibility !== undefined) {
@@ -549,7 +552,7 @@ const findDeclaredVisibility = (declaration: DeclarationNode): Maybe<string> => 
       }
     }
 
-    current = <Maybe<DeclarationNode>>current.parent;
+    current = current.parent;
   }
 
   return undefined;
@@ -604,13 +607,13 @@ const buildSymbolId = (moduleId: string, symbolName: string, declaration: Declar
     const name = current.name?.getText?.();
 
     if (name !== undefined && name.length > 0) {
-      names.unshift(name);
+      names.push(name);
     }
 
-    current = <Maybe<DeclarationNode>>current.parent;
+    current = current.parent;
   }
 
-  return `${moduleId}#${names.join('.')}${declaration.parameters === undefined ? '' : '()'}`;
+  return `${moduleId}#${names.toReversed().join('.')}${declaration.parameters === undefined ? '' : '()'}`;
 };
 
 const isPublicExportName = (node: TSESTree.Identifier): boolean => 'exported' in node.parent
@@ -827,14 +830,13 @@ export const internalUsageRule = <const>{
           continue;
         }
 
-        for (const variable of sourceCode.getDeclaredVariables(node)) {
-          if (variable.name !== specifier.local.name) {
-            continue;
-          }
+        const references = sourceCode
+          .getDeclaredVariables(node)
+          .filter((variable) => variable.name === specifier.local.name)
+          .flatMap((variable) => variable.references);
 
-          for (const reference of variable.references) {
-            reportUsage(reference.identifier, internal);
-          }
+        for (const reference of references) {
+          reportUsage(reference.identifier, internal);
         }
       }
     };
@@ -842,7 +844,7 @@ export const internalUsageRule = <const>{
     const checkScannedReexport = (node: TSESTree.ExportNamedDeclaration): void => {
       for (const specifier of node.specifiers) {
         const localName = 'name' in specifier.local ? specifier.local.name : undefined;
-        const internal = node.source === null ? undefined : resolveScannedSymbol(node.source.value, localName);
+        const internal = node.source ? resolveScannedSymbol(node.source.value, localName) : undefined;
 
         if (internal !== undefined) {
           reportUsage(specifier, internal);

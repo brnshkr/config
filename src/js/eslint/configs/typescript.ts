@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { objectEntries, objectFromEntries } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName, renameRules } from '../utils/config';
 import { GLOB_MD, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
@@ -18,20 +19,15 @@ export const DEFAULT_TYPE_AWARE_IGNORES = [
 ];
 
 export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>> => {
-  const isTypescriptModuleEnabled = isModuleEnabled(MODULES.typescript);
-  let parser = undefined;
-
-  if (isTypescriptModuleEnabled) {
-    const {
-      requiredAll: [, tsEslint],
-    } = await resolvePackages(MODULES.typescript);
-
-    if (tsEslint) {
-      ({ parser } = tsEslint);
-    }
+  if (!isModuleEnabled(MODULES.typescript)) {
+    return undefined;
   }
 
-  return parser;
+  const {
+    requiredAll: [, tsEslint],
+  } = await resolvePackages(MODULES.typescript);
+
+  return tsEslint?.parser;
 };
 
 const resolveTypeAwareOptions = (
@@ -203,11 +199,29 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
           'ts/no-unnecessary-qualifier': 'error',
           'prefer-destructuring': 'off',
           'ts/prefer-destructuring': 'error',
-          'ts/no-unnecessary-type-conversion': 'error',
           'ts/promise-function-async': 'error',
           'ts/prefer-readonly': 'error',
           'ts/require-array-sort-compare': 'error',
-          'ts/strict-boolean-expressions': 'error',
+          'ts/no-base-to-string': ['error', {
+            checkUnknown: true,
+          }],
+          'ts/no-floating-promises': ['error', {
+            checkThenables: true,
+          }],
+          'ts/no-unnecessary-condition': ['error', {
+            checkTypePredicates: true,
+          }],
+          'ts/only-throw-error': ['error', {
+            allowThrowingUnknown: false,
+          }],
+          'ts/prefer-nullish-coalescing': ['error', {
+            ignoreConditionalTests: false,
+          }],
+          'ts/return-await': ['error', 'in-try-catch'],
+          'ts/strict-boolean-expressions': ['error', {
+            allowNumber: false,
+            allowString: false,
+          }],
           'ts/strict-void-return': 'error',
           'ts/switch-exhaustiveness-check': ['error', {
             requireDefaultForNonUnion: true,
@@ -229,7 +243,22 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
             },
           ],
           'ts/consistent-type-imports': 'error',
-          'ts/member-ordering': 'error',
+          'ts/member-ordering': ['error', {
+            default: [
+              'signature',
+              'call-signature',
+              ['public-field', 'public-accessor'],
+              ['protected-field', 'protected-accessor'],
+              ['private-field', 'private-accessor'],
+              ['#private-field', '#private-accessor'],
+              'static-initialization',
+              'constructor',
+              ['public-get', 'public-set', 'public-method'],
+              ['protected-get', 'protected-set', 'protected-method'],
+              ['private-get', 'private-set', 'private-method'],
+              ['#private-get', '#private-set', '#private-method'],
+            ],
+          }],
           'ts/method-signature-style': 'error',
           'ts/no-import-type-side-effects': 'error',
           'no-redeclare': 'off',
@@ -242,6 +271,11 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
         }),
     },
   });
+
+  const coreRulesCoveredByTypescript = objectFromEntries(
+    objectEntries(extractRelevantRules(tsEslint.configs.recommended, 'eslint-recommended'))
+      .filter(([, severity]) => severity === 'off'),
+  );
 
   return [
     {
@@ -259,6 +293,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
       files: [GLOB_TS],
       ignores: typeAwareOptions.ignores ?? ignoredGlobs,
       rules: {
+        ...coreRulesCoveredByTypescript,
         'ts/explicit-function-return-type': 'error',
         'ts/explicit-member-accessibility': 'error',
       },

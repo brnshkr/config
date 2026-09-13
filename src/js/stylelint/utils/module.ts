@@ -45,14 +45,6 @@ export const MODULES = <const>{
       ],
     },
   },
-  logical: {
-    name: 'logical',
-    packages: {
-      requiredAll: [
-        STYLELINT_PACKAGES.STYLELINT_PLUGIN_LOGICAL_CSS,
-      ],
-    },
-  },
   modules: {
     name: 'modules',
     packages: {

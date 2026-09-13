@@ -22,6 +22,7 @@ const isValidGlobalAdditionalConfigKey = (key: string): key is keyof Config => (
   'customLogger',
   'define',
   'dev',
+  'devtools',
   'envDir',
   'envPrefix',
   'environments',
@@ -34,6 +35,7 @@ const isValidGlobalAdditionalConfigKey = (key: string): key is keyof Config => (
   'logLevel',
   'mode',
   'optimizeDeps',
+  'oxc',
   'plugins',
   'preview',
   'publicDir',
@@ -42,6 +44,7 @@ const isValidGlobalAdditionalConfigKey = (key: string): key is keyof Config => (
   'server',
   'ssr',
   'test',
+  'tsconfig',
   'worker',
 ] satisfies (keyof Config)[]).includes(key);
 

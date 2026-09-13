@@ -13,7 +13,7 @@ export {
 } from '../../../../package.json';
 
 export const packageOrganizationInternal = <Maybe<'brnshkr'>>name
-  .split('/')
+  .split('/', 1)
   .at(0)
   ?.replace(/^@/v, '');
 

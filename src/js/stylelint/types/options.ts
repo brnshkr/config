@@ -45,15 +45,6 @@ export interface ConfigOptions {
   less: boolean;
 
   /**
-   * Enables `stylelint-plugin-logical-css`.
-   *
-   * @default `Enabled when "stylelint-plugin-logical-css" is installed.`
-   *
-   * @see https://github.com/yuschick/stylelint-plugin-logical-css
-   */
-  logical: boolean;
-
-  /**
    * Enables `stylelint-config-css-modules`.
    *
    * @default `Enabled when "stylelint-config-css-modules" is installed.`

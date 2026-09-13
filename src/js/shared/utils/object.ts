@@ -2,7 +2,7 @@
  * @internal @brnshkr/config
  */
 
-import type { Simplify, ValueOf } from 'type-fest';
+import type { Simplify, ValueOf } from '../types/core';
 
 export type AnyRecord = Record<PropertyKey, unknown>;
 export type AnyObject<TObject = AnyRecord> = Simplify<Partial<Record<keyof TObject, ValueOf<TObject>>>>;
@@ -40,11 +40,11 @@ export const objectAssign = <TObject extends AnyObject<TObject>>(
 ): TObject => Object.assign(target, source);
 
 export const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-  if (typeof value !== 'object' || value === null) {
+  if (typeof value !== 'object' || !value) {
     return false;
   }
 
-  const prototype: unknown = Object.getPrototypeOf(value);
+  const prototype: unknown = Object.getPrototypeOf(value) ?? Object.prototype;
 
-  return prototype === null || prototype === Object.prototype;
+  return prototype === Object.prototype;
 };

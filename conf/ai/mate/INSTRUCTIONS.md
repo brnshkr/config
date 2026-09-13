@@ -50,7 +50,7 @@ follow them, don't restate them. Beyond what tooling catches:
 - No TS enums → `const X = <const>{ ... }` + `type X = typeof X[keyof typeof X]`. No `for..in` → `Object.keys/values/entries`.
 - Naming: camelCase values/functions, PascalCase types, UPPER_CASE constants; type params `T`-prefixed PascalCase;
   no `I`-prefixed interfaces; single-`*Interface` implementers take the matching suffix.
-  `unicorn/prevent-abbreviations` rejects abbreviations in identifiers — write full descriptive names suffixed
+  `unicorn/name-replacements` rejects abbreviations in identifiers — write full descriptive names suffixed
   with what they hold (`resolvedPaths`, not `resolved` or `paths`).
 - Multi-line `if`: leading `&&`/`||` on continuations. Objects/arrays: ≥4 entries (or already multi-line) break
   one-per-line with trailing comma, all-or-nothing.

@@ -4,11 +4,8 @@
 
 import type { CSSLanguageOptions } from '@eslint/css';
 import type { Linter } from 'eslint';
-import type { FlatGitignoreOptions } from 'eslint-config-flat-gitignore';
 import type { packageOrganization } from '../../shared/utils/package-json';
 import type { Config, TsEslintParserOptions } from './config';
-
-export type GitignoreOptions = Omit<FlatGitignoreOptions, 'name'>;
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
 export interface CssOptions {
@@ -146,15 +143,6 @@ export interface ConfigOptions {
    * @see https://github.com/eslint/css
    */
   css: boolean | Partial<CssOptions>;
-
-  /**
-   * Enables `eslint-config-flat-gitignore`.
-   *
-   * @default `Enabled when "eslint-config-flat-gitignore" is installed.`
-   *
-   * @see https://github.com/antfu/eslint-config-flat-gitignore
-   */
-  gitignore: boolean | Partial<GitignoreOptions>;
 
   /**
    * Enables `eslint-plugin-import-x`.

@@ -17,8 +17,7 @@ import {
 
 import { joinAsQuotedList } from './string';
 
-import type { Simplify } from 'type-fest';
-import type { Maybe } from '../types/core';
+import type { Maybe, Simplify } from '../types/core';
 
 const PACKAGE_RESOLVERS = <const>{
   ...COMMITLINT_PACKAGE_RESOLVERS,
@@ -47,7 +46,7 @@ type ResolvedPackagesImplWithType<
 };
 
 type ResolvedPackagesImplWithNoType<TModuleInfo extends ModuleInfo> = {
-  [TType in keyof TModuleInfo['packages']]: TModuleInfo['packages'][TType] extends NonNullable<unknown>
+  [TType in keyof TModuleInfo['packages']]: TModuleInfo['packages'][TType] extends object
     ? ResolvedPackagesImplWithType<TModuleInfo, TType>
     : never;
 };
@@ -90,6 +89,73 @@ const warnMissingPackages = (
 
 const packageCache: Record<string, unknown> = {};
 
+type PackageType = keyof NonNullable<ModuleInfo['packages']>;
+
+const loadPackageAsynchronously = async (thePackage: Package): Promise<unknown> => {
+  try {
+    return await PACKAGE_RESOLVERS[thePackage]();
+  } catch {
+    return false;
+  }
+};
+
+const loadPackageSynchronously = (thePackage: Package): unknown => {
+  try {
+    return PACKAGE_RESOLVERS[thePackage]();
+  } catch {
+    return false;
+  }
+};
+
+const collectPackagesAsynchronously = async (
+  moduleInfo: ModuleInfo,
+  type: PackageType,
+  packages: readonly Package[],
+): Promise<unknown[]> => {
+  const collectedPackages: unknown[] = [];
+
+  for (const thePackage of packages) {
+    // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
+    const resolvedPackage = packageCache[thePackage] ?? await loadPackageAsynchronously(thePackage);
+
+    packageCache[thePackage] ??= resolvedPackage;
+
+    if (type === 'requiredAll' && resolvedPackage === false) {
+      warnMissingPackages(moduleInfo, packages, type);
+
+      break;
+    }
+
+    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+  }
+
+  return collectedPackages;
+};
+
+const collectPackagesSynchronously = (
+  moduleInfo: ModuleInfo,
+  type: PackageType,
+  packages: readonly Package[],
+): unknown[] => {
+  const collectedPackages: unknown[] = [];
+
+  for (const thePackage of packages) {
+    const resolvedPackage = packageCache[thePackage] ?? loadPackageSynchronously(thePackage);
+
+    packageCache[thePackage] ??= resolvedPackage;
+
+    if (type === 'requiredAll' && resolvedPackage === false) {
+      warnMissingPackages(moduleInfo, packages, type);
+
+      break;
+    }
+
+    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+  }
+
+  return collectedPackages;
+};
+
 export const resolvePackagesSharedAsynchronously = async <
   TModuleInfo extends ModuleInfo,
   TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
@@ -112,30 +178,8 @@ export const resolvePackagesSharedAsynchronously = async <
       continue;
     }
 
-    resolvedPackages[currentType] ??= [];
-
-    for (const currentPackage of currentPackages) {
-      try {
-        // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
-        const resolvedPackage = packageCache[currentPackage] ?? await PACKAGE_RESOLVERS[currentPackage]();
-
-        packageCache[currentPackage] ??= resolvedPackage;
-
-        if (resolvedPackage === false) {
-          throw new Error('Skip to catch block.');
-        }
-
-        resolvedPackages[currentType].push(resolvedPackage);
-      } catch {
-        if (currentType === 'requiredAll') {
-          warnMissingPackages(moduleInfo, currentPackages, currentType);
-
-          break;
-        }
-
-        resolvedPackages[currentType].push(undefined);
-      }
-    }
+    // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
+    resolvedPackages[currentType] = await collectPackagesAsynchronously(moduleInfo, currentType, currentPackages);
 
     if (currentType === 'requiredAny'
       && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
@@ -170,29 +214,7 @@ export const resolvePackagesSharedSynchronously = <
       continue;
     }
 
-    resolvedPackages[currentType] ??= [];
-
-    for (const currentPackage of currentPackages) {
-      try {
-        const resolvedPackage = packageCache[currentPackage] ?? PACKAGE_RESOLVERS[currentPackage]();
-
-        packageCache[currentPackage] ??= resolvedPackage;
-
-        if (resolvedPackage === false) {
-          throw new Error('Skip to catch block.');
-        }
-
-        resolvedPackages[currentType].push(resolvedPackage);
-      } catch {
-        if (currentType === 'requiredAll') {
-          warnMissingPackages(moduleInfo, currentPackages, currentType);
-
-          break;
-        }
-
-        resolvedPackages[currentType].push(undefined);
-      }
-    }
+    resolvedPackages[currentType] = collectPackagesSynchronously(moduleInfo, currentType, currentPackages);
 
     if (currentType === 'requiredAny'
       && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
@@ -228,9 +250,7 @@ export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
     }
 
     if (currentPackages && currentPackages.length > 0) {
-      isEnabled = currentType === 'requiredAll'
-        ? doAllPackagesExist(currentPackages)
-        : doesAnyPackageExist(currentPackages);
+      isEnabled = (currentType === 'requiredAll' ? doAllPackagesExist : doesAnyPackageExist)(currentPackages);
     }
 
     if (isEnabled) {

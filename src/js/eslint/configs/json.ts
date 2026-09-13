@@ -547,7 +547,7 @@ export const json = async (): Promise<Config[]> => {
             emptyObjects: 'never',
           }],
           'jsonc/object-property-newline': 'error',
-          'jsonc/quotes': ['error', 'double'],
+          'jsonc/quotes': 'error',
         }
         : undefined),
     },

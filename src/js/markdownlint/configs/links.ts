@@ -33,12 +33,14 @@ export const links = (): Config[] => {
     {
       customRules: customRules.map((id) => resolveCustomRule(id)),
       config: {
-        ...isMarkdownlintRuleRelativeLinksInstalled && {
-          'relative-links': {
-            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-            root_path: '.',
-          },
-        },
+        ...(isMarkdownlintRuleRelativeLinksInstalled
+          ? {
+            'relative-links': {
+              // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+              root_path: '.',
+            },
+          }
+          : undefined),
       },
     },
   ];

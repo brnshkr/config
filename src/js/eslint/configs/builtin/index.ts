@@ -15,7 +15,7 @@ import { internalUsageRule } from './internal-usage';
 import { publicApiDocumentationRule } from './public-api-documentation';
 import { requireImportAliasRule } from './require-import-alias';
 import { requireImportAttributesRule } from './require-import-attributes';
-// eslint-disable-next-line unicorn/prevent-abbreviations -- Mirrors the rule id, which pairs with the PHP `ResolvableDocReferenceRule`
+// eslint-disable-next-line unicorn/name-replacements -- Mirrors the rule id, which pairs with the PHP `ResolvableDocReferenceRule`
 import { resolvableDocReferenceRule } from './resolvable-doc-reference';
 import { typeAssertionStyleRule } from './type-assertion-style';
 

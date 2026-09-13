@@ -24,16 +24,18 @@ const listFixtures = (fixturesDirectory: string): string[] => {
   return filePaths;
 };
 
-const stripRoot = (config: JsonObject): JsonObject => <JsonObject>JSON.parse(
-  JSON.stringify(config).replaceAll(JSON.stringify(process.cwd()).slice(1, -1), '<root>'),
-);
+const stripRoot = (config: JsonObject): JsonObject => {
+  const root = JSON.stringify(process.cwd()).slice(1, -1);
+
+  return <JsonObject>JSON.parse(JSON.stringify(config).replaceAll(root, '<root>'));
+};
 
 const expectEveryGlobCovered = (globs: string[], virtualGlobs: string[], names: string[]): void => {
   expect(globs.length).toBeGreaterThan(0);
 
   const uncovered = globs
     .filter((glob) => !virtualGlobs.includes(glob))
-    .filter((glob) => !names.some((name) => new Minimatch(glob, { dot: true }).match(name)));
+    .filter((glob) => names.every((name) => !new Minimatch(glob, { dot: true }).match(name)));
 
   expect(uncovered).toStrictEqual([]);
 };
@@ -59,7 +61,7 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
   ));
 
   if (globs !== undefined) {
-    expectEveryGlobCovered(globs, virtualGlobs, [...configs.keys()]);
+    expectEveryGlobCovered(globs, virtualGlobs, configs.keys().toArray());
   }
 
   const groups = new Map<string, string[]>();
@@ -79,7 +81,7 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
 
   expect(Object.fromEntries(groups)).toMatchSnapshot('config-groups');
 
-  const [baseName, ...otherNames] = [...groups.keys()];
+  const [baseName, ...otherNames] = groups.keys().toArray();
 
   if (baseName === undefined) {
     return;

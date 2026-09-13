@@ -14,7 +14,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
 /**
  * Build the `@brnshkr` ESLint flat config composer.
  *
- * Merges sensible defaults for every supported module (typescript, svelte, jsdoc, etc.) with user
+ * Merges sensible defaults for every supported module (TypeScript, Svelte, JSDoc, etc.) with user
  * overrides and any additional flat configs. Modules whose optional peer dependency is not installed
  * are skipped automatically, so consumers only opt into what they use.
  *
@@ -56,7 +56,6 @@ export const getConfig = (
     [packageOrganization]: isModuleEnabledByDefault(MODULES[packageOrganization]),
     comments: isModuleEnabledByDefault(MODULES.comments),
     css: isModuleEnabledByDefault(MODULES.css),
-    gitignore: isModuleEnabledByDefault(MODULES.gitignore),
     import: isModuleEnabledByDefault(MODULES.import),
     jsdoc: isModuleEnabledByDefault(MODULES.jsdoc),
     json: isModuleEnabledByDefault(MODULES.json),
@@ -77,7 +76,6 @@ export const getConfig = (
   setModuleEnabled(MODULES[packageOrganization], resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.comments, resolvedOptions.comments);
   setModuleEnabled(MODULES.css, resolvedOptions.css !== false);
-  setModuleEnabled(MODULES.gitignore, resolvedOptions.gitignore !== false);
   setModuleEnabled(MODULES.import, resolvedOptions.import);
   setModuleEnabled(MODULES.jsdoc, resolvedOptions.jsdoc);
   setModuleEnabled(MODULES.json, resolvedOptions.json);
@@ -96,19 +94,10 @@ export const getConfig = (
   const composer = new FlatConfigComposer<Config, ConfigNames>();
 
   const appendToComposer = (...configsToAppend: ResolvableConfig[]): void => {
-    // eslint-disable-next-line no-void -- Explicitly mark the promises as ignored with void and let the composer handle them
     void composer.append(...configsToAppend);
   };
 
   appendToComposer(configs.ignores(resolvedOptions.ignores));
-
-  if (isModuleEnabled(MODULES.gitignore)) {
-    appendToComposer(configs.gitignore(
-      typeof resolvedOptions.gitignore === 'object'
-        ? resolvedOptions.gitignore
-        : { strict: false },
-    ));
-  }
 
   appendToComposer(configs.javascript());
 

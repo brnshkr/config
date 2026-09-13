@@ -170,7 +170,7 @@ export const buildExportVisitors = (
     node: TSESTree.ExportDefaultDeclaration | TSESTree.ExportNamedDeclaration,
     collectDeclaration: typeof collectNamedDeclaration,
   ): void => {
-    if (node.declaration === null) {
+    if (!node.declaration) {
       return;
     }
 

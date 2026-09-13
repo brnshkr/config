@@ -19,7 +19,7 @@ const RULES = <const>[
   {
     name: 'em-dash',
     message: 'Use an em dash rather than two hyphens.',
-    searchPattern: String.raw`/(?<= )--(?= )/gu`,
+    searchPattern: '/(?<= )--(?= )/gu',
     replace: '—',
     searchScope: 'text',
   },
@@ -67,14 +67,14 @@ const RULES = <const>[
   {
     name: 'straight-double-quotes',
     message: 'Use straight double quotes.',
-    searchPattern: String.raw`/[“”]/gu`,
+    searchPattern: '/[“”]/gu',
     replace: '"',
     searchScope: 'text',
   },
   {
     name: 'straight-single-quotes',
     message: 'Use straight single quotes.',
-    searchPattern: String.raw`/[‘’]/gu`,
+    searchPattern: '/[‘’]/gu',
     replace: '\'',
     searchScope: 'text',
   },

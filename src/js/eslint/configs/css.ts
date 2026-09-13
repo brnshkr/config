@@ -7,7 +7,13 @@ import { objectFromEntries, objectKeys } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_CSS } from '../utils/globs';
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+
+import {
+  isModuleEnabled,
+  MODULES,
+  PACKAGES,
+  resolvePackages,
+} from '../utils/module';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
 import type { Config } from '../types/config';
@@ -145,7 +151,12 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
         'css/relative-font-units': ['error', {
           allowUnits: ['em', 'rem'],
         }],
-        'css/use-baseline': 'error',
+        ...(isModuleEnabled(MODULES.unicorn)
+          ? {
+            'unicorn/no-missing-local-resource': 'error',
+            'unicorn/prefer-explicit-viewport-units': 'error',
+          }
+          : undefined),
       },
     },
   ];

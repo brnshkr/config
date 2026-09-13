@@ -76,7 +76,7 @@ the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makef
 
 ### 🧰 Prerequisites
 
-- Node.js >= v24 or Bun >= v1.3 (Older versions may work, but are untested)
+- Node.js >= v24.15 or Bun >= v1.4 (Older versions may work, but are untested)
 - Any JavaScript package manager (Bun, Yarn, PNPM, NPM)
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>

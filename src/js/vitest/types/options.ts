@@ -18,15 +18,6 @@ export interface ConfigOptions {
   environment: boolean;
 
   /**
-   * Enables `vite-tsconfig-paths`.
-   *
-   * @default `Enabled when "vite-tsconfig-paths" is installed.`
-   *
-   * @see https://github.com/aleclarson/vite-tsconfig-paths
-   */
-  paths: boolean;
-
-  /**
    * Collects the spelling test this package ships, so a project writes none of its own for it.
    *
    * @default `true`

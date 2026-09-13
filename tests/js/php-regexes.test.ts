@@ -60,13 +60,15 @@ const decodeSingleQuoted = (raw: string): string => raw
 const collectLiterals = (contents: string): Set<string> => new Set(
   contents
     .split('\n')
-    .flatMap((line) => [...line.matchAll(createSingleQuotedPattern())])
+    .flatMap((line) => line.matchAll(createSingleQuotedPattern()).toArray())
     .map((match) => decodeSingleQuoted(match.groups?.['value'] ?? '')),
 );
 
-const collectWindowPatterns = (window: string): string[] => [...window.matchAll(createSingleQuotedPattern())]
+const collectWindowPatterns = (window: string): string[] => window
+  .matchAll(createSingleQuotedPattern())
   .map((match) => decodeSingleQuoted(match.groups?.['value'] ?? ''))
-  .filter((value) => createRegexShapePattern().test(value) && !EXCLUDED_PATTERNS.has(value));
+  .filter((value) => createRegexShapePattern().test(value) && !EXCLUDED_PATTERNS.has(value))
+  .toArray();
 
 const collectConsumedPatterns = (): Set<string> => new Set(
   collectPhpFiles().flatMap((filePath) => {
@@ -92,5 +94,5 @@ test('every php regex use site is covered by the fixture', () => {
   const covered = new Set(createPhpRegexes().map(({ php }) => php));
   const uncovered = [...collectConsumedPatterns()].filter((pattern) => !covered.has(pattern));
 
-  expect(uncovered.toSorted()).toStrictEqual([]);
+  expect(uncovered.toSorted((first, second) => first.localeCompare(second))).toStrictEqual([]);
 });

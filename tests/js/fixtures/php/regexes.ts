@@ -161,7 +161,7 @@ export const createPhpRegexes = (): PhpRegex[] => [
   {
     file: 'tests/php/MakefileTest.php',
     php: String.raw`/(?<![\w.-])%s(?![\w.-])/`,
-    regex: /(?<![\w.-])%s(?![\w.-])/v,
+    regex: /(?<![\w.\-])%s(?![\w.\-])/v,
   },
   {
     file: 'tests/php/MakefileTest.php',

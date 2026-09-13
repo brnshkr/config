@@ -86,7 +86,7 @@ const isDocumentedByAncestor = (
     ?.esTreeNodeToTSNodeMap
     .get(node);
 
-  if (program === null || program === undefined || declaration?.name === undefined) {
+  if (!program || declaration?.name === undefined) {
     return false;
   }
 
@@ -94,7 +94,7 @@ const isDocumentedByAncestor = (
 
   return (declaration.heritageClauses ?? []).some(
     (clause) => clause.types.some((typeNode) => hasDescription(
-      readCommentText(<Maybe<DocumentedNode>>checker
+      readCommentText(checker
         .getTypeAtLocation(typeNode)
         .getProperty(memberName)
         ?.declarations?.[0]),
@@ -162,7 +162,7 @@ const checkFunctionExample = (
   text: string,
   isFluent: boolean,
 ): void => {
-  if (functionLike.parameters.length === 0 || isFluent || functionLike.isAbstract === true || hasTag(text, 'example')) {
+  if (isFluent || functionLike.parameters.length === 0 || functionLike.isAbstract === true || hasTag(text, 'example')) {
     return;
   }
 

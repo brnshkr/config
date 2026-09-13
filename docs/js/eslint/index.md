@@ -37,6 +37,8 @@ export default getConfig({
 ```
 
 Set a module to `false` to keep it off even when its packages are there.
+`ignores` takes globs and ignore files alike: an entry named like `.prettierignore` is read the way the
+project's `.gitignore` always is.
 What comes back is a [`FlatConfigComposer`](https://github.com/antfu/eslint-flat-config-utils),
 so `.append()`, `.prepend()` and `.override()` are available where a config is assembled in steps.
 

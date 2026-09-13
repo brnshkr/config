@@ -33,10 +33,8 @@ export const regexp = async (): Promise<Config[]> => {
         'regexp/confusing-quantifier': 'error',
         'regexp/grapheme-string-literal': 'error',
         'regexp/letter-case': ['error', {
-          caseInsensitive: 'lowercase',
           unicodeEscape: 'uppercase',
           hexadecimalEscape: 'uppercase',
-          controlEscape: 'uppercase',
         }],
         'regexp/no-control-character': 'error',
         'regexp/no-empty-alternative': 'error',
@@ -61,7 +59,6 @@ export const regexp = async (): Promise<Config[]> => {
         'regexp/sort-character-class-elements': 'error',
         'regexp/unicode-escape': 'error',
         'regexp/unicode-property': ['error', {
-          generalCategory: 'never',
           key: 'short',
           property: 'long',
         }],

@@ -34,3 +34,20 @@ export default getConfig({
 ```
 
 Set a module to `false` to keep it off even when its packages are there.
+
+Physical properties, units and keywords are fixed to their logical forms for left-to-right, top-to-bottom text.
+A right-to-left project passes its own direction:
+
+```js
+// ./conf/stylelint.mjs
+import { getConfig } from '@brnshkr/config/stylelint';
+
+export default getConfig({
+  languageOptions: {
+    directionality: {
+      block: 'top-to-bottom',
+      inline: 'right-to-left',
+    },
+  },
+});
+```

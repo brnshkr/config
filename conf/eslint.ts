@@ -88,6 +88,13 @@ export default getConfig({
   },
 }, {
   files: [
+    'src/js/*/configs/**',
+  ],
+  rules: {
+    'unicorn/no-unreadable-object-destructuring': 'off',
+  },
+}, {
+  files: [
     'src/js/shared/utils/module.ts',
   ],
   rules: {
@@ -107,7 +114,7 @@ export default getConfig({
     'tests/js/eslint-rules/resolvable-doc-reference.test.ts',
   ],
   rules: {
-    'unicorn/prevent-abbreviations': 'off',
+    'unicorn/name-replacements': 'off',
   },
 }, {
   files: [
@@ -137,6 +144,6 @@ export default getConfig({
     'ts/no-empty-function': 'off',
     'ts/no-empty-object-type': 'off',
     'ts/no-extraneous-class': 'off',
-    'unicorn/prevent-abbreviations': 'off',
+    'unicorn/name-replacements': 'off',
   },
 });

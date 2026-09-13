@@ -16,9 +16,8 @@ export type ConfigDiff = Record<string, JsonValue | ObjectDiff>;
 
 const isEqual = (value1: JsonValue, value2: JsonValue): boolean => JSON.stringify(value1) === JSON.stringify(value2);
 
-const isPlainObject = (value: JsonValue | undefined): value is JsonObject => value !== null
-  && value !== undefined
-  && typeof value === 'object'
+const isPlainObject = (value: JsonValue | undefined): value is JsonObject => typeof value === 'object'
+  && (value ?? undefined) !== undefined
   && !Array.isArray(value);
 
 const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
@@ -27,7 +26,7 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   const changedValues: JsonObject = {};
 
   for (const [object1Key, object1Value] of objectEntries(object1)) {
-    if (object1Key in object2) {
+    if (Object.hasOwn(object2, object1Key)) {
       const object2Value = <JsonValue>object2[object1Key];
 
       if (!isEqual(object1Value, object2Value)) {
@@ -39,7 +38,7 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   }
 
   for (const [object2Key, object2Value] of objectEntries(object2)) {
-    if (!(object2Key in object1)) {
+    if (!Object.hasOwn(object1, object2Key)) {
       addedValues[object2Key] = object2Value;
     }
   }
@@ -55,7 +54,7 @@ export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): Con
   const diff: ConfigDiff = {};
 
   for (const [object1Key, object1Value] of objectEntries(object1)) {
-    if (!(object1Key in object2)) {
+    if (!Object.hasOwn(object2, object1Key)) {
       diff[`-${String(object1Key)}`] = object1Value;
 
       continue;
@@ -73,7 +72,7 @@ export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): Con
   }
 
   for (const [object2Key, object2Value] of objectEntries(object2)) {
-    if (!(object2Key in object1)) {
+    if (!Object.hasOwn(object1, object2Key)) {
       diff[`+${String(object2Key)}`] = object2Value;
     }
   }

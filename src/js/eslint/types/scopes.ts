@@ -34,7 +34,7 @@ export const SUB_SCOPES = <const>{
   BASE: 'base',
   DEVELOPMENT: 'development',
   EXAMPLES: 'examples',
-  GIT: 'git',
+  FILES: 'files',
   GLOBAL: 'global',
   PARSER: 'parser',
   PROCESSOR: 'processor',

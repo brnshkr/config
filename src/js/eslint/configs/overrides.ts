@@ -151,6 +151,7 @@ const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
       rules: {
         'unicorn/filename-case': ['error', {
           case: 'pascalCase',
+          checkDirectories: false,
           ignore: FILE_NAMES_TO_IGNORE,
         }],
       },
@@ -242,6 +243,7 @@ const svelteOverrides: Config[] = isModuleEnabled(MODULES.svelte)
       rules: {
         'unicorn/filename-case': ['error', {
           case: 'pascalCase',
+          checkDirectories: false,
         }],
       },
     },
@@ -304,6 +306,7 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
       'import/no-rename-default': 'off',
       'import/no-named-as-default-member': 'off',
       'node/no-sync': 'off',
+      'unicorn/no-barrel-files': 'off',
     },
   },
 ];

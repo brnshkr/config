@@ -179,9 +179,9 @@ const resolveHeldClassification = (
     return classifyTypeAnnotation(annotation);
   }
 
-  return (target.initializer === undefined || target.initializer === null)
-    ? TYPE_CLASSIFICATIONS.UNKNOWN
-    : classifyExpression(target.initializer);
+  return target.initializer
+    ? classifyExpression(target.initializer)
+    : TYPE_CLASSIFICATIONS.UNKNOWN;
 };
 
 const resolveFromSyntax = (ruleContext: RuleContext, target: SymbolTarget): Resolution => {
@@ -314,7 +314,7 @@ const collectReturnClassification = (ruleContext: RuleContext, node: TSESTree.Re
 
   ruleContext.returnClassifications.set(callable, [
     ...ruleContext.returnClassifications.get(callable) ?? [],
-    node.argument === null ? TYPE_CLASSIFICATIONS.NON_BOOL : classifyExpression(node.argument),
+    node.argument ? classifyExpression(node.argument) : TYPE_CLASSIFICATIONS.NON_BOOL,
   ]);
 };
 
@@ -325,7 +325,7 @@ const buildVisitors = (ruleContext: RuleContext): RuleVisitors => ({
   'FunctionDeclaration, TSDeclareFunction:exit': (
     node: TSESTree.FunctionDeclaration | TSESTree.TSDeclareFunction,
   ): void => {
-    if (node.id !== null) {
+    if (node.id) {
       checkTarget(ruleContext, {
         nameNode: node.id,
         valueKind: KIND_FUNCTION,

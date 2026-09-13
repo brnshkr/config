@@ -39,7 +39,7 @@ export const html = (): Config[] => {
           },
         },
         // eslint-disable-next-line no-warning-comments -- (vue-support)
-        // TODO: This will be needed if and when vue support is added
+        // TODO: This will be needed if and when Vue.js support is added
         // {
         //   name: buildOverrideName(OVERRIDES.VUE),
         //   files: ['**/*.vue'],

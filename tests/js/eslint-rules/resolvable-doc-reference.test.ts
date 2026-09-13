@@ -2,7 +2,7 @@ import { test } from 'vitest';
 
 import {
   MESSAGE_ID_MISSING_REFERENCE,
-  resolvableDocReferenceRule,
+  resolvableDocReferenceRule as resolvableDocumentReferenceRule,
 } from '../../../src/js/eslint/configs/builtin/resolvable-doc-reference';
 
 import {
@@ -20,7 +20,7 @@ const {
 } = createRuleCaseBuilders({ filename: TYPE_AWARE_FIXTURE_FILE });
 
 test('resolvableDocReferenceRule scenarios', () => {
-  runTsRuleTests(resolvableDocReferenceRule, {
+  runTsRuleTests(resolvableDocumentReferenceRule, {
     valid: [
       buildValidCase(
         'target declared in the same file',
@@ -117,7 +117,7 @@ test('resolvableDocReferenceRule scenarios', () => {
 });
 
 test('resolvableDocReferenceRule resolves members when type information is available', () => {
-  runTypeAwareRuleTests(resolvableDocReferenceRule, {
+  runTypeAwareRuleTests(resolvableDocumentReferenceRule, {
     valid: [
       buildValidTypeAwareCase(
         'member of an imported namespace',

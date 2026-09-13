@@ -22,7 +22,7 @@ const generateEsLintTypes = async (): Promise<void> => {
       plugins: {
         '': {
           // eslint-disable-next-line ts/no-deprecated -- See: https://github.com/eslint/eslint/issues/18322#issuecomment-2053615962
-          rules: Object.fromEntries(builtinRules.entries()),
+          rules: Object.fromEntries(builtinRules),
         },
       },
     },
@@ -60,7 +60,7 @@ const prepareSchema = (node: JsonValue): JSONSchema => {
     return node.map((childNode) => prepareSchema(childNode));
   }
 
-  if (typeof node !== 'object' || node === null) {
+  if (typeof node !== 'object' || !node) {
     return <JSONSchema><unknown>node;
   }
 

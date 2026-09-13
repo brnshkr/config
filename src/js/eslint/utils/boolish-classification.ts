@@ -164,7 +164,7 @@ export const hasExternalUpstreamMember = (
   enclosingClass: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
   name: string,
 ): boolean => [
-  ...(enclosingClass.superClass === null ? [] : [enclosingClass.superClass]),
+  ...(enclosingClass.superClass ? [enclosingClass.superClass] : []),
   ...enclosingClass.implements,
 ].some((heritageNode) => {
   const member = resolveInstanceType(services.getTypeAtLocation(heritageNode)).getProperty(name);

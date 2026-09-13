@@ -32,6 +32,7 @@ export const GLOB_SCRIPT_FILES_WITHOUT_TS = <const>[
 
 export const GLOB_DEVELOPMENT_FILES = <const>[
   '**/*.config.?(c|m)[jt]s',
+  '**/__mocks__/**',
   '**/{conf,tests}/**',
   '**/types/declarations/reset.d.ts',
 ] satisfies string[];

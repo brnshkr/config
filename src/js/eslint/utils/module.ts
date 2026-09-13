@@ -32,14 +32,6 @@ export const MODULES = <const>{
       ],
     },
   },
-  gitignore: {
-    name: 'gitignore',
-    packages: {
-      requiredAll: [
-        ESLINT_PACKAGES.ESLINT_FLAT_CONFIG_GITIGNORE,
-      ],
-    },
-  },
   import: {
     name: 'import',
     packages: {

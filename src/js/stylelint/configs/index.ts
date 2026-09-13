@@ -8,7 +8,6 @@ import { defensive } from './defensive';
 import { html } from './html';
 import { ignores } from './ignores';
 import { less } from './less';
-import { logical } from './logical';
 import { modules } from './modules';
 import { nesting } from './nesting';
 import { order } from './order';
@@ -23,7 +22,6 @@ export const configs = <const>{
   html,
   ignores,
   less,
-  logical,
   modules,
   nesting,
   order,

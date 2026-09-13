@@ -3,6 +3,7 @@
  */
 
 import { INDENT, MAX_LEN, QUOTES } from '../../shared/utils/constants';
+import { isPlainObject } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName, renameRules } from '../utils/config';
 import { GLOB_SCRIPT_FILES } from '../utils/globs';
@@ -20,22 +21,19 @@ export const style = async (): Promise<Config[]> => {
   }
 
   const styleConfig = pluginStyle.configs.customize({
-    jsx: true,
     semi: true,
     indent: INDENT,
     quotes: QUOTES,
     quoteProps: 'as-needed',
     arrowParens: true,
-    blockSpacing: true,
     braceStyle: '1tbs',
-    commaDangle: 'always-multiline',
   });
 
   /* eslint-disable no-magic-numbers -- Index 2 refers to the options of the rule here ('style/indent': ['error', <indent>, <options>]) */
-  const indentRuleConfig = (Array.isArray(styleConfig.rules?.['@stylistic/indent'])
-    && typeof styleConfig.rules['@stylistic/indent'][2] === 'object'
-    && styleConfig.rules['@stylistic/indent'][2] !== null)
-    ? styleConfig.rules['@stylistic/indent'][2]
+  const indentRuleEntry = styleConfig.rules?.['@stylistic/indent'];
+
+  const indentRuleConfig = (Array.isArray(indentRuleEntry) && isPlainObject(indentRuleEntry[2]))
+    ? indentRuleEntry[2]
     : undefined;
   /* eslint-enable no-magic-numbers -- Restore rule */
 

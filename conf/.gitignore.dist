@@ -1,5 +1,6 @@
 /.cache/
 /.local/
+/.vitest/
 /conf/commitlint.mjs
 /conf/eslint.mjs
 /conf/markdownlint.mjs

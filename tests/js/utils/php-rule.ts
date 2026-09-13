@@ -13,9 +13,13 @@ export const extractPhpListConstant = (source: string, constantName: string): st
     .exec(source)
     ?.groups?.['entries'] ?? '';
 
-  return [...entries.matchAll(/'(?<entry>[^']+)'/gv)].map((match) => match.groups?.['entry'] ?? '');
+  return entries
+    .matchAll(/'(?<entry>[^']+)'/gv)
+    .map((match) => match.groups?.['entry'] ?? '')
+    .toArray();
 };
 
-export const extractPhpStringConstants = (source: string, namePrefix: string): string[] => [
-  ...source.matchAll(new RegExp(String.raw`const string ${namePrefix}\w+\s*=\s*'(?<value>[^']*)'`, 'gv')),
-].map((match) => match.groups?.['value'] ?? '');
+export const extractPhpStringConstants = (source: string, namePrefix: string): string[] => source
+  .matchAll(new RegExp(String.raw`const string ${namePrefix}\w+\s*=\s*'(?<value>[^']*)'`, 'gv'))
+  .map((match) => match.groups?.['value'] ?? '')
+  .toArray();

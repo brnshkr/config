@@ -22,7 +22,7 @@ const TAGS_BY_MODULE = <const>{
 export const jsdoc = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginJsdoc],
-    optional: [getJsdocProcessorPlugin],
+    optional: [jsdocProcessorModule],
   } = await resolvePackages(MODULES.jsdoc);
 
   if (!pluginJsdoc) {
@@ -97,9 +97,15 @@ export const jsdoc = async (): Promise<Config[]> => {
             noSingleLineBlocks: true,
             singleLineTags: [],
           }],
-          'jsdoc/no-bad-blocks': 'error',
+          'jsdoc/no-bad-blocks': ['error', {
+            preventAllMultiAsteriskBlocks: true,
+          }],
           'jsdoc/no-blank-block-descriptions': 'error',
           'jsdoc/no-blank-blocks': 'error',
+          'jsdoc/no-unnecessary-type-assertion': ['error', {
+            preferConstToLiteralTuples: true,
+          }],
+          'jsdoc/normalize-see-links': 'error',
           'jsdoc/prefer-import-tag': 'error',
           'jsdoc/require-asterisk-prefix': 'error',
           'jsdoc/require-hyphen-before-param-description': ['error', 'never'],
@@ -324,8 +330,8 @@ export const jsdoc = async (): Promise<Config[]> => {
 
   const parser = await getTsEslintParserIfExists();
 
-  const examplePlugin = getJsdocProcessorPlugin
-    ? getJsdocProcessorPlugin.getJsdocProcessorPlugin({
+  const examplePlugin = jsdocProcessorModule
+    ? jsdocProcessorModule.getJsdocProcessorPlugin({
       checkDefaults: true,
       checkExamples: true,
       checkParams: true,

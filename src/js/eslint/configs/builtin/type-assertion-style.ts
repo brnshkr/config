@@ -52,7 +52,7 @@ const isKeywordOperand = (sourceCode: TSESLint.SourceCode, operand: TSESTree.Nod
     return false;
   }
 
-  return !(firstToken.value === 'new' && secondToken?.value === '.');
+  return firstToken.value !== 'new' || secondToken?.value !== '.';
 };
 
 const isParenthesizedOperand = (

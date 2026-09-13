@@ -61,7 +61,7 @@ const isCheckableTarget = (target: string): boolean => !target.includes('/')
 const startsContinuation = (trailingText: string): boolean => trailingText.startsWith('(')
   || trailingText.startsWith(':');
 
-const getHeadIdentifier = (target: string): string => target.split(/[#.]/v)[0] ?? '';
+const getHeadIdentifier = (target: string): string => target.split(/[#.]/v, 1)[0] ?? '';
 
 const getLeftmostNameNode = (nameNode: DocNameNode): DocNameNode => {
   let leftmost = nameNode;
@@ -113,8 +113,9 @@ const isMemberNameResolved = (
 
 const collectDeclaredNames = (sourceCode: TSESLint.SourceCode): Set<string> => {
   const declaredNames = new Set<string>();
+  const scopes = sourceCode.scopeManager?.scopes ?? [];
 
-  for (const scope of sourceCode.scopeManager?.scopes ?? []) {
+  for (const scope of scopes) {
     for (const variable of scope.variables) {
       declaredNames.add(variable.name);
     }
@@ -125,11 +126,12 @@ const collectDeclaredNames = (sourceCode: TSESLint.SourceCode): Set<string> => {
 
 const collectLexicalReferences = (comment: TSESTree.Comment): LexicalReference[] => {
   const references: LexicalReference[] = [];
+  const lines = `/*${comment.value}*/`.split('\n');
 
-  for (const [offset, line] of `/*${comment.value}*/`.split('\n').entries()) {
+  for (const [offset, line] of lines.entries()) {
     for (const match of line.matchAll(createReferencePattern())) {
       const rawTarget = match.groups?.['target'] ?? '';
-      const target = rawTarget.split('|')[0] ?? '';
+      const target = rawTarget.split('|', 1)[0] ?? '';
       const targetColumn = match.index + (match[0].length - rawTarget.length);
 
       references.push({
@@ -208,7 +210,11 @@ export const resolvableDocReferenceRule = <const>{
 
         const tsNode = <Maybe<NodeWithDocComments>>services.esTreeNodeToTSNodeMap.get(node);
 
-        for (const reference of tsNode === undefined ? [] : collectNameReferences(tsNode)) {
+        if (tsNode === undefined) {
+          return;
+        }
+
+        for (const reference of collectNameReferences(tsNode)) {
           checkNameNode(typeChecker, reference);
         }
       },

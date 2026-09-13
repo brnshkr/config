@@ -7,7 +7,6 @@ import { packageOrganization } from '../../shared/utils/package-json';
 import { builtinConfig } from './builtin';
 import { comments } from './comments';
 import { css } from './css';
-import { gitignore } from './gitignore';
 import { ignores } from './ignores';
 import { imports } from './import';
 import { javascript } from './javascript';
@@ -30,7 +29,6 @@ export const configs = <const>{
   [packageOrganization]: builtinConfig[packageOrganization],
   comments,
   css,
-  gitignore,
   ignores,
   import: imports,
   javascript,

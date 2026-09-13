@@ -76,7 +76,12 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-vi-mocked': 'error',
         'test/require-awaited-expect-poll': 'error',
         'test/require-hook': 'error',
-        'test/require-mock-type-parameters': 'error',
+        'test/require-mock-type-parameters': ['error', {
+          checkImportFunctions: true,
+        }],
+        'test/valid-expect': ['error', {
+          alwaysAwait: true,
+        }],
         'test/warn-todo': 'error',
       },
     },
