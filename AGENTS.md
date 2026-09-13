@@ -41,5 +41,5 @@ Off only on "stop caveman"/"normal mode".
 AI Mate Summary:
 - Role: MCP-powered, project-aware coding guidance and tools.
 - Required action: Read and follow `mate/AGENT_INSTRUCTIONS.md` before taking any action in this project, and prefer MCP tools over raw CLI commands whenever possible.
-- Installed extensions: matesofmate/composer-extension, matesofmate/phpstan-extension, matesofmate/phpunit-extension, symfony/ai-mate.
+- Installed extensions: matesofmate/composer-extension, matesofmate/phpstan-extension, matesofmate/phpunit-extension, matesofmate/rector-extension, symfony/ai-mate.
 <!-- END AI_MATE_INSTRUCTIONS -->

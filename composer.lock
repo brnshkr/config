@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "03fce8492c1583f7ae2b06f7a2a6c180",
+    "content-hash": "aeff582563bc7629a36c212f5424a3e8",
     "packages": [],
     "packages-dev": [
         {
@@ -1831,6 +1831,86 @@
             "support": {
                 "issues": "https://github.com/MatesOfMate/phpunit-extension/issues",
                 "source": "https://github.com/MatesOfMate/phpunit-extension/tree/0.6.0"
+            },
+            "time": "2026-08-29T21:32:41+00:00"
+        },
+        {
+            "name": "matesofmate/rector-extension",
+            "version": "0.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/MatesOfMate/rector-extension.git",
+                "reference": "245e21287643c52216529d79df9ca248b99101de"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/MatesOfMate/rector-extension/zipball/245e21287643c52216529d79df9ca248b99101de",
+                "reference": "245e21287643c52216529d79df9ca248b99101de",
+                "shasum": ""
+            },
+            "require": {
+                "matesofmate/common": "^0.4 || ^0.6",
+                "php": ">=8.2",
+                "symfony/ai-mate": "^0.12 || dev-main",
+                "symfony/process": "^6.4|^7.0|^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0"
+            },
+            "suggest": {
+                "helgesverre/toon": "Install for TOON-encoded MCP responses; JSON remains the fallback when it is not available"
+            },
+            "type": "symfony-ai-mate",
+            "extra": {
+                "ai-mate": {
+                    "includes": [
+                        "config/config.php"
+                    ],
+                    "scan-dirs": [
+                        "src/Capability"
+                    ],
+                    "instructions": "INSTRUCTIONS.md"
+                },
+                "branch-alias": {
+                    "dev-main": "0.6.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MatesOfMate\\RectorExtension\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mdjdev",
+                    "email": "18183474+mdjdev@users.noreply.github.com"
+                },
+                {
+                    "name": "Johannes Wachter",
+                    "email": "johannes@sulu.io"
+                }
+            ],
+            "description": "Rector extension for Symfony AI Mate providing inspect, dry-run preview, and apply workflows",
+            "keywords": [
+                "ai",
+                "ai-mate",
+                "mcp",
+                "rector",
+                "refactoring",
+                "symfony",
+                "toon"
+            ],
+            "support": {
+                "issues": "https://github.com/MatesOfMate/rector-extension/issues",
+                "source": "https://github.com/MatesOfMate/rector-extension/tree/0.6.0"
             },
             "time": "2026-08-29T21:32:41+00:00"
         },

@@ -85,6 +85,7 @@ final class ComposerJson
         'matesofmate/composer-extension',
         'matesofmate/phpstan-extension',
         'matesofmate/phpunit-extension',
+        'matesofmate/rector-extension',
         'pestphp/pest',
         'phpunit/phpunit',
         'sebastian/diff',

@@ -49,6 +49,7 @@
     "matesofmate/composer-extension": "0.6.0",
     "matesofmate/phpstan-extension": "0.6.0",
     "matesofmate/phpunit-extension": "0.6.0",
+    "matesofmate/rector-extension": "0.6.0",
     "pestphp/pest": "5.1.4",
     "phpat/phpat": "0.12.4",
     "phpstan/extension-installer": "1.4.3",
