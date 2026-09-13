@@ -9,6 +9,7 @@ import type { TenseOptions } from 'commitlint-plugin-tense/dist/library/ensure-t
 import type { Config } from '../types/config';
 
 const ALLOWLIST = <const>[
+  'announce',
   'called',
   'console',
   'cover',

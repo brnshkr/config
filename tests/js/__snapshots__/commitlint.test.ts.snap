@@ -107,14 +107,14 @@ exports[`expected commitlint config 1`] = `
         allowedTenses: [ 'present-imperative' ],
         firstOnly: true,
         allowlist: [
-          'called',           'console',
-          'cover',            'covers',
-          'decide',           'dismantle',
-          'excludes',         'harden',
-          'hoist',            'missing',
-          'non-empty-string', 'promote',
-          'spell',            'throw',
-          'widen'
+          'announce',  'called',
+          'console',   'cover',
+          'covers',    'decide',
+          'dismantle', 'excludes',
+          'harden',    'hoist',
+          'missing',   'non-empty-string',
+          'promote',   'spell',
+          'throw',     'widen'
         ]
       }
     ]
