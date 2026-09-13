@@ -6,6 +6,8 @@
         "TwigCsFixer\\Rules\\Operator\\OperatorNameSpacingRule",
         "TwigCsFixer\\Rules\\Operator\\OperatorSpacingRule",
         "TwigCsFixer\\Rules\\Punctuation\\PunctuationSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\TernaryOperatorSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\UnaryOperatorSpacingRule",
         "TwigCsFixer\\Rules\\Variable\\VariableNameRule",
         "TwigCsFixer\\Rules\\Whitespace\\BlankEOFRule",
         "TwigCsFixer\\Rules\\Delimiter\\BlockNameSpacingRule",

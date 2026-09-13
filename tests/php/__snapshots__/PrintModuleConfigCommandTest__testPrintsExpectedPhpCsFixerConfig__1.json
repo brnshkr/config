@@ -210,6 +210,7 @@
         "./tests/php/PrintModuleConfigCommandTest.php",
         "./tests/php/RectorTest.php",
         "./tests/php/SpellingTest.php",
+        "./tests/php/StrTest.php",
         "./tests/php/TwigCsFixerTest.php"
     ],
     "format": "txt",
