@@ -404,13 +404,54 @@ final class MakefileTest extends TestCase
         }
     }
 
+    public function testAVerbAnnouncesEachTargetItRunsAndNothingElseDoes(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $check     = $this->runMake(['check'], directory: $directory);
+        $fix       = $this->runMake(['fix'], directory: $directory);
+        $ci        = $this->runMake(['ci'], directory: $directory);
+        $single    = $this->runMake(['rector-dry-run'], directory: $directory);
+
+        self::assertStringContainsString("[acme/verbs] Running rector-dry-run\nrector process", $check);
+        self::assertStringContainsString("[acme/verbs] Running phpstan\nphpstan analyze", $check);
+        self::assertStringNotContainsString("Running rector\n", $check);
+        self::assertStringContainsString("[acme/verbs] Running rector\nrector process", $fix);
+        self::assertStringNotContainsString('Running _', $fix);
+        self::assertStringContainsString("[acme/verbs] Running check\n", $ci);
+        self::assertStringContainsString("[acme/verbs] Running test\n", $ci);
+        self::assertStringNotContainsString('Running', $single);
+    }
+
+    public function testAnAnnouncementCanBeRewordedOrSilenced(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $reworded  = $this->runMake(['check'], ['ANNOUNCEMENT' => '>>> %s'], $directory);
+        $silenced  = $this->runMake(['check'], ['ANNOUNCEMENT' => ''], $directory);
+
+        self::assertStringContainsString("[acme/verbs] >>> phpstan\n", $reworded);
+        self::assertStringNotContainsString('[acme/verbs]', $silenced);
+    }
+
+    public function testAVerbRunsEveryToolPastAFailureWhileCiAndAFixChainStop(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $check     = $this->runMake(['check'], ['PHP_CS_FIXER' => 'false'], $directory, doExpectFailure: true);
+        $ci        = $this->runMake(['ci'], ['PHP_CS_FIXER' => 'false'], $directory, doExpectFailure: true);
+        $fix       = $this->runMake(['fix'], ['RECTOR' => 'false'], $directory, doExpectFailure: true);
+
+        self::assertStringContainsString('phpstan done', $check);
+        self::assertStringContainsString('phpstan done', $ci);
+        self::assertStringNotContainsString('Running test', $ci);
+        self::assertStringNotContainsString('php-cs-fixer fix', $fix);
+    }
+
     public function testAParallelCheckPrintsEachToolWhole(): void
     {
         $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/Fixtures/Make/Verbs');
 
-        self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/', $check);
-        self::assertMatchesRegularExpression('/rector process [^\n]*--dry-run\nrector done/', $check);
-        self::assertMatchesRegularExpression('/phpstan analyze [^\n]*\nphpstan done/', $check);
+        self::assertMatchesRegularExpression('/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/', $check);
+        self::assertMatchesRegularExpression('/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/', $check);
+        self::assertMatchesRegularExpression('/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
     public function testAVerbWithNothingToRunSaysSo(): void
@@ -727,7 +768,7 @@ final class MakefileTest extends TestCase
 
         self::assertStringContainsString('composer install', $result);
         self::assertStringContainsString('bun install', $result);
-        self::assertStringContainsString('startup-own', $result);
+        self::assertStringContainsString("Running startup-own\nstartup-own\n", $result);
     }
 
     public function testCoverageIsReadFromTheSummaryRatherThanTheLastLineThatMentionsLines(): void
@@ -872,20 +913,30 @@ final class MakefileTest extends TestCase
     {
         $output = $this->runMake(['group-pairs'], directory: __DIR__ . '/Fixtures/Make/Group');
 
-        self::assertStringStartsWith("group-pairs\n  2  acme.first", $output);
+        self::assertStringStartsWith('  2  acme.first', $output);
         self::assertStringNotContainsString('Running', $output);
     }
 
-    public function testParallelGroupsAnnounceThemselvesAndPrintEachReportWhole(): void
+    public function testAGroupIsLabeledOnlyWhenAVerbRunsIt(): void
     {
-        $output = $this->runMake(['-j2', 'group-pairs', 'group-single'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $verb      = $this->runMake(['groups'], directory: $directory);
+        $silenced  = $this->runMake(['groups'], ['ANNOUNCEMENT' => ''], $directory);
 
-        self::assertStringContainsString("group-pairs  Running…\n", $output);
-        self::assertStringContainsString("group-single  Running…\n", $output);
-        self::assertStringContainsString("group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
+        self::assertStringContainsString("[Group] group-pairs\n  2  acme.first", $verb);
+        self::assertStringNotContainsString('Running', $verb);
+        self::assertStringNotContainsString('[Group]', $silenced);
+    }
+
+    public function testParallelGroupsPrintEachReportWhole(): void
+    {
+        $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/Fixtures/Make/Group');
+
+        self::assertStringContainsString("[Group] group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
+        self::assertStringNotContainsString('Running', $output);
 
         self::assertStringContainsString(
-            "group-pairs\n  2  acme.first   First finding.\n  1  acme.second  Second finding.\n  ✘ 3 findings\n",
+            "[Group] group-pairs\n  2  acme.first   First finding.\n  1  acme.second  Second finding.\n  ✘ 3 findings\n",
             $output,
         );
     }
@@ -897,7 +948,6 @@ final class MakefileTest extends TestCase
         $crashed   = $this->runMake(['group-crash'], directory: $directory, doExpectFailure: true);
 
         self::assertStringContainsString("✘ 3 findings\n", $failing);
-        self::assertMatchesRegularExpression('/^group-crash$/m', $crashed);
         self::assertStringNotContainsString('No findings', $crashed);
     }
 

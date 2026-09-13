@@ -220,23 +220,18 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/MakefileTest.php',
-    php: String.raw`/php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
-    regex: /php-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
+    php: String.raw`/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
+    regex: /Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
   },
   {
     file: 'tests/php/MakefileTest.php',
-    php: String.raw`/rector process [^\n]*--dry-run\nrector done/`,
-    regex: /rector process [^\n]*--dry-run\nrector done/v,
+    php: String.raw`/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/`,
+    regex: /Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/v,
   },
   {
     file: 'tests/php/MakefileTest.php',
-    php: String.raw`/phpstan analyze [^\n]*\nphpstan done/`,
-    regex: /phpstan analyze [^\n]*\nphpstan done/v,
-  },
-  {
-    file: 'tests/php/MakefileTest.php',
-    php: String.raw`/^group-crash$/m`,
-    regex: /^group-crash$/mv,
+    php: String.raw`/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/`,
+    regex: /Running phpstan\nphpstan analyze [^\n]*\nphpstan done/v,
   },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

@@ -186,20 +186,23 @@ VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
 DEBUG        ?= #~~ whether the commands are echoed before they run
-DEBUG_PREFIX ?= $(if $(or $(_DEBUG),$(_TRACE)),,@)#vvv #~~ prefix for a command
+DEBUG_PREFIX ?= $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)#vvv #~~ prefix for a command
 _DEBUG        = $(filter-out $(_FALSE),$(DEBUG))
 
 TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
 TRACE_PREFIX ?= $(if $(_TRACE),,@)#vvv #~~ prefix for a guard command
 _TRACE        = $(filter-out $(_FALSE),$(TRACE))
 
+ANNOUNCEMENT ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
+_ANNOUNCE     = $(if $(and $(_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$@)),$(eval _ANNOUNCED += $@)$(info $(shell $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))))
+
 _FALSE := 0 false off no
 _TRUE  := 1 true on yes
 _CI = $(filter-out $(_FALSE),$(CI))
 
-_MAKE_FLAGS = $(if $(or $(_DEBUG),$(_TRACE)),--no-print-directory,-s)
+_MAKE_FLAGS = $(if $(or $(_DEBUG),$(_TRACE)),--no-print-directory,-s) _ANNOUNCING=
+_VERB_FLAGS = $(_MAKE_FLAGS) $(if $(_PARALLEL),--output-sync=recurse) --keep-going _ANNOUNCING=1
 _PARALLEL   = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
-_SYNC       = $(if $(_PARALLEL),--output-sync=target)
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
 
@@ -461,8 +464,8 @@ _STARTUP := $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-
 	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install)
 
 $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,configs)
-	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_MAKE_FLAGS) $(STARTUP_TARGETS),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
+	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
 CONFIG ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
 
@@ -1125,40 +1128,40 @@ CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
 
 $(call _target,check): #~~ runs the fixers without writing, and every analyzer
 	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_DRY_RUNS) $(_ANALYZERS),:)
+	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS),:)
 
 $(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
 	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
-		$(MAKE) $(_MAKE_FLAGS) $(TARGET) && \
+		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
 	):
 
 $(call _target,coverage): #~~ runs the tests and fails below the minimum coverage #vv
 	$(TRACE_PREFIX)$(if $(_COVERAGE),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_COVERAGE),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_COVERAGE),:)
+	$(DEBUG_PREFIX)$(if $(_COVERAGE),$(MAKE) $(_VERB_FLAGS) $(_COVERAGE),:)
 
 $(call _target,fix): #~~ runs every fixer this project has, writing its fixes
 	$(TRACE_PREFIX)$(if $(_FIX_CHAINS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_FIX_CHAINS),:)
+	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS),$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS),:)
 
 _$(_TARGET_PREFIX)fix-%:
 	$(DEBUG_PREFIX)$(foreach NAME,$(filter $(_FIXER_NAMES),$(subst +, ,$*)), \
-		$(MAKE) $(_MAKE_FLAGS) $(call _target,$(NAME)) && \
+		$(MAKE) $(_VERB_FLAGS) $(call _target,$(NAME)) && \
 	):
 
 $(call _target,group): #~~ counts every tool's findings by identifier #v
 	$(TRACE_PREFIX)$(if $(_GROUPS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_GROUPS),$(MAKE) $(_MAKE_FLAGS) --keep-going $(_GROUPS),:)
+	$(DEBUG_PREFIX)$(if $(_GROUPS),$(MAKE) $(_VERB_FLAGS) $(_GROUPS),:)
 
 $(call _target,pack): $(_PACKS) #~~ packs every stack's package into `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
 $(call _target,test): #~~ runs the tests of every stack this project has
 	$(TRACE_PREFIX)$(if $(_TESTS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_TESTS),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_TESTS),:)
+	$(DEBUG_PREFIX)$(if $(_TESTS),$(MAKE) $(_VERB_FLAGS) $(_TESTS),:)
 
 $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(if $(_UPDATES),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_UPDATES),$(MAKE) $(_MAKE_FLAGS) $(_SYNC) $(_UPDATES),:)
+	$(DEBUG_PREFIX)$(if $(_UPDATES),$(MAKE) $(_VERB_FLAGS) $(_UPDATES),:)
 
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
@@ -1452,16 +1455,16 @@ _SPINNER_SECONDS := 0.15
 #* returns: void
 #*
 define _group
-label=$$($(PRINTF) '$(call text,%s,$(COLOR_SECTION_LABEL))' '$(patsubst %-group,%,$@)'); \
+label=$(if $(and $(_ANNOUNCING),$(ANNOUNCEMENT)),$$($(call log,`%s`,$(COLOR_NOTICE),'$(patsubst %-group,%,$@)'))); \
 live=; $(if $(or $(_GROUP_PARALLEL),$(_NO_ANSI)),,[ -t 1 ] && live=1;) \
-$(if $(_GROUP_PARALLEL),$(PRINTF) '%s  %b\n' "$$label" '$(call text,Running…,$(COLOR_DESCRIPTION))';,$(PRINTF) '%s\n' "$$label"; \
+$(if $(_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$live" ] || { trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r\033[2K"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
 		$(PRINTF) '\r  $(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
 	done; done & spinner=$$!; };) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
 	| $(AWK) -v _indent='$(INDENT)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
-$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n%s\n' "$$label" "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r\033[2K'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r\033[2K'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
 exit $$code
 endef
 

@@ -6,6 +6,9 @@ include ../../../../../conf/Makefile
 
 group-pairs group-lists group-text group-eslint group-single group-wide group-braces group-clean group-failing group-crash: export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
 
+groups: #~~ runs two groups the way a verb does
+	@$(MAKE) $(_VERB_FLAGS) group-pairs group-single
+
 group-pairs: #~~ groups findings that carry a message
 	@$(call _group,cat findings.json,identifier,message)
 

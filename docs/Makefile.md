@@ -46,6 +46,8 @@ Across both stacks:
 | `cc` | Removes cached tool state, naming what it will remove and asking first. |
 
 `make -j` runs tools in parallel, keeping fixers that write the same files in order.
+A verb names each target before running it and carries on past a failing one.
+`ci` stops at its first failed step.
 
 A tool's target takes suffixes, the same ones on both stacks:
 `-dry-run` writes nothing,
@@ -86,6 +88,7 @@ Every tool is three variables
 | `CACHE_DIR` | Where the tools keep their caches, and what `cc` clears. |
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
 | `DEBUG`, `TRACE` | Echo each command as it runs. `TRACE` echoes the guards along with them. |
+| `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |
 | `LOGO`, `NO_ANSI`, `THEME`, `EDITOR`, `EDITOR_URL` | How output is printed and where its links point. Empty disables the logo or the links. `EDITOR` is detected when unset, and one inherited from the shell naming another editor is ignored rather than rejected. |
 
 A flag is off when it is empty, `0`, `false`, `off` or `no`, and on for anything else.

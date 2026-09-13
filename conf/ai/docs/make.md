@@ -69,11 +69,15 @@ the general make and awk traps are in `vision/TRAPS.md`.
 - A piped tool runs through `_capture`, or the pipe reports awk's status and a crash reads as an empty list.
   `_group` is the exception: the awk's status is the recipe's, 0 whenever the report parsed and the tool's own
   code when it exited nonzero with nothing parsed. make reports every failed recipe, so a finding must not be one.
-- A `-group` table names the tool flush before it runs, like a help section label, indents its rows one step,
-  and closes on one status line. The count takes `COLOR_ENTRY` rather than `COLOR_HIGHLIGHT` — the highlight
-  is the section color under the symfony theme, where the two would read as one.
-- `fix`, `check` and `test` sync output under `-j`. `fix` runs `_FIX_ORDER` chains: serial inside, parallel across.
-- `_group` output: spinner on a serial terminal, per-tool announcement under `-j`, plain otherwise.
+- A `-group` table indents its rows one step and closes on one status line. The count takes `COLOR_ENTRY`,
+  not `COLOR_HIGHLIGHT`: under the symfony theme the highlight is the section color.
+- Verbs pass `_VERB_FLAGS`: `--keep-going`, `_ANNOUNCING=1`, and `--output-sync=recurse` under `-j`.
+  Output sync `target` would leave a target that calls make unbuffered.
+  `_MAKE_FLAGS` clears `_ANNOUNCING`, so a delegated target is not announced twice.
+- `_ANNOUNCE` rides `DEBUG_PREFIX`. make expands a whole recipe before running it,
+  and `$(info)` is buffered with the target's output.
+- `fix` runs `_FIX_ORDER` chains: `&&` inside, parallel across.
+- `_group` output: spinner on a serial terminal, whole reports under `-j`, a label only inside a verb.
 - `NO_ANSI` lives in each tool's `*_FLAGS` default, `_NO_ANSI_OPTION` being the Symfony-console spelling.
 
 ## Per tool

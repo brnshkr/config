@@ -7,4 +7,4 @@ STARTUP_TARGETS := startup-own
 #!! Makefile of a fresh checkout that has to be brought up
 
 startup-own: #~~ the step this project adds to `startup`
-	@echo startup-own
+	$(DEBUG_PREFIX)echo startup-own
