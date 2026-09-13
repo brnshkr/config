@@ -2,10 +2,17 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { doAllPackagesExist } from '../../shared/utils/module';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName, renameRules } from '../utils/config';
 import { GLOB_SCRIPT_FILES } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+
+import {
+  isModuleEnabled,
+  MODULES,
+  PACKAGES,
+  resolvePackages,
+} from '../utils/module';
 
 import type { Config } from '../types/config';
 import type { NodeOptions } from '../types/options';
@@ -59,6 +66,12 @@ export const node = async (options?: Partial<NodeOptions>): Promise<Config[]> =>
         'node/prefer-process-get-builtin-module': 'error',
         'node/prefer-promises/dns': 'error',
         'node/prefer-promises/fs': 'error',
+        ...((isModuleEnabled(MODULES.import) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_IMPORT_X]))
+          ? {
+            'node/no-extraneous-import': 'off',
+            'node/no-extraneous-require': 'off',
+          }
+          : undefined),
       },
     },
   ];

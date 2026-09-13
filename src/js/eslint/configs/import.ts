@@ -47,6 +47,10 @@ export const imports = async (): Promise<Config[]> => {
       ];
     }
 
+    settings['import-x/ignore'] = [
+      String.raw`[/\\]node_modules[/\\]`,
+    ];
+
     settings['import-x/core-modules'] = [
       'bun',
       'bun:bundle',
