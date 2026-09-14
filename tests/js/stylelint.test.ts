@@ -9,16 +9,16 @@ import { snapshotConfigs } from './utils/config-snapshot';
 
 import type { JsonObject } from './utils/json-diff';
 
-const CONFIG_FILE = path.join(process.cwd(), 'conf/stylelint.mjs');
-
 test('expected stylelint config', async () => {
+  const config = getConfig();
+
   await snapshotConfigs({
     fixturesDirectory: path.join(process.cwd(), 'tests/js/fixtures/stylelint'),
-    globs: (getConfig().overrides ?? [])
+    globs: (config.overrides ?? [])
       .flatMap(({ files }) => (Array.isArray(files) ? files : [files]))
       .filter((glob) => typeof glob === 'string'),
     resolve: async (filePath) => <JsonObject><unknown>(await stylelint.resolveConfig(filePath, {
-      configFile: CONFIG_FILE,
+      config,
     })),
   });
 });

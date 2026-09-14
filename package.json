@@ -268,6 +268,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "21.2.2",
+    "@commitlint/load": "21.2.2",
     "@commitlint/types": "21.2.0",
     "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
     "@eslint/config-inspector": "3.4.1",
