@@ -91,7 +91,7 @@ _MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
-			max = length($$i); \
+			max = length($$i) \
 		} \
 		print max \
 	}' \
@@ -101,19 +101,19 @@ _TABLE_COLORS        := $(filter-out $(COLOR_NORMAL),$(_COLORS))
 _COLOR_COLUMN_WIDTHS  = $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
-	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s';
+	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s'
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _COLOR := $(word $(INDEX),$(_TABLE_COLORS))) \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
 		$(PRINTF) ' %-$(_WIDTH)s' '$(_COLOR)'; \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n';
+	$(DEBUG_PREFIX)$(PRINTF) '\n'
 	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' $(call _str_repeat,-,$(_MODIFIER_COLUMN_WIDTH))
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
 		$(PRINTF) '%-*s ' $(_WIDTH) $(call _str_repeat,-,$(_WIDTH)); \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n';
+	$(DEBUG_PREFIX)$(PRINTF) '\n'
 	$(DEBUG_PREFIX)$(foreach MODIFIER_COLUMN,$(_MODIFIER_COLUMNS), \
 		$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' '$(subst +, ,$(MODIFIER_COLUMN))'; \
 		$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \

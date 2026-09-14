@@ -117,13 +117,13 @@ _BRNSHKR_CONFIG_DIR      := $(patsubst %/,%,$(dir $(_BRNSHKR_CONFIG_MAKEFILE)))
 
 _ARG_WORDS = $(patsubst -%,%,$(patsubst --%,%,$(ARGS)))
 
-_HELP_VERBOSITY_ARGS  = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
-_HELP_VERBOSITY       = $(words $(subst v,v ,$(lastword $(sort $(_HELP_VERBOSITY_ARGS)))))
-_HELP_WORDS          := list-scopes ls resolve r
-_HELP_RESERVED_ARGS   = $(_HELP_WORDS) $(_HELP_VERBOSITY_ARGS)
-_HELP_SCOPES          = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(_ARG_WORDS)))
-_HELP_LIST_SCOPES     = $(if $(filter list-scopes ls,$(_ARG_WORDS)),1)
-_HELP_RESOLVE         = $(if $(filter resolve r,$(_ARG_WORDS)),1)
+_HELP_VERBOSITY_ARGS       = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
+_HELP_VERBOSITY            = $(words $(subst v,v ,$(lastword $(sort $(_HELP_VERBOSITY_ARGS)))))
+_HELP_WORDS               := list-scopes ls resolve r
+_HELP_RESERVED_ARGS        = $(_HELP_WORDS) $(_HELP_VERBOSITY_ARGS)
+_HELP_SCOPES               = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(_ARG_WORDS)))
+_HAS_LIST_SCOPES_ARGUMENT  = $(if $(filter list-scopes ls,$(_ARG_WORDS)),1)
+_HAS_RESOLVE_ARGUMENT      = $(if $(filter resolve r,$(_ARG_WORDS)),1)
 
 _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
@@ -187,23 +187,23 @@ VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
 DEBUG        ?= #~~ whether the commands are echoed before they run
-DEBUG_PREFIX ?= $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)#vvv #~~ prefix for a command
-_DEBUG        = $(filter-out $(_FALSE),$(DEBUG))
+DEBUG_PREFIX ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
+_IS_DEBUG     = $(filter-out $(_FALSE),$(DEBUG))
 
 TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
-TRACE_PREFIX ?= $(if $(_TRACE),,@)#vvv #~~ prefix for a guard command
-_TRACE        = $(filter-out $(_FALSE),$(TRACE))
+TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)#vvv #~~ prefix for a guard command
+_IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
 ANNOUNCEMENT ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
-_ANNOUNCE     = $(if $(and $(_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$@)),$(eval _ANNOUNCED += $@)$(info $(shell $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))))
+_ANNOUNCE     = $(if $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$@)),$(eval _ANNOUNCED += $@)$(info $(shell $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))))
 
 _FALSE := 0 false off no
 _TRUE  := 1 true on yes
-_CI = $(filter-out $(_FALSE),$(CI))
+_IS_CI  = $(filter-out $(_FALSE),$(CI))
 
-_MAKE_FLAGS = $(if $(or $(_DEBUG),$(_TRACE)),--no-print-directory,-s) _ANNOUNCING=
-_VERB_FLAGS = $(_MAKE_FLAGS) $(if $(_PARALLEL),--output-sync=recurse) --keep-going _ANNOUNCING=1
-_PARALLEL   = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
+_MAKE_FLAGS  = $(if $(or $(_IS_DEBUG),$(_IS_TRACE)),--no-print-directory,-s) _IS_ANNOUNCING=
+_VERB_FLAGS  = $(_MAKE_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse) --keep-going _IS_ANNOUNCING=1
+_IS_PARALLEL = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
 
@@ -213,8 +213,8 @@ INDENT      ?= 1#~~ indent used in `make help` output
 VALUE_WIDTH ?= 48#~~ widest a value column gets in `make help`, past which a value is truncated
 
 NO_ANSI         ?= #~~ whether ANSI escapes are suppressed
-_NO_ANSI         = $(filter-out $(_FALSE),$(NO_ANSI))
-_NO_ANSI_OPTION  = $(if $(_NO_ANSI),--no-ansi)
+_IS_NO_ANSI      = $(filter-out $(_FALSE),$(NO_ANSI))
+_NO_ANSI_OPTION  = $(if $(_IS_NO_ANSI),--no-ansi)
 
 THEME         ?= #~~ the theme to use
 THEME_BRNSHKR := brnshkr
@@ -323,22 +323,22 @@ MODIFIER_REVERSE   := reverse
 #---vv arguments
 
 _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(CURDIR)' \
-	'function exists(path,   line, found) { found = (getline line < path) >= 0; close(path); return found } \
+	'function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist } \
 	/^ifneq/ && index($$0, "wildcard") { \
 		depth += 1; \
 		if (!skip) { \
 			count = split(substr($$0, index($$0, "wildcard") + 9), paths, /[[:space:]]+/); \
-			found = 0; \
+			has_existing_path = 0; \
 			for (i = 1; i <= count; i += 1) { \
 				path = paths[i]; \
 				if (!index(path, "/")) continue; \
 				path = substr(path, index(path, "/")); \
 				sub(/[^A-Za-z0-9_.\/-]+$$/, "", path); \
-				if (exists(_curdir path)) found = 1; \
+				if (does_path_exist(_curdir path)) has_existing_path = 1; \
 			} \
-			if (!found) skip = depth; \
+			if (!has_existing_path) skip = depth \
 		} \
-		next; \
+		next \
 	} \
 	/^ifdef|^ifndef|^ifeq|^ifneq/ { depth += 1; next } \
 	/^endif/ { if (skip == depth) skip = 0; depth -= 1; next } \
@@ -349,7 +349,7 @@ _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(C
 	/^@?[a-zA-Z0-9_.-]+([[:space:]]+@?[a-zA-Z0-9_.-]+)*:([^=]|$$)/ { \
 		count = split(substr($$0, 1, index($$0, ":") - 1), ns, /[[:space:]]+/); \
 		for (i = 1; i <= count; i += 1) \
-			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s ", ns[i], FILENAME; \
+			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s ", ns[i], FILENAME \
 	}' \
 	$(MAKEFILE_LIST) \
 )
@@ -451,8 +451,8 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
-		_LIST_SCOPES="$(_HELP_LIST_SCOPES)" \
-		_RESOLVE="$(_HELP_RESOLVE)" \
+		_HAS_LIST_SCOPES_ARGUMENT="$(_HAS_LIST_SCOPES_ARGUMENT)" \
+		_HAS_RESOLVE_ARGUMENT="$(_HAS_RESOLVE_ARGUMENT)" \
 		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
 		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
@@ -542,7 +542,7 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
 		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)'); \
-		$(if $(_CI),,$(PRINTF) 'Continue? [y/N] ' >&2; read -r answer; [ "$$answer" = y ] || [ "$$answer" = Y ] || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
+		$(if $(_IS_CI),,$(PRINTF) 'Continue? [y/N] ' >&2; read -r answer; [ "$$answer" = y ] || [ "$$answer" = Y ] || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
 		$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
 	fi
@@ -590,7 +590,7 @@ PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
 #--- composer
 
 COMPOSER              ?= $(_RUN) composer#v #~~ command that runs `composer`
-COMPOSER_FLAGS        ?= $(if $(_CI),--no-interaction --no-progress) $(if $(_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
+COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 
 _PACK_NAMES += composer-pack
@@ -623,7 +623,7 @@ ifneq ($(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit),) # ph
 PEST                    ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
 PHP_UNIT                ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
 PHP_UNIT_CONFIG         ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
-PHP_UNIT_FLAGS          ?= $(if $(_DEBUG),--debug) $(if $(_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
+PHP_UNIT_FLAGS          ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
 PHP_UNIT_SNAPSHOT_FLAGS ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR   ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
 PHP_UNIT_COVERAGE_FILE  ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
@@ -688,7 +688,7 @@ ifneq ($(wildcard $(CURDIR)/vendor/bin/phpstan),) # phpstan
 
 PHP_STAN        ?= $(_RUN) $(WORKDIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
 PHP_STAN_CONFIG ?= $(call _config,$(WORKDIR)/conf/phpstan.php $(WORKDIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
-PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
+PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _ANALYZER_NAMES  += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
@@ -725,7 +725,7 @@ ifneq ($(wildcard $(CURDIR)/vendor/bin/php-cs-fixer),) # php-cs-fixer
 
 PHP_CS_FIXER        ?= $(_RUN) $(WORKDIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(WORKDIR)/conf/php-cs-fixer.php $(WORKDIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
-PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(_NO_ANSI_OPTION) $(if $(_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
+PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
 _FIXER_NAMES     += $(call _when_tracked,php-cs-fixer,$(PHP_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,php-cs-fixer,$(PHP_EXTENSIONS))
@@ -856,7 +856,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/commitlint),) # commitlint
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
 COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.mjs $(WORKDIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
 COMMITLINT_SOURCE ?= $(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last)#vv #~~ which message `commitlint` reads
-COMMITLINT_FLAGS  ?= $(if $(_DEBUG),--verbose) $(if $(_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
+COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
 
 _ANALYZER_NAMES  += commitlint
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
@@ -878,7 +878,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint),) # eslint
 ESLINT        ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
 ESLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint.mjs $(WORKDIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
 ESLINT_CACHE  ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
-ESLINT_FLAGS  ?= --max-warnings 0 $(if $(_DEBUG),--debug) $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
+ESLINT_FLAGS  ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
 
 _ESLINT_OUTPUT := $(WORKDIR)/.cache/eslint.output
 
@@ -928,7 +928,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2),) # markdownlin
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
 MARKDOWNLINT_CONFIG     ?= $(call _config,$(WORKDIR)/conf/markdownlint.mjs $(WORKDIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
-MARKDOWNLINT_FLAGS      ?= $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
+MARKDOWNLINT_FLAGS      ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
 
 _MARKDOWNLINT_VALUE_FLAGS := --config \
@@ -977,7 +977,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/stylelint),) # stylelint
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
 STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.mjs $(WORKDIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
-STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
+STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
 	--cache-strategy \
@@ -1071,7 +1071,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vitest.mjs $(WORKDIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
-VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
+VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
 VITEST_COVERAGE_DIR   ?= $(WORKDIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
 VITEST_MIN_COVERAGE   ?= 100#v #~~ percentage the suite must reach, `0` to collect coverage without a floor
@@ -1229,10 +1229,10 @@ _ANSI_COLOR_BRIGHT_MAGENTA := 95
 _ANSI_COLOR_BRIGHT_CYAN    := 96
 _ANSI_COLOR_BRIGHT_WHITE   := 97
 
-_ANSI_RESET       = $(if $(_NO_ANSI),,\033[0m)
-_ANSI_CLEAR_LINE  = $(if $(_NO_ANSI),,\033[2K)
-_ANSI_HIDE_CURSOR = $(if $(_NO_ANSI),,\033[?25l)
-_ANSI_SHOW_CURSOR = $(if $(_NO_ANSI),,\033[?25h)
+_ANSI_RESET       = $(if $(_IS_NO_ANSI),,\033[0m)
+_ANSI_CLEAR_LINE  = $(if $(_IS_NO_ANSI),,\033[2K)
+_ANSI_HIDE_CURSOR = $(if $(_IS_NO_ANSI),,\033[?25l)
+_ANSI_SHOW_CURSOR = $(if $(_IS_NO_ANSI),,\033[?25h)
 
 _UPPER_normal  := NORMAL
 _UPPER_black   := BLACK
@@ -1454,9 +1454,9 @@ test -f '$(call _host_path,$1)' || { \
 }
 endef
 
-_GROUP_PARALLEL   = $(if $(filter -O%,$(MAKEFLAGS)),,$(_PARALLEL))
-_GROUP_LABELED    = $(and $(_ANNOUNCING),$(ANNOUNCEMENT))
-_SPINNER_SECONDS := 0.15
+_IS_GROUP_PARALLEL  = $(if $(filter -O%,$(MAKEFLAGS)),,$(_IS_PARALLEL))
+_HAS_GROUP_LABEL    = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT))
+_SPINNER_SECONDS   := 0.15
 
 #**
 #* Runs a tool and prints its findings grouped by identifier, failing only when it reported nothing.
@@ -1469,16 +1469,16 @@ _SPINNER_SECONDS := 0.15
 #* returns: void
 #*
 define _group
-label=$(if $(_GROUP_LABELED),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
-live=; $(if $(or $(_GROUP_PARALLEL),$(_NO_ANSI)),,[ -t 1 ] && live=1;) \
-$(if $(_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
-	[ -z "$$live" ] || { $(PRINTF) '$(_ANSI_HIDE_CURSOR)'; trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
-		$(PRINTF) '\r$(if $(_GROUP_LABELED),  )$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
+label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
+has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] && has_spinner=1;) \
+$(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
+	[ -z "$$has_spinner" ] || { $(PRINTF) '$(_ANSI_HIDE_CURSOR)'; trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
+		$(PRINTF) '\r$(if $(_HAS_GROUP_LABEL),  )$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
 	done; done & spinner=$$!; };) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
-	| $(AWK) -v _indent='$(if $(_GROUP_LABELED),$(INDENT),0)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
-$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+	| $(AWK) -v _indent='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
+$(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$has_spinner" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
 exit $$code
 endef
 
@@ -1604,7 +1604,7 @@ endef
 #* returns: string
 #*
 define _color
-$(if $(_NO_ANSI),,\033[$(if $(call _get_modifiers,$2),$(call _get_modifiers,$2);)$(call _get_color,$1,$2)m)
+$(if $(_IS_NO_ANSI),,\033[$(if $(call _get_modifiers,$2),$(call _get_modifiers,$2);)$(call _get_color,$1,$2)m)
 endef
 
 #**
@@ -1695,76 +1695,76 @@ endef
 
 define _DOTENV_AWK
 function fail(message) { gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
-function unquote(value,   quote) {
-	quote = substr(value, 1, 1);
-	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2);
-	return value;
+function unquote(value,    quote) {
+	quote = substr(value, 1, 1)
+	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2)
+	return value
 }
-function interpolate(value,   out, name, start, stop) {
-	out = "";
+function interpolate(value,    out, name, start, stop) {
+	out = ""
 	while ((start = index(value, "$${")) > 0) {
-		stop = index(substr(value, start), "}");
-		if (stop == 0) break;
-		name = substr(value, start + 2, stop - 3);
-		out = out substr(value, 1, start - 1) ((name in ENVIRON) ? ENVIRON[name] : (name in values) ? values[name] : "");
-		value = substr(value, start + stop);
+		stop = index(substr(value, start), "}")
+		if (stop == 0) break
+		name = substr(value, start + 2, stop - 3)
+		out = out substr(value, 1, start - 1) ((name in ENVIRON) ? ENVIRON[name] : (name in values) ? values[name] : "")
+		value = substr(value, start + stop)
 	}
-	return out value;
+	return out value
 }
-function load(path,   line, key, value, quote, continued) {
-	if ((getline line < path) < 0) return 0;
+function load(path,    line, key, value, quote, continued) {
+	if ((getline line < path) < 0) return 0
 	do {
-		sub(/\r$$/, "", line);
-		if (line ~ /^[ \t]*($$|#)/) continue;
-		sub(/^[ \t]*export[ \t]+/, "", line);
-		if (line !~ /^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/) continue;
-		key = line;
-		sub(/[ \t]*=.*$$/, "", key);
-		value = substr(line, index(line, "=") + 1);
-		sub(/^[ \t]+/, "", value);
-		quote = substr(value, 1, 1);
+		sub(/\r$$/, "", line)
+		if (line ~ /^[ \t]*($$|#)/) continue
+		sub(/^[ \t]*export[ \t]+/, "", line)
+		if (line !~ /^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/) continue
+		key = line
+		sub(/[ \t]*=.*$$/, "", key)
+		value = substr(line, index(line, "=") + 1)
+		sub(/^[ \t]+/, "", value)
+		quote = substr(value, 1, 1)
 		if (quote == "\"" || quote == SQ) {
 			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
-				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`");
-				sub(/\r$$/, "", continued);
-				value = value "\n" continued;
+				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`")
+				sub(/\r$$/, "", continued)
+				value = value "\n" continued
 			}
 		} else {
-			sub(/[ \t]+#.*$$/, "", value);
-			sub(/[ \t]+$$/, "", value);
+			sub(/[ \t]+#.*$$/, "", value)
+			sub(/[ \t]+$$/, "", value)
 		}
-		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`");
-		value = unquote(value);
-		if (quote != SQ) value = interpolate(value);
-		if (!(key in values)) order[++count] = key;
-		values[key] = value;
-	} while ((getline line < path) > 0);
-	close(path);
-	return 1;
+		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`")
+		value = unquote(value)
+		if (quote != SQ) value = interpolate(value)
+		if (!(key in values)) order[++count] = key
+		values[key] = value
+	} while ((getline line < path) > 0)
+	close(path)
+	return 1
 }
-function environment(fallback,   value) { value = (_ENV_KEY in ENVIRON) ? ENVIRON[_ENV_KEY] : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
+function environment(fallback,    value) { value = (_ENV_KEY in ENVIRON) ? ENVIRON[_ENV_KEY] : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
 BEGIN {
-	SQ = sprintf("%c", 39);
-	if (!load(_BASE)) load(_BASE ".dist");
-	env = environment(_DEFAULT_ENV);
-	split(_TEST_ENVS, tests, /[ \t]+/);
-	for (i in tests) if (tests[i] == env) is_test = 1;
-	if (!is_test) { load(_BASE ".local"); env = environment(env); }
-	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local"); }
-	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY;
-	values[_ENV_KEY] = env;
+	SQ = sprintf("%c", 39)
+	if (!load(_BASE)) load(_BASE ".dist")
+	env = environment(_DEFAULT_ENV)
+	split(_TEST_ENVS, tests, /[ \t]+/)
+	for (i in tests) if (tests[i] == env) is_test = 1
+	if (!is_test) { load(_BASE ".local"); env = environment(env) }
+	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
+	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
+	values[_ENV_KEY] = env
 	for (i = 1; i <= count; i += 1) {
-		key = order[i];
-		value = values[key];
-		gsub(/\$$/, "$$$$", value);
-		gsub(/#/, "\\#", value);
+		key = order[i]
+		value = values[key]
+		gsub(/\$$/, "$$$$", value)
+		gsub(/#/, "\\#", value)
 		if (value ~ /\n/) {
-			gsub(/\n/, _SEPARATOR, value);
-			printf "define %s ?=%s%s%sendef%s", key, _SEPARATOR, value, _SEPARATOR, _SEPARATOR;
+			gsub(/\n/, _SEPARATOR, value)
+			printf "define %s ?=%s%s%sendef%s", key, _SEPARATOR, value, _SEPARATOR, _SEPARATOR
 		} else {
-			printf "%s ?= %s%s", key, value, _SEPARATOR;
+			printf "%s ?= %s%s", key, value, _SEPARATOR
 		}
-		printf "export %s%s", key, _SEPARATOR;
+		printf "export %s%s", key, _SEPARATOR
 	}
 }
 endef
@@ -1792,393 +1792,393 @@ file_put_contents($$path, preg_replace('/@internal(?: \S+)?$$/m', '@internal ' .
 endef
 
 define _GROUP_AWK_SOURCE
-function repeat(text, times,   out) { out = ""; while (times-- > 0) out = out text; return out }
-function value(record, key,   pattern) {
-	pattern = "\"" key "\"[ \t]*:[ \t]*\"";
-	if (!match(record, pattern)) return "";
-	record = substr(record, RSTART + RLENGTH);
-	if (!match(record, /^([^"\\]|\\.)*/)) return "";
-	return substr(record, RSTART, RLENGTH);
+function repeat(text, times,    out) { out = ""; while (times-- > 0) out = out text; return out }
+function value(record, key,    pattern) {
+	pattern = "\"" key "\"[ \t]*:[ \t]*\""
+	if (!match(record, pattern)) return ""
+	record = substr(record, RSTART + RLENGTH)
+	if (!match(record, /^([^"\\]|\\.)*/)) return ""
+	return substr(record, RSTART, RLENGTH)
 }
 function unescape(text) {
-	gsub(/\\"/, "\"", text);
-	gsub(/\\\//, "/", text);
-	gsub(/\\\\/, "\\", text);
-	return text;
+	gsub(/\\"/, "\"", text)
+	gsub(/\\\//, "/", text)
+	gsub(/\\\\/, "\\", text)
+	return text
 }
 function add(identifier, message) {
-	if (identifier == "" || identifier == "null") return;
-	identifier = unescape(identifier);
-	message = unescape(message);
+	if (identifier == "" || identifier == "null") return
+	identifier = unescape(identifier)
+	message = unescape(message)
 	if (!(identifier in seen)) { seen[identifier] = 1; order[++total] = identifier }
-	count[identifier] += 1;
-	if (example[identifier] == "") example[identifier] = message;
+	count[identifier] += 1
+	if (example[identifier] == "") example[identifier] = message
 }
 BEGIN { if (_identifier != "" && _message != "") RS = "}" }
-{ raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) structured = 1 }
+{ raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) has_structured_output = 1 }
 _identifier == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART, RLENGTH); sub(/^[^ ]* error /, "", token); sub(/:? $$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
 _identifier != "" && _message != "" {
-	pending = pending $$0;
-	quotes = pending;
-	gsub(/\\./, "", quotes);
+	pending = pending $$0
+	quotes = pending
+	gsub(/\\./, "", quotes)
 	if (gsub(/"/, "", quotes) % 2) { pending = pending "}"; next }
-	if (index(pending, "\"suppressedMessages\"")) suppressed = 1;
-	if (!suppressed) add(value(pending, _identifier), value(pending, _message));
-	if (index(pending, "\"errorCount\"")) suppressed = 0;
-	pending = "";
+	if (index(pending, "\"suppressedMessages\"")) is_in_suppressed_messages = 1
+	if (!is_in_suppressed_messages) add(value(pending, _identifier), value(pending, _message))
+	if (index(pending, "\"errorCount\"")) is_in_suppressed_messages = 0
+	pending = ""
 }
 _identifier != "" && _message == "" { buffer = buffer " " $$0 }
 END {
-	pattern = "\"" _identifier "\":[ \t]*\\[";
-	rest = buffer;
+	pattern = "\"" _identifier "\":[ \t]*\\["
+	rest = buffer
 	while (_identifier != "" && _message == "" && match(rest, pattern)) {
-		items = substr(rest, RSTART + RLENGTH);
-		rest = items;
-		sub(/\].*/, "", items);
-		size = split(items, parts, ",");
+		items = substr(rest, RSTART + RLENGTH)
+		rest = items
+		sub(/\].*/, "", items)
+		size = split(items, parts, ",")
 		for (item = 1; item <= size; item += 1) {
-			gsub(/^[ \t]*"|"[ \t]*$$/, "", parts[item]);
-			add(parts[item], "");
+			gsub(/^[ \t]*"|"[ \t]*$$/, "", parts[item])
+			add(parts[item], "")
 		}
 	}
 	for (outer = 1; outer < total; outer += 1)
 		for (inner = 1; inner <= total - outer; inner += 1)
 			if (count[order[inner]] < count[order[inner + 1]]) {
-				swap = order[inner]; order[inner] = order[inner + 1]; order[inner + 1] = swap;
+				swap = order[inner]; order[inner] = order[inner + 1]; order[inner + 1] = swap
 			}
-	padding = repeat(" ", 2 * _indent);
-	if (total == 0 && (_status != 0 || (_identifier != "" && !structured))) {
-		sub(/\n+$$/, "", raw);
-		gsub(/\n/, "\n" padding, raw);
-		if (raw ~ /[^ \t\n]/) printf "%s%s\n", padding, raw;
-		exit _status;
+	padding = repeat(" ", 2 * _indent)
+	if (total == 0 && (_status != 0 || (_identifier != "" && !has_structured_output))) {
+		sub(/\n+$$/, "", raw)
+		gsub(/\n/, "\n" padding, raw)
+		if (raw ~ /[^ \t\n]/) printf "%s%s\n", padding, raw
+		exit _status
 	}
 	if (total == 0) { printf "%s$(call text,✔,$(COLOR_SUCCESS)) $(call text,No findings,$(COLOR_DESCRIPTION))\n", padding; exit }
 	for (position = 1; position <= total; position += 1) {
-		if (length(order[position]) > width) width = length(order[position]);
-		if (length(count[order[position]]) > number_width) number_width = length(count[order[position]]);
-		findings += count[order[position]];
+		if (length(order[position]) > width) width = length(order[position])
+		if (length(count[order[position]]) > number_width) number_width = length(count[order[position]])
+		findings += count[order[position]]
 	}
 	for (position = 1; position <= total; position += 1) {
-		identifier = order[position];
-		message = example[identifier];
+		identifier = order[position]
+		message = example[identifier]
 		printf "%s%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_ERROR))%s", \
 			padding, repeat(" ", number_width - length(count[identifier])), count[identifier], identifier, \
-			(message == "" ? "\n" : repeat(" ", width - length(identifier)) "  ");
-		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", message;
+			(message == "" ? "\n" : repeat(" ", width - length(identifier)) "  ")
+		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", message
 	}
-	printf "%s$(call text,✘,$(COLOR_ERROR)) $(call text,%s %s,$(COLOR_DESCRIPTION))\n", padding, findings, (findings == 1 ? "finding" : "findings");
+	printf "%s$(call text,✘,$(COLOR_ERROR)) $(call text,%s %s,$(COLOR_DESCRIPTION))\n", padding, findings, (findings == 1 ? "finding" : "findings")
 }
 endef
 
 define _HELP_AWK_SOURCE
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
-function repeat(text, count, out) { out = ""; while (count-- > 0) out = out text; return out }
+function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
 function render_url(template, file, line) {
-	if (template == "") return "";
-	gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template);
-	gsub(/\{wslDistro\}/, ENVIRON["WSL_DISTRO_NAME"], template);
-	gsub(/\{file\}/, file, template);
-	gsub(/\{line\}/, line, template);
-	return template;
+	if (template == "") return ""
+	gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template)
+	gsub(/\{wslDistro\}/, ENVIRON["WSL_DISTRO_NAME"], template)
+	gsub(/\{file\}/, file, template)
+	gsub(/\{line\}/, line, template)
+	return template
 }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
-function line_verbosity(verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
+function line_verbosity(    verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
-function render_inline_code(text, out, ansi_open, ansi_close) {
-	ansi_open = ENVIRON["_INLINE_CODE_OPEN"];
-	ansi_close = ENVIRON["_INLINE_CODE_CLOSE"];
-	out = "";
+function render_inline_code(text,    out, ansi_open, ansi_close) {
+	ansi_open = ENVIRON["_INLINE_CODE_OPEN"]
+	ansi_close = ENVIRON["_INLINE_CODE_CLOSE"]
+	out = ""
 	while (match(text, /`[^`]+`/)) {
-		out = out substr(text, 1, RSTART - 1) ansi_open substr(text, RSTART + 1, RLENGTH - 2) ansi_close;
-		text = substr(text, RSTART + RLENGTH);
+		out = out substr(text, 1, RSTART - 1) ansi_open substr(text, RSTART + 1, RLENGTH - 2) ansi_close
+		text = substr(text, RSTART + RLENGTH)
 	}
-	return out text;
+	return out text
 }
-function derive_description(documentation, line) {
-	match(documentation, /^[^\n]+/);
-	line = tolower(substr(documentation, RSTART, 1)) substr(documentation, RSTART + 1, RLENGTH - 1);
-	sub(/\.[[:space:]]*$$/, "", line);
-	return line;
+function derive_description(documentation,    line) {
+	match(documentation, /^[^\n]+/)
+	line = tolower(substr(documentation, RSTART, 1)) substr(documentation, RSTART + 1, RLENGTH - 1)
+	sub(/\.[[:space:]]*$$/, "", line)
+	return line
 }
-function expand_make(expr, result, varname, previous) {
-	result = expr;
+function expand_make(expr,    result, varname, previous) {
+	result = expr
 	while (match(result, /\$$[({][A-Za-z0-9_]+[)}]/)) {
-		previous = result;
-		varname = substr(result, RSTART + 2, RLENGTH - 3);
-		result = substr(result, 1, RSTART - 1) (varname in ENVIRON ? ENVIRON[varname] : "") substr(result, RSTART + RLENGTH);
-		if (result == previous) break;
+		previous = result
+		varname = substr(result, RSTART + 2, RLENGTH - 3)
+		result = substr(result, 1, RSTART - 1) (varname in ENVIRON ? ENVIRON[varname] : "") substr(result, RSTART + RLENGTH)
+		if (result == previous) break
 	}
-	return result;
+	return result
 }
-function path_exists(path,   line, found) { found = (getline line < path) >= 0; close(path); return found }
-function eval_wildcard(line,   count, paths, i, path) {
-	count = split(substr(line, index(line, "wildcard") + 9), paths, /[[:space:]]+/);
+function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist }
+function eval_wildcard(line,    count, paths, i, path) {
+	count = split(substr(line, index(line, "wildcard") + 9), paths, /[[:space:]]+/)
 	for (i = 1; i <= count; i += 1) {
-		path = paths[i];
-		if (!index(path, "/")) continue;
-		path = substr(path, index(path, "/"));
-		sub(/[^A-Za-z0-9_.\/-]+$$/, "", path);
-		if (path_exists(ENVIRON["_CURDIR"] path)) return 1;
+		path = paths[i]
+		if (!index(path, "/")) continue
+		path = substr(path, index(path, "/"))
+		sub(/[^A-Za-z0-9_.\/-]+$$/, "", path)
+		if (does_path_exist(ENVIRON["_CURDIR"] path)) return 1
 	}
-	return 0;
+	return 0
 }
-function eval_condition(line, varname) {
-	if (line ~ /^ifneq/ && index(line, "$$(wildcard ")) return eval_wildcard(line);
+function eval_condition(line,    varname) {
+	if (line ~ /^ifneq/ && index(line, "$$(wildcard ")) return eval_wildcard(line)
 	if (match(line, /^ifdef[ \t]+/)) {
-		varname = trim(substr(line, RLENGTH + 1));
-		return (varname in ENVIRON && ENVIRON[varname] != "");
+		varname = trim(substr(line, RLENGTH + 1))
+		return (varname in ENVIRON && ENVIRON[varname] != "")
 	}
-	if (line ~ /^ifndef[ \t]+/) return 1;
-	return eval_ifeq(line);
+	if (line ~ /^ifndef[ \t]+/) return 1
+	return eval_ifeq(line)
 }
-function eval_ifeq(line, op_eq, rest, depth, comma, i, c, arg1, arg2, quote) {
-	if (!match(line, /^ifn?eq[ \t]*/)) return 1;
-	op_eq = (substr(line, 1, 4) == "ifeq");
-	rest = substr(line, RLENGTH + 1);
+function eval_ifeq(line,    op_eq, rest, depth, comma, i, c, arg1, arg2, quote) {
+	if (!match(line, /^ifn?eq[ \t]*/)) return 1
+	op_eq = (substr(line, 1, 4) == "ifeq")
+	rest = substr(line, RLENGTH + 1)
 	if (substr(rest, 1, 1) == "\"" || substr(rest, 1, 1) == SQ) {
-		quote = substr(rest, 1, 1);
-		if (!match(rest, "^" quote "[^" quote "]*" quote "[ \t]+" quote "[^" quote "]*" quote)) return 1;
-		i = index(substr(rest, 2), quote) + 1;
-		arg1 = expand_make(substr(rest, 2, i - 2));
-		rest = substr(rest, i + 1);
-		sub(/^[ \t]+/, "", rest);
-		i = index(substr(rest, 2), substr(rest, 1, 1)) + 1;
-		arg2 = expand_make(substr(rest, 2, i - 2));
-		return op_eq ? (arg1 == arg2) : (arg1 != arg2);
+		quote = substr(rest, 1, 1)
+		if (!match(rest, "^" quote "[^" quote "]*" quote "[ \t]+" quote "[^" quote "]*" quote)) return 1
+		i = index(substr(rest, 2), quote) + 1
+		arg1 = expand_make(substr(rest, 2, i - 2))
+		rest = substr(rest, i + 1)
+		sub(/^[ \t]+/, "", rest)
+		i = index(substr(rest, 2), substr(rest, 1, 1)) + 1
+		arg2 = expand_make(substr(rest, 2, i - 2))
+		return op_eq ? (arg1 == arg2) : (arg1 != arg2)
 	}
-	if (substr(rest, 1, 1) != "(") return 1;
+	if (substr(rest, 1, 1) != "(") return 1
 	for (i = 2; i <= length(rest); i++) {
-		c = substr(rest, i, 1);
-		if (c == "(") depth++;
-		else if (c == ")" && depth > 0) depth--;
-		else if (c == ")") break;
-		else if (c == "," && depth == 0 && !comma) comma = i;
+		c = substr(rest, i, 1)
+		if (c == "(") depth++
+		else if (c == ")" && depth > 0) depth--
+		else if (c == ")") break
+		else if (c == "," && depth == 0 && !comma) comma = i
 	}
-	arg1 = expand_make(trim(substr(rest, 2, comma - 2)));
-	arg2 = expand_make(trim(substr(rest, comma + 1, i - comma - 1)));
-	return op_eq ? (arg1 == arg2) : (arg1 != arg2);
+	arg1 = expand_make(trim(substr(rest, 2, comma - 2)))
+	arg2 = expand_make(trim(substr(rest, comma + 1, i - comma - 1)))
+	return op_eq ? (arg1 == arg2) : (arg1 != arg2)
 }
 function begin_condition(line) {
-	condition_depth++;
-	if (line ~ /^ifndef[ \t]/) is_in_ifndef = 1;
-	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1]);
-	condition_is_active[condition_depth]      = is_parent_active ? eval_condition(line) : 0;
-	condition_branch_matched[condition_depth] = condition_is_active[condition_depth];
+	condition_depth++
+	if (line ~ /^ifndef[ \t]/) is_in_ifndef = 1
+	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1])
+	condition_is_active[condition_depth]      = is_parent_active ? eval_condition(line) : 0
+	condition_branch_matched[condition_depth] = condition_is_active[condition_depth]
 }
-function else_condition(line, else_rest) {
-	if (condition_depth == 0) return;
-	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1]);
-	else_rest = line; sub(/^else[ \t]*/, "", else_rest);
+function else_condition(line,    else_rest) {
+	if (condition_depth == 0) return
+	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1])
+	else_rest = line; sub(/^else[ \t]*/, "", else_rest)
 	if (is_parent_active && else_rest ~ /^(ifeq|ifneq|ifdef|ifndef)[ \t]/) {
-		if (condition_branch_matched[condition_depth]) condition_is_active[condition_depth] = 0;
+		if (condition_branch_matched[condition_depth]) condition_is_active[condition_depth] = 0
 		else {
-			condition_is_active[condition_depth] = eval_condition(else_rest);
-			if (condition_is_active[condition_depth]) condition_branch_matched[condition_depth] = 1;
+			condition_is_active[condition_depth] = eval_condition(else_rest)
+			if (condition_is_active[condition_depth]) condition_branch_matched[condition_depth] = 1
 		}
-	} else if (is_parent_active) condition_is_active[condition_depth] = !condition_branch_matched[condition_depth];
+	} else if (is_parent_active) condition_is_active[condition_depth] = !condition_branch_matched[condition_depth]
 }
-function scope_matches(path, i, f) {
-	if (scope_filter_count == 0) return 1;
-	if (path == "main") return 1;
+function matches_scope(path,    i, f) {
+	if (scope_filter_count == 0) return 1
+	if (path == "main") return 1
 	for (i = 1; i <= scope_filter_count; i += 1) {
-		f = scope_filter[i];
-		if (f == "") continue;
-		if (path == f) return 1;
-		if (index(path, f "/") == 1) return 1;
-		if (index(f, path "/") == 1) return 1;
+		f = scope_filter[i]
+		if (f == "") continue
+		if (path == f) return 1
+		if (index(path, f "/") == 1) return 1
+		if (index(f, path "/") == 1) return 1
 	}
-	return 0;
+	return 0
 }
-function scope_is_target(path, i, f) {
-	if (scope_filter_count == 0) return 1;
+function is_scope_target(path,    i, f) {
+	if (scope_filter_count == 0) return 1
 	for (i = 1; i <= scope_filter_count; i += 1) {
-		f = scope_filter[i];
-		if (f == "") continue;
-		if (path == f) return 1;
-		if (index(path, f "/") == 1) return 1;
+		f = scope_filter[i]
+		if (f == "") continue
+		if (path == f) return 1
+		if (index(path, f "/") == 1) return 1
 	}
-	return 0;
+	return 0
 }
-function scope_v_visible(path) { return scope_verbosity[path] + 0 <= verbosity }
-function scope_has_visible_entries(scope_path, section, idx) {
-	if (!scope_matches(scope_path)) return 0;
-	if (!scope_is_target(scope_path)) return 0;
-	if (!scope_v_visible(scope_path)) return 0;
+function is_scope_visible(path) { return scope_verbosity[path] + 0 <= verbosity }
+function scope_has_visible_entries(scope_path, section,    idx) {
+	if (!matches_scope(scope_path)) return 0
+	if (!is_scope_target(scope_path)) return 0
+	if (!is_scope_visible(scope_path)) return 0
 	for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1)
-		if (section_verbosity[scope_path, section, idx] + 0 <= verbosity) return 1;
-	return 0;
+		if (section_verbosity[scope_path, section, idx] + 0 <= verbosity) return 1
+	return 0
 }
-function push_scope(level, name, verbosity, current, parent_verbosity, parent) {
-	scope_at[level] = (level > 0 && scope_at[level - 1] != "" ? scope_at[level - 1] "/" name : name);
-	scope_depth = level;
-	current = scope_at[level];
-	parent_verbosity = (level > 0 ? scope_verbosity[scope_at[level - 1]] + 0 : 0);
-	scope_verbosity[current] = (verbosity > parent_verbosity ? verbosity : parent_verbosity);
-	if (current in seen_scope) return;
-	seen_scope[current] = 1;
-	parent = (level > 0 ? scope_at[level - 1] : "");
+function push_scope(level, name, verbosity,    current, parent_verbosity, parent) {
+	scope_at[level] = (level > 0 && scope_at[level - 1] != "" ? scope_at[level - 1] "/" name : name)
+	scope_depth = level
+	current = scope_at[level]
+	parent_verbosity = (level > 0 ? scope_verbosity[scope_at[level - 1]] + 0 : 0)
+	scope_verbosity[current] = (verbosity > parent_verbosity ? verbosity : parent_verbosity)
+	if (current in seen_scope) return
+	seen_scope[current] = 1
+	parent = (level > 0 ? scope_at[level - 1] : "")
 	if (parent == "" || parent == "main") {
 		if (parent == "main" && !("main" in seen_scope)) { seen_scope["main"] = 1; top_count += 1; top_order[top_count] = "main" }
-		top_count += 1;
-		top_order[top_count] = current;
+		top_count += 1
+		top_order[top_count] = current
 	} else {
-		child_count[parent] += 1;
-		children[parent, child_count[parent]] = current;
+		child_count[parent] += 1
+		children[parent, child_count[parent]] = current
 	}
 }
-function resolve_scope(current) {
-	current = (scope_depth > 0 ? scope_at[scope_depth] : scope_at[0] != "" ? scope_at[0] : "main");
+function resolve_scope(    current) {
+	current = (scope_depth > 0 ? scope_at[scope_depth] : scope_at[0] != "" ? scope_at[0] : "main")
 	if (current == "main" && !("main" in seen_scope)) { seen_scope["main"] = 1; top_count += 1; top_order[top_count] = "main" }
-	return current;
+	return current
 }
-function add(section, name, text, extra, description, line, current, idx) {
-	current = resolve_scope();
-	if (!current) return;
-	if (name != "" && seen_symbol[current, section, name]++) return;
-	idx = ++section_count[current, section];
-	section_name[current, section, idx] = name;
-	section_text[current, section, idx] = text;
-	section_extra[current, section, idx] = extra;
-	section_description[current, section, idx] = description;
-	section_file[current, section, idx] = FILENAME;
-	section_line[current, section, idx] = line;
-	section_verbosity[current, section, idx] = line_verbosity();
+function add(section, name, text, extra, description, line,    current, idx) {
+	current = resolve_scope()
+	if (!current) return
+	if (name != "" && seen_symbol[current, section, name]++) return
+	idx = ++section_count[current, section]
+	section_name[current, section, idx] = name
+	section_text[current, section, idx] = text
+	section_extra[current, section, idx] = extra
+	section_description[current, section, idx] = description
+	section_file[current, section, idx] = FILENAME
+	section_line[current, section, idx] = line
+	section_verbosity[current, section, idx] = line_verbosity()
 }
-function handle_define(documentation, description) {
-	if ($$2 ~ /^_/) return;
+function handle_define(documentation,    description) {
+	if ($$2 ~ /^_/) return
 	if ($$2 ~ /^[A-Z][A-Z0-9_]*$$/) {
-		add("variables", $$2, "(macro)", (is_in_ifndef ? "?=" : ":="), get_description(), FNR);
+		add("variables", $$2, "(macro)", (is_in_ifndef ? "?=" : ":="), get_description(), FNR)
 	} else {
-		description = get_description();
-		if (documentation != "") add("functions", $$2, documentation, (description != "" ? description : derive_description(documentation)), "", FNR);
-		else add("functions", $$2, "", description, "", FNR);
+		description = get_description()
+		if (documentation != "") add("functions", $$2, documentation, (description != "" ? description : derive_description(documentation)), "", FNR)
+		else add("functions", $$2, "", description, "", FNR)
 	}
 }
-function has_content(scope_path, section, idx) {
-	if (!scope_matches(scope_path)) return 0;
-	if (scope_has_visible_entries(scope_path, section)) return 1;
+function has_content(scope_path, section,    idx) {
+	if (!matches_scope(scope_path)) return 0
+	if (scope_has_visible_entries(scope_path, section)) return 1
 	for (idx = 1; idx <= child_count[scope_path]; idx += 1)
-		if (has_content(children[scope_path, idx], section)) return 1;
-	return 0;
+		if (has_content(children[scope_path, idx], section)) return 1
+	return 0
 }
 function has_any_content(scope_path) {
 	return has_content(scope_path, "description") || has_content(scope_path, "variables") \
-		|| has_content(scope_path, "functions") || has_content(scope_path, "commands");
+		|| has_content(scope_path, "functions") || has_content(scope_path, "commands")
 }
-function lowest_verbosity(scope_path, shown, level) {
-	shown = verbosity;
+function lowest_verbosity(scope_path,    shown, level) {
+	shown = verbosity
 	for (level = 0; level <= max_verbosity; level += 1) { verbosity = level; if (has_any_content(scope_path)) break }
-	verbosity = shown;
-	return (level <= max_verbosity ? level : -1);
+	verbosity = shown
+	return (level <= max_verbosity ? level : -1)
 }
-function tree_max(scope_path, depth, section, mode, best, idx, width, child_width, value) {
-	if (!scope_matches(scope_path)) return 0;
-	if (scope_v_visible(scope_path) && scope_is_target(scope_path)) {
+function tree_max(scope_path, depth, section, mode,    best, idx, width, child_width, value) {
+	if (!matches_scope(scope_path)) return 0
+	if (is_scope_visible(scope_path) && is_scope_target(scope_path)) {
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue;
-			if (mode == "value" && section_description[scope_path, section, idx] == "") continue;
-			value = section_text[scope_path, section, idx];
-			if (mode == "value" && ENVIRON["_RESOLVE"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]]);
-			width = (mode == "value") ? length(value) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx]);
-			if (width > best) best = width;
+			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue
+			if (mode == "value" && section_description[scope_path, section, idx] == "") continue
+			value = section_text[scope_path, section, idx]
+			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]])
+			width = (mode == "value") ? length(value) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx])
+			if (width > best) best = width
 		}
 	}
 	for (idx = 1; idx <= child_count[scope_path]; idx += 1) {
-		child_width = tree_max(children[scope_path, idx], depth + 1, section, mode);
-		if (child_width > best) best = child_width;
+		child_width = tree_max(children[scope_path, idx], depth + 1, section, mode)
+		if (child_width > best) best = child_width
 	}
-	return best;
+	return best
 }
-function walk(scope_path, depth, section, column, render_scope, padding, width, format, idx, entry, text, extra, description, count, lines, line_idx, blank, function_printed) {
-	if (!scope_matches(scope_path)) return;
-	if (!has_content(scope_path, section)) return;
+function walk(scope_path, depth, section, column,    render_scope, padding, width, format, idx, entry, text, extra, description, count, lines, line_idx, has_pending_blank, was_function_printed) {
+	if (!matches_scope(scope_path)) return
+	if (!has_content(scope_path, section)) return
 	if (scope_path != "main") {
-		printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", (depth + 1) * ENVIRON["INDENT"]), leaf(scope_path);
+		printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", (depth + 1) * ENVIRON["INDENT"]), leaf(scope_path)
 	}
-	render_scope = scope_has_visible_entries(scope_path, section);
+	render_scope = scope_has_visible_entries(scope_path, section)
 	if (render_scope) {
-		padding = repeat(" ", (depth + 2) * ENVIRON["INDENT"]);
-		width = column - (depth + 2) * ENVIRON["INDENT"];
+		padding = repeat(" ", (depth + 2) * ENVIRON["INDENT"])
+		width = column - (depth + 2) * ENVIRON["INDENT"]
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue;
-			entry = section_name[scope_path, section, idx];
-			text = section_text[scope_path, section, idx];
-			extra = section_extra[scope_path, section, idx];
-			description = section_description[scope_path, section, idx];
-			if (section == "variables" && ENVIRON["_RESOLVE"] != "" && entry in ENVIRON) text = trim(ENVIRON[entry]);
-			if (section == "variables") description = render_inline_code(description);
-			else if (section == "commands") text = render_inline_code(text);
-			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text); }
-			else if (section == "description") text = render_inline_code(text);
-			file = section_file[scope_path, section, idx];
-			line = section_line[scope_path, section, idx];
-			if (file != "" && file !~ /^\//) file = ENVIRON["_CURDIR"] "/" file;
+			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue
+			entry = section_name[scope_path, section, idx]
+			text = section_text[scope_path, section, idx]
+			extra = section_extra[scope_path, section, idx]
+			description = section_description[scope_path, section, idx]
+			if (section == "variables" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && entry in ENVIRON) text = trim(ENVIRON[entry])
+			if (section == "variables") description = render_inline_code(description)
+			else if (section == "commands") text = render_inline_code(text)
+			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text) }
+			else if (section == "description") text = render_inline_code(text)
+			file = section_file[scope_path, section, idx]
+			line = section_line[scope_path, section, idx]
+			if (file != "" && file !~ /^\//) file = ENVIRON["_CURDIR"] "/" file
 			if (ENVIRON["_WORKDIR"] != ENVIRON["_CURDIR"] && index(file, ENVIRON["_WORKDIR"] "/") == 1) \
-				file = ENVIRON["_CURDIR"] substr(file, length(ENVIRON["_WORKDIR"]) + 1);
-			template = ENVIRON["EDITOR_URL"];
+				file = ENVIRON["_CURDIR"] substr(file, length(ENVIRON["_WORKDIR"]) + 1)
+			template = ENVIRON["EDITOR_URL"]
 			if (template == "" && ENVIRON["_EDITOR"] == "vscode")
-				template = ENVIRON["WSL_DISTRO_NAME"] != "" ? ENVIRON["_EDITOR_URL_VSCODE_WSL"] : ENVIRON["_EDITOR_URL_VSCODE"];
-			else if (template == "" && ENVIRON["_EDITOR"] == "phpstorm") template = ENVIRON["_EDITOR_URL_PHPSTORM"];
-			url = render_url(template, file, line);
-			hyperlink = "";
-			hyperlink_end = "";
-			if (url != "" && !ENVIRON["_NO_ANSI"]) {
-				hyperlink = "\033]8;;" url "\033\\";
-				hyperlink_end = "\033]8;;\033\\";
+				template = ENVIRON["WSL_DISTRO_NAME"] != "" ? ENVIRON["_EDITOR_URL_VSCODE_WSL"] : ENVIRON["_EDITOR_URL_VSCODE"]
+			else if (template == "" && ENVIRON["_EDITOR"] == "phpstorm") template = ENVIRON["_EDITOR_URL_PHPSTORM"]
+			url = render_url(template, file, line)
+			hyperlink = ""
+			hyperlink_end = ""
+			if (url != "" && !ENVIRON["_IS_NO_ANSI"]) {
+				hyperlink = "\033]8;;" url "\033\\"
+				hyperlink_end = "\033]8;;\033\\"
 			}
-			entry_linked = hyperlink entry hyperlink_end;
-			entry_pad = width - length(entry);
-			if (entry_pad < 0) entry_pad = 0;
-			entry_padded = entry_linked repeat(" ", entry_pad);
+			entry_linked = hyperlink entry hyperlink_end
+			entry_pad = width - length(entry)
+			if (entry_pad < 0) entry_pad = 0
+			entry_padded = entry_linked repeat(" ", entry_pad)
 			if (section == "variables") {
 				if (description != "") {
-					if (length(text) > description_column) text = substr(text, 1, description_column - 1) "…";
-					format = sprintf("%2s  %-" description_column "s", extra, text);
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description;
+					if (length(text) > description_column) text = substr(text, 1, description_column - 1) "…"
+					format = sprintf("%2s  %-" description_column "s", extra, text)
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra, text;
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra, text
 				}
 			} else if (section == "commands") {
-				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, text;
+				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, text
 			} else if (section == "functions") {
-				if (function_printed && verbosity >= 2 && text != "") printf "\n";
-				function_printed = (text != "" && verbosity >= 2);
+				if (was_function_printed && verbosity >= 2 && text != "") printf "\n"
+				was_function_printed = (text != "" && verbosity >= 2)
 				if (extra != "" && (verbosity < 2 || text == "")) {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra;
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))\n", padding, entry_linked;
+					printf "%s$(call text,%s,$(COLOR_ENTRY))\n", padding, entry_linked
 				}
 				if (verbosity >= 2 && text != "") {
-					count = split(text, lines, "\n");
-					blank = 0;
+					count = split(text, lines, "\n")
+					has_pending_blank = 0
 					for (line_idx = 1; line_idx <= count; line_idx += 1) {
-						if (lines[line_idx] == "") { if (verbosity < 3) break; blank = 1; continue }
-						if (blank) { printf "\n"; blank = 0 }
-						printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding " ", lines[line_idx];
+						if (lines[line_idx] == "") { if (verbosity < 3) break; has_pending_blank = 1; continue }
+						if (has_pending_blank) { printf "\n"; has_pending_blank = 0 }
+						printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding " ", lines[line_idx]
 					}
 				}
 			} else {
-				printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding, text;
+				printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", padding, text
 			}
 		}
 	}
 	for (idx = 1; idx <= child_count[scope_path]; idx += 1) {
-		if (!has_content(children[scope_path, idx], section)) continue;
-		walk(children[scope_path, idx], depth + 1, section, column);
+		if (!has_content(children[scope_path, idx], section)) continue
+		walk(children[scope_path, idx], depth + 1, section, column)
 	}
 }
-function print_section(has_previous, section, label, column, top_idx, top_path, found, needs_separator) {
+function print_section(has_previous, section, label, column,    top_idx, top_path, found, needs_separator) {
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
-		top_path = top_order[top_idx];
-		if (!has_content(top_path, section)) continue;
+		top_path = top_order[top_idx]
+		if (!has_content(top_path, section)) continue
 		if (!found++) { if (has_previous) printf "\n"; printf "$(call text,%s,$(COLOR_SECTION_LABEL))\n", label }
-		else if (needs_separator) printf "\n";
-		walk(top_path, 0, section, column);
-		needs_separator = (section == "functions" && verbosity >= 2);
+		else if (needs_separator) printf "\n"
+		walk(top_path, 0, section, column)
+		needs_separator = (section == "functions" && verbosity >= 2)
 	}
-	return found + 0;
+	return found + 0
 }
 BEGIN { SQ = sprintf("%c", 39); verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
 current_file != FILENAME { current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = 0; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
@@ -2198,137 +2198,137 @@ is_in_documentation {
 /^define[[:space:]]+/ { handle_define(""); is_in_define = 1; next }
 /^#!!/ { sub(/^#!![ ]*/, ""); add("description", "", strip_verbosity($$0), "", "", FNR); next }
 /^[A-Za-z0-9_]+[ \t]*[?:+!]*=/ {
-	line_number = FNR;
-	var_source = $$0;
-	var_description = "";
+	line_number = FNR
+	var_source = $$0
+	var_description = ""
 	if (match(var_source, /#~~[ ]*/)) {
-		var_description = trim(strip_verbosity(substr(var_source, RSTART + RLENGTH)));
-		var_source = substr(var_source, 1, RSTART - 1);
+		var_description = trim(strip_verbosity(substr(var_source, RSTART + RLENGTH)))
+		var_source = substr(var_source, 1, RSTART - 1)
 	}
-	match(var_source, /^[A-Za-z0-9_]+/);
-	var_name = substr(var_source, RSTART, RLENGTH);
-	var_rest = substr(var_source, RSTART + RLENGTH);
-	match(var_rest, /^[ \t]*[?:+!]*=/);
-	var_operator = substr(var_rest, RSTART, RLENGTH);
-	gsub(/[ \t]/, "", var_operator);
+	match(var_source, /^[A-Za-z0-9_]+/)
+	var_name = substr(var_source, RSTART, RLENGTH)
+	var_rest = substr(var_source, RSTART + RLENGTH)
+	match(var_rest, /^[ \t]*[?:+!]*=/)
+	var_operator = substr(var_rest, RSTART, RLENGTH)
+	gsub(/[ \t]/, "", var_operator)
 	if (var_name !~ /^_/) {
-		raw = substr(var_source, index(var_source, "=") + 1);
+		raw = substr(var_source, index(var_source, "=") + 1)
 		while (raw ~ /\\[ \t]*$$/) {
-			sub(/[ \t]*\\[ \t]*$$/, "", raw);
-			if ((getline continuation) <= 0) break;
-			sub(/^[ \t]+/, "", continuation);
+			sub(/[ \t]*\\[ \t]*$$/, "", raw)
+			if ((getline continuation) <= 0) break
+			sub(/^[ \t]+/, "", continuation)
 			if (match(continuation, /#~~[ ]*/)) {
 				if (var_description == "")
-					var_description = trim(strip_verbosity(substr(continuation, RSTART + RLENGTH)));
-				continuation = substr(continuation, 1, RSTART - 1);
-				sub(/[ \t]*\\[ \t]*$$/, "", continuation);
-				if (continuation != "") raw = raw " " continuation;
-				break;
+					var_description = trim(strip_verbosity(substr(continuation, RSTART + RLENGTH)))
+				continuation = substr(continuation, 1, RSTART - 1)
+				sub(/[ \t]*\\[ \t]*$$/, "", continuation)
+				if (continuation != "") raw = raw " " continuation
+				break
 			}
-			raw = raw " " continuation;
+			raw = raw " " continuation
 		}
-		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number);
+		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number)
 	}
-	next;
+	next
 }
 function target_name(name) { return (name in resolved_name) ? resolved_name[name] : ENVIRON["_TARGET_PREFIX"] name }
 { while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) $$0 = substr($$0, 1, RSTART - 1) target_name(substr($$0, RSTART + 15, RLENGTH - 16)) substr($$0, RSTART + RLENGTH) }
 { gsub(/\$$\(_TARGET_PREFIX\)/, ENVIRON["_TARGET_PREFIX"]) }
 
 /^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ {
-	split($$0, parts, ":");
-	description = get_description();
-	count = split(parts[1], names, /[ \t]+/);
-	joined_commands = "";
+	split($$0, parts, ":")
+	description = get_description()
+	count = split(parts[1], names, /[ \t]+/)
+	joined_commands = ""
 	for (i = 1; i <= count; i += 1) {
-		name = names[i];
-		if (name == "" || name ~ /^[_\.]/) continue;
-		if (name in command_seen) continue;
-		command_seen[name] = 1;
-		joined_commands = (joined_commands == "" ? name : joined_commands "/" name);
+		name = names[i]
+		if (name == "" || name ~ /^[_\.]/) continue
+		if (name in command_seen) continue
+		command_seen[name] = 1
+		joined_commands = (joined_commands == "" ? name : joined_commands "/" name)
 	}
-	if (joined_commands != "") add("commands", joined_commands, description, "", "", FNR);
-	next;
+	if (joined_commands != "") add("commands", joined_commands, description, "", "", FNR)
+	next
 }
 END {
 	if (ENVIRON["_EDITOR_UNKNOWN"] != "") {
-		editor_count = split(ENVIRON["_EDITORS"], editor_names, " ");
-		editor_choices = "";
+		editor_count = split(ENVIRON["_EDITORS"], editor_names, " ")
+		editor_choices = ""
 		for (editor_idx = 1; editor_idx <= editor_count; editor_idx += 1)
-			editor_choices = editor_choices (editor_idx == 1 ? "" : "|") editor_names[editor_idx];
-		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown editor \"$(call text,%s,$(COLOR_WARNING))\".\n", ENVIRON["_EDITOR_UNKNOWN"];
-		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run with \"$(call text,EDITOR=<%s>,$(MODIFIER_UNDERLINE))\" or \"$(call text,EDITOR=,$(MODIFIER_UNDERLINE))\" to disable.\n", editor_choices;
-		exit $(BRNSHKR_CONFIG_ERROR_CODE);
+			editor_choices = editor_choices (editor_idx == 1 ? "" : "|") editor_names[editor_idx]
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown editor \"$(call text,%s,$(COLOR_WARNING))\".\n", ENVIRON["_EDITOR_UNKNOWN"]
+		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run with \"$(call text,EDITOR=<%s>,$(MODIFIER_UNDERLINE))\" or \"$(call text,EDITOR=,$(MODIFIER_UNDERLINE))\" to disable.\n", editor_choices
+		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	for (scope_path in seen_scope)
 		if (!index(scope_path, "/") && (scope_path ~ /^v+$$/ || index(" " ENVIRON["_HELP_WORDS"] " ", " " scope_path " "))) {
-			printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" takes a name that help reserves.\n", scope_path;
-			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Rename it; help reads \"$(call text,%s,$(MODIFIER_UNDERLINE))\" as a word of its own.\n", scope_path;
-			exit $(BRNSHKR_CONFIG_ERROR_CODE);
+			printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" takes a name that help reserves.\n", scope_path
+			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Rename it; help reads \"$(call text,%s,$(MODIFIER_UNDERLINE))\" as a word of its own.\n", scope_path
+			exit $(BRNSHKR_CONFIG_ERROR_CODE)
 		}
-	unknown_filter_count = 0;
+	unknown_filter_count = 0
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
-		filter = scope_filter[filter_idx];
-		if (filter == "") continue;
-		filter_verbosity = lowest_verbosity(filter);
-		if (filter_verbosity >= 0 && filter_verbosity <= verbosity) continue;
-		filter_display = filter; gsub(/\//, ".", filter_display);
-		if (filter_verbosity < 0) unknown_filters[++unknown_filter_count] = filter_display;
+		filter = scope_filter[filter_idx]
+		if (filter == "") continue
+		filter_verbosity = lowest_verbosity(filter)
+		if (filter_verbosity >= 0 && filter_verbosity <= verbosity) continue
+		filter_display = filter; gsub(/\//, ".", filter_display)
+		if (filter_verbosity < 0) unknown_filters[++unknown_filter_count] = filter_display
 		else { printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" shows nothing below %s.\n", filter_display, repeat("v", filter_verbosity); is_hidden = 1 }
 	}
-	if (is_hidden && !unknown_filter_count) exit $(BRNSHKR_CONFIG_ERROR_CODE);
+	if (is_hidden && !unknown_filter_count) exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	if (unknown_filter_count > 0) {
-		unknown_message = "";
+		unknown_message = ""
 		for (filter_idx = 1; filter_idx <= unknown_filter_count; filter_idx += 1) {
-			separator = (filter_idx == 1 ? "" : (filter_idx == unknown_filter_count ? " and " : ", "));
-			unknown_message = unknown_message separator sprintf("\"$(call text,%s,$(COLOR_WARNING))\"", unknown_filters[filter_idx]);
+			separator = (filter_idx == 1 ? "" : (filter_idx == unknown_filter_count ? " and " : ", "))
+			unknown_message = unknown_message separator sprintf("\"$(call text,%s,$(COLOR_WARNING))\"", unknown_filters[filter_idx])
 		}
-		unknown_label = (unknown_filter_count == 1 ? "scope" : "scopes");
-		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown %s %s.\n", unknown_label, unknown_message;
-		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run \"$(call text,make help list-scopes,$(MODIFIER_UNDERLINE))\" or \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.\n";
-		exit $(BRNSHKR_CONFIG_ERROR_CODE);
+		unknown_label = (unknown_filter_count == 1 ? "scope" : "scopes")
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown %s %s.\n", unknown_label, unknown_message
+		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run \"$(call text,make help list-scopes,$(MODIFIER_UNDERLINE))\" or \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.\n"
+		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
-	if (ENVIRON["_LIST_SCOPES"]) {
-		listed_count = 0;
+	if (ENVIRON["_HAS_LIST_SCOPES_ARGUMENT"]) {
+		listed_count = 0
 		for (scope_path in seen_scope) {
-			if (scope_path == "main") continue;
-			if (!scope_matches(scope_path)) continue;
-			if (!scope_is_target(scope_path) && scope_filter_count > 0) continue;
-			if (!has_any_content(scope_path)) continue;
-			listed_paths[++listed_count] = scope_path;
+			if (scope_path == "main") continue
+			if (!matches_scope(scope_path)) continue
+			if (!is_scope_target(scope_path) && scope_filter_count > 0) continue
+			if (!has_any_content(scope_path)) continue
+			listed_paths[++listed_count] = scope_path
 		}
 		for (sort_idx = 2; sort_idx <= listed_count; sort_idx += 1) {
-			current_path = listed_paths[sort_idx]; compare_idx = sort_idx - 1;
+			current_path = listed_paths[sort_idx]; compare_idx = sort_idx - 1
 			while (compare_idx >= 1 && listed_paths[compare_idx] > current_path) {
-				listed_paths[compare_idx + 1] = listed_paths[compare_idx];
-				compare_idx -= 1;
+				listed_paths[compare_idx + 1] = listed_paths[compare_idx]
+				compare_idx -= 1
 			}
-			listed_paths[compare_idx + 1] = current_path;
+			listed_paths[compare_idx + 1] = current_path
 		}
 		for (listed_idx = 1; listed_idx <= listed_count; listed_idx += 1) {
-			gsub(/\//, ".", listed_paths[listed_idx]);
-			print listed_paths[listed_idx];
+			gsub(/\//, ".", listed_paths[listed_idx])
+			print listed_paths[listed_idx]
 		}
-		exit 0;
+		exit 0
 	}
-	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = "";
+	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
 	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
-	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset;
-	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"];
-	printf "%s\n", ENVIRON["_HEADER_USAGE"];
+	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset
+	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"]
+	printf "%s\n", ENVIRON["_HEADER_USAGE"]
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
-		top_path = top_order[top_idx];
-		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column;
-		column = tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column;
-		if (description_column > ENVIRON["VALUE_WIDTH"] + 0) description_column = ENVIRON["VALUE_WIDTH"] + 0;
-		column = tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column;
-		column = tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column;
+		top_path = top_order[top_idx]
+		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
+		column = tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column
+		if (description_column > ENVIRON["VALUE_WIDTH"] + 0) description_column = ENVIRON["VALUE_WIDTH"] + 0
+		column = tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column
+		column = tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column
 	}
-	has_printed = 1;
-	has_printed += print_section(has_printed, "description", "Description:", 0);
-	has_printed += print_section(has_printed, "variables", "Variables:", variable_column);
-	has_printed += print_section(has_printed, "functions", "Functions:", function_column);
-	has_printed += print_section(has_printed, "commands", "Available commands:", command_column);
+	has_printed = 1
+	has_printed += print_section(has_printed, "description", "Description:", 0)
+	has_printed += print_section(has_printed, "variables", "Variables:", variable_column)
+	has_printed += print_section(has_printed, "functions", "Functions:", function_column)
+	has_printed += print_section(has_printed, "commands", "Available commands:", command_column)
 }
 endef
 

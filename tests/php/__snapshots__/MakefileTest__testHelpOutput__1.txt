@@ -487,9 +487,9 @@ Variables:
    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                     ?=  0.0.0-dev                                        (package version)
    DEBUG                       ?=                                                   (whether the commands are echoed before they run)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)
+   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                       ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                ?=  $(if $(_TRACE),,@)                               (prefix for a guard command)
+   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -725,9 +725,9 @@ Variables:
    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                     ?=  0.0.0-dev                                        (package version)
    DEBUG                       ?=                                                   (whether the commands are echoed before they run)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)
+   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                       ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                ?=  $(if $(_TRACE),,@)                               (prefix for a guard command)
+   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1176,9 +1176,9 @@ Variables:
    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                     ?=  0.0.0-dev                                        (package version)
    DEBUG                       ?=                                                   (whether the commands are echoed before they run)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)
+   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                       ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                ?=  $(if $(_TRACE),,@)                               (prefix for a guard command)
+   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1415,9 +1415,9 @@ Variables:
    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                     ?=  0.0.0-dev                                        (package version)
    DEBUG                       ?=                                                   (whether the commands are echoed before they run)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)
+   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                       ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                ?=  $(if $(_TRACE),,@)                               (prefix for a guard command)
+   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1653,9 +1653,9 @@ Variables:
    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                     ?=  0.0.0-dev                                        (package version)
    DEBUG                       ?=                                                   (whether the commands are echoed before they run)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)
+   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                       ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                ?=  $(if $(_TRACE),,@)                               (prefix for a guard command)
+   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1972,9 +1972,9 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:185\PACKAGE]8;;\                   [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [36m]8;;vscode://file/./conf/Makefile:186\VERSION]8;;\                   [0m  [90m?=  0.0.0-dev                                        (package version)[0m
    [36m]8;;vscode://file/./conf/Makefile:189\DEBUG]8;;\                     [0m  [90m?=                                                   (whether the commands are echoed before they run)[0m
-   [36m]8;;vscode://file/./conf/Makefile:190\DEBUG_PREFIX]8;;\              [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)[0m
+   [36m]8;;vscode://file/./conf/Makefile:190\DEBUG_PREFIX]8;;\              [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [36m]8;;vscode://file/./conf/Makefile:193\TRACE]8;;\                     [0m  [90m?=                                                   (whether the guards are echoed too, which [35mDEBUG[0m[90m leaves out)[0m
-   [36m]8;;vscode://file/./conf/Makefile:194\TRACE_PREFIX]8;;\              [0m  [90m?=  $(if $(_TRACE),,@)                               (prefix for a guard command)[0m
+   [36m]8;;vscode://file/./conf/Makefile:194\TRACE_PREFIX]8;;\              [0m  [90m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
    [36m]8;;vscode://file/./conf/Makefile:197\ANNOUNCEMENT]8;;\              [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
    [36m]8;;vscode://file/./conf/Makefile:208\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [35mtheming[0m
@@ -2210,9 +2210,9 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:185\PACKAGE]8;;\                   [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [32m]8;;vscode://file/./conf/Makefile:186\VERSION]8;;\                   [0m  [0m?=  0.0.0-dev                                        (package version)[0m
    [32m]8;;vscode://file/./conf/Makefile:189\DEBUG]8;;\                     [0m  [0m?=                                                   (whether the commands are echoed before they run)[0m
-   [32m]8;;vscode://file/./conf/Makefile:190\DEBUG_PREFIX]8;;\              [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_DEBUG),$(_TRACE)),,@)   (prefix for a command)[0m
+   [32m]8;;vscode://file/./conf/Makefile:190\DEBUG_PREFIX]8;;\              [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [32m]8;;vscode://file/./conf/Makefile:193\TRACE]8;;\                     [0m  [0m?=                                                   (whether the guards are echoed too, which [33mDEBUG[0m[0m leaves out)[0m
-   [32m]8;;vscode://file/./conf/Makefile:194\TRACE_PREFIX]8;;\              [0m  [0m?=  $(if $(_TRACE),,@)                               (prefix for a guard command)[0m
+   [32m]8;;vscode://file/./conf/Makefile:194\TRACE_PREFIX]8;;\              [0m  [0m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
    [32m]8;;vscode://file/./conf/Makefile:197\ANNOUNCEMENT]8;;\              [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
    [32m]8;;vscode://file/./conf/Makefile:208\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [33mtheming[0m
