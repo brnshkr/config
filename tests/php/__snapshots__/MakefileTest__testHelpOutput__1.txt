@@ -2079,7 +2079,7 @@ Available commands:
 [35mFunctions:[0m
  [35mbrnshkr[0m
   [35mhelpers[0m
-   [36m]8;;vscode://file/./conf/Makefile:1257\text]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1260\text]8;;\[0m
     [90mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [90mThe color and the modifiers may be given together or apart.[0m
 
@@ -2090,7 +2090,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1539\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1543\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label, rendering anything in backticks as[0m
     [90minline code. The message is a [35mprintf[0m[90m format, so a value goes in as an argument rather than[0m
     [90mbeing pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2317,7 +2317,7 @@ Available commands:
 [33mFunctions:[0m
  [33mbrnshkr[0m
   [33mhelpers[0m
-   [32m]8;;vscode://file/./conf/Makefile:1257\text]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1260\text]8;;\[0m
     [0mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [0mThe color and the modifiers may be given together or apart.[0m
 
@@ -2328,7 +2328,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1539\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1543\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label, rendering anything in backticks as[0m
     [0minline code. The message is a [33mprintf[0m[0m format, so a value goes in as an argument rather than[0m
     [0mbeing pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m

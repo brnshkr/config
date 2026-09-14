@@ -918,7 +918,7 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString("✘ 1 finding\n", $this->runMake(['group-single'], directory: $directory));
         self::assertStringContainsString("✔ No findings\n", $this->runMake(['group-clean'], directory: $directory));
         self::assertStringContainsString(
-            "  9  acme.frequent  Frequent finding.\n  1  acme.rare      Rare finding.\n  ✘ 10 findings\n",
+            "9  acme.frequent  Frequent finding.\n1  acme.rare      Rare finding.\n✘ 10 findings\n",
             $this->runMake(['group-wide'], directory: $directory),
         );
     }
@@ -927,7 +927,7 @@ final class MakefileTest extends TestCase
     {
         $output = $this->runMake(['group-pairs'], directory: __DIR__ . '/Fixtures/Make/Group');
 
-        self::assertStringStartsWith('  2  acme.first', $output);
+        self::assertStringStartsWith('2  acme.first', $output);
         self::assertStringNotContainsString('Running', $output);
     }
 

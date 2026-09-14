@@ -1229,7 +1229,10 @@ _ANSI_COLOR_BRIGHT_MAGENTA := 95
 _ANSI_COLOR_BRIGHT_CYAN    := 96
 _ANSI_COLOR_BRIGHT_WHITE   := 97
 
-_ANSI_RESET  = $(if $(_NO_ANSI),,\033[0m)
+_ANSI_RESET       = $(if $(_NO_ANSI),,\033[0m)
+_ANSI_CLEAR_LINE  = $(if $(_NO_ANSI),,\033[2K)
+_ANSI_HIDE_CURSOR = $(if $(_NO_ANSI),,\033[?25l)
+_ANSI_SHOW_CURSOR = $(if $(_NO_ANSI),,\033[?25h)
 
 _UPPER_normal  := NORMAL
 _UPPER_black   := BLACK
@@ -1452,6 +1455,7 @@ test -f '$(call _host_path,$1)' || { \
 endef
 
 _GROUP_PARALLEL   = $(if $(filter -O%,$(MAKEFLAGS)),,$(_PARALLEL))
+_GROUP_LABELED    = $(and $(_ANNOUNCING),$(ANNOUNCEMENT))
 _SPINNER_SECONDS := 0.15
 
 #**
@@ -1465,16 +1469,16 @@ _SPINNER_SECONDS := 0.15
 #* returns: void
 #*
 define _group
-label=$(if $(and $(_ANNOUNCING),$(ANNOUNCEMENT)),$$($(call log,`%s`,$(COLOR_NOTICE),'$(patsubst %-group,%,$@)'))); \
+label=$(if $(_GROUP_LABELED),$$($(call log,`%s`,$(COLOR_NOTICE),'$(patsubst %-group,%,$@)'))); \
 live=; $(if $(or $(_GROUP_PARALLEL),$(_NO_ANSI)),,[ -t 1 ] && live=1;) \
 $(if $(_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
-	[ -z "$$live" ] || { trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r\033[2K"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
-		$(PRINTF) '\r  $(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
+	[ -z "$$live" ] || { $(PRINTF) '$(_ANSI_HIDE_CURSOR)'; trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
+		$(PRINTF) '\r$(if $(_GROUP_LABELED),  )$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
 	done; done & spinner=$$!; };) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
-	| $(AWK) -v _indent='$(INDENT)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
-$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r\033[2K'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+	| $(AWK) -v _indent='$(if $(_GROUP_LABELED),$(INDENT),0)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
+$(if $(_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$live" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
 exit $$code
 endef
 
