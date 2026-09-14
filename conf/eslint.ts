@@ -11,7 +11,7 @@ const isInEditor = Boolean(import.meta.env?.['VSCODE_PID']
 /* eslint-enable ts/no-unnecessary-condition -- Restore rule */
 
 if (isInEditor) {
-  log('log', `ESLint is running in an editor.`);
+  log(`ESLint is running in an editor.`);
 }
 
 export default getConfig({

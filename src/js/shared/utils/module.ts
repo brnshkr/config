@@ -73,7 +73,6 @@ const warnMissingPackages = (
   type: 'requiredAll' | 'requiredAny',
 ): void => {
   log(
-    'error',
     `Failed resolving required dependencies for module "${
       moduleInfo.name
     }". Please install ${joinAsQuotedList(
@@ -84,7 +83,7 @@ const warnMissingPackages = (
     } module in the config.`,
   );
 
-  log('log', `Run \`bun a -D -E ${packages.join(' ')}\` to install.`);
+  log(`Run \`bun a -D -E ${packages.join(' ')}\` to install.`);
 };
 
 const packageCache: Record<string, unknown> = {};
