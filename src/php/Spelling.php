@@ -66,7 +66,7 @@ final class Spelling
 
     private const int COMMAND_TIMEOUT_SECONDS = 60;
 
-    private const int READ_CHUNK_BYTES = 8192;
+    private const int READ_CHUNK_BYTES = 8_192;
 
     /**
      * Scan a repository and return every finding, sorted by path, line and word.

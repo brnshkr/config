@@ -319,6 +319,9 @@
                 "@all"
             ]
         },
+        "numeric_literal_separator": {
+            "override_existing": true
+        },
         "ordered_interfaces": true,
         "ordered_types": {
             "null_adjustment": "always_last",

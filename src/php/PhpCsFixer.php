@@ -81,7 +81,7 @@ final readonly class PhpCsFixer
      * $config = include __DIR__ . '/php-cs-fixer.dist.php';
      *
      * return PhpCsFixer::from($config)
-     *     ->addRules(['numeric_literal_separator' => true])
+     *     ->addRules(['simplified_null_return' => true])
      *     ->build()
      * ;
      * ```
@@ -103,7 +103,7 @@ final readonly class PhpCsFixer
      * ```php
      * // conf/php-cs-fixer.php
      * return PhpCsFixer::getBuilder()
-     *     ->addRules(['numeric_literal_separator' => true])
+     *     ->addRules(['simplified_null_return' => true])
      *     ->build()
      * ;
      * ```
@@ -222,6 +222,9 @@ final readonly class PhpCsFixer
                 'include' => [
                     '@all',
                 ],
+            ],
+            'numeric_literal_separator' => [
+                'override_existing' => true,
             ],
             'ordered_interfaces' => true,
             'ordered_types'      => [
@@ -467,7 +470,7 @@ final readonly class PhpCsFixer
      *
      * @example
      * ```php
-     * $builder->addRules(['numeric_literal_separator' => true]);
+     * $builder->addRules(['simplified_null_return' => true]);
      * ```
      *
      * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration

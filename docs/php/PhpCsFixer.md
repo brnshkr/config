@@ -20,7 +20,7 @@ Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narro
 
 ```php
 return PhpCsFixer::getBuilder()
-    ->addRules(['numeric_literal_separator' => true])
+    ->addRules(['simplified_null_return' => true])
     ->build()
 ;
 ```
@@ -36,7 +36,7 @@ the repository configured survives. `from()` takes what that file returns:
 $config = include __DIR__ . '/php-cs-fixer.dist.php';
 
 return PhpCsFixer::from($config)
-    ->addRules(['numeric_literal_separator' => true])
+    ->addRules(['simplified_null_return' => true])
     ->build()
 ;
 ```

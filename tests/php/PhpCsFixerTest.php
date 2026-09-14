@@ -23,13 +23,13 @@ final class PhpCsFixerTest extends TestCase
         $baseline = PhpCsFixer::getConfig()->getRules();
 
         $rules = PhpCsFixer::getBuilder()
-            ->addRules(['numeric_literal_separator' => true])
+            ->addRules(['simplified_null_return' => true])
             ->build()
             ->getRules()
         ;
 
         self::assertCount(count($baseline) + 1, $rules);
-        self::assertTrue($rules['numeric_literal_separator'] ?? null);
+        self::assertTrue($rules['simplified_null_return'] ?? null);
     }
 
     public function testARuleGivenAgainOverridesTheBaselineValue(): void
@@ -53,12 +53,12 @@ final class PhpCsFixerTest extends TestCase
     public function testSetRulesReplacesTheBaseline(): void
     {
         $rules = PhpCsFixer::getBuilder()
-            ->setRules(['numeric_literal_separator' => true])
+            ->setRules(['simplified_null_return' => true])
             ->build()
             ->getRules()
         ;
 
-        self::assertSame(['numeric_literal_separator' => true], $rules);
+        self::assertSame(['simplified_null_return' => true], $rules);
     }
 
     public function testRulesAreRemovedByName(): void
@@ -84,13 +84,13 @@ final class PhpCsFixerTest extends TestCase
         $config = PhpCsFixer::getConfig();
 
         $rules = PhpCsFixer::from($config)
-            ->addRules(['numeric_literal_separator' => true])
+            ->addRules(['simplified_null_return' => true])
             ->build()
             ->getRules()
         ;
 
         self::assertCount(count($config->getRules()), $rules);
-        self::assertTrue($rules['numeric_literal_separator'] ?? null);
+        self::assertTrue($rules['simplified_null_return'] ?? null);
     }
 
     public function testTheFinderArgumentNarrowsTheFiles(): void
