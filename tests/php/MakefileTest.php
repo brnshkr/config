@@ -937,8 +937,8 @@ final class MakefileTest extends TestCase
         $verb      = $this->runMake(['groups'], directory: $directory);
         $silenced  = $this->runMake(['groups'], ['ANNOUNCEMENT' => ''], $directory);
 
-        self::assertStringContainsString("[Group] group-pairs\n  2  acme.first", $verb);
-        self::assertStringNotContainsString('Running', $verb);
+        self::assertStringContainsString("[Group] Running group-pairs\n  2  acme.first", $verb);
+        self::assertStringNotContainsString('Running…', $verb);
         self::assertStringNotContainsString('[Group]', $silenced);
     }
 
@@ -946,11 +946,11 @@ final class MakefileTest extends TestCase
     {
         $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/Fixtures/Make/Group');
 
-        self::assertStringContainsString("[Group] group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
-        self::assertStringNotContainsString('Running', $output);
+        self::assertStringContainsString("[Group] Running group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
+        self::assertStringNotContainsString('Running…', $output);
 
         self::assertStringContainsString(
-            "[Group] group-pairs\n  2  acme.first   First finding.\n  1  acme.second  Second finding.\n  ✘ 3 findings\n",
+            "[Group] Running group-pairs\n  2  acme.first   First finding.\n  1  acme.second  Second finding.\n  ✘ 3 findings\n",
             $output,
         );
     }

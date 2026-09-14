@@ -1469,7 +1469,7 @@ _SPINNER_SECONDS := 0.15
 #* returns: void
 #*
 define _group
-label=$(if $(_GROUP_LABELED),$$($(call log,`%s`,$(COLOR_NOTICE),'$(patsubst %-group,%,$@)'))); \
+label=$(if $(_GROUP_LABELED),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
 live=; $(if $(or $(_GROUP_PARALLEL),$(_NO_ANSI)),,[ -t 1 ] && live=1;) \
 $(if $(_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$live" ] || { $(PRINTF) '$(_ANSI_HIDE_CURSOR)'; trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
