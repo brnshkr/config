@@ -3,7 +3,7 @@
 exports[`expected commitlint config 1`] = `
 "{
   extends: [ '@commitlint/config-conventional' ],
-  formatter: './node_modules/@commitlint/format/lib/index.js',
+  formatter: '@commitlint/format',
   parserPreset: {
     name: 'conventional-changelog-conventionalcommits',
     path: './node_modules/conventional-changelog-conventionalcommits/src/index.js',

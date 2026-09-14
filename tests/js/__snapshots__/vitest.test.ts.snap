@@ -2,9 +2,9 @@
 
 exports[`expected vitest config 1`] = `
 {
-  "plugins": [
-    {},
-  ],
+  "resolve": {
+    "tsconfigPaths": true,
+  },
   "test": {
     "exclude": [
       "**/.cache/**",
@@ -24,7 +24,9 @@ exports[`expected vitest config 1`] = `
       "**/.vercel/**",
       "**/.vite-inspect/**",
       "**/.vitepress/cache/**",
+      "**/.vitest/**",
       "**/.yarn/**",
+      "**/__generated__/**",
       "**/__snapshots__/**",
       "**/*.code-search",
       "**/*.example",

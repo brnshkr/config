@@ -100,7 +100,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "<root>/**/.vercel/**",
     "<root>/**/.vite-inspect/**",
     "<root>/**/.vitepress/cache/**",
+    "<root>/**/.vitest/**",
     "<root>/**/.yarn/**",
+    "<root>/**/__generated__/**",
     "<root>/**/__snapshots__/**",
     "<root>/**/*.code-search",
     "<root>/**/*.example",
@@ -121,14 +123,24 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "<root>/**/vite.config.*.timestamp-*",
     "<root>/**/yarn.lock",
   ],
+  "languageOptions": {
+    "directionality": {
+      "block": "top-to-bottom",
+      "inline": "left-to-right",
+    },
+    "syntax": {
+      "atRules": {},
+      "cssWideKeywords": [],
+      "properties": {},
+      "types": {},
+    },
+  },
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
   ],
@@ -1259,6 +1271,13 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         "severity": "error",
       },
     ],
+    "defensive-css/require-grid-minmax": [
+      true,
+      {
+        "fix": true,
+        "severity": "error",
+      },
+    ],
     "defensive-css/require-named-grid-lines": [
       true,
       {
@@ -1372,29 +1391,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "lightness-notation": [
       "percentage",
     ],
-    "logical-css/require-logical-keywords": [
-      true,
-      {
-        "ignore": [
-          "caption-side",
-          "offset-anchor",
-          "offset-position",
-        ],
-        "severity": "error",
-      },
-    ],
-    "logical-css/require-logical-properties": [
-      true,
-      {
-        "severity": "error",
-      },
-    ],
-    "logical-css/require-logical-units": [
-      true,
-      {
-        "severity": "error",
-      },
-    ],
     "max-nesting-depth": [
       3,
     ],
@@ -1498,6 +1494,17 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         },
         {
           "properties": [
+            "columns",
+            "column-width",
+            "column-count",
+            "column-height",
+            "column-wrap",
+            "column-span",
+            "column-fill",
+          ],
+        },
+        {
+          "properties": [
             "flex",
             "flex-grow",
             "flex-shrink",
@@ -1535,6 +1542,14 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "gap",
             "row-gap",
             "column-gap",
+            "column-rule",
+            "column-rule-width",
+            "column-rule-style",
+            "column-rule-color",
+          ],
+        },
+        {
+          "properties": [
             "place-content",
             "place-items",
             "place-self",
@@ -2070,6 +2085,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "transition-timing-function",
             "transition-duration",
             "transition-property",
+            "transition-behavior",
           ],
         },
         {
@@ -2121,6 +2137,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "plugin/use-baseline": [
       true,
     ],
+    "property-layout-mappings": [
+      "flow-relative",
+    ],
     "property-no-deprecated": [
       true,
     ],
@@ -2139,6 +2158,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "property-no-vendor-prefix": [
       true,
+    ],
+    "relative-selector-nesting-notation": [
+      "implicit",
     ],
     "rule-empty-line-before": [
       "always-multi-line",
@@ -2173,6 +2195,15 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "selector-id-pattern": [
       "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
       {},
+    ],
+    "selector-no-deprecated": [
+      true,
+    ],
+    "selector-no-invalid": [
+      true,
+    ],
+    "selector-no-unmatchable": [
+      true,
     ],
     "selector-no-vendor-prefix": [
       true,
@@ -2221,6 +2252,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "syntax-string-no-invalid": [
       true,
     ],
+    "unit-layout-mappings": [
+      "flow-relative",
+    ],
     "unit-no-unknown": [
       true,
     ],
@@ -2232,6 +2266,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
           {},
         ],
       },
+    ],
+    "value-keyword-layout-mappings": [
+      "flow-relative",
     ],
     "value-no-vendor-prefix": [
       true,
@@ -2268,16 +2305,15 @@ exports[`expected stylelint config > config-groups 1`] = `
 
 exports[`expected stylelint config > diff: 2.scss 1`] = `
 {
+  "+_resolvedCustomSyntax": {},
   "+customSyntax": {},
   "+name": "brnshkr/scss",
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/stylelint-scss/src/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
@@ -2617,16 +2653,15 @@ exports[`expected stylelint config > diff: 4.svelte 1`] = `
 
 exports[`expected stylelint config > diff: 5.less 1`] = `
 {
+  "+_resolvedCustomSyntax": {},
   "+customSyntax": {},
   "+name": "brnshkr/less",
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
-    "<root>/node_modules/stylelint-plugin-logical-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
     "<root>/node_modules/stylelint-less/src/index.js",
