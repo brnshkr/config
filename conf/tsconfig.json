@@ -29,6 +29,8 @@
     "${configDir}/**/node_modules/**",
     "${configDir}/**/output/**",
     "${configDir}/**/temp/**",
+    "${configDir}/**/tests/**/Fixtures/**",
+    "${configDir}/**/tests/**/fixtures/**",
     "${configDir}/**/tmp/**",
     "${configDir}/**/vendor/**"
   ],
