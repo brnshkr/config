@@ -26,15 +26,19 @@ build: typegen #~~ builds the `./dist/` this package publishes
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts $(ARGS)
 
 watch: #~~ rebuilds `./dist/` as the sources change
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts --watch
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts --watch $(ARGS)
 
 #--- inspect
 
+# NOTICE: Runs on Node since Bun truncates ESLint's piped output
 inspect-eslint: #~~ runs `eslint-config-inspector`
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) eslint-config-inspector --config $(CURDIR)/conf/eslint.ts
+	$(DEBUG_PREFIX)$(BUN) eslint-config-inspector --config $(CURDIR)/conf/eslint.ts $(ARGS)
+
+inspect-eslint-stats: #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #v
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) inspect-eslint -- --stats $(ARGS)
 
 inspect-modules: #~~ runs `node-modules-inspector`
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector $(ARGS)
 
 #--- hooks
 
@@ -43,18 +47,24 @@ install-hooks: #~~ installs this project's git hooks
 
 #--- mate
 
-MATE := $(CURDIR)/vendor/bin/mate
+MATE             := $(CURDIR)/vendor/bin/mate
+_MATE_EXTENSIONS := $(CURDIR)/mate/extensions.php
 
 discover: #~~ runs mate discover
-	$(DEBUG_PREFIX)$(MATE) discover
-	$(DEBUG_PREFIX)$(MAKE) --no-print-directory php-cs-fixer $(CURDIR)/mate/extensions.php
-	$(DEBUG_PREFIX)$(AWK) '\
-		/This file is managed by/,/^$$/ { next } \
-		/^return/ { print "/**\n * @internal\n */" } \
-		1 \
-	' $(CURDIR)/mate/extensions.php > $(CURDIR)/mate/extensions.php.tmp \
-		&& $(MV) $(CURDIR)/mate/extensions.php.tmp $(CURDIR)/mate/extensions.php
-	$(DEBUG_PREFIX)$(call log,Discovery finished.,$(COLOR_SUCCESS))
+	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
+	$(DEBUG_PREFIX)if [ ! -f $(_MATE_EXTENSIONS) ]; then \
+		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
+	else \
+		$(MAKE) --no-print-directory php-cs-fixer $(_MATE_EXTENSIONS) \
+			&& $(AWK) '\
+				/This file is managed by/,/^$$/ { next } \
+				/^\/\*\*$$/,/^ \*\/$$/ { next } \
+				/^return/ { print "/**\n * @internal\n */" } \
+				1 \
+			' $(_MATE_EXTENSIONS) > $(_MATE_EXTENSIONS).tmp \
+			&& $(MV) $(_MATE_EXTENSIONS).tmp $(_MATE_EXTENSIONS) \
+			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
+	fi
 
 #---vvv debug
 

@@ -32,7 +32,7 @@ Frequently used:
 - `make ci` — `make check` then `make test`
 - `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
 - `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
-- `make inspect-eslint` — inspect the ESLint configuration
+- `make inspect-eslint` — inspect the ESLint configuration, `make inspect-eslint-stats` to also time every rule
 
 ## 🐘 PHP
 
