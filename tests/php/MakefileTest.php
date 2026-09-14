@@ -19,6 +19,7 @@ use Symfony\Component\Process\Process;
 
 use function array_diff;
 use function array_first;
+use function array_map;
 use function array_unique;
 use function count;
 use function dirname;
@@ -1179,6 +1180,7 @@ final class MakefileTest extends TestCase
             $directory ?? self::FIXTURES_DIRECTORY,
             ...$args,
         ], env: [
+            ...array_map(static fn (): false => false, getenv()),
             'HOME' => getenv('HOME'),
             'PATH' => getenv('PATH') ?: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
             ...self::BASELINE_ENV,
