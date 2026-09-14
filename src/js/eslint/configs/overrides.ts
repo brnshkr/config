@@ -235,18 +235,20 @@ const svelteOverrides: Config[] = isModuleEnabled(MODULES.svelte)
         'svelte/system': 'error',
       },
     },
-    {
-      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/components`),
-      files: [
-        `**/components/${GLOB_SVELTE}`,
-      ],
-      rules: {
-        'unicorn/filename-case': ['error', {
-          case: 'pascalCase',
-          checkDirectories: false,
-        }],
-      },
-    },
+    ...(isModuleEnabled(MODULES.unicorn)
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/components`),
+        files: [
+          `**/components/${GLOB_SVELTE}`,
+        ],
+        rules: {
+          'unicorn/filename-case': ['error', {
+            case: 'pascalCase',
+            checkDirectories: false,
+          }],
+        },
+      } satisfies Config]
+      : []),
   ]
   : [];
 
