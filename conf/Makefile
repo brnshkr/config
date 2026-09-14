@@ -154,6 +154,7 @@ _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST)
 
 SHELL  := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
 CP     ?= cp#~~ path to `cp` binary
+CAT    ?= cat#~~ path to `cat` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
 PRINTF ?= printf#~~ path to `printf` binary
@@ -879,6 +880,8 @@ ESLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint
 ESLINT_CACHE  ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
 ESLINT_FLAGS  ?= --max-warnings 0 $(if $(_DEBUG),--debug) $(if $(_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
 
+_ESLINT_OUTPUT := $(WORKDIR)/.cache/eslint.output
+
 _ESLINT_EXTENSIONS := js cjs mjs jsx \
 	$(call _when_installed,ts cts mts tsx,node_modules/typescript-eslint) \
 	$(call _when_installed,svelte,node_modules/eslint-plugin-svelte) \
@@ -895,16 +898,22 @@ _FIXER_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
 
+# NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
 $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) $(call _without_dry_run,$(ARGS)) $(if $(call _is_dry_run,$(ARGS)),,--fix)
+	$(DEBUG_PREFIX)$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(call _without_dry_run,$(ARGS)) $(if $(call _is_dry_run,$(ARGS)),,--fix); \
+		status=$$?; \
+		[ ! -f '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+		exit $$status
 
 $(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint) -- --dry-run $(ARGS)
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json $(ARGS),ruleId,message)
+	$(DEBUG_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json --output-file /dev/stdout $(ARGS),ruleId,message)
 
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
