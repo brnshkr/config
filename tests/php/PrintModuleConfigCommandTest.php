@@ -9,7 +9,6 @@ use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Str;
 use Composer\Console\Application;
-use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -27,8 +26,6 @@ use function Symfony\Component\String\s;
 final class PrintModuleConfigCommandTest extends TestCase
 {
     use MatchesSnapshots;
-
-    private Application $application;
 
     public function testPrintsExpectedPhpCsFixerConfig(): void
     {
@@ -52,9 +49,10 @@ final class PrintModuleConfigCommandTest extends TestCase
 
     public function testAutoDetectsModuleFromPath(): void
     {
-        $output = $this->runCommand(['--path' => 'conf/php-cs-fixer.dist.php']);
-
-        $this->assertMatchesJsonSnapshot($output);
+        self::assertSame(
+            $this->runForModule(Module::NAME_PHP_CS_FIXER),
+            $this->runCommand(['--path' => 'conf/php-cs-fixer.dist.php']),
+        );
     }
 
     public function testErrorsWhenModuleAndPathBothOmitted(): void
@@ -100,17 +98,6 @@ final class PrintModuleConfigCommandTest extends TestCase
         self::assertStringContainsString('does not exist', $output);
     }
 
-    #[Before]
-    public function createApplication(): void
-    {
-        $application = new Application();
-
-        $application->setAutoExit(false);
-        $application->addCommands(new CommandProvider()->getCommands());
-
-        $this->application = $application;
-    }
-
     private function runForModule(string $module): string
     {
         return $this->runCommand(['module' => $module]);
@@ -121,13 +108,18 @@ final class PrintModuleConfigCommandTest extends TestCase
      */
     private function runCommand(array $arguments, bool $isSuccessExpected = true): string
     {
+        $application = new Application();
+
+        $application->setAutoExit(false);
+        $application->addCommands(new CommandProvider()->getCommands());
+
         $arrayInput = new ArrayInput([
             'command' => new PrintModuleConfigCommand()->getName(),
             ...$arguments,
         ]);
 
         $bufferedOutput = new BufferedOutput();
-        $exitCode       = $this->application->run($arrayInput, $bufferedOutput);
+        $exitCode       = $application->run($arrayInput, $bufferedOutput);
 
         if ($isSuccessExpected) {
             self::assertSame(0, $exitCode);
