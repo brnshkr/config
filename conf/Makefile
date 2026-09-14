@@ -1811,7 +1811,8 @@ function add(identifier, message) {
 	if (example[identifier] == "") example[identifier] = message;
 }
 BEGIN { if (_identifier != "" && _message != "") RS = "}" }
-_identifier == "" && match($$0, / error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART + 7, RLENGTH - 8); sub(/:$$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
+{ raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) structured = 1 }
+_identifier == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART, RLENGTH); sub(/^[^ ]* error /, "", token); sub(/:? $$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
 _identifier != "" && _message != "" {
 	pending = pending $$0;
 	quotes = pending;
@@ -1841,8 +1842,13 @@ END {
 			if (count[order[inner]] < count[order[inner + 1]]) {
 				swap = order[inner]; order[inner] = order[inner + 1]; order[inner + 1] = swap;
 			}
-	if (total == 0 && _status != 0) exit _status;
 	padding = repeat(" ", 2 * _indent);
+	if (total == 0 && (_status != 0 || (_identifier != "" && !structured))) {
+		sub(/\n+$$/, "", raw);
+		gsub(/\n/, "\n" padding, raw);
+		if (raw ~ /[^ \t\n]/) printf "%s%s\n", padding, raw;
+		exit _status;
+	}
 	if (total == 0) { printf "%s$(call text,✔,$(COLOR_SUCCESS)) $(call text,No findings,$(COLOR_DESCRIPTION))\n", padding; exit }
 	for (position = 1; position <= total; position += 1) {
 		if (length(order[position]) > width) width = length(order[position]);
