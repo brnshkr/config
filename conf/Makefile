@@ -157,6 +157,7 @@ CP     ?= cp#~~ path to `cp` binary
 CAT    ?= cat#~~ path to `cat` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
+LN     ?= ln#~~ path to `ln` binary
 PRINTF ?= printf#~~ path to `printf` binary
 AWK    ?= awk#~~ path to `awk` binary
 PHP    ?= $(_RUN) php#~~ command that runs `php`
@@ -441,6 +442,7 @@ _COVERAGE_NAMES     :=
 _PACK_NAMES         :=
 _PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
 _LAYERED_CONFIGS     =
+_LINKED_CONFIGS      =
 
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
@@ -517,6 +519,23 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		if [ -n "$$extended" ]; then \
 			$(call log,Built on `%s` — keep that include.,$(COLOR_NOTICE),"./$${extended#$(CURDIR)/}"); \
 			extended=""; \
+		fi; \
+	done
+	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(_LINKED_CONFIGS),'$(LINKED_CONFIG)'); do \
+		link="$${entry%%|*}"; \
+		source="$${entry#*|}"; \
+		relative="$${source#$(CURDIR)/}"; \
+		if [ -e "$$link" ]; then \
+			$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link#$(CURDIR)/}"); \
+			continue; \
+		fi; \
+		[ -f "$$source" ] || continue; \
+		if $(LN) -s "$$relative" "$$link" 2>/dev/null; then \
+			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}" "./$$relative"); \
+		else \
+			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative\"" '}' > "$$link" \
+				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}"); \
 		fi; \
 	done
 
@@ -1042,9 +1061,12 @@ TYPESCRIPT_CONFIG ?= $(WORKDIR)/tsconfig.json#v #~~ path to the `tsc` project
 TYPESCRIPT_FLAGS  ?= --noEmit#v #~~ additional flags passed to `tsc`
 TYPESCRIPT_EXTENSIONS ?= ts tsx cts mts#vv #~~ extensions `tsc` type checks
 
+_TYPESCRIPT_PROJECT := $(WORKDIR)/conf/tsconfig.json
+
 _ANALYZER_NAMES  += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
-_PLAIN_CONFIGS += $(call _when_tracked,$(TYPESCRIPT_CONFIG),$(TYPESCRIPT_EXTENSIONS))
+_PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
+_LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
 
 $(call _target,typescript): #~~ runs the `tsc` type check
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)

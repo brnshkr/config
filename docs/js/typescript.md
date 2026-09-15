@@ -6,22 +6,25 @@ type-checking only. Unlike the other modules it is a plain config file rather th
 ## Usage
 
 ```jsonc
-// ./tsconfig.json
+// ./conf/tsconfig.json
 {
-  "extends": "./node_modules/@brnshkr/config/conf/tsconfig.json"
+  "extends": "@brnshkr/config/conf/tsconfig.json"
 }
 ```
+
+`make configs` writes it and links `./tsconfig.json` to it, so `${configDir}` resolves from the root, where
+`tsc` and the editor load the project. Without symlinks the root gets `{ "extends": "./conf/tsconfig.json" }`.
 
 Emitting is left to the build tool, and JavaScript files are checked alongside TypeScript ones.
 
 ## Customizing
 
-Override a field in your own `tsconfig.json`; it wins over the base.
+Override a field in your own `conf/tsconfig.json`; it wins over the base.
 
 ```jsonc
-// ./tsconfig.json
+// ./conf/tsconfig.json
 {
-  "extends": "./node_modules/@brnshkr/config/conf/tsconfig.json",
+  "extends": "@brnshkr/config/conf/tsconfig.json",
   "compilerOptions": {
     "paths": {
       "$user/*": ["./src/user/*"],

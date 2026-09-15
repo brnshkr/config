@@ -16,6 +16,7 @@
   "type": "module",
   "exports": {
     "./commitlint": "./dist/commitlint/index.mjs",
+    "./conf/tsconfig.json": "./conf/tsconfig.json",
     "./eslint": "./dist/eslint/index.mjs",
     "./markdownlint": "./dist/markdownlint/index.mjs",
     "./spelling": "./dist/spelling/index.mjs",

@@ -26,8 +26,10 @@ use function dirname;
 use function getenv;
 use function is_dir;
 use function is_file;
+use function is_link;
 use function md5;
 use function mkdir;
+use function readlink;
 use function rmdir;
 use function scandir;
 use function shell_exec;
@@ -48,6 +50,7 @@ final class MakefileTest extends TestCase
     private const string DOTENV_DIRECTORY   = __DIR__ . '/Fixtures/Make/Dotenv';
     private const string CONSUMER_DIRECTORY = __DIR__ . '/Fixtures/Make/Consumer';
     private const string CONFIGS_DIRECTORY  = __DIR__ . '/Fixtures/Make/Configs';
+    private const string TSCONFIG_DIRECTORY = __DIR__ . '/Fixtures/Make/Typescript';
     private const string RESERVED_DIRECTORY = __DIR__ . '/Fixtures/Make/ReservedScope';
     private const string CACHES_DIRECTORY   = __DIR__ . '/Fixtures/Make/Caches';
     private const string COVERAGE_DIRECTORY = __DIR__ . '/Fixtures/Make/Coverage';
@@ -614,6 +617,27 @@ final class MakefileTest extends TestCase
         self::assertFileDoesNotExist(self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.dist.php');
     }
 
+    public function testTheTypescriptProjectIsWrittenToConfAndLinkedFromTheRoot(): void
+    {
+        $created = $this->runMake(['configs'], directory: self::TSCONFIG_DIRECTORY);
+        $kept    = $this->runMake(['configs'], directory: self::TSCONFIG_DIRECTORY);
+
+        self::assertStringContainsString('Created ./conf/tsconfig.json.', $created);
+        self::assertStringContainsString('Linked ./tsconfig.json to ./conf/tsconfig.json.', $created);
+        self::assertStringContainsString('./tsconfig.json already exists.', $kept);
+        self::assertSame('conf/tsconfig.json', readlink(self::TSCONFIG_DIRECTORY . '/tsconfig.json'));
+    }
+
+    public function testTheTypescriptProjectFallsBackToAFileWhereLinkingFails(): void
+    {
+        $this->runMake(['configs'], ['LN' => 'false'], self::TSCONFIG_DIRECTORY);
+
+        self::assertStringContainsString(
+            '"extends": "./conf/tsconfig.json"',
+            new Filesystem()->readFile(self::TSCONFIG_DIRECTORY . '/tsconfig.json'),
+        );
+    }
+
     public function testConfigsWritesThePrivateHalfOnlyWhenAskedTo(): void
     {
         foreach (['local', 'l'] as $spelling) {
@@ -1044,14 +1068,18 @@ final class MakefileTest extends TestCase
             self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php',
             self::VENDOR_DIRECTORY . '/conf/phpstan.php',
             self::STARTUP_DIRECTORY . '/.gitignore',
+            self::TSCONFIG_DIRECTORY . '/.gitignore',
+            self::TSCONFIG_DIRECTORY . '/tsconfig.json',
+            self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
         ];
 
         foreach ($written as $path) {
-            if (is_file($path)) {
+            if (is_file($path) || is_link($path)) {
                 unlink($path);
             }
         }
 
+        self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');
         self::removeDirectory(self::CACHES_DIRECTORY . '/.cache');
     }
 
