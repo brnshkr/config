@@ -5,8 +5,9 @@ The enforced commitlint rules are in `conf/ai/mate/INSTRUCTIONS.md`.
 ## Protocol
 
 1. Show the diff.
-2. Stage, then offer two or three subjects through `AskUserQuestion`, checked with MCP `project-commitlint-check`.
-3. Commit only once the user confirms. A subject the user edited wins.
+2. Stage, then offer four or five subjects through `AskUserQuestion`, checked with MCP `project-commitlint-check`.
+   Each option's label carries the whole subject, scope included — the scope is itself a judgment call.
+3. Commit only on the literal word "commit", which authorizes exactly one. A subject the user edited wins.
 
 - Ask on every judgment call: how to split, the scope, the type, a breaking marker.
 - A change to `docs/` or the AI docs goes in the commit whose behavior it documents.
