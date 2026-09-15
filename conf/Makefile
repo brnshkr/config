@@ -358,10 +358,13 @@ _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(C
 	/^@?[a-zA-Z0-9_.-]+([[:space:]]+@?[a-zA-Z0-9_.-]+)*:([^=]|$$)/ { \
 		count = split(substr($$0, 1, index($$0, ":") - 1), ns, /[[:space:]]+/); \
 		for (i = 1; i <= count; i += 1) \
-			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s ", ns[i], FILENAME \
+			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s:%d ", ns[i], FILENAME, FNR \
 	}' \
 	$(MAKEFILE_LIST) \
 )
+
+_TARGET_FILES := $(foreach SOURCE,$(_TARGET_SOURCES),$(firstword $(subst :, ,$(SOURCE))))
+_TARGET_LINKS := $(subst |,=,$(patsubst @%,%,$(_TARGET_SOURCES)))
 
 ifeq ($(_TARGET_SOURCES),) # awk
 $(error [$(_LABEL)] `$(AWK)` found no targets, so it is missing or is not an awk)
@@ -376,7 +379,19 @@ endif # /awk
 #* returns: list<string>
 #*
 define _targets_from
-$(sort $(foreach FILE,$1,$(patsubst %|$(FILE),%,$(filter %|$(FILE),$(_TARGET_SOURCES)))))
+$(sort $(foreach FILE,$1,$(patsubst %|$(FILE),%,$(filter %|$(FILE),$(_TARGET_FILES)))))
+endef
+
+#**
+#* Where a target is defined, each as `<file>:<line>`.
+#*
+#* parameters:
+#*   target: string
+#*
+#* returns: list<string>
+#*
+define _definitions_of
+$(sort $(patsubst $1|%,%,$(filter $1|%,$(_TARGET_SOURCES))) $(patsubst @$1|%,%,$(filter @$1|%,$(_TARGET_SOURCES))))
 endef
 
 #**
@@ -388,7 +403,7 @@ endef
 #* returns: list<string>
 #*
 define _files_defining
-$(sort $(patsubst $1|%,%,$(filter $1|%,$(_TARGET_SOURCES))) $(patsubst @$1|%,%,$(filter @$1|%,$(_TARGET_SOURCES))))
+$(sort $(foreach DEFINITION,$(call _definitions_of,$1),$(firstword $(subst :, ,$(DEFINITION)))))
 endef
 
 #**
@@ -1281,12 +1296,12 @@ $(filter-out $(_PREFLIGHT),$(_ALL_TARGETS)): | $(_PREFLIGHT)
 
 _$(_TARGET_PREFIX)assert-no-collisions:
 ifneq ($(_DUPLICATE_TARGETS),) # duplicates
-	$(TRACE_PREFIX)$(foreach NAME,$(_DUPLICATE_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _files_defining,$(NAME))))')$(_NEWLINE))
+	$(TRACE_PREFIX)$(foreach NAME,$(_DUPLICATE_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(NAME))))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_DUPLICATE_TARGETS)),them,it)$(_COMMA) since this project defines the same name twice.,$(COLOR_NOTICE))
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /duplicates
 ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
-	$(TRACE_PREFIX)$(foreach NAME,$(_COLLIDING_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _files_defining,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
+	$(TRACE_PREFIX)$(foreach NAME,$(_COLLIDING_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_COLLIDING_TARGETS)),them,it)$(_COMMA) since `TARGET_PREFIX` is already the namespace this project chose.,$(COLOR_NOTICE))
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /collisions
@@ -1681,7 +1696,7 @@ endef
 #* returns: void
 #*
 define _render_inline_code
-$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' -v _url='$(_INLINE_CODE_URL)' -v _cwd='$(CURDIR)' ' \
+$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' -v _url='$(_INLINE_CODE_URL)' -v _cwd='$(CURDIR)' -v _prefix='$(_TARGET_PREFIX)' -v _targets=' $(_TARGET_LINKS) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
 		placeholder_position = index(url, "{file}"); \
 		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
@@ -1689,8 +1704,22 @@ $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' -v
 		if (placeholder_position) url = substr(url, 1, placeholder_position - 1) line substr(url, placeholder_position + 6); \
 		return url \
 	} \
-	function render_hyperlink(path,    line, absolute_path) { \
-		if (_url == "" || path !~ /[\/.]/ || path ~ /[[:space:]]/) return ""; \
+	function target_definition(name,    key, position, definition) { \
+		key = name; \
+		position = index(_targets, " " key "="); \
+		if (!position && _prefix != "" && index(key, _prefix) == 1) { \
+			key = substr(key, length(_prefix) + 1); \
+			position = index(_targets, " " key "=") \
+		} \
+		if (!position) return ""; \
+		definition = substr(_targets, position + length(key) + 2); \
+		return substr(definition, 1, index(definition, " ") - 1) \
+	} \
+	function render_hyperlink(path,    line, absolute_path, definition) { \
+		if (_url == "") return ""; \
+		definition = target_definition(path); \
+		if (definition != "") path = definition; \
+		else if (path !~ /[\/.]/ || path ~ /[[:space:]]/) return ""; \
 		line = 1; \
 		if (match(path, /:[0-9]+$$/)) { \
 			line = substr(path, RSTART + 1); \
