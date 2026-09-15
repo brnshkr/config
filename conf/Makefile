@@ -243,6 +243,14 @@ EDITOR          ?= $(_DETECTED_EDITOR)#~~ the editor to use, empty for no links
 _EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR)))
 _EDITOR_UNKNOWN  = $(if $(_EDITOR),,$(strip $(EDITOR)))
 
+_EDITOR_URL = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(subst {cwd},$(CURDIR),$(or \
+	$(EDITOR_URL), \
+	$(if $(filter $(EDITOR_VSCODE),$(_EDITOR)),$(if $(WSL_DISTRO_NAME),$(_EDITOR_URL_VSCODE_WSL),$(_EDITOR_URL_VSCODE))), \
+	$(if $(filter $(EDITOR_PHPSTORM),$(_EDITOR)),$(_EDITOR_URL_PHPSTORM)) \
+)))
+
+_INLINE_CODE_URL = $(if $(_IS_NO_ANSI),,$(_EDITOR_URL))
+
 ifeq ($(origin LOGO),undefined) # logo
 define LOGO
    ___               __   __
@@ -607,7 +615,7 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 	$(DEBUG_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
-		$(call log,Would remove `%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
+		$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
 	done
 	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(ARGS)),:,$(if $(filter --force -f,$(ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
@@ -1673,7 +1681,37 @@ endef
 #* returns: void
 #*
 define _render_inline_code
-$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' '{ while (match($$0, /`[^`]*`/)) $$0 = substr($$0, 1, RSTART - 1) _open substr($$0, RSTART + 1, RLENGTH - 2) _close substr($$0, RSTART + RLENGTH); $1 }'
+$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' -v _url='$(_INLINE_CODE_URL)' -v _cwd='$(CURDIR)' ' \
+	function render_url(url, path, line,    placeholder_position) { \
+		placeholder_position = index(url, "{file}"); \
+		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
+		placeholder_position = index(url, "{line}"); \
+		if (placeholder_position) url = substr(url, 1, placeholder_position - 1) line substr(url, placeholder_position + 6); \
+		return url \
+	} \
+	function render_hyperlink(path,    line, absolute_path) { \
+		if (_url == "" || path !~ /[\/.]/ || path ~ /[[:space:]]/) return ""; \
+		line = 1; \
+		if (match(path, /:[0-9]+$$/)) { \
+			line = substr(path, RSTART + 1); \
+			path = substr(path, 1, RSTART - 1) \
+		} \
+		if (substr(path, 1, 2) == "./") path = substr(path, 3); \
+		absolute_path = substr(path, 1, 1) == "/" ? path : _cwd "/" path; \
+		if (system("test -f " absolute_path) != 0) return ""; \
+		return "\033]8;;" render_url(_url, absolute_path, line) "\033\\" \
+	} \
+	{ \
+		while (match($$0, /`[^`]*`/)) { \
+			code_start = RSTART; \
+			code_length = RLENGTH; \
+			inline_code = substr($$0, code_start + 1, code_length - 2); \
+			hyperlink = render_hyperlink(inline_code); \
+			hyperlink_end = hyperlink == "" ? "" : "\033]8;;\033\\"; \
+			$$0 = substr($$0, 1, code_start - 1) hyperlink _open inline_code _close hyperlink_end substr($$0, code_start + code_length) \
+		} \
+		$1 \
+	}'
 endef
 
 #**
@@ -2246,11 +2284,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			if (file != "" && file !~ /^\//) file = ENVIRON["_CURDIR"] "/" file
 			if (ENVIRON["_WORKDIR"] != ENVIRON["_CURDIR"] && index(file, ENVIRON["_WORKDIR"] "/") == 1) \
 				file = ENVIRON["_CURDIR"] substr(file, length(ENVIRON["_WORKDIR"]) + 1)
-			template = ENVIRON["EDITOR_URL"]
-			if (template == "" && ENVIRON["_EDITOR"] == "vscode")
-				template = ENVIRON["WSL_DISTRO_NAME"] != "" ? ENVIRON["_EDITOR_URL_VSCODE_WSL"] : ENVIRON["_EDITOR_URL_VSCODE"]
-			else if (template == "" && ENVIRON["_EDITOR"] == "phpstorm") template = ENVIRON["_EDITOR_URL_PHPSTORM"]
-			url = render_url(template, file, line)
+			url = render_url(ENVIRON["_EDITOR_URL"], file, line)
 			hyperlink = ""
 			hyperlink_end = ""
 			if (url != "" && !ENVIRON["_IS_NO_ANSI"]) {
