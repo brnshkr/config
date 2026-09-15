@@ -419,6 +419,33 @@ ARG8    = $(word 8,$(ARGS))
 ARG9    = $(word 9,$(ARGS))
 ARGS    = $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))#~~ every argument the running target was handed
 
+_IS_JUST_PRINT = $(findstring n,$(firstword $(MAKEFLAGS)))
+_IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
+_UNKNOWN_ARGS  = $(filter-out $@,$(ARGS))
+
+_SUGGESTED_TARGETS = $(if $(filter -%,$@),,$(shell $(PRINTF) '%s\n' $(filter-out _% -%,$(_ALL_TARGETS)) \
+	| $(AWK) -v _unknown='$@' ' \
+	function levenshtein(left, right,    left_length, right_length, left_index, right_index, cost, best, previous, current) { \
+		left_length = length(left); \
+		right_length = length(right); \
+		for (right_index = 0; right_index <= right_length; right_index += 1) previous[right_index] = right_index; \
+		for (left_index = 1; left_index <= left_length; left_index += 1) { \
+			current[0] = left_index; \
+			for (right_index = 1; right_index <= right_length; right_index += 1) { \
+				cost = substr(left, left_index, 1) == substr(right, right_index, 1) ? 0 : 1; \
+				best = previous[right_index] + 1; \
+				if (current[right_index - 1] + 1 < best) best = current[right_index - 1] + 1; \
+				if (previous[right_index - 1] + cost < best) best = previous[right_index - 1] + cost; \
+				current[right_index] = best \
+			} \
+			for (right_index = 0; right_index <= right_length; right_index += 1) previous[right_index] = current[right_index]; \
+		} \
+		return previous[right_length] \
+	} \
+	{ measured = levenshtein(_unknown, $$0); if (measured <= (length(_unknown) > 4 ? 2 : 1) || (length(_unknown) >= 3 && index($$0, _unknown))) printf "%d %s\n", measured, $$0 }' \
+	| sort -n \
+	| $(AWK) 'NR <= 3 { print $$2 }'))
+
 #--- common
 
 _COMMA := ,
@@ -1198,9 +1225,15 @@ $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
 
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
-	$(DEBUG_PREFIX)$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@')
-	$(DEBUG_PREFIX)$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE))
-	$(DEBUG_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
+	$(DEBUG_PREFIX)$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:)
+	$(DEBUG_PREFIX)$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)),$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_TARGETS),disjunction)'); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE),if [ -t 0 ] && [ -z "$(_IS_CI)" ]; then \
+			$(call confirm,Did you mean `$(_SUGGESTED_TARGETS)`?) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			exec $(MAKE) $(_MAKE_FLAGS) $(_SUGGESTED_TARGETS) $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
+		fi; \
+		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$(_SUGGESTED_TARGETS)'); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE))),:)
 else
 	$(DEBUG_PREFIX):
 endif # /unknown
