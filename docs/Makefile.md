@@ -44,6 +44,8 @@ Across both stacks:
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
 | `cc` | Removes cached tool state, naming what it will remove and asking first. |
+| `fresh` | Removes every untracked file, reinstalls and runs `startup`, asking first. `--force` skips the question, `--all` takes `./.local` and `.env*.local` too. |
+| `fresh-dry-run` | Lists what `fresh` would remove. |
 
 `make -j` runs tools in parallel, keeping fixers that write the same files in order.
 A verb names each target before running it and carries on past a failing one.

@@ -423,6 +423,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -669,6 +671,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -919,6 +923,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -1383,6 +1389,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -1633,6 +1641,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -1883,6 +1893,8 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
+   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh-dry-run               lists what fresh would remove
    check                       runs the fixers without writing, and every analyzer
    ci                          runs CI_TARGETS one after the other
    coverage                    runs the tests and fails below the minimum coverage
@@ -2104,20 +2116,20 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:491\STARTUP_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after the dependencies)[0m
    [36m]8;;vscode://file/./conf/Makefile:500\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
    [36m]8;;vscode://file/./conf/Makefile:569\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1187\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1257\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1215\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1285\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
   [35msemver[0m
    [35mconstants[0m
-    [36m]8;;vscode://file/./conf/Makefile:603\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [36m]8;;vscode://file/./conf/Makefile:604\SEMVER_PRERELEASE]8;;\        [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
-    [36m]8;;vscode://file/./conf/Makefile:605\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
-    [36m]8;;vscode://file/./conf/Makefile:606\SEMVER_BUILD]8;;\             [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
-    [36m]8;;vscode://file/./conf/Makefile:607\SEMVER_REGEX]8;;\             [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
+    [36m]8;;vscode://file/./conf/Makefile:629\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+    [36m]8;;vscode://file/./conf/Makefile:630\SEMVER_PRERELEASE]8;;\        [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
+    [36m]8;;vscode://file/./conf/Makefile:631\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
+    [36m]8;;vscode://file/./conf/Makefile:632\SEMVER_BUILD]8;;\             [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
+    [36m]8;;vscode://file/./conf/Makefile:633\SEMVER_REGEX]8;;\             [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
   [35mdotenv[0m
-   [36m]8;;vscode://file/./conf/Makefile:611\DOTENV]8;;\                    [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
-   [36m]8;;vscode://file/./conf/Makefile:612\DOTENV_ENV_KEY]8;;\            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [36m]8;;vscode://file/./conf/Makefile:613\DOTENV_DEFAULT_ENV]8;;\        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [36m]8;;vscode://file/./conf/Makefile:614\DOTENV_TEST_ENVS]8;;\          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
+   [36m]8;;vscode://file/./conf/Makefile:637\DOTENV]8;;\                    [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:638\DOTENV_ENV_KEY]8;;\            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [36m]8;;vscode://file/./conf/Makefile:639\DOTENV_DEFAULT_ENV]8;;\        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [36m]8;;vscode://file/./conf/Makefile:640\DOTENV_TEST_ENVS]8;;\          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
  [35mapp[0m
   [35mvariables[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:57\BASE_URL]8;;\                  [0m  [90m?=  https://example.com                              (base URL for the application)[0m
@@ -2146,7 +2158,7 @@ Available commands:
 [35mFunctions:[0m
  [35mbrnshkr[0m
   [35mhelpers[0m
-   [36m]8;;vscode://file/./conf/Makefile:1316\text]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1344\text]8;;\[0m
     [90mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [90mThe color and the modifiers may be given together or apart.[0m
 
@@ -2157,7 +2169,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1598\confirm]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1626\confirm]8;;\[0m
     [90mAsks a yes/no question before something destructive happens.[0m
     [90mIt answers itself where nobody can: under [35mCI[0m[90m it says yes, and without a terminal to ask at it[0m
     [90msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2168,7 +2180,7 @@ Available commands:
 
     [90mreturns: void[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1628\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1656\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
     [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
     [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2214,14 +2226,16 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:496\startup]8;;\                   [0m  [90mbrings a fresh checkout to a workable state[0m
    [36m]8;;vscode://file/./conf/Makefile:508\configs]8;;\                   [0m  [90mwrites the tool configs this project is missing, [35mlocal[0m[90m its private ones too[0m
    [36m]8;;vscode://file/./conf/Makefile:572\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36m]8;;vscode://file/./conf/Makefile:1189\check]8;;\                     [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36m]8;;vscode://file/./conf/Makefile:1193\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
-   [36m]8;;vscode://file/./conf/Makefile:1198\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36m]8;;vscode://file/./conf/Makefile:1202\fix]8;;\                       [0m  [90mruns every fixer this project has, writing its fixes[0m
-   [36m]8;;vscode://file/./conf/Makefile:1211\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
-   [36m]8;;vscode://file/./conf/Makefile:1215\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
-   [36m]8;;vscode://file/./conf/Makefile:1218\test]8;;\                      [0m  [90mruns the tests of every stack this project has[0m
-   [36m]8;;vscode://file/./conf/Makefile:1222\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
+   [36m]8;;vscode://file/./conf/Makefile:603\fresh]8;;\                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
+   [36m]8;;vscode://file/./conf/Makefile:622\fresh-dry-run]8;;\             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
+   [36m]8;;vscode://file/./conf/Makefile:1217\check]8;;\                     [0m  [90mruns the fixers without writing, and every analyzer[0m
+   [36m]8;;vscode://file/./conf/Makefile:1221\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
+   [36m]8;;vscode://file/./conf/Makefile:1226\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36m]8;;vscode://file/./conf/Makefile:1230\fix]8;;\                       [0m  [90mruns every fixer this project has, writing its fixes[0m
+   [36m]8;;vscode://file/./conf/Makefile:1239\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
+   [36m]8;;vscode://file/./conf/Makefile:1243\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
+   [36m]8;;vscode://file/./conf/Makefile:1246\test]8;;\                      [0m  [90mruns the tests of every stack this project has[0m
+   [36m]8;;vscode://file/./conf/Makefile:1250\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
  [35mapp[0m
   [35mcommands[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [90mcommand from root Makefile auto-include[0m
@@ -2354,20 +2368,20 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:491\STARTUP_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after the dependencies)[0m
    [32m]8;;vscode://file/./conf/Makefile:500\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
    [32m]8;;vscode://file/./conf/Makefile:569\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1187\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1257\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1215\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1285\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
   [33msemver[0m
    [33mconstants[0m
-    [32m]8;;vscode://file/./conf/Makefile:603\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [32m]8;;vscode://file/./conf/Makefile:604\SEMVER_PRERELEASE]8;;\        [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
-    [32m]8;;vscode://file/./conf/Makefile:605\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
-    [32m]8;;vscode://file/./conf/Makefile:606\SEMVER_BUILD]8;;\             [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
-    [32m]8;;vscode://file/./conf/Makefile:607\SEMVER_REGEX]8;;\             [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
+    [32m]8;;vscode://file/./conf/Makefile:629\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+    [32m]8;;vscode://file/./conf/Makefile:630\SEMVER_PRERELEASE]8;;\        [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
+    [32m]8;;vscode://file/./conf/Makefile:631\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
+    [32m]8;;vscode://file/./conf/Makefile:632\SEMVER_BUILD]8;;\             [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
+    [32m]8;;vscode://file/./conf/Makefile:633\SEMVER_REGEX]8;;\             [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
   [33mdotenv[0m
-   [32m]8;;vscode://file/./conf/Makefile:611\DOTENV]8;;\                    [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
-   [32m]8;;vscode://file/./conf/Makefile:612\DOTENV_ENV_KEY]8;;\            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [32m]8;;vscode://file/./conf/Makefile:613\DOTENV_DEFAULT_ENV]8;;\        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [32m]8;;vscode://file/./conf/Makefile:614\DOTENV_TEST_ENVS]8;;\          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
+   [32m]8;;vscode://file/./conf/Makefile:637\DOTENV]8;;\                    [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:638\DOTENV_ENV_KEY]8;;\            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [32m]8;;vscode://file/./conf/Makefile:639\DOTENV_DEFAULT_ENV]8;;\        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [32m]8;;vscode://file/./conf/Makefile:640\DOTENV_TEST_ENVS]8;;\          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
  [33mapp[0m
   [33mvariables[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:57\BASE_URL]8;;\                  [0m  [0m?=  https://example.com                              (base URL for the application)[0m
@@ -2396,7 +2410,7 @@ Available commands:
 [33mFunctions:[0m
  [33mbrnshkr[0m
   [33mhelpers[0m
-   [32m]8;;vscode://file/./conf/Makefile:1316\text]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1344\text]8;;\[0m
     [0mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [0mThe color and the modifiers may be given together or apart.[0m
 
@@ -2407,7 +2421,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1598\confirm]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1626\confirm]8;;\[0m
     [0mAsks a yes/no question before something destructive happens.[0m
     [0mIt answers itself where nobody can: under [33mCI[0m[0m it says yes, and without a terminal to ask at it[0m
     [0msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2418,7 +2432,7 @@ Available commands:
 
     [0mreturns: void[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1628\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1656\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
     [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
     [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
@@ -2464,14 +2478,16 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:496\startup]8;;\                   [0m  [0mbrings a fresh checkout to a workable state[0m
    [32m]8;;vscode://file/./conf/Makefile:508\configs]8;;\                   [0m  [0mwrites the tool configs this project is missing, [33mlocal[0m[0m its private ones too[0m
    [32m]8;;vscode://file/./conf/Makefile:572\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32m]8;;vscode://file/./conf/Makefile:1189\check]8;;\                     [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32m]8;;vscode://file/./conf/Makefile:1193\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
-   [32m]8;;vscode://file/./conf/Makefile:1198\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32m]8;;vscode://file/./conf/Makefile:1202\fix]8;;\                       [0m  [0mruns every fixer this project has, writing its fixes[0m
-   [32m]8;;vscode://file/./conf/Makefile:1211\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
-   [32m]8;;vscode://file/./conf/Makefile:1215\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
-   [32m]8;;vscode://file/./conf/Makefile:1218\test]8;;\                      [0m  [0mruns the tests of every stack this project has[0m
-   [32m]8;;vscode://file/./conf/Makefile:1222\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
+   [32m]8;;vscode://file/./conf/Makefile:603\fresh]8;;\                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
+   [32m]8;;vscode://file/./conf/Makefile:622\fresh-dry-run]8;;\             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
+   [32m]8;;vscode://file/./conf/Makefile:1217\check]8;;\                     [0m  [0mruns the fixers without writing, and every analyzer[0m
+   [32m]8;;vscode://file/./conf/Makefile:1221\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
+   [32m]8;;vscode://file/./conf/Makefile:1226\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32m]8;;vscode://file/./conf/Makefile:1230\fix]8;;\                       [0m  [0mruns every fixer this project has, writing its fixes[0m
+   [32m]8;;vscode://file/./conf/Makefile:1239\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
+   [32m]8;;vscode://file/./conf/Makefile:1243\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
+   [32m]8;;vscode://file/./conf/Makefile:1246\test]8;;\                      [0m  [0mruns the tests of every stack this project has[0m
+   [32m]8;;vscode://file/./conf/Makefile:1250\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
  [33mapp[0m
   [33mcommands[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [0mcommand from root Makefile auto-include[0m

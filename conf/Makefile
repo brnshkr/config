@@ -490,8 +490,8 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 
 STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after the dependencies
 
-_STARTUP := $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
-	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install)
+_STARTUP := $(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
+	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install))
 
 $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state #v
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
@@ -596,6 +596,32 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		fi; \
 	fi
 
+_GIT_CLEAN_BASE_FLAGS  = $(if $(filter --all -a,$(ARGS)),,-e /.local -e .env*.local)
+_GIT_CLEAN_DRY_FLAGS   = -xdffn $(_GIT_CLEAN_BASE_FLAGS)
+_GIT_CLEAN_FORCE_FLAGS = -xdff $(_GIT_CLEAN_BASE_FLAGS)
+
+$(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--all` the private ones too #vv
+	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
+		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}
+	$(DEBUG_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
+		$(call log,Would remove `%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
+	done
+	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(ARGS)),:,$(if $(filter --force -f,$(ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
+			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
+			exit 0; \
+		}); \
+		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
+	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
+		{ [ -f $(_BRNSHKR_CONFIG_MAKEFILE) ] \
+			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
+			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
+	})
+
+$(call _target,fresh-dry-run): #~~ lists what `fresh` would remove #vv
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,fresh) -- --dry-run $(ARGS)
+
 #---vvv semver
 
 #---- constants
@@ -654,6 +680,7 @@ PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
 COMPOSER              ?= $(_RUN) composer#v #~~ command that runs `composer`
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
+_COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
 
 _PACK_NAMES += composer-pack
 
@@ -676,7 +703,7 @@ $(call _target,composer-print): #~~ prints the resolved `composer` configuration
 	$(DEBUG_PREFIX)$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS)
 
 _$(_TARGET_PREFIX)composer-install:
-	$(DEBUG_PREFIX)$(COMPOSER) install $(COMPOSER_FLAGS)
+	$(DEBUG_PREFIX)$(_COMPOSER_INSTALL)
 
 #--- phpunit
 
@@ -892,6 +919,7 @@ BUN_FLAGS ?= --bun#v #~~ flags passed to `bun` before the command
 #--- bun
 
 _BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
+_BUN_INSTALL      = $(BUN) install
 
 _PACK_NAMES += bun-pack
 
@@ -909,7 +937,7 @@ $(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PAC
 		&& $(RM) -f package.tgz
 
 _$(_TARGET_PREFIX)bun-install:
-	$(DEBUG_PREFIX)$(BUN) install
+	$(DEBUG_PREFIX)$(_BUN_INSTALL)
 
 #--- commitlint
 

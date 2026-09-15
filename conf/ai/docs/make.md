@@ -9,6 +9,8 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
   It gets a suffix like `-dry-run` or `-group` only when the tool has that feature.
 - Commands take `$(DEBUG_PREFIX)`, guards `$(TRACE_PREFIX)`, recursive calls `$(_MAKE_FLAGS)`, verbs `$(_VERB_FLAGS)`.
 - `$(ARGS)` goes before a trailing flag.
+- A sub-make re-reads every Makefile from disk, so `fresh` reinstalls before it recurses — the clean can
+  take the included one with it — and passes `_IS_INSTALLING=1` so `startup` skips the install it just did.
 - A piped tool runs through `_capture`, so a crash fails the recipe.
 - A `log` message is a `printf` format; pass values as arguments.
 - awk is POSIX only and must print the same under gawk, mawk and busybox awk.

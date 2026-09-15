@@ -809,6 +809,19 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString("Running startup-own\nstartup-own\n", $result);
     }
 
+    public function testStartupSkipsTheInstallsTheCallerAlreadyRan(): void
+    {
+        $result = $this->runMake(
+            ['startup', '_IS_INSTALLING=1'],
+            ['COMPOSER' => 'echo composer', 'BUN' => 'echo bun'],
+            directory: self::STARTUP_DIRECTORY,
+        );
+
+        self::assertStringNotContainsString('composer install', $result);
+        self::assertStringNotContainsString('bun install', $result);
+        self::assertStringContainsString("Running startup-own\nstartup-own\n", $result);
+    }
+
     public function testCoverageIsReadFromTheSummaryRatherThanTheLastLineThatMentionsLines(): void
     {
         $reached = $this->runMake(['coverage-reached'], directory: self::COVERAGE_DIRECTORY);
