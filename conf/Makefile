@@ -600,6 +600,19 @@ define _when_tracked
 $(if $(_TRACKED_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_TRACKED_EXTENSIONS)),$1),$1)
 endef
 
+#**
+#* The value it is given when the path is there, so a list only claims what this project has.
+#*
+#* parameters:
+#*   value: list<string>
+#*   path: string
+#*
+#* returns: list<string>
+#*
+define _when_installed
+$(if $(wildcard $(CURDIR)/$2),$1)
+endef
+
 ifneq ($(wildcard $(CURDIR)/composer.json),) # php
 
 #--- php
@@ -973,21 +986,6 @@ $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by ru
 	$(DEBUG_PREFIX)$(call _group,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)'))
 
 endif # /markdownlint
-
-#---v helpers
-
-#**
-#* The value it is given when the path is there, so a list only claims what this project has.
-#*
-#* parameters:
-#*   value: list<string>
-#*   path: string
-#*
-#* returns: list<string>
-#*
-define _when_installed
-$(if $(wildcard $(CURDIR)/$2),$1)
-endef
 
 #--- stylelint
 
