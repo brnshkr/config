@@ -561,9 +561,12 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
 		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)'); \
-		$(if $(_IS_CI),,$(PRINTF) 'Continue? [y/N] ' >&2; read -r answer; [ "$$answer" = y ] || [ "$$answer" = Y ] || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
-		$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
+		if $(call confirm,Continue?); then \
+			$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
+		else \
+			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
+		fi; \
 	fi
 
 #---vvv semver
@@ -1549,9 +1552,38 @@ $(if $(word 2,$1),$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(foreach \
 endef
 
 #**
-#* Prints a message behind the `<VENDOR>/<PACKAGE>` label, rendering anything in backticks as
-#* inline code. The message is a `printf` format, so a value goes in as an argument rather than
-#* being pasted in. A literal comma has to be written as `$(_COMMA)`.
+#* Asks a yes/no question before something destructive happens.
+#* It answers itself where nobody can: under `CI` it says yes, and without a terminal to ask at it
+#* says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+#*
+#* parameters:
+#*   question: string
+#*   default?: OneOf<yes | no> = no
+#*
+#* returns: void
+#*
+define confirm
+{ \
+	[ -n "$(_IS_CI)" ] || { \
+		[ -t 0 ] \
+			&& $(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
+			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0) >&2 \
+			&& trap '$(PRINTF) "\n" >&2; trap - INT; kill -INT $$$$' INT \
+			&& read -r answer \
+			&& trap - INT \
+			&& case "$$answer" in \
+				[yY]|[yY][eE][sS]) true;; \
+				"") $(if $(filter yes,$2),true,false);; \
+				*) false;; \
+			esac; \
+	}; \
+}
+endef
+
+#**
+#* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
+#* Anything in backticks renders as inline code. The message is a `printf` format, so a value goes
+#* in as an argument rather than being pasted in. A literal comma has to be written as `$(_COMMA)`.
 #*
 #* parameters:
 #*   message: string
@@ -1561,10 +1593,19 @@ endef
 #* returns: void
 #*
 define log
-$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 | $(AWK) \
-	-v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
-	-v _close='$(_ANSI_RESET)' \
-	'{ while (match($$0, /`[^`]*`/)) $$0 = substr($$0, 1, RSTART - 1) _open substr($$0, RSTART + 1, RLENGTH - 2) _close substr($$0, RSTART + RLENGTH); print }'
+$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 | $(call _render_inline_code,print)
+endef
+
+#**
+#* Renders every backticked span of a line as inline code, ending with the given awk action.
+#*
+#* parameters:
+#*   action: string
+#*
+#* returns: void
+#*
+define _render_inline_code
+$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' '{ while (match($$0, /`[^`]*`/)) $$0 = substr($$0, 1, RSTART - 1) _open substr($$0, RSTART + 1, RLENGTH - 2) _close substr($$0, RSTART + RLENGTH); $1 }'
 endef
 
 #**
