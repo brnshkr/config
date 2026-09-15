@@ -68,7 +68,9 @@ Make claims two shapes for itself: `name=value` becomes a variable of its own,
 and anything starting with a dash becomes one of its own options.
 Write the value with a space, and put `--` in front of the flags: `make phpunit -- --filter Name`.
 A target of your own reads them as `ARGS`, one at a time as `ARG1` through `ARG9`,
-and `TARGET` names the target they followed.
+and `TARGET` names the target they followed. Each one is quoted, so `make phpunit -- --filter 'A|B'`
+reaches the tool rather than the shell. Make splits its command line on spaces before any of this runs,
+so an argument that contains one has to come in as `make phpunit ARGS="--filter 'a b'"`.
 
 ## Configuration
 

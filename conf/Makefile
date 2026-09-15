@@ -115,7 +115,7 @@
 _BRNSHKR_CONFIG_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 _BRNSHKR_CONFIG_DIR      := $(patsubst %/,%,$(dir $(_BRNSHKR_CONFIG_MAKEFILE)))
 
-_ARG_WORDS = $(patsubst -%,%,$(patsubst --%,%,$(ARGS)))
+_ARG_WORDS = $(patsubst -%,%,$(patsubst --%,%,$(_ARGS)))
 
 _HELP_VERBOSITY_ARGS       = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
 _HELP_VERBOSITY            = $(words $(subst v,v ,$(lastword $(sort $(_HELP_VERBOSITY_ARGS)))))
@@ -441,11 +441,14 @@ ARG6    = $(word 6,$(ARGS))
 ARG7    = $(word 7,$(ARGS))
 ARG8    = $(word 8,$(ARGS))
 ARG9    = $(word 9,$(ARGS))
-ARGS    = $(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS))))#~~ every argument the running target was handed
+ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target was handed, quoted for the shell
+
+_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS)))))
+_FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
 
 _IS_JUST_PRINT = $(findstring n,$(firstword $(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
-_UNKNOWN_ARGS  = $(filter-out $@,$(ARGS))
+_UNKNOWN_ARGS  = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
 
 _SUGGESTED_TARGETS = $(if $(filter -%,$@),,$(shell $(PRINTF) '%s\n' $(filter-out _% -%,$(_ALL_TARGETS)) \
 	| $(AWK) -v _unknown='$@' ' \
@@ -473,6 +476,7 @@ _SUGGESTED_TARGETS = $(if $(filter -%,$@),,$(shell $(PRINTF) '%s\n' $(filter-out
 #--- common
 
 _COMMA := ,
+_QUOTE := '
 _SPACE := $(subst ,, )
 
 define _NEWLINE
@@ -620,7 +624,7 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		fi; \
 	fi
 
-_GIT_CLEAN_BASE_FLAGS  = $(if $(filter --all -a,$(ARGS)),,-e /.local -e .env*.local)
+_GIT_CLEAN_BASE_FLAGS  = $(if $(filter --all -a,$(_ARGS)),,-e /.local -e .env*.local)
 _GIT_CLEAN_DRY_FLAGS   = -xdffn $(_GIT_CLEAN_BASE_FLAGS)
 _GIT_CLEAN_FORCE_FLAGS = -xdff $(_GIT_CLEAN_BASE_FLAGS)
 
@@ -632,12 +636,12 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 	$(DEBUG_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
 		$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
 	done
-	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(ARGS)),:,$(if $(filter --force -f,$(ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
+	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 			exit 0; \
 		}); \
 		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
-	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
+	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
 		{ [ -f $(_BRNSHKR_CONFIG_MAKEFILE) ] \
 			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
 			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
@@ -917,7 +921,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG)
 
 $(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(call _without_dry_run,$(ARGS))
+	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS)
 
 $(call _target,twig-cs-fixer-debug): #~~ runs `twig-cs-fixer` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --debug $(ARGS)
@@ -1016,7 +1020,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$
 $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(DEBUG_PREFIX)$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
-		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(call _without_dry_run,$(ARGS)) $(if $(call _is_dry_run,$(ARGS)),,--fix); \
+		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(call _is_dry_run,$(_ARGS)),,--fix); \
 		status=$$?; \
 		[ ! -f '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
@@ -1055,10 +1059,10 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
 	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
-		$(if $(call _is_dry_run,$(ARGS)),,--fix) \
-		$(if $(call _has_positional_arg,$(call _without_dry_run,$(ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
-			$(call _without_dry_run,$(ARGS)), \
-			$(call _without_dry_run,$(ARGS)) '$(MARKDOWNLINT_GLOB)')
+		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
+		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
+			$(_FIXER_ARGS), \
+			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)')
 
 $(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,markdownlint) -- --dry-run $(ARGS)
@@ -1114,10 +1118,10 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) \
-		$(if $(call _is_dry_run,$(ARGS)),,--fix) \
-		$(if $(call _has_positional_arg,$(call _without_dry_run,$(ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
-			$(call _without_dry_run,$(ARGS)), \
-			$(call _without_dry_run,$(ARGS)) '$(STYLELINT_GLOB)')
+		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
+		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
+			$(_FIXER_ARGS), \
+			$(_FIXER_ARGS) '$(STYLELINT_GLOB)')
 
 $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,stylelint) -- --dry-run $(ARGS)
@@ -1627,6 +1631,18 @@ $(AWK) -v _minimum='$2' '/[Ll]ines/ && !found { if (match($$0, /[0-9]+(\.[0-9]+)
 endef
 
 #**
+#* A list of words, each quoted so the shell reads it as one argument.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _shell_quoted
+$(foreach WORD,$1,'$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(WORD))')
+endef
+
+#**
 #* Joins a list the way `Str::joinAsQuotedList()` and its JavaScript twin do, so the three read alike.
 #*
 #* parameters:
@@ -1839,10 +1855,10 @@ $(eval _ca_phase := before)$(eval _ca_shared :=)$(eval _ca_own :=)$(foreach \
 		$(filter before,$(_ca_phase)),$(if \
 			$(filter $(WORD),$(_ALL_TARGETS)),$(if \
 				$(filter $(WORD),$1),$(eval _ca_phase := own),$(eval _ca_phase := skip)),$(eval \
-				_ca_shared := $(_ca_shared) $(WORD))),$(if \
+				_ca_shared += $(subst $$,$$$$,$(WORD)))),$(if \
 		$(filter own,$(_ca_phase)),$(if \
 			$(filter $(WORD),$(_ALL_TARGETS)),$(eval _ca_phase := done),$(eval \
-			_ca_own := $(_ca_own) $(WORD))),$(if \
+			_ca_own += $(subst $$,$$$$,$(WORD)))),$(if \
 		$(filter skip,$(_ca_phase)),$(if \
 			$(filter $(WORD),$(_ALL_TARGETS)),$(if \
 				$(filter $(WORD),$1),$(eval _ca_phase := own),))))))$(_ca_own) $(_ca_shared)

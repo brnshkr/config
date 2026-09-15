@@ -734,9 +734,20 @@ final class MakefileTest extends TestCase
         $dashed = $this->runMake(['consumer-arguments', '--', '-x'], directory: self::CONSUMER_DIRECTORY);
 
         self::assertStringContainsString('consumer-arguments [] []', $alone);
-        self::assertStringContainsString('consumer-arguments [own before] [own]', $shared);
-        self::assertStringContainsString('consumer-arguments-second [before] [before]', $shared);
-        self::assertStringContainsString('consumer-arguments [-x] [-x]', $dashed);
+        self::assertStringContainsString('consumer-arguments [\'own\' \'before\'] [\'own\']', $shared);
+        self::assertStringContainsString('consumer-arguments-second [\'before\'] [\'before\']', $shared);
+        self::assertStringContainsString('consumer-arguments [\'-x\'] [\'-x\']', $dashed);
+    }
+
+    public function testAnArgumentReachesTheTargetAsWritten(): void
+    {
+        $result = $this->runMake(
+            ['consumer-arguments', '--', '--filter', 'A|B', 'c$HOME'],
+            directory: self::CONSUMER_DIRECTORY,
+        );
+
+        self::assertStringContainsString('consumer-arguments [\'--filter\' \'A|B\'', $result);
+        self::assertStringNotContainsString('cOME', $result);
     }
 
     public function testAScopeTakingAReservedNameIsRefused(): void
