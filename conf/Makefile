@@ -384,8 +384,9 @@ $(sort $(patsubst $1|%,%,$(filter $1|%,$(_TARGET_SOURCES))) $(patsubst @$1|%,%,$
 endef
 
 #**
-#* The name a shared target ends up with: its own, unless this project took that name, in which case the
-#* first free one behind `COLLISION_PREFIX`, numbered if the project took that too.
+#* The name a shared target ends up with.
+#* Its own, unless this project took that name, in which case the first free one behind
+#* `COLLISION_PREFIX`, numbered if the project took that too.
 #*
 #* parameters:
 #*   name: string
@@ -1121,8 +1122,8 @@ _TYPESCRIPT_PROJECT := $(WORKDIR)/conf/tsconfig.json
 
 _ANALYZER_NAMES  += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
-_PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
-_LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
+_PLAIN_CONFIGS   += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
+_LINKED_CONFIGS  += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
 
 $(call _target,typescript): #~~ runs the `tsc` type check
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
@@ -1370,8 +1371,9 @@ define _brace_glob
 endef
 
 #**
-#* Whether `--dry-run` is among the given words — the Makefile's own pseudo-flag, since none of these
-#* fixers understand it natively; its presence tells the plain target to skip `--fix`.
+#* Whether `--dry-run` is among the given words.
+#* The Makefile's own pseudo-flag, since none of these fixers understand it natively; its presence
+#* tells the plain target to skip `--fix`.
 #*
 #* parameters:
 #*   words: list<string>
@@ -1395,8 +1397,8 @@ $(filter-out --dry-run,$1)
 endef
 
 #**
-#* Whether the given words contain a real positional argument — not a flag, and not the value a
-#* preceding flag from the second list consumes.
+#* Whether the given words contain a real positional argument.
+#* Not a flag, and not the value a preceding flag from the second list consumes.
 #*
 #* parameters:
 #*   words: list<string>
@@ -1426,8 +1428,9 @@ $(if $(findstring .dist.,$1),$1,$(basename $1).dist$(suffix $1))
 endef
 
 #**
-#* The private half beside wherever the tool resolved its config, empty where it resolved something
-#* outside that pair — an `eslint.ts` rather than either half of the `.mjs` one.
+#* The private half beside wherever the tool resolved its config.
+#* Empty where it resolved something outside that pair — an `eslint.ts` rather than either half of
+#* the `.mjs` one.
 #*
 #* parameters:
 #*   resolved: string
@@ -1440,8 +1443,9 @@ $(if $(filter %.$2 %.dist.$2,$1),$(subst .dist.,.,$1))
 endef
 
 #**
-#* The same paths, with anything the config search resolved inside an installation of this package moved
-#* back to the project's own `conf/`, so a write never lands in `vendor/` or `node_modules/`.
+#* The same paths, rooted in the project's own `conf/`.
+#* Anything the config search resolved inside an installation of this package moves back, so a write
+#* never lands in `vendor/` or `node_modules/`.
 #*
 #* parameters:
 #*   paths: list<string>
@@ -1453,8 +1457,9 @@ $(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG
 endef
 
 #**
-#* Name the project's root namespace in a copied PHP config's `@internal` tag, so a file with no
-#* namespace still says where it belongs. Falls back to `App`, and does nothing without an autoloader.
+#* Names the project's root namespace in a copied PHP config's `@internal` tag.
+#* A file with no namespace still says where it belongs. Falls back to `App`, and does nothing
+#* without an autoloader.
 #*
 #* parameters:
 #*   path: string
@@ -1481,8 +1486,9 @@ $(if $1,$(call _reverse,$(wordlist 2,$(words $1),$1)) $(firstword $1))
 endef
 
 #**
-#* The directories a config is looked for in, most specific first. `$(CURDIR)` is deliberately absent:
-#* a bare config at the repository root would re-enter PHPStan's dynamically evaluated paths.
+#* The directories a config is looked for in, most specific first.
+#* `$(CURDIR)` is deliberately absent: a bare config at the repository root would re-enter PHPStan's
+#* dynamically evaluated paths.
 #*
 #* parameters:
 #*   stack: string
@@ -1494,9 +1500,10 @@ $(foreach BASE,$(call _reverse,$(_SEARCH_BASES)),$(if $1,$(WORKDIR)/$(BASE)/$1) 
 endef
 
 #**
-#* The first config in the list that is there, then the same names under either installation of this
-#* package, so a project reads its own file, falls back to the tracked one, and may keep neither.
-#* The last candidate is what a project is told to create when it has none, and `CONFIG` pins the choice.
+#* The first config in the list that is there.
+#* Then the same names under either installation of this package, so a project reads its own file,
+#* falls back to the tracked one, and may keep neither. The last candidate is what a project is told
+#* to create when it has none, and `CONFIG` pins the choice.
 #*
 #* parameters:
 #*   candidates: list<string>
