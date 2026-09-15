@@ -59,7 +59,7 @@ so a repository adds to any of them and restates none. Every key is optional.
 {
   "fileExtensions": [".svelte"],
   "allowlist": {
-    "src/PhpStan.php": ["analyse:140,563"]
+    "src/PhpStan.php": ["'analyse'", "analyse?:"]
   }
 }
 ```
@@ -67,8 +67,10 @@ so a repository adds to any of them and restates none. Every key is optional.
 A key is the exact path the literals are allowed in; `*` is every path.
 A literal matches case-insensitively and **covers** what it contains,
 so `phpstan-analyse` allows the `analyse` in it.
+Prefer the longest literal that still names the one place — the quoted form, the array key,
+the namespaced class — over the bare word, which keeps allowing it anywhere in the file.
 
-`word:12` or `word:12,40` narrows a literal to those lines.
-Prefer it — an unscoped literal keeps allowing the word anywhere in the file.
+`word:12` or `word:12,40` narrows a literal to those lines, but it is coupled to that position:
+an edit above it shifts the line and the allowance silently stops matching.
 
 **An entry a broader one already covers is an error**, so the allowlist cannot grow entries that do nothing.

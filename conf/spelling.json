@@ -1,60 +1,34 @@
 {
   "allowlist": {
+    "*": [
+      "PHPStan\\Analyser\\Scope"
+    ],
     "conf/ai/mate/INSTRUCTIONS.md": [
-      "analyse:20"
+      "phpstan-analyse"
     ],
     "docs/spelling.md": [
-      "analyse:62,69"
+      "'analyse'",
+      "analyse?:",
+      "`analyse`",
+      "phpstan-analyse"
     ],
     "src/php/PhpStan.php": [
-      "analyse:141,648,653,658,725,749"
-    ],
-    "src/php/PhpStan/Rule/ApiOrInternalTagRule.php": [
-      "Analyser:19"
-    ],
-    "src/php/PhpStan/Rule/BoolishPrefixRule.php": [
-      "Analyser:32"
-    ],
-    "src/php/PhpStan/Rule/InterfaceSuffixRule.php": [
-      "Analyser:14"
-    ],
-    "src/php/PhpStan/Rule/InternalExposureRule.php": [
-      "Analyser:18"
-    ],
-    "src/php/PhpStan/Rule/InternalUsageRule.php": [
-      "Analyser:29"
-    ],
-    "src/php/PhpStan/Rule/NamedArgumentsTagRule.php": [
-      "Analyser:14"
-    ],
-    "src/php/PhpStan/Rule/NamedArgumentsUsageRule.php": [
-      "Analyser:17"
-    ],
-    "src/php/PhpStan/Rule/PublicApiDocumentationRule.php": [
-      "Analyser:24"
-    ],
-    "src/php/PhpStan/Rule/ResolvableDocReferenceRule.php": [
-      "Analyser:16"
-    ],
-    "src/php/PhpStan/Rule/ServiceArgumentBindingRule.php": [
-      "Analyser:24"
-    ],
-    "src/php/PhpStan/Rule/Trait/RuleTrait.php": [
-      "Analyser:19"
-    ],
-    "src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php": [
-      "Analyser:11"
+      "'analyse'",
+      "{analyse,",
+      "analyse?:"
     ],
     "tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php": [
-      "analyse:26"
+      "->analyse("
     ],
     "tests/php/PhpStanTest.php": [
-      "analyse:290,296,305"
+      "'analyse'"
     ],
     "tests/php/SpellingTest.php": [
-      "analyse:48,53,54,60,67,79,91",
-      "behaviour:38",
-      "normalises:105"
+      "'analyse'",
+      "\"analyse",
+      "phpstan-analyse",
+      "'behaviour'",
+      "'normalises'"
     ]
   }
 }
