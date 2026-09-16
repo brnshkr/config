@@ -163,6 +163,8 @@ AWK    ?= awk#~~ path to `awk` binary
 PHP    ?= $(_RUN) php#~~ command that runs `php`
 TAR    ?= tar#~~ path to `tar` binary
 GIT    ?= git#~~ path to `git` binary
+MKTEMP ?= mktemp#~~ path to `mktemp` binary
+SCRIPT ?= script#~~ path to `script` binary
 
 #---v settings
 
@@ -858,11 +860,11 @@ $(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest #~~ runs them through
 
 $(call _target,phpunit): #~~ runs the PHP tests
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS))
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOOR),,1)),:,$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(_PHP_UNIT_FLOOR),PHP_UNIT_COVERAGE_FILE))
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
@@ -892,7 +894,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php)
 
 $(call _target,phpstan): #~~ runs `phpstan analyze`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS))
 
 $(call _target,phpstan-debug): #~~ runs `phpstan analyze` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan) -- --debug $(ARGS)
@@ -929,7 +931,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),
 
 $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS))
 
 $(call _target,php-cs-fixer-dry-run): #~~ runs `php-cs-fixer fix` in dry run mode #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,php-cs-fixer) -- --dry-run $(ARGS)
@@ -963,7 +965,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$
 
 $(call _target,rector): #~~ runs `rector process`
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS))
 
 $(call _target,rector-debug): #~~ runs `rector process` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --debug $(ARGS)
@@ -1000,7 +1002,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG)
 
 $(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS))
 
 $(call _target,twig-cs-fixer-debug): #~~ runs `twig-cs-fixer` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --debug $(ARGS)
@@ -1060,7 +1062,7 @@ _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 
 $(call _target,commitlint): #~~ lints a commit message
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
-	$(DEBUG_PREFIX)$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE))
+	$(DEBUG_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE)))
 
 $(call _target,commitlint-print): #~~ prints the resolved `commitlint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
@@ -1098,12 +1100,12 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
 $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+	$(DEBUG_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(call _is_dry_run,$(_ARGS)),,--fix); \
 		status=$$?; \
 		[ ! -f '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
-		exit $$status
+		exit $$status)
 
 $(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint) -- --dry-run $(ARGS)
@@ -1137,11 +1139,11 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),
 
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
+	$(DEBUG_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
 		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
-			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)')
+			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)'))
 
 $(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,markdownlint) -- --dry-run $(ARGS)
@@ -1196,11 +1198,11 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) \
+	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) \
 		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
-			$(_FIXER_ARGS) '$(STYLELINT_GLOB)')
+			$(_FIXER_ARGS) '$(STYLELINT_GLOB)'))
 
 $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,stylelint) -- --dry-run $(ARGS)
@@ -1233,7 +1235,7 @@ _LINKED_CONFIGS  += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))
 
 $(call _target,typescript): #~~ runs the `tsc` type check
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
-	$(DEBUG_PREFIX)$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) $(ARGS))
 
 $(call _target,typescript-group): #~~ counts the `tsc` errors by code #v
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
@@ -1275,13 +1277,13 @@ _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call
 
 $(call _target,vitest): #~~ runs `vitest`
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
 
 ifneq ($(_VITEST_COVERAGE_PROVIDER),) # vitest-coverage
 
 $(call _target,vitest-coverage): #~~ runs `vitest` and reports how much of the source it reaches #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS)
+	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS))
 
 endif # /vitest-coverage
 
@@ -1291,7 +1293,7 @@ $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update
+	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update)
 
 endif # /vitest
 
@@ -1681,9 +1683,30 @@ test -f '$(call _host_path,$1)' || { \
 }
 endef
 
-_IS_GROUP_PARALLEL  = $(if $(filter -O%,$(MAKEFLAGS)),,$(_IS_PARALLEL))
-_HAS_GROUP_LABEL    = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT))
-_SPINNER_SECONDS   := 0.15
+_IS_GROUP_PARALLEL    = $(if $(filter -O%,$(MAKEFLAGS)),,$(_IS_PARALLEL))
+_HAS_GROUP_LABEL      = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT))
+_CLEAR_SPINNER        = $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"
+_SPINNER_SECONDS     := 0.15
+_SIGNAL_INTERRUPT    := INT
+_SIGNAL_TERMINATE    := TERM
+_SIGNAL_HANGUP       := HUP
+_INTERRUPT_EXIT_CODE := 130
+_SPINNER_SIGNALS     := $(_SIGNAL_INTERRUPT) $(_SIGNAL_TERMINATE) $(_SIGNAL_HANGUP)
+
+#**
+#* Starts a spinner in the background, which runs until the shell that started it is gone.
+#*
+#* parameters:
+#*   indent?: string
+#*
+#* returns: void
+#*
+define __spinner
+while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
+	$(PRINTF) '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
+	sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
+done; done & spinner=$$!
+endef
 
 #**
 #* Runs a tool and prints its findings grouped by identifier, failing only when it reported nothing.
@@ -1699,14 +1722,64 @@ define _group
 label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
-	[ -z "$$has_spinner" ] || { $(PRINTF) '$(_ANSI_HIDE_CURSOR)'; trap 'kill $$spinner 2>/dev/null; $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"; exit 130' INT TERM HUP; while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
-		$(PRINTF) '\r$(if $(_HAS_GROUP_LABEL),  )$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
-	done; done & spinner=$$!; };) \
+	[ -z "$$has_spinner" ] || { \
+		$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
+		trap 'kill $$spinner 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
+		$(call __spinner,$(if $(_HAS_GROUP_LABEL),  )); \
+	};) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
 	| $(AWK) -v _indent='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
-$(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";,[ -z "$$has_spinner" ] || { kill $$spinner 2>/dev/null; wait $$spinner 2>/dev/null; $(PRINTF) '\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)'; }; [ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+$(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
+	[ -z "$$has_spinner" ] || { \
+		kill $$spinner 2>/dev/null; \
+		wait $$spinner 2>/dev/null; \
+		$(_CLEAR_SPINNER); \
+	}; \
+	[ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
 exit $$code
+endef
+
+#**
+#* Runs a tool behind a spinner, which clears as soon as the tool prints anything.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: void
+#*
+define _spinner
+spin_command() { $1; }; \
+has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] \
+	&& [ -n '$(SCRIPT)' ] \
+	&& command -v $(SCRIPT) >/dev/null 2>&1 \
+	&& has_spinner=1;) \
+if [ -z "$$has_spinner" ]; then \
+	spin_command; \
+else \
+	export _SPIN_STATUS=$$($(MKTEMP)); \
+	spun_command='$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
+	if $(SCRIPT) --version >/dev/null 2>&1; then \
+		set -- -qfc "$$spun_command" /dev/null; \
+	else \
+		set -- -q /dev/null $(SHELL) -c "$$spun_command"; \
+	fi; \
+	$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
+	trap '$(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
+	$(call __spinner); \
+	SHELL='$(SHELL)' $(SCRIPT) "$$@" | { \
+		IFS= read -r line; has_line=$$?; \
+		kill $$spinner 2>/dev/null; \
+		wait $$spinner 2>/dev/null; \
+		$(_CLEAR_SPINNER); \
+		[ $$has_line -ne 0 ] || $(PRINTF) '%s\n' "$$line"; \
+		$(CAT); \
+	}; \
+	code=$$($(CAT) "$$_SPIN_STATUS"); \
+	$(RM) -f "$$_SPIN_STATUS"; \
+	[ -n "$$code" ] || { spin_command; exit $$?; }; \
+	exit $$code; \
+fi
 endef
 
 #**
@@ -1784,9 +1857,9 @@ define confirm
 		[ -t 0 ] \
 			&& $(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
 			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0) >&2 \
-			&& trap '$(PRINTF) "\n" >&2; trap - INT; kill -INT $$$$' INT \
+			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
 			&& read -r answer \
-			&& trap - INT \
+			&& trap - $(_SIGNAL_INTERRUPT) \
 			&& case "$$answer" in \
 				[yY]|[yY][eE][sS]) true;; \
 				"") $(if $(filter yes,$2),true,false);; \
