@@ -596,7 +596,7 @@ _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONF
 $(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
 	$(TRACE_PREFIX)$(if $(_UNKNOWN_CONFIGS),{ \
 		$(call log,No config named `%s`.,$(COLOR_ERROR),'$(firstword $(_UNKNOWN_CONFIGS))'); \
-		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CONFIG_NAMES),disjunction)'); \
+		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CONFIG_NAMES),disjunction)',no-autolink); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	},:)
 	$(DEBUG_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
@@ -684,7 +684,7 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 			case " $(_CACHES) " in \
 				*" $$name "*) ;; \
 				*) $(call log,No cache named `%s`.,$(COLOR_ERROR),"$$name"); \
-					$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)'); \
+					$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)',no-autolink); \
 					exit $(BRNSHKR_CONFIG_ERROR_CODE) ;; \
 			esac; \
 		done; \
@@ -696,7 +696,7 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
-		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)'); \
+		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)',no-autolink); \
 		if $(call confirm,Continue?); then \
 			$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
@@ -1856,7 +1856,7 @@ define confirm
 	[ -n "$(_IS_CI)" ] || { \
 		[ -t 0 ] \
 			&& $(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
-			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0) >&2 \
+			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,1) >&2 \
 			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
 			&& read -r answer \
 			&& trap - $(_SIGNAL_INTERRUPT) \
@@ -1873,28 +1873,39 @@ endef
 #* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
 #* Anything in backticks renders as inline code. The message is a `printf` format, so a value goes
 #* in as an argument rather than being pasted in. A literal comma has to be written as `$(_COMMA)`.
+#* A backticked span that names a target or an existing path links to it, which `no-autolink` turns
+#* off where the sentence is about neither.
 #*
 #* parameters:
 #*   message: string
 #*   color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 #*   arguments?: list<string>
+#*   autolink?: OneOf<autolink | no-autolink> = autolink
 #*
 #* returns: void
 #*
 define log
-$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 | $(call _render_inline_code,print)
+$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 \
+	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,1))
 endef
 
 #**
 #* Renders every backticked span of a line as inline code, ending with the given awk action.
+#* A span links to the target or the path it names only where the caller asks for it.
 #*
 #* parameters:
 #*   action: string
+#*   autolink?: boolean = false
 #*
 #* returns: void
 #*
 define _render_inline_code
-$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' -v _close='$(_ANSI_RESET)' -v _url='$(_INLINE_CODE_URL)' -v _cwd='$(CURDIR)' -v _prefix='$(_TARGET_PREFIX)' -v _targets=' $(_TARGET_LINKS) ' ' \
+$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
+	-v _close='$(_ANSI_RESET)' \
+	-v _url='$(if $2,$(_INLINE_CODE_URL))' \
+	-v _cwd='$(CURDIR)' \
+	-v _prefix='$(_TARGET_PREFIX)' \
+	-v _targets=' $(if $2,$(_TARGET_LINKS)) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
 		placeholder_position = index(url, "{file}"); \
 		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \

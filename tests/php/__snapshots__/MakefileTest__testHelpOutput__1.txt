@@ -398,6 +398,8 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
  app
   advanced
@@ -636,11 +638,14 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
     parameters:
       message: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -892,11 +897,14 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
     parameters:
       message: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -1362,11 +1370,14 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
     parameters:
       message: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -1618,11 +1629,14 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
     parameters:
       message: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -1874,11 +1888,14 @@ Functions:
     Prints a message behind the <VENDOR>/<PACKAGE> label.
     Anything in backticks renders as inline code. The message is a printf format, so a value goes
     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
 
     parameters:
       message: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -2207,15 +2224,18 @@ Available commands:
 
     [90mreturns: void[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1884\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1887\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
     [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
     [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
+    [90mA backticked span that names a target or an existing path links to it, which [35mno-autolink[0m[90m turns[0m
+    [90moff where the sentence is about neither.[0m
 
     [90mparameters:[0m
     [90m  message: string[0m
     [90m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
     [90m  arguments?: list<string>[0m
+    [90m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
 
     [90mreturns: void[0m
 
@@ -2463,15 +2483,18 @@ Available commands:
 
     [0mreturns: void[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1884\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1887\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
     [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
     [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
+    [0mA backticked span that names a target or an existing path links to it, which [33mno-autolink[0m[0m turns[0m
+    [0moff where the sentence is about neither.[0m
 
     [0mparameters:[0m
     [0m  message: string[0m
     [0m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
     [0m  arguments?: list<string>[0m
+    [0m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
 
     [0mreturns: void[0m
 
