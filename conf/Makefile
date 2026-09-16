@@ -504,6 +504,7 @@ _PLACED_CONFIGS = $(WORKDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.d
 	$(WORKDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
 	$(WORKDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json \
 	$(if $(wildcard $(CURDIR)/package.json),$(WORKDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
+	$(if $(wildcard $(CURDIR)/composer.json),$(WORKDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist)
 
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
@@ -531,7 +532,8 @@ $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable s
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
-CONFIG ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
+CONFIG              ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
+ARCHIVE_EXTRA_PATHS ?= #v #~~ paths an archive ships beside the autoload roots, a trailing `/` taking the whole tree
 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
@@ -604,6 +606,10 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
 	done
+	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -f $(WORKDIR)/.gitattributes ] || { \
+		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(WORKDIR)/.gitattributes $(WORKDIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(WORKDIR)/.gitattributes)'); \
+	},:)
 	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
@@ -2046,6 +2052,79 @@ _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(s
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 
+define _GITATTRIBUTES_PROGRAM_SOURCE
+$$attributesPath = $$argv[1];
+$$manifest = json_decode((string) file_get_contents($$argv[2]), true, flags: JSON_THROW_ON_ERROR);
+
+$$shippedPaths = ['composer.json', 'LICENSE', 'README.md'];
+$$declaredPaths = array_filter(explode(' ', $$argv[3] ?? ''));
+
+foreach (['psr-4', 'psr-0', 'classmap', 'files'] as $$section) {
+    foreach ((array) ($$manifest['autoload'][$$section] ?? []) as $$sectionPaths) {
+        foreach ((array) $$sectionPaths as $$sectionPath) {
+            $$shippedPaths[] = $$sectionPath;
+        }
+    }
+}
+
+foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
+    $$shippedPaths[] = $$binaryPath;
+}
+
+$$projectDirectory = dirname($$argv[2]);
+$$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirectory): array {
+    $$expanded = [];
+
+    foreach ($$paths as $$path) {
+        $$path = (string) preg_replace('#^(?:\./)+#', '', $$path);
+        $$isWholeTree = $$wholeTree
+            ? is_dir($$projectDirectory . '/' . trim($$path, '/'))
+            : str_ends_with($$path, '/');
+        $$path = '/' . trim($$path, '/');
+        $$expanded[] = $$path;
+
+        if ($$isWholeTree) {
+            $$expanded[] = $$path . '/**';
+        }
+    }
+
+    return $$expanded;
+};
+
+$$shippedPaths = [...$$expand($$shippedPaths, true), ...$$expand($$declaredPaths, false)];
+$$shippedLookup = array_flip($$shippedPaths);
+
+foreach ($$shippedPaths as $$path) {
+    while (($$path = dirname($$path)) !== '/' && $$path !== '.') {
+        $$shippedPaths[] = $$path;
+    }
+}
+
+$$shippedPaths = array_values(array_unique($$shippedPaths));
+
+sort($$shippedPaths);
+
+$$pathWidth = max(array_map(strlen(...), [...$$shippedPaths, '*']));
+$$renderedLines = [
+    sprintf('%-' . $$pathWidth . 's  export-ignore', '*'),
+    sprintf('%-' . $$pathWidth . 's  export-ignore', '.*'),
+];
+
+foreach ($$shippedPaths as $$path) {
+    $$renderedLines[] = sprintf('%-' . $$pathWidth . 's -export-ignore', $$path)
+        . (isset($$shippedLookup[$$path]) ? '' : ' -export-subst');
+}
+
+$$currentContents = (string) file_get_contents($$attributesPath);
+$$generatedRegion = "###> brnshkr/config ###\n" . implode("\n", $$renderedLines) . "\n###< brnshkr/config ###";
+$$updatedContents = preg_replace('/###> brnshkr\/config ###.*###< brnshkr\/config ###/s', $$generatedRegion, $$currentContents, 1);
+
+if ($$updatedContents !== null && $$updatedContents !== $$currentContents) {
+    file_put_contents($$attributesPath, $$updatedContents);
+    echo $$attributesPath;
+}
+endef
+
 define _NAME_INTERNAL_TAG_PROGRAM_SOURCE
 require $$argv[1];
 
@@ -2595,5 +2674,6 @@ endef
 export EDITOR_URL
 
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
+$(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

@@ -1,38 +1,59 @@
+* text=auto eol=lf
+
+*.7z    binary
+*.avif  binary
+*.bmp   binary
+*.eot   binary
+*.gif   binary
+*.gz    binary
+*.ico   binary
+*.jpeg  binary
+*.jpg   binary
+*.mp3   binary
+*.mp4   binary
+*.odt   binary
+*.ogg   binary
+*.otf   binary
+*.pdf   binary
+*.png   binary
+*.tar   binary
+*.ttf   binary
+*.wav   binary
+*.webm  binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.zip   binary
+
+*.lock  linguist-generated
+*.min.* linguist-vendored
+
+###> brnshkr/config ###
+*                                       export-ignore
 .*                                      export-ignore
-/conf/*                                 export-ignore
+/LICENSE                               -export-ignore
+/README.md                             -export-ignore
+/composer.json                         -export-ignore
+/conf                                  -export-ignore -export-subst
 /conf/.gitignore.dist                  -export-ignore
 /conf/Makefile                         -export-ignore
 /conf/Makefile.dist                    -export-ignore
 /conf/editorconfig.dist                -export-ignore
+/conf/gitattributes.dist               -export-ignore
 /conf/launch.dist.json                 -export-ignore
 /conf/php-cs-fixer.dist.php            -export-ignore
 /conf/phpstan                          -export-ignore
 /conf/phpstan.dist.php                 -export-ignore
-/conf/phpstan/*                        -export-ignore
+/conf/phpstan/**                       -export-ignore
 /conf/phpunit.dist.xml                 -export-ignore
 /conf/rector.dist.php                  -export-ignore
 /conf/spelling                         -export-ignore
-/conf/spelling/*                       -export-ignore
+/conf/spelling/**                      -export-ignore
 /conf/twig-cs-fixer.dist.php           -export-ignore
 /conf/vscode-css-custom-data.dist.json -export-ignore
 /conf/vscode-extensions.dist.json      -export-ignore
-/conf/vscode-settings.dist.json        -export-ignore
-/AGENTS.md                              export-ignore
-/bun.lock                               export-ignore
-/bunfig.toml                            export-ignore
-/CHANGELOG.md                           export-ignore
-/CLAUDE.md                              export-ignore
-/composer.lock                          export-ignore
-/dist/                                  export-ignore
-/docs/                                  export-ignore
-/Makefile                               export-ignore
-/mate/                                  export-ignore
-/mcp.json                               export-ignore
-/mise.toml                              export-ignore
-/node_modules/                          export-ignore
-/package.json                           export-ignore
-/scripts/                               export-ignore
-/src/js/                                export-ignore
-/tests/                                 export-ignore
-/tsconfig.json                          export-ignore
-/vendor/                                export-ignore
+/conf/vscode-settings.dist.jsonc       -export-ignore
+/src                                   -export-ignore -export-subst
+/src/php                               -export-ignore
+/src/php/**                            -export-ignore
+###< brnshkr/config ###

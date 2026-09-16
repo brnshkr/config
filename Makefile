@@ -7,6 +7,23 @@ STARTUP_TARGETS := build \
 
 include ./conf/Makefile
 
+ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
+	./conf/Makefile \
+	./conf/Makefile.dist \
+	./conf/editorconfig.dist \
+	./conf/gitattributes.dist \
+	./conf/launch.dist.json \
+	./conf/php-cs-fixer.dist.php \
+	./conf/phpstan/ \
+	./conf/phpstan.dist.php \
+	./conf/phpunit.dist.xml \
+	./conf/rector.dist.php \
+	./conf/spelling/ \
+	./conf/twig-cs-fixer.dist.php \
+	./conf/vscode-css-custom-data.dist.json \
+	./conf/vscode-extensions.dist.json \
+	./conf/vscode-settings.dist.jsonc
+
 PHP_UNIT_MIN_COVERAGE := 0
 VITEST_MIN_COVERAGE   := 0
 

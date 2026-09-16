@@ -1,0 +1,32 @@
+* text=auto eol=lf
+
+*.7z    binary
+*.avif  binary
+*.bmp   binary
+*.eot   binary
+*.gif   binary
+*.gz    binary
+*.ico   binary
+*.jpeg  binary
+*.jpg   binary
+*.mp3   binary
+*.mp4   binary
+*.odt   binary
+*.ogg   binary
+*.otf   binary
+*.pdf   binary
+*.png   binary
+*.tar   binary
+*.ttf   binary
+*.wav   binary
+*.webm  binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.zip   binary
+
+*.lock  linguist-generated
+*.min.* linguist-vendored
+
+###> brnshkr/config ###
+###< brnshkr/config ###

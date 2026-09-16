@@ -1109,6 +1109,7 @@ final class MakefileTest extends TestCase
             $written = [
                 ...$written,
                 $directory . '/.editorconfig',
+                $directory . '/.gitattributes',
                 $directory . '/bunfig.toml',
             ];
         }
