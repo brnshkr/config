@@ -189,9 +189,10 @@ PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
-DEBUG        ?= #~~ whether the commands are echoed before they run
-DEBUG_PREFIX ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
-_IS_DEBUG     = $(filter-out $(_FALSE),$(DEBUG))
+DEBUG          ?= #~~ whether the commands are echoed before they run
+unexport DEBUG  # NOTICE: the `debug` package reads this from the environment
+DEBUG_PREFIX   ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
+_IS_DEBUG       = $(filter-out $(_FALSE),$(DEBUG))
 
 TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
 TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)#vvv #~~ prefix for a guard command
@@ -787,6 +788,7 @@ PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
 #--- composer
 
 COMPOSER              ?= $(_RUN) composer#v #~~ command that runs `composer`
+unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
@@ -1074,10 +1076,11 @@ endif # /commitlint
 
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint),) # eslint
 
-ESLINT        ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
-ESLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint.mjs $(WORKDIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
-ESLINT_CACHE  ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
-ESLINT_FLAGS  ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
+ESLINT                ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
+ESLINT_CONFIG         ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint.mjs $(WORKDIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
+ESLINT_CACHE          ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
+ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
+unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
 _ESLINT_OUTPUT := $(WORKDIR)/.cache/eslint.output
 
@@ -1256,6 +1259,7 @@ endif # /typescript
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
 
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
+unexport VITEST    # NOTICE: Vitest sets this to mark its own runs
 VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vitest.mjs $(WORKDIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
