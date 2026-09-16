@@ -83,6 +83,7 @@ Every tool is three variables
 | `STARTUP_TARGETS` | The repository's own steps, run last by `startup`. |
 | `RUN` | The command the tools are run through, such as `docker compose exec app`. |
 | `WORKDIR` | Where the tools see the sources, `/app` under `RUN`. |
+| `TARGET_ALIASES` | Short names for targets, as `<alias>=<target>`. `h`, and `-h` behind a `--`, both reach `help`. |
 | `TARGET_PREFIX` | Namespaces every shared target. Set it above the include. |
 | `COLLISION_PREFIX` | Namespaces a shared target whose name the repository already uses. Set it above the include. |
 | `DOTENV` | Base path of the environment files, or `0` to load none. Set it above the include. |

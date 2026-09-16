@@ -446,6 +446,51 @@ ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target wa
 _ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS)))))
 _FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
 
+#**
+#* The goal a name reaches, empty where it names nothing.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _goal_of
+$(or $(filter $1,$(_ALL_TARGETS)),$(filter $(call _target,$1),$(_ALL_TARGETS)))
+endef
+
+TARGET_ALIASES ?= h=help \
+	c=check \
+	t=test \
+	f=fix#~~ short names for targets, as `<alias>=<target>` pairs
+
+_TARGET_ALIAS_MAP = $(foreach PAIR,$(TARGET_ALIASES),$(lastword $(subst =, ,$(PAIR)))=$(firstword $(subst =, ,$(PAIR))))
+
+_ALIAS_TARGET = $(strip $(foreach PAIR,$(TARGET_ALIASES), \
+	$(if $(filter $(patsubst -%,%,$@),$(firstword $(subst =, ,$(PAIR)))),$(lastword $(subst =, ,$(PAIR))))))
+
+_ALIAS_GOAL = $(call _goal_of,$(_ALIAS_TARGET))
+
+_TAKEN_ALIASES := $(strip $(foreach PAIR,$(TARGET_ALIASES), \
+	$(filter $(firstword $(subst =, ,$(PAIR))),$(_ALL_TARGETS))))
+
+_MALFORMED_ALIASES := $(strip $(foreach PAIR,$(TARGET_ALIASES), \
+	$(if $(filter 2,$(words $(subst =, ,$(PAIR)))),,$(PAIR))))
+
+_DANGLING_ALIASES := $(strip $(foreach PAIR,$(filter-out $(_MALFORMED_ALIASES),$(TARGET_ALIASES)), \
+	$(if $(call _goal_of,$(lastword $(subst =, ,$(PAIR)))),,$(PAIR))))
+
+ifneq ($(_TAKEN_ALIASES),) # taken
+$(error [$(_LABEL)] `$(firstword $(_TAKEN_ALIASES))` is a target, so it cannot also be an alias)
+endif # /taken
+
+ifneq ($(_MALFORMED_ALIASES),) # malformed
+$(error [$(_LABEL)] `$(firstword $(_MALFORMED_ALIASES))` is not an `<alias>=<target>` pair)
+endif # /malformed
+
+ifneq ($(_DANGLING_ALIASES),) # dangling
+$(error [$(_LABEL)] `$(subst =,` aliases `,$(firstword $(_DANGLING_ALIASES)))`, which is not a target)
+endif # /dangling
+
 _IS_JUST_PRINT = $(findstring n,$(firstword $(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
 _UNKNOWN_ARGS  = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
@@ -1315,15 +1360,21 @@ $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
 
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
-	$(DEBUG_PREFIX)$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:)
-	$(DEBUG_PREFIX)$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)),$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_TARGETS),disjunction)'); \
+	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
+		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
+	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
+		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),'$@' '$(_ALIAS_TARGET)'); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}),:)
+	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:))
+	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)),$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_TARGETS),disjunction)'); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE),if [ -t 0 ] && [ -z "$(_IS_CI)" ]; then \
 			$(call confirm,Did you mean `$(_SUGGESTED_TARGETS)`?) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			exec $(MAKE) $(_MAKE_FLAGS) $(_SUGGESTED_TARGETS) $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
 		fi; \
 		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$(_SUGGESTED_TARGETS)'); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE))),:)
+		exit $(BRNSHKR_CONFIG_ERROR_CODE))),:))
 else
 	$(DEBUG_PREFIX):
 endif # /unknown
@@ -2371,6 +2422,13 @@ function push_scope(level, name, verbosity,    current, parent_verbosity, parent
 		children[parent, child_count[parent]] = current
 	}
 }
+function alias_of(name,    map, position, remainder) {
+	map = " " ENVIRON["_TARGET_ALIAS_MAP"] " "
+	position = index(map, " " name "=")
+	if (!position) return ""
+	remainder = substr(map, position + length(name) + 2)
+	return ", " substr(remainder, 1, index(remainder, " ") - 1)
+}
 function resolve_scope(    current) {
 	current = (scope_depth > 0 ? scope_at[scope_depth] : scope_at[0] != "" ? scope_at[0] : "main")
 	if (current == "main" && !("main" in seen_scope)) { seen_scope["main"] = 1; top_count += 1; top_order[top_count] = "main" }
@@ -2381,7 +2439,7 @@ function add(section, name, text, extra, description, line,    current, idx) {
 	if (!current) return
 	if (name != "" && seen_symbol[current, section, name]++) return
 	idx = ++section_count[current, section]
-	section_name[current, section, idx] = name
+	section_name[current, section, idx] = name (section == "commands" ? alias_of(name) : "")
 	section_text[current, section, idx] = text
 	section_extra[current, section, idx] = extra
 	section_description[current, section, idx] = description
