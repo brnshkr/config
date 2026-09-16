@@ -59,6 +59,14 @@ final class MakefileTest extends TestCase
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
 
+    private const array CONFIG_DIRECTORIES = [
+        self::CONFIGS_DIRECTORY,
+        self::FALLBACK_DIRECTORY,
+        self::VENDOR_DIRECTORY,
+        self::STARTUP_DIRECTORY,
+        self::TSCONFIG_DIRECTORY,
+    ];
+
     /**
      * Deterministic environment baseline for every help invocation. Tests merge
      * scenario-specific overrides on top via `runMakeHelp(env: [...])`.
@@ -1097,10 +1105,22 @@ final class MakefileTest extends TestCase
             self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
         ];
 
+        foreach (self::CONFIG_DIRECTORIES as $directory) {
+            $written = [
+                ...$written,
+                $directory . '/.editorconfig',
+                $directory . '/bunfig.toml',
+            ];
+        }
+
         foreach ($written as $path) {
             if (is_file($path) || is_link($path)) {
                 unlink($path);
             }
+        }
+
+        foreach (self::CONFIG_DIRECTORIES as $directory) {
+            self::removeDirectory($directory . '/.vscode');
         }
 
         self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');

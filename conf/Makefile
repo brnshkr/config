@@ -499,6 +499,12 @@ _PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
 _LAYERED_CONFIGS     =
 _LINKED_CONFIGS      =
 
+_PLACED_CONFIGS = $(WORKDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
+	$(WORKDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
+	$(WORKDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
+	$(WORKDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json \
+	$(if $(wildcard $(CURDIR)/package.json),$(WORKDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
+
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_CURDIR="$(abspath $(CURDIR))" \
@@ -530,14 +536,24 @@ CONFIG ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
 
+_NAMED_CONFIGS    = $(filter-out local l force f,$(_ARG_WORDS))
+_IS_FORCED_CONFIG = $(filter force f,$(_ARG_WORDS))
+_CONFIG_NAMES     = $(sort $(foreach CONFIG,$(_CONFIGS) $(_PLACED_CONFIGS) $(_LINKED_CONFIGS),$(call _config_name,$(CONFIG))))
+_UNKNOWN_CONFIGS  = $(filter-out $(_CONFIG_NAMES),$(_NAMED_CONFIGS))
+
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG))) \
 	$(if $(filter local l,$(_ARG_WORDS)),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
 
 $(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
-	$(DEBUG_PREFIX)for target in $(call _host_path,$(_CONFIGS)); do \
+	$(TRACE_PREFIX)$(if $(_UNKNOWN_CONFIGS),{ \
+		$(call log,No config named `%s`.,$(COLOR_ERROR),'$(firstword $(_UNKNOWN_CONFIGS))'); \
+		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CONFIG_NAMES),disjunction)'); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	},:)
+	$(DEBUG_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		if [ -f "$$target" ]; then \
-			$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}"); \
-			continue; \
+			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
+			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
 		name="$${target##*/}"; \
 		source="$${target}.example"; \
@@ -576,16 +592,28 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 			extended=""; \
 		fi; \
 	done
-	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(_LINKED_CONFIGS),'$(LINKED_CONFIG)'); do \
+	$(DEBUG_PREFIX)for entry in $(foreach PLACED_CONFIG,$(call _selected_configs,$(_PLACED_CONFIGS)),'$(PLACED_CONFIG)'); do \
+		target="$${entry%%|*}"; \
+		source="$${entry#*|}"; \
+		[ -f "$$source" ] || continue; \
+		if [ -f "$$target" ]; then \
+			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
+			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
+		fi; \
+		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
+		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
+	done
+	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
 		relative="$${source#$(CURDIR)/}"; \
 		if [ -e "$$link" ]; then \
-			$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link#$(CURDIR)/}"); \
-			continue; \
+			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link#$(CURDIR)/}")); \
+			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
 		[ -f "$$source" ] || continue; \
-		if $(LN) -s "$$relative" "$$link" 2>/dev/null; then \
+		if $(LN) -sf "$$relative" "$$link" 2>/dev/null; then \
 			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}" "./$$relative"); \
 		else \
 			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative\"" '}' > "$$link" \
@@ -1440,6 +1468,30 @@ $(strip $(shell $(PRINTF) '%s\n' $1 | $(AWK) -v value_flags=' $(strip $2) ' '\
 		if (index(value_flags, " " $$0 " ") > 0) { skip = 1; next } \
 		if ($$0 != "" && substr($$0, 1, 1) != "-") { print 1; exit } \
 	}'))
+endef
+
+#**
+#* The name a config answers to, which is its file name without a leading dot, a `.dist` or a suffix.
+#*
+#* parameters:
+#*   path: string
+#*
+#* returns: string
+#*
+define _config_name
+$(firstword $(subst ., ,$(patsubst .%,%,$(notdir $(lastword $(subst |, ,$1))))))
+endef
+
+#**
+#* The configs a run writes, which is every one of them unless the run named some.
+#*
+#* parameters:
+#*   configs: list<string>
+#*
+#* returns: list<string>
+#*
+define _selected_configs
+$(if $(_NAMED_CONFIGS),$(foreach CONFIG,$1,$(if $(filter $(call _config_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG))),$1)
 endef
 
 #**

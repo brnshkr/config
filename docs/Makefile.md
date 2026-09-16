@@ -39,7 +39,7 @@ Across both stacks:
 | `test` | Runs every stack's tests. |
 | `ci` | Runs `CI_TARGETS` in order — `check` then `test`, unless set to include `fix` first. |
 | `test-update` | Runs them and updates their snapshots. |
-| `configs` | Writes any tool config the repository is missing, and never touches one it has. |
+| `configs` | Writes any config the repository is missing. Name some to write only those, `--force` to overwrite. |
 | `pack` | Packs every stack's package into `./.local`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
@@ -108,9 +108,13 @@ and a repository content with the shipped defaults keeps neither.
 `<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
 at once — which is how a developer with a private file checks what the gate will read.
 
-`make configs` writes what the repository is missing: each tool's tracked config half, and a `.gitignore`.
+`make configs` writes what the repository is missing: each tool's tracked config half, a `.gitignore`,
+and the editor files the package ships, which land where an editor reads them rather than in `./conf/`.
 Each comes from the package, or from the repository's own `./conf/<name>.example` where it keeps one,
 and a copied PHP config is given the project's root namespace in its `@internal` tag.
+Naming configs writes only those, so `make configs eslint editorconfig` leaves every other one alone.
+A named config that already exists is offered for overwriting rather than skipped,
+`--force` overwrites without asking, and an unknown name lists what there is.
 `make configs local` writes the private halves as well, each delegating to the tracked file rather than
 restating it: an `include` for a PHP config, an `export { default } from` for a JavaScript one.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.

@@ -1,6 +1,4 @@
 {
-  // NOTICE: a shared setting belongs in conf/vscode-settings.dist.json too
-
   ////////////////////////
   /// Project specific ///
   ////////////////////////
@@ -12,7 +10,7 @@
   // JS/TS
   "js/ts.tsdk.path": "./node_modules/typescript/lib",
   "eslint.options": {
-    "overrideConfigFile": "./conf/eslint.ts"
+    "overrideConfigFile": "./conf/eslint.mjs"
   },
   "eslint.workingDirectories": [
     {

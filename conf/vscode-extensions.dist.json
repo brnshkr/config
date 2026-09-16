@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "aeschli.vscode-css-formatter",
+    "bmewburn.vscode-intelephense-client",
+    "bradlc.vscode-tailwindcss",
+    "DavidAnson.vscode-markdownlint",
+    "dbaeumer.vscode-eslint",
+    "EditorConfig.EditorConfig",
+    "junstyle.php-cs-fixer",
+    "mblode.twig-language-2",
+    "oven.bun-vscode",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "SanderRonde.phpstan-vscode",
+    "stylelint.vscode-stylelint",
+    "tamasfe.even-better-toml",
+    "usernamehw.errorlens",
+    "xdebug.php-debug",
+    "yzhang.markdown-all-in-one"
+  ]
+}
