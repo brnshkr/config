@@ -324,7 +324,6 @@
     "minimatch": "10.2.6",
     "node-modules-inspector": "2.5.0",
     "postcss-html": "2.0.0",
-    "simple-git-hooks": "2.14.0",
     "stylelint": "17.15.0",
     "stylelint-config-css-modules": "4.6.0",
     "stylelint-config-html": "2.0.0",
@@ -350,8 +349,5 @@
     "eslint",
     "lint",
     "linting"
-  ],
-  "simple-git-hooks": {
-    "commit-msg": "make commitlint"
-  }
+  ]
 }

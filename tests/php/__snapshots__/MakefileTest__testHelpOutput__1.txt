@@ -185,9 +185,11 @@ Variables:
    ANNOUNCEMENT                ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   dotenv
    DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
@@ -242,6 +244,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    check, c                    runs the fixers without writing, and every analyzer
@@ -249,6 +252,7 @@ Available commands:
    group                       counts every tool's findings by identifier
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -286,6 +290,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -347,10 +353,12 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   dotenv
    DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
@@ -426,6 +434,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -437,6 +446,7 @@ Available commands:
    group                       counts every tool's findings by identifier
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -486,6 +496,7 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
@@ -497,6 +508,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -567,15 +580,18 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   semver
    constants
     SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE          ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)
+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)
+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
     SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
@@ -681,6 +697,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -693,6 +710,7 @@ Available commands:
    pack                        packs every stack's package into ./.local
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -745,6 +763,7 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
@@ -756,6 +775,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -826,15 +847,18 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   semver
    constants
     SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE          ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)
+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)
+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
     SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
@@ -940,6 +964,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -952,6 +977,7 @@ Available commands:
    pack                        packs every stack's package into ./.local
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1217,6 +1243,7 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
@@ -1228,6 +1255,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -1298,15 +1327,18 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   semver
    constants
     SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE          ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)
+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)
+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
     SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
@@ -1413,6 +1445,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -1425,6 +1458,7 @@ Available commands:
    pack                        packs every stack's package into ./.local
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1477,6 +1511,7 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
@@ -1488,6 +1523,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -1558,15 +1595,18 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   semver
    constants
     SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE          ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)
+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)
+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
     SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
@@ -1672,6 +1712,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -1684,6 +1725,7 @@ Available commands:
    pack                        packs every stack's package into ./.local
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1736,6 +1778,7 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
@@ -1747,6 +1790,8 @@ Variables:
   settings
    RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
    WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -1817,15 +1862,18 @@ Variables:
    TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
+   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local or dist to pin which config every tool reads, rather than the first that is there)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (paths an archive ships beside the autoload roots, a trailing / taking the whole tree)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
   semver
    constants
     SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE          ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)
+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)
+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
     SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
@@ -1931,6 +1979,7 @@ Available commands:
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                     brings a fresh checkout to a workable state
+   install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
@@ -1943,6 +1992,7 @@ Available commands:
    pack                        packs every stack's package into ./.local
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
+   fixtures                    builds the fixtures this project's tests read
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -2076,104 +2126,110 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:157\CAT]8;;\                       [0m  [90m?=  cat                                              (path to [35mcat[0m[90m binary)[0m
    [36m]8;;vscode://file/./conf/Makefile:158\RM]8;;\                        [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
    [36m]8;;vscode://file/./conf/Makefile:159\MKDIR]8;;\                     [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:160\LN]8;;\                        [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:161\PRINTF]8;;\                    [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:162\AWK]8;;\                       [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:163\PHP]8;;\                       [0m  [90m?=  $(_RUN) php                                      (command that runs [35mphp[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:164\TAR]8;;\                       [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:165\GIT]8;;\                       [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:166\MKTEMP]8;;\                    [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
-   [36m]8;;vscode://file/./conf/Makefile:167\SCRIPT]8;;\                    [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:160\CHMOD]8;;\                     [0m  [90m?=  chmod                                            (path to [35mchmod[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:161\LN]8;;\                        [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:162\PRINTF]8;;\                    [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:163\AWK]8;;\                       [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:164\PHP]8;;\                       [0m  [90m?=  $(_RUN) php                                      (command that runs [35mphp[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:165\TAR]8;;\                       [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:166\GIT]8;;\                       [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:167\MKTEMP]8;;\                    [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
+   [36m]8;;vscode://file/./conf/Makefile:168\SCRIPT]8;;\                    [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
   [35msettings[0m
-   [36m]8;;vscode://file/./conf/Makefile:171\RUN]8;;\                       [0m  [90m?=                                                   (command the tools are run through, such as [35mdocker compose exec <service>[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:174\WORKDIR]8;;\                   [0m  [90m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [35mCURDIR[0m[90m in a container)[0m
-   [36m]8;;vscode://file/./conf/Makefile:176\TARGET_PREFIX]8;;\             [0m  [90m?=                                                   (namespaces every target this file defines, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:179\COLLISION_PREFIX]8;;\          [0m  [90m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m
-   [36m]8;;vscode://file/./conf/Makefile:187\VENDOR]8;;\                    [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
-   [36m]8;;vscode://file/./conf/Makefile:188\PACKAGE]8;;\                   [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
-   [36m]8;;vscode://file/./conf/Makefile:189\VERSION]8;;\                   [0m  [90m?=  0.0.0-dev                                        (package version)[0m
-   [36m]8;;vscode://file/./conf/Makefile:192\DEBUG]8;;\                     [0m  [90m?=                                                   (whether the commands are echoed before they run)[0m
-   [36m]8;;vscode://file/./conf/Makefile:194\DEBUG_PREFIX]8;;\              [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [36m]8;;vscode://file/./conf/Makefile:197\TRACE]8;;\                     [0m  [90m?=                                                   (whether the guards are echoed too, which [35mDEBUG[0m[90m leaves out)[0m
-   [36m]8;;vscode://file/./conf/Makefile:198\TRACE_PREFIX]8;;\              [0m  [90m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
-   [36m]8;;vscode://file/./conf/Makefile:201\ANNOUNCEMENT]8;;\              [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
-   [36m]8;;vscode://file/./conf/Makefile:212\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
+   [36m]8;;vscode://file/./conf/Makefile:172\RUN]8;;\                       [0m  [90m?=                                                   (command the tools are run through, such as [35mdocker compose exec <service>[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:175\WORKDIR]8;;\                   [0m  [90m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [35mCURDIR[0m[90m in a container)[0m
+   [36m]8;;vscode://file/./conf/Makefile:176\HOST_UID]8;;\                  [0m  [90m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
+   [36m]8;;vscode://file/./conf/Makefile:177\HOST_GID]8;;\                  [0m  [90m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
+   [36m]8;;vscode://file/./conf/Makefile:179\TARGET_PREFIX]8;;\             [0m  [90m?=                                                   (namespaces every target this file defines, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:182\COLLISION_PREFIX]8;;\          [0m  [90m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m
+   [36m]8;;vscode://file/./conf/Makefile:190\VENDOR]8;;\                    [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
+   [36m]8;;vscode://file/./conf/Makefile:191\PACKAGE]8;;\                   [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
+   [36m]8;;vscode://file/./conf/Makefile:192\VERSION]8;;\                   [0m  [90m?=  0.0.0-dev                                        (package version)[0m
+   [36m]8;;vscode://file/./conf/Makefile:195\DEBUG]8;;\                     [0m  [90m?=                                                   (whether the commands are echoed before they run)[0m
+   [36m]8;;vscode://file/./conf/Makefile:197\DEBUG_PREFIX]8;;\              [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
+   [36m]8;;vscode://file/./conf/Makefile:200\TRACE]8;;\                     [0m  [90m?=                                                   (whether the guards are echoed too, which [35mDEBUG[0m[90m leaves out)[0m
+   [36m]8;;vscode://file/./conf/Makefile:201\TRACE_PREFIX]8;;\              [0m  [90m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
+   [36m]8;;vscode://file/./conf/Makefile:204\ANNOUNCEMENT]8;;\              [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:215\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [35mtheming[0m
-   [36m]8;;vscode://file/./conf/Makefile:216\INDENT]8;;\                    [0m  [90m?=  1                                                (indent used in [35mmake help[0m[90m output)[0m
-   [36m]8;;vscode://file/./conf/Makefile:217\VALUE_WIDTH]8;;\               [0m  [90m?=  48                                               (widest a value column gets in [35mmake help[0m[90m, past which a value is truncated)[0m
-   [36m]8;;vscode://file/./conf/Makefile:219\NO_ANSI]8;;\                   [0m  [90m?=                                                   (whether ANSI escapes are suppressed)[0m
-   [36m]8;;vscode://file/./conf/Makefile:223\THEME]8;;\                     [0m  [90m?=                                                   (the theme to use)[0m
-   [36m]8;;vscode://file/./conf/Makefile:224\THEME_BRNSHKR]8;;\             [0m  [90m:=  brnshkr[0m
-   [36m]8;;vscode://file/./conf/Makefile:225\THEME_SYMFONY]8;;\             [0m  [90m:=  symfony[0m
-   [36m]8;;vscode://file/./conf/Makefile:233\EDITOR_URL]8;;\                [0m  [90m?=                                                   (URL template the entries link to, in [35m{cwd}[0m[90m, [35m{file}[0m[90m, [35m{line}[0m[90m and [35m{wslDistro}[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:234\EDITOR_VSCODE]8;;\             [0m  [90m:=  vscode[0m
-   [36m]8;;vscode://file/./conf/Makefile:235\EDITOR_PHPSTORM]8;;\           [0m  [90m:=  phpstorm[0m
-   [36m]8;;vscode://file/./conf/Makefile:245\EDITOR]8;;\                    [0m  [90m?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)[0m
+   [36m]8;;vscode://file/./conf/Makefile:219\INDENT]8;;\                    [0m  [90m?=  1                                                (indent used in [35mmake help[0m[90m output)[0m
+   [36m]8;;vscode://file/./conf/Makefile:220\VALUE_WIDTH]8;;\               [0m  [90m?=  48                                               (widest a value column gets in [35mmake help[0m[90m, past which a value is truncated)[0m
+   [36m]8;;vscode://file/./conf/Makefile:222\NO_ANSI]8;;\                   [0m  [90m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [36m]8;;vscode://file/./conf/Makefile:226\THEME]8;;\                     [0m  [90m?=                                                   (the theme to use)[0m
+   [36m]8;;vscode://file/./conf/Makefile:227\THEME_BRNSHKR]8;;\             [0m  [90m:=  brnshkr[0m
+   [36m]8;;vscode://file/./conf/Makefile:228\THEME_SYMFONY]8;;\             [0m  [90m:=  symfony[0m
+   [36m]8;;vscode://file/./conf/Makefile:236\EDITOR_URL]8;;\                [0m  [90m?=                                                   (URL template the entries link to, in [35m{cwd}[0m[90m, [35m{file}[0m[90m, [35m{line}[0m[90m and [35m{wslDistro}[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:237\EDITOR_VSCODE]8;;\             [0m  [90m:=  vscode[0m
+   [36m]8;;vscode://file/./conf/Makefile:238\EDITOR_PHPSTORM]8;;\           [0m  [90m:=  phpstorm[0m
+   [36m]8;;vscode://file/./conf/Makefile:248\EDITOR]8;;\                    [0m  [90m?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)[0m
    [35mcolors[0m
-    [36m]8;;vscode://file/./conf/Makefile:269\COLOR_NORMAL]8;;\             [0m  [90m:=  normal[0m
-    [36m]8;;vscode://file/./conf/Makefile:270\COLOR_BLACK]8;;\              [0m  [90m:=  black[0m
-    [36m]8;;vscode://file/./conf/Makefile:271\COLOR_RED]8;;\                [0m  [90m:=  red[0m
-    [36m]8;;vscode://file/./conf/Makefile:272\COLOR_GREEN]8;;\              [0m  [90m:=  green[0m
-    [36m]8;;vscode://file/./conf/Makefile:273\COLOR_YELLOW]8;;\             [0m  [90m:=  yellow[0m
-    [36m]8;;vscode://file/./conf/Makefile:274\COLOR_BLUE]8;;\               [0m  [90m:=  blue[0m
-    [36m]8;;vscode://file/./conf/Makefile:275\COLOR_MAGENTA]8;;\            [0m  [90m:=  magenta[0m
-    [36m]8;;vscode://file/./conf/Makefile:276\COLOR_CYAN]8;;\               [0m  [90m:=  cyan[0m
-    [36m]8;;vscode://file/./conf/Makefile:277\COLOR_WHITE]8;;\              [0m  [90m:=  white[0m
-    [36m]8;;vscode://file/./conf/Makefile:280\COLOR_PRIMARY]8;;\            [0m  [90m?=  $(COLOR_CYAN)[0m
-    [36m]8;;vscode://file/./conf/Makefile:281\COLOR_SECONDARY]8;;\          [0m  [90m?=  $(COLOR_MAGENTA)[0m
-    [36m]8;;vscode://file/./conf/Makefile:282\COLOR_TERTIARY]8;;\           [0m  [90m?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)[0m
-    [36m]8;;vscode://file/./conf/Makefile:283\COLOR_ERROR]8;;\              [0m  [90m?=  $(COLOR_RED)[0m
-    [36m]8;;vscode://file/./conf/Makefile:284\COLOR_WARNING]8;;\            [0m  [90m?=  $(COLOR_YELLOW)[0m
-    [36m]8;;vscode://file/./conf/Makefile:285\COLOR_NOTICE]8;;\             [0m  [90m?=  $(COLOR_MAGENTA)[0m
-    [36m]8;;vscode://file/./conf/Makefile:286\COLOR_SUCCESS]8;;\            [0m  [90m?=  $(COLOR_GREEN)[0m
-    [36m]8;;vscode://file/./conf/Makefile:287\COLOR_LOGO]8;;\               [0m  [90m?=  $(COLOR_SECONDARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:288\COLOR_TITLE]8;;\              [0m  [90m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
-    [36m]8;;vscode://file/./conf/Makefile:289\COLOR_USAGE_ARGUMENTS]8;;\    [0m  [90m?=  $(COLOR_PRIMARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:290\COLOR_USAGE_PROGRAM]8;;\      [0m  [90m?=  $(COLOR_PRIMARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:291\COLOR_SECTION_LABEL]8;;\      [0m  [90m?=  $(COLOR_SECONDARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:292\COLOR_SCOPE]8;;\              [0m  [90m?=  $(COLOR_SECONDARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:293\COLOR_ENTRY]8;;\              [0m  [90m?=  $(COLOR_PRIMARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:294\COLOR_DESCRIPTION]8;;\        [0m  [90m?=  $(COLOR_TERTIARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:295\COLOR_INLINE_CODE]8;;\        [0m  [90m?=  $(COLOR_SECONDARY)[0m
-    [36m]8;;vscode://file/./conf/Makefile:296\COLOR_HIGHLIGHT]8;;\          [0m  [90m?=  $(COLOR_YELLOW)[0m
+    [36m]8;;vscode://file/./conf/Makefile:272\COLOR_NORMAL]8;;\             [0m  [90m:=  normal[0m
+    [36m]8;;vscode://file/./conf/Makefile:273\COLOR_BLACK]8;;\              [0m  [90m:=  black[0m
+    [36m]8;;vscode://file/./conf/Makefile:274\COLOR_RED]8;;\                [0m  [90m:=  red[0m
+    [36m]8;;vscode://file/./conf/Makefile:275\COLOR_GREEN]8;;\              [0m  [90m:=  green[0m
+    [36m]8;;vscode://file/./conf/Makefile:276\COLOR_YELLOW]8;;\             [0m  [90m:=  yellow[0m
+    [36m]8;;vscode://file/./conf/Makefile:277\COLOR_BLUE]8;;\               [0m  [90m:=  blue[0m
+    [36m]8;;vscode://file/./conf/Makefile:278\COLOR_MAGENTA]8;;\            [0m  [90m:=  magenta[0m
+    [36m]8;;vscode://file/./conf/Makefile:279\COLOR_CYAN]8;;\               [0m  [90m:=  cyan[0m
+    [36m]8;;vscode://file/./conf/Makefile:280\COLOR_WHITE]8;;\              [0m  [90m:=  white[0m
+    [36m]8;;vscode://file/./conf/Makefile:283\COLOR_PRIMARY]8;;\            [0m  [90m?=  $(COLOR_CYAN)[0m
+    [36m]8;;vscode://file/./conf/Makefile:284\COLOR_SECONDARY]8;;\          [0m  [90m?=  $(COLOR_MAGENTA)[0m
+    [36m]8;;vscode://file/./conf/Makefile:285\COLOR_TERTIARY]8;;\           [0m  [90m?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)[0m
+    [36m]8;;vscode://file/./conf/Makefile:286\COLOR_ERROR]8;;\              [0m  [90m?=  $(COLOR_RED)[0m
+    [36m]8;;vscode://file/./conf/Makefile:287\COLOR_WARNING]8;;\            [0m  [90m?=  $(COLOR_YELLOW)[0m
+    [36m]8;;vscode://file/./conf/Makefile:288\COLOR_NOTICE]8;;\             [0m  [90m?=  $(COLOR_MAGENTA)[0m
+    [36m]8;;vscode://file/./conf/Makefile:289\COLOR_SUCCESS]8;;\            [0m  [90m?=  $(COLOR_GREEN)[0m
+    [36m]8;;vscode://file/./conf/Makefile:290\COLOR_LOGO]8;;\               [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:291\COLOR_TITLE]8;;\              [0m  [90m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
+    [36m]8;;vscode://file/./conf/Makefile:292\COLOR_USAGE_ARGUMENTS]8;;\    [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:293\COLOR_USAGE_PROGRAM]8;;\      [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:294\COLOR_SECTION_LABEL]8;;\      [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:295\COLOR_SCOPE]8;;\              [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:296\COLOR_ENTRY]8;;\              [0m  [90m?=  $(COLOR_PRIMARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:297\COLOR_DESCRIPTION]8;;\        [0m  [90m?=  $(COLOR_TERTIARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:298\COLOR_INLINE_CODE]8;;\        [0m  [90m?=  $(COLOR_SECONDARY)[0m
+    [36m]8;;vscode://file/./conf/Makefile:299\COLOR_HIGHLIGHT]8;;\          [0m  [90m?=  $(COLOR_YELLOW)[0m
    [35mmodifiers[0m
-    [36m]8;;vscode://file/./conf/Makefile:329\MODIFIER_NORMAL]8;;\          [0m  [90m:=  normal[0m
-    [36m]8;;vscode://file/./conf/Makefile:330\MODIFIER_UNDERLINE]8;;\       [0m  [90m:=  underline[0m
-    [36m]8;;vscode://file/./conf/Makefile:331\MODIFIER_BRIGHT]8;;\          [0m  [90m:=  bright[0m
-    [36m]8;;vscode://file/./conf/Makefile:332\MODIFIER_BOLD]8;;\            [0m  [90m:=  bold[0m
-    [36m]8;;vscode://file/./conf/Makefile:333\MODIFIER_REVERSE]8;;\         [0m  [90m:=  reverse[0m
+    [36m]8;;vscode://file/./conf/Makefile:332\MODIFIER_NORMAL]8;;\          [0m  [90m:=  normal[0m
+    [36m]8;;vscode://file/./conf/Makefile:333\MODIFIER_UNDERLINE]8;;\       [0m  [90m:=  underline[0m
+    [36m]8;;vscode://file/./conf/Makefile:334\MODIFIER_BRIGHT]8;;\          [0m  [90m:=  bright[0m
+    [36m]8;;vscode://file/./conf/Makefile:335\MODIFIER_BOLD]8;;\            [0m  [90m:=  bold[0m
+    [36m]8;;vscode://file/./conf/Makefile:336\MODIFIER_REVERSE]8;;\         [0m  [90m:=  reverse[0m
   [35marguments[0m
-   [36m]8;;vscode://file/./conf/Makefile:437\TARGET]8;;\                    [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
-   [36m]8;;vscode://file/./conf/Makefile:438\ARG1]8;;\                      [0m  [90m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [35mARG9[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:439\ARG2]8;;\                      [0m  [90m =  $(word 2,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:440\ARG3]8;;\                      [0m  [90m =  $(word 3,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:441\ARG4]8;;\                      [0m  [90m =  $(word 4,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:442\ARG5]8;;\                      [0m  [90m =  $(word 5,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:443\ARG6]8;;\                      [0m  [90m =  $(word 6,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:444\ARG7]8;;\                      [0m  [90m =  $(word 7,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:445\ARG8]8;;\                      [0m  [90m =  $(word 8,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:446\ARG9]8;;\                      [0m  [90m =  $(word 9,$(ARGS))[0m
-   [36m]8;;vscode://file/./conf/Makefile:447\ARGS]8;;\                      [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [36m]8;;vscode://file/./conf/Makefile:464\TARGET_ALIASES]8;;\            [0m  [90m?=  h=help c=check t=test f=fix                      (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
+   [36m]8;;vscode://file/./conf/Makefile:440\TARGET]8;;\                    [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
+   [36m]8;;vscode://file/./conf/Makefile:441\ARG1]8;;\                      [0m  [90m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [35mARG9[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:442\ARG2]8;;\                      [0m  [90m =  $(word 2,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:443\ARG3]8;;\                      [0m  [90m =  $(word 3,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:444\ARG4]8;;\                      [0m  [90m =  $(word 4,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:445\ARG5]8;;\                      [0m  [90m =  $(word 5,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:446\ARG6]8;;\                      [0m  [90m =  $(word 6,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:447\ARG7]8;;\                      [0m  [90m =  $(word 7,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:448\ARG8]8;;\                      [0m  [90m =  $(word 8,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:449\ARG9]8;;\                      [0m  [90m =  $(word 9,$(ARGS))[0m
+   [36m]8;;vscode://file/./conf/Makefile:450\ARGS]8;;\                      [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
+   [36m]8;;vscode://file/./conf/Makefile:467\TARGET_ALIASES]8;;\            [0m  [90m?=  h=help c=check t=test f=fix                      (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
   [35mcommon[0m
-   [36m]8;;vscode://file/./conf/Makefile:574\STARTUP_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after the dependencies)[0m
-   [36m]8;;vscode://file/./conf/Makefile:583\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
-   [36m]8;;vscode://file/./conf/Makefile:584\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [90m?=                                                   (paths an archive ships beside the autoload roots, a trailing [35m/[0m[90m taking the whole tree)[0m
-   [36m]8;;vscode://file/./conf/Makefile:679\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1328\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1404\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:593\STARTUP_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after the dependencies)[0m
+   [36m]8;;vscode://file/./conf/Makefile:603\GIT_HOOKS]8;;\                 [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
+   [36m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
+   [36m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [90m?=                                                   (paths an archive ships beside the autoload roots, a trailing [35m/[0m[90m taking the whole tree)[0m
+   [36m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1382\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1421\FIXTURE_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m to build what its tests read)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1457\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
   [35msemver[0m
    [35mconstants[0m
-    [36m]8;;vscode://file/./conf/Makefile:739\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [36m]8;;vscode://file/./conf/Makefile:740\SEMVER_PRERELEASE]8;;\        [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
-    [36m]8;;vscode://file/./conf/Makefile:741\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
-    [36m]8;;vscode://file/./conf/Makefile:742\SEMVER_BUILD]8;;\             [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
-    [36m]8;;vscode://file/./conf/Makefile:743\SEMVER_REGEX]8;;\             [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
+    [36m]8;;vscode://file/./conf/Makefile:771\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+    [36m]8;;vscode://file/./conf/Makefile:772\SEMVER_PRERELEASE_PART]8;;\   [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)[0m
+    [36m]8;;vscode://file/./conf/Makefile:773\SEMVER_PRERELEASE]8;;\        [0m  [90m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+    [36m]8;;vscode://file/./conf/Makefile:774\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
+    [36m]8;;vscode://file/./conf/Makefile:775\SEMVER_BUILD]8;;\             [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
+    [36m]8;;vscode://file/./conf/Makefile:776\SEMVER_REGEX]8;;\             [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
   [35mdotenv[0m
-   [36m]8;;vscode://file/./conf/Makefile:747\DOTENV]8;;\                    [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
-   [36m]8;;vscode://file/./conf/Makefile:748\DOTENV_ENV_KEY]8;;\            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [36m]8;;vscode://file/./conf/Makefile:749\DOTENV_DEFAULT_ENV]8;;\        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [36m]8;;vscode://file/./conf/Makefile:750\DOTENV_TEST_ENVS]8;;\          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
+   [36m]8;;vscode://file/./conf/Makefile:780\DOTENV]8;;\                    [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:781\DOTENV_ENV_KEY]8;;\            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [36m]8;;vscode://file/./conf/Makefile:782\DOTENV_DEFAULT_ENV]8;;\        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [36m]8;;vscode://file/./conf/Makefile:783\DOTENV_TEST_ENVS]8;;\          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
  [35mapp[0m
   [35mvariables[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:57\BASE_URL]8;;\                  [0m  [90m?=  https://example.com                              (base URL for the application)[0m
@@ -2202,7 +2258,7 @@ Available commands:
 [35mFunctions:[0m
  [35mbrnshkr[0m
   [35mhelpers[0m
-   [36m]8;;vscode://file/./conf/Makefile:1463\text]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1516\text]8;;\[0m
     [90mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [90mThe color and the modifiers may be given together or apart.[0m
 
@@ -2213,7 +2269,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1858\confirm]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1952\confirm]8;;\[0m
     [90mAsks a yes/no question before something destructive happens.[0m
     [90mIt answers itself where nobody can: under [35mCI[0m[90m it says yes, and without a terminal to ask at it[0m
     [90msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2224,7 +2280,7 @@ Available commands:
 
     [90mreturns: void[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1891\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1985\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
     [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
     [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2269,20 +2325,22 @@ Available commands:
   [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/.local/make/test.mk:1\local-make-mk-command]8;;\      [0m  [90mcommand from .local/make/test.mk auto-include[0m
  [35mbrnshkr[0m
   [35mcommon[0m
-   [36m]8;;vscode://file/./conf/Makefile:557\help, h]8;;\                   [0m  [90mshow this help, narrowed by any scope named and widened by [35mv[0m[90m, [35mvv[0m[90m or [35mvvv[0m[90m[0m
-   [36m]8;;vscode://file/./conf/Makefile:579\startup]8;;\                   [0m  [90mbrings a fresh checkout to a workable state[0m
-   [36m]8;;vscode://file/./conf/Makefile:597\configs]8;;\                   [0m  [90mwrites the tool configs this project is missing, [35mlocal[0m[90m its private ones too[0m
-   [36m]8;;vscode://file/./conf/Makefile:682\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36m]8;;vscode://file/./conf/Makefile:713\fresh]8;;\                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
-   [36m]8;;vscode://file/./conf/Makefile:732\fresh-dry-run]8;;\             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
-   [36m]8;;vscode://file/./conf/Makefile:1330\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36m]8;;vscode://file/./conf/Makefile:1334\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
-   [36m]8;;vscode://file/./conf/Makefile:1339\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36m]8;;vscode://file/./conf/Makefile:1343\fix, f]8;;\                    [0m  [90mruns every fixer this project has, writing its fixes[0m
-   [36m]8;;vscode://file/./conf/Makefile:1352\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
-   [36m]8;;vscode://file/./conf/Makefile:1356\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
-   [36m]8;;vscode://file/./conf/Makefile:1359\test, t]8;;\                   [0m  [90mruns the tests of every stack this project has[0m
-   [36m]8;;vscode://file/./conf/Makefile:1363\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
+   [36m]8;;vscode://file/./conf/Makefile:576\help, h]8;;\                   [0m  [90mshow this help, narrowed by any scope named and widened by [35mv[0m[90m, [35mvv[0m[90m or [35mvvv[0m[90m[0m
+   [36m]8;;vscode://file/./conf/Makefile:599\startup]8;;\                   [0m  [90mbrings a fresh checkout to a workable state[0m
+   [36m]8;;vscode://file/./conf/Makefile:605\install-hooks]8;;\             [0m  [90minstalls this project's git hooks, replacing any that exist[0m
+   [36m]8;;vscode://file/./conf/Makefile:629\configs]8;;\                   [0m  [90mwrites the tool configs this project is missing, [35mlocal[0m[90m its private ones too[0m
+   [36m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
+   [36m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
+   [36m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
+   [36m]8;;vscode://file/./conf/Makefile:1384\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
+   [36m]8;;vscode://file/./conf/Makefile:1388\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
+   [36m]8;;vscode://file/./conf/Makefile:1393\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36m]8;;vscode://file/./conf/Makefile:1397\fix, f]8;;\                    [0m  [90mruns every fixer this project has, writing its fixes[0m
+   [36m]8;;vscode://file/./conf/Makefile:1406\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
+   [36m]8;;vscode://file/./conf/Makefile:1410\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
+   [36m]8;;vscode://file/./conf/Makefile:1413\test, t]8;;\                   [0m  [90mruns the tests of every stack this project has[0m
+   [36m]8;;vscode://file/./conf/Makefile:1417\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
+   [36m]8;;vscode://file/./conf/Makefile:1423\fixtures]8;;\                  [0m  [90mbuilds the fixtures this project's tests read[0m
  [35mapp[0m
   [35mcommands[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [90mcommand from root Makefile auto-include[0m
@@ -2335,104 +2393,110 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:157\CAT]8;;\                       [0m  [0m?=  cat                                              (path to [33mcat[0m[0m binary)[0m
    [32m]8;;vscode://file/./conf/Makefile:158\RM]8;;\                        [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
    [32m]8;;vscode://file/./conf/Makefile:159\MKDIR]8;;\                     [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:160\LN]8;;\                        [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:161\PRINTF]8;;\                    [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:162\AWK]8;;\                       [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:163\PHP]8;;\                       [0m  [0m?=  $(_RUN) php                                      (command that runs [33mphp[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:164\TAR]8;;\                       [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:165\GIT]8;;\                       [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:166\MKTEMP]8;;\                    [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
-   [32m]8;;vscode://file/./conf/Makefile:167\SCRIPT]8;;\                    [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:160\CHMOD]8;;\                     [0m  [0m?=  chmod                                            (path to [33mchmod[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:161\LN]8;;\                        [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:162\PRINTF]8;;\                    [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:163\AWK]8;;\                       [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:164\PHP]8;;\                       [0m  [0m?=  $(_RUN) php                                      (command that runs [33mphp[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:165\TAR]8;;\                       [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:166\GIT]8;;\                       [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:167\MKTEMP]8;;\                    [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
+   [32m]8;;vscode://file/./conf/Makefile:168\SCRIPT]8;;\                    [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
   [33msettings[0m
-   [32m]8;;vscode://file/./conf/Makefile:171\RUN]8;;\                       [0m  [0m?=                                                   (command the tools are run through, such as [33mdocker compose exec <service>[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:174\WORKDIR]8;;\                   [0m  [0m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [33mCURDIR[0m[0m in a container)[0m
-   [32m]8;;vscode://file/./conf/Makefile:176\TARGET_PREFIX]8;;\             [0m  [0m?=                                                   (namespaces every target this file defines, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:179\COLLISION_PREFIX]8;;\          [0m  [0m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m
-   [32m]8;;vscode://file/./conf/Makefile:187\VENDOR]8;;\                    [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
-   [32m]8;;vscode://file/./conf/Makefile:188\PACKAGE]8;;\                   [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
-   [32m]8;;vscode://file/./conf/Makefile:189\VERSION]8;;\                   [0m  [0m?=  0.0.0-dev                                        (package version)[0m
-   [32m]8;;vscode://file/./conf/Makefile:192\DEBUG]8;;\                     [0m  [0m?=                                                   (whether the commands are echoed before they run)[0m
-   [32m]8;;vscode://file/./conf/Makefile:194\DEBUG_PREFIX]8;;\              [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [32m]8;;vscode://file/./conf/Makefile:197\TRACE]8;;\                     [0m  [0m?=                                                   (whether the guards are echoed too, which [33mDEBUG[0m[0m leaves out)[0m
-   [32m]8;;vscode://file/./conf/Makefile:198\TRACE_PREFIX]8;;\              [0m  [0m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
-   [32m]8;;vscode://file/./conf/Makefile:201\ANNOUNCEMENT]8;;\              [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
-   [32m]8;;vscode://file/./conf/Makefile:212\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
+   [32m]8;;vscode://file/./conf/Makefile:172\RUN]8;;\                       [0m  [0m?=                                                   (command the tools are run through, such as [33mdocker compose exec <service>[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:175\WORKDIR]8;;\                   [0m  [0m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [33mCURDIR[0m[0m in a container)[0m
+   [32m]8;;vscode://file/./conf/Makefile:176\HOST_UID]8;;\                  [0m  [0m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
+   [32m]8;;vscode://file/./conf/Makefile:177\HOST_GID]8;;\                  [0m  [0m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
+   [32m]8;;vscode://file/./conf/Makefile:179\TARGET_PREFIX]8;;\             [0m  [0m?=                                                   (namespaces every target this file defines, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:182\COLLISION_PREFIX]8;;\          [0m  [0m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m
+   [32m]8;;vscode://file/./conf/Makefile:190\VENDOR]8;;\                    [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
+   [32m]8;;vscode://file/./conf/Makefile:191\PACKAGE]8;;\                   [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
+   [32m]8;;vscode://file/./conf/Makefile:192\VERSION]8;;\                   [0m  [0m?=  0.0.0-dev                                        (package version)[0m
+   [32m]8;;vscode://file/./conf/Makefile:195\DEBUG]8;;\                     [0m  [0m?=                                                   (whether the commands are echoed before they run)[0m
+   [32m]8;;vscode://file/./conf/Makefile:197\DEBUG_PREFIX]8;;\              [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
+   [32m]8;;vscode://file/./conf/Makefile:200\TRACE]8;;\                     [0m  [0m?=                                                   (whether the guards are echoed too, which [33mDEBUG[0m[0m leaves out)[0m
+   [32m]8;;vscode://file/./conf/Makefile:201\TRACE_PREFIX]8;;\              [0m  [0m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
+   [32m]8;;vscode://file/./conf/Makefile:204\ANNOUNCEMENT]8;;\              [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:215\BRNSHKR_CONFIG_ERROR_CODE]8;;\ [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [33mtheming[0m
-   [32m]8;;vscode://file/./conf/Makefile:216\INDENT]8;;\                    [0m  [0m?=  1                                                (indent used in [33mmake help[0m[0m output)[0m
-   [32m]8;;vscode://file/./conf/Makefile:217\VALUE_WIDTH]8;;\               [0m  [0m?=  48                                               (widest a value column gets in [33mmake help[0m[0m, past which a value is truncated)[0m
-   [32m]8;;vscode://file/./conf/Makefile:219\NO_ANSI]8;;\                   [0m  [0m?=                                                   (whether ANSI escapes are suppressed)[0m
-   [32m]8;;vscode://file/./conf/Makefile:223\THEME]8;;\                     [0m  [0m?=                                                   (the theme to use)[0m
-   [32m]8;;vscode://file/./conf/Makefile:224\THEME_BRNSHKR]8;;\             [0m  [0m:=  brnshkr[0m
-   [32m]8;;vscode://file/./conf/Makefile:225\THEME_SYMFONY]8;;\             [0m  [0m:=  symfony[0m
-   [32m]8;;vscode://file/./conf/Makefile:233\EDITOR_URL]8;;\                [0m  [0m?=                                                   (URL template the entries link to, in [33m{cwd}[0m[0m, [33m{file}[0m[0m, [33m{line}[0m[0m and [33m{wslDistro}[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:234\EDITOR_VSCODE]8;;\             [0m  [0m:=  vscode[0m
-   [32m]8;;vscode://file/./conf/Makefile:235\EDITOR_PHPSTORM]8;;\           [0m  [0m:=  phpstorm[0m
-   [32m]8;;vscode://file/./conf/Makefile:245\EDITOR]8;;\                    [0m  [0m?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)[0m
+   [32m]8;;vscode://file/./conf/Makefile:219\INDENT]8;;\                    [0m  [0m?=  1                                                (indent used in [33mmake help[0m[0m output)[0m
+   [32m]8;;vscode://file/./conf/Makefile:220\VALUE_WIDTH]8;;\               [0m  [0m?=  48                                               (widest a value column gets in [33mmake help[0m[0m, past which a value is truncated)[0m
+   [32m]8;;vscode://file/./conf/Makefile:222\NO_ANSI]8;;\                   [0m  [0m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [32m]8;;vscode://file/./conf/Makefile:226\THEME]8;;\                     [0m  [0m?=                                                   (the theme to use)[0m
+   [32m]8;;vscode://file/./conf/Makefile:227\THEME_BRNSHKR]8;;\             [0m  [0m:=  brnshkr[0m
+   [32m]8;;vscode://file/./conf/Makefile:228\THEME_SYMFONY]8;;\             [0m  [0m:=  symfony[0m
+   [32m]8;;vscode://file/./conf/Makefile:236\EDITOR_URL]8;;\                [0m  [0m?=                                                   (URL template the entries link to, in [33m{cwd}[0m[0m, [33m{file}[0m[0m, [33m{line}[0m[0m and [33m{wslDistro}[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:237\EDITOR_VSCODE]8;;\             [0m  [0m:=  vscode[0m
+   [32m]8;;vscode://file/./conf/Makefile:238\EDITOR_PHPSTORM]8;;\           [0m  [0m:=  phpstorm[0m
+   [32m]8;;vscode://file/./conf/Makefile:248\EDITOR]8;;\                    [0m  [0m?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)[0m
    [33mcolors[0m
-    [32m]8;;vscode://file/./conf/Makefile:269\COLOR_NORMAL]8;;\             [0m  [0m:=  normal[0m
-    [32m]8;;vscode://file/./conf/Makefile:270\COLOR_BLACK]8;;\              [0m  [0m:=  black[0m
-    [32m]8;;vscode://file/./conf/Makefile:271\COLOR_RED]8;;\                [0m  [0m:=  red[0m
-    [32m]8;;vscode://file/./conf/Makefile:272\COLOR_GREEN]8;;\              [0m  [0m:=  green[0m
-    [32m]8;;vscode://file/./conf/Makefile:273\COLOR_YELLOW]8;;\             [0m  [0m:=  yellow[0m
-    [32m]8;;vscode://file/./conf/Makefile:274\COLOR_BLUE]8;;\               [0m  [0m:=  blue[0m
-    [32m]8;;vscode://file/./conf/Makefile:275\COLOR_MAGENTA]8;;\            [0m  [0m:=  magenta[0m
-    [32m]8;;vscode://file/./conf/Makefile:276\COLOR_CYAN]8;;\               [0m  [0m:=  cyan[0m
-    [32m]8;;vscode://file/./conf/Makefile:277\COLOR_WHITE]8;;\              [0m  [0m:=  white[0m
-    [32m]8;;vscode://file/./conf/Makefile:298\COLOR_PRIMARY]8;;\            [0m  [0m?=  $(COLOR_GREEN)[0m
-    [32m]8;;vscode://file/./conf/Makefile:299\COLOR_SECONDARY]8;;\          [0m  [0m?=  $(COLOR_YELLOW)[0m
-    [32m]8;;vscode://file/./conf/Makefile:300\COLOR_TERTIARY]8;;\           [0m  [0m?=  $(COLOR_NORMAL)[0m
-    [32m]8;;vscode://file/./conf/Makefile:301\COLOR_ERROR]8;;\              [0m  [0m?=  $(COLOR_RED)[0m
-    [32m]8;;vscode://file/./conf/Makefile:302\COLOR_WARNING]8;;\            [0m  [0m?=  $(COLOR_YELLOW)[0m
-    [32m]8;;vscode://file/./conf/Makefile:303\COLOR_NOTICE]8;;\             [0m  [0m?=  $(COLOR_CYAN)[0m
-    [32m]8;;vscode://file/./conf/Makefile:304\COLOR_SUCCESS]8;;\            [0m  [0m?=  $(COLOR_GREEN)[0m
-    [32m]8;;vscode://file/./conf/Makefile:305\COLOR_LOGO]8;;\               [0m  [0m?=  $(COLOR_SECONDARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:306\COLOR_TITLE]8;;\              [0m  [0m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
-    [32m]8;;vscode://file/./conf/Makefile:307\COLOR_USAGE_ARGUMENTS]8;;\    [0m  [0m?=  $(COLOR_TERTIARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:308\COLOR_USAGE_PROGRAM]8;;\      [0m  [0m?=  $(COLOR_TERTIARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:309\COLOR_SECTION_LABEL]8;;\      [0m  [0m?=  $(COLOR_SECONDARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:310\COLOR_SCOPE]8;;\              [0m  [0m?=  $(COLOR_SECONDARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:311\COLOR_ENTRY]8;;\              [0m  [0m?=  $(COLOR_PRIMARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:312\COLOR_DESCRIPTION]8;;\        [0m  [0m?=  $(COLOR_TERTIARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:313\COLOR_INLINE_CODE]8;;\        [0m  [0m?=  $(COLOR_SECONDARY)[0m
-    [32m]8;;vscode://file/./conf/Makefile:314\COLOR_HIGHLIGHT]8;;\          [0m  [0m?=  $(COLOR_YELLOW)[0m
+    [32m]8;;vscode://file/./conf/Makefile:272\COLOR_NORMAL]8;;\             [0m  [0m:=  normal[0m
+    [32m]8;;vscode://file/./conf/Makefile:273\COLOR_BLACK]8;;\              [0m  [0m:=  black[0m
+    [32m]8;;vscode://file/./conf/Makefile:274\COLOR_RED]8;;\                [0m  [0m:=  red[0m
+    [32m]8;;vscode://file/./conf/Makefile:275\COLOR_GREEN]8;;\              [0m  [0m:=  green[0m
+    [32m]8;;vscode://file/./conf/Makefile:276\COLOR_YELLOW]8;;\             [0m  [0m:=  yellow[0m
+    [32m]8;;vscode://file/./conf/Makefile:277\COLOR_BLUE]8;;\               [0m  [0m:=  blue[0m
+    [32m]8;;vscode://file/./conf/Makefile:278\COLOR_MAGENTA]8;;\            [0m  [0m:=  magenta[0m
+    [32m]8;;vscode://file/./conf/Makefile:279\COLOR_CYAN]8;;\               [0m  [0m:=  cyan[0m
+    [32m]8;;vscode://file/./conf/Makefile:280\COLOR_WHITE]8;;\              [0m  [0m:=  white[0m
+    [32m]8;;vscode://file/./conf/Makefile:301\COLOR_PRIMARY]8;;\            [0m  [0m?=  $(COLOR_GREEN)[0m
+    [32m]8;;vscode://file/./conf/Makefile:302\COLOR_SECONDARY]8;;\          [0m  [0m?=  $(COLOR_YELLOW)[0m
+    [32m]8;;vscode://file/./conf/Makefile:303\COLOR_TERTIARY]8;;\           [0m  [0m?=  $(COLOR_NORMAL)[0m
+    [32m]8;;vscode://file/./conf/Makefile:304\COLOR_ERROR]8;;\              [0m  [0m?=  $(COLOR_RED)[0m
+    [32m]8;;vscode://file/./conf/Makefile:305\COLOR_WARNING]8;;\            [0m  [0m?=  $(COLOR_YELLOW)[0m
+    [32m]8;;vscode://file/./conf/Makefile:306\COLOR_NOTICE]8;;\             [0m  [0m?=  $(COLOR_CYAN)[0m
+    [32m]8;;vscode://file/./conf/Makefile:307\COLOR_SUCCESS]8;;\            [0m  [0m?=  $(COLOR_GREEN)[0m
+    [32m]8;;vscode://file/./conf/Makefile:308\COLOR_LOGO]8;;\               [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:309\COLOR_TITLE]8;;\              [0m  [0m?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)[0m
+    [32m]8;;vscode://file/./conf/Makefile:310\COLOR_USAGE_ARGUMENTS]8;;\    [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:311\COLOR_USAGE_PROGRAM]8;;\      [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:312\COLOR_SECTION_LABEL]8;;\      [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:313\COLOR_SCOPE]8;;\              [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:314\COLOR_ENTRY]8;;\              [0m  [0m?=  $(COLOR_PRIMARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:315\COLOR_DESCRIPTION]8;;\        [0m  [0m?=  $(COLOR_TERTIARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:316\COLOR_INLINE_CODE]8;;\        [0m  [0m?=  $(COLOR_SECONDARY)[0m
+    [32m]8;;vscode://file/./conf/Makefile:317\COLOR_HIGHLIGHT]8;;\          [0m  [0m?=  $(COLOR_YELLOW)[0m
    [33mmodifiers[0m
-    [32m]8;;vscode://file/./conf/Makefile:329\MODIFIER_NORMAL]8;;\          [0m  [0m:=  normal[0m
-    [32m]8;;vscode://file/./conf/Makefile:330\MODIFIER_UNDERLINE]8;;\       [0m  [0m:=  underline[0m
-    [32m]8;;vscode://file/./conf/Makefile:331\MODIFIER_BRIGHT]8;;\          [0m  [0m:=  bright[0m
-    [32m]8;;vscode://file/./conf/Makefile:332\MODIFIER_BOLD]8;;\            [0m  [0m:=  bold[0m
-    [32m]8;;vscode://file/./conf/Makefile:333\MODIFIER_REVERSE]8;;\         [0m  [0m:=  reverse[0m
+    [32m]8;;vscode://file/./conf/Makefile:332\MODIFIER_NORMAL]8;;\          [0m  [0m:=  normal[0m
+    [32m]8;;vscode://file/./conf/Makefile:333\MODIFIER_UNDERLINE]8;;\       [0m  [0m:=  underline[0m
+    [32m]8;;vscode://file/./conf/Makefile:334\MODIFIER_BRIGHT]8;;\          [0m  [0m:=  bright[0m
+    [32m]8;;vscode://file/./conf/Makefile:335\MODIFIER_BOLD]8;;\            [0m  [0m:=  bold[0m
+    [32m]8;;vscode://file/./conf/Makefile:336\MODIFIER_REVERSE]8;;\         [0m  [0m:=  reverse[0m
   [33marguments[0m
-   [32m]8;;vscode://file/./conf/Makefile:437\TARGET]8;;\                    [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
-   [32m]8;;vscode://file/./conf/Makefile:438\ARG1]8;;\                      [0m  [0m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [33mARG9[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:439\ARG2]8;;\                      [0m  [0m =  $(word 2,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:440\ARG3]8;;\                      [0m  [0m =  $(word 3,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:441\ARG4]8;;\                      [0m  [0m =  $(word 4,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:442\ARG5]8;;\                      [0m  [0m =  $(word 5,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:443\ARG6]8;;\                      [0m  [0m =  $(word 6,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:444\ARG7]8;;\                      [0m  [0m =  $(word 7,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:445\ARG8]8;;\                      [0m  [0m =  $(word 8,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:446\ARG9]8;;\                      [0m  [0m =  $(word 9,$(ARGS))[0m
-   [32m]8;;vscode://file/./conf/Makefile:447\ARGS]8;;\                      [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [32m]8;;vscode://file/./conf/Makefile:464\TARGET_ALIASES]8;;\            [0m  [0m?=  h=help c=check t=test f=fix                      (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
+   [32m]8;;vscode://file/./conf/Makefile:440\TARGET]8;;\                    [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
+   [32m]8;;vscode://file/./conf/Makefile:441\ARG1]8;;\                      [0m  [0m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [33mARG9[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:442\ARG2]8;;\                      [0m  [0m =  $(word 2,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:443\ARG3]8;;\                      [0m  [0m =  $(word 3,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:444\ARG4]8;;\                      [0m  [0m =  $(word 4,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:445\ARG5]8;;\                      [0m  [0m =  $(word 5,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:446\ARG6]8;;\                      [0m  [0m =  $(word 6,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:447\ARG7]8;;\                      [0m  [0m =  $(word 7,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:448\ARG8]8;;\                      [0m  [0m =  $(word 8,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:449\ARG9]8;;\                      [0m  [0m =  $(word 9,$(ARGS))[0m
+   [32m]8;;vscode://file/./conf/Makefile:450\ARGS]8;;\                      [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
+   [32m]8;;vscode://file/./conf/Makefile:467\TARGET_ALIASES]8;;\            [0m  [0m?=  h=help c=check t=test f=fix                      (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
   [33mcommon[0m
-   [32m]8;;vscode://file/./conf/Makefile:574\STARTUP_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after the dependencies)[0m
-   [32m]8;;vscode://file/./conf/Makefile:583\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
-   [32m]8;;vscode://file/./conf/Makefile:584\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [0m?=                                                   (paths an archive ships beside the autoload roots, a trailing [33m/[0m[0m taking the whole tree)[0m
-   [32m]8;;vscode://file/./conf/Makefile:679\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1328\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1404\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:593\STARTUP_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after the dependencies)[0m
+   [32m]8;;vscode://file/./conf/Makefile:603\GIT_HOOKS]8;;\                 [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
+   [32m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
+   [32m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [0m?=                                                   (paths an archive ships beside the autoload roots, a trailing [33m/[0m[0m taking the whole tree)[0m
+   [32m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1382\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1421\FIXTURE_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m to build what its tests read)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1457\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
   [33msemver[0m
    [33mconstants[0m
-    [32m]8;;vscode://file/./conf/Makefile:739\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [32m]8;;vscode://file/./conf/Makefile:740\SEMVER_PRERELEASE]8;;\        [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (the prerelease grammar semver itself permits)[0m
-    [32m]8;;vscode://file/./conf/Makefile:741\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
-    [32m]8;;vscode://file/./conf/Makefile:742\SEMVER_BUILD]8;;\             [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
-    [32m]8;;vscode://file/./conf/Makefile:743\SEMVER_REGEX]8;;\             [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
+    [32m]8;;vscode://file/./conf/Makefile:771\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+    [32m]8;;vscode://file/./conf/Makefile:772\SEMVER_PRERELEASE_PART]8;;\   [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, which carries no leading zero when it is numeric)[0m
+    [32m]8;;vscode://file/./conf/Makefile:773\SEMVER_PRERELEASE]8;;\        [0m  [0m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+    [32m]8;;vscode://file/./conf/Makefile:774\SEMVER_PRERELEASE_STRICT]8;;\ [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
+    [32m]8;;vscode://file/./conf/Makefile:775\SEMVER_BUILD]8;;\             [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
+    [32m]8;;vscode://file/./conf/Makefile:776\SEMVER_REGEX]8;;\             [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
   [33mdotenv[0m
-   [32m]8;;vscode://file/./conf/Makefile:747\DOTENV]8;;\                    [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
-   [32m]8;;vscode://file/./conf/Makefile:748\DOTENV_ENV_KEY]8;;\            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [32m]8;;vscode://file/./conf/Makefile:749\DOTENV_DEFAULT_ENV]8;;\        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [32m]8;;vscode://file/./conf/Makefile:750\DOTENV_TEST_ENVS]8;;\          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
+   [32m]8;;vscode://file/./conf/Makefile:780\DOTENV]8;;\                    [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:781\DOTENV_ENV_KEY]8;;\            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [32m]8;;vscode://file/./conf/Makefile:782\DOTENV_DEFAULT_ENV]8;;\        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [32m]8;;vscode://file/./conf/Makefile:783\DOTENV_TEST_ENVS]8;;\          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
  [33mapp[0m
   [33mvariables[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:57\BASE_URL]8;;\                  [0m  [0m?=  https://example.com                              (base URL for the application)[0m
@@ -2461,7 +2525,7 @@ Available commands:
 [33mFunctions:[0m
  [33mbrnshkr[0m
   [33mhelpers[0m
-   [32m]8;;vscode://file/./conf/Makefile:1463\text]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1516\text]8;;\[0m
     [0mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [0mThe color and the modifiers may be given together or apart.[0m
 
@@ -2472,7 +2536,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1858\confirm]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1952\confirm]8;;\[0m
     [0mAsks a yes/no question before something destructive happens.[0m
     [0mIt answers itself where nobody can: under [33mCI[0m[0m it says yes, and without a terminal to ask at it[0m
     [0msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2483,7 +2547,7 @@ Available commands:
 
     [0mreturns: void[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1891\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1985\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
     [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
     [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
@@ -2528,20 +2592,22 @@ Available commands:
   [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/.local/make/test.mk:1\local-make-mk-command]8;;\      [0m  [0mcommand from .local/make/test.mk auto-include[0m
  [33mbrnshkr[0m
   [33mcommon[0m
-   [32m]8;;vscode://file/./conf/Makefile:557\help, h]8;;\                   [0m  [0mshow this help, narrowed by any scope named and widened by [33mv[0m[0m, [33mvv[0m[0m or [33mvvv[0m[0m[0m
-   [32m]8;;vscode://file/./conf/Makefile:579\startup]8;;\                   [0m  [0mbrings a fresh checkout to a workable state[0m
-   [32m]8;;vscode://file/./conf/Makefile:597\configs]8;;\                   [0m  [0mwrites the tool configs this project is missing, [33mlocal[0m[0m its private ones too[0m
-   [32m]8;;vscode://file/./conf/Makefile:682\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32m]8;;vscode://file/./conf/Makefile:713\fresh]8;;\                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
-   [32m]8;;vscode://file/./conf/Makefile:732\fresh-dry-run]8;;\             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
-   [32m]8;;vscode://file/./conf/Makefile:1330\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32m]8;;vscode://file/./conf/Makefile:1334\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
-   [32m]8;;vscode://file/./conf/Makefile:1339\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32m]8;;vscode://file/./conf/Makefile:1343\fix, f]8;;\                    [0m  [0mruns every fixer this project has, writing its fixes[0m
-   [32m]8;;vscode://file/./conf/Makefile:1352\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
-   [32m]8;;vscode://file/./conf/Makefile:1356\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
-   [32m]8;;vscode://file/./conf/Makefile:1359\test, t]8;;\                   [0m  [0mruns the tests of every stack this project has[0m
-   [32m]8;;vscode://file/./conf/Makefile:1363\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
+   [32m]8;;vscode://file/./conf/Makefile:576\help, h]8;;\                   [0m  [0mshow this help, narrowed by any scope named and widened by [33mv[0m[0m, [33mvv[0m[0m or [33mvvv[0m[0m[0m
+   [32m]8;;vscode://file/./conf/Makefile:599\startup]8;;\                   [0m  [0mbrings a fresh checkout to a workable state[0m
+   [32m]8;;vscode://file/./conf/Makefile:605\install-hooks]8;;\             [0m  [0minstalls this project's git hooks, replacing any that exist[0m
+   [32m]8;;vscode://file/./conf/Makefile:629\configs]8;;\                   [0m  [0mwrites the tool configs this project is missing, [33mlocal[0m[0m its private ones too[0m
+   [32m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
+   [32m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
+   [32m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
+   [32m]8;;vscode://file/./conf/Makefile:1384\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
+   [32m]8;;vscode://file/./conf/Makefile:1388\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
+   [32m]8;;vscode://file/./conf/Makefile:1393\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32m]8;;vscode://file/./conf/Makefile:1397\fix, f]8;;\                    [0m  [0mruns every fixer this project has, writing its fixes[0m
+   [32m]8;;vscode://file/./conf/Makefile:1406\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
+   [32m]8;;vscode://file/./conf/Makefile:1410\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
+   [32m]8;;vscode://file/./conf/Makefile:1413\test, t]8;;\                   [0m  [0mruns the tests of every stack this project has[0m
+   [32m]8;;vscode://file/./conf/Makefile:1417\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
+   [32m]8;;vscode://file/./conf/Makefile:1423\fixtures]8;;\                  [0m  [0mbuilds the fixtures this project's tests read[0m
  [33mapp[0m
   [33mcommands[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [0mcommand from root Makefile auto-include[0m

@@ -157,6 +157,7 @@ CP     ?= cp#~~ path to `cp` binary
 CAT    ?= cat#~~ path to `cat` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
+CHMOD  ?= chmod#~~ path to `chmod` binary
 LN     ?= ln#~~ path to `ln` binary
 PRINTF ?= printf#~~ path to `printf` binary
 AWK    ?= awk#~~ path to `awk` binary
@@ -171,7 +172,9 @@ SCRIPT ?= script#~~ path to `script` binary
 RUN  ?= #~~ command the tools are run through, such as `docker compose exec <service>`
 _RUN  = $(if $(wildcard /.dockerenv),,$(RUN))
 
-WORKDIR ?= $(if $(_RUN),/app,$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
+WORKDIR  ?= $(if $(_RUN),/app,$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
+HOST_UID ?= $(or $(shell id -u 2>/dev/null),1000)#vv #~~ user a container writes the bind mount as
+HOST_GID ?= $(or $(shell id -g 2>/dev/null),1000)#vv #~~ group a container writes the bind mount as
 
 TARGET_PREFIX  ?= #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
@@ -497,9 +500,21 @@ endif # /dangling
 _IS_JUST_PRINT = $(findstring n,$(firstword $(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
 _UNKNOWN_ARGS  = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+_SUGGESTED_FOR = $@
+_TARGET_GOALS  = $(filter-out _% -%,$(_ALL_TARGETS))
+_STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
 
-_SUGGESTED_TARGETS = $(if $(filter -%,$@),,$(shell $(PRINTF) '%s\n' $(filter-out _% -%,$(_ALL_TARGETS)) \
-	| $(AWK) -v _unknown='$@' ' \
+#**
+#* The closest of the given goals to what was typed, nearest first, at most three.
+#*
+#* parameters:
+#*   goals: list<string>
+#*
+#* returns: list<string>
+#*
+define _suggestions
+$(shell $(PRINTF) '%s\n' $1 \
+	| $(AWK) -v _unknown='$(_SUGGESTED_FOR)' ' \
 	function levenshtein(left, right,    left_length, right_length, left_index, right_index, cost, best, previous, current) { \
 		left_length = length(left); \
 		right_length = length(right); \
@@ -519,7 +534,11 @@ _SUGGESTED_TARGETS = $(if $(filter -%,$@),,$(shell $(PRINTF) '%s\n' $(filter-out
 	} \
 	{ measured = levenshtein(_unknown, $$0); if (measured <= (length(_unknown) > 4 ? 2 : 1) || (length(_unknown) >= 3 && index($$0, _unknown))) printf "%d %s\n", measured, $$0 }' \
 	| sort -n \
-	| $(AWK) 'NR <= 3 { print $$2 }'))
+	| $(AWK) 'NR <= 3 { print $$2 }')
+endef
+
+_SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \
+	$(call _suggestions,$(_TARGET_GOALS)),$(call _suggestions,$(_STAGE_GOALS))))
 
 #--- common
 
@@ -573,12 +592,25 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 
 STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after the dependencies
 
-_STARTUP := $(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
+_STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
+	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
 	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install))
 
 $(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state #v
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
+
+GIT_HOOKS ?= #v #~~ git hooks this project installs, as `<hook>=<target>` pairs
+
+$(call _target,install-hooks): #~~ installs this project's git hooks, replacing any that exist #v
+	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
+		$(call log,`install-hooks` needs a git checkout.,$(COLOR_ERROR)) >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}
+	$(DEBUG_PREFIX)$(call _install_git_hooks,yes)
+
+_$(_TARGET_PREFIX)install-missing-hooks:
+	$(DEBUG_PREFIX)$(call _install_git_hooks)
 
 CONFIG              ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
 ARCHIVE_EXTRA_PATHS ?= #v #~~ paths an archive ships beside the autoload roots, a trailing `/` taking the whole tree
@@ -737,7 +769,8 @@ $(call _target,fresh-dry-run): #~~ lists what `fresh` would remove #vv
 #---- constants
 
 SEMVER_NUMBER            ?= (0|[1-9][0-9]*)#~~ a numeric identifier, which carries no leading zero
-SEMVER_PRERELEASE        ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ the prerelease grammar semver itself permits
+SEMVER_PRERELEASE_PART   ?= (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)#~~ one prerelease identifier, which carries no leading zero when it is numeric
+SEMVER_PRERELEASE        ?= $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE_PART))*#~~ the prerelease grammar semver itself permits
 SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower one: what npm and Composer can both express, spelled npm's way
 SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry accepts in a published version
 SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semantic version grammar, as a POSIX extended regular expression
@@ -750,6 +783,25 @@ DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
 DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.local` file, as a test run must be reproducible
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
+_DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
+
+#**
+#* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.
+#*
+#* parameters:
+#*   stage: string
+#*
+#* returns: void
+#*
+define _stage_rule
+$1-%: _SUGGESTED_FOR = $$*
+$1-%:
+	$$(TRACE_PREFIX)$$(if $$(call _goal_of,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),'$$@'); \
+		$$(call _suggest,$1-))
+	$$(DEBUG_PREFIX)$$(MAKE) $$(_MAKE_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* $$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS))
+endef
+
+$(foreach STAGE,$(_DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
 
 #---v helpers
 
@@ -1059,10 +1111,12 @@ COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.mjs $(WORKDIR)/co
 COMMITLINT_SOURCE ?= $(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last)#vv #~~ which message `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
 
+GIT_HOOKS += commit-msg=$(call _target,commitlint)
+
 _ANALYZER_NAMES  += commitlint
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 
-$(call _target,commitlint): #~~ lints a commit message
+$(call _target,commitlint): _$(_TARGET_PREFIX)install-missing-hooks #~~ lints a commit message
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
 	$(DEBUG_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE)))
 
@@ -1364,6 +1418,12 @@ $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(if $(_UPDATES),:,$(call log,No test to run.,$(COLOR_NOTICE)))
 	$(DEBUG_PREFIX)$(if $(_UPDATES),$(MAKE) $(_VERB_FLAGS) $(_UPDATES),:)
 
+FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` to build what its tests read
+
+$(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
+	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
+
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
 	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
@@ -1373,14 +1433,7 @@ ifeq ($(TARGET),) # unknown
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}),:)
 	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:))
-	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)),$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_TARGETS),disjunction)'); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE),if [ -t 0 ] && [ -z "$(_IS_CI)" ]; then \
-			$(call confirm,Did you mean `$(_SUGGESTED_TARGETS)`?) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			exec $(MAKE) $(_MAKE_FLAGS) $(_SUGGESTED_TARGETS) $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
-		fi; \
-		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$(_SUGGESTED_TARGETS)'); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE))),:))
+	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
 else
 	$(DEBUG_PREFIX):
 endif # /unknown
@@ -1672,6 +1725,47 @@ $(patsubst $(CURDIR)/%,./%,$(call _host_path,$1))
 endef
 
 #**
+#* Offers the closest targets to what was typed, asking before running the only one where there is one.
+#*
+#* parameters:
+#*   prefix?: string
+#*
+#* returns: void
+#*
+define _suggest
+$(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)), \
+	$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(addprefix $1,$(_SUGGESTED_TARGETS)),disjunction)'); \
+	exit $(BRNSHKR_CONFIG_ERROR_CODE),if [ -t 0 ] && [ -z "$(_IS_CI)" ]; then \
+		$(call confirm,Did you mean `$1$(_SUGGESTED_TARGETS)`?) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		exec $(MAKE) $(_MAKE_FLAGS) $1$(_SUGGESTED_TARGETS) $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
+	fi; \
+	$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$1$(_SUGGESTED_TARGETS)'); \
+	exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
+	exit $(BRNSHKR_CONFIG_ERROR_CODE))
+endef
+
+#**
+#* Writes each `GIT_HOOKS` pair into this checkout's git hooks, keeping what is there.
+#*
+#* parameters:
+#*   replace?: OneOf<yes | no> = no
+#*
+#* returns: void
+#*
+define _install_git_hooks
+$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0; \
+directory="$$($(GIT) rev-parse --git-path hooks)"; \
+$(MKDIR) -p "$$directory"; \
+for pair in $(GIT_HOOKS); do \
+	hook="$${pair%%=*}"; \
+	$(if $(filter yes,$1),,[ ! -f "$$directory/$$hook" ] || continue;) \
+	$(PRINTF) '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${pair#*=}" > "$$directory/$$hook"; \
+	$(CHMOD) +x "$$directory/$$hook"; \
+	$(call log,Installed `%s`.,$(COLOR_SUCCESS),"$$hook"); \
+done
+endef
+
+#**
 #* Fails the recipe when a configured file is not there, naming the variable it came from.
 #*
 #* parameters:
@@ -1860,7 +1954,7 @@ define confirm
 	[ -n "$(_IS_CI)" ] || { \
 		[ -t 0 ] \
 			&& $(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
-			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,1) >&2 \
+			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,yes) >&2 \
 			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
 			&& read -r answer \
 			&& trap - $(_SIGNAL_INTERRUPT) \
@@ -1890,7 +1984,7 @@ endef
 #*
 define log
 $(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 \
-	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,1))
+	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes))
 endef
 
 #**
@@ -1899,17 +1993,18 @@ endef
 #*
 #* parameters:
 #*   action: string
-#*   autolink?: boolean = false
+#*   autolink?: OneOf<yes | no> = no
 #*
 #* returns: void
 #*
 define _render_inline_code
 $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 	-v _close='$(_ANSI_RESET)' \
-	-v _url='$(if $2,$(_INLINE_CODE_URL))' \
+	-v _url='$(if $(filter yes,$2),$(_INLINE_CODE_URL))' \
 	-v _cwd='$(CURDIR)' \
 	-v _prefix='$(_TARGET_PREFIX)' \
-	-v _targets=' $(if $2,$(_TARGET_LINKS)) ' ' \
+	-v _stages=' $(_DOTENV_STAGES) ' \
+	-v _targets=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
 		placeholder_position = index(url, "{file}"); \
 		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
@@ -1917,11 +2012,16 @@ $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 		if (placeholder_position) url = substr(url, 1, placeholder_position - 1) line substr(url, placeholder_position + 6); \
 		return url \
 	} \
-	function target_definition(name,    key, position, definition) { \
+	function target_definition(name,    key, position, definition, dash) { \
 		key = name; \
 		position = index(_targets, " " key "="); \
 		if (!position && _prefix != "" && index(key, _prefix) == 1) { \
 			key = substr(key, length(_prefix) + 1); \
+			position = index(_targets, " " key "=") \
+		} \
+		dash = index(key, "-"); \
+		if (!position && dash > 1 && index(_stages, " " substr(key, 1, dash - 1) " ")) { \
+			key = substr(key, dash + 1); \
 			position = index(_targets, " " key "=") \
 		} \
 		if (!position) return ""; \

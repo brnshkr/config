@@ -57,11 +57,6 @@ inspect-eslint-stats: #~~ runs `eslint-config-inspector` and times every rule wi
 inspect-modules: #~~ runs `node-modules-inspector`
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector $(ARGS)
 
-#--- hooks
-
-install-hooks: #~~ installs this project's git hooks
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) simple-git-hooks
-
 #--- mate
 
 MATE             := $(CURDIR)/vendor/bin/mate

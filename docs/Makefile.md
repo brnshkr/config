@@ -81,6 +81,7 @@ Every tool is three variables
 | Variable | Description |
 | --- | --- |
 | `STARTUP_TARGETS` | The repository's own steps, run last by `startup`. |
+| `FIXTURE_TARGETS` | The repository's own steps, run by `fixtures` to build what its tests read. |
 | `RUN` | The command the tools are run through, such as `docker compose exec app`. |
 | `WORKDIR` | Where the tools see the sources, `/app` under `RUN`. |
 | `TARGET_ALIASES` | Short names for targets, as `<alias>=<target>`. `h`, and `-h` behind a `--`, both reach `help`. |
@@ -148,6 +149,8 @@ A `.env` is loaded the way `symfony/dotenv` loads it, so one set of files serves
   lists every environment that skips `.env.local` — a test run has to be reproducible — while still
   reading its own `.env.<environment>.local`.
 - Syntax follows Symfony's parser, except `$(command)`, which is refused.
+- Every tracked `.env.<environment>` also gives you `<environment>-<target>`, so `make prod-check` is
+  `make APP_ENV=prod check`. `.env.local` and any `.example` are not environments.
 
 ## Your own targets
 
