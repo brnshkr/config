@@ -37,6 +37,7 @@ exports[`expected vitest config 1`] = `
       "**/coverage/**",
       "dist/**",
       "**/node_modules/!(@brnshkr)/**",
+      "**/node_modules/@brnshkr/*/!(dist)/**",
       "**/output/**",
       "**/package-lock.json",
       "**/pnpm-lock.yaml",
