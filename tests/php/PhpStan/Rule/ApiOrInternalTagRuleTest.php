@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
+use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
+use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use DaveLiddament\PhpstanRuleTestHelper\ErrorMessageFormatter;
 use DaveLiddament\PhpstanRuleTestHelper\Internal\InvalidFixtureFile;
 use Override;
 use PHPStan\Rules\Rule;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 use function count;
 use function explode;
@@ -21,7 +25,10 @@ use function sprintf;
  *
  * @extends AbstractRuleTestCase<ApiOrInternalTagRule>
  */
-#[CoversNothing]
+#[CoversClass(ApiOrInternalTagRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FileLevelDocCache::class)]
+#[UsesClass(Str::class)]
 final class ApiOrInternalTagRuleTest extends AbstractRuleTestCase
 {
     /**

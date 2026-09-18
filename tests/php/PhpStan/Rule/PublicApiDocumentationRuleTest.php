@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
+use Brnshkr\Config\Str;
 use Override;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 use function sprintf;
 
@@ -18,7 +22,10 @@ use function sprintf;
  *
  * @extends RuleTestCase<PublicApiDocumentationRule>
  */
-#[CoversNothing]
+#[CoversClass(PublicApiDocumentationRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FileLevelDocCache::class)]
+#[UsesClass(Str::class)]
 final class PublicApiDocumentationRuleTest extends RuleTestCase
 {
     public function testRule(): void

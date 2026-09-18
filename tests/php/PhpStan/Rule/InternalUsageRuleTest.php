@@ -4,21 +4,28 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
+use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\Internal\InternalClass;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use InvalidArgumentException;
 use Override;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * @internal
  *
  * @extends AbstractRuleTestCase<InternalUsageRule>
  */
-#[CoversNothing]
+#[CoversClass(InternalUsageRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FileLevelDocCache::class)]
+#[UsesClass(Str::class)]
 final class InternalUsageRuleTest extends AbstractRuleTestCase
 {
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/PhpStan/Rule';

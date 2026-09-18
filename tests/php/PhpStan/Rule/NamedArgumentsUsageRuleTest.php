@@ -4,19 +4,24 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
+use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use Override;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * @internal
  *
  * @extends AbstractRuleTestCase<NamedArgumentsUsageRule>
  */
-#[CoversNothing]
+#[CoversClass(NamedArgumentsUsageRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Str::class)]
 final class NamedArgumentsUsageRuleTest extends AbstractRuleTestCase
 {
     public function testRule(): void

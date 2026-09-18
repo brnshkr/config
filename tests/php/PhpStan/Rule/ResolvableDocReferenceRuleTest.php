@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
+use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use Override;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\FileTypeMapper;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * @internal
  *
  * @extends AbstractRuleTestCase<ResolvableDocReferenceRule>
  */
-#[CoversNothing]
+#[CoversClass(ResolvableDocReferenceRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Str::class)]
 final class ResolvableDocReferenceRuleTest extends AbstractRuleTestCase
 {
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/PhpStan/Rule/ResolvableDocReference';

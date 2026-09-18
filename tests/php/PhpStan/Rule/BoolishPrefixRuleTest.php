@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
+use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use DaveLiddament\PhpstanRuleTestHelper\ErrorMessageFormatter;
 use Override;
 use PHPStan\Rules\Rule;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 use function explode;
 use function implode;
@@ -21,7 +24,9 @@ use function sprintf;
  *
  * @extends AbstractRuleTestCase<BoolishPrefixRule>
  */
-#[CoversNothing]
+#[CoversClass(BoolishPrefixRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Str::class)]
 final class BoolishPrefixRuleTest extends AbstractRuleTestCase
 {
     public function testRule(): void

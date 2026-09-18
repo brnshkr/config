@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
+use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
 use Override;
 use PHPStan\Rules\Rule;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * @internal
  *
  * @extends AbstractRuleTestCase<InterfaceSuffixRule>
  */
-#[CoversNothing]
+#[CoversClass(InterfaceSuffixRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Str::class)]
 final class InterfaceSuffixRuleTest extends AbstractRuleTestCase
 {
     public function testRule(): void
