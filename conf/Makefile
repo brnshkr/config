@@ -1695,21 +1695,46 @@ $(foreach BASE,$(call _reverse,$(_SEARCH_BASES)),$(if $1,$(WORKDIR)/$(BASE)/$1) 
 endef
 
 #**
+#* The candidate names this package ships, which is the tracked half alone.
+#*
+#* parameters:
+#*   candidates: list<string>
+#*
+#* returns: list<string>
+#*
+define _shipped_names
+$(foreach NAME,$(notdir $1),$(if $(findstring .dist.,$(NAME)),$(NAME)))
+endef
+
+#**
+#* The configs a directory has, in the order the names were given.
+#*
+#* parameters:
+#*   directory: string
+#*   names: list<string>
+#*
+#* returns: list<string>
+#*
+define _configs_in
+$(foreach NAME,$2,$(if $(wildcard $(call _host_path,$1/$(NAME))),$1/$(NAME)))
+endef
+
+#**
 #* The first config in the list that is there.
-#* Then the same names under either installation of this package, so a project reads its own file,
+#* Then the tracked name under either installation of this package, so a project reads its own file,
 #* falls back to the tracked one, and may keep neither. The last candidate is what a project is told
 #* to create when it has none, and `CONFIG` pins the choice.
 #*
 #* parameters:
 #*   candidates: list<string>
+#*   stack: string
 #*
 #* returns: string
 #*
 define _config
 $(if $(_PINNED_CONFIG),$(if $(filter local,$(_PINNED_CONFIG)),$(firstword $1),$(lastword $1)),$(or \
-	$(firstword $(foreach DIRECTORY,$(call _config_dirs,$2) $(_PACKAGE_CONF_DIRS),$(foreach \
-		NAME,$(notdir $1),$(if \
-		$(wildcard $(call _host_path,$(DIRECTORY)/$(NAME))),$(DIRECTORY)/$(NAME))))),$(lastword $1)))
+	$(firstword $(foreach DIRECTORY,$(call _config_dirs,$2),$(call _configs_in,$(DIRECTORY),$(notdir $1))) \
+	$(foreach DIRECTORY,$(_PACKAGE_CONF_DIRS),$(call _configs_in,$(DIRECTORY),$(call _shipped_names,$1)))),$(lastword $1)))
 endef
 
 #**

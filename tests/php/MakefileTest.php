@@ -703,6 +703,16 @@ final class MakefileTest extends TestCase
         self::assertSame(1, mb_substr_count($output, 'ran'));
     }
 
+    public function testThePackageFallbackReadsTheTrackedHalfOnly(): void
+    {
+        $resolved = $this->runMake(['help', 'resolve', 'vv'], ['VALUE_WIDTH' => '200'], self::VENDOR_DIRECTORY);
+
+        self::assertMatchesRegularExpression(
+            '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/',
+            $resolved,
+        );
+    }
+
     public function testTheConfigAToolReadsIsTheFirstOneThatIsThere(): void
     {
         $resolve = ['help', 'resolve', 'vv'];

@@ -2269,7 +2269,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1952\confirm]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1977\confirm]8;;\[0m
     [90mAsks a yes/no question before something destructive happens.[0m
     [90mIt answers itself where nobody can: under [35mCI[0m[90m it says yes, and without a terminal to ask at it[0m
     [90msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2280,7 +2280,7 @@ Available commands:
 
     [90mreturns: void[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1985\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:2010\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
     [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
     [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2536,7 +2536,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1952\confirm]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1977\confirm]8;;\[0m
     [0mAsks a yes/no question before something destructive happens.[0m
     [0mIt answers itself where nobody can: under [33mCI[0m[0m it says yes, and without a terminal to ask at it[0m
     [0msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2547,7 +2547,7 @@ Available commands:
 
     [0mreturns: void[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1985\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:2010\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
     [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
     [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
