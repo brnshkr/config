@@ -45,18 +45,6 @@ build: typegen #~~ builds the `./dist/` this package publishes
 watch: #~~ rebuilds `./dist/` as the sources change
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts --watch $(ARGS)
 
-#--- inspect
-
-# NOTICE: Runs on Node since Bun truncates ESLint's piped output
-inspect-eslint: #~~ runs `eslint-config-inspector`
-	$(DEBUG_PREFIX)$(BUN) eslint-config-inspector --config $(CURDIR)/conf/eslint.ts $(ARGS)
-
-inspect-eslint-stats: #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) inspect-eslint -- --stats $(ARGS)
-
-inspect-modules: #~~ runs `node-modules-inspector`
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) node-modules-inspector $(ARGS)
-
 #--- mate
 
 MATE             := $(CURDIR)/vendor/bin/mate

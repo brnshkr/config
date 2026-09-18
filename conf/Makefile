@@ -1074,12 +1074,10 @@ endif # /php
 
 ifneq ($(wildcard $(CURDIR)/package.json),) # js
 
-#--- js
+#--- bun
 
 BUN       ?= $(_RUN) bun#v #~~ command that runs `bun`
 BUN_FLAGS ?= --bun#v #~~ flags passed to `bun` before the command
-
-#--- bun
 
 _BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
 _BUN_INSTALL      = $(BUN) install
@@ -1098,6 +1096,16 @@ $(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PAC
 		&& $(BUN) pm pack --quiet --filename package.tgz >/dev/null \
 		&& $(TAR) -xzf package.tgz -C $(_BUN_PACKAGE_DIR) --strip-components 1 \
 		&& $(RM) -f package.tgz
+
+ifneq ($(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector),) # bun-inspect
+
+NODE_MODULES_INSPECTOR       ?= $(BUN) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
+NODE_MODULES_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `node-modules-inspector`
+
+$(call _target,bun-inspect): #~~ runs `node-modules-inspector` #v
+	$(DEBUG_PREFIX)$(NODE_MODULES_INSPECTOR) $(ARGS) $(NODE_MODULES_INSPECTOR_FLAGS)
+
+endif # /bun-inspect
 
 _$(_TARGET_PREFIX)bun-install:
 	$(DEBUG_PREFIX)$(_BUN_INSTALL)
@@ -1174,6 +1182,21 @@ $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --print-config $(ARGS)
+
+ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),) # eslint-inspect
+
+# NOTICE: runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
+ESLINT_CONFIG_INSPECTOR       ?= $(BUN) x eslint-config-inspector#v #~~ command that runs `eslint-config-inspector`
+ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-config-inspector`
+
+$(call _target,eslint-inspect): #~~ runs `eslint-config-inspector` #v
+	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
+	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) $(ARGS) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
+
+$(call _target,eslint-inspect-stats): #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #vv
+	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint-inspect) -- $(ARGS) --stats
+
+endif # /eslint-inspect
 
 endif # /eslint
 

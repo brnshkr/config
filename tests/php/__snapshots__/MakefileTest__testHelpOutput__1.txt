@@ -2242,13 +2242,13 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
    [36m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [90m?=                                                   (paths an archive ships beside the autoload roots, a trailing [35m/[0m[90m taking the whole tree)[0m
    [36m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1371\CHECK_TARGETS]8;;\             [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1380\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1399\FIX_TARGETS]8;;\               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1410\GROUP_TARGETS]8;;\             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1419\TEST_TARGETS]8;;\              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1429\FIXTURE_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m to build what its tests read)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1465\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1394\CHECK_TARGETS]8;;\             [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1403\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1422\FIX_TARGETS]8;;\               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1433\GROUP_TARGETS]8;;\             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1442\TEST_TARGETS]8;;\              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1452\FIXTURE_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m to build what its tests read)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1488\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
   [35msemver[0m
    [35mconstants[0m
     [36m]8;;vscode://file/./conf/Makefile:771\SEMVER_NUMBER]8;;\            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
@@ -2290,7 +2290,7 @@ Available commands:
 [35mFunctions:[0m
  [35mbrnshkr[0m
   [35mhelpers[0m
-   [36m]8;;vscode://file/./conf/Makefile:1524\text]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:1547\text]8;;\[0m
     [90mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [90mThe color and the modifiers may be given together or apart.[0m
 
@@ -2301,7 +2301,7 @@ Available commands:
 
     [90mreturns: string[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:1985\confirm]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:2008\confirm]8;;\[0m
     [90mAsks a yes/no question before something destructive happens.[0m
     [90mIt answers itself where nobody can: under [35mCI[0m[90m it says yes, and without a terminal to ask at it[0m
     [90msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2312,7 +2312,7 @@ Available commands:
 
     [90mreturns: void[0m
 
-   [36m]8;;vscode://file/./conf/Makefile:2018\log]8;;\[0m
+   [36m]8;;vscode://file/./conf/Makefile:2041\log]8;;\[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
     [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
     [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
@@ -2364,15 +2364,15 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
    [36m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
    [36m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
-   [36m]8;;vscode://file/./conf/Makefile:1373\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36m]8;;vscode://file/./conf/Makefile:1382\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
-   [36m]8;;vscode://file/./conf/Makefile:1387\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36m]8;;vscode://file/./conf/Makefile:1401\fix, f]8;;\                    [0m  [90mruns every fixer this project has, writing its fixes[0m
-   [36m]8;;vscode://file/./conf/Makefile:1412\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
-   [36m]8;;vscode://file/./conf/Makefile:1416\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
-   [36m]8;;vscode://file/./conf/Makefile:1421\test, t]8;;\                   [0m  [90mruns the tests of every stack this project has[0m
-   [36m]8;;vscode://file/./conf/Makefile:1425\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
-   [36m]8;;vscode://file/./conf/Makefile:1431\fixtures]8;;\                  [0m  [90mbuilds the fixtures this project's tests read[0m
+   [36m]8;;vscode://file/./conf/Makefile:1396\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
+   [36m]8;;vscode://file/./conf/Makefile:1405\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
+   [36m]8;;vscode://file/./conf/Makefile:1410\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36m]8;;vscode://file/./conf/Makefile:1424\fix, f]8;;\                    [0m  [90mruns every fixer this project has, writing its fixes[0m
+   [36m]8;;vscode://file/./conf/Makefile:1435\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
+   [36m]8;;vscode://file/./conf/Makefile:1439\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
+   [36m]8;;vscode://file/./conf/Makefile:1444\test, t]8;;\                   [0m  [90mruns the tests of every stack this project has[0m
+   [36m]8;;vscode://file/./conf/Makefile:1448\test-update]8;;\               [0m  [90mruns those tests and updates their snapshots[0m
+   [36m]8;;vscode://file/./conf/Makefile:1454\fixtures]8;;\                  [0m  [90mbuilds the fixtures this project's tests read[0m
  [35mapp[0m
   [35mcommands[0m
    [36m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [90mcommand from root Makefile auto-include[0m
@@ -2513,13 +2513,13 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
    [32m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [0m?=                                                   (paths an archive ships beside the autoload roots, a trailing [33m/[0m[0m taking the whole tree)[0m
    [32m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1371\CHECK_TARGETS]8;;\             [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1380\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1399\FIX_TARGETS]8;;\               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1410\GROUP_TARGETS]8;;\             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1419\TEST_TARGETS]8;;\              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1429\FIXTURE_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m to build what its tests read)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1465\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1394\CHECK_TARGETS]8;;\             [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1403\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1422\FIX_TARGETS]8;;\               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1433\GROUP_TARGETS]8;;\             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1442\TEST_TARGETS]8;;\              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1452\FIXTURE_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m to build what its tests read)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1488\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
   [33msemver[0m
    [33mconstants[0m
     [32m]8;;vscode://file/./conf/Makefile:771\SEMVER_NUMBER]8;;\            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
@@ -2561,7 +2561,7 @@ Available commands:
 [33mFunctions:[0m
  [33mbrnshkr[0m
   [33mhelpers[0m
-   [32m]8;;vscode://file/./conf/Makefile:1524\text]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:1547\text]8;;\[0m
     [0mWraps a string in ANSI color and modifier escapes, resetting after it.[0m
     [0mThe color and the modifiers may be given together or apart.[0m
 
@@ -2572,7 +2572,7 @@ Available commands:
 
     [0mreturns: string[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:1985\confirm]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:2008\confirm]8;;\[0m
     [0mAsks a yes/no question before something destructive happens.[0m
     [0mIt answers itself where nobody can: under [33mCI[0m[0m it says yes, and without a terminal to ask at it[0m
     [0msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
@@ -2583,7 +2583,7 @@ Available commands:
 
     [0mreturns: void[0m
 
-   [32m]8;;vscode://file/./conf/Makefile:2018\log]8;;\[0m
+   [32m]8;;vscode://file/./conf/Makefile:2041\log]8;;\[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
     [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
     [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
@@ -2635,15 +2635,15 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
    [32m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
    [32m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
-   [32m]8;;vscode://file/./conf/Makefile:1373\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32m]8;;vscode://file/./conf/Makefile:1382\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
-   [32m]8;;vscode://file/./conf/Makefile:1387\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32m]8;;vscode://file/./conf/Makefile:1401\fix, f]8;;\                    [0m  [0mruns every fixer this project has, writing its fixes[0m
-   [32m]8;;vscode://file/./conf/Makefile:1412\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
-   [32m]8;;vscode://file/./conf/Makefile:1416\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
-   [32m]8;;vscode://file/./conf/Makefile:1421\test, t]8;;\                   [0m  [0mruns the tests of every stack this project has[0m
-   [32m]8;;vscode://file/./conf/Makefile:1425\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
-   [32m]8;;vscode://file/./conf/Makefile:1431\fixtures]8;;\                  [0m  [0mbuilds the fixtures this project's tests read[0m
+   [32m]8;;vscode://file/./conf/Makefile:1396\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
+   [32m]8;;vscode://file/./conf/Makefile:1405\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
+   [32m]8;;vscode://file/./conf/Makefile:1410\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32m]8;;vscode://file/./conf/Makefile:1424\fix, f]8;;\                    [0m  [0mruns every fixer this project has, writing its fixes[0m
+   [32m]8;;vscode://file/./conf/Makefile:1435\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
+   [32m]8;;vscode://file/./conf/Makefile:1439\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
+   [32m]8;;vscode://file/./conf/Makefile:1444\test, t]8;;\                   [0m  [0mruns the tests of every stack this project has[0m
+   [32m]8;;vscode://file/./conf/Makefile:1448\test-update]8;;\               [0m  [0mruns those tests and updates their snapshots[0m
+   [32m]8;;vscode://file/./conf/Makefile:1454\fixtures]8;;\                  [0m  [0mbuilds the fixtures this project's tests read[0m
  [33mapp[0m
   [33mcommands[0m
    [32m]8;;vscode://file//home/patrick/repos/@brnshkr/config/tests/php/Fixtures/Make/Help/Makefile:9\root-makefile-command]8;;\     [0m  [0mcommand from root Makefile auto-include[0m

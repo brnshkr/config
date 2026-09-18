@@ -442,6 +442,17 @@ final class MakefileTest extends TestCase
         }
     }
 
+    public function testAnInspectorIsOfferedOnlyWhereItIsInstalled(): void
+    {
+        $installed = $this->runMake(['help', 'vv'], directory: __DIR__ . '/Fixtures/Make/Bun');
+        $missing   = $this->runMake(['help', 'vv'], directory: __DIR__ . '/Fixtures/Make/Verbs');
+
+        self::assertStringContainsString('eslint-inspect', $installed);
+        self::assertStringContainsString('bun-inspect', $installed);
+        self::assertStringNotContainsString('eslint-inspect', $missing);
+        self::assertStringNotContainsString('bun-inspect', $missing);
+    }
+
     public function testAVerbAnnouncesEachTargetItRunsAndNothingElseDoes(): void
     {
         $directory = __DIR__ . '/Fixtures/Make/Verbs';
