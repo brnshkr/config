@@ -17,8 +17,7 @@ Stale guidance is worse than none.
   `project-version-sync-check`,
   `project-rule-docs-audit`,
   `project-commitlint-check`.
-- `phpstan-analyse`/`phpstan-clear-cache`: always pass `configuration=conf/phpstan.php` (detector only finds `phpstan.neon*`).
-  `rector-preview`/`rector-apply`: always pass `configuration=conf/rector.php` (detector only finds a root config).
+- `phpstan-*`/`rector-*`: always pass `configuration=conf/<tool>.dist.php`.
   `phpunit-run` = Pest via custom_command.
 - Deep refs in `conf/ai/docs/`: `ai` (this AI/MCP setup — read before changing it), `commit`, `php`, `js`, `make`.
 
