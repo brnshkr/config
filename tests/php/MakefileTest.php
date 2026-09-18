@@ -263,9 +263,10 @@ final class MakefileTest extends TestCase
     public function testEveryAwkImplementationProducesIdenticalOutput(): void
     {
         $implementations = [
-            'gawk'        => 'gawk',
-            'mawk'        => 'mawk',
-            'busybox awk' => 'busybox',
+            'gawk'         => 'gawk',
+            'mawk'         => 'mawk',
+            'original-awk' => 'original-awk',
+            'busybox awk'  => 'busybox',
         ];
 
         $outputs = [];
@@ -627,7 +628,7 @@ final class MakefileTest extends TestCase
     public function testGuardedPathIsTheOneOnThisMachineWhenTheToolsRunElsewhere(): void
     {
         $result = $this->runMake(
-            ['phpstan', 'RUN=echo', 'PHP_STAN_CONFIG=/app/conf/phpstan.php'],
+            ['phpstan', 'WORKDIR=/app', 'PHP_STAN_CONFIG=/app/conf/phpstan.php'],
             directory: __DIR__ . '/Fixtures/Make/Guard',
             doExpectFailure: true,
         );

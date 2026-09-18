@@ -246,8 +246,8 @@ _EDITOR_URL_PHPSTORM   := phpstorm://open?file={file}&line={line}
 _DETECTED_EDITOR        = $(or $(call _editor_from_env),$(call _editor_from_command))
 
 EDITOR          ?= $(_DETECTED_EDITOR)#~~ the editor to use, empty for no links
-_EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR)))
-_EDITOR_UNKNOWN  = $(if $(_EDITOR),,$(strip $(EDITOR)))
+_EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(strip $(EDITOR)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR))))
+_EDITOR_UNKNOWN  = $(if $(_EDITOR)$(findstring environment,$(origin EDITOR)),,$(strip $(EDITOR)))
 
 _EDITOR_URL = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(subst {cwd},$(CURDIR),$(or \
 	$(EDITOR_URL), \
