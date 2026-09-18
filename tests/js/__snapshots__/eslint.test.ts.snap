@@ -1298,6 +1298,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
   },
   "linterOptions": {
     "reportUnusedDisableDirectives": 2,
+    "reportUnusedInlineConfigs": 2,
   },
   "plugins": [
     "@",

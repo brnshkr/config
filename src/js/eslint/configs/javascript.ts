@@ -55,6 +55,7 @@ export const javascript = async (): Promise<Config[]> => {
       },
       linterOptions: {
         reportUnusedDisableDirectives: 'error',
+        reportUnusedInlineConfigs: 'error',
       },
     },
     {
