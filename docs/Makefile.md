@@ -82,6 +82,7 @@ Every tool is three variables
 | --- | --- |
 | `STARTUP_TARGETS` | The repository's own steps, run last by `startup`. |
 | `FIXTURE_TARGETS` | The repository's own steps, run by `fixtures` to build what its tests read. |
+| `CHECK_TARGETS`, `FIX_TARGETS`, `GROUP_TARGETS`, `TEST_TARGETS` | The repository's own steps, run by that verb. |
 | `RUN` | The command the tools are run through, such as `docker compose exec app`. |
 | `WORKDIR` | Where the tools see the sources, `/app` under `RUN`. |
 | `TARGET_ALIASES` | Short names for targets, as `<alias>=<target>`. `h`, and `-h` behind a `--`, both reach `help`. |

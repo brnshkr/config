@@ -388,6 +388,16 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('phpstan', $test);
     }
 
+    public function testAProjectAddsItsOwnFixerAnalyzerGroupAndTest(): void
+    {
+        $directory = __DIR__ . '/Fixtures/Make/Extras';
+
+        self::assertStringContainsString('own analyzer', $this->runMake(['check'], directory: $directory));
+        self::assertStringContainsString('own fixer', $this->runMake(['fix'], directory: $directory));
+        self::assertStringContainsString('own group', $this->runMake(['group'], directory: $directory));
+        self::assertStringContainsString('own test', $this->runMake(['test'], directory: $directory));
+    }
+
     public function testCiRunsItsTargetsInTheOrderTheyAreListed(): void
     {
         $directory = __DIR__ . '/Fixtures/Make/Verbs';

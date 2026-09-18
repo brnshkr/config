@@ -1368,9 +1368,11 @@ _COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERA
 _GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
 _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 
+CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
+
 $(call _target,check): #~~ runs the fixers without writing, and every analyzer
-	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS),:)
+	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS)$(CHECK_TARGETS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS)$(CHECK_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS),:)
 
 _CI_TARGETS := $(call _target,check) \
 	$(call _target,test)
@@ -1394,25 +1396,31 @@ _FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(
 	$(if $(filter $(_FIXER_NAMES),$(subst +, ,$(CHAIN))),_$(_TARGET_PREFIX)fix-$(CHAIN)) \
 ))
 
+FIX_TARGETS ?= #v #~~ this project's own targets, run by `fix`
+
 $(call _target,fix): #~~ runs every fixer this project has, writing its fixes
-	$(TRACE_PREFIX)$(if $(_FIX_CHAINS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS),$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS),:)
+	$(TRACE_PREFIX)$(if $(_FIX_CHAINS)$(FIX_TARGETS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS)$(FIX_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS) $(FIX_TARGETS),:)
 
 _$(_TARGET_PREFIX)fix-%:
 	$(DEBUG_PREFIX)$(foreach NAME,$(filter $(_FIXER_NAMES),$(subst +, ,$*)), \
 		$(MAKE) $(_VERB_FLAGS) $(call _target,$(NAME)) && \
 	):
 
+GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
+
 $(call _target,group): #~~ counts every tool's findings by identifier #v
-	$(TRACE_PREFIX)$(if $(_GROUPS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_GROUPS),$(MAKE) $(_VERB_FLAGS) $(_GROUPS),:)
+	$(TRACE_PREFIX)$(if $(_GROUPS)$(GROUP_TARGETS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_GROUPS)$(GROUP_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS),:)
 
 $(call _target,pack): $(_PACKS) #~~ packs every stack's package into `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
+TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
+
 $(call _target,test): #~~ runs the tests of every stack this project has
-	$(TRACE_PREFIX)$(if $(_TESTS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_TESTS),$(MAKE) $(_VERB_FLAGS) $(_TESTS),:)
+	$(TRACE_PREFIX)$(if $(_TESTS)$(TEST_TARGETS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_TESTS)$(TEST_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS),:)
 
 $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(if $(_UPDATES),:,$(call log,No test to run.,$(COLOR_NOTICE)))
