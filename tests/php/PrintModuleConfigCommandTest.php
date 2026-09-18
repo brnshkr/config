@@ -4,12 +4,26 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\Composer\Command\BrnshkrConfigCommand;
 use Brnshkr\Config\Composer\Command\CommandProvider;
+use Brnshkr\Config\Composer\Command\ExtractPharCommand;
 use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
+use Brnshkr\Config\Composer\Command\SetupCommand;
+use Brnshkr\Config\Composer\Command\UpdatePhpExtensionsCommand;
+use Brnshkr\Config\Composer\Console;
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\EditorUrl;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
+use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\Rector;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Testing\JsonSnapshotDriver;
+use Brnshkr\Config\TwigCsFixer;
 use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -36,7 +50,25 @@ use function Symfony\Component\String\s;
  * @internal
  */
 #[CoversClass(PrintModuleConfigCommand::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(BrnshkrConfigCommand::class)]
+#[UsesClass(CommandProvider::class)]
+#[UsesClass(ExtractPharCommand::class)]
+#[UsesClass(SetupCommand::class)]
+#[UsesClass(UpdatePhpExtensionsCommand::class)]
+#[UsesClass(Console::class)]
+#[UsesClass(EditorUrl::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(PhpCsFixer::class)]
+#[UsesClass(PhpStan::class)]
+#[UsesClass(ProjectKernel::class)]
+#[UsesClass(Rector::class)]
+#[UsesClass(Str::class)]
 #[UsesClass(JsonSnapshotDriver::class)]
+#[UsesClass(TwigCsFixer::class)]
 final class PrintModuleConfigCommandTest extends TestCase
 {
     use MatchesSnapshots;

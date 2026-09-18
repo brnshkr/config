@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
+use Brnshkr\Config\Logger;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\TwigCsFixer;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use TwigCsFixer\Environment\StubbedEnvironment;
@@ -32,6 +38,13 @@ use function usort;
  * @internal
  */
 #[CoversClass(TwigCsFixer::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Logger::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(Str::class)]
 final class TwigCsFixerTest extends TestCase
 {
     use MatchesSnapshots;

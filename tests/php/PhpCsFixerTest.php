@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\FileFinder;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\Finder;
 
@@ -16,6 +22,11 @@ use function count;
  * @internal
  */
 #[CoversClass(PhpCsFixer::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(Str::class)]
 final class PhpCsFixerTest extends TestCase
 {
     public function testRulesAreMergedIntoTheBaseline(): void

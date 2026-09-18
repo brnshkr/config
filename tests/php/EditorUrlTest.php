@@ -9,6 +9,7 @@ use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function array_keys;
@@ -18,6 +19,7 @@ use function in_array;
  * @internal
  */
 #[CoversClass(EditorUrl::class)]
+#[UsesClass(Str::class)]
 final class EditorUrlTest extends TestCase
 {
     private const array MANAGED_KEYS = [

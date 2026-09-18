@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
+use Brnshkr\Config\Str;
 use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function chdir;
@@ -16,6 +19,8 @@ use function getcwd;
  * @internal
  */
 #[CoversClass(ComposerJson::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Str::class)]
 final class ComposerJsonTest extends TestCase
 {
     public function testALookupFromAnotherDirectoryDoesNotReplaceTheOneForThisProject(): void

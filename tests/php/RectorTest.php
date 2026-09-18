@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\EditorUrl;
+use Brnshkr\Config\FileFinder;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\Rector;
+use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Rector\CodeQuality\Rector\If_\SimplifyIfReturnBoolRector;
 use Rector\Configuration\RectorConfigBuilder;
@@ -16,6 +23,12 @@ use Symfony\Component\Finder\Finder;
  * @internal
  */
 #[CoversClass(Rector::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(EditorUrl::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(Str::class)]
 final class RectorTest extends TestCase
 {
     public function testRulesAreAddedOnTopOfThePreparedSets(): void

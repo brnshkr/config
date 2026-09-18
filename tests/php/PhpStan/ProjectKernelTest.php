@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan;
 
 use App\Kernel;
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -18,6 +22,9 @@ use function sprintf;
  * @internal
  */
 #[CoversClass(ProjectKernel::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Str::class)]
 final class ProjectKernelTest extends TestCase
 {
     public function testTheKernelDefaultsToTheConventionalClass(): void

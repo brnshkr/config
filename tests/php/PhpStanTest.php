@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\EditorUrl;
 use Brnshkr\Config\Exception\UnreachableException;
+use Brnshkr\Config\FileFinder;
+use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\ProjectKernel;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
+use Brnshkr\Config\Str;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symplify\PHPStanRules\Rules\Symfony\NoFindTaggedServiceIdsCallRule;
@@ -26,6 +33,13 @@ use function count;
  * @internal
  */
 #[CoversClass(PhpStan::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(EditorUrl::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(ProjectKernel::class)]
+#[UsesClass(Str::class)]
 final class PhpStanTest extends TestCase
 {
     public function testAnOptionMapKeepsTheKeysTheCallDoesNotName(): void

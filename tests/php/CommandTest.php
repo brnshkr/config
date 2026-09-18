@@ -7,12 +7,20 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\Composer\Command\BrnshkrConfigCommand;
 use Brnshkr\Config\Composer\Command\CommandProvider;
 use Brnshkr\Config\Composer\Command\ExtractPharCommand;
+use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Composer\Command\SetupCommand;
 use Brnshkr\Config\Composer\Command\UpdatePhpExtensionsCommand;
+use Brnshkr\Config\Composer\ComposerJsonManipulator;
+use Brnshkr\Config\Composer\Console;
+use Brnshkr\Config\Composer\Installer;
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
+use Brnshkr\Config\Package;
+use Brnshkr\Config\Str;
 use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -23,6 +31,14 @@ use function Symfony\Component\String\s;
  * @internal
  */
 #[CoversClass(BrnshkrConfigCommand::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(PrintModuleConfigCommand::class)]
+#[UsesClass(ComposerJsonManipulator::class)]
+#[UsesClass(Console::class)]
+#[UsesClass(Installer::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(Str::class)]
 #[CoversClass(CommandProvider::class)]
 #[CoversClass(ExtractPharCommand::class)]
 #[CoversClass(SetupCommand::class)]

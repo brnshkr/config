@@ -6,8 +6,10 @@ namespace Brnshkr\Config\Tests;
 
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Spelling;
+use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -20,6 +22,8 @@ use function sprintf;
  * @internal
  */
 #[CoversClass(Spelling::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Str::class)]
 final class SpellingTest extends TestCase
 {
     private const string CORPUS_CONFIG = 'tests/php/Fixtures/Spelling/spelling.json';
