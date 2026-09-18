@@ -123,6 +123,7 @@
         "./src/php/Rector.php",
         "./src/php/Spelling.php",
         "./src/php/Str.php",
+        "./src/php/Testing/JsonSnapshotDriver.php",
         "./src/php/Testing/SpellingTest.php",
         "./src/php/TwigCsFixer.php",
         "./tests/php/CommandTest.php",
@@ -148,6 +149,7 @@
         "./tests/php/RectorTest.php",
         "./tests/php/SpellingTest.php",
         "./tests/php/StrTest.php",
+        "./tests/php/Testing/JsonSnapshotDriverTest.php",
         "./tests/php/TwigCsFixerTest.php"
     ],
     "sets": [

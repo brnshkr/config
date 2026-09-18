@@ -7,6 +7,7 @@
   colors="true"
   displayDetailsOnAllIssues="true"
   executionOrder="random"
+  shortenArraysForExportThreshold="20"
   beStrictAboutChangesToGlobalState="true"
   beStrictAboutCoverageMetadata="true"
   beStrictAboutOutputDuringTests="true"

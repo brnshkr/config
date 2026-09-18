@@ -8,8 +8,10 @@ use Brnshkr\Config\Composer\Command\CommandProvider;
 use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Testing\JsonSnapshotDriver;
 use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -23,28 +25,29 @@ use function Symfony\Component\String\s;
  * @internal
  */
 #[CoversClass(PrintModuleConfigCommand::class)]
+#[UsesClass(JsonSnapshotDriver::class)]
 final class PrintModuleConfigCommandTest extends TestCase
 {
     use MatchesSnapshots;
 
     public function testPrintsExpectedPhpCsFixerConfig(): void
     {
-        $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_PHP_CS_FIXER));
+        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_PHP_CS_FIXER), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedPhpStanConfig(): void
     {
-        $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_PHP_STAN));
+        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_PHP_STAN), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedRectorConfig(): void
     {
-        $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_RECTOR));
+        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_RECTOR), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedTwigCsFixerConfig(): void
     {
-        $this->assertMatchesJsonSnapshot($this->runForModule(Module::NAME_TWIG_CS_FIXER));
+        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_TWIG_CS_FIXER), new JsonSnapshotDriver());
     }
 
     public function testAutoDetectsModuleFromPath(): void
