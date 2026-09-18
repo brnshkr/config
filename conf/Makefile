@@ -1368,22 +1368,14 @@ _COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERA
 _GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
 _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 
-_FIX_ORDER := rector+php-cs-fixer \
-	twig-cs-fixer \
-	eslint+stylelint+markdownlint
-
-_FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(_FIX_ORDER)),$(_FIXER_NAMES)), \
-	$(if $(filter $(_FIXER_NAMES),$(subst +, ,$(CHAIN))),_$(_TARGET_PREFIX)fix-$(CHAIN)) \
-))
+$(call _target,check): #~~ runs the fixers without writing, and every analyzer
+	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS),:)
 
 _CI_TARGETS := $(call _target,check) \
 	$(call _target,test)
 
 CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
-
-$(call _target,check): #~~ runs the fixers without writing, and every analyzer
-	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS),:)
 
 $(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
 	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
@@ -1393,6 +1385,14 @@ $(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
 $(call _target,coverage): #~~ runs the tests and fails below the minimum coverage #vv
 	$(TRACE_PREFIX)$(if $(_COVERAGE),:,$(call log,No test to run.,$(COLOR_NOTICE)))
 	$(DEBUG_PREFIX)$(if $(_COVERAGE),$(MAKE) $(_VERB_FLAGS) $(_COVERAGE),:)
+
+_FIX_ORDER := rector+php-cs-fixer \
+	twig-cs-fixer \
+	eslint+stylelint+markdownlint
+
+_FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(_FIX_ORDER)),$(_FIXER_NAMES)), \
+	$(if $(filter $(_FIXER_NAMES),$(subst +, ,$(CHAIN))),_$(_TARGET_PREFIX)fix-$(CHAIN)) \
+))
 
 $(call _target,fix): #~~ runs every fixer this project has, writing its fixes
 	$(TRACE_PREFIX)$(if $(_FIX_CHAINS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))

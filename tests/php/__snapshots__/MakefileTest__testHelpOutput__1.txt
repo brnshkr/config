@@ -2214,7 +2214,7 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [90m?=                                                   ([35mlocal[0m[90m or [35mdist[0m[90m to pin which config every tool reads, rather than the first that is there)[0m
    [36m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [90m?=                                                   (paths an archive ships beside the autoload roots, a trailing [35m/[0m[90m taking the whole tree)[0m
    [36m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36m]8;;vscode://file/./conf/Makefile:1382\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
+   [36m]8;;vscode://file/./conf/Makefile:1378\CI_TARGETS]8;;\                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36m]8;;vscode://file/./conf/Makefile:1421\FIXTURE_TARGETS]8;;\           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m to build what its tests read)[0m
    [36m]8;;vscode://file/./conf/Makefile:1457\PHONY]8;;\                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m for the shared ones only or [35m0[0m[90m for none)[0m
   [35msemver[0m
@@ -2332,9 +2332,9 @@ Available commands:
    [36m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [90mremoves the caches named, or all of them when given none[0m
    [36m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
    [36m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
-   [36m]8;;vscode://file/./conf/Makefile:1384\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36m]8;;vscode://file/./conf/Makefile:1388\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
-   [36m]8;;vscode://file/./conf/Makefile:1393\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36m]8;;vscode://file/./conf/Makefile:1371\check, c]8;;\                  [0m  [90mruns the fixers without writing, and every analyzer[0m
+   [36m]8;;vscode://file/./conf/Makefile:1380\ci]8;;\                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
+   [36m]8;;vscode://file/./conf/Makefile:1385\coverage]8;;\                  [0m  [90mruns the tests and fails below the minimum coverage[0m
    [36m]8;;vscode://file/./conf/Makefile:1397\fix, f]8;;\                    [0m  [90mruns every fixer this project has, writing its fixes[0m
    [36m]8;;vscode://file/./conf/Makefile:1406\group]8;;\                     [0m  [90mcounts every tool's findings by identifier[0m
    [36m]8;;vscode://file/./conf/Makefile:1410\pack]8;;\                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
@@ -2481,7 +2481,7 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:615\CONFIG]8;;\                    [0m  [0m?=                                                   ([33mlocal[0m[0m or [33mdist[0m[0m to pin which config every tool reads, rather than the first that is there)[0m
    [32m]8;;vscode://file/./conf/Makefile:616\ARCHIVE_EXTRA_PATHS]8;;\       [0m  [0m?=                                                   (paths an archive ships beside the autoload roots, a trailing [33m/[0m[0m taking the whole tree)[0m
    [32m]8;;vscode://file/./conf/Makefile:711\CACHE_DIR]8;;\                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32m]8;;vscode://file/./conf/Makefile:1382\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
+   [32m]8;;vscode://file/./conf/Makefile:1378\CI_TARGETS]8;;\                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32m]8;;vscode://file/./conf/Makefile:1421\FIXTURE_TARGETS]8;;\           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m to build what its tests read)[0m
    [32m]8;;vscode://file/./conf/Makefile:1457\PHONY]8;;\                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m for the shared ones only or [33m0[0m[0m for none)[0m
   [33msemver[0m
@@ -2599,9 +2599,9 @@ Available commands:
    [32m]8;;vscode://file/./conf/Makefile:714\cc]8;;\                        [0m  [0mremoves the caches named, or all of them when given none[0m
    [32m]8;;vscode://file/./conf/Makefile:745\fresh]8;;\                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
    [32m]8;;vscode://file/./conf/Makefile:764\fresh-dry-run]8;;\             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
-   [32m]8;;vscode://file/./conf/Makefile:1384\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32m]8;;vscode://file/./conf/Makefile:1388\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
-   [32m]8;;vscode://file/./conf/Makefile:1393\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32m]8;;vscode://file/./conf/Makefile:1371\check, c]8;;\                  [0m  [0mruns the fixers without writing, and every analyzer[0m
+   [32m]8;;vscode://file/./conf/Makefile:1380\ci]8;;\                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
+   [32m]8;;vscode://file/./conf/Makefile:1385\coverage]8;;\                  [0m  [0mruns the tests and fails below the minimum coverage[0m
    [32m]8;;vscode://file/./conf/Makefile:1397\fix, f]8;;\                    [0m  [0mruns every fixer this project has, writing its fixes[0m
    [32m]8;;vscode://file/./conf/Makefile:1406\group]8;;\                     [0m  [0mcounts every tool's findings by identifier[0m
    [32m]8;;vscode://file/./conf/Makefile:1410\pack]8;;\                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
