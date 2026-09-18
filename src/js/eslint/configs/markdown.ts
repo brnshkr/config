@@ -120,6 +120,7 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
         'no-inline-comments': 'off',
         'no-magic-numbers': 'off',
         'import/no-default-export': 'off',
+        'import/no-extraneous-dependencies': 'off',
         'import/unambiguous': 'off',
         'node/no-missing-import': 'off',
         'ts/no-redeclare': 'off',
