@@ -24,9 +24,11 @@ use function array_unique;
 use function count;
 use function dirname;
 use function getenv;
+use function implode;
 use function is_dir;
 use function is_file;
 use function is_link;
+use function mb_substr_count;
 use function md5;
 use function mkdir;
 use function readlink;
@@ -58,6 +60,7 @@ final class MakefileTest extends TestCase
     private const string VENDOR_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigVendor';
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
+    private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
 
     private const array CONFIG_DIRECTORIES = [
         self::CONFIGS_DIRECTORY,
@@ -689,6 +692,17 @@ final class MakefileTest extends TestCase
         self::assertFileDoesNotExist(self::VENDOR_DIRECTORY . '/vendor/brnshkr/config/conf/phpstan.php');
     }
 
+    public function testACommandThatExitsItselfRunsOnceBehindTheSpinner(): void
+    {
+        if (shell_exec('command -v script') === null) {
+            self::markTestSkipped('`script` is not installed');
+        }
+
+        $output = $this->runMakeOnATty(['spin'], self::SPINNER_DIRECTORY);
+
+        self::assertSame(1, mb_substr_count($output, 'ran'));
+    }
+
     public function testTheConfigAToolReadsIsTheFirstOneThatIsThere(): void
     {
         $resolve = ['help', 'resolve', 'vv'];
@@ -1253,10 +1267,7 @@ final class MakefileTest extends TestCase
             $directory ?? self::FIXTURES_DIRECTORY,
             ...$args,
         ], env: [
-            ...array_map(static fn (): false => false, getenv()),
-            'HOME' => getenv('HOME'),
-            'PATH' => getenv('PATH') ?: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-            ...self::BASELINE_ENV,
+            ...self::getBaselineEnvironment(),
             ...$env,
         ]);
 
@@ -1273,11 +1284,44 @@ final class MakefileTest extends TestCase
         return $this->normalizeOutput($process->getOutput() . $process->getErrorOutput());
     }
 
+    /**
+     * @param list<string> $args
+     */
+    private function runMakeOnATty(array $args, string $directory): string
+    {
+        $process = new Process([
+            'script',
+            '-qfc',
+            sprintf('make --no-print-directory -C %s %s', $directory, implode(' ', $args)),
+            '/dev/null',
+        ], env: [
+            ...self::getBaselineEnvironment(),
+            'NO_ANSI' => '',
+        ]);
+
+        $process->mustRun();
+
+        return $process->getOutput();
+    }
+
     private function normalizeOutput(string $output): string
     {
         return s($output)
             ->replaceMatches(sprintf('/%s/', Str::quoteRegex(dirname(self::MAKEFILE_PATH, 2))), '.')
             ->toString()
         ;
+    }
+
+    /**
+     * @return array<string, false|string>
+     */
+    private static function getBaselineEnvironment(): array
+    {
+        return [
+            ...array_map(static fn (): false => false, getenv()),
+            'HOME' => getenv('HOME'),
+            'PATH' => getenv('PATH') ?: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+            ...self::BASELINE_ENV,
+        ];
     }
 }

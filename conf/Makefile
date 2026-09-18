@@ -1856,11 +1856,11 @@ if [ -z "$$has_spinner" ]; then \
 	spin_command; \
 else \
 	export _SPIN_STATUS=$$($(MKTEMP)); \
-	spun_command='$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
+	script_command='($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
-		set -- -qfc "$$spun_command" /dev/null; \
+		set -- -qfc "$$script_command" /dev/null; \
 	else \
-		set -- -q /dev/null $(SHELL) -c "$$spun_command"; \
+		set -- -q /dev/null $(SHELL) -c "$$script_command"; \
 	fi; \
 	$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
 	trap '$(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \

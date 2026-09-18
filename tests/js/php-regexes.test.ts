@@ -33,6 +33,7 @@ const CONSUMER_CALLS = <const>[
 
 const EXCLUDED_PATTERNS = new Set([
   '/%s/',
+  '/dev/null',
 ]);
 
 const CALL_WINDOW_LINES = 3;
