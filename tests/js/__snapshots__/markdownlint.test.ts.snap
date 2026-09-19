@@ -88,7 +88,7 @@ exports[`expected markdownlint config 1`] = `
           "message": "Use an ellipsis rather than three dots.",
           "name": "ellipsis",
           "replace": "…",
-          "searchPattern": "/\\.\\.\\./gu",
+          "searchPattern": "/(?<!\\]\\([^)]*)\\.\\.\\./gu",
           "searchScope": "text",
         },
         {

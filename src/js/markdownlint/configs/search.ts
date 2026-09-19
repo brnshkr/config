@@ -12,7 +12,7 @@ const RULES = <const>[
   {
     name: 'ellipsis',
     message: 'Use an ellipsis rather than three dots.',
-    searchPattern: String.raw`/\.\.\./gu`,
+    searchPattern: String.raw`/(?<!\]\([^)]*)\.\.\./gu`,
     replace: '…',
     searchScope: 'text',
   },
