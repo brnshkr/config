@@ -587,6 +587,7 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
 		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
+		LC_ALL=C \
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
 
@@ -2513,6 +2514,17 @@ define _HELP_AWK_SOURCE
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
+function truncate(text, limit,    tail, lead, needed) {
+	if (length(text) <= limit) return text
+	text = substr(text, 1, limit - 1)
+	if (match(text, "[\302-\364][\200-\277]*$$")) {
+		tail = substr(text, RSTART)
+		lead = substr(tail, 1, 1)
+		needed = (lead < "\340") ? 2 : ((lead < "\360") ? 3 : 4)
+		if (length(tail) < needed) text = substr(text, 1, RSTART - 1)
+	}
+	return text "…"
+}
 function render_url(template, file, line) {
 	if (template == "") return ""
 	gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template)
@@ -2775,7 +2787,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			entry_padded = entry_linked repeat(" ", entry_pad)
 			if (section == "variables") {
 				if (description != "") {
-					if (length(text) > description_column) text = substr(text, 1, description_column - 1) "…"
+					text = truncate(text, description_column)
 					format = sprintf("%2s  %-" description_column "s", extra, text)
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description
 				} else {
