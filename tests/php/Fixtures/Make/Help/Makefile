@@ -64,6 +64,9 @@ CONTINUATION_VARIABLE ?= first \
 	second \
 	third#~~ value assembled from continuation lines
 
+CONTINUATION_HIDDEN ?= first \
+	second#v #~~ hidden until `v`, its marker sitting on the line that ends it
+
 ifndef IFNDEF_VARIABLE
 IFNDEF_VARIABLE := default-value#~~ variable in ifndef block (operator always shown as ?=)
 endif

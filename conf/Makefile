@@ -2534,7 +2534,7 @@ function render_url(template, file, line) {
 	return template
 }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
-function line_verbosity(    verbosity_match) { if (!match($$0, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr($$0, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
+function line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
 function render_inline_code(text,    out, ansi_open, ansi_close) {
 	ansi_open = ENVIRON["_INLINE_CODE_OPEN"]
@@ -2690,7 +2690,7 @@ function resolve_scope(    current) {
 	if (current == "main" && !("main" in seen_scope)) { seen_scope["main"] = 1; top_count += 1; top_order[top_count] = "main" }
 	return current
 }
-function add(section, name, text, extra, description, line,    current, idx) {
+function add(section, name, text, extra, description, line, entry_verbosity,    current, idx) {
 	current = resolve_scope()
 	if (!current) return
 	if (name != "" && seen_symbol[current, section, name]++) return
@@ -2701,7 +2701,7 @@ function add(section, name, text, extra, description, line,    current, idx) {
 	section_description[current, section, idx] = description
 	section_file[current, section, idx] = FILENAME
 	section_line[current, section, idx] = line
-	section_verbosity[current, section, idx] = line_verbosity()
+	section_verbosity[current, section, idx] = (entry_verbosity != "" ? entry_verbosity : line_verbosity())
 }
 function handle_define(documentation,    description) {
 	if ($$2 ~ /^_/) return
@@ -2854,6 +2854,7 @@ is_in_documentation {
 	line_number = FNR
 	var_source = $$0
 	var_description = ""
+	var_verbosity = ""
 	if (match(var_source, /#~~[ ]*/)) {
 		var_description = trim(strip_verbosity(substr(var_source, RSTART + RLENGTH)))
 		var_source = substr(var_source, 1, RSTART - 1)
@@ -2870,6 +2871,10 @@ is_in_documentation {
 			sub(/[ \t]*\\[ \t]*$$/, "", raw)
 			if ((getline continuation) <= 0) break
 			sub(/^[ \t]+/, "", continuation)
+			if (var_verbosity == "") {
+				continuation_verbosity = line_verbosity(continuation)
+				if (continuation_verbosity) var_verbosity = continuation_verbosity
+			}
 			if (match(continuation, /#~~[ ]*/)) {
 				if (var_description == "")
 					var_description = trim(strip_verbosity(substr(continuation, RSTART + RLENGTH)))
@@ -2880,7 +2885,7 @@ is_in_documentation {
 			}
 			raw = raw " " continuation
 		}
-		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number)
+		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number, var_verbosity)
 	}
 	next
 }

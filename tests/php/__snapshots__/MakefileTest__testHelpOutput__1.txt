@@ -206,6 +206,7 @@ Variables:
    TIMEOUT                     :=  30                                               (connection timeout in seconds)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -380,6 +381,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -619,6 +621,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -890,6 +893,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -1217,6 +1221,7 @@ Variables:
    RETRIES                     +=  3                   (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second        (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -1374,6 +1379,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFDEF_VARIABLE              :=  from-ifdef-block                                 (variable inside ifdef (shown only when IS_DEFINED is set))
@@ -1646,6 +1652,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -1917,6 +1924,7 @@ Variables:
    RETRIES                     +=  3                                                (retry count)
    UNDESCRIBED                 ?=  raw-value
    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
@@ -2269,6 +2277,7 @@ Available commands:
    [36mRETRIES                   [0m  [90m+=  3                                                (retry count)[0m
    [36mUNDESCRIBED               [0m  [90m?=  raw-value[0m
    [36mCONTINUATION_VARIABLE     [0m  [90m?=  first second third                               (value assembled from continuation lines)[0m
+   [36mCONTINUATION_HIDDEN       [0m  [90m?=  first second                                     (hidden until [35mv[0m[90m, its marker sitting on the line that ends it)[0m
    [36mIFNDEF_VARIABLE           [0m  [90m?=  default-value                                    (variable in ifndef block (operator always shown as ?=))[0m
    [36mIFNDEF_MACRO_VARIABLE     [0m  [90m?=  (macro)                                          (macro variable inside ifndef shows ?= operator)[0m
    [36mIFEQ_ELSE_VARIABLE        [0m  [90m:=  else-value                                       (variable from else branch (dedup: [35mDEDUP_VARIABLE[0m[90m skipped here))[0m
@@ -2540,6 +2549,7 @@ Available commands:
    [32mRETRIES                   [0m  [0m+=  3                                                (retry count)[0m
    [32mUNDESCRIBED               [0m  [0m?=  raw-value[0m
    [32mCONTINUATION_VARIABLE     [0m  [0m?=  first second third                               (value assembled from continuation lines)[0m
+   [32mCONTINUATION_HIDDEN       [0m  [0m?=  first second                                     (hidden until [33mv[0m[0m, its marker sitting on the line that ends it)[0m
    [32mIFNDEF_VARIABLE           [0m  [0m?=  default-value                                    (variable in ifndef block (operator always shown as ?=))[0m
    [32mIFNDEF_MACRO_VARIABLE     [0m  [0m?=  (macro)                                          (macro variable inside ifndef shows ?= operator)[0m
    [32mIFEQ_ELSE_VARIABLE        [0m  [0m:=  else-value                                       (variable from else branch (dedup: [33mDEDUP_VARIABLE[0m[0m skipped here))[0m
