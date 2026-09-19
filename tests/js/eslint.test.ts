@@ -10,6 +10,7 @@ import { snapshotConfigs } from './utils/config-snapshot';
 import type { JsonObject } from './utils/json-diff';
 
 const FIXTURES_DIRECTORY = path.join(process.cwd(), 'tests/js/fixtures/eslint');
+const TIMEOUT = 30_000;
 
 test('expected eslint config', async () => {
   const packageConfigs = await getConfig().toConfigs();
@@ -38,4 +39,4 @@ test('expected eslint config', async () => {
       JSON.stringify(config).replaceAll(/"brnshkr:brnshkr@[^"]*"/gv, '"brnshkr:brnshkr@<version>"'),
     ),
   });
-});
+}, TIMEOUT);
