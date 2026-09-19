@@ -186,7 +186,7 @@ _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %
 
 ifneq ($(filter undefined,$(origin VENDOR) $(origin PACKAGE)),) # manifest
 _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/composer.json))
-_MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '/^[ \t]*"name"[ \t]*:/ { match($$0, /^[ \t]*/); if (found == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found = parts[4] } } END { print found }' $(_MANIFEST)))
+_MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ { match($$0, /^[ \t]*/); if (found == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found = parts[4] } } END { print found }' $(_MANIFEST)))
 endif # /manifest
 
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#~~ vendor name, taken from the manifest when unset
@@ -3052,16 +3052,34 @@ define _HELP_AWK_SOURCE
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
-function truncate(text, limit,    tail, lead, needed) {
-	if (length(text) <= limit) return text
-	text = substr(text, 1, limit - 1)
-	if (match(text, "[\302-\364][\200-\277]*$$")) {
-		tail = substr(text, RSTART)
-		lead = substr(tail, 1, 1)
-		needed = (lead < "\340") ? 2 : ((lead < "\360") ? 3 : 4)
-		if (length(tail) < needed) text = substr(text, 1, RSTART - 1)
+function character_bytes(leading_byte) {
+	return (leading_byte < "\200") ? 1 : ((leading_byte < "\340") ? 2 : ((leading_byte < "\360") ? 3 : 4))
+}
+function character_width(character) {
+	if (character < "\340") return 1
+	if (character < "\360") return (character >= "\342\230\200" && character <= "\342\237\277") ? 2 : 1
+	return 2
+}
+function display_width(text,    position, byte_count, total_width) {
+	total_width = 0
+	for (position = 1; position <= length(text); position += byte_count) {
+		byte_count = character_bytes(substr(text, position, 1))
+		total_width += character_width(substr(text, position, byte_count))
 	}
-	return text "…"
+	return total_width
+}
+function truncate(text, width_limit,    position, byte_count, character, taken_width, truncated_text) {
+	if (display_width(text) <= width_limit) return text
+	taken_width = 0
+	truncated_text = ""
+	for (position = 1; position <= length(text); position += byte_count) {
+		byte_count = character_bytes(substr(text, position, 1))
+		character = substr(text, position, byte_count)
+		if (taken_width + character_width(character) > width_limit - 1) break
+		truncated_text = truncated_text character
+		taken_width += character_width(character)
+	}
+	return truncated_text "…"
 }
 function render_url(template, file, line) {
 	if (template == "") return ""
@@ -3326,7 +3344,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			if (section == "variables") {
 				if (description != "") {
 					text = truncate(text, description_column)
-					format = sprintf("%2s  %-" description_column "s", extra, text)
+					format = sprintf("%2s  %s%s", extra, text, repeat(" ", description_column - display_width(text)))
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description
 				} else {
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra, text

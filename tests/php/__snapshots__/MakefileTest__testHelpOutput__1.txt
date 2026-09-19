@@ -386,7 +386,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -639,7 +639,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -924,7 +924,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -1424,7 +1424,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -1710,7 +1710,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -1995,7 +1995,7 @@ Variables:
    CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
    CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
@@ -2361,7 +2361,7 @@ Available commands:
    [36mCHANGELOG_TITLE           [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
    [36mCHANGELOG_SKIPPED_COMMITS [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
    [36mCHANGELOG_SKIPPED_TYPES   [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
-   [36mCHANGELOG_GROUPS          [0m  [90m?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
+   [36mCHANGELOG_GROUPS          [0m  [90m?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
    [36mCHANGELOG_NAMES           [0m  [90m?=  commands=Commands commitlint=commitlint compose… (readable scope names, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
  [35mapp[0m
   [35mvariables[0m
@@ -2646,7 +2646,7 @@ Available commands:
    [32mCHANGELOG_TITLE           [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
    [32mCHANGELOG_SKIPPED_COMMITS [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
    [32mCHANGELOG_SKIPPED_TYPES   [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
-   [32mCHANGELOG_GROUPS          [0m  [0m?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
+   [32mCHANGELOG_GROUPS          [0m  [0m?=  dependencies=📦_Dependencies js=☕_JS php=🐘_PH… (headings per scope root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
    [32mCHANGELOG_NAMES           [0m  [0m?=  commands=Commands commitlint=commitlint compose… (readable scope names, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
  [33mapp[0m
   [33mvariables[0m
