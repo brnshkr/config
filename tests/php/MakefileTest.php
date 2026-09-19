@@ -914,11 +914,15 @@ final class MakefileTest extends TestCase
         $reached = $this->runMake(['coverage-reached'], directory: self::COVERAGE_DIRECTORY);
         $missed  = $this->runMake(['coverage-missed'], directory: self::COVERAGE_DIRECTORY, doExpectFailure: true);
         $absent  = $this->runMake(['coverage-absent'], directory: self::COVERAGE_DIRECTORY, doExpectFailure: true);
+        $metric  = $this->runMake(['coverage-metric'], directory: self::COVERAGE_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringNotContainsString('Coverage is below', $reached);
-        self::assertStringContainsString('Coverage is below 100%', $missed);
+        self::assertStringNotContainsString('coverage is below', $reached);
+        self::assertStringContainsString('coverage is below', $missed);
+        self::assertStringContainsString('100%', $missed);
         self::assertStringContainsString('none.txt is missing', $absent);
-        self::assertStringNotContainsString('Coverage is below', $absent);
+        self::assertStringNotContainsString('coverage is below', $absent);
+        self::assertStringContainsString('Methods', $metric);
+        self::assertStringContainsString('95%', $metric);
     }
 
     public function testANameTheProjectDefinesInTwoOfItsOwnFilesIsRefused(): void

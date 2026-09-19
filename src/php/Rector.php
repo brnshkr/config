@@ -28,7 +28,10 @@ use function array_values;
 use function in_array;
 use function is_int;
 
+// @codeCoverageIgnoreStart
+// NOTICE: Ignored so a random test is not charged with this file-level statement
 Module::warnMissingPackages(Module::MODULE_RECTOR);
+// @codeCoverageIgnoreEnd
 
 /**
  * Builds a ready-to-use Rector config that captures the @brnshkr refactoring decisions.
@@ -383,4 +386,6 @@ final class Rector
     }
 }
 
+// @codeCoverageIgnoreStart
 return Rector::getConfig();
+// @codeCoverageIgnoreEnd

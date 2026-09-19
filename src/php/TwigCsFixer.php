@@ -26,7 +26,10 @@ use TwigCsFixer\Rules\RuleInterface;
 use function preg_quote;
 use function sprintf;
 
+// @codeCoverageIgnoreStart
+// NOTICE: Ignored so a random test is not charged with this file-level statement
 Module::warnMissingPackages(Module::MODULE_TWIG_CS_FIXER);
+// @codeCoverageIgnoreEnd
 
 /**
  * Builds a ready-to-use Twig-CS-Fixer config that captures the @brnshkr template-style decisions.
@@ -249,4 +252,6 @@ final readonly class TwigCsFixer
     }
 }
 
+// @codeCoverageIgnoreStart
 return TwigCsFixer::getConfig();
+// @codeCoverageIgnoreEnd

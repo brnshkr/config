@@ -74,12 +74,16 @@ use function serialize;
 use function sprintf;
 use function Symfony\Component\String\s;
 
+// @codeCoverageIgnoreStart
+// NOTICE: Ignored so a random test is not charged with this file-level statement
 Module::warnMissingPackages(Module::MODULE_PHP_STAN);
 
 // @phpstan-ignore symplify.forbiddenFuncCall (Guards the class declaration so this self-returning config can be safely required more than once, e.g. via PHPStan's 'includes')
 if (class_exists(PhpStan::class)) {
     return PhpStan::getConfig();
 }
+
+// @codeCoverageIgnoreEnd
 
 /**
  * Builds the @brnshkr PHPStan configuration through a chainable, opt-in API.

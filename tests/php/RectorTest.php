@@ -7,6 +7,7 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\EditorUrl;
 use Brnshkr\Config\FileFinder;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\Rector;
@@ -26,6 +27,7 @@ use Symfony\Component\Finder\Finder;
 #[UsesClass(ComposerJson::class)]
 #[UsesClass(EditorUrl::class)]
 #[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
 #[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
 #[UsesClass(Str::class)]

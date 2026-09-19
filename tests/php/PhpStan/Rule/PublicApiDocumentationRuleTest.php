@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\Str;
@@ -25,6 +26,7 @@ use function sprintf;
 #[CoversClass(PublicApiDocumentationRule::class)]
 #[UsesClass(ComposerJson::class)]
 #[UsesClass(FileLevelDocCache::class)]
+#[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class PublicApiDocumentationRuleTest extends RuleTestCase
 {

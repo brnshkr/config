@@ -23,7 +23,10 @@ use function array_merge;
 
 use const ARRAY_FILTER_USE_KEY;
 
+// @codeCoverageIgnoreStart
+// NOTICE: Ignored so a random test is not charged with this file-level statement
 Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
+// @codeCoverageIgnoreEnd
 
 /**
  * Builds a ready-to-use PHP-CS-Fixer config that captures the @brnshkr coding-style decisions.
@@ -189,6 +192,9 @@ final readonly class PhpCsFixer
             ],
             'comment_to_phpdoc' => [
                 'ignored_tags' => [
+                    'codeCoverageIgnore',
+                    'codeCoverageIgnoreEnd',
+                    'codeCoverageIgnoreStart',
                     'phpstan-ignore',
                     'phpstan-ignore-line',
                     'phpstan-ignore-next-line',
@@ -527,4 +533,6 @@ final readonly class PhpCsFixer
     }
 }
 
+// @codeCoverageIgnoreStart
 return PhpCsFixer::getConfig();
+// @codeCoverageIgnoreEnd

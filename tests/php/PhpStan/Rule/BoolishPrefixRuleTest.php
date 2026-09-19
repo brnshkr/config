@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
@@ -26,6 +27,7 @@ use function sprintf;
  */
 #[CoversClass(BoolishPrefixRule::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class BoolishPrefixRuleTest extends AbstractRuleTestCase
 {

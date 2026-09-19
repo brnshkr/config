@@ -875,20 +875,28 @@ _$(_TARGET_PREFIX)composer-install:
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit),) # phpunit
 
-PEST                    ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
-PHP_UNIT                ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
-PHP_UNIT_CONFIG         ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
-PHP_UNIT_FLAGS          ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
-PHP_UNIT_SNAPSHOT_FLAGS ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
-PHP_UNIT_COVERAGE_DIR   ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
-PHP_UNIT_COVERAGE_FILE  ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
-PHP_UNIT_MIN_COVERAGE   ?= 100#v #~~ percentage the suite must reach, `0` to collect coverage without a floor
-PHP_UNIT_COVERAGE_FLAGS ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),--min=$(_PHP_UNIT_FLOOR)),$(if $(_PHP_UNIT_FLOOR),--coverage-text=$(PHP_UNIT_COVERAGE_FILE))) --coverage-html $(PHP_UNIT_COVERAGE_DIR)#v #~~ additional flags passed when collecting coverage
+PEST                          ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
+PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
+PHP_UNIT_CONFIG               ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
+PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
+PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
+PHP_UNIT_COVERAGE_DIR         ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
+PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
+PHP_UNIT_MIN_COVERAGE         ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
+PHP_UNIT_MIN_COVERAGE_CLASSES ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the class metric must reach, which Pest cannot read
+PHP_UNIT_MIN_COVERAGE_METHODS ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the method metric must reach, which Pest cannot read
+PHP_UNIT_MIN_COVERAGE_LINES   ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
+PHP_UNIT_COVERAGE_FLAGS       ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),--min=$(_PHP_UNIT_FLOOR)),$(if $(_PHP_UNIT_FLOORS),--coverage-text=$(PHP_UNIT_COVERAGE_FILE))) --coverage-html $(PHP_UNIT_COVERAGE_DIR)#v #~~ additional flags passed when collecting coverage
 
 _PEST_BINARY     := $(WORKDIR)/vendor/bin/pest
 _IS_PEST          = $(findstring pest,$(PHP_UNIT))
 _PHP_UNIT_UPDATE  = $(if $(wildcard $(CURDIR)/vendor/bin/update-snapshots),$(subst /vendor/bin/phpunit,/vendor/bin/update-snapshots,$(PHP_UNIT)),$(PHP_UNIT))
-_PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE)))
+_PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE_LINES)))
+
+_PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
+	Methods=$(strip $(PHP_UNIT_MIN_COVERAGE_METHODS)) \
+	Lines=$(strip $(PHP_UNIT_MIN_COVERAGE_LINES))
+
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
 _COVERAGE_NAMES  += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
@@ -922,7 +930,7 @@ $(call _target,phpunit): #~~ runs the PHP tests
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
-	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOOR),,1)),:,$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(_PHP_UNIT_FLOOR),PHP_UNIT_COVERAGE_FILE))
+	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit) -- --debug $(ARGS)
@@ -1344,11 +1352,21 @@ VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vi
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
-VITEST_COVERAGE_DIR   ?= $(WORKDIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
-VITEST_MIN_COVERAGE   ?= 100#v #~~ percentage the suite must reach, `0` to collect coverage without a floor
-VITEST_COVERAGE_FLAGS ?= --coverage --coverage.reporter=text --coverage.reporter=html --coverage.reportsDirectory=$(VITEST_COVERAGE_DIR) $(foreach METRIC,lines functions branches statements,$(if $(_VITEST_FLOOR),--coverage.thresholds.$(METRIC)=$(_VITEST_FLOOR)))#v #~~ additional flags passed when collecting coverage
+VITEST_COVERAGE_DIR            ?= $(WORKDIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
+VITEST_MIN_COVERAGE            ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
+VITEST_MIN_COVERAGE_BRANCHES   ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the branch metric must reach
+VITEST_MIN_COVERAGE_FUNCTIONS  ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the function metric must reach
+VITEST_MIN_COVERAGE_LINES      ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
+VITEST_MIN_COVERAGE_STATEMENTS ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the statement metric must reach
 
-_VITEST_FLOOR = $(filter-out 0,$(strip $(VITEST_MIN_COVERAGE)))
+VITEST_COVERAGE_FLAGS?= --coverage \
+	--coverage.reporter=text \
+	--coverage.reporter=html \
+	--coverage.reportsDirectory=$(VITEST_COVERAGE_DIR) \
+	--coverage.thresholds.branches=$(VITEST_MIN_COVERAGE_BRANCHES) \
+	--coverage.thresholds.functions=$(VITEST_MIN_COVERAGE_FUNCTIONS) \
+	--coverage.thresholds.lines=$(VITEST_MIN_COVERAGE_LINES) \
+	--coverage.thresholds.statements=$(VITEST_MIN_COVERAGE_STATEMENTS)#v #~~ additional flags passed when collecting coverage
 
 _VITEST_COVERAGE_PROVIDER := $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
@@ -2030,19 +2048,20 @@ output=$$($1) || { $(PRINTF) '%s\n' "$$output" >&2; exit $(BRNSHKR_CONFIG_ERROR_
 endef
 
 #**
-#* Fails the recipe when a text coverage report falls short, which every runner but Pest needs.
+#* Fails the recipe when one metric of a text coverage report falls short, as every runner but Pest needs.
 #*
 #* parameters:
 #*   path: string
+#*   metric: string
 #*   minimum: number
 #*   variable: string
 #*
 #* returns: void
 #*
 define _require_coverage
-$(call _require_file,$1,$3)
-$(AWK) -v _minimum='$2' '/[Ll]ines/ && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached < _minimum + 0 }' '$1' || { \
-	$(call log,Coverage is below `%s%%`.,$(COLOR_ERROR),'$2') >&2; \
+$(TRACE_PREFIX)$(call _require_file,$1,$4)
+$(TRACE_PREFIX)$(AWK) -v _metric='$2' -v _minimum='$3' '$$0 ~ _metric && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached < _minimum + 0 }' '$1' || { \
+	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
 endef

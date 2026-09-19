@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\Rule\NamedArgumentsTagRule;
 use Brnshkr\Config\Str;
 use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
@@ -20,6 +21,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
  */
 #[CoversClass(NamedArgumentsTagRule::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class NamedArgumentsTagRuleTest extends AbstractRuleTestCase
 {

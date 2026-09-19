@@ -283,6 +283,9 @@
         },
         "comment_to_phpdoc": {
             "ignored_tags": [
+                "codeCoverageIgnore",
+                "codeCoverageIgnoreEnd",
+                "codeCoverageIgnoreStart",
                 "phpstan-ignore",
                 "phpstan-ignore-line",
                 "phpstan-ignore-next-line"
