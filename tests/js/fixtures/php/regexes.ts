@@ -233,5 +233,15 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/`,
     regex: /Running phpstan\nphpstan analyze [^\n]*\nphpstan done/v,
   },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/PACKAGE\s+\?=\s+one-line-manifest/`,
+    regex: /PACKAGE\s+\?=\s+one-line-manifest/v,
+  },
+  {
+    file: 'tests/php/MakefileTest.php',
+    php: String.raw`/VENDOR\s+\?=\s+@acme/`,
+    regex: /VENDOR\s+\?=\s+@acme/v,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

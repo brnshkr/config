@@ -58,6 +58,8 @@ final class MakefileTest extends TestCase
     private const string COVERAGE_DIRECTORY = __DIR__ . '/Fixtures/Make/Coverage';
     private const string FALLBACK_DIRECTORY = __DIR__ . '/Fixtures/Make/ConfigFallback';
     private const string VENDOR_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigVendor';
+    private const string MANIFEST_DIRECTORY = __DIR__ . '/Fixtures/Make/Manifest';
+    private const string PROJECT_DIRECTORY  = __DIR__ . '/../..';
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
     private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
@@ -723,6 +725,26 @@ final class MakefileTest extends TestCase
         $output = $this->runMakeOnATty(['spin'], self::SPINNER_DIRECTORY);
 
         self::assertSame(1, mb_substr_count($output, 'ran'));
+    }
+
+    public function testAManifestOpeningOnTheNameLineStillNamesThePackage(): void
+    {
+        $resolved = $this->runMake(['help', 'resolve', 'vv'], directory: self::MANIFEST_DIRECTORY);
+
+        self::assertMatchesRegularExpression('/PACKAGE\s+\?=\s+one-line-manifest/', $resolved);
+        self::assertMatchesRegularExpression('/VENDOR\s+\?=\s+@acme/', $resolved);
+    }
+
+    public function testTheFilesEachPackageShips(): void
+    {
+        $composer = $this->runMake(['composer-list'], directory: self::PROJECT_DIRECTORY);
+        $bun      = $this->runMake(['bun-list'], directory: self::PROJECT_DIRECTORY);
+
+        $this->assertMatchesSnapshot(sprintf(
+            "=== composer ===\n%s\n\n=== bun ===\n%s\n",
+            Str::trim($composer),
+            Str::trim($bun),
+        ));
     }
 
     public function testThePackageFallbackReadsTheTrackedHalfOnly(): void
