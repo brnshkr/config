@@ -157,6 +157,8 @@ CP     ?= cp#~~ path to `cp` binary
 CAT    ?= cat#~~ path to `cat` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
+MV     ?= mv#~~ path to `mv` binary
+CMP    ?= cmp#~~ path to `cmp` binary
 CHMOD  ?= chmod#~~ path to `chmod` binary
 LN     ?= ln#~~ path to `ln` binary
 PRINTF ?= printf#~~ path to `printf` binary
@@ -1381,6 +1383,84 @@ endif # /vitest
 
 endif # /js
 
+#--- changelog
+
+CHANGELOG_RANGE ?= #v #~~ commit range the changelog covers
+CHANGELOG_URL   ?= #v #~~ base URL a commit hash links to
+CHANGELOG_DIR   ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
+CHANGELOG_TITLE ?= \# Changelog#vv #~~ heading a new changelog file starts with
+
+CHANGELOG_SKIPPED_COMMITS ?= chore(hygiene) \
+	chore(release)#vv #~~ `type(scope)` pairs left out of the changelog
+
+CHANGELOG_SKIPPED_TYPES ?= test	\
+	style \
+	build#vv #~~ commit types left out of the changelog
+
+CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
+	js=☕_JS \
+	php=🐘_PHP \
+	rule=🧩_Rules \
+	make=🔨_Make \
+	composer=📦_Composer \
+	ai=🤖_AI \
+	vscode=💻_Editor \
+	readme=📚_Documentation \
+	docs=📚_Documentation \
+	ci=⚙️_CI \
+	release=🔖_Release \
+	general=🧰_General#vv #~~ headings per scope root, as `<root>=<heading>` pairs, `_` a space
+
+CHANGELOG_NAMES ?= commands=Commands \
+	commitlint=commitlint \
+	composer=Composer \
+	editor-url=EditorUrl \
+	file-finder=FileFinder \
+	eslint=ESLint \
+	jsdoc=JSDoc \
+	markdownlint=markdownlint \
+	php-cs-fixer=PHP-CS-Fixer \
+	phpat=PHPat \
+	phpstan=PHPStan \
+	phpunit=PHPUnit \
+	rector=Rector \
+	stylelint=Stylelint \
+	twig-cs-fixer=Twig-CS-Fixer \
+	typescript=TypeScript \
+	mate=Mate \
+	shared=Shared \
+	string=String \
+	test=Test \
+	vitest=Vitest \
+	yaml=YAML#vv #~~ readable scope names, as `<scope>=<name>` pairs, `_` a space
+
+_CHANGELOG_LAST_TAG = $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null)
+_IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
+_IS_CHANGELOG_WRITE = $(filter write w,$(_ARG_WORDS))
+_IS_CHANGELOG_NOTES = $(filter notes n,$(_ARG_WORDS))
+_CHANGELOG_FILE     = $(CHANGELOG_DIR)/$(_CHANGELOG_MAJOR).x.md
+_CHANGELOG_MAJOR    = $(firstword $(subst ., ,$(patsubst v%,%,$(_CHANGELOG_VERSION))))
+_CHANGELOG_RANGE    = $(if $(_IS_CHANGELOG_ALL),,$(or $(CHANGELOG_RANGE),$(if $(_CHANGELOG_LAST_TAG),$(_CHANGELOG_LAST_TAG)..HEAD)))
+_CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
+_CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
+_CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
+_CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || $(PRINTF) '%s' '$(VERSION)')
+_CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
+
+$(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
+	$(DEBUG_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
+		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
+			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
+			_CHANGELOG_COMPARE="$(_CHANGELOG_COMPARE)" \
+			_CHANGELOG_ALL="$(_IS_CHANGELOG_ALL)" \
+			_CHANGELOG_COMMITS="$(CHANGELOG_SKIPPED_COMMITS)" \
+			_CHANGELOG_TYPES="$(CHANGELOG_SKIPPED_TYPES)" \
+			_CHANGELOG_MAJOR="$(if $(_IS_CHANGELOG_WRITE),$(_CHANGELOG_MAJOR))" \
+			_CHANGELOG_GROUPS="$(CHANGELOG_GROUPS)" \
+			_CHANGELOG_NAMES="$(CHANGELOG_NAMES)" \
+			$(AWK) "$$_CHANGELOG_AWK" \
+		| { $(if $(_IS_CHANGELOG_WRITE),$(call _changelog_write),$(if $(_IS_CHANGELOG_NOTES),$(call _changelog_notes),$(CAT))); }
+
 #--- common
 
 _FIXERS    := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)))
@@ -2430,6 +2510,464 @@ $$namespace = Brnshkr\Config\ComposerJson::forProjectUsingThisLibrary()->getRoot
 file_put_contents($$path, preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, file_get_contents($$path), 1));
 endef
 
+#**
+#* A release body: the file's section where there is one, without its heading and with the compare link.
+#*
+#* returns: void
+#*
+define _changelog_notes
+section=$$([ ! -f '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELOG_VERSION)' \
+	$(AWK) "$$_CHANGELOG_SECTION_AWK" '$(_CHANGELOG_FILE)'); \
+if [ -n "$$section" ]; then \
+	$(CAT) >/dev/null; \
+	$(PRINTF) '%s\n' "$$section"; \
+else \
+	$(AWK) 'NR == 1 && /^## / { next } { body = body $$0 "\n" } \
+		END { sub(/^\n+/, "", body); printf "%s", body }'; \
+fi; \
+[ -z '$(_CHANGELOG_COMPARE)' ] || $(PRINTF) '\n**Full Changelog**: %s\n' '$(_CHANGELOG_COMPARE)'
+endef
+
+#**
+#* Merges the generated sections into `CHANGELOG_DIR`, keeping every note already written there.
+#*
+#* returns: void
+#*
+define _changelog_write
+if [ '$(_CHANGELOG_MAJOR)' = '0' ] && [ -z '$(filter force f,$(_ARG_WORDS))' ]; then \
+	$(CAT) >/dev/null; \
+	$(call log,`%s` is below `1.0.0`$(_COMMA) pass `--force` to write it.,$(COLOR_NOTICE),'$(_CHANGELOG_VERSION)'); \
+else \
+	$(MKDIR) -p '$(CHANGELOG_DIR)'; \
+	$(CAT) > '$(_CHANGELOG_FILE).added'; \
+	{ \
+		[ -f '$(_CHANGELOG_FILE)' ] || $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; \
+		_CHANGELOG_ADDED='$(_CHANGELOG_FILE).added' $(AWK) "$$_CHANGELOG_MERGE_AWK" \
+			'$(_CHANGELOG_FILE).added' \
+			$$([ -f '$(_CHANGELOG_FILE)' ] && $(PRINTF) '%s' '$(_CHANGELOG_FILE)'); \
+	} > '$(_CHANGELOG_FILE).new'; \
+	$(RM) -f '$(_CHANGELOG_FILE).added'; \
+	if [ ! -f '$(_CHANGELOG_FILE)' ]; then \
+		$(MV) '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)' \
+			&& $(call log,Created `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(_CHANGELOG_FILE))'); \
+	elif $(CMP) -s '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)'; then \
+		$(RM) -f '$(_CHANGELOG_FILE).new'; \
+		$(call log,Nothing written.,$(COLOR_NOTICE)); \
+	else \
+		$(MV) '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)' \
+			&& $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(_CHANGELOG_FILE))'); \
+	fi; \
+fi
+endef
+
+define _CHANGELOG_SECTION_AWK_SOURCE
+function version_of(line,    value) {
+	value = line
+	sub(/^## \[?/, "", value)
+	sub(/[]( ].*$$/, "", value)
+	return value
+}
+BEGIN { wanted = ENVIRON["_CHANGELOG_VERSION"] }
+/^## / {
+	inside = (version_of($$0) == wanted)
+	next
+}
+inside { body = body $$0 "\n" }
+END {
+	sub(/^\n+/, "", body)
+	sub(/\n+$$/, "", body)
+	if (body != "") print body
+}
+endef
+
+define _CHANGELOG_MERGE_AWK_SOURCE
+function pad(value,    padded) {
+	padded = "0000000000" value
+	return substr(padded, length(padded) - 9)
+}
+function version_of(line,    value) {
+	value = line
+	sub(/^## \[?/, "", value)
+	sub(/[]( ].*$$/, "", value)
+	return value
+}
+function semver_key(version,    value, prerelease, parts, count, position, key, tokens, token_count, token) {
+	value = version
+	sub(/^v/, "", value)
+	sub(/\+.*$$/, "", value)
+	prerelease = ""
+	if (match(value, /-/)) {
+		prerelease = substr(value, RSTART + 1)
+		value = substr(value, 1, RSTART - 1)
+	}
+	count = split(value, parts, ".")
+	key = ""
+	for (position = 1; position <= 3; position += 1) key = key pad((position <= count) ? parts[position] + 0 : 0)
+	if (prerelease == "") return key "1"
+	key = key "0"
+	token_count = split(prerelease, tokens, ".")
+	for (position = 1; position <= token_count; position += 1) {
+		token = tokens[position]
+		key = key ((token ~ /^[0-9]+$$/) ? "0" pad(token + 0) : "1" substr(token "..........", 1, 10))
+	}
+	return key
+}
+function hash_of(line,    value) {
+	if (!match(line, /\(\[?[0-9a-f]{7}\]?[)(]/)) return ""
+	value = substr(line, RSTART, RLENGTH)
+	gsub(/[^0-9a-f]/, "", value)
+	return value
+}
+function is_entry(line) {
+	return (line ~ /^- /) && hash_of(line) != ""
+}
+function is_heading(line) {
+	return line ~ /^#{3,4} /
+}
+
+function section_text(index_,    position, out) {
+	out = ""
+	for (position = 1; position <= added_lines[index_]; position += 1) out = out added_line[index_, position] "\n"
+	sub(/\n+$$/, "", out)
+	return out "\n"
+}
+
+function merged_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry) {
+	pending = 0
+	for (position = 1; position <= added_entries[added_index]; position += 1) {
+		if ((existing_index, added_entry_hash[added_index, position]) in existing_hash) continue
+		pending += 1
+		pending_group[pending] = added_entry_group[added_index, position]
+		pending_entry[pending] = added_entry[added_index, position]
+	}
+	if (pending == 0) return ""
+
+	out = ""
+	group = ""
+	held = ""
+	tail = ""
+	seen_entry = 0
+	for (position = 1; position <= existing_lines[existing_index]; position += 1) {
+		line = existing_line[existing_index, position]
+		if (is_heading(line) || line ~ /^## /) {
+			out = out flush_group(group, held, tail, seen_entry, pending)
+			group = is_heading(line) ? line : ""
+			held = ""
+			tail = ""
+			seen_entry = 0
+			out = out line "\n"
+			continue
+		}
+		if (is_entry(line)) {
+			seen_entry = 1
+			held = held tail line "\n"
+			tail = ""
+		} else if (seen_entry) {
+			tail = tail line "\n"
+		} else {
+			out = out line "\n"
+		}
+	}
+	out = out flush_group(group, held, tail, seen_entry, pending)
+	for (position = 1; position <= pending; position += 1) {
+		if (pending_used[position]) continue
+		out = out "\n" (pending_group[position] == "" ? "" : pending_group[position] "\n\n") pending_entry[position] "\n"
+	}
+	split("", pending_used)
+	sub(/\n+$$/, "", out)
+	return out "\n"
+}
+
+function flush_group(group, held, tail, seen_entry, pending,    position, out) {
+	out = held
+	for (position = 1; position <= pending; position += 1) {
+		if (pending_used[position] || pending_group[position] != group) continue
+		out = out pending_entry[position] "\n"
+		pending_used[position] = 1
+	}
+	return out tail
+}
+
+# Every section the generator produced, with its entries and the group each sits under.
+BEGIN { _added = ENVIRON["_CHANGELOG_ADDED"] }
+FILENAME == _added {
+	if ($$0 ~ /^## /) {
+		added_count += 1
+		added_version[added_count] = version_of($$0)
+		group = ""
+	} else if (is_heading($$0)) {
+		group = $$0
+	}
+	if (added_count == 0) next
+	added_lines[added_count] += 1
+	added_line[added_count, added_lines[added_count]] = $$0
+	if (is_entry($$0)) {
+		added_entries[added_count] += 1
+		added_entry[added_count, added_entries[added_count]] = $$0
+		added_entry_group[added_count, added_entries[added_count]] = group
+		added_entry_hash[added_count, added_entries[added_count]] = hash_of($$0)
+	}
+	next
+}
+
+# The file as it stands, kept verbatim.
+{
+	if ($$0 ~ /^## /) {
+		existing_count += 1
+		existing_version[existing_count] = version_of($$0)
+	}
+	if (existing_count == 0) {
+		preamble = preamble $$0 "\n"
+		next
+	}
+	existing_lines[existing_count] += 1
+	existing_line[existing_count, existing_lines[existing_count]] = $$0
+	if (is_entry($$0)) existing_hash[existing_count, hash_of($$0)] = 1
+}
+
+# An existing section, with any entry it is missing placed after the last entry of its own group.
+END {
+	document = preamble
+
+	for (existing_index = 1; existing_index <= existing_count; existing_index += 1) {
+		matched[existing_version[existing_index]] = existing_index
+	}
+	for (added_index = 1; added_index <= added_count; added_index += 1) {
+		matched_added[added_version[added_index]] = added_index
+	}
+
+	# Sections the file does not carry yet, newest first, placed among the ones it does.
+	for (added_index = 1; added_index <= added_count; added_index += 1) {
+		if (added_version[added_index] in matched) continue
+		insert_count += 1
+		insert_key[insert_count] = semver_key(added_version[added_index])
+		insert_index[insert_count] = added_index
+	}
+	for (position = 2; position <= insert_count; position += 1) {
+		key_held = insert_key[position]
+		value_held = insert_index[position]
+		sorted = position - 1
+		while (sorted >= 1 && insert_key[sorted] < key_held) {
+			insert_key[sorted + 1] = insert_key[sorted]
+			insert_index[sorted + 1] = insert_index[sorted]
+			sorted -= 1
+		}
+		insert_key[sorted + 1] = key_held
+		insert_index[sorted + 1] = value_held
+	}
+
+	pending_insert = 1
+	for (existing_index = 1; existing_index <= existing_count; existing_index += 1) {
+		while (pending_insert <= insert_count \
+			&& insert_key[pending_insert] > semver_key(existing_version[existing_index])) {
+			document = document section_text(insert_index[pending_insert]) "\n"
+			pending_insert += 1
+		}
+		replacement = ((existing_version[existing_index] in matched_added) \
+			? merged_text(existing_index, matched_added[existing_version[existing_index]]) : "")
+		if (replacement == "") {
+			for (position = 1; position <= existing_lines[existing_index]; position += 1) {
+				document = document existing_line[existing_index, position] "\n"
+			}
+		} else {
+			document = document replacement
+		}
+		sub(/\n+$$/, "", document)
+		document = document "\n\n"
+	}
+	while (pending_insert <= insert_count) {
+		document = document section_text(insert_index[pending_insert]) "\n"
+		pending_insert += 1
+	}
+
+	sub(/\n+$$/, "", document)
+	print document
+}
+endef
+
+define _CHANGELOG_AWK_SOURCE
+function sort_pair(keys, values, count,    position, sorted, key_held, value_held) {
+	for (position = 2; position <= count; position += 1) {
+		key_held = keys[position]
+		value_held = values[position]
+		sorted = position - 1
+		while (sorted >= 1 && keys[sorted] > key_held) {
+			keys[sorted + 1] = keys[sorted]
+			values[sorted + 1] = values[sorted]
+			sorted -= 1
+		}
+		keys[sorted + 1] = key_held
+		values[sorted + 1] = value_held
+	}
+}
+function render(section, label,    position, inner, seconds, mirrored, keys, entries, second, out) {
+	out = unscoped[section, label]
+	for (position = 1; position <= second_count[section, label]; position += 1) {
+		seconds[position] = second_name[section, label, position]
+		mirrored[position] = second_name[section, label, position]
+	}
+	sort_pair(seconds, mirrored, second_count[section, label])
+	for (position = 1; position <= second_count[section, label]; position += 1) {
+		second = seconds[position]
+		if (out != "") out = out "\n"
+		out = out "#### " ((second in names) ? names[second] : second) "\n\n" sub_unscoped[section, label, second]
+		split("", keys)
+		split("", entries)
+		for (inner = 1; inner <= sub_count[section, label, second]; inner += 1) {
+			keys[inner] = sub_key[section, label, second, inner]
+			entries[inner] = sub_entry[section, label, second, inner]
+		}
+		sort_pair(keys, entries, sub_count[section, label, second])
+		for (inner = 1; inner <= sub_count[section, label, second]; inner += 1) out = out entries[inner] "\n"
+	}
+	return out
+}
+function major_of(version,    value) {
+	value = version
+	sub(/^v/, "", value)
+	sub(/\..*$$/, "", value)
+	return value
+}
+function flush(section, version, compare,    position, label, printed, out) {
+	if (!(section in has_content)) return ""
+	if (_major != "" && major_of(version) != _major) return ""
+	out = (version == "") ? "" : "## " ((compare != "") ? "[" version "](" compare ")" : version) "\n"
+	if ((section in breaking)) out = out "\n### " breaking_label "\n\n" breaking[section]
+	for (position = 1; position <= rank; position += 1) {
+		label = ordered[position]
+		if (((section, label) in seen) && !(label in printed)) {
+			out = out "\n### " label "\n\n" render(section, label)
+			printed[label] = 1
+		}
+	}
+	if (((section, other) in seen)) out = out "\n### " other "\n\n" render(section, other)
+	return out
+}
+BEGIN {
+	RS = "\x1e"
+	FS = "\x1f"
+	other = "📌 Other"
+	breaking_label = "⚠ Breaking changes"
+	_url = ENVIRON["_CHANGELOG_URL"]
+	_version = ENVIRON["_CHANGELOG_VERSION"]
+	_compare = ENVIRON["_CHANGELOG_COMPARE"]
+	_all = ENVIRON["_CHANGELOG_ALL"]
+	_commits = ENVIRON["_CHANGELOG_COMMITS"]
+	_types = ENVIRON["_CHANGELOG_TYPES"]
+	_major = ENVIRON["_CHANGELOG_MAJOR"]
+	section = 0
+	section_version[0] = _version
+	pair_count = split(ENVIRON["_CHANGELOG_GROUPS"], pairs, " ")
+	for (index_ = 1; index_ <= pair_count; index_ += 1) {
+		if (pairs[index_] !~ /=/) continue
+		root = pairs[index_]
+		sub(/=.*$$/, "", root)
+		label = pairs[index_]
+		sub(/^[^=]*=/, "", label)
+		gsub(/_/, " ", label)
+		groups[root] = label
+		if (!(label in ranked)) { ranked[label] = ++rank; ordered[rank] = label }
+	}
+	name_count = split(ENVIRON["_CHANGELOG_NAMES"], pairs, " ")
+	for (index_ = 1; index_ <= name_count; index_ += 1) {
+		if (pairs[index_] !~ /=/) continue
+		scope_name = pairs[index_]
+		sub(/=.*$$/, "", scope_name)
+		readable = pairs[index_]
+		sub(/^[^=]*=/, "", readable)
+		gsub(/_/, " ", readable)
+		names[scope_name] = readable
+	}
+}
+{
+	hash = $$1
+	refs = $$2
+	subject = $$3
+	body = $$4
+	sub(/^\n+/, "", hash)
+
+	if (_all != "" && match(refs, /tag: [^,]+/)) {
+		tag = substr(refs, RSTART + 5, RLENGTH - 5)
+		section_compare[section] = (_url != "") ? _url "/compare/" tag "..." section_version[section] : ""
+		section += 1
+		section_version[section] = tag
+	}
+
+	if (subject !~ /^[a-z]+(\([^)]+\))?!?: /) next
+
+	scope = ""
+	if (subject ~ /^[a-z]+\(/) {
+		scope = subject
+		sub(/^[a-z]+\(/, "", scope)
+		sub(/\).*$$/, "", scope)
+	}
+
+	text = subject
+	sub(/^[^:]+: /, "", text)
+	is_breaking = (subject ~ /^[a-z]+(\([^)]+\))?!:/) || (body ~ /BREAKING[ -]CHANGE/)
+	type = subject
+	sub(/[(!:].*$$/, "", type)
+	if (!is_breaking && index(" " _types " ", " " type " ") > 0) next
+
+	if (!is_breaking && index(" " _commits " ", " " type "(" scope ")" " ") > 0) next
+
+	root = scope
+	sub(/\/.*$$/, "", root)
+
+	is_grouped = (root in groups)
+	label = is_grouped ? groups[root] : other
+	nested = scope
+	if (is_grouped) sub(/^[^\/]+\/?/, "", nested)
+	second = nested
+	sub(/\/.*$$/, "", second)
+	rest = nested
+	sub(/^[^\/]+\/?/, "", rest)
+	short = substr(hash, 1, 7)
+	reference = (_url != "") ? " ([" short "](" _url "/commit/" hash "))" : " (" short ")"
+
+	entry = "- "
+	if (rest != "") entry = entry "**" rest ":** "
+	entry = entry text
+	if (is_breaking) entry = entry " — **breaking**"
+	entry = entry reference
+
+	if (is_breaking) {
+		breaking[section] = breaking[section] "- " (scope != "" ? "**" scope ":** " : "") text \
+			" — **breaking**" reference "\n"
+	}
+
+	if (nested == "") {
+		unscoped[section, label] = unscoped[section, label] entry "\n"
+	} else {
+		if (!((section, label, second) in second_seen)) {
+			second_seen[section, label, second] = 1
+			second_count[section, label] += 1
+			second_name[section, label, second_count[section, label]] = second
+		}
+		if (rest == "") {
+			sub_unscoped[section, label, second] = sub_unscoped[section, label, second] entry "\n"
+		} else {
+			sub_count[section, label, second] += 1
+			sub_key[section, label, second, sub_count[section, label, second]] = rest
+			sub_entry[section, label, second, sub_count[section, label, second]] = entry
+		}
+	}
+
+	seen[section, label] = 1
+	has_content[section] = 1
+}
+END {
+	for (index_ = 0; index_ <= section; index_ += 1) {
+		rendered = flush(index_, section_version[index_], (_all != "") ? section_compare[index_] : _compare)
+		if (rendered == "") continue
+		document = (document == "") ? rendered : document "\n" rendered
+	}
+	if (document == "") exit
+	sub(/\n+$$/, "", document)
+	print document
+}
+endef
+
 define _GROUP_AWK_SOURCE
 function repeat(text, times,    out) { out = ""; while (times-- > 0) out = out text; return out }
 function value(record, key,    pattern) {
@@ -2996,3 +3534,6 @@ $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TA
 $(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
+$(call _target,changelog): export _CHANGELOG_AWK = $(_CHANGELOG_AWK_SOURCE)
+$(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_SOURCE)
+$(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)

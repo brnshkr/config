@@ -41,6 +41,7 @@ Across both stacks:
 | `test-update` | Runs them and updates their snapshots. |
 | `configs` | Writes any config the repository is missing. Name some to write only those, `--force` to overwrite. |
 | `pack` | Packs every stack's package into `./.local`. |
+| `changelog` | Prints the changelog for `CHANGELOG_RANGE`, or writes it into `CHANGELOG_DIR`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
 | `cc` | Removes cached tool state, naming what it will remove and asking first. |
@@ -124,6 +125,26 @@ manifest and `git archive` and `composer archive` ship the same files.
 `make configs local` writes the private halves as well, each delegating to the tracked file rather than
 restating it: an `include` for a PHP config, an `export { default } from` for a JavaScript one.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.
+
+## Changelog
+
+`make changelog` prints one release from `git log`, newest first, installing nothing.
+Headings are the **scope root** rather than the commit type, and a nested scope becomes a sub-heading
+— `js/eslint/rule` reads as `rule` under `ESLint` under `☕ JS`.
+Every argument takes a short form and works without dashes: `--all`, `-a`, `all` and `a` are the same.
+
+| Argument | Does |
+| --- | --- |
+| none | the commits since the last tag |
+| `--all` | every release, one section each |
+| `--write` | merges into `CHANGELOG_DIR` rather than printing |
+| `--notes` | a release body: no version heading, ending in the compare link |
+| `--force` | writes below `1.0.0`, which is otherwise refused |
+
+`--write` **only ever inserts** into `changelog/<major>.x.md`: a section already there keeps every word,
+and a commit missing from it lands after the last entry of its group, matched by hash.
+Delete a section to regenerate it.
+Breaking commits are never skipped.
 
 ## Containers
 

@@ -200,6 +200,9 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -258,6 +261,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -374,6 +379,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -457,6 +471,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -506,6 +522,8 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   MV                          ?=  mv                                               (path to mv binary)
+   CMP                         ?=  cmp                                              (path to cmp binary)
    CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
@@ -614,6 +632,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -726,6 +753,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -778,6 +807,8 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   MV                          ?=  mv                                               (path to mv binary)
+   CMP                         ?=  cmp                                              (path to cmp binary)
    CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
@@ -886,6 +917,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -998,6 +1038,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1058,6 +1100,7 @@ app.very-verbose-group.very-verbose-sub.depth-three
 app.very-verbose-group.very-verbose-sub.depth-three.depth-four
 brnshkr
 brnshkr.arguments
+brnshkr.changelog
 brnshkr.common
 brnshkr.dotenv
 brnshkr.helpers
@@ -1264,6 +1307,8 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   MV                          ?=  mv                                               (path to mv binary)
+   CMP                         ?=  cmp                                              (path to cmp binary)
    CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
@@ -1372,6 +1417,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -1485,6 +1539,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1537,6 +1593,8 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   MV                          ?=  mv                                               (path to mv binary)
+   CMP                         ?=  cmp                                              (path to cmp binary)
    CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
@@ -1645,6 +1703,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -1757,6 +1824,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -1809,6 +1878,8 @@ Variables:
    CAT                         ?=  cat                                              (path to cat binary)
    RM                          :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
    MKDIR                       ?=  mkdir                                            (path to mkdir binary)
+   MV                          ?=  mv                                               (path to mv binary)
+   CMP                         ?=  cmp                                              (path to cmp binary)
    CHMOD                       ?=  chmod                                            (path to chmod binary)
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
@@ -1917,6 +1988,15 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  changelog
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES             ?=  commands=Commands commitlint=commitlint compose… (readable scope names, as <scope>=<name> pairs, _ a space)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -2029,6 +2109,8 @@ Available commands:
    test, t                     runs the tests of every stack this project has
    test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
+  changelog
+   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -2162,6 +2244,8 @@ Available commands:
    [36mCAT                       [0m  [90m?=  cat                                              (path to [35mcat[0m[90m binary)[0m
    [36mRM                        [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
    [36mMKDIR                     [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
+   [36mMV                        [0m  [90m?=  mv                                               (path to [35mmv[0m[90m binary)[0m
+   [36mCMP                       [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
    [36mCHMOD                     [0m  [90m?=  chmod                                            (path to [35mchmod[0m[90m binary)[0m
    [36mLN                        [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
    [36mPRINTF                    [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
@@ -2270,6 +2354,15 @@ Available commands:
    [36mDOTENV_ENV_KEY            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
    [36mDOTENV_DEFAULT_ENV        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
    [36mDOTENV_TEST_ENVS          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
+  [35mchangelog[0m
+   [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
+   [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
+   [36mCHANGELOG_DIR             [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [36mCHANGELOG_TITLE           [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [36mCHANGELOG_SKIPPED_COMMITS [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
+   [36mCHANGELOG_SKIPPED_TYPES   [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
+   [36mCHANGELOG_GROUPS          [0m  [90m?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
+   [36mCHANGELOG_NAMES           [0m  [90m?=  commands=Commands commitlint=commitlint compose… (readable scope names, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
  [35mapp[0m
   [35mvariables[0m
    [36mBASE_URL                  [0m  [90m?=  https://example.com                              (base URL for the application)[0m
@@ -2382,6 +2475,8 @@ Available commands:
    [36mtest, t                   [0m  [90mruns the tests of every stack this project has[0m
    [36mtest-update               [0m  [90mruns those tests and updates their snapshots[0m
    [36mfixtures                  [0m  [90mbuilds the fixtures this project's tests read[0m
+  [35mchangelog[0m
+   [36mchangelog                 [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
  [35mapp[0m
   [35mcommands[0m
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
@@ -2434,6 +2529,8 @@ Available commands:
    [32mCAT                       [0m  [0m?=  cat                                              (path to [33mcat[0m[0m binary)[0m
    [32mRM                        [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
    [32mMKDIR                     [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
+   [32mMV                        [0m  [0m?=  mv                                               (path to [33mmv[0m[0m binary)[0m
+   [32mCMP                       [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
    [32mCHMOD                     [0m  [0m?=  chmod                                            (path to [33mchmod[0m[0m binary)[0m
    [32mLN                        [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
    [32mPRINTF                    [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
@@ -2542,6 +2639,15 @@ Available commands:
    [32mDOTENV_ENV_KEY            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
    [32mDOTENV_DEFAULT_ENV        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
    [32mDOTENV_TEST_ENVS          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
+  [33mchangelog[0m
+   [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
+   [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m
+   [32mCHANGELOG_DIR             [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [32mCHANGELOG_TITLE           [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [32mCHANGELOG_SKIPPED_COMMITS [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
+   [32mCHANGELOG_SKIPPED_TYPES   [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
+   [32mCHANGELOG_GROUPS          [0m  [0m?=  dependencies=📦_Dependencies js=☕_JS php=… (headings per scope root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
+   [32mCHANGELOG_NAMES           [0m  [0m?=  commands=Commands commitlint=commitlint compose… (readable scope names, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
  [33mapp[0m
   [33mvariables[0m
    [32mBASE_URL                  [0m  [0m?=  https://example.com                              (base URL for the application)[0m
@@ -2654,6 +2760,8 @@ Available commands:
    [32mtest, t                   [0m  [0mruns the tests of every stack this project has[0m
    [32mtest-update               [0m  [0mruns those tests and updates their snapshots[0m
    [32mfixtures                  [0m  [0mbuilds the fixtures this project's tests read[0m
+  [33mchangelog[0m
+   [32mchangelog                 [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m
  [33mapp[0m
   [33mcommands[0m
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m
