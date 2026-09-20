@@ -23,6 +23,9 @@ use function array_map;
 use function array_unique;
 use function count;
 use function dirname;
+use function fclose;
+use function flock;
+use function fopen;
 use function getenv;
 use function implode;
 use function is_dir;
@@ -38,6 +41,9 @@ use function shell_exec;
 use function sprintf;
 use function Symfony\Component\String\s;
 use function unlink;
+
+use const LOCK_EX;
+use const LOCK_UN;
 
 /**
  * @internal
@@ -63,6 +69,7 @@ final class MakefileTest extends TestCase
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
     private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
+    private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [
         self::CONFIGS_DIRECTORY,
@@ -146,6 +153,11 @@ final class MakefileTest extends TestCase
         'no-test-envs'      => ['DOTENV_TEST_ENVS' => '', 'APP_ENV' => 'test'],
         'other-default-env' => ['DOTENV_DEFAULT_ENV' => 'test'],
     ];
+
+    /**
+     * @var resource|null
+     */
+    private $fixtureLock;
 
     public function testHelpOutput(): void
     {
@@ -1233,8 +1245,42 @@ final class MakefileTest extends TestCase
     }
 
     #[Before]
+    public function claimTheFixturesForThisTest(): void
+    {
+        $lockDirectory = dirname(self::FIXTURE_LOCK_PATH);
+
+        if (!is_dir($lockDirectory)) {
+            mkdir($lockDirectory, recursive: true);
+        }
+
+        $lock = fopen(self::FIXTURE_LOCK_PATH, 'c');
+
+        if ($lock === false) {
+            self::fail('The fixture lock could not be opened.');
+        }
+
+        $this->fixtureLock = $lock;
+
+        flock($lock, LOCK_EX);
+        $this->removeWhatTheFixturesWrote();
+    }
+
     #[After]
-    public function removeWhatTheFixturesWrote(): void
+    public function releaseTheFixturesAfterThisTest(): void
+    {
+        $this->removeWhatTheFixturesWrote();
+
+        if ($this->fixtureLock === null) {
+            return;
+        }
+
+        flock($this->fixtureLock, LOCK_UN);
+        fclose($this->fixtureLock);
+
+        $this->fixtureLock = null;
+    }
+
+    private function removeWhatTheFixturesWrote(): void
     {
         $written = [
             self::CONFIGS_DIRECTORY . '/.gitignore',
