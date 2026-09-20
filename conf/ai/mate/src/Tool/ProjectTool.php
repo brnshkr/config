@@ -6,7 +6,6 @@ namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Mate\Support\Project;
-use Brnshkr\Config\Str;
 use JsonException;
 use Mcp\Capability\Attribute\McpTool;
 use RuntimeException;
@@ -58,19 +57,17 @@ final class ProjectTool
      */
     #[McpTool(
         name: 'project-version-sync-check',
-        description: 'Compares the version declared in package.json, composer.json and conf/Makefile (VERSION), which must stay in sync (CI validates this).',
+        description: 'Compares the version declared in package.json and composer.json, which must stay in sync (CI validates this).',
     )]
     public function checkVersionSync(): string
     {
         $packageVersion  = $this->getVersionOf('package.json');
         $composerVersion = $this->getVersionOf('composer.json');
-        $makefileVersion = $this->getMakefileVersion();
 
         return Project::encode([
             'packageJson'  => $packageVersion,
             'composerJson' => $composerVersion,
-            'makefile'     => $makefileVersion,
-            'isInSync'     => $packageVersion === $composerVersion && $composerVersion === $makefileVersion,
+            'isInSync'     => $packageVersion === $composerVersion,
         ]);
     }
 
@@ -194,22 +191,6 @@ final class ProjectTool
         }
 
         return $version;
-    }
-
-    /**
-     * @throws IOException
-     * @throws RuntimeException
-     */
-    private function getMakefileVersion(): string
-    {
-        $contents = new Filesystem()->readFile(sprintf('%s/conf/Makefile', Project::getRootDirectory()));
-        $matches  = Str::match($contents, '/^VERSION\s*[!+:?]*=\s*(?<version>[^\s#]+)/m');
-
-        if (!isset($matches['version']) || $matches['version'] === '') {
-            throw new RuntimeException('Failed reading the VERSION from "conf/Makefile".');
-        }
-
-        return $matches['version'];
     }
 
     /**

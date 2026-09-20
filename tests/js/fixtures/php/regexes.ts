@@ -24,11 +24,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   /* eslint-enable no-control-regex, regexp/control-character-escape, regexp/no-control-character, unicorn/no-hex-escape -- Restore rules */
   {
-    file: 'conf/ai/mate/src/Tool/ProjectTool.php',
-    php: String.raw`/^VERSION\s*[!+:?]*=\s*(?<version>[^\s#]+)/m`,
-    regex: /^VERSION\s*[!+:?]*=\s*(?<version>[^\s#]+)/mv,
-  },
-  {
     file: 'conf/ai/mate/src/Tool/TestTool.php',
     php: String.raw`/\s+/`,
     regex: /\s+/v,
