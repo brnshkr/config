@@ -421,9 +421,7 @@ final class PhpStan
      */
     public function addIncludes(array $includePaths): self
     {
-        $this->config['includes'] = [...$this->config['includes'], ...$includePaths]
-            |> array_unique(...)
-            |> array_values(...);
+        $this->config['includes'] = self::appendUnique($this->config['includes'], $includePaths);
 
         return $this;
     }
@@ -508,9 +506,7 @@ final class PhpStan
      */
     public function addRules(array $rules): self
     {
-        $this->config['rules'] = [...$this->config['rules'], ...array_filter($rules, is_string(...))]
-            |> array_unique(...)
-            |> array_values(...);
+        $this->config['rules'] = self::appendUnique($this->config['rules'], array_filter($rules, is_string(...)));
 
         return $this->addServices(array_values(array_filter($rules, is_array(...))));
     }
@@ -775,12 +771,10 @@ final class PhpStan
         $mergedPaths           = [];
 
         foreach (self::EXCLUDE_PATH_GROUPS as $group) {
-            $paths = [
-                ...self::toPathList($existingExcludedPaths[$group] ?? []),
-                ...self::toPathList($added[$group] ?? []),
-            ]
-                |> array_unique(...)
-                |> array_values(...);
+            $paths = self::appendUnique(
+                self::toPathList($existingExcludedPaths[$group] ?? []),
+                self::toPathList($added[$group] ?? []),
+            );
 
             if ($paths !== []) {
                 $mergedPaths[$group] = $paths;
@@ -2316,10 +2310,12 @@ final class PhpStan
     }
 
     /**
-     * @param array<array-key, mixed> $existingEntries
-     * @param array<array-key, mixed> $additionalEntries
+     * @template TEntry
      *
-     * @return list<mixed>
+     * @param array<array-key, TEntry> $existingEntries
+     * @param array<array-key, TEntry> $additionalEntries
+     *
+     * @return list<TEntry>
      */
     private static function appendUnique(array $existingEntries, array $additionalEntries): array
     {
