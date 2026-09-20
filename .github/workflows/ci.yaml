@@ -330,12 +330,6 @@ jobs:
     steps:
       - *checkout
 
-      - name: Run Commitlint
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
-        with:
-          configFile: ./conf/commitlint.mjs
-
       - name: Setup Node
         if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # 6.2.0
@@ -362,6 +356,12 @@ jobs:
           name: Install JS Dependencies
           if: *do-enable-js
           run: bun install
+
+      - name: Run Commitlint
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
+        with:
+          configFile: ./conf/commitlint.mjs
 
       - name: Generate Types
         if: *do-enable-js
