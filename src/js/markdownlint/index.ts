@@ -24,6 +24,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * @see https://github.com/brnshkr/config/blob/master/docs/js/markdownlint.md
  *
  * @example
+ * ```js
  * import { getConfig } from '@brnshkr/config/markdownlint';
  *
  * getConfig(undefined);
@@ -35,6 +36,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * }, {
  *   config: { 'no-bare-urls': false },
  * });
+ * ```
  */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,

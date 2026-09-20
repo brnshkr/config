@@ -24,6 +24,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * @see https://github.com/brnshkr/config/blob/master/docs/js/vitest.md
  *
  * @example
+ * ```js
  * import { getConfig } from '@brnshkr/config/vitest';
  *
  * getConfig(undefined);
@@ -33,6 +34,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *   spelling: false,
  *   test: { testTimeout: 120_000 },
  * });
+ * ```
  */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,

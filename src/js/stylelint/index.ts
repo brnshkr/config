@@ -23,6 +23,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * @see https://github.com/brnshkr/config/blob/master/docs/js/stylelint.md
  *
  * @example
+ * ```js
  * import { getConfig } from '@brnshkr/config/stylelint';
  *
  * getConfig(undefined);
@@ -38,6 +39,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * getConfig(undefined, {
  *   rules: { 'color-no-hex': null },
  * });
+ * ```
  */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,

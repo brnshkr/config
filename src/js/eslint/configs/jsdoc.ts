@@ -19,6 +19,8 @@ const TAGS_BY_MODULE = <const>{
   ],
 } satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
 
+const EXAMPLE_CODE_REGEX = '/```(?:js|javascript|ts|typescript)\\s*\\n([\\s\\S]*?)\\n\\s*```/gv';
+
 export const TAG_SEQUENCE = [
   {
     tags: [
@@ -350,6 +352,7 @@ export const jsdoc = async (): Promise<Config[]> => {
       checkExamples: true,
       checkParams: true,
       checkProperties: true,
+      exampleCodeRegex: EXAMPLE_CODE_REGEX,
       parser,
     })
     : undefined;

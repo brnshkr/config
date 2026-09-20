@@ -99,7 +99,9 @@ const findInFile = (
  * @returns every finding, sorted by path, line and word
  *
  * @example
+ * ```js
  * scan({ rootDirectory: process.cwd() });
+ * ```
  */
 export const scan = (options?: Partial<SpellingOptions>): SpellingFinding[] => {
   const {

@@ -29,6 +29,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/index.md
  *
  * @example
+ * ```js
  * import { getConfig } from '@brnshkr/config/eslint';
  *
  * getConfig(undefined);
@@ -46,6 +47,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *   files: ['scripts/**'],
  *   rules: { 'no-console': 'off' },
  * });
+ * ```
  */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,

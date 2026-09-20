@@ -23,6 +23,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  * @see https://github.com/brnshkr/config/blob/master/docs/js/commitlint.md
  *
  * @example
+ * ```js
  * import { getConfig } from '@brnshkr/config/commitlint';
  *
  * getConfig(undefined);
@@ -32,6 +33,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *   conventional: false,
  *   rules: { 'scope-min-length': [2, 'always', 3] },
  * });
+ * ```
  */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,
