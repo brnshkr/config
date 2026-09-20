@@ -2004,9 +2004,30 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
           },
           {
             "tags": [
+              "typedef",
+            ],
+          },
+          {
+            "tags": [
+              "template",
+            ],
+          },
+          {
+            "tags": [
+              "augments",
+              "extends",
+              "implements",
+            ],
+          },
+          {
+            "tags": [
+              "readonly",
+            ],
+          },
+          {
+            "tags": [
               "override",
               "requires",
-              "implements",
               "mixes",
               "mixin",
               "mixinClass",
@@ -2016,7 +2037,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
               "lends",
               "final",
               "global",
-              "readonly",
               "abstract",
               "virtual",
               "static",
@@ -2039,13 +2059,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
           },
           {
             "tags": [
+              "name",
+            ],
+          },
+          {
+            "tags": [
               "this",
               "interface",
               "enum",
               "event",
-              "augments",
-              "extends",
-              "name",
               "kind",
               "type",
               "alias",
@@ -2062,16 +2084,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
               "fires",
               "emits",
               "listens",
-            ],
-          },
-          {
-            "tags": [
-              "template",
-            ],
-          },
-          {
-            "tags": [
-              "typedef",
             ],
           },
           {

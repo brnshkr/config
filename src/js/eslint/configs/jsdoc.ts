@@ -19,6 +19,203 @@ const TAGS_BY_MODULE = <const>{
   ],
 } satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
 
+export const TAG_SEQUENCE = [
+  {
+    tags: [
+      'file',
+      'fileoverview',
+      'overview',
+      'module',
+    ],
+  },
+  {
+    tags: [
+      'api',
+      'internal',
+    ],
+  },
+  {
+    tags: [
+      'deprecated',
+      'ignore',
+      'since',
+      'version',
+      ['to', 'do'].join(''),
+    ],
+  },
+  {
+    tags: [
+      'author',
+      'copyright',
+      'license',
+    ],
+  },
+  {
+    tags: [
+      'summary',
+      'typeSummary',
+      'desc',
+      'description',
+      'classdesc',
+    ],
+  },
+  {
+    tags: [
+      'namespace',
+      'category',
+      'package',
+    ],
+  },
+  {
+    tags: [
+      'import',
+    ],
+  },
+  {
+    tags: [
+      'typedef',
+    ],
+  },
+  {
+    tags: [
+      'template',
+    ],
+  },
+  {
+    tags: [
+      'augments',
+      'extends',
+      'implements',
+    ],
+  },
+  {
+    tags: [
+      'readonly',
+    ],
+  },
+  {
+    tags: [
+      'override',
+      'requires',
+      'mixes',
+      'mixin',
+      'mixinClass',
+      'mixinFunction',
+      'borrows',
+      'constructs',
+      'lends',
+      'final',
+      'global',
+      'abstract',
+      'virtual',
+      'static',
+      'private',
+      'protected',
+      'public',
+      'access',
+      'const',
+      'constant',
+      'variation',
+      'var',
+      'member',
+      'memberof',
+      'inner',
+      'instance',
+      'inheritdoc',
+      'inheritDoc',
+      'hideconstructor',
+    ],
+  },
+  {
+    tags: [
+      'name',
+    ],
+  },
+  {
+    tags: [
+      'this',
+      'interface',
+      'enum',
+      'event',
+      'kind',
+      'type',
+      'alias',
+      'external',
+      'host',
+      'async',
+      'callback',
+      'func',
+      'function',
+      'method',
+      'class',
+      'constructor',
+      'generator',
+      'fires',
+      'emits',
+      'listens',
+    ],
+  },
+  {
+    tags: [
+      'prop',
+      'property',
+    ],
+  },
+  {
+    tags: [
+      'param',
+      'arg',
+      'argument',
+    ],
+  },
+  {
+    tags: [
+      'return',
+      'returns',
+    ],
+  },
+  {
+    tags: [
+      'yield',
+      'yields',
+    ],
+  },
+  {
+    tags: [
+      'throws',
+      'exception',
+    ],
+  },
+  {
+    tags: [
+      'satisfies',
+    ],
+  },
+  {
+    tags: [
+      'default',
+      'defaultvalue',
+    ],
+  },
+  {
+    tags: [
+      'exports',
+    ],
+  },
+  {
+    tags: [
+      'link',
+      'see',
+      'tutorial',
+    ],
+  },
+  {
+    tags: [
+      'example',
+    ],
+  },
+];
+
 export const jsdoc = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginJsdoc],
@@ -116,190 +313,7 @@ export const jsdoc = async (): Promise<Config[]> => {
           'jsdoc/require-template': 'error',
           'jsdoc/require-throws': 'error',
           'jsdoc/sort-tags': ['error', {
-            tagSequence: [
-              {
-                tags: [
-                  'file',
-                  'fileoverview',
-                  'overview',
-                  'module',
-                ],
-              },
-              {
-                tags: [
-                  'api',
-                  'internal',
-                ],
-              },
-              {
-                tags: [
-                  'deprecated',
-                  'ignore',
-                  'since',
-                  'version',
-                  ['to', 'do'].join(''),
-                ],
-              },
-              {
-                tags: [
-                  'author',
-                  'copyright',
-                  'license',
-                ],
-              },
-              {
-                tags: [
-                  'summary',
-                  'typeSummary',
-                  'desc',
-                  'description',
-                  'classdesc',
-                ],
-              },
-              {
-                tags: [
-                  'namespace',
-                  'category',
-                  'package',
-                ],
-              },
-              {
-                tags: [
-                  'import',
-                ],
-              },
-              {
-                tags: [
-                  'override',
-                  'requires',
-                  'implements',
-                  'mixes',
-                  'mixin',
-                  'mixinClass',
-                  'mixinFunction',
-                  'borrows',
-                  'constructs',
-                  'lends',
-                  'final',
-                  'global',
-                  'readonly',
-                  'abstract',
-                  'virtual',
-                  'static',
-                  'private',
-                  'protected',
-                  'public',
-                  'access',
-                  'const',
-                  'constant',
-                  'variation',
-                  'var',
-                  'member',
-                  'memberof',
-                  'inner',
-                  'instance',
-                  'inheritdoc',
-                  'inheritDoc',
-                  'hideconstructor',
-                ],
-              },
-              {
-                tags: [
-                  'this',
-                  'interface',
-                  'enum',
-                  'event',
-                  'augments',
-                  'extends',
-                  'name',
-                  'kind',
-                  'type',
-                  'alias',
-                  'external',
-                  'host',
-                  'async',
-                  'callback',
-                  'func',
-                  'function',
-                  'method',
-                  'class',
-                  'constructor',
-                  'generator',
-                  'fires',
-                  'emits',
-                  'listens',
-                ],
-              },
-              {
-                tags: [
-                  'template',
-                ],
-              },
-              {
-                tags: [
-                  'typedef',
-                ],
-              },
-              {
-                tags: [
-                  'prop',
-                  'property',
-                ],
-              },
-              {
-                tags: [
-                  'param',
-                  'arg',
-                  'argument',
-                ],
-              },
-              {
-                tags: [
-                  'return',
-                  'returns',
-                ],
-              },
-              {
-                tags: [
-                  'yield',
-                  'yields',
-                ],
-              },
-              {
-                tags: [
-                  'throws',
-                  'exception',
-                ],
-              },
-              {
-                tags: [
-                  'satisfies',
-                ],
-              },
-              {
-                tags: [
-                  'default',
-                  'defaultvalue',
-                ],
-              },
-              {
-                tags: [
-                  'exports',
-                ],
-              },
-              {
-                tags: [
-                  'link',
-                  'see',
-                  'tutorial',
-                ],
-              },
-              {
-                tags: [
-                  'example',
-                ],
-              },
-            ],
+            tagSequence: TAG_SEQUENCE,
           }],
           'jsdoc/tag-lines': ['error', 'any', {
             maxBlockLines: 1,

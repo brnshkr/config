@@ -36,10 +36,9 @@ Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
  * `kubawerlos/php-cs-fixer-custom-fixers` package is installed, its fixers are layered on top
  * automatically.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/PhpCsFixer.md
- *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/PhpCsFixer.md
  * @see PhpCsFixerTest
  */
 final readonly class PhpCsFixer
@@ -54,18 +53,18 @@ final readonly class PhpCsFixer
      * Caller may pass a Finder to narrow scope (e.g. lint a single subdirectory); otherwise
      * the project-wide {@see FileFinder} defaults apply.
      *
-     * @example
-     * ```php
-     * // conf/php-cs-fixer.php
-     * return PhpCsFixer::getConfig();
-     * ```
-     *
      * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
      * @return PhpCsFixerConfig configured Config instance ready for php-cs-fixer
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      * @throws RuntimeException when required php-cs-fixer dependencies are missing
+     *
+     * @example
+     * ```php
+     * // conf/php-cs-fixer.php
+     * return PhpCsFixer::getConfig();
+     * ```
      */
     public static function getConfig(?Finder $finder = null): PhpCsFixerConfig
     {
@@ -78,6 +77,10 @@ final readonly class PhpCsFixer
      * This is what a private `conf/php-cs-fixer.php` reaches for: the tracked config it includes stays
      * the baseline, and every verb here adds to it rather than replacing what that file configured.
      *
+     * @param PhpCsFixerConfig $phpCsFixerConfig config to extend
+     *
+     * @return self the builder, wrapping that config
+     *
      * @example
      * ```php
      * // conf/php-cs-fixer.php
@@ -88,10 +91,6 @@ final readonly class PhpCsFixer
      *     ->build()
      * ;
      * ```
-     *
-     * @param PhpCsFixerConfig $phpCsFixerConfig config to extend
-     *
-     * @return self the builder, wrapping that config
      */
     public static function from(PhpCsFixerConfig $phpCsFixerConfig): self
     {
@@ -102,6 +101,13 @@ final readonly class PhpCsFixer
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     *
+     * @return self the builder, pre-configured with the baseline
+     *
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when required php-cs-fixer dependencies are missing
+     *
      * @example
      * ```php
      * // conf/php-cs-fixer.php
@@ -110,13 +116,6 @@ final readonly class PhpCsFixer
      *     ->build()
      * ;
      * ```
-     *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
-     *
-     * @return self the builder, pre-configured with the baseline
-     *
-     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
-     * @throws RuntimeException when required php-cs-fixer dependencies are missing
      */
     public static function getBuilder(?Finder $finder = null): self
     {
@@ -240,9 +239,75 @@ final readonly class PhpCsFixer
             'phpdoc_align' => [
                 'align' => 'left',
             ],
-            'phpdoc_array_type'     => true,
-            'phpdoc_line_span'      => true,
-            'phpdoc_list_type'      => true,
+            'phpdoc_array_type' => true,
+            'phpdoc_line_span'  => true,
+            'phpdoc_list_type'  => true,
+            'phpdoc_order'      => [
+                'order' => [
+                    'filesource',
+                    'api',
+                    'internal',
+                    'named-arguments',
+                    'no-named-arguments',
+                    'deprecated',
+                    'ignore',
+                    'since',
+                    'version',
+                    'todo',
+                    'author',
+                    'copyright',
+                    'license',
+                    'category',
+                    'package',
+                    'subpackage',
+                    'type',
+                    'import-type',
+                    'template',
+                    'template-covariant',
+                    'template-contravariant',
+                    'extends',
+                    'implements',
+                    'use',
+                    'require-extends',
+                    'require-implements',
+                    'consistent-constructor',
+                    'immutable',
+                    'pure',
+                    'impure',
+                    'readonly',
+                    'readonly-allow-private-mutation',
+                    'allow-private-mutation',
+                    'final',
+                    'global',
+                    'abstract',
+                    'static',
+                    'access',
+                    'staticvar',
+                    'var',
+                    'uses',
+                    'name',
+                    'method',
+                    'property',
+                    'property-read',
+                    'property-write',
+                    'param',
+                    'param-out',
+                    'param-immediately-invoked-callable',
+                    'param-later-invoked-callable',
+                    'param-closure-this',
+                    'return',
+                    'throws',
+                    'assert',
+                    'assert-if-true',
+                    'assert-if-false',
+                    'self-out',
+                    'this-out',
+                    'link',
+                    'see',
+                    'tutorial',
+                    'example',
+                ],
+            ],
             'phpdoc_order_by_value' => [
                 'annotations' => [
                     'author',
@@ -275,13 +340,11 @@ final readonly class PhpCsFixer
                         'no-named-arguments',
                     ],
                     [
-                        'ignore',
-                    ],
-                    [
                         'deprecated',
+                        'ignore',
                         'since',
-                        'todo',
                         'version',
+                        'todo',
                     ],
                     [
                         'author',
@@ -298,27 +361,52 @@ final readonly class PhpCsFixer
                         'phpstan-import-type',
                     ],
                     [
+                        'template',
                         'phpstan-template',
+                        'template-covariant',
                         'phpstan-template-covariant',
+                        'template-contravariant',
                         'phpstan-template-contravariant',
                     ],
                     [
+                        'extends',
                         'phpstan-extends',
+                        'implements',
                         'phpstan-implements',
+                        'use',
                         'phpstan-use',
                     ],
                     [
+                        'require-extends',
                         'phpstan-require-extends',
+                        'require-implements',
                         'phpstan-require-implements',
                     ],
                     [
+                        'consistent-constructor',
                         'phpstan-consistent-constructor',
+                        'immutable',
                         'phpstan-immutable',
+                        'pure',
                         'phpstan-pure',
+                        'impure',
                         'phpstan-impure',
+                        'readonly',
                         'phpstan-readonly',
+                        'readonly-allow-private-mutation',
                         'phpstan-readonly-allow-private-mutation',
+                        'allow-private-mutation',
                         'phpstan-allow-private-mutation',
+                    ],
+                    [
+                        'final',
+                        'global',
+                        'abstract',
+                        'static',
+                        'access',
+                        'staticvar',
+                        'var',
+                        'phpstan-var',
                     ],
                     [
                         'uses',
@@ -339,23 +427,15 @@ final readonly class PhpCsFixer
                         'phpstan-property-write',
                     ],
                     [
-                        'abstract',
-                        'access',
-                        'final',
-                        'static',
-                    ],
-                    [
-                        'global',
-                        'staticvar',
-                        'var',
-                        'phpstan-var',
-                    ],
-                    [
                         'param',
                         'phpstan-param',
+                        'param-out',
                         'phpstan-param-out',
+                        'param-immediately-invoked-callable',
                         'phpstan-param-immediately-invoked-callable',
+                        'param-later-invoked-callable',
                         'phpstan-param-later-invoked-callable',
+                        'param-closure-this',
                         'phpstan-param-closure-this',
                     ],
                     [
@@ -367,10 +447,15 @@ final readonly class PhpCsFixer
                         'phpstan-throws',
                     ],
                     [
+                        'assert',
                         'phpstan-assert',
+                        'assert-if-true',
                         'phpstan-assert-if-true',
+                        'assert-if-false',
                         'phpstan-assert-if-false',
+                        'self-out',
                         'phpstan-self-out',
+                        'this-out',
                         'phpstan-this-out',
                     ],
                     [
@@ -474,12 +559,12 @@ final readonly class PhpCsFixer
      * baseline. This one merges, and {@see self::setRules()} is there when replacing is what was
      * meant.
      *
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     *
      * @example
      * ```php
      * $builder->addRules(['simplified_null_return' => true]);
      * ```
-     *
-     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
      */
     public function addRules(array $rules): self
     {
@@ -491,12 +576,12 @@ final readonly class PhpCsFixer
     /**
      * Set rules, discarding every rule configured so far.
      *
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     *
      * @example
      * ```php
      * $builder->setRules(['@PSR12' => true]);
      * ```
-     *
-     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
      */
     public function setRules(array $rules): self
     {
@@ -508,12 +593,12 @@ final readonly class PhpCsFixer
     /**
      * Remove rules by name.
      *
+     * @param list<non-empty-string> $rules rule names to drop
+     *
      * @example
      * ```php
      * $builder->removeRules(['strict_comparison']);
      * ```
-     *
-     * @param list<non-empty-string> $rules rule names to drop
      */
     public function removeRules(array $rules): self
     {

@@ -334,6 +334,72 @@
         "phpdoc_array_type": true,
         "phpdoc_line_span": true,
         "phpdoc_list_type": true,
+        "phpdoc_order": {
+            "order": [
+                "filesource",
+                "api",
+                "internal",
+                "named-arguments",
+                "no-named-arguments",
+                "deprecated",
+                "ignore",
+                "since",
+                "version",
+                "todo",
+                "author",
+                "copyright",
+                "license",
+                "category",
+                "package",
+                "subpackage",
+                "type",
+                "import-type",
+                "template",
+                "template-covariant",
+                "template-contravariant",
+                "extends",
+                "implements",
+                "use",
+                "require-extends",
+                "require-implements",
+                "consistent-constructor",
+                "immutable",
+                "pure",
+                "impure",
+                "readonly",
+                "readonly-allow-private-mutation",
+                "allow-private-mutation",
+                "final",
+                "global",
+                "abstract",
+                "static",
+                "access",
+                "staticvar",
+                "var",
+                "uses",
+                "name",
+                "method",
+                "property",
+                "property-read",
+                "property-write",
+                "param",
+                "param-out",
+                "param-immediately-invoked-callable",
+                "param-later-invoked-callable",
+                "param-closure-this",
+                "return",
+                "throws",
+                "assert",
+                "assert-if-true",
+                "assert-if-false",
+                "self-out",
+                "this-out",
+                "link",
+                "see",
+                "tutorial",
+                "example"
+            ]
+        },
         "phpdoc_order_by_value": {
             "annotations": [
                 "author",
@@ -366,13 +432,11 @@
                     "no-named-arguments"
                 ],
                 [
-                    "ignore"
-                ],
-                [
                     "deprecated",
+                    "ignore",
                     "since",
-                    "todo",
-                    "version"
+                    "version",
+                    "todo"
                 ],
                 [
                     "author",
@@ -389,27 +453,52 @@
                     "phpstan-import-type"
                 ],
                 [
+                    "template",
                     "phpstan-template",
+                    "template-covariant",
                     "phpstan-template-covariant",
+                    "template-contravariant",
                     "phpstan-template-contravariant"
                 ],
                 [
+                    "extends",
                     "phpstan-extends",
+                    "implements",
                     "phpstan-implements",
+                    "use",
                     "phpstan-use"
                 ],
                 [
+                    "require-extends",
                     "phpstan-require-extends",
+                    "require-implements",
                     "phpstan-require-implements"
                 ],
                 [
+                    "consistent-constructor",
                     "phpstan-consistent-constructor",
+                    "immutable",
                     "phpstan-immutable",
+                    "pure",
                     "phpstan-pure",
+                    "impure",
                     "phpstan-impure",
+                    "readonly",
                     "phpstan-readonly",
+                    "readonly-allow-private-mutation",
                     "phpstan-readonly-allow-private-mutation",
+                    "allow-private-mutation",
                     "phpstan-allow-private-mutation"
+                ],
+                [
+                    "final",
+                    "global",
+                    "abstract",
+                    "static",
+                    "access",
+                    "staticvar",
+                    "var",
+                    "phpstan-var"
                 ],
                 [
                     "uses"
@@ -430,23 +519,15 @@
                     "phpstan-property-write"
                 ],
                 [
-                    "abstract",
-                    "access",
-                    "final",
-                    "static"
-                ],
-                [
-                    "global",
-                    "staticvar",
-                    "var",
-                    "phpstan-var"
-                ],
-                [
                     "param",
                     "phpstan-param",
+                    "param-out",
                     "phpstan-param-out",
+                    "param-immediately-invoked-callable",
                     "phpstan-param-immediately-invoked-callable",
+                    "param-later-invoked-callable",
                     "phpstan-param-later-invoked-callable",
+                    "param-closure-this",
                     "phpstan-param-closure-this"
                 ],
                 [
@@ -458,10 +539,15 @@
                     "phpstan-throws"
                 ],
                 [
+                    "assert",
                     "phpstan-assert",
+                    "assert-if-true",
                     "phpstan-assert-if-true",
+                    "assert-if-false",
                     "phpstan-assert-if-false",
+                    "self-out",
                     "phpstan-self-out",
+                    "this-out",
                     "phpstan-this-out"
                 ],
                 [
