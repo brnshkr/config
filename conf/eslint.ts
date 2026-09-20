@@ -153,16 +153,10 @@ export default getConfig({
     'conf/markdownlint.dist.mjs',
     'conf/stylelint.dist.mjs',
     'conf/vitest.dist.mjs',
-    'src/js/commitlint/index.ts',
-    'src/js/eslint/index.ts',
-    'src/js/markdownlint/index.ts',
-    'src/js/stylelint/index.ts',
-    'src/js/vitest/index.ts',
   ],
   // eslint-disable-next-line no-warning-comments -- Temporary TODO to this release done
   // TODO: Investigate why these errors only happen in CI
   rules: {
-    'import/no-self-import': 'off',
     'node/no-missing-import': 'off',
   },
 });

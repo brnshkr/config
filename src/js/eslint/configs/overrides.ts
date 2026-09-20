@@ -192,6 +192,7 @@ const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
         'node/no-missing-require': 'off',
         strict: 'off',
         'import/no-unresolved': 'off',
+        'import/no-self-import': 'off',
         'import/unambiguous': 'off',
         'style/eol-last': 'off',
         'style/no-multiple-empty-lines': 'off',
