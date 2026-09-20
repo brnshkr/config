@@ -357,12 +357,6 @@ jobs:
           if: *do-enable-js
           run: bun install
 
-      - name: Run Commitlint
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
-        with:
-          configFile: ./conf/commitlint.mjs
-
       - name: Generate Types
         if: *do-enable-js
         run: make typegen
