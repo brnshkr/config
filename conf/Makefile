@@ -184,9 +184,20 @@ _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TA
 COLLISION_PREFIX  ?= brnshkr#~~ namespace given to a shared target whose name this project already uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
+define _MANIFEST_NAME_AWK
+/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
+	match($$0, /^[ \t]*/)
+	if (found_name == "" || RLENGTH < indent) { \
+		indent = RLENGTH; split($$0, parts, "\""); \
+		found_name = parts[4] \
+	}
+}
+END { print found_name }
+endef
+
 ifneq ($(filter undefined,$(origin VENDOR) $(origin PACKAGE)),) # manifest
 _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/composer.json))
-_MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ { match($$0, /^[ \t]*/); if (found == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found = parts[4] } } END { print found }' $(_MANIFEST)))
+_MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MANIFEST)))
 endif # /manifest
 
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#~~ vendor name, taken from the manifest when unset
