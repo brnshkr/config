@@ -22,8 +22,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function array_filter;
 use function array_first;
-use function array_key_exists;
-use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_values;
@@ -36,9 +34,6 @@ use function sprintf;
 
 /**
  * @internal Brnshkr\Config\Composer
- *
- * @phpstan-import-type ModuleName from Module
- * @phpstan-import-type ModuleInfo from Module
  */
 final class SetupCommand extends AbstractCommand
 {
@@ -88,7 +83,7 @@ final class SetupCommand extends AbstractCommand
     protected function wrappedConfigure(): void
     {
         $this
-            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(array_keys(Module::MAP)) . ')</fg=yellow>')
+            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(Module::values()) . ')</fg=yellow>')
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Install all modules')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force update to the latest package versions from ' . $this->libraryComposerJson->getPackageFullName())
             ->addOption('exact', 'e', InputOption::VALUE_NONE, 'Install exact versions of dependencies')
@@ -109,34 +104,33 @@ final class SetupCommand extends AbstractCommand
         $this->doInstallExactVersions                 = $this->isBoolOptionEnabled('exact');
         $this->doIncludeOptionalPackagesAutomatically = $this->isBoolOptionEnabled('optional');
 
-        $modules              = $this->getStringListArgument('modules');
-        $doInstallAllModules  = $this->isBoolOptionEnabled('all');
-        $moduleNamesToInstall = [];
+        $modules             = $this->getStringListArgument('modules');
+        $doInstallAllModules = $this->isBoolOptionEnabled('all');
+        $modulesToInstall    = [];
 
         $this->console->writeLogo();
 
         if ($modules === []) {
-            $moduleNamesToInstall = $doInstallAllModules ? array_keys(Module::MAP) : $this->getModuleNamesToInstall();
+            $modulesToInstall = $doInstallAllModules
+                ? Module::cases()
+                : Module::fromValues($this->getModuleNamesToInstall());
         } elseif ($doInstallAllModules) {
             throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifying modules via the arguments.');
         } else {
-            foreach ($modules as $module) {
-                if (!array_key_exists($module, Module::MAP)) {
+            foreach ($modules as $moduleName) {
+                $module = Module::tryFrom($moduleName);
+
+                if ($module === null) {
                     throw new InvalidArgumentException(sprintf(
                         'Unknown module "%s". Allowed modules are: %s.',
-                        $module,
-                        Str::joinAsQuotedList(array_keys(Module::MAP)),
+                        $moduleName,
+                        Str::joinAsQuotedList(Module::values()),
                     ));
                 }
 
-                $moduleNamesToInstall[] = $module;
+                $modulesToInstall[] = $module;
             }
         }
-
-        $modulesToInstall = array_map(
-            static fn (string $name): array => Module::MAP[$name],
-            $moduleNamesToInstall,
-        );
 
         $composerJsonFileContent = $this->getFileContent($this->projectComposerJson->path);
         $lockFileContent         = $this->getFileContent($this->projectComposerJson->lockFilePath);
@@ -198,14 +192,13 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @return list<ModuleName>
+     * @return list<value-of<Module>>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
     private function getModuleNamesToInstall(): array
     {
-        $moduleNames          = array_keys(Module::MAP);
         $isAnswerValid        = false;
         $moduleNamesToInstall = [];
 
@@ -213,7 +206,7 @@ final class SetupCommand extends AbstractCommand
             $moduleNamesToInstall = $this->console->select(
                 question: 'Which modules would you like to install?',
                 choices: [
-                    ...$moduleNames,
+                    ...Module::values(),
                     self::ANSWER_ALL,
                     self::ANSWER_NONE,
                 ],
@@ -225,27 +218,25 @@ final class SetupCommand extends AbstractCommand
         }
 
         return array_values(array_filter(
-            array_first($moduleNamesToInstall) === self::ANSWER_ALL ? $moduleNames : $moduleNamesToInstall,
+            array_first($moduleNamesToInstall) === self::ANSWER_ALL ? Module::values() : $moduleNamesToInstall,
             $this->isNotAllOrNoneAnswer(...),
         ));
     }
 
     /**
-     * @param ModuleInfo $moduleInfo
-     *
      * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function getPackagesToInstall(array $moduleInfo): array
+    private function getPackagesToInstall(Module $module): array
     {
         $packages = self::toPackageNames(array_filter(
-            $moduleInfo['packages']['requiredAll'],
+            $module->getRequiredPackages(),
             fn (Package $package): bool => $this->doForceUpdate ? true : !$package->isInstalled(),
         ));
 
-        $allOptionalPackages = $moduleInfo['packages']['optional'] ?? [];
+        $allOptionalPackages = $module->getOptionalPackages();
 
         if ($this->doForceUpdate && $this->doIncludeOptionalPackagesAutomatically) {
             $optionalPackagesToInstall = self::toPackageNames($allOptionalPackages);
@@ -261,7 +252,7 @@ final class SetupCommand extends AbstractCommand
             ));
         } else {
             $optionalPackagesToInstall = $this->promptForOptionalPackages(
-                $moduleInfo,
+                $module,
                 self::toPackageNames(array_filter(
                     $allOptionalPackages,
                     static fn (Package $package): bool => !$package->isInstalled(),
@@ -273,7 +264,6 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param ModuleInfo $moduleInfo
      * @param list<non-empty-string> $packages
      *
      * @return list<non-empty-string>
@@ -281,7 +271,7 @@ final class SetupCommand extends AbstractCommand
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function promptForOptionalPackages(array $moduleInfo, array $packages): array
+    private function promptForOptionalPackages(Module $module, array $packages): array
     {
         $packageCount = count($packages);
 
@@ -295,7 +285,7 @@ final class SetupCommand extends AbstractCommand
             $doInstallOptionalPackage = $this->console->isConfirmed(sprintf(
                 'Install optional dependency "%s" for module "%s"?',
                 $optionalPackage,
-                $moduleInfo['name'],
+                $module->value,
             ));
 
             return $doInstallOptionalPackage ? [$optionalPackage] : [];
@@ -308,7 +298,7 @@ final class SetupCommand extends AbstractCommand
             $selectedPackages = $this->console->select(
                 question: sprintf(
                     'Select optional dependencies to install for module "%s".',
-                    $moduleInfo['name'],
+                    $module->value,
                 ),
                 choices: [
                     ...$packages,

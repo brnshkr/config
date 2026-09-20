@@ -6,62 +6,80 @@ namespace Brnshkr\Config;
 
 use RuntimeException;
 
+use function array_column;
 use function array_filter;
 use function array_map;
-use function array_merge;
 use function array_values;
 use function implode;
 use function in_array;
-use function is_array;
 use function sprintf;
 
 /**
  * @internal
- *
- * @phpstan-type ModuleName key-of<self::MAP>
- * @phpstan-type ModuleInfo self::MODULE_*
- * @phpstan-type _ModuleInfo array{
- *     name: non-empty-string,
- *     packages: array{
- *         requiredAll: non-empty-list<Package>,
- *         optional?: non-empty-list<Package>,
- *     },
- * }
  */
-final class Module
+enum Module: string
 {
-    public const string NAME_PHP_CS_FIXER  = 'phpcsfixer';
-    public const string NAME_PHP_STAN      = 'phpstan';
-    public const string NAME_RECTOR        = 'rector';
-    public const string NAME_TWIG_CS_FIXER = 'twigcsfixer';
+    case PhpCsFixer  = 'phpcsfixer';
+    case PhpStan     = 'phpstan';
+    case Rector      = 'rector';
+    case TwigCsFixer = 'twigcsfixer';
 
     /**
-     * @phpstan-var _ModuleInfo
+     * @return non-empty-list<value-of<self>>
      */
-    public const array MODULE_PHP_CS_FIXER = [
-        'name'     => self::NAME_PHP_CS_FIXER,
-        'packages' => [
-            'requiredAll' => [
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    /**
+     * @param list<string> $values
+     *
+     * @return list<self>
+     */
+    public static function fromValues(array $values): array
+    {
+        return $values
+            |> (static fn (array $values): array => array_map(self::tryFrom(...), $values))
+            |> array_filter(...)
+            |> array_values(...);
+    }
+
+    /**
+     * @return non-empty-list<Package>
+     */
+    public function getRequiredPackages(): array
+    {
+        return match ($this) {
+            self::PhpCsFixer => [
                 Package::Finder,
                 Package::PhpCsFixer,
             ],
-            'optional' => [
-                Package::PhpCsFixerCustomFixers,
-            ],
-        ],
-    ];
-
-    /**
-     * @phpstan-var _ModuleInfo
-     */
-    public const array MODULE_PHP_STAN = [
-        'name'     => self::NAME_PHP_STAN,
-        'packages' => [
-            'requiredAll' => [
+            self::PhpStan => [
                 Package::Finder,
                 Package::PhpStan,
             ],
-            'optional' => [
+            self::Rector => [
+                Package::Finder,
+                Package::Rector,
+            ],
+            self::TwigCsFixer => [
+                Package::Finder,
+                Package::TwigCsFixer,
+            ],
+        };
+    }
+
+    /**
+     * @return list<Package>
+     */
+    public function getOptionalPackages(): array
+    {
+        return match ($this) {
+            self::PhpCsFixer => [
+                Package::PhpCsFixerCustomFixers,
+            ],
+            self::PhpStan => [
                 Package::ExtensionInstaller,
                 Package::PhpAt,
                 Package::PhpStanDeprecationRules,
@@ -74,81 +92,54 @@ final class Module
                 Package::PhpStanWebmozartAssert,
                 Package::TypeCoverage,
             ],
-        ],
-    ];
+            self::Rector,
+            self::TwigCsFixer => [],
+        };
+    }
 
     /**
-     * @phpstan-var _ModuleInfo
+     * @throws RuntimeException
      */
-    public const array MODULE_RECTOR = [
-        'name'     => self::NAME_RECTOR,
-        'packages' => [
-            'requiredAll' => [
-                Package::Finder,
-                Package::Rector,
-            ],
-        ],
-    ];
+    public static function warnMissingPackage(Package $package): void
+    {
+        self::warnMissing([$package], 'Failed resolving required dependency.');
+    }
 
     /**
-     * @phpstan-var _ModuleInfo
+     * @throws RuntimeException
      */
-    public const array MODULE_TWIG_CS_FIXER = [
-        'name'     => self::NAME_TWIG_CS_FIXER,
-        'packages' => [
-            'requiredAll' => [
-                Package::Finder,
-                Package::TwigCsFixer,
-            ],
-        ],
-    ];
+    public function warnMissingPackages(): void
+    {
+        self::warnMissing(
+            $this->getRequiredPackages(),
+            sprintf('Failed resolving required dependencies for module "%s".', $this->value),
+        );
+    }
 
     /**
-     * @phpstan-var array<self::NAME_*, ModuleInfo>
-     */
-    public const array MAP = [
-        self::NAME_PHP_CS_FIXER  => self::MODULE_PHP_CS_FIXER,
-        self::NAME_PHP_STAN      => self::MODULE_PHP_STAN,
-        self::NAME_RECTOR        => self::MODULE_RECTOR,
-        self::NAME_TWIG_CS_FIXER => self::MODULE_TWIG_CS_FIXER,
-    ];
-
-    /**
-     * @var list<Package>
-     */
-    private static array $warnedPackages = [];
-
-    private function __construct() {}
-
-    /**
-     * @param ModuleInfo|Package $moduleInfoOrPackage
+     * @param non-empty-list<Package> $candidates
      *
      * @throws RuntimeException
      */
-    public static function warnMissingPackages(array|Package $moduleInfoOrPackage): void
+    private static function warnMissing(array $candidates, string $message): void
     {
-        $isModuleInfo = is_array($moduleInfoOrPackage);
-
-        $allPackages = $isModuleInfo
-            ? $moduleInfoOrPackage['packages']['requiredAll']
-            : [$moduleInfoOrPackage];
+        /**
+         * @var list<Package> $warnedPackages
+         */
+        static $warnedPackages = [];
 
         $packages = array_values(array_filter(
-            $allPackages,
+            $candidates,
             static fn (Package $package): bool => !$package->isInstalled()
-                && !in_array($package, self::$warnedPackages, true),
+                && !in_array($package, $warnedPackages, true),
         ));
 
         if ($packages === []) {
             return;
         }
 
-        self::$warnedPackages = array_merge(self::$warnedPackages, $packages);
-        $packageNames         = array_map(static fn (Package $package): string => $package->value, $packages);
-
-        $message = $isModuleInfo
-            ? sprintf('Failed resolving required dependencies for module "%s".', $moduleInfoOrPackage['name'])
-            : 'Failed resolving required dependency.';
+        $warnedPackages = [...$warnedPackages, ...$packages];
+        $packageNames   = array_map(static fn (Package $package): string => $package->value, $packages);
 
         Logger::log('error', sprintf(
             $message . ' Please install %s.',

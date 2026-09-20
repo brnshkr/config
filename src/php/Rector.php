@@ -30,7 +30,7 @@ use function is_int;
 
 // @codeCoverageIgnoreStart
 // NOTICE: Ignored so a random test is not charged with this file-level statement
-Module::warnMissingPackages(Module::MODULE_RECTOR);
+Module::Rector->warnMissingPackages();
 // @codeCoverageIgnoreEnd
 
 /**

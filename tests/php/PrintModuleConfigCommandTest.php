@@ -85,28 +85,28 @@ final class PrintModuleConfigCommandTest extends TestCase
 
     public function testPrintsExpectedPhpCsFixerConfig(): void
     {
-        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_PHP_CS_FIXER), new JsonSnapshotDriver());
+        $this->assertMatchesSnapshot($this->runForModule(Module::PhpCsFixer), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedPhpStanConfig(): void
     {
-        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_PHP_STAN), new JsonSnapshotDriver());
+        $this->assertMatchesSnapshot($this->runForModule(Module::PhpStan), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedRectorConfig(): void
     {
-        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_RECTOR), new JsonSnapshotDriver());
+        $this->assertMatchesSnapshot($this->runForModule(Module::Rector), new JsonSnapshotDriver());
     }
 
     public function testPrintsExpectedTwigCsFixerConfig(): void
     {
-        $this->assertMatchesSnapshot($this->runForModule(Module::NAME_TWIG_CS_FIXER), new JsonSnapshotDriver());
+        $this->assertMatchesSnapshot($this->runForModule(Module::TwigCsFixer), new JsonSnapshotDriver());
     }
 
     public function testAutoDetectsModuleFromPath(): void
     {
         self::assertSame(
-            $this->runForModule(Module::NAME_PHP_CS_FIXER),
+            $this->runForModule(Module::PhpCsFixer),
             $this->runCommand(['--path' => 'conf/php-cs-fixer.dist.php']),
         );
     }
@@ -132,14 +132,14 @@ final class PrintModuleConfigCommandTest extends TestCase
     {
         $output = $this->runCommand(
             [
-                'module' => Module::NAME_PHP_STAN,
+                'module' => Module::PhpStan->value,
                 '--path' => 'conf/php-cs-fixer.dist.php',
             ],
             isSuccessExpected: false,
         );
 
         self::assertStringContainsString(
-            sprintf('but module "%s" expects', Module::NAME_PHP_STAN),
+            sprintf('but module "%s" expects', Module::PhpStan->value),
             $output,
         );
     }
@@ -154,9 +154,9 @@ final class PrintModuleConfigCommandTest extends TestCase
         self::assertStringContainsString('does not exist', $output);
     }
 
-    private function runForModule(string $module): string
+    private function runForModule(Module $module): string
     {
-        return $this->runCommand(['module' => $module]);
+        return $this->runCommand(['module' => $module->value]);
     }
 
     private static function removeIgnoredPaths(mixed $config): mixed

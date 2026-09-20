@@ -25,7 +25,7 @@ use const ARRAY_FILTER_USE_KEY;
 
 // @codeCoverageIgnoreStart
 // NOTICE: Ignored so a random test is not charged with this file-level statement
-Module::warnMissingPackages(Module::MODULE_PHP_CS_FIXER);
+Module::PhpCsFixer->warnMissingPackages();
 // @codeCoverageIgnoreEnd
 
 /**

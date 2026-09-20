@@ -35,36 +35,9 @@ use function sprintf;
 
 /**
  * @internal Brnshkr\Config\Composer
- *
- * @phpstan-import-type ModuleName from Module
  */
 final class PrintModuleConfigCommand extends AbstractCommand
 {
-    /**
-     * @phpstan-var array<ModuleName, array{
-     *     defaultConfigFile: non-empty-string,
-     *     expectedTypeLabel: non-empty-string,
-     * }>
-     */
-    private const array MODULE_RESOLUTION_MAP = [
-        Module::NAME_PHP_CS_FIXER => [
-            'defaultConfigFile' => 'conf/php-cs-fixer.dist.php',
-            'expectedTypeLabel' => 'instance of ' . PhpCsFixerConfig::class,
-        ],
-        Module::NAME_PHP_STAN => [
-            'defaultConfigFile' => 'conf/phpstan.dist.php',
-            'expectedTypeLabel' => 'array',
-        ],
-        Module::NAME_RECTOR => [
-            'defaultConfigFile' => 'conf/rector.dist.php',
-            'expectedTypeLabel' => 'instance of ' . RectorConfigBuilder::class,
-        ],
-        Module::NAME_TWIG_CS_FIXER => [
-            'defaultConfigFile' => 'conf/twig-cs-fixer.dist.php',
-            'expectedTypeLabel' => 'instance of ' . TwigCsFixerConfig::class,
-        ],
-    ];
-
     private Filesystem $filesystem;
 
     private ?string $outputFilePath = null;
@@ -90,7 +63,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
     protected function wrappedConfigure(): void
     {
         $this
-            ->addArgument('module', InputArgument::OPTIONAL, 'The module to print the config of <fg=yellow>(' . Str::joinAsQuotedList(array_keys(Module::MAP), 'disjunction') . ')</fg=yellow>. May be omitted when --path is given, in which case the module is auto-detected from the value returned by the config file.')
+            ->addArgument('module', InputArgument::OPTIONAL, 'The module to print the config of <fg=yellow>(' . Str::joinAsQuotedList(Module::values(), 'disjunction') . ')</fg=yellow>. May be omitted when --path is given, in which case the module is auto-detected from the value returned by the config file.')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to the config file to load. Defaults to <fg=yellow>./conf/{module}.dist.php</fg=yellow> when omitted; required when no module is given.')
             ->addOption('output-file', 'o', InputOption::VALUE_REQUIRED, 'Write the JSON to this file instead of stdout. When the target file exists, --force overwrites without prompting.')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'When used with --output-file, overwrite an existing target without asking for confirmation.')
@@ -108,16 +81,17 @@ final class PrintModuleConfigCommand extends AbstractCommand
     #[Override]
     protected function wrappedExecute(): int
     {
-        $module         = $this->getOptionalStringArgument('module');
+        $moduleName     = $this->getOptionalStringArgument('module');
         $path           = $this->getOptionalStringOption('path');
         $outputFilePath = $this->getOptionalStringOption('output-file');
         $isForceEnabled = $this->isBoolOptionEnabled('force');
+        $module         = $moduleName === null ? null : Module::tryFrom($moduleName);
 
-        if ($module !== null && !array_key_exists($module, self::MODULE_RESOLUTION_MAP)) {
+        if ($moduleName !== null && $module === null) {
             throw new InvalidArgumentException(sprintf(
                 'Unknown module "%s". Allowed modules are: %s.',
-                $module,
-                Str::joinAsQuotedList(array_keys(self::MODULE_RESOLUTION_MAP)),
+                $moduleName,
+                Str::joinAsQuotedList(Module::values()),
             ));
         }
 
@@ -127,7 +101,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
             );
         }
 
-        $resolvedPath = $path ?? self::MODULE_RESOLUTION_MAP[$module]['defaultConfigFile'];
+        $resolvedPath = $path ?? self::getDefaultConfigFile($module);
         $absolutePath = Str::toAbsolutePath($this->getCwd() . '/', $resolvedPath);
 
         if (!$this->filesystem->exists($absolutePath)) {
@@ -152,10 +126,10 @@ final class PrintModuleConfigCommand extends AbstractCommand
         $this->isForceEnabled = $isForceEnabled;
 
         $configArray = match ($module) {
-            Module::NAME_PHP_CS_FIXER  => self::normalizeForPhpCsFixer($rawConfig, $absolutePath),
-            Module::NAME_PHP_STAN      => self::normalizeForPhpStan($rawConfig, $absolutePath),
-            Module::NAME_RECTOR        => self::normalizeForRector($rawConfig, $absolutePath),
-            Module::NAME_TWIG_CS_FIXER => self::normalizeForTwigCsFixer($rawConfig, $absolutePath),
+            Module::PhpCsFixer  => self::normalizeForPhpCsFixer($rawConfig, $absolutePath),
+            Module::PhpStan     => self::normalizeForPhpStan($rawConfig, $absolutePath),
+            Module::Rector      => self::normalizeForRector($rawConfig, $absolutePath),
+            Module::TwigCsFixer => self::normalizeForTwigCsFixer($rawConfig, $absolutePath),
         };
 
         $this->writeOutput($configArray);
@@ -164,15 +138,38 @@ final class PrintModuleConfigCommand extends AbstractCommand
     }
 
     /**
-     * @return ?ModuleName
+     * @return non-empty-string
      */
-    private static function detectModule(mixed $rawConfig): ?string
+    private static function getDefaultConfigFile(Module $module): string
+    {
+        return match ($module) {
+            Module::PhpCsFixer  => 'conf/php-cs-fixer.dist.php',
+            Module::PhpStan     => 'conf/phpstan.dist.php',
+            Module::Rector      => 'conf/rector.dist.php',
+            Module::TwigCsFixer => 'conf/twig-cs-fixer.dist.php',
+        };
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function getExpectedTypeLabel(Module $module): string
+    {
+        return match ($module) {
+            Module::PhpCsFixer  => 'instance of ' . PhpCsFixerConfig::class,
+            Module::PhpStan     => 'array',
+            Module::Rector      => 'instance of ' . RectorConfigBuilder::class,
+            Module::TwigCsFixer => 'instance of ' . TwigCsFixerConfig::class,
+        };
+    }
+
+    private static function detectModule(mixed $rawConfig): ?Module
     {
         return match (true) {
-            $rawConfig instanceof PhpCsFixerConfig    => Module::NAME_PHP_CS_FIXER,
-            $rawConfig instanceof RectorConfigBuilder => Module::NAME_RECTOR,
-            $rawConfig instanceof TwigCsFixerConfig   => Module::NAME_TWIG_CS_FIXER,
-            is_array($rawConfig)                      => Module::NAME_PHP_STAN,
+            $rawConfig instanceof PhpCsFixerConfig    => Module::PhpCsFixer,
+            $rawConfig instanceof RectorConfigBuilder => Module::Rector,
+            $rawConfig instanceof TwigCsFixerConfig   => Module::TwigCsFixer,
+            is_array($rawConfig)                      => Module::PhpStan,
             default                                   => null,
         };
     }
@@ -185,7 +182,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
     private static function normalizeForPhpCsFixer(mixed $rawConfig, string $path): array
     {
         if (!$rawConfig instanceof PhpCsFixerConfig) {
-            throw self::createTypeMismatchException(Module::NAME_PHP_CS_FIXER, $rawConfig, $path);
+            throw self::createTypeMismatchException(Module::PhpCsFixer, $rawConfig, $path);
         }
 
         return self::normalizeObjectProperties($rawConfig);
@@ -199,7 +196,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
     private static function normalizeForPhpStan(mixed $rawConfig, string $path): array
     {
         if (!is_array($rawConfig)) {
-            throw self::createTypeMismatchException(Module::NAME_PHP_STAN, $rawConfig, $path);
+            throw self::createTypeMismatchException(Module::PhpStan, $rawConfig, $path);
         }
 
         if (array_key_exists('parameters', $rawConfig) && is_array($rawConfig['parameters'])) {
@@ -217,7 +214,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
     private static function normalizeForRector(mixed $rawConfig, string $path): array
     {
         if (!$rawConfig instanceof RectorConfigBuilder) {
-            throw self::createTypeMismatchException(Module::NAME_RECTOR, $rawConfig, $path);
+            throw self::createTypeMismatchException(Module::Rector, $rawConfig, $path);
         }
 
         $configArray              = self::normalizeObjectProperties($rawConfig);
@@ -234,23 +231,20 @@ final class PrintModuleConfigCommand extends AbstractCommand
     private static function normalizeForTwigCsFixer(mixed $rawConfig, string $path): array
     {
         if (!$rawConfig instanceof TwigCsFixerConfig) {
-            throw self::createTypeMismatchException(Module::NAME_TWIG_CS_FIXER, $rawConfig, $path);
+            throw self::createTypeMismatchException(Module::TwigCsFixer, $rawConfig, $path);
         }
 
         return self::normalizeObjectProperties($rawConfig);
     }
 
-    /**
-     * @param ModuleName $module
-     */
-    private static function createTypeMismatchException(string $module, mixed $rawConfig, string $path): RuntimeException
+    private static function createTypeMismatchException(Module $module, mixed $rawConfig, string $path): RuntimeException
     {
         return new RuntimeException(sprintf(
             'Config file "%s" returned %s but module "%s" expects %s.',
             $path,
             get_debug_type($rawConfig),
-            $module,
-            self::MODULE_RESOLUTION_MAP[$module]['expectedTypeLabel'],
+            $module->value,
+            self::getExpectedTypeLabel($module),
         ));
     }
 

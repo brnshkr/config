@@ -11,8 +11,6 @@ use Mcp\Capability\Attribute\McpTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
-use function array_keys;
-use function in_array;
 use function sprintf;
 
 /**
@@ -33,25 +31,25 @@ final class ModuleTool
     {
         $modules = [];
 
-        foreach (Module::MAP as $name => $info) {
+        foreach (Module::cases() as $module) {
             $packages = [];
 
-            foreach ($info['packages']['requiredAll'] as $package) {
+            foreach ($module->getRequiredPackages() as $package) {
                 $packages[$package->value] = [
                     'isRequired'  => true,
                     'isInstalled' => $package->isInstalled(),
                 ];
             }
 
-            foreach ($info['packages']['optional'] ?? [] as $package) {
+            foreach ($module->getOptionalPackages() as $package) {
                 $packages[$package->value] = [
                     'isRequired'  => false,
                     'isInstalled' => $package->isInstalled(),
                 ];
             }
 
-            $modules[$name] = [
-                'configFile' => sprintf('conf/%s.dist.php', $name),
+            $modules[$module->value] = [
+                'configFile' => sprintf('conf/%s.dist.php', $module->value),
                 'packages'   => $packages,
             ];
         }
@@ -71,17 +69,19 @@ final class ModuleTool
     )]
     public function printModuleConfig(string $module): string
     {
-        if (!in_array($module, array_keys(Module::MAP), true)) {
+        $resolvedModule = Module::tryFrom($module);
+
+        if ($resolvedModule === null) {
             return Project::encode([
                 'exitCode' => 1,
                 'output'   => sprintf(
                     'Unknown module "%s". Valid modules: %s.',
                     $module,
-                    Str::joinAsQuotedList(array_keys(Module::MAP)),
+                    Str::joinAsQuotedList(Module::values()),
                 ),
             ]);
         }
 
-        return Project::encode(Project::run(['php', 'scripts/composer.php', 'brnshkr:config:print-module-config', $module]));
+        return Project::encode(Project::run(['php', 'scripts/composer.php', 'brnshkr:config:print-module-config', $resolvedModule->value]));
     }
 }

@@ -77,7 +77,7 @@ use function Symfony\Component\String\s;
 
 // @codeCoverageIgnoreStart
 // NOTICE: Ignored so a random test is not charged with this file-level statement
-Module::warnMissingPackages(Module::MODULE_PHP_STAN);
+Module::PhpStan->warnMissingPackages();
 
 // @phpstan-ignore symplify.forbiddenFuncCall (Guards the class declaration so this self-returning config can be safely required more than once, e.g. via PHPStan's 'includes')
 if (class_exists(PhpStan::class)) {
@@ -1197,7 +1197,7 @@ final class PhpStan
      */
     public function setStrictRules(array $strictRules): self
     {
-        Module::warnMissingPackages(Package::PhpStanStrictRules);
+        Module::warnMissingPackage(Package::PhpStanStrictRules);
 
         return $this->setParameters(['strictRules' => $strictRules]);
     }
@@ -1223,7 +1223,7 @@ final class PhpStan
      */
     public function setTypeCoverage(array $options): self
     {
-        Module::warnMissingPackages(Package::TypeCoverage);
+        Module::warnMissingPackage(Package::TypeCoverage);
 
         return $this->setParameters(['type_coverage' => $options]);
     }
@@ -1249,7 +1249,7 @@ final class PhpStan
      */
     public function setTypePerfect(array $options): self
     {
-        Module::warnMissingPackages(Package::TypeCoverage);
+        Module::warnMissingPackage(Package::TypeCoverage);
 
         return $this->setParameters(['type_perfect' => $options]);
     }
@@ -1286,7 +1286,7 @@ final class PhpStan
      */
     public function setSymfony(array $options): self
     {
-        Module::warnMissingPackages(Package::PhpStanSymfony);
+        Module::warnMissingPackage(Package::PhpStanSymfony);
 
         return $this->setParameters(['symfony' => $options]);
     }
@@ -1312,7 +1312,7 @@ final class PhpStan
      */
     public function setDoctrine(array $options): self
     {
-        Module::warnMissingPackages(Package::PhpStanDoctrine);
+        Module::warnMissingPackage(Package::PhpStanDoctrine);
 
         return $this->setParameters(['doctrine' => $options]);
     }
@@ -1338,7 +1338,7 @@ final class PhpStan
      */
     public function setPhpUnit(array $options): self
     {
-        Module::warnMissingPackages(Package::PhpStanPhpUnit);
+        Module::warnMissingPackage(Package::PhpStanPhpUnit);
 
         return $this->setParameters(['phpunit' => $options]);
     }
@@ -1364,7 +1364,7 @@ final class PhpStan
      */
     public function setSymplify(array $options): self
     {
-        Module::warnMissingPackages(Package::PhpStanRules);
+        Module::warnMissingPackage(Package::PhpStanRules);
 
         return $this->setParameters(['symplify' => $options]);
     }
@@ -1400,7 +1400,7 @@ final class PhpStan
      */
     public function addArchitecture(array $architecture): self
     {
-        Module::warnMissingPackages(Package::PhpAt);
+        Module::warnMissingPackage(Package::PhpAt);
 
         $services = [];
 
@@ -1575,7 +1575,7 @@ final class PhpStan
      */
     public static function getPreferredClassesMap(): array
     {
-        Module::warnMissingPackages(Package::PhpStanRules);
+        Module::warnMissingPackage(Package::PhpStanRules);
 
         $preferredClassesMap = [
             // NOTICE: Explicit use of 'DateTime' as a string to prevent php-cs-fixer from fixing this to 'DateTimeImmutable'
