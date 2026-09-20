@@ -69,6 +69,7 @@ final class MakefileTest extends TestCase
     private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
     private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
+    private const string SETTINGS_DIRECTORY = __DIR__ . '/Fixtures/Make/Settings';
     private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [
@@ -924,6 +925,19 @@ final class MakefileTest extends TestCase
 
         self::assertStringContainsString('APP_ENV=test dotenv-show', $output);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
+    }
+
+    public function testEverySourceAProjectPinsAFloorInReachesTheRun(): void
+    {
+        $run = $this->runMake(
+            ['-n', 'phpunit-coverage', 'PHP_UNIT_MIN_COVERAGE_LINES=44'],
+            ['CI' => '1'],
+            self::SETTINGS_DIRECTORY,
+        );
+
+        self::assertStringContainsString('_METRIC=\'Classes\' -v _MINIMUM=\'42\'', $run);
+        self::assertStringContainsString('_METRIC=\'Methods\' -v _MINIMUM=\'43\'', $run);
+        self::assertStringContainsString('_METRIC=\'Lines\' -v _MINIMUM=\'44\'', $run);
     }
 
     public function testResolveListsAValueOnlyADotenvFileProvides(): void
