@@ -122,9 +122,6 @@
     },
     "classmap": [
       "./tests/php/Fixtures/"
-    ],
-    "exclude-from-classmap": [
-      "/tests/php/Fixtures/Make/Configs/vendor/"
     ]
   },
   "extra": {
