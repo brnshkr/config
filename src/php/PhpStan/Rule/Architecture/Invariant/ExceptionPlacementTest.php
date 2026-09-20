@@ -15,16 +15,16 @@ use PHPat\Test\Builder\BuildStep;
  * Any depth is accepted, so a package may keep one `Exception` namespace per area rather than a
  * single one at its root. Part of every preset.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ExceptionPlacementTest::class, [
  *     'root' => 'Acme',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ExceptionPlacementTest
 {

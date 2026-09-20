@@ -17,14 +17,14 @@ use Symfony\Component\Console\Command\Command;
  * extend `Symfony\Component\Console\Command\Command`, and commands may not depend on
  * `Symfony\Component\HttpFoundation` — console commands run outside the HTTP lifecycle.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(CommandTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class CommandTest
 {

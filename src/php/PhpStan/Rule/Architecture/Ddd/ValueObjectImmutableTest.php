@@ -15,16 +15,16 @@ use PHPat\Test\PHPat;
  * Value objects model identity-less domain concepts (Money, EmailAddress, Coordinate);
  * structural equality plus immutability is the whole contract.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ValueObjectImmutableTest::class, [
  *     'valueObject' => 'Acme\Domain\ValueObject',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ValueObjectImmutableTest
 {

@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * `<root>\Casts`, and every class in that folder must implement the contract — guarantees the
  * folder maps 1:1 to a single concept.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(CastTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class CastTest
 {

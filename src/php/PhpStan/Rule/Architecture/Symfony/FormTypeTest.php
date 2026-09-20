@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Type` that extend `Symfony\Component\Form\AbstractType` must live under
  * `<root>\Form\Type`, and every class in that folder must extend AbstractType.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(FormTypeTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class FormTypeTest
 {

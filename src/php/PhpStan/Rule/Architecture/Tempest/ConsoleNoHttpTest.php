@@ -16,14 +16,14 @@ use PHPat\Test\PHPat;
  * HTTP request lifecycle; touching HTTP types couples console workflows to a transport they
  * never use.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ConsoleNoHttpTest
 {

@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * under `<root>\Jobs`, every `*Job` in that folder must implement `ShouldQueue`, and jobs
  * may not depend on `Illuminate\Http` — they run outside the HTTP request lifecycle.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(JobTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class JobTest
 {

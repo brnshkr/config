@@ -47,14 +47,13 @@ use function sprintf;
  * Private and `@internal` methods are exempt, and so is anything the return type or an ancestor
  * already explains.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/PublicApiDocumentationRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/PublicApiDocumentationRule.md
  * @see PublicApiDocumentationRuleTest
  */
 final readonly class PublicApiDocumentationRule implements Rule

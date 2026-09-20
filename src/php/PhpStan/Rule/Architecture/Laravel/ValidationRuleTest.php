@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Rule` or implementing `Illuminate\Contracts\Validation\ValidationRule`
  * must live under `<root>\Rules`, and every `*Rule` in that folder must implement the contract.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ValidationRuleTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ValidationRuleTest
 {

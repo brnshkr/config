@@ -20,12 +20,11 @@ use function is_string;
  * Comparing the decoded values lets the runner align them entry by entry and shorten what it prints,
  * and leaves the order of an object's keys free while the order of a list still counts.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/JsonSnapshotDriver.md
- *
  * @api
  *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/JsonSnapshotDriver.md
  * @see JsonSnapshotDriverTest
  */
 final class JsonSnapshotDriver extends JsonDriver
@@ -33,15 +32,15 @@ final class JsonSnapshotDriver extends JsonDriver
     /**
      * Compare the snapshot with what the run produced, entry by entry.
      *
-     * @example
-     * ```php
-     * $this->assertMatchesSnapshot($report, new JsonSnapshotDriver());
-     * ```
-     *
      * @param mixed $expected the snapshot as it was written
      * @param mixed $actual what this run produced
      *
      * @throws JsonException when either side is a string that is not JSON
+     *
+     * @example
+     * ```php
+     * $this->assertMatchesSnapshot($report, new JsonSnapshotDriver());
+     * ```
      */
     #[Override]
     public function match(mixed $expected, mixed $actual): void

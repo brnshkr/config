@@ -17,14 +17,14 @@ use function sprintf;
  *   - Services may not depend on `Symfony\Component\HttpFoundation` — services are HTTP-agnostic.
  *   - Services may not depend on `<root>\Controller\*` — services are not called upward.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ServiceTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ServiceTest
 {

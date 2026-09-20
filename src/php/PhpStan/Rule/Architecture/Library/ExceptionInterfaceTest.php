@@ -15,6 +15,10 @@ use PHPat\Test\Builder\BuildStep;
  * It is what lets a consumer catch everything one package can throw with a single `catch`, so an
  * exception missing it is unreachable that way and nothing else says so.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ExceptionInterfaceTest::class, [
@@ -22,10 +26,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'interface' => 'Acme\Exception\ExceptionInterface',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ExceptionInterfaceTest
 {

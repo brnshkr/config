@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * Domain model expresses business invariants and must remain ignorant of use-case
  * orchestration; the dependency arrow points inward, from Application into Domain.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DomainNoApplicationTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'application' => 'Acme\Application',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DomainNoApplicationTest
 {

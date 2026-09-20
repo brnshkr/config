@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Command` or extending `Illuminate\Console\Command` must live under
  * `<root>\Console\Commands`, and every class in that folder must extend the base command.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(CommandTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class CommandTest
 {

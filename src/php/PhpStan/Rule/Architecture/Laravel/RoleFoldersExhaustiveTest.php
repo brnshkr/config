@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * Models, Notifications, Observers, Policies, Providers, Rules, Scopes). Override `$allowedFolders`
  * to extend.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RoleFoldersExhaustiveTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RoleFoldersExhaustiveTest
 {

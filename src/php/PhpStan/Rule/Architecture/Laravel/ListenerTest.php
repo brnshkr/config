@@ -13,14 +13,14 @@ use PHPat\Test\Builder\BuildStep;
  *
  * Classes named `*Listener` must live under `<root>\Listeners`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ListenerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ListenerTest
 {

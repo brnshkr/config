@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * The application is the consumer, so a package naming it inverts the dependency and works in
  * exactly one project.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(NoApplicationDependencyTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'application' => 'App',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class NoApplicationDependencyTest
 {

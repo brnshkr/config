@@ -14,14 +14,14 @@ use PHPat\Test\Builder\BuildStep;
  * Entities are persistence-layer types; coupling them to HTTP request/response classes
  * smuggles transport concerns into the model and breaks framework upgrades.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class EntityNoHttpFoundationTest
 {

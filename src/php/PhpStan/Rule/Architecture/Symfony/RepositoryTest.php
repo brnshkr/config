@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Repository` must live under `<root>\Repository`, and every `*Repository`
  * in that folder must extend `Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RepositoryTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RepositoryTest
 {

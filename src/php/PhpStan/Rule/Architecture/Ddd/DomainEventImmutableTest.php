@@ -15,16 +15,16 @@ use PHPat\Test\PHPat;
  * Domain events represent sealed, immutable records of past occurrences; they must not be
  * subclassable or mutable after construction.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DomainEventImmutableTest::class, [
  *     'domainEvent' => 'Acme\Domain\Event',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DomainEventImmutableTest
 {

@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * Delivery code (controllers, CLI commands) must access infrastructure through Application
  * use cases, never reach for repositories or external clients directly.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(InterfaceNoInfrastructureTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'infrastructure' => 'Acme\Infrastructure',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class InterfaceNoInfrastructureTest
 {

@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * Controllers and other presentation classes must go through Application use cases rather
  * than touching domain types directly — keeps domain refactors invisible to delivery code.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(InterfaceNoDomainTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'domain'    => 'Acme\Domain',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class InterfaceNoDomainTest
 {

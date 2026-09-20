@@ -49,14 +49,13 @@ use function sprintf;
  * A `->call()` binds to the method it names, and a `->factory()` or `->constructor()`
  * replaces the constructor with the callable it names.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ServiceArgumentBindingRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<Expression>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ServiceArgumentBindingRule.md
  * @see ServiceArgumentBindingRuleTest
  */
 final readonly class ServiceArgumentBindingRule implements Rule

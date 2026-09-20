@@ -16,14 +16,14 @@ use PHPat\Test\PHPat;
  * Classes named `*Event` must live under `<root>\Events`, and every class in that folder
  * must be `final` and `readonly` — events are sealed, immutable notifications.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(EventTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class EventTest
 {

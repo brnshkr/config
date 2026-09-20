@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * `<root>\MessageHandler`, and handlers may not depend on `Symfony\Component\HttpFoundation` —
  * handlers run outside the HTTP lifecycle (workers, schedulers, etc.).
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class MessageHandlerTest
 {

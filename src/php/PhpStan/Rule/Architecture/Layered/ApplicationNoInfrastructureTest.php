@@ -15,6 +15,10 @@ use PHPat\Test\Builder\BuildStep;
  * concrete infrastructure: persistence, messaging, external clients sit behind ports the
  * application layer owns.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ApplicationNoInfrastructureTest::class, [
@@ -22,10 +26,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'infrastructure' => 'Acme\Infrastructure',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ApplicationNoInfrastructureTest
 {

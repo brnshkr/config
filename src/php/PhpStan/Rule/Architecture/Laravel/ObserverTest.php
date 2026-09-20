@@ -13,14 +13,14 @@ use PHPat\Test\Builder\BuildStep;
  *
  * Classes named `*Observer` must live under `<root>\Observers`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ObserverTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ObserverTest
 {

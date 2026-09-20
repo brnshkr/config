@@ -22,14 +22,14 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
  *   - Classes under `Compiler\` must implement `CompilerPassInterface`.
  *   - The single `Configuration` class must implement `ConfigurationInterface`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DependencyInjectionTest
 {

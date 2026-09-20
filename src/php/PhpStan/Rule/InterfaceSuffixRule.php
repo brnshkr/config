@@ -29,14 +29,13 @@ use function sprintf;
  * `*Interface`-suffixed interface is implemented; classes with zero or multiple such interfaces
  * are skipped, since either situation makes the canonical suffix ambiguous.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InterfaceSuffixRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<Class_>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InterfaceSuffixRule.md
  * @see InterfaceSuffixRuleTest
  */
 final readonly class InterfaceSuffixRule implements Rule

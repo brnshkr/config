@@ -32,14 +32,13 @@ use function sprintf;
  * Requires every `@see` target to name a symbol that exists, so a reference that no longer points
  * anywhere is reported instead of silently rotting.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ResolvableDocReferenceRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ResolvableDocReferenceRule.md
  * @see ResolvableDocReferenceRuleTest
  */
 final readonly class ResolvableDocReferenceRule implements Rule

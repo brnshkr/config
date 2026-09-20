@@ -16,6 +16,10 @@ use PHPat\Test\PHPat;
  * those fails there and nowhere else. A package the project both dev-requires and suggests is an
  * optional dependency rather than tooling, and is not covered here. Part of every preset.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(NoDevelopmentDependencyTest::class, [
@@ -23,10 +27,6 @@ use PHPat\Test\PHPat;
  *     'forbiddenNamespaces' => ['PHPUnit', 'Rector'],
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class NoDevelopmentDependencyTest
 {

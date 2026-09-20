@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * In a DDD layout the dependency arrow points inward — the Application layer orchestrates use
  * cases and may not know how those use cases are delivered.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ApplicationNoInterfaceTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'interface'   => 'Acme\Interface',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ApplicationNoInterfaceTest
 {

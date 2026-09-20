@@ -14,14 +14,14 @@ use PHPat\Test\Builder\BuildStep;
  * Default whitelist covers the canonical Tempest folders (Console, Http, Model, Database).
  * Override `$allowedFolders` to extend.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RoleFoldersExhaustiveTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RoleFoldersExhaustiveTest
 {

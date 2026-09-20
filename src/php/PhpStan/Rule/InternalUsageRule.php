@@ -50,7 +50,14 @@ use function sprintf;
  * names what may be reached, `allowedCallers` names who may reach it, and each entry is a plain
  * prefix or a delimited pattern.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
+ * @implements Rule<Stmt>
+ *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
+ * @see InternalUsageRuleTest
  *
  * @example
  * ```php
@@ -61,14 +68,6 @@ use function sprintf;
  *     ])
  * ;
  * ```
- *
- * @api
- *
- * @no-named-arguments
- *
- * @implements Rule<Stmt>
- *
- * @see InternalUsageRuleTest
  */
 final readonly class InternalUsageRule implements Rule
 {

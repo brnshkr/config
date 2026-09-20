@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes extending `Illuminate\Broadcasting\Channel` must live under `<root>\Broadcasting`,
  * and every class in that folder must extend the base channel.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ChannelTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ChannelTest
 {

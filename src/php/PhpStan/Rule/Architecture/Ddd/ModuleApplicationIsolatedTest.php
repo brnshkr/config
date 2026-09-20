@@ -19,15 +19,6 @@ use function sprintf;
  * Module isolation forces cross-module communication through explicit shared kernels or
  * domain events; siblings stay independently replaceable.
  *
- * @example
- * ```php
- * PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
- *     'application' => 'Acme\Application',
- *     'module'      => 'User',
- *     'siblings'    => ['Email'],
- * ]);
- * ```
- *
  * @api
  *
  * @no-named-arguments
@@ -37,6 +28,15 @@ use function sprintf;
  *     label: non-empty-string,
  *     siblings: list<non-empty-string>,
  * }
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
+ *     'application' => 'Acme\Application',
+ *     'module'      => 'User',
+ *     'siblings'    => ['Email'],
+ * ]);
+ * ```
  */
 final readonly class ModuleApplicationIsolatedTest
 {

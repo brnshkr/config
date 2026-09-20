@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * live under `<root>\Notifications`, and every `*Notification` in that folder must extend
  * the base notification.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(NotificationTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class NotificationTest
 {

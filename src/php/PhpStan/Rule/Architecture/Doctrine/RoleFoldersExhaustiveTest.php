@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * before they accumulate. Default whitelist covers the canonical Doctrine roles
  * (`Entity`, `Repository`); override `$allowedFolders` to extend.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RoleFoldersExhaustiveTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RoleFoldersExhaustiveTest
 {

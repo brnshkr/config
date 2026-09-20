@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes implementing `Illuminate\Database\Eloquent\Scope` must live under `<root>\Scopes`,
  * and every class in that folder must implement the contract.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ScopeTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ScopeTest
 {

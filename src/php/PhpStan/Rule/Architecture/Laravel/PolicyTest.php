@@ -13,14 +13,14 @@ use PHPat\Test\Builder\BuildStep;
  *
  * Classes named `*Policy` must live under `<root>\Policies`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(PolicyTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class PolicyTest
 {

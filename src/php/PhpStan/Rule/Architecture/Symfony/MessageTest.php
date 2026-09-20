@@ -16,14 +16,14 @@ use PHPat\Test\PHPat;
  * Classes named `*Message` must live under `<root>\Message`, and every class in that folder
  * must be `final` and `readonly` — messages are sealed, immutable data bags passed on the bus.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(MessageTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class MessageTest
 {

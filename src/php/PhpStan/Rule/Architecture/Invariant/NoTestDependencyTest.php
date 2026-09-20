@@ -16,6 +16,10 @@ use PHPat\Test\PHPat;
  * for every consumer. The namespaces are the project's own `autoload-dev` entries, which is the
  * test suite plus anything else it loads beside it. Part of every preset.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(NoTestDependencyTest::class, [
@@ -23,10 +27,6 @@ use PHPat\Test\PHPat;
  *     'developmentNamespaces' => ['Acme\Tests'],
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class NoTestDependencyTest
 {

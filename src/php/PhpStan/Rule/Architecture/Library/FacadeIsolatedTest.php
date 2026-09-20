@@ -17,6 +17,10 @@ use function sprintf;
  * the facade routes an internal dependency through the public surface, which makes the surface
  * impossible to change without changing the implementation too.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(FacadeIsolatedTest::class, [
@@ -25,10 +29,6 @@ use function sprintf;
  *     'label'     => 'Filter',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class FacadeIsolatedTest
 {

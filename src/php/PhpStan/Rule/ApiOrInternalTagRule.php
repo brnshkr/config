@@ -30,14 +30,13 @@ use function sprintf;
 /**
  * Requires every top-level declaration in a file to carry either an `@api` or an `@internal` tag.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ApiOrInternalTagRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/ApiOrInternalTagRule.md
  * @see ApiOrInternalTagRuleTest
  */
 final readonly class ApiOrInternalTagRule implements Rule

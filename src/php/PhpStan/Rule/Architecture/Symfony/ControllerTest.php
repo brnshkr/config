@@ -14,14 +14,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Controller` must live under `<root>\Controller`, and controllers may not
  * depend on `Doctrine\ORM\EntityManagerInterface` — use repositories or services instead.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ControllerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ControllerTest
 {

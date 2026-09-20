@@ -19,15 +19,6 @@ use function sprintf;
  * Module isolation in the domain layer prevents cross-module entanglement at the model
  * level; integration belongs in the application or interface layer.
  *
- * @example
- * ```php
- * PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
- *     'domain'   => 'Acme\Domain',
- *     'module'   => 'User',
- *     'siblings' => ['Email'],
- * ]);
- * ```
- *
  * @api
  *
  * @no-named-arguments
@@ -37,6 +28,15 @@ use function sprintf;
  *     label: non-empty-string,
  *     siblings: list<non-empty-string>,
  * }
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleDomainIsolatedTest::class, [
+ *     'domain'   => 'Acme\Domain',
+ *     'module'   => 'User',
+ *     'siblings' => ['Email'],
+ * ]);
+ * ```
  */
 final readonly class ModuleDomainIsolatedTest
 {

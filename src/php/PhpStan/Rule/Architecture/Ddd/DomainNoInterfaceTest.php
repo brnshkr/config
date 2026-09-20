@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * Domain logic must remain transport-agnostic: HTTP, CLI and other delivery mechanisms sit
  * outside the inward-pointing dependency arrow.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DomainNoInterfaceTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'interface' => 'Acme\Interface',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DomainNoInterfaceTest
 {

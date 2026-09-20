@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*ServiceProvider` must live under `<root>\Providers`, and every
  * `*ServiceProvider` in that folder must extend `Illuminate\Support\ServiceProvider`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ServiceProviderTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ServiceProviderTest
 {

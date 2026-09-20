@@ -29,14 +29,13 @@ use function sprintf;
  * A class-level stance is required only where a method would otherwise be left ungoverned.
  * Parameterless declarations, `@internal` symbols and anonymous classes are exempt.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NamedArgumentsTagRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NamedArgumentsTagRule.md
  * @see NamedArgumentsTagRuleTest
  */
 final readonly class NamedArgumentsTagRule implements Rule

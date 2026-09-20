@@ -92,13 +92,13 @@ use function sprintf;
  * `RoleFoldersExhaustiveTest` is added so stray top-level folders outside the canonical role
  * names are flagged.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/architecture/index.md
- *
  * @api
  *
  * @named-arguments
  *
  * @phpstan-import-type PhpAtService from PhpStan
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/architecture/index.md
  */
 final class Architecture
 {
@@ -114,12 +114,6 @@ final class Architecture
      * Every namespace comes from the project's own `composer.json`, and passing one explicitly
      * overrides the derived value. What the runtime host provides is exempt without configuration.
      *
-     * @example
-     * ```php
-     * $baseline = Architecture::baseline();
-     * $exempted = Architecture::baseline(except: ['Composer']);
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param ?list<non-empty-string> $developmentNamespaces development-only namespaces, or null to read them from `autoload-dev`
      * @param ?list<non-empty-string> $developmentPackages namespaces of development-only packages, or null to derive them
@@ -129,6 +123,12 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $baseline = Architecture::baseline();
+     * $exempted = Architecture::baseline(except: ['Composer']);
+     * ```
      */
     public static function baseline(
         ?string $root = null,
@@ -175,16 +175,6 @@ final class Architecture
     /**
      * Build the rules a published package should hold to.
      *
-     * @example
-     * ```php
-     * $library = Architecture::library(
-     *     exceptionInterface: 'Acme\Exception\ExceptionInterface',
-     *     model: 'Acme\Model',
-     *     isolatedFrom: ['PhpParser', 'Symfony'],
-     *     facades: ['Filter' => 'Acme\Filter'],
-     * );
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param ?non-empty-string $exceptionInterface the package's own exception interface, or null to skip the rule
      * @param ?non-empty-string $model namespace the libraries populating it must not reach
@@ -196,6 +186,16 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $library = Architecture::library(
+     *     exceptionInterface: 'Acme\Exception\ExceptionInterface',
+     *     model: 'Acme\Model',
+     *     isolatedFrom: ['PhpParser', 'Symfony'],
+     *     facades: ['Filter' => 'Acme\Filter'],
+     * );
+     * ```
      */
     public static function library(
         ?string $root = null,
@@ -243,15 +243,6 @@ final class Architecture
      *
      * Intended for classic layered architectures with strict inward dependency flow.
      *
-     * @example
-     * ```php
-     * $layered = Architecture::layered(
-     *     domain: 'Acme\Domain',
-     *     application: 'Acme\Application',
-     *     infrastructure: 'Acme\Infrastructure',
-     * );
-     * ```
-     *
      * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
      * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
      * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
@@ -262,6 +253,15 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $layered = Architecture::layered(
+     *     domain: 'Acme\Domain',
+     *     application: 'Acme\Application',
+     *     infrastructure: 'Acme\Infrastructure',
+     * );
+     * ```
      */
     public static function layered(
         ?string $domain = null,
@@ -304,20 +304,6 @@ final class Architecture
      *
      * Module isolation rules are only generated when at least two modules exist.
      *
-     * @example
-     * ```php
-     * $dddArchitecture = Architecture::ddd(
-     *     domain: 'Acme\Domain',
-     *     application: 'Acme\Application',
-     *     infrastructure: 'Acme\Infrastructure',
-     *     interface: 'Acme\Interface',
-     *     valueObject: 'Acme\Domain\ValueObject',
-     *     domainEvent: 'Acme\Domain\Event',
-     *     isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
-     *     modules: ['User', 'Email'],
-     * );
-     * ```
-     *
      * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
      * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
      * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
@@ -333,6 +319,20 @@ final class Architecture
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $dddArchitecture = Architecture::ddd(
+     *     domain: 'Acme\Domain',
+     *     application: 'Acme\Application',
+     *     infrastructure: 'Acme\Infrastructure',
+     *     interface: 'Acme\Interface',
+     *     valueObject: 'Acme\Domain\ValueObject',
+     *     domainEvent: 'Acme\Domain\Event',
+     *     isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
+     *     modules: ['User', 'Email'],
+     * );
+     * ```
      */
     public static function ddd(
         ?string $domain = null,
@@ -431,11 +431,6 @@ final class Architecture
      *
      * Requires at least two modules.
      *
-     * @example
-     * ```php
-     * $modular = Architecture::modular(modules: ['User', 'Email'], pattern: 'Acme\{name}');
-     * ```
-     *
      * @param non-empty-list<non-empty-string> $modules module names
      * @param ?non-empty-string $pattern namespace pattern containing the "{name}" placeholder, or null for `<root>\{name}`
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
@@ -445,6 +440,11 @@ final class Architecture
      *
      * @throws InvalidArgumentException when the pattern is invalid or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $modular = Architecture::modular(modules: ['User', 'Email'], pattern: 'Acme\{name}');
+     * ```
      */
     public static function modular(array $modules, ?string $pattern = null, ?string $root = null, array $except = []): array
     {
@@ -503,12 +503,6 @@ final class Architecture
      *   - Fixtures
      *   - Dependency injection
      *
-     * @example
-     * ```php
-     * $symfonyDefault = Architecture::symfony(root: 'Acme');
-     * $symfonyModular = Architecture::symfony(root: 'Acme', modules: ['User', 'Email']);
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
      * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
@@ -517,6 +511,12 @@ final class Architecture
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $symfonyDefault = Architecture::symfony(root: 'Acme');
+     * $symfonyModular = Architecture::symfony(root: 'Acme', modules: ['User', 'Email']);
+     * ```
      */
     public static function symfony(?string $root = null, array $modules = [], array $except = []): array
     {
@@ -542,11 +542,6 @@ final class Architecture
      * The application-only fixture placement is dropped, and the bundle may not depend on the
      * application that installs it.
      *
-     * @example
-     * ```php
-     * $bundle = Architecture::symfonyBundle();
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param non-empty-string $application namespace of the installing application
      * @param list<non-empty-string> $except further namespaces the runtime host provides
@@ -555,6 +550,11 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $bundle = Architecture::symfonyBundle();
+     * ```
      */
     public static function symfonyBundle(
         ?string $root = null,
@@ -572,11 +572,6 @@ final class Architecture
     /**
      * Build the rules a reusable Laravel package should hold to.
      *
-     * @example
-     * ```php
-     * $package = Architecture::laravelPackage();
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param non-empty-string $application namespace of the installing application
      * @param list<non-empty-string> $except further namespaces the runtime host provides
@@ -585,6 +580,11 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $package = Architecture::laravelPackage();
+     * ```
      */
     public static function laravelPackage(
         ?string $root = null,
@@ -602,11 +602,6 @@ final class Architecture
     /**
      * Build the rules a reusable Tempest package should hold to.
      *
-     * @example
-     * ```php
-     * $package = Architecture::tempestPackage();
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param non-empty-string $application namespace of the installing application
      * @param list<non-empty-string> $except further namespaces the runtime host provides
@@ -615,6 +610,11 @@ final class Architecture
      *
      * @throws InvalidArgumentException when a namespace is empty after normalization
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $package = Architecture::tempestPackage();
+     * ```
      */
     public static function tempestPackage(
         ?string $root = null,
@@ -639,12 +639,6 @@ final class Architecture
      *
      * When modules are provided, rules are generated per module root.
      *
-     * @example
-     * ```php
-     * $doctrineDefault = Architecture::doctrine(root: 'Acme', migrationsNamespace: 'Acme\Migrations');
-     * $doctrineModular = Architecture::doctrine(root: 'Acme', modules: ['User', 'Email']);
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param ?non-empty-string $migrationsNamespace doctrine migrations namespace, or null when the package ships none
      * @param list<non-empty-string> $modules optional module names
@@ -654,6 +648,12 @@ final class Architecture
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $doctrineDefault = Architecture::doctrine(root: 'Acme', migrationsNamespace: 'Acme\Migrations');
+     * $doctrineModular = Architecture::doctrine(root: 'Acme', modules: ['User', 'Email']);
+     * ```
      */
     public static function doctrine(
         ?string $root = null,
@@ -715,12 +715,6 @@ final class Architecture
      *   - Scopes
      *   - Casts
      *
-     * @example
-     * ```php
-     * $laravelDefault = Architecture::laravel(root: 'Acme');
-     * $laravelModular = Architecture::laravel(root: 'Acme', modules: ['User', 'Email']);
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
      * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
@@ -729,6 +723,12 @@ final class Architecture
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $laravelDefault = Architecture::laravel(root: 'Acme');
+     * $laravelModular = Architecture::laravel(root: 'Acme', modules: ['User', 'Email']);
+     * ```
      */
     public static function laravel(?string $root = null, array $modules = [], array $except = []): array
     {
@@ -759,12 +759,6 @@ final class Architecture
      *
      * Module isolation rules are only generated when at least two modules exist.
      *
-     * @example
-     * ```php
-     * $tempestDefault = Architecture::tempest(root: 'Acme');
-     * $tempestModular = Architecture::tempest(root: 'Acme', modules: ['User', 'Email']);
-     * ```
-     *
      * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
      * @param list<non-empty-string> $modules optional module names
      * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
@@ -773,6 +767,12 @@ final class Architecture
      *
      * @throws InvalidArgumentException when namespaces or module names are invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $tempestDefault = Architecture::tempest(root: 'Acme');
+     * $tempestModular = Architecture::tempest(root: 'Acme', modules: ['User', 'Email']);
+     * ```
      */
     public static function tempest(?string $root = null, array $modules = [], array $except = []): array
     {
@@ -1074,9 +1074,9 @@ final class Architecture
     /**
      * @param list<string> $modules
      *
-     * @phpstan-assert list<non-empty-string> $modules
-     *
      * @throws InvalidArgumentException
+     *
+     * @phpstan-assert list<non-empty-string> $modules
      */
     private static function assertNonEmptyModuleNames(array $modules): void
     {
@@ -1114,9 +1114,9 @@ final class Architecture
     /**
      * @param list<string> $modules
      *
-     * @phpstan-assert non-empty-list<string> $modules
-     *
      * @throws InvalidArgumentException
+     *
+     * @phpstan-assert non-empty-list<string> $modules
      */
     private static function assertAtLeastTwoModules(array $modules): void
     {

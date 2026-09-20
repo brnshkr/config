@@ -15,6 +15,10 @@ use PHPat\Test\Builder\BuildStep;
  * contracts. Inverting this dependency (domain reaching for concrete infrastructure) breaks
  * isolation and bloats the unit-test perimeter.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DomainNoInfrastructureTest::class, [
@@ -22,10 +26,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'infrastructure' => 'Acme\Infrastructure',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DomainNoInfrastructureTest
 {

@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  * every class in that folder must extend the base model, and models may not depend on
  * `Illuminate\Http` — models are persistence objects, not HTTP boundary types.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ModelTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ModelTest
 {

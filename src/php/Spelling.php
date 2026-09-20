@@ -48,12 +48,11 @@ use const STDERR;
  * but it may not remove a rule. The JavaScript implementation reports the same findings
  * and is held to it by a parity test.
  *
- * @see https://github.com/brnshkr/config/blob/master/src/js/spelling/index.ts
- *
  * @api
  *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/src/js/spelling/index.ts
  * @see SpellingTest
  */
 final class Spelling
@@ -71,11 +70,6 @@ final class Spelling
     /**
      * Scan a repository and return every finding, sorted by path, line and word.
      *
-     * @example
-     * ```php
-     * Spelling::scan(__DIR__);
-     * ```
-     *
      * @param non-empty-string $rootDirectory repository root the scan runs against
      * @param string $configPath repository config path, relative to the root
      * @param ?list<string> $paths files to scan, derived from the tracked files when null
@@ -89,6 +83,11 @@ final class Spelling
      *
      * @throws JsonException
      * @throws RuntimeException
+     *
+     * @example
+     * ```php
+     * Spelling::scan(__DIR__);
+     * ```
      */
     public static function scan(
         string $rootDirectory,

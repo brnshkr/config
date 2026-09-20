@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Authenticator` must live under `<root>\Security\Authenticator`, and every
  * class in that folder must implement `Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(AuthenticatorTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class AuthenticatorTest
 {

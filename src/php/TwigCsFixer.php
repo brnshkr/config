@@ -34,10 +34,9 @@ Module::warnMissingPackages(Module::MODULE_TWIG_CS_FIXER);
 /**
  * Builds a ready-to-use Twig-CS-Fixer config that captures the @brnshkr template-style decisions.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/TwigCsFixer.md
- *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/TwigCsFixer.md
  * @see TwigCsFixerTest
  */
 final readonly class TwigCsFixer
@@ -55,17 +54,17 @@ final readonly class TwigCsFixer
      * Caller may pass a Finder to narrow scope; otherwise the project-wide {@see FileFinder}
      * defaults apply (Twig extension only).
      *
-     * @example
-     * ```php
-     * // conf/twig-cs-fixer.php
-     * return TwigCsFixer::getConfig();
-     * ```
-     *
      * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
      * @return TwigCsFixerConfig configured Config instance ready for twig-cs-fixer
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     *
+     * @example
+     * ```php
+     * // conf/twig-cs-fixer.php
+     * return TwigCsFixer::getConfig();
+     * ```
      */
     public static function getConfig(?Finder $finder = null): TwigCsFixerConfig
     {
@@ -78,6 +77,10 @@ final readonly class TwigCsFixer
      * This is what a private `conf/twig-cs-fixer.php` reaches for: the tracked config it includes stays
      * the baseline, and every verb here adds to it rather than replacing what that file configured.
      *
+     * @param TwigCsFixerConfig $twigCsFixerConfig config to extend
+     *
+     * @return self the builder, wrapping that config
+     *
      * @example
      * ```php
      * // conf/twig-cs-fixer.php
@@ -88,10 +91,6 @@ final readonly class TwigCsFixer
      *     ->build()
      * ;
      * ```
-     *
-     * @param TwigCsFixerConfig $twigCsFixerConfig config to extend
-     *
-     * @return self the builder, wrapping that config
      */
     public static function from(TwigCsFixerConfig $twigCsFixerConfig): self
     {
@@ -102,6 +101,12 @@ final readonly class TwigCsFixer
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     *
+     * @return self the builder, pre-configured with the baseline
+     *
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     *
      * @example
      * ```php
      * // conf/twig-cs-fixer.php
@@ -110,12 +115,6 @@ final readonly class TwigCsFixer
      *     ->build()
      * ;
      * ```
-     *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
-     *
-     * @return self the builder, pre-configured with the baseline
-     *
-     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      */
     public static function getBuilder(?Finder $finder = null): self
     {
@@ -164,12 +163,12 @@ final readonly class TwigCsFixer
     /**
      * Add rules, keeping the ones already configured.
      *
+     * @param list<NodeRuleInterface|RuleInterface> $rules rules to add
+     *
      * @example
      * ```php
      * $builder->addRules([new FileExtensionRule()]);
      * ```
-     *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to add
      */
     public function addRules(array $rules): self
     {
@@ -185,12 +184,12 @@ final readonly class TwigCsFixer
      *
      * Clears the ruleset the standard brought in before adding, so the run uses exactly these rules.
      *
+     * @param list<NodeRuleInterface|RuleInterface> $rules rules to run, replacing every one already configured
+     *
      * @example
      * ```php
      * $builder->setRules([new FileExtensionRule()]);
      * ```
-     *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to run, replacing every one already configured
      */
     public function setRules(array $rules): self
     {
@@ -206,12 +205,12 @@ final readonly class TwigCsFixer
     /**
      * Replace rules of the same class, keeping every other rule.
      *
+     * @param list<NodeRuleInterface|RuleInterface> $rules rules to override with
+     *
      * @example
      * ```php
      * $builder->overrideRules([new CompactHashRule(compact: false)]);
      * ```
-     *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to override with
      */
     public function overrideRules(array $rules): self
     {
@@ -225,12 +224,12 @@ final readonly class TwigCsFixer
     /**
      * Remove rules by class name.
      *
+     * @param list<class-string<NodeRuleInterface|RuleInterface>> $rules rule classes to drop
+     *
      * @example
      * ```php
      * $builder->removeRules([FileExtensionRule::class]);
      * ```
-     *
-     * @param list<class-string<NodeRuleInterface|RuleInterface>> $rules rule classes to drop
      */
     public function removeRules(array $rules): self
     {

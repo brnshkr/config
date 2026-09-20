@@ -36,14 +36,13 @@ use function sprintf;
  * `@internal` does not excuse a call, and a method may override its class either way
  * — the nearer declaration wins.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NamedArgumentsUsageRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/NamedArgumentsUsageRule.md
  * @see NamedArgumentsUsageRuleTest
  */
 final readonly class NamedArgumentsUsageRule implements Rule

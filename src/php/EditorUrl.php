@@ -24,12 +24,11 @@ use const PATH_SEPARATOR;
  * Rector uses `%relFile%`). EditorUrl produces the right template for each (tool, editor) pair,
  * auto-detecting the editor from environment variables and `PATH` when none is given.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/EditorUrl.md
- *
  * @api
  *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/EditorUrl.md
  * @see EditorUrlTest
  */
 final readonly class EditorUrl
@@ -69,6 +68,13 @@ final readonly class EditorUrl
      * working-directory prefix is either the caller-supplied path or, when none is given,
      * PHPStan's own `%currentWorkingDirectory%` substitution.
      *
+     * @template TEditor of ?self::EDITOR_*
+     *
+     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
+     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; PHPStan's own `%currentWorkingDirectory%` substitution is used when null
+     *
+     * @return (TEditor is null ? ?string : string) URL template ready to be passed as PHPStan's `editorUrl` parameter; `null` when no editor is configured or detected
+     *
      * @example
      * ```php
      * use Brnshkr\Config\EditorUrl;
@@ -79,13 +85,6 @@ final readonly class EditorUrl
      * // Pin the editor (and optionally the project root) when auto-detection picks the wrong one.
      * $editorUrl = EditorUrl::forPhpStan(EditorUrl::EDITOR_PHPSTORM, __DIR__);
      * ```
-     *
-     * @template TEditor of ?self::EDITOR_*
-     *
-     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
-     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; PHPStan's own `%currentWorkingDirectory%` substitution is used when null
-     *
-     * @return (TEditor is null ? ?string : string) URL template ready to be passed as PHPStan's `editorUrl` parameter; `null` when no editor is configured or detected
      */
     public static function forPhpStan(?string $editor = null, ?string $currentWorkingDirectory = null): ?string
     {
@@ -103,6 +102,13 @@ final readonly class EditorUrl
      * working-directory prefix is resolved at build time — either from the caller-supplied
      * path or, when none is given, from `getcwd()` (falling back to `.` if even that fails).
      *
+     * @template TEditor of ?self::EDITOR_*
+     *
+     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
+     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; `getcwd()` is used when null, falling back to `.` when `getcwd()` itself fails
+     *
+     * @return (TEditor is null ? ?string : string) URL template ready to be passed as Rector's `editorUrl` setting; `null` when no editor is configured or detected
+     *
      * @example
      * ```php
      * use Brnshkr\Config\EditorUrl;
@@ -113,13 +119,6 @@ final readonly class EditorUrl
      * // Pin the editor (and optionally the project root) when auto-detection picks the wrong one.
      * $editorUrl = EditorUrl::forRector(EditorUrl::EDITOR_VSCODE, __DIR__);
      * ```
-     *
-     * @template TEditor of ?self::EDITOR_*
-     *
-     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
-     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; `getcwd()` is used when null, falling back to `.` when `getcwd()` itself fails
-     *
-     * @return (TEditor is null ? ?string : string) URL template ready to be passed as Rector's `editorUrl` setting; `null` when no editor is configured or detected
      */
     public static function forRector(?string $editor = null, ?string $currentWorkingDirectory = null): ?string
     {

@@ -18,14 +18,14 @@ use function sprintf;
  * `Illuminate\Routing\Controller`, and may not depend on `<root>\Repositories\*` directly —
  * controllers go through a service layer instead.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ControllerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ControllerTest
 {

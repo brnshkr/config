@@ -19,15 +19,6 @@ use function sprintf;
  * Module isolation in Tempest's flat module layout: cross-module communication must go
  * through explicit shared contracts rather than direct namespace coupling.
  *
- * @example
- * ```php
- * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
- *     'root'     => 'Acme',
- *     'module'   => 'User',
- *     'siblings' => ['Email'],
- * ]);
- * ```
- *
  * @api
  *
  * @no-named-arguments
@@ -37,6 +28,15 @@ use function sprintf;
  *     label: non-empty-string,
  *     siblings: list<non-empty-string>,
  * }
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
+ *     'root'     => 'Acme',
+ *     'module'   => 'User',
+ *     'siblings' => ['Email'],
+ * ]);
+ * ```
  */
 final readonly class ModuleIsolatedTest
 {

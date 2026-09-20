@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * The model is what a consumer receives and what the serialized form is derived from, so a parser
  * or framework type reaching it becomes part of both.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(ModelNoFrameworkTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'isolatedFrom' => ['PhpParser', 'Symfony'],
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class ModelNoFrameworkTest
 {

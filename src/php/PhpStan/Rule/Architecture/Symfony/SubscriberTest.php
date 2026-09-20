@@ -16,14 +16,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Classes named `*Subscriber` must live under `<root>\EventSubscriber`, and every class in
  * that folder must implement `Symfony\Component\EventDispatcher\EventSubscriberInterface`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(SubscriberTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class SubscriberTest
 {

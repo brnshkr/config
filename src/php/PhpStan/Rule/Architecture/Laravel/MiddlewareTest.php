@@ -13,14 +13,14 @@ use PHPat\Test\Builder\BuildStep;
  *
  * Classes named `*Middleware` must live under `<root>\Http\Middleware`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(MiddlewareTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class MiddlewareTest
 {

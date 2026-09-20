@@ -16,14 +16,14 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  * Classes named `*Normalizer` must live under `<root>\Serializer`, and every class in that
  * folder must implement `Symfony\Component\Serializer\Normalizer\NormalizerInterface`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(NormalizerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class NormalizerTest
 {

@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Request` or extending `Illuminate\Foundation\Http\FormRequest` must live
  * under `<root>\Http\Requests`, and every `*Request` in that folder must extend FormRequest.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RequestTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RequestTest
 {

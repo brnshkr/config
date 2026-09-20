@@ -36,10 +36,9 @@ Module::warnMissingPackages(Module::MODULE_RECTOR);
 /**
  * Builds a ready-to-use Rector config that captures the @brnshkr refactoring decisions.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/Rector.md
- *
  * @no-named-arguments
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/Rector.md
  * @see RectorTest
  */
 final class Rector
@@ -66,18 +65,18 @@ final class Rector
      * Caller may pass a Finder to narrow paths under analysis; otherwise the project-wide
      * {@see FileFinder} defaults apply.
      *
-     * @example
-     * ```php
-     * // conf/rector.php
-     * return Rector::getConfig();
-     * ```
-     *
      * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
      *
      * @return RectorConfigBuilder configured builder ready for Rector
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      * @throws RuntimeException when required Rector dependencies are missing
+     *
+     * @example
+     * ```php
+     * // conf/rector.php
+     * return Rector::getConfig();
+     * ```
      */
     public static function getConfig(?Finder $finder = null): RectorConfigBuilder
     {
@@ -92,6 +91,10 @@ final class Rector
      * The paths that config resolved stay as they are, so {@see self::setPaths()} is the only way to
      * change them from here.
      *
+     * @param RectorConfigBuilder $rectorConfigBuilder config to extend
+     *
+     * @return self the builder, wrapping that config
+     *
      * @example
      * ```php
      * // conf/rector.php
@@ -102,10 +105,6 @@ final class Rector
      *     ->build()
      * ;
      * ```
-     *
-     * @param RectorConfigBuilder $rectorConfigBuilder config to extend
-     *
-     * @return self the builder, wrapping that config
      */
     public static function from(RectorConfigBuilder $rectorConfigBuilder): self
     {
@@ -116,6 +115,13 @@ final class Rector
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
+     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     *
+     * @return self the builder, pre-configured with the baseline
+     *
+     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when required Rector dependencies are missing
+     *
      * @example
      * ```php
      * // conf/rector.php
@@ -124,13 +130,6 @@ final class Rector
      *     ->build()
      * ;
      * ```
-     *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
-     *
-     * @return self the builder, pre-configured with the baseline
-     *
-     * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
-     * @throws RuntimeException when required Rector dependencies are missing
      */
     public static function getBuilder(?Finder $finder = null): self
     {
@@ -185,12 +184,12 @@ final class Rector
     /**
      * Add rules, keeping the ones already configured.
      *
+     * @param list<class-string<RectorInterface>> $rules rule classes to add
+     *
      * @example
      * ```php
      * $builder->addRules([SomeRector::class]);
      * ```
-     *
-     * @param list<class-string<RectorInterface>> $rules rule classes to add
      */
     public function addRules(array $rules): self
     {
@@ -208,12 +207,12 @@ final class Rector
      * through `withPreparedSets()`, which this cannot reach — dropping one of those is
      * {@see self::removeRules()}.
      *
+     * @param list<class-string<RectorInterface>> $rules rule classes to run, replacing every one added here
+     *
      * @example
      * ```php
      * $builder->setRules([SomeRector::class]);
      * ```
-     *
-     * @param list<class-string<RectorInterface>> $rules rule classes to run, replacing every one added here
      */
     public function setRules(array $rules): self
     {
@@ -225,12 +224,12 @@ final class Rector
     /**
      * Add skip entries, keeping the ones already configured.
      *
+     * @param array<array-key, mixed> $skips rule classes, paths, or `[rule => paths]` entries
+     *
      * @example
      * ```php
      * $builder->addSkips([SomeRector::class => ['src/legacy']]);
      * ```
-     *
-     * @param array<array-key, mixed> $skips rule classes, paths, or `[rule => paths]` entries
      */
     public function addSkips(array $skips): self
     {
@@ -246,12 +245,12 @@ final class Rector
      * so removing one means skipping it. That reaches set-provided rules, which a subtractive list
      * could not.
      *
+     * @param list<class-string<RectorInterface>> $rules rule classes to stop running
+     *
      * @example
      * ```php
      * Rector::getBuilder()->removeRules([AddOverrideAttributeToOverriddenMethodsRector::class]);
      * ```
-     *
-     * @param list<class-string<RectorInterface>> $rules rule classes to stop running
      */
     public function removeRules(array $rules): self
     {
@@ -261,12 +260,12 @@ final class Rector
     /**
      * Set the paths Rector processes, replacing the ones already there.
      *
+     * @param list<non-empty-string> $paths paths to process
+     *
      * @example
      * ```php
      * $builder->setPaths(['src']);
      * ```
-     *
-     * @param list<non-empty-string> $paths paths to process
      */
     public function setPaths(array $paths): self
     {
@@ -278,12 +277,12 @@ final class Rector
     /**
      * Add paths to process, keeping the ones already configured.
      *
+     * @param list<non-empty-string> $paths paths to append
+     *
      * @example
      * ```php
      * $builder->addPaths(['stubs']);
      * ```
-     *
-     * @param list<non-empty-string> $paths paths to append
      */
     public function addPaths(array $paths): self
     {
@@ -297,12 +296,12 @@ final class Rector
     /**
      * Drop paths from the run, leaving the rest processed.
      *
+     * @param list<non-empty-string> $paths paths to stop processing
+     *
      * @example
      * ```php
      * $builder->removePaths(['tests']);
      * ```
-     *
-     * @param list<non-empty-string> $paths paths to stop processing
      */
     public function removePaths(array $paths): self
     {
@@ -319,12 +318,12 @@ final class Rector
      *
      * Drops the baseline's skips, so the run skips exactly what is passed here.
      *
+     * @param array<array-key, mixed> $skips skip entries, replacing every one already configured
+     *
      * @example
      * ```php
      * $builder->setSkips([NewlineBetweenClassLikeStmtsRector::class]);
      * ```
-     *
-     * @param array<array-key, mixed> $skips skip entries, replacing every one already configured
      */
     public function setSkips(array $skips): self
     {
@@ -338,12 +337,12 @@ final class Rector
      *
      * Matches an entry as it was given: a rule class drops that rule's skip, a path drops that path's.
      *
+     * @param array<array-key, mixed> $skips skip entries to stop skipping
+     *
      * @example
      * ```php
      * $builder->removeSkips([PreferPHPUnitThisCallRector::class]);
      * ```
-     *
-     * @param array<array-key, mixed> $skips skip entries to stop skipping
      */
     public function removeSkips(array $skips): self
     {

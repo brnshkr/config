@@ -14,6 +14,10 @@ use PHPat\Test\Builder\BuildStep;
  * Infrastructure (persistence, messaging, external APIs) is a horizontal concern shared by
  * Domain and Application; it must not be coupled to delivery mechanisms.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(InfrastructureNoInterfaceTest::class, [
@@ -21,10 +25,6 @@ use PHPat\Test\Builder\BuildStep;
  *     'interface'      => 'Acme\Interface',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class InfrastructureNoInterfaceTest
 {

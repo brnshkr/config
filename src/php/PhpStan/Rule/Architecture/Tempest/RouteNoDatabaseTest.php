@@ -16,14 +16,14 @@ use PHPat\Test\PHPat;
  * must go through a service or repository layer rather than touching the database directly —
  * keeps HTTP code separable from persistence concerns.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class RouteNoDatabaseTest
 {

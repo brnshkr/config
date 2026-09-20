@@ -17,6 +17,10 @@ use function sprintf;
  * classes ties past migrations to current code shape, breaking schema rebuilds when
  * referenced classes are renamed or removed.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(MigrationIsolationTest::class, [
@@ -24,10 +28,6 @@ use function sprintf;
  *     'migrationsNamespace' => 'DoctrineMigrations',
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class MigrationIsolationTest
 {

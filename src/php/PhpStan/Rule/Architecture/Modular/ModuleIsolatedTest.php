@@ -16,16 +16,6 @@ use function sprintf;
  * Cross-module communication goes through explicit shared contracts rather than direct
  * namespace coupling.
  *
- * @example
- * ```php
- * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
- *     'modules' => [
- *         ['module' => 'Acme\User', 'label' => 'User', 'siblings' => ['Acme\Email']],
- *         ['module' => 'Acme\Email', 'label' => 'Email', 'siblings' => ['Acme\User']],
- *     ],
- * ]);
- * ```
- *
  * @api
  *
  * @no-named-arguments
@@ -35,6 +25,16 @@ use function sprintf;
  *     label: non-empty-string,
  *     siblings: list<non-empty-string>,
  * }
+ *
+ * @example
+ * ```php
+ * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
+ *     'modules' => [
+ *         ['module' => 'Acme\User', 'label' => 'User', 'siblings' => ['Acme\Email']],
+ *         ['module' => 'Acme\Email', 'label' => 'Email', 'siblings' => ['Acme\User']],
+ *     ],
+ * ]);
+ * ```
  */
 final readonly class ModuleIsolatedTest
 {

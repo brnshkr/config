@@ -16,14 +16,14 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  * Classes named `*Listener` or annotated with `#[AsEventListener]` must live under
  * `<root>\EventListener`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(EventListenerTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class EventListenerTest
 {

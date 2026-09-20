@@ -50,14 +50,13 @@ use function sprintf;
  * {@see self::FLAG_PREFIXES} — and a non-boolean one must not start with a reserved prefix —
  * {@see self::RESERVED_METHOD_PREFIXES} and {@see self::RESERVED_VALUE_PREFIXES}.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/BoolishPrefixRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/BoolishPrefixRule.md
  * @see BoolishPrefixRuleTest
  */
 final readonly class BoolishPrefixRule implements Rule

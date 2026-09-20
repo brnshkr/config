@@ -16,6 +16,10 @@ use function sprintf;
  * Keeps the domain layer framework-agnostic so use-case logic survives framework upgrades and
  * stays independently testable. One isolation rule is generated per entry in `$isolatedFrom`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DomainNoFrameworkTest::class, [
@@ -23,10 +27,6 @@ use function sprintf;
  *     'isolatedFrom' => ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
  * ]);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DomainNoFrameworkTest
 {

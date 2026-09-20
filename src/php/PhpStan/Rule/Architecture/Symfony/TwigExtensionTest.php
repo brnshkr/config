@@ -16,14 +16,14 @@ use Twig\Extension\AbstractExtension;
  * Classes named `*Extension` extending `Twig\Extension\AbstractExtension` must live under
  * `<root>\Twig`, and every `*Extension` in that folder must extend AbstractExtension.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class TwigExtensionTest
 {

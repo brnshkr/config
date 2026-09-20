@@ -16,14 +16,14 @@ use PHPat\Test\Builder\BuildStep;
  *   - Classes carrying `#[Doctrine\ORM\Mapping\Entity]` must live under `<root>\Entity`.
  *   - Classes under `<root>\Repository` ending in `Repository` must extend `Doctrine\ORM\EntityRepository`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class EntityAndRepositoryTest
 {

@@ -47,14 +47,13 @@ use function sprintf;
  * way. Extending an `@internal` class is not itself a leak — only the surface reaching the consumer
  * through the leaf is checked.
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalExposureRule.md
- *
  * @api
  *
  * @no-named-arguments
  *
  * @implements Rule<NodeAbstract>
  *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalExposureRule.md
  * @see InternalExposureRuleTest
  */
 final readonly class InternalExposureRule implements Rule

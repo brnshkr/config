@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes extending `Doctrine\Bundle\FixturesBundle\Fixture` must live under `<root>\DataFixtures`,
  * and every class in that folder must extend Fixture.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(DataFixtureTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class DataFixtureTest
 {

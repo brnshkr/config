@@ -15,14 +15,14 @@ use PHPat\Test\Builder\BuildStep;
  * Classes named `*Voter` must live under `<root>\Security\Voter`, and every class in that
  * folder must extend `Symfony\Component\Security\Core\Authorization\Voter\Voter`.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @example
  * ```php
  * PhpStan::configurePhpAtTest(VoterTest::class, ['root' => 'Acme']);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 final readonly class VoterTest
 {
