@@ -388,6 +388,7 @@ jobs:
 
       - name: Run Checks
         run: |
+          make build
           make ci
 
   build:
