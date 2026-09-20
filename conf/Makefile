@@ -523,7 +523,7 @@ _TARGET_GOALS  = $(filter-out _% -%,$(_ALL_TARGETS))
 _STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
 
 #**
-#* The closest of the given goals to what was typed, nearest first, at most three.
+#* The goals tied for nearest to what was typed, at most three.
 #*
 #* parameters:
 #*   goals: list<string>
@@ -553,7 +553,7 @@ $(shell $(PRINTF) '%s\n' $1 \
 	} \
 	{ measured = levenshtein(_UNKNOWN, $$0); if (measured <= (length(_UNKNOWN) > 4 ? 2 : 1) || (length(_UNKNOWN) >= 3 && index($$0, _UNKNOWN))) printf "%d %s\n", measured, $$0 }' \
 	| sort -n \
-	| $(AWK) 'NR <= 3 { print $$2 }')
+	| $(AWK) 'NR == 1 { nearest = $$1 } $$1 == nearest && NR <= 3 { print $$2 }')
 endef
 
 _SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \

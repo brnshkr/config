@@ -877,6 +877,17 @@ final class MakefileTest extends TestCase
         self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/phpstan.cache');
     }
 
+    public function testASuggestionOneLetterOffStandsAlone(): void
+    {
+        $this->writeCaches(['eslint', 'eslint-group', 'eslint-print']);
+
+        $result = $this->runMake(['cc', 'eslin'], directory: self::CACHES_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('Did you mean eslint?', $result);
+        self::assertStringNotContainsString('eslint-group', $result);
+        self::assertStringNotContainsString('eslint-print', $result);
+    }
+
     public function testAStageGoalRunsNothingWhenTheTargetItNamesIsUnknown(): void
     {
         $known   = $this->runMake(['-n', 'dev-dotenv-show'], directory: self::DOTENV_DIRECTORY);
