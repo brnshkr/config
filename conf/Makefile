@@ -3295,6 +3295,17 @@ function alias_of(name,    map, position, remainder) {
 	remainder = substr(map, position + length(name) + 2)
 	return ", " substr(remainder, 1, index(remainder, " ") - 1)
 }
+function add_dotenv_variables(    keys, key_count, key_idx, name) {
+	key_count = split(ENVIRON["_DOTENV_FILE_KEYS"], keys, /[[:space:]]+/)
+	scope_depth = 0
+	scope_at[0] = "main"
+	for (key_idx = 1; key_idx <= key_count; key_idx += 1) {
+		name = keys[key_idx]
+		if (name == "" || name in scraped_variable || !(name in ENVIRON)) continue
+		add("variables", name, ENVIRON[name], "?=", "", 0, 0)
+		section_file["main", "variables", section_count["main", "variables"]] = ""
+	}
+}
 function resolve_scope(    current) {
 	current = (scope_depth > 0 ? scope_at[scope_depth] : scope_at[0] != "" ? scope_at[0] : "main")
 	if (current == "main" && !("main" in seen_scope)) { seen_scope["main"] = 1; top_count += 1; top_order[top_count] = "main" }
@@ -3317,6 +3328,7 @@ function handle_define(documentation,    description) {
 	if ($$2 ~ /^_/) return
 	if ($$2 ~ /^[A-Z][A-Z0-9_]*$$/) {
 		add("variables", $$2, "(macro)", (is_in_ifndef ? "?=" : ":="), get_description(), FNR)
+		scraped_variable[$$2] = 1
 	} else {
 		description = get_description()
 		if (documentation != "") add("functions", $$2, documentation, (description != "" ? description : derive_description(documentation)), "", FNR)
@@ -3384,7 +3396,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			if (file != "" && file !~ /^\//) file = ENVIRON["_CURDIR"] "/" file
 			if (ENVIRON["_WORKDIR"] != ENVIRON["_CURDIR"] && index(file, ENVIRON["_WORKDIR"] "/") == 1) \
 				file = ENVIRON["_CURDIR"] substr(file, length(ENVIRON["_WORKDIR"]) + 1)
-			url = render_url(ENVIRON["_EDITOR_URL"], file, line)
+			url = (file != "" ? render_url(ENVIRON["_EDITOR_URL"], file, line) : "")
 			hyperlink = ""
 			hyperlink_end = ""
 			if (url != "" && !ENVIRON["_IS_NO_ANSI"]) {
@@ -3496,6 +3508,7 @@ is_in_documentation {
 			raw = raw " " continuation
 		}
 		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number, var_verbosity)
+		scraped_variable[var_name] = 1
 	}
 	next
 }
@@ -3579,6 +3592,7 @@ END {
 		}
 		exit 0
 	}
+	if (ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "") add_dotenv_variables()
 	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
 	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
 	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset

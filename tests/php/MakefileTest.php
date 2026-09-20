@@ -926,6 +926,16 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
     }
 
+    public function testResolveListsAValueOnlyADotenvFileProvides(): void
+    {
+        $resolved = $this->runMake(['help', 'resolve'], directory: self::DOTENV_DIRECTORY);
+        $plain    = $this->runMake(['help'], directory: self::DOTENV_DIRECTORY);
+
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER', $resolved);
+        self::assertStringContainsString('dev-local', $resolved);
+        self::assertStringNotContainsString('DOTENV_FIXTURE_LAYER', $plain);
+    }
+
     public function testAStageGoalReadsItsOwnStageWhileTheEnvironmentStillWins(): void
     {
         $stage = $this->runMake(['test-dotenv-show'], directory: self::DOTENV_DIRECTORY);
