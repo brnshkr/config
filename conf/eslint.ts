@@ -16,6 +16,11 @@ if (isInEditor) {
 
 export default getConfig({
   ignores: [
+    'conf/commitlint.mjs',
+    'conf/eslint.mjs',
+    'conf/markdownlint.mjs',
+    'conf/stylelint.mjs',
+    'conf/vitest.mjs',
     'src/js/eslint/types/declarations/typegen.d.ts',
     'src/js/markdownlint/types/declarations/typegen.d.ts',
   ],
