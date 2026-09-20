@@ -226,6 +226,35 @@ final class PhpStanTest extends TestCase
         self::assertSame(['first.php', 'second.php'], $bootstrapFiles);
     }
 
+    public function testTheContainerConfiguratorIsScannedWhereItsPackageIsInstalled(): void
+    {
+        self::assertTrue(Package::DependencyInjection->isInstalled());
+        self::assertFalse(Package::FrameworkBundle->isInstalled());
+
+        $scanFiles = PhpStan::getConfig()['parameters']['scanFiles'] ?? null;
+
+        self::assertIsArray($scanFiles);
+
+        $scanFile = $scanFiles[0] ?? null;
+
+        self::assertIsString($scanFile);
+        self::assertStringEndsWith('Loader/Configurator/ContainerConfigurator.php', $scanFile);
+    }
+
+    public function testScannedFilesAreAppendedReplacedAndDropped(): void
+    {
+        $parameters = PhpStan::getBuilder()
+            ->setScanFiles(['first.php'])
+            ->addScanFiles(['second.php'])
+            ->removeScanFiles(['first.php'])
+            ->addScanDirectories(['stubs'])
+            ->build()['parameters']
+        ;
+
+        self::assertSame(['second.php'], $parameters['scanFiles'] ?? null);
+        self::assertSame(['stubs'], $parameters['scanDirectories'] ?? null);
+    }
+
     public function testTheSamePhpAtTestRegisteredTwiceIdenticallyIsOneService(): void
     {
         $rule = PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [

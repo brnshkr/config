@@ -139,6 +139,9 @@ final class PhpStan
 
     private const string TYPE_SYMFONY_BUNDLE = 'symfony-bundle';
 
+    private const string CONFIG_REFERENCE_PATH       = 'config/reference.php';
+    private const string CONTAINER_CONFIGURATOR_PATH = 'vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php';
+
     private const string LOADER_CONSOLE_APPLICATION = 'console-application';
     private const string LOADER_OBJECT_MANAGER      = 'object-manager';
 
@@ -332,6 +335,12 @@ final class PhpStan
             if ($symfonyDefaults !== []) {
                 $phpStanConfig->setSymfony($symfonyDefaults);
             }
+        }
+
+        $symfonyScanFiles = self::getSymfonyScanFiles();
+
+        if ($symfonyScanFiles !== []) {
+            $phpStanConfig->addScanFiles($symfonyScanFiles);
         }
 
         if (ComposerJson::forProjectUsingThisLibrary()->getPackageType() === self::TYPE_SYMFONY_BUNDLE) {
@@ -689,10 +698,10 @@ final class PhpStan
     {
         self::assertPathList($paths);
 
-        $existing = $this->config['parameters']['paths'] ?? [];
+        $existingPaths = $this->config['parameters']['paths'] ?? [];
 
         return $this->setParameter('paths', self::appendUnique(
-            is_array($existing) ? $existing : [],
+            is_array($existingPaths) ? $existingPaths : [],
             $paths,
         ));
     }
@@ -708,14 +717,14 @@ final class PhpStan
     {
         self::assertPathList($paths);
 
-        $existing = $this->config['parameters']['paths'] ?? [];
+        $existingPaths = $this->config['parameters']['paths'] ?? [];
 
-        if (!is_array($existing)) {
+        if (!is_array($existingPaths)) {
             return $this;
         }
 
         return $this->setParameter('paths', array_values(array_filter(
-            $existing,
+            $existingPaths,
             static fn (mixed $path): bool => !in_array($path, $paths, true),
         )));
     }
@@ -760,14 +769,14 @@ final class PhpStan
     {
         self::assertExcludedPathList($excludedPaths);
 
-        $added       = array_is_list($excludedPaths) ? ['analyseAndScan' => $excludedPaths] : $excludedPaths;
-        $existing    = $this->config['parameters']['excludePaths'] ?? [];
-        $existing    = is_array($existing) ? $existing : [];
-        $mergedPaths = [];
+        $added                 = array_is_list($excludedPaths) ? ['analyseAndScan' => $excludedPaths] : $excludedPaths;
+        $existingExcludedPaths = $this->config['parameters']['excludePaths'] ?? [];
+        $existingExcludedPaths = is_array($existingExcludedPaths) ? $existingExcludedPaths : [];
+        $mergedPaths           = [];
 
         foreach (self::EXCLUDE_PATH_GROUPS as $group) {
             $paths = [
-                ...self::toPathList($existing[$group] ?? []),
+                ...self::toPathList($existingExcludedPaths[$group] ?? []),
                 ...self::toPathList($added[$group] ?? []),
             ]
                 |> array_unique(...)
@@ -794,13 +803,13 @@ final class PhpStan
     {
         self::assertPathList($excludedPaths);
 
-        $existing  = $this->config['parameters']['excludePaths'] ?? [];
-        $existing  = is_array($existing) ? $existing : [];
-        $keptPaths = [];
+        $existingExcludedPaths = $this->config['parameters']['excludePaths'] ?? [];
+        $existingExcludedPaths = is_array($existingExcludedPaths) ? $existingExcludedPaths : [];
+        $keptPaths             = [];
 
         foreach (self::EXCLUDE_PATH_GROUPS as $group) {
             $paths = array_values(array_filter(
-                self::toPathList($existing[$group] ?? []),
+                self::toPathList($existingExcludedPaths[$group] ?? []),
                 static fn (string $path): bool => !in_array($path, $excludedPaths, true),
             ));
 
@@ -815,16 +824,16 @@ final class PhpStan
     }
 
     /**
-     * Add bootstrap files PHPStan requires before analysis, keeping the ones already there.
+     * Add bootstrap files PHPStan requires before analysis, keeping the ones already configured.
      *
      * @param list<non-empty-string> $bootstrapFiles paths to bootstrap PHP files
      */
     public function addBootstrapFiles(array $bootstrapFiles): self
     {
-        $existing = $this->config['parameters']['bootstrapFiles'] ?? [];
+        $existingBootstrapFiles = $this->config['parameters']['bootstrapFiles'] ?? [];
 
         return $this->setParameter('bootstrapFiles', self::appendUnique(
-            is_array($existing) ? $existing : [],
+            is_array($existingBootstrapFiles) ? $existingBootstrapFiles : [],
             $bootstrapFiles,
         ));
     }
@@ -846,16 +855,75 @@ final class PhpStan
      */
     public function removeBootstrapFiles(array $bootstrapFiles): self
     {
-        $existing = $this->config['parameters']['bootstrapFiles'] ?? [];
+        $existingBootstrapFiles = $this->config['parameters']['bootstrapFiles'] ?? [];
 
-        if (!is_array($existing)) {
+        if (!is_array($existingBootstrapFiles)) {
             return $this;
         }
 
         return $this->setParameter('bootstrapFiles', array_values(array_filter(
-            $existing,
+            $existingBootstrapFiles,
             static fn (mixed $file): bool => !in_array($file, $bootstrapFiles, true),
         )));
+    }
+
+    /**
+     * Add files PHPStan reads the symbols of without analyzing them, keeping the ones already configured.
+     *
+     * @param list<non-empty-string> $scanFiles paths to scan for symbols
+     */
+    public function addScanFiles(array $scanFiles): self
+    {
+        $existingScanFiles = $this->config['parameters']['scanFiles'] ?? [];
+
+        return $this->setParameter('scanFiles', self::appendUnique(
+            is_array($existingScanFiles) ? $existingScanFiles : [],
+            $scanFiles,
+        ));
+    }
+
+    /**
+     * Replace the scanned files outright.
+     *
+     * @param list<non-empty-string> $scanFiles paths PHPStan reads the symbols of
+     */
+    public function setScanFiles(array $scanFiles): self
+    {
+        return $this->removeParameter('scanFiles')->addScanFiles($scanFiles);
+    }
+
+    /**
+     * Drop scanned files, leaving the rest scanned.
+     *
+     * @param list<non-empty-string> $scanFiles paths to stop scanning
+     */
+    public function removeScanFiles(array $scanFiles): self
+    {
+        $existingScanFiles = $this->config['parameters']['scanFiles'] ?? [];
+
+        if (!is_array($existingScanFiles)) {
+            return $this;
+        }
+
+        return $this->setParameter('scanFiles', array_values(array_filter(
+            $existingScanFiles,
+            static fn (mixed $scanFile): bool => !in_array($scanFile, $scanFiles, true),
+        )));
+    }
+
+    /**
+     * Add directories PHPStan scans the way {@see self::addScanFiles()} scans a file.
+     *
+     * @param list<non-empty-string> $scanDirectories directories to scan for symbols
+     */
+    public function addScanDirectories(array $scanDirectories): self
+    {
+        $existingScanDirectories = $this->config['parameters']['scanDirectories'] ?? [];
+
+        return $this->setParameter('scanDirectories', self::appendUnique(
+            is_array($existingScanDirectories) ? $existingScanDirectories : [],
+            $scanDirectories,
+        ));
     }
 
     /**
@@ -871,7 +939,7 @@ final class PhpStan
     }
 
     /**
-     * Add ignore patterns for known or expected PHPStan errors, keeping the ones already there.
+     * Add ignore patterns for known or expected PHPStan errors, keeping the ones already configured.
      *
      * Each entry is either a raw regular-expression string or a structured entry. A structured
      * entry has to carry a `message`, an `identifier`, or both; PHPStan reports one carrying
@@ -903,10 +971,10 @@ final class PhpStan
      */
     public function addIgnoredErrors(string|array $ignoredErrors): self
     {
-        $existing = $this->config['parameters']['ignoreErrors'] ?? [];
+        $existingIgnoredErrors = $this->config['parameters']['ignoreErrors'] ?? [];
 
         return $this->setParameter('ignoreErrors', self::appendUnique(
-            is_array($existing) ? $existing : [],
+            is_array($existingIgnoredErrors) ? $existingIgnoredErrors : [],
             self::normalizeIgnoredErrors(is_string($ignoredErrors) ? [$ignoredErrors] : $ignoredErrors),
         ));
     }
@@ -946,10 +1014,10 @@ final class PhpStan
      */
     public function removeIgnoredErrors(array $ignoredErrors): self
     {
-        $existing = $this->config['parameters']['ignoreErrors'] ?? [];
+        $existingIgnoredErrors = $this->config['parameters']['ignoreErrors'] ?? [];
 
         return $this->setParameter('ignoreErrors', array_values(array_filter(
-            is_array($existing) ? $existing : [],
+            is_array($existingIgnoredErrors) ? $existingIgnoredErrors : [],
             static fn (mixed $entry): bool => !in_array(self::getIgnoredErrorKey($entry), $ignoredErrors, true),
         )));
     }
@@ -968,7 +1036,7 @@ final class PhpStan
     {
         $this->config['includes'] = array_values(array_filter(
             $this->config['includes'],
-            static fn (string $existing): bool => !in_array($existing, $includePaths, true),
+            static fn (string $includePath): bool => !in_array($includePath, $includePaths, true),
         ));
 
         return $this;
@@ -1622,11 +1690,11 @@ final class PhpStan
             return $this;
         }
 
-        $exceptions = $this->config['parameters']['exceptions'] ?? [];
-        $existing   = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
+        $exceptions      = $this->config['parameters']['exceptions'] ?? [];
+        $existingEntries = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
 
         return $this->setExceptions([
-            $key => self::appendUnique(is_array($existing) ? $existing : [], $values),
+            $key => self::appendUnique(is_array($existingEntries) ? $existingEntries : [], $values),
         ]);
     }
 
@@ -1638,16 +1706,16 @@ final class PhpStan
      */
     private function removeException(string $key, array $values): self
     {
-        $exceptions = $this->config['parameters']['exceptions'] ?? [];
-        $existing   = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
+        $exceptions      = $this->config['parameters']['exceptions'] ?? [];
+        $existingEntries = is_array($exceptions) ? $exceptions[$key] ?? [] : [];
 
-        if (!is_array($existing) || $existing === []) {
+        if (!is_array($existingEntries) || $existingEntries === []) {
             return $this;
         }
 
         return $this->setExceptions([
             $key => array_values(array_filter(
-                $existing,
+                $existingEntries,
                 static fn (mixed $value): bool => !in_array($value, $values, true),
             )),
         ]);
@@ -1661,17 +1729,17 @@ final class PhpStan
      */
     private function removeParameterKeys(string $parameter, array $keys): self
     {
-        $existing = $this->config['parameters'][$parameter] ?? null;
+        $existingParameter = $this->config['parameters'][$parameter] ?? null;
 
-        if (!is_array($existing)) {
+        if (!is_array($existingParameter)) {
             return $this;
         }
 
         foreach ($keys as $key) {
-            unset($existing[$key]);
+            unset($existingParameter[$key]);
         }
 
-        $this->config['parameters'][$parameter] = $existing;
+        $this->config['parameters'][$parameter] = $existingParameter;
 
         return $this;
     }
@@ -2054,6 +2122,32 @@ final class PhpStan
     }
 
     /**
+     * @return list<non-empty-string>
+     *
+     * @throws RuntimeException when the project manifest cannot be read
+     */
+    private static function getSymfonyScanFiles(): array
+    {
+        $rootDirectory = ProjectKernel::getRootDirectory();
+        $scanFiles     = [];
+
+        $generatingPackages = [
+            self::CONFIG_REFERENCE_PATH       => Package::FrameworkBundle,
+            self::CONTAINER_CONFIGURATOR_PATH => Package::DependencyInjection,
+        ];
+
+        foreach ($generatingPackages as $relativePath => $generatingPackage) {
+            $scanFilePath = $rootDirectory . '/' . $relativePath;
+
+            if ($generatingPackage->isInstalled() && is_file($scanFilePath) && is_readable($scanFilePath)) {
+                $scanFiles[] = $scanFilePath;
+            }
+        }
+
+        return $scanFiles;
+    }
+
+    /**
      * @return array<non-empty-string, bool|non-empty-string>
      *
      * @throws RuntimeException when the environment names a kernel class that cannot be located
@@ -2222,16 +2316,16 @@ final class PhpStan
     }
 
     /**
-     * @param array<array-key, mixed> $existing
-     * @param array<array-key, mixed> $additional
+     * @param array<array-key, mixed> $existingEntries
+     * @param array<array-key, mixed> $additionalEntries
      *
      * @return list<mixed>
      */
-    private static function appendUnique(array $existing, array $additional): array
+    private static function appendUnique(array $existingEntries, array $additionalEntries): array
     {
         $uniqueEntries = [];
 
-        foreach ([...array_values($existing), ...array_values($additional)] as $entry) {
+        foreach ([...array_values($existingEntries), ...array_values($additionalEntries)] as $entry) {
             $uniqueEntries[serialize($entry)] ??= $entry;
         }
 

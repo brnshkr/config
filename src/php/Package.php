@@ -16,6 +16,7 @@ enum Package: string
     case DependencyInjection     = 'symfony/dependency-injection';
     case ExtensionInstaller      = 'phpstan/extension-installer';
     case Finder                  = 'symfony/finder';
+    case FrameworkBundle         = 'symfony/framework-bundle';
     case Laravel                 = 'laravel/framework';
     case PhpAt                   = 'phpat/phpat';
     case PhpCsFixer              = 'friendsofphp/php-cs-fixer';

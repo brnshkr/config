@@ -66,6 +66,9 @@
                 "reportUnmatched": false
             }
         ],
+        "scanFiles": [
+            "./vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php"
+        ],
         "doctrine": {
             "literalString": true,
             "reportDynamicQueryBuilders": true,
