@@ -222,8 +222,13 @@ _TRUE  := 1 true on yes
 _IS_CI  = $(filter-out $(_FALSE),$(CI))
 
 _MAKE_FLAGS  = $(if $(or $(_IS_DEBUG),$(_IS_TRACE)),--no-print-directory,-s) _IS_ANNOUNCING=
-_VERB_FLAGS  = $(_MAKE_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse) --keep-going _IS_ANNOUNCING=1
+_VERB_FLAGS  = $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse) --keep-going _IS_ANNOUNCING=1
 _IS_PARALLEL = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
+
+_UNEXPORTED_VARIABLES = COMPOSER DEBUG ESLINT_FLAGS VITEST
+
+_INHERITED_FLAGS = $(foreach VARIABLE,$(_UNEXPORTED_VARIABLES), \
+	$(if $(filter environment,$(origin $(VARIABLE))),$(VARIABLE)='$($(VARIABLE))'))
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
 
@@ -350,7 +355,7 @@ MODIFIER_REVERSE   := reverse
 
 #---vv arguments
 
-_TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(CURDIR)' \
+_TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(CURDIR)' \
 	'function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist } \
 	/^ifneq/ && index($$0, "wildcard") { \
 		depth += 1; \
@@ -362,7 +367,7 @@ _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(C
 				if (!index(path, "/")) continue; \
 				path = substr(path, index(path, "/")); \
 				sub(/[^A-Za-z0-9_.\/-]+$$/, "", path); \
-				if (does_path_exist(_curdir path)) has_existing_path = 1; \
+				if (does_path_exist(_CURDIR path)) has_existing_path = 1; \
 			} \
 			if (!has_existing_path) skip = depth \
 		} \
@@ -373,7 +378,7 @@ _TARGET_SOURCES := $(shell $(AWK) -v _prefix='$(_TARGET_PREFIX)' -v _curdir='$(C
 	skip { next } \
 	{ while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) \
 		$$0 = substr($$0, 1, RSTART - 1) "@" substr($$0, RSTART + 15, RLENGTH - 16) substr($$0, RSTART + RLENGTH) } \
-	{ gsub(/\$$\(_TARGET_PREFIX\)/, _prefix) } \
+	{ gsub(/\$$\(_TARGET_PREFIX\)/, _PREFIX) } \
 	/^@?[a-zA-Z0-9_.-]+([[:space:]]+@?[a-zA-Z0-9_.-]+)*:([^=]|$$)/ { \
 		count = split(substr($$0, 1, index($$0, ":") - 1), ns, /[[:space:]]+/); \
 		for (i = 1; i <= count; i += 1) \
@@ -522,12 +527,13 @@ _STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARG
 #*
 #* parameters:
 #*   goals: list<string>
+#*   typed_name?: string = $(_SUGGESTED_FOR)
 #*
 #* returns: list<string>
 #*
 define _suggestions
 $(shell $(PRINTF) '%s\n' $1 \
-	| $(AWK) -v _unknown='$(_SUGGESTED_FOR)' ' \
+	| $(AWK) -v _UNKNOWN='$(or $2,$(_SUGGESTED_FOR))' ' \
 	function levenshtein(left, right,    left_length, right_length, left_index, right_index, cost, best, previous, current) { \
 		left_length = length(left); \
 		right_length = length(right); \
@@ -545,13 +551,18 @@ $(shell $(PRINTF) '%s\n' $1 \
 		} \
 		return previous[right_length] \
 	} \
-	{ measured = levenshtein(_unknown, $$0); if (measured <= (length(_unknown) > 4 ? 2 : 1) || (length(_unknown) >= 3 && index($$0, _unknown))) printf "%d %s\n", measured, $$0 }' \
+	{ measured = levenshtein(_UNKNOWN, $$0); if (measured <= (length(_UNKNOWN) > 4 ? 2 : 1) || (length(_UNKNOWN) >= 3 && index($$0, _UNKNOWN))) printf "%d %s\n", measured, $$0 }' \
 	| sort -n \
 	| $(AWK) 'NR <= 3 { print $$2 }')
 endef
 
 _SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \
 	$(call _suggestions,$(_TARGET_GOALS)),$(call _suggestions,$(_STAGE_GOALS))))
+
+_ARG_VALUES       =
+_UNKNOWN_VALUES   = $(if $(_ARG_VALUES),$(filter-out $(_ARG_VALUES),$(_ARG_WORDS)))
+_MISTYPED_VALUE   = $(firstword $(_UNKNOWN_VALUES))
+_SUGGESTED_VALUES = $(call _suggestions,$(_ARG_VALUES),$(_MISTYPED_VALUE))
 
 #--- common
 
@@ -635,17 +646,12 @@ _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wi
 _NAMED_CONFIGS    = $(filter-out local l force f,$(_ARG_WORDS))
 _IS_FORCED_CONFIG = $(filter force f,$(_ARG_WORDS))
 _CONFIG_NAMES     = $(sort $(foreach CONFIG,$(_CONFIGS) $(_PLACED_CONFIGS) $(_LINKED_CONFIGS),$(call _config_name,$(CONFIG))))
-_UNKNOWN_CONFIGS  = $(filter-out $(_CONFIG_NAMES),$(_NAMED_CONFIGS))
 
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG))) \
 	$(if $(filter local l,$(_ARG_WORDS)),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
 
 $(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
-	$(TRACE_PREFIX)$(if $(_UNKNOWN_CONFIGS),{ \
-		$(call log,No config named `%s`.,$(COLOR_ERROR),'$(firstword $(_UNKNOWN_CONFIGS))'); \
-		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CONFIG_NAMES),disjunction)',no-autolink); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-	},:)
+	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(DEBUG_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		if [ -f "$$target" ]; then \
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
@@ -726,15 +732,8 @@ CACHE_DIR   ?= $(CURDIR)/.cache#v #~~ directory the tools keep their caches in
 _CACHES      = $(if $(CACHE_DIR),$(notdir $(wildcard $(CACHE_DIR)/*)))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none #v
+	$(TRACE_PREFIX)$(call _require_known_value,cache)
 	$(DEBUG_PREFIX)if [ -n "$(strip $(ARGS))" ]; then \
-		for name in $(ARGS); do \
-			case " $(_CACHES) " in \
-				*" $$name "*) ;; \
-				*) $(call log,No cache named `%s`.,$(COLOR_ERROR),"$$name"); \
-					$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)',no-autolink); \
-					exit $(BRNSHKR_CONFIG_ERROR_CODE) ;; \
-			esac; \
-		done; \
 		for name in $(ARGS); do \
 			$(RM) -rf "$(CACHE_DIR)/$$name" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s/%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))' "$$name"); \
@@ -799,6 +798,8 @@ _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(fi
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
 
+_DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
+
 #**
 #* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.
 #*
@@ -812,7 +813,8 @@ $1-%: _SUGGESTED_FOR = $$*
 $1-%:
 	$$(TRACE_PREFIX)$$(if $$(call _goal_of,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),'$$@'); \
 		$$(call _suggest,$1-))
-	$$(DEBUG_PREFIX)$$(MAKE) $$(_MAKE_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* $$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS))
+	$$(DEBUG_PREFIX)$$(if $$(call _goal_of,$$*),$$(_DOTENV_RESET)$$(MAKE) $$(_MAKE_FLAGS) $$(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* \
+		$$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS)),:)
 endef
 
 $(foreach STAGE,$(_DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
@@ -1714,15 +1716,15 @@ endef
 #*
 #* parameters:
 #*   words: list<string>
-#*   valueFlags: list<string>
+#*   value_flags: list<string>
 #*
 #* returns: string
 #*
 define _has_positional_arg
-$(strip $(shell $(PRINTF) '%s\n' $1 | $(AWK) -v value_flags=' $(strip $2) ' '\
+$(strip $(shell $(PRINTF) '%s\n' $1 | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
 	{ \
 		if (skip) { skip = 0; next } \
-		if (index(value_flags, " " $$0 " ") > 0) { skip = 1; next } \
+		if (index(_VALUE_FLAGS, " " $$0 " ") > 0) { skip = 1; next } \
 		if ($$0 != "" && substr($$0, 1, 1) != "-") { print 1; exit } \
 	}'))
 endef
@@ -1903,11 +1905,31 @@ $(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)), \
 	$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(addprefix $1,$(_SUGGESTED_TARGETS)),disjunction)'); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE),if [ -t 0 ] && [ -z "$(_IS_CI)" ]; then \
 		$(call confirm,Did you mean `$1$(_SUGGESTED_TARGETS)`?) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		exec $(MAKE) $(_MAKE_FLAGS) $1$(_SUGGESTED_TARGETS) $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
+		exec $(_DOTENV_RESET)$(MAKE) $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $1$(_SUGGESTED_TARGETS) \
+			$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
 	fi; \
 	$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$1$(_SUGGESTED_TARGETS)'); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE))
+endef
+
+#**
+#* Fails the recipe when an argument is not one of the values the target accepts.
+#*
+#* parameters:
+#*   noun: string
+#*
+#* returns: void
+#*
+define _require_known_value
+$(if $(_UNKNOWN_VALUES),{ \
+	$(call log,No $1 named `%s`.,$(COLOR_ERROR),'$(_MISTYPED_VALUE)'); \
+	$(if $(_SUGGESTED_VALUES),$(if $(word 2,$(_SUGGESTED_VALUES)), \
+		$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_VALUES),disjunction)'), \
+		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$(_SUGGESTED_VALUES)')), \
+		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_ARG_VALUES),disjunction)',no-autolink)); \
+	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+},:)
 endef
 
 #**
@@ -1993,7 +2015,7 @@ $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	};) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
-	| $(AWK) -v _indent='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _identifier='$2' -v _message='$3' -v _status="$$status" "$$_GROUP_AWK"); code=$$?; \
+	| $(AWK) -v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _STATUS="$$status" "$$_GROUP_AWK"); code=$$?; \
 $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
 	[ -z "$$has_spinner" ] || { \
 		kill $$spinner 2>/dev/null; \
@@ -2071,7 +2093,7 @@ endef
 #*
 define _require_coverage
 $(TRACE_PREFIX)$(call _require_file,$1,$4)
-$(TRACE_PREFIX)$(AWK) -v _metric='$2' -v _minimum='$3' '$$0 ~ _metric && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached < _minimum + 0 }' '$1' || { \
+$(TRACE_PREFIX)$(AWK) -v _METRIC='$2' -v _MINIMUM='$3' '$$0 ~ _METRIC && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached < _MINIMUM + 0 }' '$1' || { \
 	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
@@ -2165,13 +2187,13 @@ endef
 #* returns: void
 #*
 define _render_inline_code
-$(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
-	-v _close='$(_ANSI_RESET)' \
-	-v _url='$(if $(filter yes,$2),$(_INLINE_CODE_URL))' \
-	-v _cwd='$(CURDIR)' \
-	-v _prefix='$(_TARGET_PREFIX)' \
-	-v _stages=' $(_DOTENV_STAGES) ' \
-	-v _targets=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
+$(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
+	-v _CLOSE='$(_ANSI_RESET)' \
+	-v _URL='$(if $(filter yes,$2),$(_INLINE_CODE_URL))' \
+	-v _CWD='$(CURDIR)' \
+	-v _PREFIX='$(_TARGET_PREFIX)' \
+	-v _STAGES=' $(_DOTENV_STAGES) ' \
+	-v _TARGETS=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
 		placeholder_position = index(url, "{file}"); \
 		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
@@ -2181,22 +2203,22 @@ $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 	} \
 	function target_definition(name,    key, position, definition, dash) { \
 		key = name; \
-		position = index(_targets, " " key "="); \
-		if (!position && _prefix != "" && index(key, _prefix) == 1) { \
-			key = substr(key, length(_prefix) + 1); \
-			position = index(_targets, " " key "=") \
+		position = index(_TARGETS, " " key "="); \
+		if (!position && _PREFIX != "" && index(key, _PREFIX) == 1) { \
+			key = substr(key, length(_PREFIX) + 1); \
+			position = index(_TARGETS, " " key "=") \
 		} \
 		dash = index(key, "-"); \
-		if (!position && dash > 1 && index(_stages, " " substr(key, 1, dash - 1) " ")) { \
+		if (!position && dash > 1 && index(_STAGES, " " substr(key, 1, dash - 1) " ")) { \
 			key = substr(key, dash + 1); \
-			position = index(_targets, " " key "=") \
+			position = index(_TARGETS, " " key "=") \
 		} \
 		if (!position) return ""; \
-		definition = substr(_targets, position + length(key) + 2); \
+		definition = substr(_TARGETS, position + length(key) + 2); \
 		return substr(definition, 1, index(definition, " ") - 1) \
 	} \
 	function render_hyperlink(path,    line, absolute_path, definition) { \
-		if (_url == "") return ""; \
+		if (_URL == "") return ""; \
 		definition = target_definition(path); \
 		if (definition != "") path = definition; \
 		else if (path !~ /[\/.]/ || path ~ /[[:space:]]/) return ""; \
@@ -2206,9 +2228,9 @@ $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 			path = substr(path, 1, RSTART - 1) \
 		} \
 		if (substr(path, 1, 2) == "./") path = substr(path, 3); \
-		absolute_path = substr(path, 1, 1) == "/" ? path : _cwd "/" path; \
+		absolute_path = substr(path, 1, 1) == "/" ? path : _CWD "/" path; \
 		if (system("test -f " absolute_path) != 0) return ""; \
-		return "\033]8;;" render_url(_url, absolute_path, line) "\033\\" \
+		return "\033]8;;" render_url(_URL, absolute_path, line) "\033\\" \
 	} \
 	{ \
 		while (match($$0, /`[^`]*`/)) { \
@@ -2217,7 +2239,7 @@ $(AWK) -v _open='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 			inline_code = substr($$0, code_start + 1, code_length - 2); \
 			hyperlink = render_hyperlink(inline_code); \
 			hyperlink_end = hyperlink == "" ? "" : "\033]8;;\033\\"; \
-			$$0 = substr($$0, 1, code_start - 1) hyperlink _open inline_code _close hyperlink_end substr($$0, code_start + code_length) \
+			$$0 = substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end substr($$0, code_start + code_length) \
 		} \
 		$1 \
 	}'
@@ -2334,9 +2356,9 @@ endef
 #* returns: string
 #*
 define _make_vars_as_env
-$(foreach VARIABLE,$(shell $(AWK) -v var_names="$(.VARIABLES)" '\
+$(foreach VARIABLE,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '\
 	BEGIN { \
-		count = split(var_names, names, " "); \
+		count = split(_VAR_NAMES, names, " "); \
 		for (idx = 1; idx <= count; idx++) \
 			if (names[idx] ~ /^_?[A-Z][A-Z0-9_]*$$/) \
 				print names[idx] \
@@ -2418,7 +2440,7 @@ function load(path,    line, key, value, quote, continued) {
 	close(path)
 	return 1
 }
-function environment(fallback,    value) { value = (_ENV_KEY in ENVIRON) ? ENVIRON[_ENV_KEY] : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
+function environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
 BEGIN {
 	SQ = sprintf("%c", 39)
 	if (!load(_BASE)) load(_BASE ".dist")
@@ -2441,6 +2463,7 @@ BEGIN {
 			printf "%s ?= %s%s", key, value, _SEPARATOR
 		}
 		printf "export %s%s", key, _SEPARATOR
+		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
 	}
 }
 endef
@@ -2449,6 +2472,7 @@ _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(s
 	$(AWK) \
 		-v _BASE='$(_DOTENV_BASE)' \
 		-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
+		-v _ENV_VALUE='$($(DOTENV_ENV_KEY))' \
 		-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
 		-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
 		-v _PREFIX='$(_LABEL)' \
@@ -2878,7 +2902,7 @@ BEGIN {
 	FS = "\x1f"
 	other = "📌 Other"
 	breaking_label = "⚠ Breaking changes"
-	_url = ENVIRON["_CHANGELOG_URL"]
+	_URL = ENVIRON["_CHANGELOG_URL"]
 	_version = ENVIRON["_CHANGELOG_VERSION"]
 	_compare = ENVIRON["_CHANGELOG_COMPARE"]
 	_all = ENVIRON["_CHANGELOG_ALL"]
@@ -2918,7 +2942,7 @@ BEGIN {
 
 	if (_all != "" && match(refs, /tag: [^,]+/)) {
 		tag = substr(refs, RSTART + 5, RLENGTH - 5)
-		section_compare[section] = (_url != "") ? _url "/compare/" tag "..." section_version[section] : ""
+		section_compare[section] = (_URL != "") ? _URL "/compare/" tag "..." section_version[section] : ""
 		section += 1
 		section_version[section] = tag
 	}
@@ -2953,7 +2977,7 @@ BEGIN {
 	rest = nested
 	sub(/^[^\/]+\/?/, "", rest)
 	short = substr(hash, 1, 7)
-	reference = (_url != "") ? " ([" short "](" _url "/commit/" hash "))" : " (" short ")"
+	reference = (_URL != "") ? " ([" short "](" _URL "/commit/" hash "))" : " (" short ")"
 
 	entry = "- "
 	if (rest != "") entry = entry "**" rest ":** "
@@ -3021,24 +3045,24 @@ function add(identifier, message) {
 	count[identifier] += 1
 	if (example[identifier] == "") example[identifier] = message
 }
-BEGIN { if (_identifier != "" && _message != "") RS = "}" }
+BEGIN { if (_IDENTIFIER != "" && _MESSAGE != "") RS = "}" }
 { raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) has_structured_output = 1 }
-_identifier == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART, RLENGTH); sub(/^[^ ]* error /, "", token); sub(/:? $$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
-_identifier != "" && _message != "" {
+_IDENTIFIER == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART, RLENGTH); sub(/^[^ ]* error /, "", token); sub(/:? $$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
+_IDENTIFIER != "" && _MESSAGE != "" {
 	pending = pending $$0
 	quotes = pending
 	gsub(/\\./, "", quotes)
 	if (gsub(/"/, "", quotes) % 2) { pending = pending "}"; next }
 	if (index(pending, "\"suppressedMessages\"")) is_in_suppressed_messages = 1
-	if (!is_in_suppressed_messages) add(value(pending, _identifier), value(pending, _message))
+	if (!is_in_suppressed_messages) add(value(pending, _IDENTIFIER), value(pending, _MESSAGE))
 	if (index(pending, "\"errorCount\"")) is_in_suppressed_messages = 0
 	pending = ""
 }
-_identifier != "" && _message == "" { buffer = buffer " " $$0 }
+_IDENTIFIER != "" && _MESSAGE == "" { buffer = buffer " " $$0 }
 END {
-	pattern = "\"" _identifier "\":[ \t]*\\["
+	pattern = "\"" _IDENTIFIER "\":[ \t]*\\["
 	rest = buffer
-	while (_identifier != "" && _message == "" && match(rest, pattern)) {
+	while (_IDENTIFIER != "" && _MESSAGE == "" && match(rest, pattern)) {
 		items = substr(rest, RSTART + RLENGTH)
 		rest = items
 		sub(/\].*/, "", items)
@@ -3053,12 +3077,12 @@ END {
 			if (count[order[inner]] < count[order[inner + 1]]) {
 				swap = order[inner]; order[inner] = order[inner + 1]; order[inner + 1] = swap
 			}
-	padding = repeat(" ", 2 * _indent)
-	if (total == 0 && (_status != 0 || (_identifier != "" && !has_structured_output))) {
+	padding = repeat(" ", 2 * _INDENT)
+	if (total == 0 && (_STATUS != 0 || (_IDENTIFIER != "" && !has_structured_output))) {
 		sub(/\n+$$/, "", raw)
 		gsub(/\n/, "\n" padding, raw)
 		if (raw ~ /[^ \t\n]/) printf "%s%s\n", padding, raw
-		exit _status
+		exit _STATUS
 	}
 	if (total == 0) { printf "%s$(call text,✔,$(COLOR_SUCCESS)) $(call text,No findings,$(COLOR_DESCRIPTION))\n", padding; exit }
 	for (position = 1; position <= total; position += 1) {
@@ -3578,10 +3602,12 @@ endef
 
 export EDITOR_URL
 
-$(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
-$(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
-$(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
-$(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
+$(call _target,cc): _ARG_VALUES = $(_CACHES)
 $(call _target,changelog): export _CHANGELOG_AWK = $(_CHANGELOG_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
+$(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
+$(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
+$(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) local l force f
+$(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
+$(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

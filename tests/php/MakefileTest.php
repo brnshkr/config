@@ -864,6 +864,68 @@ final class MakefileTest extends TestCase
         self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/first');
     }
 
+    public function testAMistypedArgumentIsScoredAgainstWhatTheTargetAccepts(): void
+    {
+        $this->writeCaches(['phpstan.cache']);
+
+        $result = $this->runMake(['cc', 'phpstna.cache'], directory: self::CACHES_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('No cache named phpstna.cache', $result);
+        self::assertStringContainsString('Did you mean phpstan.cache', $result);
+        self::assertStringNotContainsString('Try ', $result);
+        self::assertStringNotContainsString('Removed', $result);
+        self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/phpstan.cache');
+    }
+
+    public function testAStageGoalRunsNothingWhenTheTargetItNamesIsUnknown(): void
+    {
+        $known   = $this->runMake(['-n', 'dev-dotenv-show'], directory: self::DOTENV_DIRECTORY);
+        $unknown = $this->runMake(['-n', 'dev-nosuchtarget'], directory: self::DOTENV_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('APP_ENV=dev dotenv-show', $known);
+        self::assertStringNotContainsString('APP_ENV=dev nosuchtarget', $unknown);
+    }
+
+    public function testAnAcceptedSuggestionReadsTheStageItNamesAndKeepsDebugOn(): void
+    {
+        if (shell_exec('command -v script') === null) {
+            self::markTestSkipped('`script` is not installed');
+        }
+
+        $output = $this->runMakeOnATty(
+            ['test-dotenv-shw'],
+            self::DOTENV_DIRECTORY,
+            "y\n",
+            ['NO_ANSI' => '1', 'DEBUG' => '1'],
+        );
+
+        self::assertStringContainsString('APP_ENV=test dotenv-show', $output);
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
+    }
+
+    public function testAStageGoalReadsItsOwnStageWhileTheEnvironmentStillWins(): void
+    {
+        $stage = $this->runMake(['test-dotenv-show'], directory: self::DOTENV_DIRECTORY);
+
+        $overridden = $this->runMake(
+            ['test-dotenv-show'],
+            ['DOTENV_FIXTURE_LAYER' => 'from-the-environment'],
+            self::DOTENV_DIRECTORY,
+        );
+
+        self::assertStringContainsString('DOTENV_FIXTURE_ENVIRONMENT_FILE=test', $stage);
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $stage);
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER=from-the-environment', $overridden);
+    }
+
+    public function testAMistypedConfigNameIsScoredTheSameWay(): void
+    {
+        $result = $this->runMake(['configs', 'phpstna'], directory: self::CONFIGS_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('No config named phpstna', $result);
+        self::assertStringContainsString('Did you mean phpstan', $result);
+    }
+
     public function testCcRemovesEveryCacheWithoutAskingUnderCi(): void
     {
         $this->writeCaches(['first', 'second']);
@@ -1344,9 +1406,14 @@ final class MakefileTest extends TestCase
 
     /**
      * @param list<string> $args
+     * @param array<string, false|string> $env
      */
-    private function runMakeOnATty(array $args, string $directory): string
-    {
+    private function runMakeOnATty(
+        array $args,
+        string $directory,
+        ?string $input = null,
+        array $env = [],
+    ): string {
         $process = new Process([
             'script',
             '-qfc',
@@ -1355,7 +1422,12 @@ final class MakefileTest extends TestCase
         ], env: [
             ...self::getBaselineEnvironment(),
             'NO_ANSI' => '',
+            ...$env,
         ]);
+
+        if ($input !== null) {
+            $process->setInput($input);
+        }
 
         $process->mustRun();
 
