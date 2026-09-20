@@ -388,8 +388,6 @@ jobs:
 
       - name: Run Checks
         run: |
-          make configs
-          touch ./.git/COMMIT_EDITMSG
           make ci
 
   build:
