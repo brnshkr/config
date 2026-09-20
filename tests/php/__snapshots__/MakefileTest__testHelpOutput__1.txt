@@ -423,8 +423,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
    log
     Prints a message behind the <VENDOR>/<PACKAGE> label.
@@ -683,8 +683,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
     parameters:
       question: string
@@ -968,8 +968,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
     parameters:
       question: string
@@ -1469,8 +1469,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
     parameters:
       question: string
@@ -1754,8 +1754,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
     parameters:
       question: string
@@ -2039,8 +2039,8 @@ Functions:
 
    confirm
     Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI it says yes, and without a terminal to ask at it
-    says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+    It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
+    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 
     parameters:
       question: string
@@ -2405,8 +2405,8 @@ Available commands:
 
    [36mconfirm[0m
     [90mAsks a yes/no question before something destructive happens.[0m
-    [90mIt answers itself where nobody can: under [35mCI[0m[90m it says yes, and without a terminal to ask at it[0m
-    [90msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
+    [90mIt answers itself where nobody can: under [35mCI[0m[90m, or without a terminal to ask at, it answers the default.[0m
+    [90mIt succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
 
     [90mparameters:[0m
     [90m  question: string[0m
@@ -2690,8 +2690,8 @@ Available commands:
 
    [32mconfirm[0m
     [0mAsks a yes/no question before something destructive happens.[0m
-    [0mIt answers itself where nobody can: under [33mCI[0m[0m it says yes, and without a terminal to ask at it[0m
-    [0msays no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
+    [0mIt answers itself where nobody can: under [33mCI[0m[0m, or without a terminal to ask at, it answers the default.[0m
+    [0mIt succeeds on yes, so the caller reads it as a condition and says what it skipped.[0m
 
     [0mparameters:[0m
     [0m  question: string[0m

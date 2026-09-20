@@ -1581,7 +1581,7 @@ $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_
 			_CHANGELOG_GROUPS="$(CHANGELOG_GROUPS)" \
 			_CHANGELOG_NAMES="$(CHANGELOG_NAMES)" \
 			$(AWK) "$$_CHANGELOG_AWK" \
-		| { $(if $(_IS_CHANGELOG_WRITE),$(call _changelog_write),$(if $(_IS_CHANGELOG_NOTES),$(call _changelog_notes),$(CAT))); }
+		| { $(if $(_IS_CHANGELOG_WRITE),$(call _changelog_write),$(if $(_IS_CHANGELOG_NOTES),$(call _changelog_notes),$(call _changelog_print))); }
 
 #--- common
 
@@ -2220,8 +2220,8 @@ endef
 
 #**
 #* Asks a yes/no question before something destructive happens.
-#* It answers itself where nobody can: under `CI` it says yes, and without a terminal to ask at it
-#* says no. It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+#* It answers itself where nobody can: under `CI`, or without a terminal to ask at, it answers the default.
+#* It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 #*
 #* parameters:
 #*   question: string
@@ -2231,19 +2231,20 @@ endef
 #*
 define confirm
 { \
-	[ -n "$(_IS_CI)" ] || { \
-		[ -t 0 ] \
-			&& $(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
+	if [ -n "$(_IS_CI)" ] || ! ( : < /dev/tty ) 2>/dev/null; then \
+		$(if $(filter yes,$2),true,false); \
+	else \
+		$(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
 			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,yes) >&2 \
 			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
-			&& read -r answer \
+			&& read -r answer < /dev/tty \
 			&& trap - $(_SIGNAL_INTERRUPT) \
 			&& case "$$answer" in \
 				[yY]|[yY][eE][sS]) true;; \
 				"") $(if $(filter yes,$2),true,false);; \
 				*) false;; \
 			esac; \
-	}; \
+	fi; \
 }
 endef
 
@@ -2583,20 +2584,34 @@ fi; \
 endef
 
 #**
+#* Prints the generated changelog under the title, as the file carries it.
+#*
+#* returns: void
+#*
+define _changelog_print
+{ $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; $(CAT); }
+endef
+
+#**
 #* Merges the generated sections into `CHANGELOG_DIR`, keeping every note already written there.
 #*
 #* returns: void
 #*
 define _changelog_write
-if [ '$(_CHANGELOG_MAJOR)' = '0' ] && [ -z '$(filter force f,$(_ARG_WORDS))' ]; then \
+if [ '$(_CHANGELOG_MAJOR)' = '0' ] \
+	&& ! $(call confirm,`$(_CHANGELOG_VERSION)` is below `1.0.0`$(_COMMA) write it anyway?); then \
 	$(CAT) >/dev/null; \
-	$(call log,`%s` is below `1.0.0`$(_COMMA) pass `--force` to write it.,$(COLOR_NOTICE),'$(_CHANGELOG_VERSION)'); \
+	$(call log,Nothing written.,$(COLOR_NOTICE)); \
 else \
 	$(MKDIR) -p '$(CHANGELOG_DIR)'; \
 	$(CAT) > '$(_CHANGELOG_FILE).added'; \
 	{ \
-		[ -f '$(_CHANGELOG_FILE)' ] || $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; \
-		_CHANGELOG_ADDED='$(_CHANGELOG_FILE).added' $(AWK) "$$_CHANGELOG_MERGE_AWK" \
+		$(AWK) 'NR == 1 { has_title = $$0 == "$(CHANGELOG_TITLE)" } END { exit !has_title }' \
+			'$(_CHANGELOG_FILE)' 2>/dev/null \
+			|| $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; \
+		_CHANGELOG_ADDED='$(_CHANGELOG_FILE).added' \
+			_CHANGELOG_FORCE='$(filter force f,$(_ARG_WORDS))' \
+			$(AWK) "$$_CHANGELOG_MERGE_AWK" \
 			'$(_CHANGELOG_FILE).added' \
 			$$([ -f '$(_CHANGELOG_FILE)' ] && $(PRINTF) '%s' '$(_CHANGELOG_FILE)'); \
 	} > '$(_CHANGELOG_FILE).new'; \
@@ -2686,7 +2701,7 @@ function section_text(index_,    position, out) {
 	return out "\n"
 }
 
-function merged_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry) {
+function merged_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry, regenerated) {
 	pending = 0
 	for (position = 1; position <= added_entries[added_index]; position += 1) {
 		if ((existing_index, added_entry_hash[added_index, position]) in existing_hash) continue
@@ -2694,8 +2709,6 @@ function merged_text(existing_index, added_index,    position, entry, group, pen
 		pending_group[pending] = added_entry_group[added_index, position]
 		pending_entry[pending] = added_entry[added_index, position]
 	}
-	if (pending == 0) return ""
-
 	out = ""
 	group = ""
 	held = ""
@@ -2714,7 +2727,8 @@ function merged_text(existing_index, added_index,    position, entry, group, pen
 		}
 		if (is_entry(line)) {
 			seen_entry = 1
-			held = held tail line "\n"
+			regenerated = ENVIRON["_CHANGELOG_FORCE"] == "" ? "" : added_by_hash[added_index, group, hash_of(line)]
+			held = held tail (regenerated == "" ? line : regenerated) "\n"
 			tail = ""
 		} else if (seen_entry) {
 			tail = tail line "\n"
@@ -2760,6 +2774,7 @@ FILENAME == _added {
 		added_entry[added_count, added_entries[added_count]] = $$0
 		added_entry_group[added_count, added_entries[added_count]] = group
 		added_entry_hash[added_count, added_entries[added_count]] = hash_of($$0)
+		added_by_hash[added_count, group, hash_of($$0)] = $$0
 	}
 	next
 }

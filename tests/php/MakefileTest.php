@@ -973,15 +973,15 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('Did you mean phpstan', $result);
     }
 
-    public function testCcRemovesEveryCacheWithoutAskingUnderCi(): void
+    public function testCcKeepsEveryCacheWhereNobodyCanAnswer(): void
     {
         $this->writeCaches(['first', 'second']);
 
-        $removed = $this->runMake(['cc'], ['CI' => '1'], directory: self::CACHES_DIRECTORY);
+        $kept = $this->runMake(['cc'], ['CI' => '1'], directory: self::CACHES_DIRECTORY);
 
-        self::assertStringContainsString('This removes every cache', $removed);
-        self::assertStringContainsString('Removed ./.cache', $removed);
-        self::assertDirectoryDoesNotExist(self::CACHES_DIRECTORY . '/.cache');
+        self::assertStringContainsString('This removes every cache', $kept);
+        self::assertStringContainsString('Nothing removed', $kept);
+        self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache');
     }
 
     public function testCcSaysSoWhenThereIsNothingToRemove(): void
