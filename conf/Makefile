@@ -733,13 +733,13 @@ _CACHES      = $(if $(CACHE_DIR),$(notdir $(wildcard $(CACHE_DIR)/*)))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none #v
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
-	$(DEBUG_PREFIX)if [ -n "$(strip $(ARGS))" ]; then \
-		for name in $(ARGS); do \
+	$(DEBUG_PREFIX)if [ -z "$(_CACHES)" ]; then \
+		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
+	elif [ -n "$(strip $(ARGS))" ]; then \
+		for name in $(sort $(ARGS)); do \
 			$(RM) -rf "$(CACHE_DIR)/$$name" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s/%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))' "$$name"); \
 		done; \
-	elif [ -z "$(_CACHES)" ]; then \
-		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
 		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)',no-autolink); \

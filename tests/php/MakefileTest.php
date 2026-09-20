@@ -956,6 +956,14 @@ final class MakefileTest extends TestCase
         );
     }
 
+    public function testCcReportsNoRemovalForACacheThatWasNeverThere(): void
+    {
+        $result = $this->runMake(['cc', 'nope'], directory: self::CACHES_DIRECTORY);
+
+        self::assertStringContainsString('No caches to remove', $result);
+        self::assertStringNotContainsString('Removed', $result);
+    }
+
     public function testStartupInstallsEachStackThenRunsTheProjectsOwnTargets(): void
     {
         $result = $this->runMake(
