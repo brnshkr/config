@@ -7,6 +7,9 @@ STARTUP_TARGETS := build \
 
 include ./conf/Makefile
 
+CHANGELOG_NAMES += editor-url=EditorUrl \
+	file-finder=FileFinder
+
 ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/Makefile \
 	./conf/Makefile.dist \

@@ -1520,41 +1520,167 @@ CHANGELOG_SKIPPED_TYPES ?= test	\
 	build#vv #~~ commit types left out of the changelog
 
 CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
-	js=☕_JS \
-	php=🐘_PHP \
-	rule=🧩_Rules \
-	make=🔨_Make \
-	composer=📦_Composer \
+	a11y=♿_Accessibility \
+	admin=🛠️_Admin \
 	ai=🤖_AI \
-	vscode=💻_Editor \
-	readme=📚_Documentation \
-	docs=📚_Documentation \
+	api=🔌_API \
+	assets=🖼️_Assets \
+	auth=🔐_Auth \
+	backend=🧱_Backend \
+	cache=🗃️_Cache \
 	ci=⚙️_CI \
+	cli=⌨️_CLI \
+	composer=📦_Composer \
+	config=🔧_Configuration \
+	db=🗄️_Database \
+	docker=🐳_Docker \
+	docs=📚_Documentation \
+	events=📡_Events \
+	forms=📝_Forms \
+	frontend=🖥️_Frontend \
+	i18n=🌍_Translations \
+	js=☕_JS \
+	logging=🧾_Logging \
+	mail=✉️_Mail \
+	make=🔨_Make \
+	payment=💳_Payment \
+	perf=⚡_Performance \
+	php=🐘_PHP \
+	queue=📬_Queue \
+	readme=📚_Documentation \
 	release=🔖_Release \
+	routing=🧭_Routing \
+	rule=🧩_Rules \
+	schedule=⏰_Schedule \
+	search=🔍_Search \
+	security=🔒_Security \
+	seo=🔎_SEO \
+	storage=💾_Storage \
+	templates=🖌️_Templates \
+	test=🧪_Tests \
+	twig=🌿_Twig \
+	ui=🎨_UI \
+	vscode=💻_Editor \
 	general=🧰_General#vv #~~ headings per scope root, as `<root>=<heading>` pairs, `_` a space
 
-CHANGELOG_NAMES ?= commands=Commands \
+CHANGELOG_NAMES ?= a11y=a11y \
+	acl=ACL \
+	apcu=APCu \
+	api=API \
+	aws=AWS \
+	bdd=BDD \
+	cdn=CDN \
+	cgi=CGI \
+	cli=CLI \
+	cms=CMS \
 	commitlint=commitlint \
-	composer=Composer \
-	editor-url=EditorUrl \
-	file-finder=FileFinder \
+	cors=CORS \
+	csp=CSP \
+	css=CSS \
+	csv=CSV \
+	db=Database \
+	dbal=DBAL \
+	di=DI \
+	dns=DNS \
+	dto=DTO \
+	dx=DX \
+	esbuild=esbuild \
 	eslint=ESLint \
+	fastcgi=FastCGI \
+	ffi=FFI \
+	fpm=FPM \
+	frankenphp=FrankenPHP \
+	gcp=GCP \
+	github=GitHub \
+	gitlab=GitLab \
+	graphql=GraphQL \
+	grpc=gRPC \
+	gui=GUI \
+	html=HTML \
+	http=HTTP \
+	i18n=i18n \
+	iam=IAM \
+	ide=IDE \
+	ini=INI \
+	ios=iOS \
+	ip=IP \
+	jetbrains=JetBrains \
+	js=JS \
 	jsdoc=JSDoc \
+	json=JSON \
+	jwt=JWT \
+	k8s=K8s \
+	kubernetes=Kubernetes \
+	l10n=l10n \
+	less=Less \
+	macos=macOS \
+	mariadb=MariaDB \
 	markdownlint=markdownlint \
+	md=Markdown \
+	mdx=MDX \
+	mfa=MFA \
+	mongodb=MongoDB \
+	mysql=MySQL \
+	nestjs=NestJS \
+	nginx=Nginx \
+	nodejs=Node.js \
+	npm=npm \
+	oauth=OAuth \
+	oidc=OIDC \
+	opcache=OPcache \
+	orm=ORM \
+	os=OS \
+	pcov=PCOV \
+	pdo=PDO \
 	php-cs-fixer=PHP-CS-Fixer \
+	php=PHP \
 	phpat=PHPat \
+	phpdoc=PHPDoc \
 	phpstan=PHPStan \
+	phpstorm=PhpStorm \
 	phpunit=PHPUnit \
-	rector=Rector \
-	stylelint=Stylelint \
+	pnpm=pnpm \
+	postgres=PostgreSQL \
+	psr=PSR \
+	qa=QA \
+	rabbitmq=RabbitMQ \
+	rbac=RBAC \
+	rest=REST \
+	roadrunner=RoadRunner \
+	rpc=RPC \
+	saml=SAML \
+	sass=Sass \
+	scss=SCSS \
+	sdk=SDK \
+	seo=SEO \
+	sql=SQL \
+	sqlite=SQLite \
+	ssh=SSH \
+	ssl=SSL \
+	sso=SSO \
+	ssr=SSR \
+	svg=SVG \
+	tdd=TDD \
+	tls=TLS \
+	toml=TOML \
+	ts=TS \
 	twig-cs-fixer=Twig-CS-Fixer \
+	typedoc=TypeDoc \
 	typescript=TypeScript \
-	mate=Mate \
-	shared=Shared \
-	string=String \
-	test=Test \
-	vitest=Vitest \
-	yaml=YAML#vv #~~ readable scope names, as `<scope>=<name>` pairs, `_` a space
+	ui=UI \
+	ulid=ULID \
+	uri=URI \
+	url=URL \
+	utf8=UTF-8 \
+	uuid=UUID \
+	ux=UX \
+	wasm=WASM \
+	webpack=webpack \
+	xhprof=XHProf \
+	xml=XML \
+	yaml=YAML \
+	yarn=Yarn \
+	yml=YAML#vv #~~ scope names title casing gets wrong, as `<scope>=<name>` pairs, `_` a space
 
 _CHANGELOG_LAST_TAG = $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null)
 _IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
@@ -2869,6 +2995,16 @@ function sort_pair(keys, values, count,    position, sorted, key_held, value_hel
 		values[sorted + 1] = value_held
 	}
 }
+function readable_scope(scope,    parts, count, index_, word, out) {
+	if (scope in names) return names[scope]
+	count = split(scope, parts, /-/)
+	out = ""
+	for (index_ = 1; index_ <= count; index_ += 1) {
+		word = parts[index_]
+		out = out (index_ == 1 ? "" : " ") toupper(substr(word, 1, 1)) substr(word, 2)
+	}
+	return out
+}
 function render(section, label,    position, inner, seconds, mirrored, keys, entries, second, out) {
 	out = unscoped[section, label]
 	for (position = 1; position <= second_count[section, label]; position += 1) {
@@ -2879,7 +3015,7 @@ function render(section, label,    position, inner, seconds, mirrored, keys, ent
 	for (position = 1; position <= second_count[section, label]; position += 1) {
 		second = seconds[position]
 		if (out != "") out = out "\n"
-		out = out "#### " ((second in names) ? names[second] : second) "\n\n" sub_unscoped[section, label, second]
+		out = out "#### " readable_scope(second) "\n\n" sub_unscoped[section, label, second]
 		split("", keys)
 		split("", entries)
 		for (inner = 1; inner <= sub_count[section, label, second]; inner += 1) {
