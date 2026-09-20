@@ -23,7 +23,6 @@ use function is_string;
 use function iterator_to_array;
 use function realpath;
 use function sprintf;
-use function Symfony\Component\String\s;
 use function uksort;
 
 /**
@@ -92,10 +91,10 @@ final readonly class ProjectKernel
         $filesystem   = new Filesystem();
         $namespaceMap = ComposerJson::forProjectUsingThisLibrary()->getNamespaceMap();
 
-        uksort($namespaceMap, static fn (string $left, string $right): int => s($right)->length() <=> s($left)->length());
+        uksort($namespaceMap, static fn (string $left, string $right): int => Str::length($right) <=> Str::length($left));
 
         foreach ($namespaceMap as $namespacePrefix => $directory) {
-            if (!s($className)->startsWith($namespacePrefix)) {
+            if (!Str::startsWith($className, $namespacePrefix)) {
                 continue;
             }
 
@@ -103,7 +102,7 @@ final readonly class ProjectKernel
                 '%s/%s/%s.php',
                 self::getRootDirectory(),
                 Str::trimSuffix($directory, '/'),
-                s($className)->slice(s($namespacePrefix)->length())->replace('\\', '/')->toString(),
+                Str::replace(Str::slice($className, Str::length($namespacePrefix)), '\\', '/'),
             );
 
             if ($filesystem->exists($path)) {

@@ -187,6 +187,12 @@ final readonly class Str
         return $position === false ? $haystack : mb_substr($haystack, $position + self::length($needle));
     }
 
+    public static function slice(string $string, int $offset, ?int $length = null): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return mb_substr($string, $offset, $length);
+    }
+
     public static function trimSuffix(string $haystack, string $suffix): string
     {
         return self::isEmpty($suffix) || !self::endsWith($haystack, $suffix)

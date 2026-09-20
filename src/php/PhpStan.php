@@ -59,6 +59,7 @@ use function array_values;
 use function class_exists;
 use function dirname;
 use function explode;
+use function function_exists;
 use function get_debug_type;
 use function getcwd;
 use function implode;
@@ -1890,8 +1891,7 @@ final class PhpStan
             'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
         ];
 
-        // @phpstan-ignore symplify.forbiddenFuncCall (This is the only way to achieve what we need here)
-        if (class_exists(AbstractString::class)) {
+        if (function_exists('Symfony\Component\String\s')) {
             $stringFunction = s(AbstractString::class)
                 ->beforeLast('\\')
                 ->append('\s')
