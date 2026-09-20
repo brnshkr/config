@@ -4,23 +4,18 @@
   ////////////////////////
 
   // CSS
-  "stylelint.configFile": "./conf/stylelint.mjs",
+  "stylelint.configFile": "./conf/stylelint.dist.mjs",
   "stylelint.configBasedir": "./",
 
   // JS/TS
   "js/ts.tsdk.path": "./node_modules/typescript/lib",
   "eslint.options": {
-    "overrideConfigFile": "./conf/eslint.mjs"
+    "overrideConfigFile": "./conf/eslint.dist.mjs"
   },
-  "eslint.workingDirectories": [
-    {
-      "directory": ".",
-      "changeProcessCWD": true
-    }
-  ],
+  "eslint.workingDirectories": ["."],
 
   // Markdown
-  "markdownlint.configFile": "./conf/markdownlint.mjs",
+  "markdownlint.configFile": "./conf/markdownlint.dist.mjs",
   "markdownlint.configPointer": "/config",
 
   // PHP

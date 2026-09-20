@@ -14,12 +14,7 @@
   "eslint.options": {
     "overrideConfigFile": "./conf/eslint.ts"
   },
-  "eslint.workingDirectories": [
-    {
-      "directory": ".",
-      "changeProcessCWD": true
-    }
-  ],
+  "eslint.workingDirectories": ["."],
 
   // Markdown
   "markdownlint.configFile": "./conf/markdownlint.mjs",
