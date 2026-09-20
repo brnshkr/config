@@ -205,7 +205,7 @@ const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
     },
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/default-expressions`),
-      files: ['**/*.jsdoc-defaults', '**/*.jsdoc-params', '**/*.jsdoc-properties'],
+      files: ['**/*.jsdoc-defaults.md/*.js', '**/*.jsdoc-params.md/*.js', '**/*.jsdoc-properties.md/*.js'],
       rules: {
         'no-empty-function': 'off',
         'no-new': 'off',

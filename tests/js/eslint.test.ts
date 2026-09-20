@@ -28,9 +28,9 @@ test('expected eslint config', async () => {
     virtualGlobs: [
       '**/*.md/**',
       '**/*.md/*.js',
-      '**/*.jsdoc-defaults',
-      '**/*.jsdoc-params',
-      '**/*.jsdoc-properties',
+      '**/*.jsdoc-defaults.md/*.js',
+      '**/*.jsdoc-params.md/*.js',
+      '**/*.jsdoc-properties.md/*.js',
     ],
     resolve: async (filePath) => <JsonObject>(
       await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd()))

@@ -353,6 +353,9 @@ export const jsdoc = async (): Promise<Config[]> => {
       checkParams: true,
       checkProperties: true,
       exampleCodeRegex: EXAMPLE_CODE_REGEX,
+      matchingFileNameDefaults: 'dummy.jsdoc-defaults.md/*.js',
+      matchingFileNameParams: 'dummy.jsdoc-params.md/*.js',
+      matchingFileNameProperties: 'dummy.jsdoc-properties.md/*.js',
       parser,
     })
     : undefined;
