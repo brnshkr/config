@@ -122,7 +122,7 @@ const buildTypeAwareImportOverrides = (
   return hasTypeAwareLinting
     ? [
       {
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.IMPORT}/type-aware`),
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/type-aware`),
         files: [GLOB_TS],
         ignores: DEFAULT_TYPE_AWARE_IGNORES,
         rules: {
@@ -148,7 +148,7 @@ const testOverrides: Config[] = isModuleEnabled(MODULES.test)
 const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
   ? [
     {
-      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/general`),
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JAVASCRIPT}/classes`),
       files: [
         ...GLOB_SCRIPT_FILES.map((glob) => `**/classes/${glob}`),
         ...GLOB_SCRIPT_FILES.map((glob) => `**/errors/${glob}`),
@@ -301,7 +301,7 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
   ...tomlOverrides,
   ...yamlOverrides,
   {
-    name: buildConfigName(MAIN_SCOPES.OVERRIDES, SUB_SCOPES.DEVELOPMENT),
+    name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${SUB_SCOPES.DEVELOPMENT}/general`),
     files: GLOB_DEVELOPMENT_FILES,
     rules: {
       'max-lines': 'off',

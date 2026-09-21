@@ -53,4 +53,5 @@ type SuffixableSubScope = typeof SUB_SCOPES.SETUP
 export type SubScope = Exclude<SubScopeRaw, typeof SUB_SCOPES.UNNAMED>
   | `${SuffixableSubScope}-${string}`
   | `${Exclude<MainScope, typeof MAIN_SCOPES.OVERRIDES>}/${string}`
+  | `${typeof SUB_SCOPES.DEVELOPMENT}/${string}`
   | `${typeof SUB_SCOPES.EXAMPLES}/${typeof SUB_SCOPES.SETUP | typeof SUB_SCOPES.PROCESSOR}`;
