@@ -15,8 +15,7 @@ include ./vendor/brnshkr/config/conf/Makefile
 For a JavaScript package the path is `./node_modules/@brnshkr/config/conf/Makefile`.
 
 Neither path resolves before that stack is installed, so [`./conf/Makefile.dist`](../conf/Makefile.dist)
-guards the include and adds a `bootstrap` target that installs and runs `startup`.
-`composer brnshkr:config:setup --make` writes it; a JavaScript repository copies it.
+guards the include and adds a `bootstrap` target that installs and runs `startup`. Copy it to `./Makefile`.
 
 `make startup` installs each stack, writes any tool config the repository is missing and runs `STARTUP_TARGETS`.
 After that, `make` on its own prints the help.
@@ -139,11 +138,11 @@ Every argument takes a short form and works without dashes: `--all`, `-a`, `all`
 | `--all` | every release, one section each |
 | `--write` | merges into `CHANGELOG_DIR` rather than printing |
 | `--notes` | a release body: no version heading, ending in the compare link |
-| `--force` | writes below `1.0.0`, which is otherwise refused |
+| `--force` | with `--write`, regenerates edited entries |
 
-`--write` **only ever inserts** into `changelog/<major>.x.md`: a section already there keeps every word,
-and a commit missing from it lands after the last entry of its group, matched by hash.
-Delete a section to regenerate it.
+`--write` merges into `changelog/<major>.x.md`:
+your notes stay, a missing commit lands after the last entry of its group, and a missing title is restored.
+Below `1.0.0` it asks first.
 Breaking commits are never skipped.
 
 ## Containers
