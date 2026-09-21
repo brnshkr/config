@@ -590,12 +590,12 @@ _PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
 _LAYERED_CONFIGS     =
 _LINKED_CONFIGS      =
 
-_PLACED_CONFIGS = $(WORKDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
-	$(WORKDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
-	$(WORKDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
-	$(WORKDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json \
-	$(if $(wildcard $(CURDIR)/package.json),$(WORKDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
-	$(if $(wildcard $(CURDIR)/composer.json),$(WORKDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist)
+_PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
+	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
+	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
+	$(CURDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json \
+	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
+	$(if $(wildcard $(CURDIR)/composer.json),$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist)
 
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
@@ -706,7 +706,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
 	done
-	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -f $(WORKDIR)/.gitattributes ] || { \
+	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -f '$(CURDIR)/.gitattributes' ] || { \
 		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(WORKDIR)/.gitattributes $(WORKDIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(WORKDIR)/.gitattributes)'); \
 	},:)
