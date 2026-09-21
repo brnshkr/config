@@ -1231,8 +1231,11 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/commitlint),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
 COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.mjs $(WORKDIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
-COMMITLINT_SOURCE ?= $(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last)#vv #~~ which message `commitlint` reads
+COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, instead of a single message
+COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
+
+_COMMITLINT_PARTS = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
 
 GIT_HOOKS += commit-msg=$(call _target,commitlint)
 

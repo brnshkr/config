@@ -149,6 +149,8 @@ jobs:
       - &checkout
           name: Checkout Repository
           uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+          with:
+            fetch-depth: 0
 
       - name: Normalize and Validate Inputs
         id: validate
@@ -388,6 +390,8 @@ jobs:
 
       - name: Run Checks
         run: make ci
+        env:
+          COMMITLINT_RANGE: ${{ (github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before)) && format('{0}..{1}', github.event.pull_request.base.sha || github.event.before, github.sha) || '' }}
 
   build:
     name: Build
