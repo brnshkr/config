@@ -146,17 +146,4 @@ export default getConfig({
     'ts/no-extraneous-class': 'off',
     'unicorn/name-replacements': 'off',
   },
-}, {
-  files: [
-    'conf/commitlint.dist.mjs',
-    'conf/eslint.dist.mjs',
-    'conf/markdownlint.dist.mjs',
-    'conf/stylelint.dist.mjs',
-    'conf/vitest.dist.mjs',
-  ],
-  // eslint-disable-next-line no-warning-comments -- Temporary TODO to this release done
-  // TODO: Investigate why these errors only happen in CI
-  rules: {
-    'node/no-missing-import': 'off',
-  },
 });

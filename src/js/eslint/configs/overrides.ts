@@ -68,9 +68,29 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
       files: [GLOB_TS],
       rules: {
         strict: 'off',
-        'node/no-missing-import': 'off',
       },
     },
+    ...(isModuleEnabled(MODULES.import) || isModuleEnabled(MODULES.node))
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/imports`),
+        files: GLOB_SCRIPT_FILES,
+        rules: {
+          ...isModuleEnabled(MODULES.import)
+            ? {
+              'import/default': 'off',
+              'import/named': 'off',
+              'import/no-named-as-default-member': 'off',
+              'import/no-unresolved': 'off',
+            }
+            : {},
+          ...isModuleEnabled(MODULES.node)
+            ? {
+              'node/no-missing-import': 'off',
+            }
+            : {},
+        },
+      } satisfies Config]
+      : [],
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/dts`),
       files: [GLOB_DTS],
@@ -85,21 +105,6 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
         'import/no-default-export': 'off',
         'import/no-named-as-default': 'off',
         'import/no-named-as-default-member': 'off',
-      },
-    },
-  ]
-  : [];
-
-const importOverrides: Config[] = (isModuleEnabled(MODULES.import) && isModuleEnabled(MODULES.typescript))
-  ? [
-    {
-      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.IMPORT}/${MAIN_SCOPES.TYPESCRIPT}`),
-      files: [GLOB_TS],
-      rules: {
-        'import/default': 'off',
-        'import/named': 'off',
-        'import/no-named-as-default-member': 'off',
-        'import/no-unresolved': 'off',
       },
     },
   ]
@@ -288,7 +293,6 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
 export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => [
   ...jsOverrides,
   ...tsOverrides,
-  ...importOverrides,
   ...buildTypeAwareImportOverrides(typescriptOptions),
   ...testOverrides,
   ...unicornOverrides,

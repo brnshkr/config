@@ -8982,17 +8982,11 @@ exports[`expected eslint config > diff: 1.js 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -9000,19 +8994,8 @@ exports[`expected eslint config > diff: 1.js 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -9129,9 +9112,6 @@ exports[`expected eslint config > diff: 1.js 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -9185,17 +9165,11 @@ exports[`expected eslint config > diff: 3.cjs 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -9203,19 +9177,8 @@ exports[`expected eslint config > diff: 3.cjs 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -9332,9 +9295,6 @@ exports[`expected eslint config > diff: 3.cjs 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -9847,34 +9807,17 @@ exports[`expected eslint config > diff: 12.svelte 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
       ],
-      "import/named": [
-        2,
-      ],
       "import/no-default-export": [
         2,
       ],
       "import/no-deprecated": [
         2,
-      ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "import/unambiguous": [
         0,
@@ -9976,9 +9919,6 @@ exports[`expected eslint config > diff: 12.svelte 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -10446,17 +10386,11 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -10464,19 +10398,8 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -10593,9 +10516,6 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -18115,17 +18035,11 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -18133,19 +18047,8 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -18262,9 +18165,6 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "strict": [
@@ -18546,17 +18446,11 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -18564,19 +18458,8 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -18693,9 +18576,6 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "strict": [
@@ -19216,34 +19096,17 @@ exports[`expected eslint config > diff: classes/a.svelte 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
       ],
-      "import/named": [
-        2,
-      ],
       "import/no-default-export": [
         2,
       ],
       "import/no-deprecated": [
         2,
-      ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "import/unambiguous": [
         0,
@@ -19345,9 +19208,6 @@ exports[`expected eslint config > diff: classes/a.svelte 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -20527,34 +20387,17 @@ exports[`expected eslint config > diff: components/a.svelte 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
       ],
-      "import/named": [
-        2,
-      ],
       "import/no-default-export": [
         2,
       ],
       "import/no-deprecated": [
         2,
-      ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "import/unambiguous": [
         0,
@@ -20656,9 +20499,6 @@ exports[`expected eslint config > diff: components/a.svelte 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
@@ -23442,17 +23282,11 @@ exports[`expected eslint config > diff: scripts/a.js 1`] = `
           "allowImplicit": false,
         },
       ],
-      "import/default": [
-        2,
-      ],
       "import/max-dependencies": [
         2,
         {
           "max": 15,
         },
-      ],
-      "import/named": [
-        2,
       ],
       "import/no-default-export": [
         2,
@@ -23460,19 +23294,8 @@ exports[`expected eslint config > diff: scripts/a.js 1`] = `
       "import/no-deprecated": [
         2,
       ],
-      "import/no-named-as-default-member": [
-        2,
-      ],
       "import/no-rename-default": [
         2,
-      ],
-      "import/no-unresolved": [
-        2,
-        {
-          "caseSensitive": true,
-          "caseSensitiveStrict": true,
-          "commonjs": true,
-        },
       ],
       "jsdoc/check-tag-names": [
         2,
@@ -23593,9 +23416,6 @@ exports[`expected eslint config > diff: scripts/a.js 1`] = `
         },
       ],
       "no-with": [
-        2,
-      ],
-      "node/no-missing-import": [
         2,
       ],
       "node/no-sync": [
