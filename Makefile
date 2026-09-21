@@ -7,7 +7,7 @@ STARTUP_TARGETS := build \
 
 include ./conf/Makefile
 
-VERSION := 0.0.1-beta.4
+VERSION := 0.0.1-beta.5
 
 CHANGELOG_NAMES += editor-url=EditorUrl \
 	file-finder=FileFinder
