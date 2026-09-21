@@ -1356,6 +1356,7 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/stylelint),) # stylelint
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
 STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.mjs $(WORKDIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
+STYLELINT_CACHE  ?= $(WORKDIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
 STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
@@ -1393,7 +1394,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) \
+	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(WORKDIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
 		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
@@ -1404,7 +1405,7 @@ $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
+	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(WORKDIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
