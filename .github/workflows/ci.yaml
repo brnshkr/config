@@ -387,9 +387,7 @@ jobs:
           run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
       - name: Run Checks
-        run: |
-          make build
-          make ci
+        run: make ci
 
   build:
     name: Build
@@ -417,6 +415,10 @@ jobs:
       - *handle-composer-cache
       - *setup-composer
       - *install-php-dependencies
+
+      - name: Check Shipped Files
+        if: fromJSON(needs.inputs.outputs.do-enable-js) && fromJSON(needs.inputs.outputs.do-enable-php)
+        run: make phpunit -- --filter testTheFilesEachPackageShips
 
       - name: Pack PHP Package
         if: *do-enable-php

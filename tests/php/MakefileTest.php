@@ -31,6 +31,7 @@ use function implode;
 use function is_dir;
 use function is_file;
 use function is_link;
+use function is_readable;
 use function mb_substr_count;
 use function md5;
 use function mkdir;
@@ -70,6 +71,7 @@ final class MakefileTest extends TestCase
     private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
     private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
     private const string SETTINGS_DIRECTORY = __DIR__ . '/Fixtures/Make/Settings';
+    private const string PACK_DIRECTORY     = __DIR__ . '/Fixtures/Make/Pack';
     private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [
@@ -748,8 +750,25 @@ final class MakefileTest extends TestCase
         self::assertMatchesRegularExpression('/VENDOR\s+\?=\s+@acme/', $resolved);
     }
 
+    public function testTheListTargetsNameWhatEachPackageShips(): void
+    {
+        $composer = $this->runMake(['composer-list'], directory: self::PACK_DIRECTORY);
+        $bun      = $this->runMake(['bun-list'], directory: self::PACK_DIRECTORY);
+
+        self::assertStringContainsString('src/Example.php', $composer);
+        self::assertStringNotContainsString('tests/Example.php', $composer);
+        self::assertStringContainsString('src/index.mjs', $bun);
+        self::assertStringNotContainsString('tests/', $bun);
+    }
+
     public function testTheFilesEachPackageShips(): void
     {
+        $distDirectory = self::PROJECT_DIRECTORY . '/dist';
+
+        if (!is_dir($distDirectory) || !is_readable($distDirectory)) {
+            self::markTestSkipped('`make build` has to run first, which the build job does before it checks this.');
+        }
+
         $composer = $this->runMake(['composer-list'], directory: self::PROJECT_DIRECTORY);
         $bun      = $this->runMake(['bun-list'], directory: self::PROJECT_DIRECTORY);
 
