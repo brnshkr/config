@@ -389,7 +389,7 @@ jobs:
           run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
       - name: Run Checks
-        run: make ci
+        run: make build ci
         env:
           COMMITLINT_RANGE: ${{ (github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before)) && format('{0}..{1}', github.event.pull_request.base.sha || github.event.before, github.sha) || '' }}
 
