@@ -2,49 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Brnshkr\Config\Tests;
+namespace Brnshkr\Config\Tests\Make;
 
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
-use PHPUnit\Framework\Attributes\After;
-use PHPUnit\Framework\Attributes\Before;
+use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
-use function array_diff;
 use function array_first;
-use function array_map;
 use function array_unique;
 use function count;
-use function dirname;
-use function fclose;
-use function flock;
-use function fopen;
-use function getenv;
 use function implode;
 use function is_dir;
-use function is_file;
-use function is_link;
 use function is_readable;
 use function mb_substr_count;
 use function md5;
 use function mkdir;
 use function readlink;
-use function rmdir;
-use function scandir;
 use function shell_exec;
 use function sprintf;
 use function Symfony\Component\String\s;
-use function unlink;
-
-use const LOCK_EX;
-use const LOCK_UN;
 
 /**
  * @internal
@@ -52,49 +35,19 @@ use const LOCK_UN;
 #[CoversNothing]
 final class MakefileTest extends TestCase
 {
+    use MakeTrait;
     use MatchesSnapshots;
 
-    private const string MAKEFILE_PATH      = __DIR__ . '/../../conf/Makefile';
-    private const string FIXTURES_DIRECTORY = __DIR__ . '/Fixtures/Make/Help';
-    private const string DOTENV_DIRECTORY   = __DIR__ . '/Fixtures/Make/Dotenv';
-    private const string CONSUMER_DIRECTORY = __DIR__ . '/Fixtures/Make/Consumer';
-    private const string CONFIGS_DIRECTORY  = __DIR__ . '/Fixtures/Make/Configs';
-    private const string TSCONFIG_DIRECTORY = __DIR__ . '/Fixtures/Make/Typescript';
-    private const string RESERVED_DIRECTORY = __DIR__ . '/Fixtures/Make/ReservedScope';
-    private const string CACHES_DIRECTORY   = __DIR__ . '/Fixtures/Make/Caches';
-    private const string COVERAGE_DIRECTORY = __DIR__ . '/Fixtures/Make/Coverage';
-    private const string FALLBACK_DIRECTORY = __DIR__ . '/Fixtures/Make/ConfigFallback';
-    private const string VENDOR_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigVendor';
-    private const string MANIFEST_DIRECTORY = __DIR__ . '/Fixtures/Make/Manifest';
-    private const string PROJECT_DIRECTORY  = __DIR__ . '/../..';
-    private const string STARTUP_DIRECTORY  = __DIR__ . '/Fixtures/Make/Startup';
-    private const string SEARCH_DIRECTORY   = __DIR__ . '/Fixtures/Make/ConfigSearch';
-    private const string SPINNER_DIRECTORY  = __DIR__ . '/Fixtures/Make/Spinner';
-    private const string SETTINGS_DIRECTORY = __DIR__ . '/Fixtures/Make/Settings';
-    private const string PACK_DIRECTORY     = __DIR__ . '/Fixtures/Make/Pack';
-    private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../.cache/make-fixtures.lock';
-
-    private const array CONFIG_DIRECTORIES = [
-        self::CONFIGS_DIRECTORY,
-        self::FALLBACK_DIRECTORY,
-        self::VENDOR_DIRECTORY,
-        self::STARTUP_DIRECTORY,
-        self::TSCONFIG_DIRECTORY,
-    ];
-
-    /**
-     * Deterministic environment baseline for every help invocation. Tests merge
-     * scenario-specific overrides on top via `runMakeHelp(env: [...])`.
-     */
-    private const array BASELINE_ENV = [
-        'MAKEFLAGS'         => '',
-        'NO_ANSI'           => '1',
-        'WSL_DISTRO_NAME'   => '',
-        'TERM_PROGRAM'      => '',
-        'TERMINAL_EMULATOR' => '',
-        'EDITOR'            => '',
-        'LANG'              => '',
-    ];
+    private const string DOTENV_DIRECTORY   = __DIR__ . '/../Fixtures/Make/Dotenv';
+    private const string CONSUMER_DIRECTORY = __DIR__ . '/../Fixtures/Make/Consumer';
+    private const string RESERVED_DIRECTORY = __DIR__ . '/../Fixtures/Make/ReservedScope';
+    private const string COVERAGE_DIRECTORY = __DIR__ . '/../Fixtures/Make/Coverage';
+    private const string MANIFEST_DIRECTORY = __DIR__ . '/../Fixtures/Make/Manifest';
+    private const string PROJECT_DIRECTORY  = __DIR__ . '/../../..';
+    private const string SEARCH_DIRECTORY   = __DIR__ . '/../Fixtures/Make/ConfigSearch';
+    private const string SPINNER_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Spinner';
+    private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
+    private const string PACK_DIRECTORY     = __DIR__ . '/../Fixtures/Make/Pack';
 
     /**
      * Snapshot scenarios. Each scenario produces one rendering of `make help`;
@@ -156,11 +109,6 @@ final class MakefileTest extends TestCase
         'no-test-envs'      => ['DOTENV_TEST_ENVS' => '', 'APP_ENV' => 'test'],
         'other-default-env' => ['DOTENV_DEFAULT_ENV' => 'test'],
     ];
-
-    /**
-     * @var resource|null
-     */
-    private $fixtureLock;
 
     public function testHelpOutput(): void
     {
@@ -389,7 +337,7 @@ final class MakefileTest extends TestCase
 
     public function testFixWritesCheckOnlyReadsAndTestOnlyTests(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $fix       = $this->runMake(['fix'], directory: $directory);
         $check     = $this->runMake(['check'], directory: $directory);
         $test      = $this->runMake(['test'], directory: $directory);
@@ -408,7 +356,7 @@ final class MakefileTest extends TestCase
 
     public function testAProjectAddsItsOwnFixerAnalyzerGroupAndTest(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Extras';
+        $directory = __DIR__ . '/../Fixtures/Make/Extras';
 
         self::assertStringContainsString('own analyzer', $this->runMake(['check'], directory: $directory));
         self::assertStringContainsString('own fixer', $this->runMake(['fix'], directory: $directory));
@@ -418,7 +366,7 @@ final class MakefileTest extends TestCase
 
     public function testCiRunsItsTargetsInTheOrderTheyAreListed(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $default   = $this->runMake(['ci'], directory: $directory);
         $fixing    = $this->runMake(['ci'], ['CI_TARGETS' => 'fix check test'], $directory);
 
@@ -429,7 +377,7 @@ final class MakefileTest extends TestCase
 
     public function testFixRunsRectorBeforePhpCsFixerEvenInParallel(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
 
         foreach ([[], ['-j4']] as $flags) {
             $fix = $this->runMake([...$flags, 'fix'], directory: $directory);
@@ -441,7 +389,7 @@ final class MakefileTest extends TestCase
 
     public function testSnapshotsAreUpdatedThroughTheRunnersOwnMechanism(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $phpunit   = $this->runMake(['phpunit-update'], directory: $directory);
         $pest      = $this->runMake(['phpunit-update'], ['PHP_UNIT' => 'echo pest'], $directory);
 
@@ -453,7 +401,7 @@ final class MakefileTest extends TestCase
 
     public function testEveryBunToolRunsItsBinaryRatherThanAScriptOfTheSameName(): void
     {
-        $help = $this->runMake(['help', 'resolve', 'v'], directory: __DIR__ . '/Fixtures/Make/Bun');
+        $help = $this->runMake(['help', 'resolve', 'v'], directory: __DIR__ . '/../Fixtures/Make/Bun');
 
         foreach (['commitlint', 'eslint', 'markdownlint-cli2', 'stylelint', 'tsc', 'vitest'] as $binary) {
             self::assertStringContainsString('bun --bun x ' . $binary . ' ', $help);
@@ -462,8 +410,8 @@ final class MakefileTest extends TestCase
 
     public function testAnInspectorIsOfferedOnlyWhereItIsInstalled(): void
     {
-        $installed = $this->runMake(['help', 'vv'], directory: __DIR__ . '/Fixtures/Make/Bun');
-        $missing   = $this->runMake(['help', 'vv'], directory: __DIR__ . '/Fixtures/Make/Verbs');
+        $installed = $this->runMake(['help', 'vv'], directory: __DIR__ . '/../Fixtures/Make/Bun');
+        $missing   = $this->runMake(['help', 'vv'], directory: __DIR__ . '/../Fixtures/Make/Verbs');
 
         self::assertStringContainsString('eslint-inspect', $installed);
         self::assertStringContainsString('bun-inspect', $installed);
@@ -473,7 +421,7 @@ final class MakefileTest extends TestCase
 
     public function testAVerbAnnouncesEachTargetItRunsAndNothingElseDoes(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $check     = $this->runMake(['check'], directory: $directory);
         $fix       = $this->runMake(['fix'], directory: $directory);
         $ci        = $this->runMake(['ci'], directory: $directory);
@@ -491,7 +439,7 @@ final class MakefileTest extends TestCase
 
     public function testAnAnnouncementCanBeRewordedOrSilenced(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $reworded  = $this->runMake(['check'], ['ANNOUNCEMENT' => '>>> %s'], $directory);
         $silenced  = $this->runMake(['check'], ['ANNOUNCEMENT' => ''], $directory);
 
@@ -501,7 +449,7 @@ final class MakefileTest extends TestCase
 
     public function testAVerbRunsEveryToolPastAFailureWhileCiAndAFixChainStop(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Verbs';
+        $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $check     = $this->runMake(['check'], ['PHP_CS_FIXER' => 'false'], $directory, doExpectFailure: true);
         $ci        = $this->runMake(['ci'], ['PHP_CS_FIXER' => 'false'], $directory, doExpectFailure: true);
         $fix       = $this->runMake(['fix'], ['RECTOR' => 'false'], $directory, doExpectFailure: true);
@@ -514,7 +462,7 @@ final class MakefileTest extends TestCase
 
     public function testAParallelCheckPrintsEachToolWhole(): void
     {
-        $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/Fixtures/Make/Verbs');
+        $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/../Fixtures/Make/Verbs');
 
         self::assertMatchesRegularExpression('/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/', $check);
         self::assertMatchesRegularExpression('/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/', $check);
@@ -523,7 +471,7 @@ final class MakefileTest extends TestCase
 
     public function testAVerbWithNothingToRunSaysSo(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Consumer';
+        $directory = __DIR__ . '/../Fixtures/Make/Consumer';
 
         self::assertStringContainsString('No fixer to run.', $this->runMake(['fix'], directory: $directory));
         self::assertStringContainsString('No tool to run.', $this->runMake(['check'], directory: $directory));
@@ -564,7 +512,7 @@ final class MakefileTest extends TestCase
 
     public function testACollidingNameStaysWithTheProjectAndTheSharedOneMovesAside(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Collision';
+        $directory = __DIR__ . '/../Fixtures/Make/Collision';
 
         self::assertStringContainsString('collision', $this->runMake(['check'], directory: $directory));
         self::assertContainsSymbol('brnshkr-check', $this->runMake(['help'], directory: $directory));
@@ -574,7 +522,7 @@ final class MakefileTest extends TestCase
     {
         $result = $this->runMake(
             ['shared-check'],
-            directory: __DIR__ . '/Fixtures/Make/PrefixedCollision',
+            directory: __DIR__ . '/../Fixtures/Make/PrefixedCollision',
             doExpectFailure: true,
         );
 
@@ -584,7 +532,7 @@ final class MakefileTest extends TestCase
 
     public function testATargetInsideAConditionalTheProjectNeverTookIsNotOffered(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Conditionals';
+        $directory = __DIR__ . '/../Fixtures/Make/Conditionals';
 
         foreach (['gate-any-present', 'gate-nested-present', 'gate-odd-characters', 'gate-ifeq-other'] as $target) {
             self::assertStringContainsString($target, $this->runMake([$target], directory: $directory));
@@ -608,7 +556,7 @@ final class MakefileTest extends TestCase
     public function testHelpIsTheDefaultGoalUnlessTheProjectNamesItsOwn(): void
     {
         $shared = $this->runMake([], directory: self::CONSUMER_DIRECTORY);
-        $own    = $this->runMake([], directory: __DIR__ . '/Fixtures/Make/DefaultGoal');
+        $own    = $this->runMake([], directory: __DIR__ . '/../Fixtures/Make/DefaultGoal');
 
         self::assertStringContainsString('Available commands:', $shared);
         self::assertSame('own-default', Str::trim($own));
@@ -636,7 +584,7 @@ final class MakefileTest extends TestCase
 
     public function testMissingConfigurationNamesThePathAndTheVariable(): void
     {
-        $result = $this->runMake(['phpstan'], directory: __DIR__ . '/Fixtures/Make/Guard', doExpectFailure: true);
+        $result = $this->runMake(['phpstan'], directory: __DIR__ . '/../Fixtures/Make/Guard', doExpectFailure: true);
 
         self::assertStringContainsString('conf/phpstan.dist.php is missing', $result);
         self::assertStringContainsString('PHP_STAN_CONFIG', $result);
@@ -646,7 +594,7 @@ final class MakefileTest extends TestCase
     {
         $result = $this->runMake(
             ['phpstan', 'WORKDIR=/app', 'PHP_STAN_CONFIG=/app/conf/phpstan.php'],
-            directory: __DIR__ . '/Fixtures/Make/Guard',
+            directory: __DIR__ . '/../Fixtures/Make/Guard',
             doExpectFailure: true,
         );
 
@@ -1065,7 +1013,7 @@ final class MakefileTest extends TestCase
     {
         $result = $this->runMake(
             ['twice'],
-            directory: __DIR__ . '/Fixtures/Make/Duplicates',
+            directory: __DIR__ . '/../Fixtures/Make/Duplicates',
             doExpectFailure: true,
         );
 
@@ -1079,13 +1027,13 @@ final class MakefileTest extends TestCase
         $withDebug = $this->runMake(
             ['phpstan'],
             ['DEBUG' => '1'],
-            directory: __DIR__ . '/Fixtures/Make/Guard',
+            directory: __DIR__ . '/../Fixtures/Make/Guard',
             doExpectFailure: true,
         );
         $withTrace = $this->runMake(
             ['phpstan'],
             ['TRACE' => '1'],
-            directory: __DIR__ . '/Fixtures/Make/Guard',
+            directory: __DIR__ . '/../Fixtures/Make/Guard',
             doExpectFailure: true,
         );
 
@@ -1098,7 +1046,7 @@ final class MakefileTest extends TestCase
         $result = $this->runMake(
             ['phpstan'],
             ['BRNSHKR_CONFIG_ERROR_CODE' => '7'],
-            directory: __DIR__ . '/Fixtures/Make/Guard',
+            directory: __DIR__ . '/../Fixtures/Make/Guard',
             doExpectFailure: true,
         );
 
@@ -1138,7 +1086,7 @@ final class MakefileTest extends TestCase
 
     public function testFindingsAreCountedByTheIdentifierTheyCarry(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
         $pairs     = $this->runMake(['group-pairs'], directory: $directory);
         $lists     = $this->runMake(['group-lists'], directory: $directory);
 
@@ -1150,7 +1098,7 @@ final class MakefileTest extends TestCase
 
     public function testFindingsAreCountedByTheCodeACompilerPrints(): void
     {
-        $text = $this->runMake(['group-text'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $text = $this->runMake(['group-text'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringContainsString('2  TS2345 ', $text);
         self::assertStringContainsString('1  TS2571 ', $text);
@@ -1160,7 +1108,7 @@ final class MakefileTest extends TestCase
 
     public function testSuppressedFindingsAreNotCounted(): void
     {
-        $eslint = $this->runMake(['group-eslint'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $eslint = $this->runMake(['group-eslint'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringContainsString('2  acme/real  Real finding.', $eslint);
         self::assertStringNotContainsString('acme/suppressed', $eslint);
@@ -1168,7 +1116,7 @@ final class MakefileTest extends TestCase
 
     public function testAMessageContainingBracesKeepsItsText(): void
     {
-        $braces = $this->runMake(['group-braces'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $braces = $this->runMake(['group-braces'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringContainsString('2  acme.shape  Offset \'x\' does not exist on array{a: int}.', $braces);
         self::assertStringContainsString("✘ 2 findings\n", $braces);
@@ -1176,7 +1124,7 @@ final class MakefileTest extends TestCase
 
     public function testAToolSaysHowManyFindingsItHasOrThatItHasNone(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
 
         self::assertStringContainsString("✘ 3 findings\n", $this->runMake(['group-pairs'], directory: $directory));
         self::assertStringContainsString("✘ 1 finding\n", $this->runMake(['group-single'], directory: $directory));
@@ -1189,7 +1137,7 @@ final class MakefileTest extends TestCase
 
     public function testOutputThatIsNotATerminalGetsNoProgressLine(): void
     {
-        $output = $this->runMake(['group-pairs'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $output = $this->runMake(['group-pairs'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringStartsWith('2  acme.first', $output);
         self::assertStringNotContainsString('Running', $output);
@@ -1197,7 +1145,7 @@ final class MakefileTest extends TestCase
 
     public function testAGroupIsLabeledOnlyWhenAVerbRunsIt(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
         $verb      = $this->runMake(['groups'], directory: $directory);
         $silenced  = $this->runMake(['groups'], ['ANNOUNCEMENT' => ''], $directory);
 
@@ -1208,7 +1156,7 @@ final class MakefileTest extends TestCase
 
     public function testParallelGroupsPrintEachReportWhole(): void
     {
-        $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/Fixtures/Make/Group');
+        $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringContainsString("[Group] Running group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n", $output);
         self::assertStringNotContainsString('Running…', $output);
@@ -1221,7 +1169,7 @@ final class MakefileTest extends TestCase
 
     public function testOnlyAToolThatReportedNothingFailsTheTarget(): void
     {
-        $directory = __DIR__ . '/Fixtures/Make/Group';
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
         $failing   = $this->runMake(['group-failing'], directory: $directory);
         $crashed   = $this->runMake(['group-crash'], directory: $directory, doExpectFailure: true);
 
@@ -1234,7 +1182,7 @@ final class MakefileTest extends TestCase
         foreach (['pest', 'pest-debug', 'pest-list', 'pest-update', 'pest-coverage'] as $target) {
             $result = $this->runMake(
                 [$target],
-                directory: __DIR__ . '/Fixtures/Make/Guard',
+                directory: __DIR__ . '/../Fixtures/Make/Guard',
                 doExpectFailure: true,
             );
 
@@ -1247,7 +1195,7 @@ final class MakefileTest extends TestCase
         $resolved = $this->runMake(
             ['help', 'resolve', 'vv'],
             ['VALUE_WIDTH' => '200'],
-            __DIR__ . '/Fixtures/Make/ConfigVendor',
+            __DIR__ . '/../Fixtures/Make/ConfigVendor',
         );
 
         self::assertMatchesRegularExpression(
@@ -1287,89 +1235,6 @@ final class MakefileTest extends TestCase
         self::assertFileExists(self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php');
     }
 
-    #[Before]
-    public function claimTheFixturesForThisTest(): void
-    {
-        $lockDirectory = dirname(self::FIXTURE_LOCK_PATH);
-
-        if (!is_dir($lockDirectory)) {
-            mkdir($lockDirectory, recursive: true);
-        }
-
-        $lock = fopen(self::FIXTURE_LOCK_PATH, 'c');
-
-        if ($lock === false) {
-            self::fail('The fixture lock could not be opened.');
-        }
-
-        $this->fixtureLock = $lock;
-
-        flock($lock, LOCK_EX);
-        $this->removeWhatTheFixturesWrote();
-    }
-
-    #[After]
-    public function releaseTheFixturesAfterThisTest(): void
-    {
-        $this->removeWhatTheFixturesWrote();
-
-        if ($this->fixtureLock === null) {
-            return;
-        }
-
-        flock($this->fixtureLock, LOCK_UN);
-        fclose($this->fixtureLock);
-
-        $this->fixtureLock = null;
-    }
-
-    private function removeWhatTheFixturesWrote(): void
-    {
-        $written = [
-            self::CONFIGS_DIRECTORY . '/.gitignore',
-            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpstan.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpstan.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpunit.dist.xml',
-            self::CONFIGS_DIRECTORY . '/conf/phpunit.xml',
-            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.php',
-            self::FALLBACK_DIRECTORY . '/.gitignore',
-            self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php',
-            self::FALLBACK_DIRECTORY . '/conf/phpstan.php',
-            self::VENDOR_DIRECTORY . '/.gitignore',
-            self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php',
-            self::VENDOR_DIRECTORY . '/conf/phpstan.php',
-            self::STARTUP_DIRECTORY . '/.gitignore',
-            self::TSCONFIG_DIRECTORY . '/.gitignore',
-            self::TSCONFIG_DIRECTORY . '/tsconfig.json',
-            self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
-        ];
-
-        foreach (self::CONFIG_DIRECTORIES as $directory) {
-            $written = [
-                ...$written,
-                $directory . '/.editorconfig',
-                $directory . '/.gitattributes',
-                $directory . '/bunfig.toml',
-            ];
-        }
-
-        foreach ($written as $path) {
-            if (is_file($path) || is_link($path)) {
-                unlink($path);
-            }
-        }
-
-        foreach (self::CONFIG_DIRECTORIES as $directory) {
-            self::removeDirectory($directory . '/.vscode');
-        }
-
-        self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');
-        self::removeDirectory(self::CACHES_DIRECTORY . '/.cache');
-    }
-
     /**
      * @param list<string> $names
      */
@@ -1378,21 +1243,6 @@ final class MakefileTest extends TestCase
         foreach ($names as $name) {
             mkdir(self::CACHES_DIRECTORY . '/.cache/' . $name, recursive: true);
         }
-    }
-
-    private static function removeDirectory(string $path): void
-    {
-        if (!is_dir($path)) {
-            return;
-        }
-
-        foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $entry) {
-            $child = $path . '/' . $entry;
-
-            is_dir($child) ? self::removeDirectory($child) : unlink($child);
-        }
-
-        rmdir($path);
     }
 
     private static function assertContainsSymbol(string $symbol, string $output): void
@@ -1479,41 +1329,6 @@ final class MakefileTest extends TestCase
 
     /**
      * @param list<string> $args
-     * @param array<string, string> $env
-     */
-    private function runMake(
-        array $args = [],
-        array $env = [],
-        ?string $directory = null,
-        bool $doExpectFailure = false,
-    ): string {
-        $process = new Process([
-            'make',
-            '--no-print-directory',
-            ...($directory === null ? ['-f', self::MAKEFILE_PATH] : []),
-            '-C',
-            $directory ?? self::FIXTURES_DIRECTORY,
-            ...$args,
-        ], env: [
-            ...self::getBaselineEnvironment(),
-            ...$env,
-        ]);
-
-        $process->run();
-
-        if (!$doExpectFailure && !$process->isSuccessful()) {
-            throw new RuntimeException(sprintf(
-                "make help failed:\n%s\n%s",
-                $process->getOutput(),
-                $process->getErrorOutput(),
-            ));
-        }
-
-        return $this->normalizeOutput($process->getOutput() . $process->getErrorOutput());
-    }
-
-    /**
-     * @param list<string> $args
      * @param array<string, false|string> $env
      */
     private function runMakeOnATty(
@@ -1540,26 +1355,5 @@ final class MakefileTest extends TestCase
         $process->mustRun();
 
         return $process->getOutput();
-    }
-
-    private function normalizeOutput(string $output): string
-    {
-        return s($output)
-            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(dirname(self::MAKEFILE_PATH, 2))), '.')
-            ->toString()
-        ;
-    }
-
-    /**
-     * @return array<string, false|string>
-     */
-    private static function getBaselineEnvironment(): array
-    {
-        return [
-            ...array_map(static fn (): false => false, getenv()),
-            'HOME' => getenv('HOME'),
-            'PATH' => getenv('PATH') ?: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-            ...self::BASELINE_ENV,
-        ];
     }
 }
