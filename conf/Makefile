@@ -1256,7 +1256,9 @@ $(call _target,rector-list): #~~ lists all files that are processed by `rector` 
 
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(RECTOR) list-rules --config $(RECTOR_CONFIG) $(_NO_ANSI_OPTION) $(ARGS)
+	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG))
+
+$(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
 endif # /rector
 
@@ -2180,6 +2182,19 @@ $(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG
 endef
 
 #**
+#* Runs a PHP program the target exports, handing it the project's autoloader before the arguments.
+#*
+#* parameters:
+#*   program: string
+#*   arguments: string
+#*
+#* returns: void
+#*
+define _php_program
+$(PHP) -r "$$$1" $(_AUTOLOADER) $2
+endef
+
+#**
 #* Names the project's root namespace in a copied PHP config's `@internal` tag.
 #* A file with no namespace still says where it belongs. Falls back to `App`, and does nothing
 #* without an autoloader.
@@ -2191,7 +2206,7 @@ endef
 #*
 define _name_internal_tag
 if [ -r "$(call _host_path,$(_AUTOLOADER))" ]; then \
-	$(PHP) -r "$$_NAME_INTERNAL_TAG_PROGRAM" "$(_AUTOLOADER)" "$(APP_DIR)/$1" \
+	$(call _php_program,_NAME_INTERNAL_TAG_PROGRAM,"$(APP_DIR)/$1") \
 		|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 fi
 endef
@@ -2954,6 +2969,48 @@ else \
 			&& $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(_CHANGELOG_FILE))'); \
 	fi; \
 fi
+endef
+
+define _RULES_PROGRAM_SOURCE
+[, $$autoloaderPath, $$toolName, $$configPath] = $$argv;
+
+require $$autoloaderPath;
+
+$$rectorConfig = new Rector\DependencyInjection\LazyContainerFactory()->create();
+
+(require $$configPath)($$rectorConfig);
+
+$$rectorConfig->boot();
+
+$$rules = $$rectorConfig->findByContract(Rector\Contract\Rector\RectorInterface::class);
+
+$$skippedRuleNames = array_keys(array_filter(
+    $$rectorConfig->make(Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver::class)->resolve(),
+    static fn (?array $$paths): bool => $$paths === null,
+));
+
+$$ruleNames = array_values(array_unique(array_map(static fn (object $$rule): string => $$rule::class, $$rules)));
+
+sort($$ruleNames);
+sort($$skippedRuleNames);
+
+$$printSection = static function (string $$title, array $$names): void {
+    echo $$title, PHP_EOL, str_repeat('=', strlen($$title)), PHP_EOL, PHP_EOL;
+
+    foreach ($$names as $$name) {
+        echo ' * ', $$name, PHP_EOL;
+    }
+
+    echo PHP_EOL;
+};
+
+$$printSection(sprintf('Loaded %s rules', $$toolName), $$ruleNames);
+
+if ($$skippedRuleNames !== []) {
+    $$printSection(sprintf('Skipped %s rules', $$toolName), $$skippedRuleNames);
+}
+
+printf('Loaded %d rules%s', count($$ruleNames), PHP_EOL);
 endef
 
 define _CHANGELOG_SECTION_AWK_SOURCE

@@ -238,5 +238,10 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/VENDOR\s+\?=\s+@acme/`,
     regex: /VENDOR\s+\?=\s+@acme/v,
   },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/\nLoaded \d+ rules\n$/`,
+    regex: /\nLoaded \d+ rules\n$/v,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

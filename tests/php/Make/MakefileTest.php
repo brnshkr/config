@@ -1063,6 +1063,15 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('stylelint-print needs a file, pass one as an argument.', $stylelint);
     }
 
+    public function testTheRectorRulesInUseAreListed(): void
+    {
+        $result = $this->runMake(['rector-print'], directory: self::PROJECT_DIRECTORY);
+
+        self::assertStringStartsWith("Loaded rector rules\n===================\n\n * Rector\\", $result);
+        self::assertStringContainsString(' * Rector\DeadCode\Rector\\', $result);
+        self::assertMatchesRegularExpression('/\nLoaded \d+ rules\n$/', $result);
+    }
+
     public function testEditorLinksNameTheProjectDirectoryOnce(): void
     {
         $helpDirectory = self::getRealPath(self::FIXTURES_DIRECTORY);
