@@ -189,6 +189,7 @@
         "./tests/php/ComposerJsonTest.php",
         "./tests/php/EditorUrlTest.php",
         "./tests/php/Exception/UnreachableExceptionTest.php",
+        "./tests/php/Make/ContainerTest.php",
         "./tests/php/Make/MakefileTest.php",
         "./tests/php/Make/Trait/MakeTrait.php",
         "./tests/php/Mate/ProjectTest.php",

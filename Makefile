@@ -37,37 +37,43 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 93.79
 VITEST_MIN_COVERAGE_LINES      := 90.07
 VITEST_MIN_COVERAGE_STATEMENTS := 90.33
 
-_HAS_SCRIPT = $(shell command -v $(SCRIPT) >/dev/null 2>&1 && $(PRINTF) 1)
+FORGE_IMAGE ?= ghcr.io/brnshkr/forge:dev#vv #~~ image the container tests run in
+
+export FORGE_IMAGE
+
+_HAS_FORGE_IMAGE = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && $(PRINTF) 1)
+_HAS_SCRIPT      = $(shell command -v $(SCRIPT) >/dev/null 2>&1 && $(PRINTF) 1)
 
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
+	$(if $(and $(_HAS_DOCKER),$(_HAS_FORGE_IMAGE)),,container) \
 	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
 
 export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
 
 #---vv tools
 
-COMPOSER := ./scripts/composer.php
+COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php
 MV       := mv#vvv #~~ path to `mv` binary
 
 #--- build
 
 typegen: #~~ regenerates the rule types the configs are built from
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(CURDIR)/scripts/typegen.ts
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(APP_DIR)/scripts/typegen.ts
 
 build: typegen #~~ builds the `./dist/` this package publishes
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts $(ARGS)
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(APP_DIR)/conf/tsdown.ts $(ARGS)
 
 watch: #~~ rebuilds `./dist/` as the sources change
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(CURDIR)/conf/tsdown.ts --watch $(ARGS)
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(APP_DIR)/conf/tsdown.ts --watch $(ARGS)
 
 #--- mate
 
-MATE             := $(CURDIR)/vendor/bin/mate
-_MATE_EXTENSIONS := $(CURDIR)/mate/extensions.php
+MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate
+_MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
 
 discover: #~~ runs mate discover
 	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
-	$(DEBUG_PREFIX)if [ ! -f $(_MATE_EXTENSIONS) ]; then \
+	$(DEBUG_PREFIX)if [ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ]; then \
 		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
 	else \
 		$(MAKE) --no-print-directory php-cs-fixer $(_MATE_EXTENSIONS) \
@@ -76,8 +82,8 @@ discover: #~~ runs mate discover
 				/^\/\*\*$$/,/^ \*\/$$/ { next } \
 				/^return/ { print "/**\n * @internal\n */" } \
 				1 \
-			' $(_MATE_EXTENSIONS) > $(_MATE_EXTENSIONS).tmp \
-			&& $(MV) $(_MATE_EXTENSIONS).tmp $(_MATE_EXTENSIONS) \
+			' '$(call _host_path,$(_MATE_EXTENSIONS))' > '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' \
+			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
 			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
 	fi
 

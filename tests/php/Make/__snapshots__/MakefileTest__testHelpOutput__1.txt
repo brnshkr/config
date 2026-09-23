@@ -174,8 +174,14 @@ Description:
 Variables:
  brnshkr
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -229,6 +235,7 @@ Functions:
  brnshkr
   helpers
    text                         wraps a string in ANSI color and modifier escapes, resetting after it
+   run_in                       the command a tool named for a compose service runs through, empty on this machine
    confirm                      asks a yes/no question before something destructive happens
    log                          prints a message behind the <VENDOR>/<PACKAGE> label
  app
@@ -298,8 +305,14 @@ Description:
 Variables:
  brnshkr
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -421,6 +434,10 @@ Functions:
     Wraps a string in ANSI color and modifier escapes, resetting after it.
     The color and the modifiers may be given together or apart.
 
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
    confirm
     Asks a yes/no question before something destructive happens.
     It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
@@ -528,14 +545,20 @@ Variables:
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
-   PHP                         ?=  $(_RUN) php                                      (command that runs php)
+   PHP                         ?=  $(RUN) php                                       (command that runs php)
    TAR                         ?=  tar                                              (path to tar binary)
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -678,6 +701,15 @@ Functions:
       text: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       modifiers?: AnyOf<normal | bold | underline | reverse | bright>
+
+    returns: string
+
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
+    parameters:
+      service: string
 
     returns: string
 
@@ -813,14 +845,20 @@ Variables:
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
-   PHP                         ?=  $(_RUN) php                                      (command that runs php)
+   PHP                         ?=  $(RUN) php                                       (command that runs php)
    TAR                         ?=  tar                                              (path to tar binary)
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -963,6 +1001,15 @@ Functions:
       text: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       modifiers?: AnyOf<normal | bold | underline | reverse | bright>
+
+    returns: string
+
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
+    parameters:
+      service: string
 
     returns: string
 
@@ -1313,14 +1360,20 @@ Variables:
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
-   PHP                         ?=  $(_RUN) php                                      (command that runs php)
+   PHP                         ?=  $(RUN) php                                       (command that runs php)
    TAR                         ?=  tar                                              (path to tar binary)
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -1467,6 +1520,15 @@ Functions:
 
     returns: string
 
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
+    parameters:
+      service: string
+
+    returns: string
+
    confirm
     Asks a yes/no question before something destructive happens.
     It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
@@ -1599,14 +1661,20 @@ Variables:
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
-   PHP                         ?=  $(_RUN) php                                      (command that runs php)
+   PHP                         ?=  $(RUN) php                                       (command that runs php)
    TAR                         ?=  tar                                              (path to tar binary)
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -1752,6 +1820,15 @@ Functions:
 
     returns: string
 
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
+    parameters:
+      service: string
+
+    returns: string
+
    confirm
     Asks a yes/no question before something destructive happens.
     It answers itself where nobody can: under CI, or without a terminal to ask at, it answers the default.
@@ -1884,14 +1961,20 @@ Variables:
    LN                          ?=  ln                                               (path to ln binary)
    PRINTF                      ?=  printf                                           (path to printf binary)
    AWK                         ?=  awk                                              (path to awk binary)
-   PHP                         ?=  $(_RUN) php                                      (command that runs php)
+   PHP                         ?=  $(RUN) php                                       (command that runs php)
    TAR                         ?=  tar                                              (path to tar binary)
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
   settings
-   RUN                         ?=                                                   (command the tools are run through, such as docker compose exec <service>)
-   WORKDIR                     ?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from CURDIR in a container)
+   DOCKER                      ?=  docker                                           (command that runs docker)
+   DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
+   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of the ones this project has)
+   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty to run them on this machine)
+   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering the running one)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
+   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
    HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
    HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
@@ -2034,6 +2117,15 @@ Functions:
       text: string
       color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
       modifiers?: AnyOf<normal | bold | underline | reverse | bright>
+
+    returns: string
+
+   run_in
+    The command a tool named for a compose service runs through, empty on this machine.
+    The service is started first, once per run, unless a throwaway container is what runs it.
+
+    parameters:
+      service: string
 
     returns: string
 
@@ -2250,14 +2342,20 @@ Available commands:
    [36mLN                        [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
    [36mPRINTF                    [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
    [36mAWK                       [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
-   [36mPHP                       [0m  [90m?=  $(_RUN) php                                      (command that runs [35mphp[0m[90m)[0m
+   [36mPHP                       [0m  [90m?=  $(RUN) php                                       (command that runs [35mphp[0m[90m)[0m
    [36mTAR                       [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
    [36mGIT                       [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
    [36mMKTEMP                    [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
    [36mSCRIPT                    [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
   [35msettings[0m
-   [36mRUN                       [0m  [90m?=                                                   (command the tools are run through, such as [35mdocker compose exec <service>[0m[90m)[0m
-   [36mWORKDIR                   [0m  [90m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [35mCURDIR[0m[90m in a container)[0m
+   [36mDOCKER                    [0m  [90m?=  docker                                           (command that runs [35mdocker[0m[90m)[0m
+   [36mDOCKER_COMPOSE            [0m  [90m?=  $(DOCKER) compose                                (command that runs [35mcompose[0m[90m)[0m
+   [36mCOMPOSE_FILE              [0m  [90m?=                                                   (compose files, colon-separated, instead of the ones this project has)[0m
+   [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty to run them on this machine)[0m
+   [36mAPP_SERVICE_MODE          [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering the running one)[0m
+   [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
+   [36mRUN                       [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)[0m
+   [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from [35mCURDIR[0m[90m in a container)[0m
    [36mHOST_UID                  [0m  [90m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
    [36mHOST_GID                  [0m  [90m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
    [36mTARGET_PREFIX             [0m  [90m?=                                                   (namespaces every target this file defines, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
@@ -2403,6 +2501,15 @@ Available commands:
 
     [90mreturns: string[0m
 
+   [36mrun_in[0m
+    [90mThe command a tool named for a compose service runs through, empty on this machine.[0m
+    [90mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
+
+    [90mparameters:[0m
+    [90m  service: string[0m
+
+    [90mreturns: string[0m
+
    [36mconfirm[0m
     [90mAsks a yes/no question before something destructive happens.[0m
     [90mIt answers itself where nobody can: under [35mCI[0m[90m, or without a terminal to ask at, it answers the default.[0m
@@ -2535,14 +2642,20 @@ Available commands:
    [32mLN                        [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
    [32mPRINTF                    [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
    [32mAWK                       [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
-   [32mPHP                       [0m  [0m?=  $(_RUN) php                                      (command that runs [33mphp[0m[0m)[0m
+   [32mPHP                       [0m  [0m?=  $(RUN) php                                       (command that runs [33mphp[0m[0m)[0m
    [32mTAR                       [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
    [32mGIT                       [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
    [32mMKTEMP                    [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
    [32mSCRIPT                    [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
   [33msettings[0m
-   [32mRUN                       [0m  [0m?=                                                   (command the tools are run through, such as [33mdocker compose exec <service>[0m[0m)[0m
-   [32mWORKDIR                   [0m  [0m?=  $(if $(_RUN),/app,$(CURDIR))                     (where the tools see the sources, which differs from [33mCURDIR[0m[0m in a container)[0m
+   [32mDOCKER                    [0m  [0m?=  docker                                           (command that runs [33mdocker[0m[0m)[0m
+   [32mDOCKER_COMPOSE            [0m  [0m?=  $(DOCKER) compose                                (command that runs [33mcompose[0m[0m)[0m
+   [32mCOMPOSE_FILE              [0m  [0m?=                                                   (compose files, colon-separated, instead of the ones this project has)[0m
+   [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty to run them on this machine)[0m
+   [32mAPP_SERVICE_MODE          [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering the running one)[0m
+   [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
+   [32mRUN                       [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)[0m
+   [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from [33mCURDIR[0m[0m in a container)[0m
    [32mHOST_UID                  [0m  [0m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
    [32mHOST_GID                  [0m  [0m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
    [32mTARGET_PREFIX             [0m  [0m?=                                                   (namespaces every target this file defines, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
@@ -2685,6 +2798,15 @@ Available commands:
     [0m  text: string[0m
     [0m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
     [0m  modifiers?: AnyOf<normal | bold | underline | reverse | bright>[0m
+
+    [0mreturns: string[0m
+
+   [32mrun_in[0m
+    [0mThe command a tool named for a compose service runs through, empty on this machine.[0m
+    [0mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
+
+    [0mparameters:[0m
+    [0m  service: string[0m
 
     [0mreturns: string[0m
 

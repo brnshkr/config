@@ -592,7 +592,7 @@ final class MakefileTest extends TestCase
     public function testGuardedPathIsTheOneOnThisMachineWhenTheToolsRunElsewhere(): void
     {
         $result = $this->runMake(
-            ['phpstan', 'WORKDIR=/app', 'PHP_STAN_CONFIG=/app/conf/phpstan.php'],
+            ['phpstan', 'APP_DIR=/app', 'PHP_STAN_CONFIG=/app/conf/phpstan.php'],
             directory: __DIR__ . '/../Fixtures/Make/Guard',
             doExpectFailure: true,
         );
@@ -1061,6 +1061,32 @@ final class MakefileTest extends TestCase
 
         self::assertStringContainsString('eslint-print needs a file, pass one as an argument.', $eslint);
         self::assertStringContainsString('stylelint-print needs a file, pass one as an argument.', $stylelint);
+    }
+
+    public function testEditorLinksNameTheProjectDirectoryOnce(): void
+    {
+        $helpDirectory = self::getRealPath(self::FIXTURES_DIRECTORY);
+
+        $result = $this->runMakeHelp(['vvv'], [
+            'NO_ANSI'    => '',
+            'EDITOR_URL' => 'acme://open/{cwd}/{file}#{line}',
+        ]);
+
+        self::assertStringContainsString('acme://open/' . $helpDirectory . '/.local/Makefile#', $result);
+        self::assertStringNotContainsString($helpDirectory . '/' . $helpDirectory, $result);
+    }
+
+    public function testALoggedPathLinksRelativeToTheProject(): void
+    {
+        $configsDirectory = self::getRealPath(self::CONFIGS_DIRECTORY);
+
+        $result = $this->runMake(['configs'], [
+            'NO_ANSI'    => '',
+            'EDITOR_URL' => 'acme://open/{cwd}/{file}#{line}',
+        ], directory: self::CONFIGS_DIRECTORY);
+
+        self::assertStringContainsString('acme://open/' . $configsDirectory . '/.gitignore#', $result);
+        self::assertStringNotContainsString($configsDirectory . '/' . $configsDirectory, $result);
     }
 
     public function testTheSemverGrammarMatchesWhatSemverAllows(): void

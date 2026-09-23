@@ -83,8 +83,11 @@ Every tool is three variables
 | `STARTUP_TARGETS` | The repository's own steps, run last by `startup`. |
 | `FIXTURE_TARGETS` | The repository's own steps, run by `fixtures` to build what its tests read. |
 | `CHECK_TARGETS`, `FIX_TARGETS`, `GROUP_TARGETS`, `TEST_TARGETS` | The repository's own steps, run by that verb. |
-| `RUN` | The command the tools are run through, such as `docker compose exec app`. |
-| `WORKDIR` | Where the tools see the sources, `/app` under `RUN`. |
+| `APP_SERVICE` | Compose service the tools run in. Empty runs them on this machine. |
+| `APP_SERVICE_MODE` | `run` for a throwaway container per command. |
+| `RUN` | Prefix the tools run through, built from `APP_SERVICE`. |
+| `APP_DIR` | Where the tools see the sources: the service's `working_dir`. |
+| `COMPOSE_FILE` | Compose files instead of the repository's, colon-separated. |
 | `TARGET_ALIASES` | Short names for targets, as `<alias>=<target>`. `h`, and `-h` behind a `--`, both reach `help`. |
 | `TARGET_PREFIX` | Namespaces every shared target. Set it above the include. |
 | `COLLISION_PREFIX` | Namespaces a shared target whose name the repository already uses. Set it above the include. |
@@ -148,15 +151,20 @@ Breaking commits are never skipped.
 
 ## Containers
 
-Say how the tools are run and nothing else changes:
+With a compose file, the tools run in its `app` service, started on first use:
 
 ```Makefile
-RUN := docker compose exec app
+APP_SERVICE := tools
 ```
 
-Paths reported from inside the container are mapped back to your checkout,
-so editor links and error messages point at files you can open.
-`RUN` is ignored when make is already inside the container, so one line serves both.
+Paths map back to your checkout, and inside the container make runs everything directly.
+Declared `.env` keys and command-line variables travel with each command.
+Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
+
+| Target | Does |
+| --- | --- |
+| `up`, `down`, `ps` | starts, stops and lists the services |
+| `<service>-shell`, `-logs`, `-exec` | a shell, the log, a command in that service |
 
 ## Environment files
 

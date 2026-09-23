@@ -1,13 +1,32 @@
 STARTUP_TARGETS :=
 
-_BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile $(CURDIR)/vendor/brnshkr/config/conf/Makefile
+APP_SERVICE ?= app
+
+_BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile \
+	$(CURDIR)/vendor/brnshkr/config/conf/Makefile
 
 ifeq ($(wildcard $(_BRNSHKR_CONFIG_PATHS)),)
 bootstrap:
-	@$(if $(wildcard $(CURDIR)/package.json),bun install)
-	@$(if $(wildcard $(CURDIR)/composer.json),composer install --no-scripts --ignore-platform-reqs)
+	@$(if $(wildcard $(CURDIR)/package.json),$(_BRNSHKR_RUN) bun install)
+	@$(if $(wildcard $(CURDIR)/composer.json),$(_BRNSHKR_RUN) composer install --no-scripts --ignore-platform-reqs)
 	@for path in $(_BRNSHKR_CONFIG_PATHS); do [ -r "$$path" ] && exit 0; done; echo 'brnshkr/config is not installed' >&2; exit 1
 	@$(MAKE) --no-print-directory startup
 else
 include $(firstword $(wildcard $(_BRNSHKR_CONFIG_PATHS)))
 endif
+
+_BRNSHKR_COMPOSE_CANDIDATES := compose.yaml \
+	compose.yml \
+	docker-compose.yaml \
+	docker-compose.yml
+
+_BRNSHKR_COMPOSE_FILES = $(or \
+	$(subst :, ,$(COMPOSE_FILE)), \
+	$(firstword $(wildcard \
+		$(addprefix $(CURDIR)/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/conf/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
+	)) \
+)
+
+_BRNSHKR_COMPOSE = docker compose $(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
+_BRNSHKR_RUN     = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))

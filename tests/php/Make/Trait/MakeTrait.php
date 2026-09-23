@@ -22,6 +22,7 @@ use function is_dir;
 use function is_file;
 use function is_link;
 use function mkdir;
+use function realpath;
 use function rmdir;
 use function scandir;
 use function sprintf;
@@ -224,5 +225,10 @@ trait MakeTrait
             'PATH' => getenv('PATH') ?: throw new RuntimeException('`PATH` is not set.'),
             ...self::BASELINE_ENV,
         ];
+    }
+
+    private static function getRealPath(string $path): string
+    {
+        return realpath($path) ?: throw new RuntimeException(sprintf('`%s` does not exist.', $path));
     }
 }

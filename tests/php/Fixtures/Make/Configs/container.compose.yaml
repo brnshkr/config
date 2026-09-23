@@ -1,0 +1,9 @@
+services:
+  app:
+    image: ${FORGE_IMAGE:?FORGE_IMAGE is required}
+    user: ${HOST_UID:?HOST_UID is required}:${HOST_GID:?HOST_GID is required}
+    working_dir: /app/tests/php/Fixtures/Make/Configs
+    init: true
+    command: sleep infinity
+    volumes:
+      - ../../../../..:/app

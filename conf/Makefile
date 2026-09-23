@@ -163,7 +163,7 @@ CHMOD  ?= chmod#~~ path to `chmod` binary
 LN     ?= ln#~~ path to `ln` binary
 PRINTF ?= printf#~~ path to `printf` binary
 AWK    ?= awk#~~ path to `awk` binary
-PHP    ?= $(_RUN) php#~~ command that runs `php`
+PHP    ?= $(RUN) php#~~ command that runs `php`
 TAR    ?= tar#~~ path to `tar` binary
 GIT    ?= git#~~ path to `git` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
@@ -171,12 +171,79 @@ SCRIPT ?= script#~~ path to `script` binary
 
 #---v settings
 
-RUN  ?= #~~ command the tools are run through, such as `docker compose exec <service>`
-_RUN  = $(if $(wildcard /.dockerenv),,$(RUN))
+DOCKER           ?= docker#v #~~ command that runs `docker`
+DOCKER_COMPOSE   ?= $(DOCKER) compose#v #~~ command that runs `compose`
+COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of the ones this project has
+APP_SERVICE      ?= app#~~ compose service the tools run in, empty to run them on this machine
+APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering the running one
+IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
+RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty where they run on this machine
+APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
+HOST_UID         ?= $(or $(shell id -u 2>/dev/null),1000)#vv #~~ user a container writes the bind mount as
+HOST_GID         ?= $(or $(shell id -g 2>/dev/null),1000)#vv #~~ group a container writes the bind mount as
 
-WORKDIR  ?= $(if $(_RUN),/app,$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
-HOST_UID ?= $(or $(shell id -u 2>/dev/null),1000)#vv #~~ user a container writes the bind mount as
-HOST_GID ?= $(or $(shell id -g 2>/dev/null),1000)#vv #~~ group a container writes the bind mount as
+export HOST_UID
+export HOST_GID
+
+_COMPOSE_CANDIDATES := compose.yaml \
+	compose.yml \
+	docker-compose.yaml \
+	docker-compose.yml
+
+_COMPOSE_FILES = $(or \
+	$(subst :, ,$(COMPOSE_FILE)), \
+	$(firstword $(wildcard \
+		$(addprefix $(CURDIR)/,$(_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/conf/,$(_COMPOSE_CANDIDATES)) \
+	)) \
+)
+
+_COMPOSE                 = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
+_HAS_DOCKER              = $(shell command -v $(DOCKER) >/dev/null 2>&1 && $(PRINTF) 1)
+_IS_CONTAINER_CONFIGURED = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+_IS_SERVICE_RUN          = $(filter run,$(APP_SERVICE_MODE))
+
+define _SERVICE_DIRECTORY_AWK
+/^services:/ { in_services = 1; next }
+/^[^[:space:]]/ { in_services = 0 }
+in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service) }
+in_services && service == _SERVICE && /^    working_dir:/ { \
+	directory = $$2; \
+	gsub(/["'"'"']/, "", directory); \
+	print directory; \
+	exit \
+}
+endef
+
+ifneq ($(_IS_CONTAINER_CONFIGURED),) # container
+_SERVICE_DIRECTORY := $(shell $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)')
+
+ifeq ($(_SERVICE_DIRECTORY),)
+_COMPOSE_REFUSAL := $(shell $(_COMPOSE) config --quiet 2>&1 >/dev/null | $(AWK) 'NR <= 2')
+
+$(error $(if $(_COMPOSE_REFUSAL),$(DOCKER_COMPOSE) says: $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` names no \
+	service with a `working_dir` in $(_COMPOSE_FILES)), so fix it or leave `APP_SERVICE` empty to run the \
+	tools on this machine)
+endif
+endif # /container
+
+_CONTAINER_KEYS := APP_DIR \
+	APP_SERVICE \
+	APP_SERVICE_MODE \
+	COMPOSE_FILE \
+	DOCKER \
+	DOCKER_COMPOSE \
+	IS_IN_CONTAINER \
+	RUN
+
+_TERMINAL_KEYS := CI \
+	COLUMNS \
+	EDITOR_URL \
+	NO_ANSI \
+	TERM
+
+_COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
+_FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS) $(_DOTENV_KEYS)))
 
 TARGET_PREFIX  ?= #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
@@ -258,22 +325,23 @@ EDITOR_PHPSTORM := phpstorm
 _EDITORS := $(EDITOR_VSCODE) \
 	$(EDITOR_PHPSTORM)
 
-_EDITOR_URL_VSCODE     := vscode://file/{file}:{line}
-_EDITOR_URL_VSCODE_WSL := vscode://vscode-remote/wsl+{wslDistro}{file}:{line}
-_EDITOR_URL_PHPSTORM   := phpstorm://open?file={file}&line={line}
+_EDITOR_URL_VSCODE     := vscode://file/{cwd}/{file}:{line}
+_EDITOR_URL_VSCODE_WSL := vscode://vscode-remote/wsl+{wslDistro}{cwd}/{file}:{line}
+_EDITOR_URL_PHPSTORM   := phpstorm://open?file={cwd}/{file}&line={line}
 _DETECTED_EDITOR        = $(or $(call _editor_from_env),$(call _editor_from_command))
 
 EDITOR          ?= $(_DETECTED_EDITOR)#~~ the editor to use, empty for no links
 _EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(strip $(EDITOR)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR))))
 _EDITOR_UNKNOWN  = $(if $(_EDITOR)$(findstring environment,$(origin EDITOR)),,$(strip $(EDITOR)))
 
-_EDITOR_URL = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(subst {cwd},$(CURDIR),$(or \
+_EDITOR_URL_TEMPLATE = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(or \
 	$(EDITOR_URL), \
 	$(if $(filter $(EDITOR_VSCODE),$(_EDITOR)),$(if $(WSL_DISTRO_NAME),$(_EDITOR_URL_VSCODE_WSL),$(_EDITOR_URL_VSCODE))), \
 	$(if $(filter $(EDITOR_PHPSTORM),$(_EDITOR)),$(_EDITOR_URL_PHPSTORM)) \
-)))
+))
 
-_INLINE_CODE_URL = $(if $(_IS_NO_ANSI),,$(_EDITOR_URL))
+_EDITOR_URL      = $(subst {cwd},$(CURDIR),$(_EDITOR_URL_TEMPLATE))
+_INLINE_CODE_URL = $(if $(_IS_NO_ANSI),,$(_EDITOR_URL_TEMPLATE))
 
 ifeq ($(origin LOGO),undefined) # logo
 define LOGO
@@ -575,10 +643,10 @@ define _NEWLINE
 
 endef
 
-_PACKAGE_CONF_DIRS = $(WORKDIR)/vendor/brnshkr/config/conf \
-	$(WORKDIR)/node_modules/@brnshkr/config/conf
+_PACKAGE_CONF_DIRS = $(APP_DIR)/vendor/brnshkr/config/conf \
+	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
-_AUTOLOADER          = $(WORKDIR)/vendor/autoload.php
+_AUTOLOADER          = $(APP_DIR)/vendor/autoload.php
 _TRACKED_EXTENSIONS := $(sort $(suffix $(shell $(GIT) ls-files 2>/dev/null)))
 _FIXER_NAMES        :=
 _ANALYZER_NAMES     :=
@@ -586,7 +654,7 @@ _GROUP_NAMES        :=
 _TEST_NAMES         :=
 _COVERAGE_NAMES     :=
 _PACK_NAMES         :=
-_PLAIN_CONFIGS       = $(WORKDIR)/.gitignore
+_PLAIN_CONFIGS       = $(APP_DIR)/.gitignore
 _LAYERED_CONFIGS     =
 _LINKED_CONFIGS      =
 
@@ -600,7 +668,7 @@ _PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.di
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
 	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
 		_CURDIR="$(abspath $(CURDIR))" \
-		_WORKDIR="$(WORKDIR)" \
+		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
 		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call _color,$(COLOR_LOGO))$(subst $(_NEWLINE),\n,$(LOGO))$(_ANSI_RESET)__BRNSHKR_LOGO_END__'),)" \
 		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
@@ -707,8 +775,8 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
 	done
 	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
-		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(WORKDIR)/.gitattributes $(WORKDIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(WORKDIR)/.gitattributes)'); \
+		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(APP_DIR)/.gitattributes $(APP_DIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
 	},:)
 	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
@@ -776,6 +844,32 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 
 $(call _target,fresh-dry-run): #~~ lists what `fresh` would remove #vv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,fresh) -- --dry-run $(ARGS)
+
+#---v container
+
+ifneq ($(_IS_CONTAINER_CONFIGURED),) # container
+
+$(call _target,up): #~~ starts the services the tools need
+	$(DEBUG_PREFIX)$(_COMPOSE) up --detach --wait $(ARGS)
+
+$(call _target,down): #~~ stops them again
+	$(DEBUG_PREFIX)$(_COMPOSE) down $(ARGS)
+
+$(call _target,ps): #~~ lists what is running #v
+	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
+
+_SERVICE_ARGS = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+
+$(_TARGET_PREFIX)%-shell:
+	$(DEBUG_PREFIX)$(_COMPOSE) exec $* $(or $(_SERVICE_ARGS),sh)
+
+$(_TARGET_PREFIX)%-logs:
+	$(DEBUG_PREFIX)$(_COMPOSE) logs --follow $* $(_SERVICE_ARGS)
+
+$(_TARGET_PREFIX)%-exec:
+	$(DEBUG_PREFIX)$(call run_in,$*) $(_SERVICE_ARGS)
+
+endif # /container
 
 #---vvv semver
 
@@ -872,6 +966,7 @@ BEGIN {
 			printf "%s ?= %s%s", key, value, _SEPARATOR
 		}
 		printf "export %s%s", key, _SEPARATOR
+		printf "_DOTENV_KEYS += %s%s", key, _SEPARATOR
 		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
 	}
 }
@@ -946,7 +1041,7 @@ PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
 
 #--- composer
 
-COMPOSER              ?= $(_RUN) composer#v #~~ command that runs `composer`
+COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
@@ -958,14 +1053,14 @@ $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
 
 $(call _target,composer-list): #~~ lists the files the composer package would ship #vv
-	$(DEBUG_PREFIX)$(COMPOSER) archive --quiet --format=tar --dir=$(WORKDIR) --file=package \
+	$(DEBUG_PREFIX)$(COMPOSER) archive --quiet --format=tar --dir=$(APP_DIR) --file=package \
 		&& $(TAR) -tf package.tar \
 		&& $(RM) -f package.tar
 
 $(call _target,composer-pack): #~~ packs the composer package into `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(RM) -rf $(_COMPOSER_PACKAGE_DIR) \
 		&& $(MKDIR) -p $(_COMPOSER_PACKAGE_DIR) \
-		&& $(COMPOSER) archive --quiet --format=tar --dir=$(WORKDIR) --file=package \
+		&& $(COMPOSER) archive --quiet --format=tar --dir=$(APP_DIR) --file=package \
 		&& $(TAR) -xf package.tar -C $(_COMPOSER_PACKAGE_DIR) \
 		&& $(RM) -f package.tar
 
@@ -979,13 +1074,13 @@ _$(_TARGET_PREFIX)composer-install:
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit),) # phpunit
 
-PEST                          ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
-PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
-PHP_UNIT_CONFIG               ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
+PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
+PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
+PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/conf/phpunit.xml $(APP_DIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
 PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
 PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
-PHP_UNIT_COVERAGE_DIR         ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
+PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
 PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
 PHP_UNIT_MIN_COVERAGE         ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
 PHP_UNIT_MIN_COVERAGE_CLASSES ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the class metric must reach, which Pest cannot read
@@ -993,7 +1088,7 @@ PHP_UNIT_MIN_COVERAGE_METHODS ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the 
 PHP_UNIT_MIN_COVERAGE_LINES   ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
 PHP_UNIT_COVERAGE_FLAGS       ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),--min=$(_PHP_UNIT_FLOOR)),$(if $(_PHP_UNIT_FLOORS),--coverage-text=$(PHP_UNIT_COVERAGE_FILE))) --coverage-html $(PHP_UNIT_COVERAGE_DIR)#v #~~ additional flags passed when collecting coverage
 
-_PEST_BINARY     := $(WORKDIR)/vendor/bin/pest
+_PEST_BINARY     := $(APP_DIR)/vendor/bin/pest
 _IS_PEST          = $(findstring pest,$(PHP_UNIT))
 _PHP_UNIT_UPDATE  = $(if $(wildcard $(CURDIR)/vendor/bin/update-snapshots),$(subst /vendor/bin/phpunit,/vendor/bin/update-snapshots,$(PHP_UNIT)),$(PHP_UNIT))
 _PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE_LINES)))
@@ -1058,8 +1153,8 @@ endif # /phpunit
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/phpstan),) # phpstan
 
-PHP_STAN        ?= $(_RUN) $(WORKDIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
-PHP_STAN_CONFIG ?= $(call _config,$(WORKDIR)/conf/phpstan.php $(WORKDIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
+PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
+PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
 PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _ANALYZER_NAMES  += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
@@ -1095,8 +1190,8 @@ endif # /phpstan
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/php-cs-fixer),) # php-cs-fixer
 
-PHP_CS_FIXER        ?= $(_RUN) $(WORKDIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
-PHP_CS_FIXER_CONFIG ?= $(call _config,$(WORKDIR)/conf/php-cs-fixer.php $(WORKDIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
+PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
+PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
 PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
 _FIXER_NAMES     += $(call _when_tracked,php-cs-fixer,$(PHP_EXTENSIONS))
@@ -1129,8 +1224,8 @@ endif # /php-cs-fixer
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/rector),) # rector
 
-RECTOR        ?= $(_RUN) $(WORKDIR)/vendor/bin/rector#v #~~ path to `rector` binary
-RECTOR_CONFIG ?= $(call _config,$(WORKDIR)/conf/rector.php $(WORKDIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
+RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` binary
+RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
 RECTOR_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `rector`
 
 _FIXER_NAMES     += $(call _when_tracked,rector,$(PHP_EXTENSIONS))
@@ -1153,7 +1248,7 @@ $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 
 $(call _target,rector-list): #~~ lists all files that are processed by `rector` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(WORKDIR)/", ""); if (/\.php$$/) print }'
+	$(DEBUG_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
 
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -1165,8 +1260,8 @@ endif # /rector
 
 ifneq ($(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer),) # twig-cs-fixer
 
-TWIG_CS_FIXER        ?= $(_RUN) $(WORKDIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
-TWIG_CS_FIXER_CONFIG ?= $(call _config,$(WORKDIR)/conf/twig-cs-fixer.php $(WORKDIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
+TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
+TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
 TWIG_CS_FIXER_FLAGS  ?= -v $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= twig#vv #~~ extensions `twig-cs-fixer` reads
 
@@ -1196,7 +1291,7 @@ ifneq ($(wildcard $(CURDIR)/package.json),) # js
 
 #--- bun
 
-BUN       ?= $(_RUN) bun#v #~~ command that runs `bun`
+BUN       ?= $(RUN) bun#v #~~ command that runs `bun`
 BUN_FLAGS ?= --bun#v #~~ flags passed to `bun` before the command
 
 _BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
@@ -1235,7 +1330,7 @@ _$(_TARGET_PREFIX)bun-install:
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/commitlint),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
-COMMITLINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/commitlint.mjs $(WORKDIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
+COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/commitlint.mjs $(APP_DIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
 COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, instead of a single message
 COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
@@ -1262,12 +1357,12 @@ endif # /commitlint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint),) # eslint
 
 ESLINT                ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
-ESLINT_CONFIG         ?= $(call _config,$(WORKDIR)/conf/eslint.ts $(WORKDIR)/conf/eslint.mjs $(WORKDIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
-ESLINT_CACHE          ?= $(WORKDIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
+ESLINT_CONFIG         ?= $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_DIR)/conf/eslint.mjs $(APP_DIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
+ESLINT_CACHE          ?= $(APP_DIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
 ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
 unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
-_ESLINT_OUTPUT := $(WORKDIR)/.cache/eslint.output
+_ESLINT_OUTPUT := $(APP_DIR)/.cache/eslint.output
 
 _ESLINT_EXTENSIONS := js cjs mjs jsx \
 	$(call _when_installed,ts cts mts tsx,node_modules/typescript-eslint) \
@@ -1329,7 +1424,7 @@ endif # /eslint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2),) # markdownlint
 
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
-MARKDOWNLINT_CONFIG     ?= $(call _config,$(WORKDIR)/conf/markdownlint.mjs $(WORKDIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
+MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/conf/markdownlint.mjs $(APP_DIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
 MARKDOWNLINT_FLAGS      ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
@@ -1363,9 +1458,9 @@ endif # /markdownlint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/stylelint),) # stylelint
 
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
-STYLELINT_CONFIG ?= $(call _config,$(WORKDIR)/conf/stylelint.mjs $(WORKDIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
+STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/stylelint.mjs $(APP_DIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
-STYLELINT_CACHE  ?= $(WORKDIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
+STYLELINT_CACHE  ?= $(APP_DIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
 STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
@@ -1403,7 +1498,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(WORKDIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
+	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
 		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
@@ -1414,7 +1509,7 @@ $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(WORKDIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
+	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1428,11 +1523,11 @@ endif # /stylelint
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/tsc),) # typescript
 
 TYPESCRIPT        ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
-TYPESCRIPT_CONFIG ?= $(WORKDIR)/tsconfig.json#v #~~ path to the `tsc` project
+TYPESCRIPT_CONFIG ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` project
 TYPESCRIPT_FLAGS  ?= --noEmit#v #~~ additional flags passed to `tsc`
 TYPESCRIPT_EXTENSIONS ?= ts tsx cts mts#vv #~~ extensions `tsc` type checks
 
-_TYPESCRIPT_PROJECT := $(WORKDIR)/conf/tsconfig.json
+_TYPESCRIPT_PROJECT := $(APP_DIR)/conf/tsconfig.json
 
 _ANALYZER_NAMES  += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
@@ -1463,11 +1558,11 @@ ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
 
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 unexport VITEST    # NOTICE: Vitest sets this to mark its own runs
-VITEST_CONFIG     ?= $(call _config,$(WORKDIR)/conf/vitest.ts $(WORKDIR)/conf/vitest.mjs $(WORKDIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
+VITEST_CONFIG     ?= $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_DIR)/conf/vitest.mjs $(APP_DIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
-VITEST_COVERAGE_DIR            ?= $(WORKDIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
+VITEST_COVERAGE_DIR            ?= $(APP_DIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
 VITEST_MIN_COVERAGE            ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
 VITEST_MIN_COVERAGE_BRANCHES   ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the branch metric must reach
 VITEST_MIN_COVERAGE_FUNCTIONS  ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the function metric must reach
@@ -1889,7 +1984,7 @@ $(call _ansi,$2 $3)$1$(_ANSI_RESET)
 endef
 
 #**
-#* The path on this machine of a file the tools see under `WORKDIR`.
+#* The path on this machine of a file the tools see under `APP_DIR`.
 #*
 #* parameters:
 #*   path: string
@@ -1897,7 +1992,65 @@ endef
 #* returns: string
 #*
 define _host_path
-$(patsubst $(WORKDIR)/%,$(CURDIR)/%,$1)
+$(patsubst $(APP_DIR)/%,$(CURDIR)/%,$1)
+endef
+
+#**
+#* The same text, quoted for the shell.
+#*
+#* parameters:
+#*   text: string
+#*
+#* returns: string
+#*
+define _quoted
+$(_QUOTE)$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)$(_QUOTE)
+endef
+
+#**
+#* The command a tool named for a compose service runs through, empty on this machine.
+#* The service is started first, once per run, unless a throwaway container is what runs it.
+#*
+#* parameters:
+#*   service: string
+#*
+#* returns: string
+#*
+define run_in
+$(if $(_IS_CONTAINER_CONFIGURED),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $1 env $(_forwarded_environment))
+endef
+
+#**
+#* The environment the tools are given inside the container: what the files cannot carry themselves.
+#*
+#* returns: string
+#*
+define _forwarded_environment
+$(foreach KEY,$(_FORWARDED_KEYS),$(KEY)=$(call _quoted,$(call _forwarded_value,$(KEY))) )
+endef
+
+#**
+#* The value a forwarded key carries, which for the editor URL is the one this machine resolved.
+#*
+#* parameters:
+#*   key: string
+#*
+#* returns: string
+#*
+define _forwarded_value
+$(if $(filter EDITOR_URL,$1),$(_EDITOR_URL),$($1))
+endef
+
+#**
+#* Starts a service that is not running yet, before the command.
+#*
+#* parameters:
+#*   service: string
+#*
+#* returns: string
+#*
+define _start_service
+[ -n "$$($(_COMPOSE) ps --status running --quiet $1 2>/dev/null)" ] || $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1;
 endef
 
 #**
@@ -2019,7 +2172,7 @@ endef
 #* returns: list<string>
 #*
 define _in_project
-$(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG)),$(WORKDIR)/conf/$(notdir $(CONFIG)),$(CONFIG)))
+$(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG)),$(APP_DIR)/conf/$(notdir $(CONFIG)),$(CONFIG)))
 endef
 
 #**
@@ -2034,7 +2187,7 @@ endef
 #*
 define _name_internal_tag
 if [ -r "$(call _host_path,$(_AUTOLOADER))" ]; then \
-	$(PHP) -r "$$_NAME_INTERNAL_TAG_PROGRAM" "$(_AUTOLOADER)" "$(WORKDIR)/$1" \
+	$(PHP) -r "$$_NAME_INTERNAL_TAG_PROGRAM" "$(_AUTOLOADER)" "$(APP_DIR)/$1" \
 		|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 fi
 endef
@@ -2062,7 +2215,7 @@ endef
 #* returns: list<string>
 #*
 define _config_dirs
-$(foreach BASE,$(call _reverse,$(_SEARCH_BASES)),$(if $1,$(WORKDIR)/$(BASE)/$1) $(WORKDIR)/$(BASE))
+$(foreach BASE,$(call _reverse,$(_SEARCH_BASES)),$(if $1,$(APP_DIR)/$(BASE)/$1) $(APP_DIR)/$(BASE))
 endef
 
 #**
@@ -2448,10 +2601,13 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 	-v _CLOSE='$(_ANSI_RESET)' \
 	-v _URL='$(if $(filter yes,$2),$(_INLINE_CODE_URL))' \
 	-v _CWD='$(CURDIR)' \
+	-v _APP_DIR='$(APP_DIR)' \
 	-v _PREFIX='$(_TARGET_PREFIX)' \
 	-v _STAGES=' $(_DOTENV_STAGES) ' \
 	-v _TARGETS=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
+		if (index(url, "{cwd}") && substr(path, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); path = substr(path, 2) } \
+		else gsub(/\{cwd\}/, _CWD, url); \
 		placeholder_position = index(url, "{file}"); \
 		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
 		placeholder_position = index(url, "{line}"); \
@@ -2485,9 +2641,11 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 			path = substr(path, 1, RSTART - 1) \
 		} \
 		if (substr(path, 1, 2) == "./") path = substr(path, 3); \
+		if (index(path, _APP_DIR "/") == 1) path = substr(path, length(_APP_DIR) + 2); \
+		else if (index(path, _CWD "/") == 1) path = substr(path, length(_CWD) + 2); \
 		absolute_path = substr(path, 1, 1) == "/" ? path : _CWD "/" path; \
 		if (system("test -r " absolute_path) != 0) return ""; \
-		return "\033]8;;" render_url(_URL, absolute_path, line) "\033\\" \
+		return "\033]8;;" render_url(_URL, path, line) "\033\\" \
 	} \
 	{ \
 		while (match($$0, /`[^`]*`/)) { \
@@ -3327,7 +3485,8 @@ function truncate(text, width_limit,    position, byte_count, character, taken_w
 }
 function render_url(template, file, line) {
 	if (template == "") return ""
-	gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template)
+	if (index(template, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", template); file = substr(file, 2) }
+	else gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template)
 	gsub(/\{wslDistro\}/, ENVIRON["WSL_DISTRO_NAME"], template)
 	gsub(/\{file\}/, file, template)
 	gsub(/\{line\}/, line, template)
@@ -3583,10 +3742,9 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			else if (section == "description") text = render_inline_code(text)
 			file = section_file[scope_path, section, idx]
 			line = section_line[scope_path, section, idx]
-			if (file != "" && file !~ /^\//) file = ENVIRON["_CURDIR"] "/" file
-			if (ENVIRON["_WORKDIR"] != ENVIRON["_CURDIR"] && index(file, ENVIRON["_WORKDIR"] "/") == 1) \
-				file = ENVIRON["_CURDIR"] substr(file, length(ENVIRON["_WORKDIR"]) + 1)
-			url = (file != "" ? render_url(ENVIRON["_EDITOR_URL"], file, line) : "")
+			if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
+			if (index(file, ENVIRON["_CURDIR"] "/") == 1) file = substr(file, length(ENVIRON["_CURDIR"]) + 2)
+			url = (file != "" ? render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], file, line) : "")
 			hyperlink = ""
 			hyperlink_end = ""
 			if (url != "" && !ENVIRON["_IS_NO_ANSI"]) {
