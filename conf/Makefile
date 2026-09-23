@@ -181,9 +181,13 @@ RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run throu
 APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
 HOST_UID         ?= $(or $(shell id -u 2>/dev/null),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID         ?= $(or $(shell id -g 2>/dev/null),1000)#vv #~~ group a container writes the bind mount as
+HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, which a compose file binds
 
 export HOST_UID
 export HOST_GID
+export HOST_APP_DIR
+
+_HOST_ENVIRONMENT = HOST_UID='$(HOST_UID)' HOST_GID='$(HOST_GID)' HOST_APP_DIR='$(HOST_APP_DIR)'
 
 _COMPOSE_CANDIDATES := compose.yaml \
 	compose.yml \
@@ -216,10 +220,10 @@ in_services && service == _SERVICE && /^    working_dir:/ { \
 endef
 
 ifneq ($(_IS_CONTAINER_CONFIGURED),) # container
-_SERVICE_DIRECTORY := $(shell $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)')
+_SERVICE_DIRECTORY := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)')
 
 ifeq ($(_SERVICE_DIRECTORY),)
-_COMPOSE_REFUSAL := $(shell $(_COMPOSE) config --quiet 2>&1 >/dev/null | $(AWK) 'NR <= 2')
+_COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null | $(AWK) 'NR <= 2')
 
 $(error $(if $(_COMPOSE_REFUSAL),$(DOCKER_COMPOSE) says: $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` names no \
 	service with a `working_dir` in $(_COMPOSE_FILES)), so fix it or leave `APP_SERVICE` empty to run the \

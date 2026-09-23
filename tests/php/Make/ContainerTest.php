@@ -93,7 +93,11 @@ final class ContainerTest extends TestCase
                     'down',
                     '--timeout',
                     '1',
-                ], cwd: $fixtureDirectory, env: $environment)->run();
+                ], cwd: $fixtureDirectory, env: [
+                    ...$environment,
+                    'HOST_UID' => (string) posix_getuid(),
+                    'HOST_GID' => (string) posix_getgid(),
+                ])->run();
             }
         }
     }
@@ -447,8 +451,6 @@ final class ContainerTest extends TestCase
      * @return array{
      *     COMPOSE_PROJECT_NAME: string,
      *     FORGE_IMAGE: string,
-     *     HOST_UID: string,
-     *     HOST_GID: string,
      *     COMPOSE_FILE?: string,
      * }
      */
@@ -459,8 +461,6 @@ final class ContainerTest extends TestCase
         return [
             'COMPOSE_PROJECT_NAME' => self::PROJECT_NAME . '-' . Str::toLowerCase(basename($fixtureDirectory)),
             'FORGE_IMAGE'          => self::getImage(),
-            'HOST_UID'             => (string) posix_getuid(),
-            'HOST_GID'             => (string) posix_getgid(),
             ...(is_readable($ownComposeFile) ? ['COMPOSE_FILE' => $ownComposeFile] : []),
         ];
     }
