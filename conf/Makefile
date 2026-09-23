@@ -202,10 +202,10 @@ _COMPOSE_FILES = $(or \
 	)) \
 )
 
-_COMPOSE                 = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
-_HAS_DOCKER              = $(shell command -v $(DOCKER) >/dev/null 2>&1 && $(PRINTF) 1)
-_IS_CONTAINER_CONFIGURED = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
-_IS_SERVICE_RUN          = $(filter run,$(APP_SERVICE_MODE))
+_COMPOSE        = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
+_HAS_DOCKER     = $(shell command -v $(DOCKER) >/dev/null 2>&1 && $(PRINTF) 1)
+_HAS_CONTAINER  = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+_IS_SERVICE_RUN = $(filter run,$(APP_SERVICE_MODE))
 
 define _SERVICE_DIRECTORY_AWK
 /^services:/ { in_services = 1; next }
@@ -219,7 +219,7 @@ in_services && service == _SERVICE && /^    working_dir:/ { \
 }
 endef
 
-ifneq ($(_IS_CONTAINER_CONFIGURED),) # container
+ifneq ($(_HAS_CONTAINER),) # container
 _SERVICE_DIRECTORY := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)')
 
 ifeq ($(_SERVICE_DIRECTORY),)
@@ -425,9 +425,35 @@ MODIFIER_BRIGHT    := bright
 MODIFIER_BOLD      := bold
 MODIFIER_REVERSE   := reverse
 
-#---vv arguments
+#---vvv features
+
+_HAS_PHP            = $(wildcard $(CURDIR)/composer.json)
+_HAS_PHPUNIT        = $(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit)
+_HAS_PHPSTAN        = $(wildcard $(CURDIR)/vendor/bin/phpstan)
+_HAS_PHP_CS_FIXER   = $(wildcard $(CURDIR)/vendor/bin/php-cs-fixer)
+_HAS_RECTOR         = $(wildcard $(CURDIR)/vendor/bin/rector)
+_HAS_TWIG_CS_FIXER  = $(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer)
+_HAS_JS             = $(wildcard $(CURDIR)/package.json)
+_HAS_BUN_INSPECT    = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
+_HAS_COMMITLINT     = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
+_HAS_ESLINT         = $(wildcard $(CURDIR)/node_modules/.bin/eslint)
+_HAS_ESLINT_INSPECT = $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector)
+_HAS_MARKDOWNLINT   = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
+_HAS_STYLELINT      = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
+_HAS_TYPESCRIPT     = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
+_HAS_VITEST         = $(wildcard $(CURDIR)/node_modules/.bin/vitest)
+
+_HAS_VITEST_COVERAGE = $(firstword $(wildcard \
+	$(CURDIR)/node_modules/@vitest/coverage-v8 \
+	$(CURDIR)/node_modules/@vitest/coverage-istanbul \
+))
+
+_ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
+
+#---vvv targets
 
 _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(CURDIR)' \
+	-v _ENABLED_FEATURES=' $(_ENABLED_FEATURES) ' \
 	'function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist } \
 	/^ifneq/ && index($$0, "wildcard") { \
 		depth += 1; \
@@ -443,6 +469,13 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 			} \
 			if (!has_existing_path) skip = depth \
 		} \
+		next \
+	} \
+	/^ifneq \(\$$\(_HAS_[A-Z0-9_]+\),\)/ { \
+		depth += 1; \
+		feature = substr($$0, 10); \
+		sub(/[^A-Z0-9_].*/, "", feature); \
+		if (!skip && !index(_ENABLED_FEATURES, " " feature " ")) skip = depth; \
 		next \
 	} \
 	/^ifdef|^ifndef|^ifeq|^ifneq/ { depth += 1; next } \
@@ -526,6 +559,8 @@ _SHARED_TARGETS    := $(sort $(filter-out @%,$(_SCRAPED_SHARED)) $(foreach NAME,
 _ALL_TARGETS       := $(sort $(_CONSUMER_TARGETS) $(_SHARED_TARGETS))
 _DUPLICATE_TARGETS := $(strip $(foreach NAME,$(_CONSUMER_TARGETS),$(if $(word 2,$(filter $(_CONSUMER_MAKEFILES),$(call _files_defining,$(NAME)))),$(NAME))))
 .DEFAULT_GOAL      := $(or $(_DEFAULT_GOAL),$(call _target,help))
+
+#---vv arguments
 
 TARGET := $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))#~~ the first target of this run
 ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on through `ARG9`
@@ -851,7 +886,7 @@ $(call _target,fresh-dry-run): #~~ lists what `fresh` would remove #vv
 
 #---v container
 
-ifneq ($(_IS_CONTAINER_CONFIGURED),) # container
+ifneq ($(_HAS_CONTAINER),) # container
 
 $(call _target,up): #~~ starts the services the tools need
 	$(DEBUG_PREFIX)$(_COMPOSE) up --detach --wait $(ARGS)
@@ -1037,7 +1072,7 @@ define _when_installed
 $(if $(wildcard $(CURDIR)/$2),$1)
 endef
 
-ifneq ($(wildcard $(CURDIR)/composer.json),) # php
+ifneq ($(_HAS_PHP),) # php
 
 #--- php
 
@@ -1076,7 +1111,7 @@ _$(_TARGET_PREFIX)composer-install:
 
 #--- phpunit
 
-ifneq ($(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit),) # phpunit
+ifneq ($(_HAS_PHPUNIT),) # phpunit
 
 PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
 PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
@@ -1155,7 +1190,7 @@ endif # /phpunit
 
 #--- phpstan
 
-ifneq ($(wildcard $(CURDIR)/vendor/bin/phpstan),) # phpstan
+ifneq ($(_HAS_PHPSTAN),) # phpstan
 
 PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
@@ -1192,7 +1227,7 @@ endif # /phpstan
 
 #--- php-cs-fixer
 
-ifneq ($(wildcard $(CURDIR)/vendor/bin/php-cs-fixer),) # php-cs-fixer
+ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
 
 PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
@@ -1226,7 +1261,7 @@ endif # /php-cs-fixer
 
 #--- rector
 
-ifneq ($(wildcard $(CURDIR)/vendor/bin/rector),) # rector
+ifneq ($(_HAS_RECTOR),) # rector
 
 RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` binary
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
@@ -1264,7 +1299,7 @@ endif # /rector
 
 #--- twig-cs-fixer
 
-ifneq ($(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer),) # twig-cs-fixer
+ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 
 TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
 TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
@@ -1299,7 +1334,7 @@ endif # /twig-cs-fixer
 
 endif # /php
 
-ifneq ($(wildcard $(CURDIR)/package.json),) # js
+ifneq ($(_HAS_JS),) # js
 
 #--- bun
 
@@ -1324,7 +1359,7 @@ $(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PAC
 		&& $(TAR) -xzf package.tgz -C $(_BUN_PACKAGE_DIR) --strip-components 1 \
 		&& $(RM) -f package.tgz
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector),) # bun-inspect
+ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
 NODE_MODULES_INSPECTOR       ?= $(BUN) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
 NODE_MODULES_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `node-modules-inspector`
@@ -1339,7 +1374,7 @@ _$(_TARGET_PREFIX)bun-install:
 
 #--- commitlint
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/commitlint),) # commitlint
+ifneq ($(_HAS_COMMITLINT),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
 COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/commitlint.mjs $(APP_DIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
@@ -1366,7 +1401,7 @@ endif # /commitlint
 
 #--- eslint
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint),) # eslint
+ifneq ($(_HAS_ESLINT),) # eslint
 
 ESLINT                ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
 ESLINT_CONFIG         ?= $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_DIR)/conf/eslint.mjs $(APP_DIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
@@ -1414,7 +1449,7 @@ $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file
 	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,eslint-print))
 	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --print-config $(ARGS)
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),) # eslint-inspect
+ifneq ($(_HAS_ESLINT_INSPECT),) # eslint-inspect
 
 # NOTICE: runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
 ESLINT_CONFIG_INSPECTOR       ?= $(BUN) x eslint-config-inspector#v #~~ command that runs `eslint-config-inspector`
@@ -1433,7 +1468,7 @@ endif # /eslint
 
 #--- markdownlint
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2),) # markdownlint
+ifneq ($(_HAS_MARKDOWNLINT),) # markdownlint
 
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
 MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/conf/markdownlint.mjs $(APP_DIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
@@ -1467,7 +1502,7 @@ endif # /markdownlint
 
 #--- stylelint
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/stylelint),) # stylelint
+ifneq ($(_HAS_STYLELINT),) # stylelint
 
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
 STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/stylelint.mjs $(APP_DIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
@@ -1532,7 +1567,7 @@ endif # /stylelint
 
 #--- typescript
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/tsc),) # typescript
+ifneq ($(_HAS_TYPESCRIPT),) # typescript
 
 TYPESCRIPT        ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
 TYPESCRIPT_CONFIG ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` project
@@ -1566,7 +1601,7 @@ endif # /typescript
 
 #--- vitest
 
-ifneq ($(wildcard $(CURDIR)/node_modules/.bin/vitest),) # vitest
+ifneq ($(_HAS_VITEST),) # vitest
 
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 unexport VITEST    # NOTICE: Vitest sets this to mark its own runs
@@ -1590,20 +1625,15 @@ VITEST_COVERAGE_FLAGS?= --coverage \
 	--coverage.thresholds.lines=$(VITEST_MIN_COVERAGE_LINES) \
 	--coverage.thresholds.statements=$(VITEST_MIN_COVERAGE_STATEMENTS)#v #~~ additional flags passed when collecting coverage
 
-_VITEST_COVERAGE_PROVIDER := $(firstword $(wildcard \
-	$(CURDIR)/node_modules/@vitest/coverage-v8 \
-	$(CURDIR)/node_modules/@vitest/coverage-istanbul \
-))
-
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS)))
-_COVERAGE_NAMES  += $(if $(_VITEST_COVERAGE_PROVIDER),$(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS))))
+_COVERAGE_NAMES  += $(if $(_HAS_VITEST_COVERAGE),$(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS))))
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
 
 $(call _target,vitest): #~~ runs `vitest`
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
 
-ifneq ($(_VITEST_COVERAGE_PROVIDER),) # vitest-coverage
+ifneq ($(_HAS_VITEST_COVERAGE),) # vitest-coverage
 
 $(call _target,vitest-coverage): #~~ runs `vitest` and reports how much of the source it reaches #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
@@ -2029,7 +2059,7 @@ endef
 #* returns: string
 #*
 define run_in
-$(if $(_IS_CONTAINER_CONFIGURED),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $1 env $(_forwarded_environment))
+$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $1 env $(_forwarded_environment))
 endef
 
 #**
