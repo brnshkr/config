@@ -1289,6 +1289,12 @@ $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by 
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(DEBUG_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description)
 
+$(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use #vv
+	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
+	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG))
+
+$(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
+
 endif # /twig-cs-fixer
 
 endif # /php
@@ -2976,18 +2982,23 @@ define _RULES_PROGRAM_SOURCE
 
 require $$autoloaderPath;
 
-$$rectorConfig = new Rector\DependencyInjection\LazyContainerFactory()->create();
+if ($$toolName === 'rector') {
+    $$rectorConfig = new Rector\DependencyInjection\LazyContainerFactory()->create();
 
-(require $$configPath)($$rectorConfig);
+    (require $$configPath)($$rectorConfig);
 
-$$rectorConfig->boot();
+    $$rectorConfig->boot();
 
-$$rules = $$rectorConfig->findByContract(Rector\Contract\Rector\RectorInterface::class);
+    $$rules = $$rectorConfig->findByContract(Rector\Contract\Rector\RectorInterface::class);
 
-$$skippedRuleNames = array_keys(array_filter(
-    $$rectorConfig->make(Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver::class)->resolve(),
-    static fn (?array $$paths): bool => $$paths === null,
-));
+    $$skippedRuleNames = array_keys(array_filter(
+        $$rectorConfig->make(Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver::class)->resolve(),
+        static fn (?array $$paths): bool => $$paths === null,
+    ));
+} else {
+    $$rules            = (require $$configPath)->getRuleset()->getRules();
+    $$skippedRuleNames = [];
+}
 
 $$ruleNames = array_values(array_unique(array_map(static fn (object $$rule): string => $$rule::class, $$rules)));
 

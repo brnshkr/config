@@ -1072,6 +1072,17 @@ final class MakefileTest extends TestCase
         self::assertMatchesRegularExpression('/\nLoaded \d+ rules\n$/', $result);
     }
 
+    public function testTheTwigCsFixerRulesInUseAreListed(): void
+    {
+        $result = $this->runMake(['twig-cs-fixer-print'], directory: self::PROJECT_DIRECTORY);
+
+        self::assertStringStartsWith(
+            "Loaded twig-cs-fixer rules\n==========================\n\n * TwigCsFixer\\",
+            $result,
+        );
+        self::assertMatchesRegularExpression('/\nLoaded \d+ rules\n$/', $result);
+    }
+
     public function testEditorLinksNameTheProjectDirectoryOnce(): void
     {
         $helpDirectory = self::getRealPath(self::FIXTURES_DIRECTORY);
