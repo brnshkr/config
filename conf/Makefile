@@ -666,15 +666,15 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 			*) shipped=""; tracked="$${name}.dist";; \
 		esac; \
 		for directory in $(_TEMPLATE_DIRS); do \
-			[ -f "$$source" ] && break; \
+			[ -r "$$source" ] && break; \
 			for candidate in "$$shipped" "$$name.example" "$$tracked"; do \
 				[ -n "$$candidate" ] || continue; \
 				source="$$directory/$$candidate"; \
-				[ -f "$$source" ] && break; \
+				[ -r "$$source" ] && break; \
 			done; \
 		done; \
 		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
-		if [ -f "$$source" ]; then \
+		if [ -r "$$source" ]; then \
 			$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		else \
 			extended="$${target%/*}/$${name%.*}.dist.$${name##*.}"; \
@@ -697,7 +697,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 	$(DEBUG_PREFIX)for entry in $(foreach PLACED_CONFIG,$(call _selected_configs,$(_PLACED_CONFIGS)),'$(PLACED_CONFIG)'); do \
 		target="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
-		[ -f "$$source" ] || continue; \
+		[ -r "$$source" ] || continue; \
 		if [ -f "$$target" ]; then \
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
@@ -706,7 +706,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
 	done
-	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -f '$(CURDIR)/.gitattributes' ] || { \
+	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
 		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(WORKDIR)/.gitattributes $(WORKDIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(WORKDIR)/.gitattributes)'); \
 	},:)
@@ -718,7 +718,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
-		[ -f "$$source" ] || continue; \
+		[ -r "$$source" ] || continue; \
 		if $(LN) -sf "$$relative" "$$link" 2>/dev/null; then \
 			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}" "./$$relative"); \
 		else \
@@ -769,7 +769,7 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 		}); \
 		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
 	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
-		{ [ -f $(_BRNSHKR_CONFIG_MAKEFILE) ] \
+		{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] \
 			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
 			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
 	})
@@ -1006,7 +1006,7 @@ _COVERAGE_NAMES  += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpuni
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
 
 _$(_TARGET_PREFIX)assert-pest:
-	$(TRACE_PREFIX)test -f '$(call _host_path,$(_PEST_BINARY))' || { \
+	$(TRACE_PREFIX)test -x '$(call _host_path,$(_PEST_BINARY))' || { \
 		$(call log,`pest` is not installed.,$(COLOR_ERROR)) >&2; \
 		$(call log,Require `pestphp/pest` or run `make $(call _target,phpunit)` to use the runner this project has.,$(COLOR_NOTICE)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
@@ -1286,7 +1286,7 @@ $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-ru
 	$(DEBUG_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(call _is_dry_run,$(_ARGS)),,--fix); \
 		status=$$?; \
-		[ ! -f '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+		[ ! -r '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		exit $$status)
 
@@ -2026,7 +2026,7 @@ endef
 #* returns: void
 #*
 define _name_internal_tag
-if [ -f "$(call _host_path,$(_AUTOLOADER))" ]; then \
+if [ -r "$(call _host_path,$(_AUTOLOADER))" ]; then \
 	$(PHP) -r "$$_NAME_INTERNAL_TAG_PROGRAM" "$(_AUTOLOADER)" "$(WORKDIR)/$1" \
 		|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 fi
@@ -2184,7 +2184,7 @@ endef
 #* returns: void
 #*
 define _require_file
-test -f '$(call _host_path,$1)' || { \
+test -r '$(call _host_path,$1)' || { \
 	$(call log,`%s` is missing$(_COMMA) set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
@@ -2451,7 +2451,7 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 		} \
 		if (substr(path, 1, 2) == "./") path = substr(path, 3); \
 		absolute_path = substr(path, 1, 1) == "/" ? path : _CWD "/" path; \
-		if (system("test -f " absolute_path) != 0) return ""; \
+		if (system("test -r " absolute_path) != 0) return ""; \
 		return "\033]8;;" render_url(_URL, absolute_path, line) "\033\\" \
 	} \
 	{ \
@@ -2701,7 +2701,7 @@ endef
 #* returns: void
 #*
 define _changelog_notes
-section=$$([ ! -f '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELOG_VERSION)' \
+section=$$([ ! -r '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELOG_VERSION)' \
 	$(AWK) "$$_CHANGELOG_SECTION_AWK" '$(_CHANGELOG_FILE)'); \
 if [ -n "$$section" ]; then \
 	$(CAT) >/dev/null; \
@@ -2743,10 +2743,10 @@ else \
 			_CHANGELOG_FORCE='$(filter force f,$(_ARG_WORDS))' \
 			$(AWK) "$$_CHANGELOG_MERGE_AWK" \
 			'$(_CHANGELOG_FILE).added' \
-			$$([ -f '$(_CHANGELOG_FILE)' ] && $(PRINTF) '%s' '$(_CHANGELOG_FILE)'); \
+			$$([ -r '$(_CHANGELOG_FILE)' ] && $(PRINTF) '%s' '$(_CHANGELOG_FILE)'); \
 	} > '$(_CHANGELOG_FILE).new'; \
 	$(RM) -f '$(_CHANGELOG_FILE).added'; \
-	if [ ! -f '$(_CHANGELOG_FILE)' ]; then \
+	if [ ! -r '$(_CHANGELOG_FILE)' ]; then \
 		$(MV) '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)' \
 			&& $(call log,Created `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(_CHANGELOG_FILE))'); \
 	elif $(CMP) -s '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)'; then \

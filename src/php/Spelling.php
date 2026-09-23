@@ -474,7 +474,9 @@ final class Spelling
                 continue;
             }
 
-            if (is_file($rootDirectory . '/' . $filePath)) {
+            $scannedPath = $rootDirectory . '/' . $filePath;
+
+            if (is_file($scannedPath) && is_readable($scannedPath)) {
                 $filePaths[] = $filePath;
             }
         }
@@ -682,9 +684,10 @@ final class Spelling
      */
     private static function getPackageDirectory(): string
     {
-        $localPackagePath = __DIR__ . '/../..';
+        $localPackagePath  = __DIR__ . '/../..';
+        $localDefaultsPath = $localPackagePath . '/' . self::DEFAULTS_PATH;
 
-        if (is_file($localPackagePath . '/' . self::DEFAULTS_PATH)) {
+        if (is_file($localDefaultsPath) && is_readable($localDefaultsPath)) {
             return $localPackagePath;
         }
 

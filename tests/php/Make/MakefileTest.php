@@ -1037,8 +1037,8 @@ final class MakefileTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringNotContainsString('test -f', $withDebug);
-        self::assertStringContainsString('test -f', $withTrace);
+        self::assertStringNotContainsString('test -r', $withDebug);
+        self::assertStringContainsString('test -r', $withTrace);
     }
 
     public function testTheErrorCodeIsTheOneTheProjectChose(): void

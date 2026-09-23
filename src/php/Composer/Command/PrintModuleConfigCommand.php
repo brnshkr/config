@@ -29,6 +29,7 @@ use function get_debug_type;
 use function is_array;
 use function is_iterable;
 use function is_object;
+use function is_readable;
 use function iterator_to_array;
 use function max;
 use function sprintf;
@@ -107,6 +108,13 @@ final class PrintModuleConfigCommand extends AbstractCommand
         if (!$this->filesystem->exists($absolutePath)) {
             throw new RuntimeException(sprintf(
                 'Config file "%s" does not exist.',
+                $absolutePath,
+            ));
+        }
+
+        if (!is_readable($absolutePath)) {
+            throw new RuntimeException(sprintf(
+                'Config file "%s" is not readable.',
                 $absolutePath,
             ));
         }
