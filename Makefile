@@ -37,6 +37,11 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 93.79
 VITEST_MIN_COVERAGE_LINES      := 90.07
 VITEST_MIN_COVERAGE_STATEMENTS := 90.33
 
+_HAS_SCRIPT = $(shell command -v $(SCRIPT) >/dev/null 2>&1 && $(PRINTF) 1)
+
+PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
+	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
+
 export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
 
 #---vv tools

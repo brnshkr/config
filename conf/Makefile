@@ -983,6 +983,7 @@ PEST                          ?= $(_RUN) $(_PEST_BINARY)#vvv #~~ command that ru
 PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(_RUN) $(WORKDIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
 PHP_UNIT_CONFIG               ?= $(call _config,$(WORKDIR)/conf/phpunit.xml $(WORKDIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
 PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
+PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR         ?= $(WORKDIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
 PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
@@ -1000,6 +1001,8 @@ _PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE_LINES)))
 _PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
 	Methods=$(strip $(PHP_UNIT_MIN_COVERAGE_METHODS)) \
 	Lines=$(strip $(PHP_UNIT_MIN_COVERAGE_LINES))
+
+_PHP_UNIT_GROUP_FLAGS = $(foreach GROUP,$(PHP_UNIT_EXCLUDED_GROUPS),--exclude-group $(GROUP))
 
 _TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
 _COVERAGE_NAMES  += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
@@ -1029,11 +1032,13 @@ $(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest #~~ runs them through
 
 $(call _target,phpunit): #~~ runs the PHP tests
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS))
+	$(DEBUG_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(ARGS))
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
+	$(DEBUG_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
+	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
@@ -2318,6 +2323,18 @@ $(TRACE_PREFIX)$(AWK) -v _METRIC='$2' -v _MINIMUM='$3' '$$0 ~ _METRIC && !found 
 	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
+endef
+
+#**
+#* Says which test groups a run leaves out, and nothing when it leaves out none.
+#*
+#* parameters:
+#*   groups: list<string>
+#*
+#* returns: void
+#*
+define _announce_excluded_groups
+$(if $(strip $1),$(call log,Leaving out the %s $(if $(word 2,$1),groups,group).,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$1)'),:)
 endef
 
 #**

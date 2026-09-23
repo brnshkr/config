@@ -92,6 +92,7 @@ Every tool is three variables
 | `PHONY` | Marks every target, the repository's own included. `shared` leaves those unmarked, `0` marks none. Set it above the include. |
 | `VENDOR`, `PACKAGE` | What the header and log lines say. Read from the manifest when unset. |
 | `VERSION` | What the header shows. `0.0.0-dev` until the repository sets it. |
+| `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
 | `CACHE_DIR` | Where the tools keep their caches, and what `cc` clears. |
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
 | `DEBUG`, `TRACE` | Echo each command as it runs. `TRACE` echoes the guards along with them. |

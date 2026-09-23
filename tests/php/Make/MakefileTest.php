@@ -8,6 +8,7 @@ use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
@@ -19,8 +20,6 @@ use function array_first;
 use function array_unique;
 use function count;
 use function implode;
-use function is_dir;
-use function is_readable;
 use function mb_substr_count;
 use function md5;
 use function mkdir;
@@ -679,12 +678,9 @@ final class MakefileTest extends TestCase
         self::assertFileDoesNotExist(self::VENDOR_DIRECTORY . '/vendor/brnshkr/config/conf/phpstan.php');
     }
 
+    #[Group('tty')]
     public function testACommandThatExitsItselfRunsOnceBehindTheSpinner(): void
     {
-        if (shell_exec('command -v script') === null) {
-            self::markTestSkipped('`script` is not installed');
-        }
-
         $output = $this->runMakeOnATty(['spin'], self::SPINNER_DIRECTORY);
 
         self::assertSame(1, mb_substr_count($output, 'ran'));
@@ -709,14 +705,9 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('tests/', $bun);
     }
 
+    #[Group('build')]
     public function testTheFilesEachPackageShips(): void
     {
-        $distDirectory = self::PROJECT_DIRECTORY . '/dist';
-
-        if (!is_dir($distDirectory) || !is_readable($distDirectory)) {
-            self::markTestSkipped('`make build` has to run first, which the build job does before it checks this.');
-        }
-
         $composer = $this->runMake(['composer-list'], directory: self::PROJECT_DIRECTORY);
         $bun      = $this->runMake(['bun-list'], directory: self::PROJECT_DIRECTORY);
 
@@ -877,12 +868,9 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('APP_ENV=dev nosuchtarget', $unknown);
     }
 
+    #[Group('tty')]
     public function testAnAcceptedSuggestionReadsTheStageItNamesAndKeepsDebugOn(): void
     {
-        if (shell_exec('command -v script') === null) {
-            self::markTestSkipped('`script` is not installed');
-        }
-
         $output = $this->runMakeOnATty(
             ['test-dotenv-shw'],
             self::DOTENV_DIRECTORY,
