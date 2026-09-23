@@ -1304,6 +1304,7 @@ $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
+	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,eslint-print))
 	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --print-config $(ARGS)
 
 ifneq ($(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),) # eslint-inspect
@@ -1417,6 +1418,7 @@ $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
+	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,stylelint-print),$(_STYLELINT_VALUE_FLAGS))
 	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) --print-config $(ARGS)
 
 endif # /stylelint
@@ -2193,6 +2195,22 @@ test -r '$(call _host_path,$1)' || { \
 	$(call log,`%s` is missing$(_COMMA) set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
+endef
+
+#**
+#* Fails the recipe when the target was handed no file to work on.
+#*
+#* parameters:
+#*   target: string
+#*   value_flags?: list<string>
+#*
+#* returns: void
+#*
+define _require_file_argument
+$(if $(call _has_positional_arg,$(_ARGS),$2),:,{ \
+	$(call log,`%s` needs a file$(_COMMA) pass one as an argument.,$(COLOR_ERROR),'$1') >&2; \
+	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+})
 endef
 
 _IS_GROUP_PARALLEL    = $(if $(filter -O%,$(MAKEFLAGS)),,$(_IS_PARALLEL))

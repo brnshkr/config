@@ -1054,6 +1054,15 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('vscode://file/', $result);
     }
 
+    public function testAPrintTargetThatNeedsAFileSaysSoItself(): void
+    {
+        $eslint    = $this->runMake(['eslint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
+        $stylelint = $this->runMake(['stylelint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('eslint-print needs a file, pass one as an argument.', $eslint);
+        self::assertStringContainsString('stylelint-print needs a file, pass one as an argument.', $stylelint);
+    }
+
     public function testTheSemverGrammarMatchesWhatSemverAllows(): void
     {
         $resolved = $this->runMakeHelp(['vvv', 'resolve', 'brnshkr.semver'], ['VALUE_WIDTH' => '400']);
