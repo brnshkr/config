@@ -47,6 +47,7 @@ trait MakeTrait
     private const string FALLBACK_DIRECTORY = __DIR__ . '/../../Fixtures/Make/ConfigFallback';
     private const string VENDOR_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/ConfigVendor';
     private const string STARTUP_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Startup';
+    private const string LINTERS_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Linters';
     private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [

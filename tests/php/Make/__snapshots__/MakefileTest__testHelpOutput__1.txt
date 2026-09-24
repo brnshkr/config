@@ -206,6 +206,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -393,6 +397,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -657,6 +665,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -958,6 +970,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -1149,10 +1165,12 @@ app.very-verbose-group.very-verbose-sub
 app.very-verbose-group.very-verbose-sub.depth-three
 app.very-verbose-group.very-verbose-sub.depth-three.depth-four
 brnshkr
+brnshkr.actionlint
 brnshkr.arguments
 brnshkr.changelog
 brnshkr.common
 brnshkr.dotenv
+brnshkr.hadolint
 brnshkr.helpers
 brnshkr.semver
 brnshkr.semver.constants
@@ -1474,6 +1492,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -1776,6 +1798,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -2077,6 +2103,10 @@ Variables:
    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
+  hadolint
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+  actionlint
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -2459,6 +2489,10 @@ Available commands:
    [36mDOTENV_ENV_KEY            [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
    [36mDOTENV_DEFAULT_ENV        [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
    [36mDOTENV_TEST_ENVS          [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
+  [35mhadolint[0m
+   [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [35mhadolint[0m[90m config)[0m
+  [35mactionlint[0m
+   [36mACTIONLINT_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [35mactionlint[0m[90m config)[0m
   [35mchangelog[0m
    [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
    [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
@@ -2760,6 +2794,10 @@ Available commands:
    [32mDOTENV_ENV_KEY            [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
    [32mDOTENV_DEFAULT_ENV        [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
    [32mDOTENV_TEST_ENVS          [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
+  [33mhadolint[0m
+   [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [33mhadolint[0m[0m config)[0m
+  [33mactionlint[0m
+   [32mACTIONLINT_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [33mactionlint[0m[0m config)[0m
   [33mchangelog[0m
    [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
    [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m

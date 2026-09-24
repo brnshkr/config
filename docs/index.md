@@ -22,5 +22,7 @@ Installation and the ways to run each tool live in the [README](../README.md)
   - [Composer plugin](./php/Composer.md)
   - [Makefile](./php/Makefile.md)
 - [🛠 Makefile](./Makefile.md) — the shared task-runner foundation both stacks include
+- [🐳 hadolint](./hadolint.md) — the Dockerfile linter
+- [⚙️ actionlint](./actionlint.md) — the workflow linter
 - [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run
 - [💻 Development](./development.md) — working on @brnshkr/config itself

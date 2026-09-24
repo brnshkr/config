@@ -15,8 +15,10 @@ CHANGELOG_NAMES += editor-url=EditorUrl \
 ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/Makefile \
 	./conf/Makefile.dist \
+	./conf/actionlint.dist.yaml \
 	./conf/editorconfig.dist \
 	./conf/gitattributes.dist \
+	./conf/hadolint.dist.yaml \
 	./conf/launch.dist.json \
 	./conf/php-cs-fixer.dist.php \
 	./conf/phpstan/ \

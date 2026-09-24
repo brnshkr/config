@@ -19,6 +19,7 @@ use Symfony\Component\Process\Process;
 use function array_first;
 use function array_unique;
 use function count;
+use function getenv;
 use function implode;
 use function mb_substr_count;
 use function md5;
@@ -1278,6 +1279,16 @@ final class MakefileTest extends TestCase
         self::assertFileExists(self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php');
     }
 
+    public function testHadolintResolvesItsDockerfiles(): void
+    {
+        $this->assertMatchesSnapshot($this->runLinter(['hadolint-list']));
+    }
+
+    public function testActionlintResolvesItsWorkflows(): void
+    {
+        $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
+    }
+
     /**
      * @param list<string> $names
      */
@@ -1368,6 +1379,19 @@ final class MakefileTest extends TestCase
     private function runMakeHelp(array $args = [], array $env = [], bool $doExpectFailure = false): string
     {
         return $this->runMake(['help', ...$args], $env, doExpectFailure: $doExpectFailure);
+    }
+
+    /**
+     * @param list<string> $args
+     */
+    private function runLinter(array $args, bool $doExpectFailure = false): string
+    {
+        return $this->runMake(
+            $args,
+            ['PATH' => self::LINTERS_DIRECTORY . '/bin:' . (getenv('PATH') ?: '')],
+            self::LINTERS_DIRECTORY,
+            $doExpectFailure,
+        );
     }
 
     /**

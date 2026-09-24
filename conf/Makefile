@@ -427,6 +427,21 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
+_HADOLINT_FILES   := $(shell $(GIT) ls-files '*Dockerfile' '*Dockerfile.*' 2>/dev/null)
+_ACTIONLINT_FILES := $(shell $(GIT) ls-files '.github/workflows/*.yaml' '.github/workflows/*.yml' 2>/dev/null)
+
+#**
+#* Whether a tool this project does not install can run here.
+#*
+#* parameters:
+#*   binary: string
+#*
+#* returns: string
+#*
+define _is_tool_available
+$(if $(_HAS_CONTAINER),1,$(shell command -v $1 >/dev/null 2>&1 && $(PRINTF) 1))
+endef
+
 _HAS_PHP            = $(wildcard $(CURDIR)/composer.json)
 _HAS_PHPUNIT        = $(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit)
 _HAS_PHPSTAN        = $(wildcard $(CURDIR)/vendor/bin/phpstan)
@@ -442,6 +457,8 @@ _HAS_MARKDOWNLINT   = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT      = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT     = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
 _HAS_VITEST         = $(wildcard $(CURDIR)/node_modules/.bin/vitest)
+_HAS_HADOLINT       = $(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint))
+_HAS_ACTIONLINT     = $(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
@@ -1652,6 +1669,81 @@ $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 endif # /vitest
 
 endif # /js
+
+#--- hadolint
+
+HADOLINT_CONFIG  ?= $(call _config,$(APP_DIR)/conf/hadolint.yaml $(APP_DIR)/conf/hadolint.dist.yaml,)#v #~~ path to `hadolint` config
+_LAYERED_CONFIGS += $(if $(_HADOLINT_FILES),$(call _layered,$(HADOLINT_CONFIG),yaml))
+
+ifneq ($(_HAS_HADOLINT),) # hadolint
+
+HADOLINT       ?= $(RUN) hadolint#v #~~ command that runs `hadolint`
+HADOLINT_FILES ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
+HADOLINT_FLAGS ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `hadolint`
+
+_HADOLINT_VALUE_FLAGS := --config \
+	--failure-threshold \
+	--format \
+	-c \
+	-f \
+	-t
+
+_ANALYZER_NAMES += hadolint
+_GROUP_NAMES    += hadolint
+
+$(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
+	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
+	$(DEBUG_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
+		$(if $(call _has_positional_arg,$(_ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)))
+
+$(call _target,hadolint-group): #~~ counts the `hadolint` findings by rule #v
+	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
+	$(DEBUG_PREFIX)$(call _group,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) --format json \
+		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)),code,message)
+
+$(call _target,hadolint-list): #~~ lists the dockerfiles `hadolint` reads #vv
+	$(DEBUG_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
+
+$(call _target,hadolint-print): #~~ prints the resolved `hadolint` configuration #vv
+	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
+	$(DEBUG_PREFIX)$(HADOLINT) --config $(HADOLINT_CONFIG) --verbose $(HADOLINT_FLAGS) - </dev/null
+
+endif # /hadolint
+
+#--- actionlint
+
+ACTIONLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/actionlint.yaml $(APP_DIR)/conf/actionlint.dist.yaml,)#v #~~ path to `actionlint` config
+_LAYERED_CONFIGS  += $(if $(_ACTIONLINT_FILES),$(call _layered,$(ACTIONLINT_CONFIG),yaml))
+
+ifneq ($(_HAS_ACTIONLINT),) # actionlint
+
+ACTIONLINT       ?= $(RUN) actionlint#v #~~ command that runs `actionlint`
+ACTIONLINT_FILES ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
+ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI),-no-color)#v #~~ additional flags passed to `actionlint`
+
+_ACTIONLINT_VALUE_FLAGS := -config-file \
+	-format \
+	-ignore \
+	-pyflakes \
+	-shellcheck
+
+_ANALYZER_NAMES += actionlint
+_GROUP_NAMES    += actionlint
+
+$(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
+	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
+	$(DEBUG_PREFIX)$(call _spinner,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) \
+		$(if $(call _has_positional_arg,$(_ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)))
+
+$(call _target,actionlint-group): #~~ counts the `actionlint` findings by rule #v
+	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
+	$(DEBUG_PREFIX)$(call _group,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) -format '{{json .}}' \
+		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)),kind,message)
+
+$(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
+	$(DEBUG_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
+
+endif # /actionlint
 
 #--- changelog
 

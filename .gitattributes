@@ -38,8 +38,10 @@
 /conf/.gitignore.dist                  -export-ignore
 /conf/Makefile                         -export-ignore
 /conf/Makefile.dist                    -export-ignore
+/conf/actionlint.dist.yaml             -export-ignore
 /conf/editorconfig.dist                -export-ignore
 /conf/gitattributes.dist               -export-ignore
+/conf/hadolint.dist.yaml               -export-ignore
 /conf/launch.dist.json                 -export-ignore
 /conf/php-cs-fixer.dist.php            -export-ignore
 /conf/phpstan                          -export-ignore
