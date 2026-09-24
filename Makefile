@@ -7,10 +7,9 @@ STARTUP_TARGETS := build \
 
 include ./conf/Makefile
 
-VERSION := 0.0.1-beta.5
+#--- release
 
-CHANGELOG_NAMES += editor-url=EditorUrl \
-	file-finder=FileFinder
+VERSION := 0.0.1-beta.5
 
 ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/Makefile \
@@ -29,7 +28,20 @@ ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/twig-cs-fixer.dist.php \
 	./conf/vscode-css-custom-data.dist.json \
 	./conf/vscode-extensions.dist.json \
-	./conf/vscode-settings.dist.jsonc
+	./conf/vscode-settings.dist.jsonc#vvv
+
+#--- forge
+
+FORGE_IMAGE ?= ghcr.io/brnshkr/forge:dev#~~ image the container tests run in
+
+export FORGE_IMAGE
+
+#---vvv changelog
+
+CHANGELOG_NAMES += editor-url=EditorUrl \
+	file-finder=FileFinder
+
+#---vv test
 
 PHP_UNIT_MIN_COVERAGE_CLASSES  := 6.60
 PHP_UNIT_MIN_COVERAGE_METHODS  := 44.37
@@ -38,10 +50,6 @@ VITEST_MIN_COVERAGE_BRANCHES   := 74.34
 VITEST_MIN_COVERAGE_FUNCTIONS  := 93.79
 VITEST_MIN_COVERAGE_LINES      := 90.07
 VITEST_MIN_COVERAGE_STATEMENTS := 90.33
-
-FORGE_IMAGE ?= ghcr.io/brnshkr/forge:dev#vv #~~ image the container tests run in
-
-export FORGE_IMAGE
 
 _HAS_FORGE_IMAGE = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && $(PRINTF) 1)
 _HAS_SCRIPT      = $(shell command -v $(SCRIPT) >/dev/null 2>&1 && $(PRINTF) 1)
@@ -70,7 +78,7 @@ watch: #~~ rebuilds `./dist/` as the sources change
 
 #--- mate
 
-MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate
+MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate#v
 _MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
 
 discover: #~~ runs mate discover
