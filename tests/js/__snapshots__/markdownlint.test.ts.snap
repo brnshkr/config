@@ -260,6 +260,8 @@ exports[`expected markdownlint config 1`] = `
     "**/vite.config.*.timestamp-*",
     "**/yarn.lock",
   ],
+  "noBanner": true,
+  "noProgress": true,
   "overrides": [
     {
       "combine": "merge",

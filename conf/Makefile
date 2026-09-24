@@ -240,7 +240,8 @@ _CONTAINER_KEYS := APP_DIR \
 	IS_IN_CONTAINER \
 	RUN
 
-_TERMINAL_KEYS := CI \
+_TERMINAL_KEYS := BRNSHKR_DEBUG \
+	CI \
 	COLUMNS \
 	EDITOR_URL \
 	NO_ANSI \
@@ -276,10 +277,11 @@ PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
-DEBUG          ?= #~~ whether the commands are echoed before they run
-unexport DEBUG  # NOTICE: the `debug` package reads this from the environment
-DEBUG_PREFIX   ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
-_IS_DEBUG       = $(filter-out $(_FALSE),$(DEBUG))
+DEBUG               ?= #~~ whether the commands are echoed before they run
+unexport DEBUG       # NOTICE: the `debug` package reads this from the environment
+DEBUG_PREFIX        ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
+_IS_DEBUG            = $(filter-out $(_FALSE),$(DEBUG))
+export BRNSHKR_DEBUG = $(if $(_IS_DEBUG),1)
 
 TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
 TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)#vvv #~~ prefix for a guard command
@@ -1490,7 +1492,7 @@ ifneq ($(_HAS_MARKDOWNLINT),) # markdownlint
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
 MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/conf/markdownlint.mjs $(APP_DIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
-MARKDOWNLINT_FLAGS      ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `markdownlint-cli2`
+MARKDOWNLINT_FLAGS      ?= #v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
 
 _MARKDOWNLINT_VALUE_FLAGS := --config \
