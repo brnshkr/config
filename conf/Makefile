@@ -1320,7 +1320,7 @@ ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 
 TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
 TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
-TWIG_CS_FIXER_FLAGS  ?= -v $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
+TWIG_CS_FIXER_FLAGS  ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= twig#vv #~~ extensions `twig-cs-fixer` reads
 
 _FIXER_NAMES     += $(call _when_tracked,twig-cs-fixer,$(TWIG_CS_FIXER_EXTENSIONS))
@@ -1563,7 +1563,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
-		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
+		$(if $(_IS_DEBUG),--formatter verbose) $(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(STYLELINT_GLOB)'))
@@ -1586,9 +1586,9 @@ endif # /stylelint
 
 ifneq ($(_HAS_TYPESCRIPT),) # typescript
 
-TYPESCRIPT        ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
-TYPESCRIPT_CONFIG ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` project
-TYPESCRIPT_FLAGS  ?= --noEmit#v #~~ additional flags passed to `tsc`
+TYPESCRIPT            ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
+TYPESCRIPT_CONFIG     ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` project
+TYPESCRIPT_FLAGS      ?= --noEmit $(if $(_IS_DEBUG),--extendedDiagnostics)#v #~~ additional flags passed to `tsc`
 TYPESCRIPT_EXTENSIONS ?= ts tsx cts mts#vv #~~ extensions `tsc` type checks
 
 _TYPESCRIPT_PROJECT := $(APP_DIR)/conf/tsconfig.json
