@@ -37,6 +37,7 @@
     "./conf/hadolint.dist.yaml",
     "./conf/launch.dist.json",
     "./conf/markdownlint.dist.mjs",
+    "./conf/semgrep.dist.yaml",
     "./conf/spelling",
     "./conf/stylelint.dist.mjs",
     "./conf/tsconfig.dist.json",

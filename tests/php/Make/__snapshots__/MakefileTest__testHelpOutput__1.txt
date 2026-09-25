@@ -559,6 +559,7 @@ Variables:
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
+   CURL                        ?=  curl                                             (path to curl binary)
   settings
    DOCKER                      ?=  docker                                           (command that runs docker)
    DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
@@ -864,6 +865,7 @@ Variables:
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
+   CURL                        ?=  curl                                             (path to curl binary)
   settings
    DOCKER                      ?=  docker                                           (command that runs docker)
    DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
@@ -1386,6 +1388,7 @@ Variables:
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
+   CURL                        ?=  curl                                             (path to curl binary)
   settings
    DOCKER                      ?=  docker                                           (command that runs docker)
    DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
@@ -1692,6 +1695,7 @@ Variables:
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
+   CURL                        ?=  curl                                             (path to curl binary)
   settings
    DOCKER                      ?=  docker                                           (command that runs docker)
    DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
@@ -1997,6 +2001,7 @@ Variables:
    GIT                         ?=  git                                              (path to git binary)
    MKTEMP                      ?=  mktemp                                           (path to mktemp binary)
    SCRIPT                      ?=  script                                           (path to script binary)
+   CURL                        ?=  curl                                             (path to curl binary)
   settings
    DOCKER                      ?=  docker                                           (command that runs docker)
    DOCKER_COMPOSE              ?=  $(DOCKER) compose                                (command that runs compose)
@@ -2383,6 +2388,7 @@ Available commands:
    [36mGIT                       [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
    [36mMKTEMP                    [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
    [36mSCRIPT                    [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
+   [36mCURL                      [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
   [35msettings[0m
    [36mDOCKER                    [0m  [90m?=  docker                                           (command that runs [35mdocker[0m[90m)[0m
    [36mDOCKER_COMPOSE            [0m  [90m?=  $(DOCKER) compose                                (command that runs [35mcompose[0m[90m)[0m
@@ -2688,6 +2694,7 @@ Available commands:
    [32mGIT                       [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
    [32mMKTEMP                    [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
    [32mSCRIPT                    [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
+   [32mCURL                      [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
   [33msettings[0m
    [32mDOCKER                    [0m  [0m?=  docker                                           (command that runs [33mdocker[0m[0m)[0m
    [32mDOCKER_COMPOSE            [0m  [0m?=  $(DOCKER) compose                                (command that runs [33mcompose[0m[0m)[0m

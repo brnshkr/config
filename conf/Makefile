@@ -168,6 +168,7 @@ TAR    ?= tar#~~ path to `tar` binary
 GIT    ?= git#~~ path to `git` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
 SCRIPT ?= script#~~ path to `script` binary
+CURL   ?= curl#~~ path to `curl` binary
 
 #---v settings
 
@@ -466,6 +467,10 @@ _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
 	$(CURDIR)/node_modules/@vitest/coverage-istanbul \
 ))
+
+_HAS_SEMGREP := $(strip $(if $(_HAS_CONTAINER), \
+	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' >/dev/null 2>&1 && $(PRINTF) 1), \
+	$(shell command -v semgrep >/dev/null 2>&1 && $(PRINTF) 1)))
 
 _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
 
@@ -1079,16 +1084,28 @@ $(if $(_TRACKED_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_TRACKED_EXTENSION
 endef
 
 #**
-#* The value it is given when the path is there, so a list only claims what this project has.
+#* The value it is given when any of the paths are there, so a list only claims what this project has.
 #*
 #* parameters:
 #*   value: list<string>
-#*   path: string
+#*   paths: list<string>
 #*
 #* returns: list<string>
 #*
 define _when_installed
-$(if $(wildcard $(CURDIR)/$2),$1)
+$(if $(wildcard $(addprefix $(CURDIR)/,$2)),$1)
+endef
+
+#**
+#* The tracked files matching the patterns.
+#*
+#* parameters:
+#*   patterns: list<string>
+#*
+#* returns: list<string>
+#*
+define _tracked_files
+$(shell $(GIT) ls-files $(foreach PATTERN,$1,'$(PATTERN)') 2>/dev/null)
 endef
 
 ifneq ($(_HAS_PHP),) # php
@@ -1746,6 +1763,108 @@ $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
 	$(DEBUG_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
 
 endif # /actionlint
+
+#--- semgrep
+
+ifneq ($(_HAS_SEMGREP),) # semgrep
+
+SEMGREP          ?= $(RUN) semgrep#v #~~ command that runs `semgrep`
+SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/conf/semgrep.yaml $(APP_DIR)/conf/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
+SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets `semgrep` runs, auto-detected unless `x-brnshkr` says otherwise
+SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `semgrep`
+SEMGREP_CACHE    ?= $(APP_DIR)/.cache/semgrep#vv #~~ path to the `semgrep` ruleset cache
+SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
+SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
+SEMGREP_PYTHON   ?= $(RUN) python3#vvv #~~ command that runs `python3`, which merges the `semgrep` rulesets
+
+_LAYERED_CONFIGS += $(call _layered,$(SEMGREP_CONFIG),yaml)
+
+_SEMGREP_DATABASE_PACKAGES := vendor/doctrine/dbal \
+	vendor/doctrine/orm \
+	vendor/illuminate/database \
+	node_modules/@prisma/client \
+	node_modules/better-sqlite3 \
+	node_modules/drizzle-orm \
+	node_modules/mysql2 \
+	node_modules/pg
+
+_SEMGREP_CLIENT_PACKAGES := node_modules/@angular/core \
+	node_modules/lit \
+	node_modules/preact \
+	node_modules/react \
+	node_modules/solid-js \
+	node_modules/svelte \
+	node_modules/vue
+
+_SEMGREP_DETECTED_RULESETS = default \
+	gitleaks \
+	owasp-top-ten \
+	secrets \
+	security-audit \
+	$(if $(_HAS_PHP),php phpcs-security-audit) \
+	$(if $(_HAS_JS),typescript javascript nodejs nodejsscan mcp ai-best-practices) \
+	$(call _when_installed,sql-injection,$(_SEMGREP_DATABASE_PACKAGES)) \
+	$(call _when_installed,clientside-js,$(_SEMGREP_CLIENT_PACKAGES)) \
+	$(call _when_installed,php-laravel,vendor/laravel/framework) \
+	$(call _when_installed,wordpress,vendor/johnpbloch/wordpress-core vendor/roots/wordpress) \
+	$(call _when_installed,react,node_modules/react) \
+	$(call _when_installed,nextjs,node_modules/next) \
+	$(call _when_installed,nestjs,node_modules/@nestjs/core) \
+	$(call _when_installed,expressjs,node_modules/express) \
+	$(call _when_installed,koa,node_modules/koa) \
+	$(call _when_installed,hapi,node_modules/@hapi/hapi) \
+	$(call _when_installed,electron-desktop-app,node_modules/electron) \
+	$(call _when_installed,headless-browser,node_modules/playwright node_modules/playwright-core node_modules/puppeteer) \
+	$(if $(_HADOLINT_FILES),dockerfile) \
+	$(if $(_ACTIONLINT_FILES),github-actions) \
+	$(if $(call _tracked_files,*compose*.yaml *compose*.yml),docker-compose) \
+	$(if $(call _tracked_files,*Chart.yaml k8s/* kubernetes/* helm/*),kubernetes) \
+	$(if $(call _tracked_files,*nginx*.conf nginx/*),nginx) \
+	$(if $(call _tracked_files,*.tf),terraform) \
+	$(if $(shell $(AWK) '/^  - id:/ { found = 1; exit } END { exit !found }' '$(call _host_path,$(SEMGREP_CONFIG))' 2>/dev/null && $(PRINTF) 1),semgrep-rule-lints)
+
+_SEMGREP_OVERRIDES = $(call _semgrep_overrides,$(call _host_path,$(SEMGREP_CONFIG)))
+
+_SEMGREP_RULESETS = $(sort $(filter-out $(patsubst -%,%,$(filter -%,$(_SEMGREP_OVERRIDES))), \
+	$(_SEMGREP_DETECTED_RULESETS) $(patsubst +%,%,$(filter +%,$(_SEMGREP_OVERRIDES)))))
+
+_SEMGREP_IGNORES = $(filter =% ~%,$(_SEMGREP_OVERRIDES))
+_SEMGREP_CONFIGS = --config $(SEMGREP_CACHE)/rules.json --config $(SEMGREP_CONFIG)
+
+_SEMGREP_VALUE_FLAGS := --config \
+	--exclude \
+	--include \
+	--json-output \
+	--max-target-bytes \
+	--severity \
+	--timeout \
+	-c \
+	-e
+
+_ANALYZER_NAMES += semgrep
+_GROUP_NAMES    += semgrep
+
+$(call _target,semgrep): #~~ runs `semgrep` over this project's sources
+	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
+	$(DEBUG_PREFIX)$(call _semgrep_rules)
+	$(DEBUG_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) $(ARGS))
+
+$(call _target,semgrep-group): #~~ counts the `semgrep` findings by rule #v
+	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
+	$(DEBUG_PREFIX)$(call _semgrep_rules)
+	$(DEBUG_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message)
+
+$(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
+	$(DEBUG_PREFIX)$(PRINTF) '%s\n' $(SEMGREP_RULESETS)
+
+$(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
+	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
+	$(DEBUG_PREFIX)$(call _semgrep_rules)
+	$(DEBUG_PREFIX)$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS)
+
+$(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
+
+endif # /semgrep
 
 #--- changelog
 
@@ -2953,7 +3072,88 @@ $(if $(shell command -v code >/dev/null 2>&1 && echo 1),$(EDITOR_VSCODE),$(if \
 	$(shell { command -v pstorm || command -v phpstorm; } >/dev/null 2>&1 && echo 1),$(EDITOR_PHPSTORM),))
 endef
 
+#**
+#* What a `semgrep` config's `x-brnshkr` key sets: `+<ruleset>`, `-<ruleset>`, `=<rule>` and `~<rule>@<glob>`.
+#*
+#* parameters:
+#*   config: string
+#*
+#* returns: list<string>
+#*
+define _semgrep_overrides
+$(foreach WORD,$(shell $(AWK) '$(_SEMGREP_OVERRIDES_AWK)' '$1' 2>/dev/null),$(if $(filter !%,$(WORD)),$(error \
+	[$(_LABEL)] `$1` line $(patsubst !%,%,$(WORD)) is not a shape `x-brnshkr` takes),$(WORD)))
+endef
+
+#**
+#* Fetches every ruleset `semgrep` runs that is missing from `SEMGREP_CACHE` or older than `SEMGREP_MAX_AGE` days,
+#* then merges them into one `rules.json` with the config's `x-brnshkr` ignores applied.
+#*
+#* returns: void
+#*
+define _semgrep_rules
+cache='$(call _host_path,$(SEMGREP_CACHE))'; \
+$(MKDIR) -p "$$cache" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+for ruleset in $(SEMGREP_RULESETS); do \
+	cached="$$cache/$$ruleset.json"; \
+	[ -r "$$cached" ] && [ -z "$$(find "$$cached" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
+	$(RUN) $(CURL) --silent --show-error --fail --compressed -H 'Accept: application/json' \
+		-o '$(SEMGREP_CACHE)'/"$$ruleset.json.part" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
+		&& $(MV) "$$cached.part" "$$cached" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+done; \
+$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
+	$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
+	$(foreach IGNORE,$(_SEMGREP_IGNORES),'$(IGNORE)') || exit $(BRNSHKR_CONFIG_ERROR_CODE)
+endef
+
 #---vvv programs
+
+define _SEMGREP_RULES_PROGRAM_SOURCE
+import json, sys
+arguments = sys.argv[1:]
+separator = arguments.index('--')
+target, sources, ignores = arguments[0], arguments[1:separator], arguments[separator + 1:]
+everywhere = {ignore[1:] for ignore in ignores if ignore.startswith('=')}
+scoped = {}
+for ignore in ignores:
+    if ignore.startswith('~'):
+        rule, glob = ignore[1:].split('@', 1)
+        scoped.setdefault(rule, []).append(glob)
+rules = {}
+for source in sources:
+    with open(source) as handle:
+        for rule in json.load(handle).get('rules', []):
+            rules.setdefault(rule['id'], rule)
+for rule_id, globs in scoped.items():
+    if rule_id in rules:
+        rules[rule_id].setdefault('paths', {}).setdefault('exclude', []).extend(globs)
+with open(target, 'w') as handle:
+    json.dump({'rules': [rule for rule_id, rule in rules.items() if rule_id not in everywhere]}, handle)
+endef
+
+define _SEMGREP_OVERRIDES_AWK
+function close_entry() { if (rule != "" && !has_files) { print "!" rule_line; failed = 1; exit } rule = ""; has_files = 0; in_files = 0 }
+/^x-brnshkr:[[:space:]]*\{\}[[:space:]]*$$/ { next }
+/^x-brnshkr:[[:space:]]*$$/ { in_block = 1; next }
+!in_block { next }
+/^[[:space:]]*(#.*)?$$/ { next }
+/^[^[:space:]]/ { close_entry(); in_block = 0; in_ignores = 0; next }
+/^  [^[:space:]]/ { close_entry(); in_ignores = 0 }
+/^  ignores:[[:space:]]*\[\][[:space:]]*$$/ { next }
+/^  ignores:[[:space:]]*$$/ { in_ignores = 1; next }
+/^  [a-z0-9-]+:[[:space:]]+(true|false)[[:space:]]*$$/ { \
+	name = $$1; \
+	sub(/:$$/, "", name); \
+	print ($$2 == "true" ? "+" : "-") name; \
+	next \
+}
+in_ignores && /^    - [a-z0-9._-]+[[:space:]]*$$/ { close_entry(); print "=" $$2; next }
+in_ignores && /^    - rule:[[:space:]]+[a-z0-9._-]+[[:space:]]*$$/ { close_entry(); rule = $$3; rule_line = NR; next }
+in_ignores && rule != "" && /^      files:[[:space:]]*$$/ { in_files = 1; next }
+in_ignores && in_files && /^        - [^[:space:]"'"'"']+[[:space:]]*$$/ { print "~" rule "@" $$2; has_files = 1; next }
+{ print "!" NR; failed = 1; exit }
+END { if (!failed) close_entry() }
+endef
 
 define _GITATTRIBUTES_PROGRAM_SOURCE
 $$attributesPath = $$argv[1];

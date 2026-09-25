@@ -17,6 +17,7 @@ conf/phpstan/object-manager.php
 conf/phpstan/unchecked-exceptions.php
 conf/phpunit.dist.xml
 conf/rector.dist.php
+conf/semgrep.dist.yaml
 conf/spelling/defaults.json
 conf/twig-cs-fixer.dist.php
 conf/vscode-css-custom-data.dist.json
@@ -144,6 +145,7 @@ conf/eslint.dist.mjs
 conf/hadolint.dist.yaml
 conf/launch.dist.json
 conf/markdownlint.dist.mjs
+conf/semgrep.dist.yaml
 conf/spelling/defaults.json
 conf/stylelint.dist.mjs
 conf/tsconfig.dist.json

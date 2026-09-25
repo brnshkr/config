@@ -1,0 +1,12 @@
+#!/bin/sh
+output=
+address=
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		-o) output=$2; shift;;
+		http*) address=$1;;
+	esac
+	shift
+done
+printf 'curl %s\n' "$address"
+printf '{"rules":[]}' > "$output"

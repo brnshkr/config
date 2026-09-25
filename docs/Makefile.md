@@ -57,6 +57,7 @@ A tool's target takes suffixes, the same ones on both stacks:
 `-print` its resolved configuration,
 `-group` its findings counted by identifier,
 `-debug` runs it verbosely,
+`-validate` checks that the rules a tool reads still load,
 `-update` rewrites snapshots
 and `-coverage` measures how much of the source the tests reach.
 `make help` names the ones each tool has.

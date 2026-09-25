@@ -155,6 +155,7 @@ trait MakeTrait
 
         self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');
         self::removeDirectory(self::CACHES_DIRECTORY . '/.cache');
+        self::removeDirectory(self::LINTERS_DIRECTORY . '/.cache');
     }
 
     private static function removeDirectory(string $path): void

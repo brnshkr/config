@@ -24,6 +24,7 @@ ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/phpstan.dist.php \
 	./conf/phpunit.dist.xml \
 	./conf/rector.dist.php \
+	./conf/semgrep.dist.yaml \
 	./conf/spelling/ \
 	./conf/twig-cs-fixer.dist.php \
 	./conf/vscode-css-custom-data.dist.json \

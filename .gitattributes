@@ -49,6 +49,7 @@
 /conf/phpstan/**                       -export-ignore
 /conf/phpunit.dist.xml                 -export-ignore
 /conf/rector.dist.php                  -export-ignore
+/conf/semgrep.dist.yaml                -export-ignore
 /conf/spelling                         -export-ignore
 /conf/spelling/**                      -export-ignore
 /conf/twig-cs-fixer.dist.php           -export-ignore

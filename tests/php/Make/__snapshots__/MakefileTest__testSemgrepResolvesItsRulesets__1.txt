@@ -1,0 +1,44 @@
+=== groups ===
+{
+    "detected": [
+        "detected",
+        "shipped"
+    ],
+    "overridden": [
+        "overridden"
+    ]
+}
+
+=== base: detected ===
+ai-best-practices
+clientside-js
+default
+docker-compose
+dockerfile
+github-actions
+gitleaks
+javascript
+mcp
+nodejs
+nodejsscan
+owasp-top-ten
+php
+phpcs-security-audit
+react
+secrets
+security-audit
+sql-injection
+typescript
+
+=== diff: overridden ===
+@@ @@
+ owasp-top-ten
+ php
+ phpcs-security-audit
+-react
+ secrets
+ security-audit
+ sql-injection
++terraform
+ typescript
+

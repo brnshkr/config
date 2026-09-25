@@ -1,0 +1,10 @@
+x-brnshkr:
+  react: false
+  terraform: true
+  ignores:
+    - javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+    - rule: php.lang.security.exec-use.exec-use
+      files:
+        - src/php/Spelling.php
+
+rules: []

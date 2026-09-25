@@ -1289,6 +1289,21 @@ final class MakefileTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
     }
 
+    public function testSemgrepResolvesItsRulesets(): void
+    {
+        $scenarios = [];
+
+        foreach ([
+            'detected'   => [],
+            'shipped'    => ['SEMGREP_CONFIG=conf/shipped.yaml'],
+            'overridden' => ['SEMGREP_CONFIG=conf/override.yaml'],
+        ] as $name => $variables) {
+            $scenarios[$name] = $this->runLinter(['semgrep-list', ...$variables]);
+        }
+
+        $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+    }
+
     /**
      * @param list<string> $names
      */
