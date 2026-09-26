@@ -48,6 +48,8 @@ trait MakeTrait
     private const string VENDOR_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/ConfigVendor';
     private const string STARTUP_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Startup';
     private const string LINTERS_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Linters';
+    private const string DOTENV_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/Dotenv';
+    private const string REFUSED_STAGE_PATH = self::DOTENV_DIRECTORY . '/.env.stage:;false;#';
     private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [
@@ -132,6 +134,7 @@ trait MakeTrait
             self::TSCONFIG_DIRECTORY . '/.gitignore',
             self::TSCONFIG_DIRECTORY . '/tsconfig.json',
             self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
+            self::REFUSED_STAGE_PATH,
         ];
 
         foreach (self::CONFIG_DIRECTORIES as $fixtureDirectory) {

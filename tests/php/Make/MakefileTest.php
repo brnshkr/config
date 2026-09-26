@@ -19,6 +19,7 @@ use Symfony\Component\Process\Process;
 
 use function array_first;
 use function array_unique;
+use function basename;
 use function count;
 use function getenv;
 use function implode;
@@ -29,6 +30,7 @@ use function readlink;
 use function shell_exec;
 use function sprintf;
 use function Symfony\Component\String\s;
+use function touch;
 
 /**
  * @internal
@@ -39,7 +41,6 @@ final class MakefileTest extends TestCase
     use MakeTrait;
     use MatchesSnapshots;
 
-    private const string DOTENV_DIRECTORY   = __DIR__ . '/../Fixtures/Make/Dotenv';
     private const string CONSUMER_DIRECTORY = __DIR__ . '/../Fixtures/Make/Consumer';
     private const string RESERVED_DIRECTORY = __DIR__ . '/../Fixtures/Make/ReservedScope';
     private const string COVERAGE_DIRECTORY = __DIR__ . '/../Fixtures/Make/Coverage';
@@ -367,6 +368,15 @@ final class MakefileTest extends TestCase
 
         self::assertStringContainsString('unterminated quote', $result);
         self::assertStringContainsString('unterminated.env', $result);
+    }
+
+    public function testDotenvRefusesAStageNameMakeWouldReadAsARule(): void
+    {
+        touch(self::REFUSED_STAGE_PATH);
+
+        $result = $this->runMake(['dotenv-show'], directory: self::DOTENV_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString(sprintf('`%s` does not name a stage', basename(self::REFUSED_STAGE_PATH)), $result);
     }
 
     public function testFixWritesCheckOnlyReadsAndTestOnlyTests(): void

@@ -967,6 +967,14 @@ _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(fi
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
 
+_DOTENV_REFUSED_STAGES := $(shell for file in .env.*; do \
+	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
+done)
+
+ifneq ($(_DOTENV_REFUSED_STAGES),)
+$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
+endif
+
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
 
 define _DOTENV_AWK
