@@ -156,6 +156,7 @@ jobs:
         id: validate
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         env:
+          INPUTS: ${{ toJSON(inputs) }}
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
           PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
@@ -163,7 +164,7 @@ jobs:
           script: |
             const fs = require('fs');
 
-            const inputs = ${{ toJSON(inputs) }};
+            const inputs = JSON.parse(process.env.INPUTS);
             const isDryRun = String(inputs['is-dry-run'] ?? 'false') === 'true';
             const doEnsureSetSecrets = String(inputs['do-ensure-set-secrets'] ?? 'true') === 'true';
             const bunVersion = String(inputs['bun-version'] ?? '1.4.2').trim();
