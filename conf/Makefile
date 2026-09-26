@@ -840,7 +840,13 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
 		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(APP_DIR)/.gitattributes $(APP_DIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
-	},:)
+	},[ ! -r '$(CURDIR)/.gitattributes' ] || { \
+		kept=$$($(AWK) '$(_EMPTY_EXPORT_BLOCK_AWK)' '$(CURDIR)/.gitattributes') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		[ "$$kept" = "$$($(CAT) '$(CURDIR)/.gitattributes')" ] || { \
+			$(PRINTF) '%s\n' "$$kept" > '$(CURDIR)/.gitattributes' || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
+		}; \
+	})
 	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
@@ -3108,6 +3114,21 @@ endef
 
 #---vvv programs
 
+define _EMPTY_EXPORT_BLOCK_AWK
+{ lines[NR] = $$0 } \
+END { \
+	for (line = 1; line <= NR; line += 1) { \
+		if (lines[line] == "###> brnshkr/config ###" && lines[line + 1] == "###< brnshkr/config ###") { \
+			if (count > 0 && kept[count] == "") count -= 1; \
+			line += 1; \
+			continue \
+		} \
+		kept[++count] = lines[line] \
+	} \
+	for (line = 1; line <= count; line += 1) print kept[line] \
+}
+endef
+
 define _SEMGREP_RULES_PROGRAM_SOURCE
 import json, sys
 arguments = sys.argv[1:]
@@ -3175,6 +3196,16 @@ foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
 }
 
 $$projectDirectory = dirname($$argv[2]);
+$$doesExist = static fn (string $$path): bool => file_exists(
+    $$projectDirectory . '/' . trim((string) preg_replace('#^(?:\./)+#', '', $$path), '/'),
+);
+$$shippedPaths = array_filter($$shippedPaths, $$doesExist);
+$$declaredPaths = array_filter($$declaredPaths, $$doesExist);
+
+if ($$shippedPaths === [] && $$declaredPaths === []) {
+    exit(0);
+}
+
 $$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirectory): array {
     $$expanded = [];
 
@@ -3220,7 +3251,9 @@ foreach ($$shippedPaths as $$path) {
 
 $$currentContents = (string) file_get_contents($$attributesPath);
 $$generatedRegion = "###> brnshkr/config ###\n" . implode("\n", $$renderedLines) . "\n###< brnshkr/config ###";
-$$updatedContents = preg_replace('/###> brnshkr\/config ###.*###< brnshkr\/config ###/s', $$generatedRegion, $$currentContents, 1);
+$$updatedContents = str_contains($$currentContents, '###> brnshkr/config ###')
+    ? preg_replace('/###> brnshkr\/config ###.*###< brnshkr\/config ###/s', $$generatedRegion, $$currentContents, 1)
+    : rtrim($$currentContents, "\n") . "\n\n" . $$generatedRegion . "\n";
 
 if ($$updatedContents !== null && $$updatedContents !== $$currentContents) {
     file_put_contents($$attributesPath, $$updatedContents);

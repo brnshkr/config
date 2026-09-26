@@ -243,5 +243,10 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/\nLoaded \d+ rules\n$/`,
     regex: /\nLoaded \d+ rules\n$/v,
   },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\/composer\.json\s+-export-ignore$/m`,
+    regex: /^\/composer\.json\s+-export-ignore$/mv,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

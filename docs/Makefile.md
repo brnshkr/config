@@ -124,8 +124,8 @@ Naming configs writes only those, so `make configs eslint editorconfig` leaves e
 A named config that already exists is offered for overwriting rather than skipped,
 `--force` overwrites without asking, and an unknown name lists what there is.
 Where the repository has a `composer.json`, the block between the markers in `.gitattributes` is rewritten
-on every run, from the autoload roots and `ARCHIVE_EXTRA_PATHS`, so what an archive ships follows the
-manifest and `git archive` and `composer archive` ship the same files.
+on every run from the autoload roots and `ARCHIVE_EXTRA_PATHS` that exist, and appended where it is missing,
+so what an archive ships follows the manifest and `git archive` and `composer archive` ship the same files.
 `make configs local` writes the private halves as well, each delegating to the tracked file rather than
 restating it: an `include` for a PHP config, an `export { default } from` for a JavaScript one.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.

@@ -626,6 +626,31 @@ final class MakefileTest extends TestCase
         self::assertSame('conf/tsconfig.json', readlink(self::TSCONFIG_DIRECTORY . '/tsconfig.json'));
     }
 
+    public function testARepositoryWithoutComposerGetsNoEmptyExportBlock(): void
+    {
+        $this->runMake(['configs'], directory: self::TSCONFIG_DIRECTORY);
+
+        $gitattributes = new Filesystem()->readFile(self::TSCONFIG_DIRECTORY . '/.gitattributes');
+
+        self::assertStringNotContainsString('brnshkr/config ###', $gitattributes);
+        self::assertStringEndsWith("linguist-vendored\n", $gitattributes);
+    }
+
+    public function testAComposerProjectWithoutMarkersGetsTheExportBlockAppended(): void
+    {
+        new Filesystem()->dumpFile(self::CONFIGS_DIRECTORY . '/.gitattributes', "*.png binary\n");
+
+        $this->runMake(['configs'], directory: self::CONFIGS_DIRECTORY);
+
+        $gitattributes = new Filesystem()->readFile(self::CONFIGS_DIRECTORY . '/.gitattributes');
+
+        self::assertStringStartsWith("*.png binary\n\n###> brnshkr/config ###\n", $gitattributes);
+        self::assertMatchesRegularExpression('/^\/composer\.json\s+-export-ignore$/m', $gitattributes);
+        self::assertStringNotContainsString('/LICENSE', $gitattributes);
+        self::assertStringNotContainsString('/README.md', $gitattributes);
+        self::assertStringEndsWith("###< brnshkr/config ###\n", $gitattributes);
+    }
+
     public function testTheTypescriptProjectFallsBackToAFileWhereLinkingFails(): void
     {
         $this->runMake(['configs'], ['LN' => 'false'], self::TSCONFIG_DIRECTORY);
