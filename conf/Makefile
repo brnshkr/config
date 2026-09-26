@@ -1339,7 +1339,7 @@ $(call _target,rector-list): #~~ lists all files that are processed by `rector` 
 
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG))
+	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
 
 $(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
@@ -1374,7 +1374,7 @@ $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by 
 
 $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG))
+	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
 
 $(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
@@ -3341,7 +3341,7 @@ fi
 endef
 
 define _RULES_PROGRAM_SOURCE
-[, $$autoloaderPath, $$toolName, $$configPath] = $$argv;
+[, $$autoloaderPath, $$toolName, $$configPath, $$urlTemplate, $$appDirectory, $$hostDirectory] = $$argv;
 
 require $$autoloaderPath;
 
@@ -3368,11 +3368,28 @@ $$ruleNames = array_values(array_unique(array_map(static fn (object $$rule): str
 sort($$ruleNames);
 sort($$skippedRuleNames);
 
-$$printSection = static function (string $$title, array $$names): void {
+$$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$hostDirectory): string {
+    $$fileName = $$urlTemplate === '' || !class_exists($$name) ? false : new ReflectionClass($$name)->getFileName();
+
+    if ($$fileName === false) {
+        return $$name;
+    }
+
+    $$isInApp = str_starts_with($$fileName, $$appDirectory . '/');
+    $$url     = strtr($$urlTemplate, [
+        '{cwd}'  => $$isInApp ? $$hostDirectory : '',
+        '{file}' => $$isInApp ? substr($$fileName, strlen($$appDirectory) + 1) : ltrim($$fileName, '/'),
+        '{line}' => (string) new ReflectionClass($$name)->getStartLine(),
+    ]);
+
+    return "\033]8;;" . $$url . "\033\\" . $$name . "\033]8;;\033\\";
+};
+
+$$printSection = static function (string $$title, array $$names) use ($$link): void {
     echo $$title, PHP_EOL, str_repeat('=', strlen($$title)), PHP_EOL, PHP_EOL;
 
     foreach ($$names as $$name) {
-        echo ' * ', $$name, PHP_EOL;
+        echo ' * ', $$link($$name), PHP_EOL;
     }
 
     echo PHP_EOL;
