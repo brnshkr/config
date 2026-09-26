@@ -721,10 +721,16 @@ _PLAIN_CONFIGS       = $(APP_DIR)/.gitignore
 _LAYERED_CONFIGS     =
 _LINKED_CONFIGS      =
 
+_CSS_CUSTOM_DATA       := $(CURDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json
+_STYLESHEET_EXTENSIONS := css less pcss postcss sass scss styl
+
+_STYLESHEET_PACKAGES := node_modules/@brnshkr/typography \
+	node_modules/tailwindcss
+
 _PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
-	$(CURDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json \
+	$(or $(call _when_tracked,$(_CSS_CUSTOM_DATA),$(_STYLESHEET_EXTENSIONS)),$(call _when_installed,$(_CSS_CUSTOM_DATA),$(_STYLESHEET_PACKAGES))) \
 	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
 	$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist
 
