@@ -4,9 +4,8 @@
 
 import { createRequire } from 'node:module';
 
-import { isPackageExists } from 'local-pkg';
-
 import { interopImport } from './interop-import';
+import { isPackageInstalled } from './resolve';
 
 import type { RegExpParser } from '@eslint-community/regexpp';
 import type { analyse } from 'scslre';
@@ -14,8 +13,10 @@ import type { analyse } from 'scslre';
 const requireModule = createRequire(import.meta.url);
 
 export const ESLINT_PACKAGES = <const>{
+  CONFUSING_BROWSER_GLOBALS: 'confusing-browser-globals',
   ESLINT_CSS: '@eslint/css',
   ESLINT_IMPORT_RESOLVER_TYPESCRIPT: 'eslint-import-resolver-typescript',
+  ESLINT_JS: '@eslint/js',
   ESLINT_JSON: '@eslint/json',
   ESLINT_MARKDOWN: '@eslint/markdown',
   ESLINT_MERGE_PROCESSORS: 'eslint-merge-processors',
@@ -35,6 +36,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_PLUGIN_UNICORN: 'eslint-plugin-unicorn',
   ESLINT_PLUGIN_UNUSED_IMPORTS: 'eslint-plugin-unused-imports',
   ESLINT_PLUGIN_YML: 'eslint-plugin-yml',
+  GLOBALS: 'globals',
   SVELTE: 'svelte',
   TAILWINDCSS: 'tailwindcss',
   TYPESCRIPT: 'typescript',
@@ -46,8 +48,14 @@ export type EslintPackage = typeof ESLINT_PACKAGES[keyof typeof ESLINT_PACKAGES]
 
 // NOTICE: Package names must be duplicated here to allow for type inference of dynamic imports
 export const ESLINT_PACKAGE_RESOLVERS = <const>{
+  [ESLINT_PACKAGES.CONFUSING_BROWSER_GLOBALS]: async () => interopImport(
+    import('confusing-browser-globals'),
+  ),
   [ESLINT_PACKAGES.ESLINT_CSS]: async () => interopImport(
     import('@eslint/css'),
+  ),
+  [ESLINT_PACKAGES.ESLINT_JS]: async () => interopImport(
+    import('@eslint/js'),
   ),
   [ESLINT_PACKAGES.ESLINT_JSON]: async () => interopImport(
     import('@eslint/json'),
@@ -109,12 +117,15 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   [ESLINT_PACKAGES.ESLINT_PLUGIN_YML]: async () => interopImport(
     import('eslint-plugin-yml'),
   ),
+  [ESLINT_PACKAGES.GLOBALS]: async () => interopImport(
+    import('globals'),
+  ),
   // Do not import, just check for existence
-  [ESLINT_PACKAGES.SVELTE]: () => isPackageExists(ESLINT_PACKAGES.SVELTE),
+  [ESLINT_PACKAGES.SVELTE]: () => isPackageInstalled(ESLINT_PACKAGES.SVELTE),
   // Do not import, just check for existence
-  [ESLINT_PACKAGES.TAILWINDCSS]: () => isPackageExists(ESLINT_PACKAGES.TAILWINDCSS),
+  [ESLINT_PACKAGES.TAILWINDCSS]: () => isPackageInstalled(ESLINT_PACKAGES.TAILWINDCSS),
   // Do not import, just check for existence
-  [ESLINT_PACKAGES.TYPESCRIPT]: () => isPackageExists(ESLINT_PACKAGES.TYPESCRIPT),
+  [ESLINT_PACKAGES.TYPESCRIPT]: () => isPackageInstalled(ESLINT_PACKAGES.TYPESCRIPT),
   [ESLINT_PACKAGES.TYPESCRIPT_ESLINT]: async () => interopImport(
     import('typescript-eslint'),
   ),
@@ -132,13 +143,13 @@ export const COMMITLINT_PACKAGES = <const>{
 export type CommitlintPackage = typeof COMMITLINT_PACKAGES[keyof typeof COMMITLINT_PACKAGES];
 
 export const COMMITLINT_PACKAGE_RESOLVERS = <const>{
-  [COMMITLINT_PACKAGES.COMMITLINT_CONFIG_CONVENTIONAL]: () => isPackageExists(
+  [COMMITLINT_PACKAGES.COMMITLINT_CONFIG_CONVENTIONAL]: () => isPackageInstalled(
     COMMITLINT_PACKAGES.COMMITLINT_CONFIG_CONVENTIONAL,
   ),
-  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES]: () => isPackageExists(
+  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES]: () => isPackageInstalled(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES,
   ),
-  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => isPackageExists(
+  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => isPackageInstalled(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE,
   ),
 } satisfies Record<CommitlintPackage, () => boolean>;
@@ -155,22 +166,22 @@ export const MARKDOWNLINT_PACKAGES = <const>{
 export type MarkdownlintPackage = typeof MARKDOWNLINT_PACKAGES[keyof typeof MARKDOWNLINT_PACKAGES];
 
 export const MARKDOWNLINT_PACKAGE_RESOLVERS = <const>{
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_GITHUB]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_GITHUB]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_GITHUB,
   ),
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULES]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULES]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULES,
   ),
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS,
   ),
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS,
   ),
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_SEARCH_REPLACE]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_SEARCH_REPLACE]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_SEARCH_REPLACE,
   ),
-  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT]: () => isPackageExists(
+  [MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT]: () => isPackageInstalled(
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT,
   ),
 } satisfies Record<MarkdownlintPackage, () => boolean>;
@@ -193,6 +204,7 @@ export const STYLELINT_PACKAGES = <const>{
   STYLELINT_CONFIG_CSS_MODULES: 'stylelint-config-css-modules',
   STYLELINT_CONFIG_HTML: 'stylelint-config-html',
   STYLELINT_CONFIG_RECESS_ORDER: 'stylelint-config-recess-order',
+  STYLELINT_CONFIG_STANDARD: 'stylelint-config-standard',
   STYLELINT_CONFIG_STANDARD_LESS: 'stylelint-config-standard-less',
   STYLELINT_CONFIG_STANDARD_SCSS: 'stylelint-config-standard-scss',
   STYLELINT_DECLARATION_STRICT_VALUE: 'stylelint-declaration-strict-value',
@@ -206,40 +218,43 @@ export const STYLELINT_PACKAGES = <const>{
 export type StylelintPackage = typeof STYLELINT_PACKAGES[keyof typeof STYLELINT_PACKAGES];
 
 export const STYLELINT_PACKAGE_RESOLVERS = <const>{
-  [STYLELINT_PACKAGES.POSTCSS_HTML]: () => isPackageExists(
+  [STYLELINT_PACKAGES.POSTCSS_HTML]: () => isPackageInstalled(
     STYLELINT_PACKAGES.POSTCSS_HTML,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_CONFIG_CSS_MODULES]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_CSS_MODULES]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_CSS_MODULES,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_CONFIG_HTML]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_HTML]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_HTML,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_CONFIG_RECESS_ORDER]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_RECESS_ORDER]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_RECESS_ORDER,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD]: () => isPackageInstalled(
+    STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD,
+  ),
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_DECLARATION_STRICT_VALUE]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_DECLARATION_STRICT_VALUE]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_DECLARATION_STRICT_VALUE,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_ORDER]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_ORDER]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_ORDER,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_PLUGIN_USE_BASELINE]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_PLUGIN_USE_BASELINE]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_PLUGIN_USE_BASELINE,
   ),
-  [STYLELINT_PACKAGES.STYLELINT_USE_NESTING]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLELINT_USE_NESTING]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLELINT_USE_NESTING,
   ),
-  [STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG]: () => isPackageExists(
+  [STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG,
   ),
 } satisfies Record<StylelintPackage, () => boolean>;
@@ -253,7 +268,7 @@ export const VITEST_PACKAGES = <const>{
 export type VitestPackage = typeof VITEST_PACKAGES[keyof typeof VITEST_PACKAGES];
 
 export const VITEST_PACKAGE_RESOLVERS = <const>{
-  [VITEST_PACKAGES.HAPPY_DOM]: () => isPackageExists(VITEST_PACKAGES.HAPPY_DOM),
-  [VITEST_PACKAGES.JSDOM]: () => isPackageExists(VITEST_PACKAGES.JSDOM),
-  [VITEST_PACKAGES.VITEST_UI]: () => isPackageExists(VITEST_PACKAGES.VITEST_UI),
+  [VITEST_PACKAGES.HAPPY_DOM]: () => isPackageInstalled(VITEST_PACKAGES.HAPPY_DOM),
+  [VITEST_PACKAGES.JSDOM]: () => isPackageInstalled(VITEST_PACKAGES.JSDOM),
+  [VITEST_PACKAGES.VITEST_UI]: () => isPackageInstalled(VITEST_PACKAGES.VITEST_UI),
 } satisfies Record<VitestPackage, () => boolean>;

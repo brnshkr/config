@@ -9,6 +9,9 @@
 export { default } from '@brnshkr/config/eslint';
 ```
 
+Install `eslint` and `eslint-flat-config-utils` next to the package. The base JavaScript rules also take
+`@eslint/js`, `globals` and `confusing-browser-globals` when they are installed, and leave out what each supplies otherwise.
+
 Modules for languages and plugins — e.g. `typescript`, `svelte`, `yaml`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
 

@@ -2,10 +2,6 @@
  * @internal @brnshkr/config/eslint
  */
 
-import jsEslint from '@eslint/js';
-import confusingBrowserGlobals from 'confusing-browser-globals';
-import globals from 'globals';
-
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_SCRIPT_FILES } from '../utils/globs';
@@ -15,7 +11,13 @@ import type { Config } from '../types/config';
 
 export const javascript = async (): Promise<Config[]> => {
   const {
-    optional: [pluginAntfu, pluginUnusedImports],
+    optional: [
+      confusingBrowserGlobals,
+      jsEslint,
+      pluginAntfu,
+      pluginUnusedImports,
+      globals,
+    ],
   } = await resolvePackages(MODULES.javascript);
 
   const plugins: Config['plugins'] = {};
@@ -39,11 +41,15 @@ export const javascript = async (): Promise<Config[]> => {
       plugins,
       languageOptions: {
         ecmaVersion: 'latest',
-        globals: {
-          ...globals.browser,
-          ...globals.es2025,
-          ...globals.node,
-        },
+        ...(globals
+          ? {
+            globals: {
+              ...globals.browser,
+              ...globals.es2025,
+              ...globals.node,
+            },
+          }
+          : undefined),
         sourceType: 'module',
         parserOptions: {
           sourceType: 'module',
@@ -62,7 +68,12 @@ export const javascript = async (): Promise<Config[]> => {
       name: buildConfigName(MAIN_SCOPES.JAVASCRIPT, SUB_SCOPES.RULES),
       files: GLOB_SCRIPT_FILES,
       rules: {
-        ...jsEslint.configs.recommended.rules,
+        ...jsEslint?.configs.recommended.rules,
+        ...(confusingBrowserGlobals
+          ? {
+            'no-restricted-globals': ['error', 'global', ...confusingBrowserGlobals],
+          }
+          : undefined),
         ...(pluginUnusedImports
           ? {
             'no-unused-vars': 'off',
@@ -222,7 +233,6 @@ export const javascript = async (): Promise<Config[]> => {
         'no-restricted-exports': ['error', {
           restrictedNamedExports: ['default'],
         }],
-        'no-restricted-globals': ['error', 'global', ...confusingBrowserGlobals],
         'no-restricted-properties': [
           'error',
           { message: 'Use `Object.getPrototypeOf` or `Object.setPrototypeOf` instead.', property: '__proto__' },

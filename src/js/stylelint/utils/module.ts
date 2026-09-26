@@ -20,6 +20,14 @@ export const MODULES = <const>{
       ],
     },
   },
+  css: {
+    name: 'css',
+    packages: {
+      optional: [
+        STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD,
+      ],
+    },
+  },
   defensive: {
     name: 'defensive',
     packages: {

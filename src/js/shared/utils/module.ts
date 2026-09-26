@@ -2,8 +2,6 @@
  * @internal @brnshkr/config
  */
 
-import { isPackageExists } from 'local-pkg';
-
 import { log } from './log';
 import { objectEntries, objectFromEntries, readOwnValue } from './object';
 
@@ -16,6 +14,7 @@ import {
   VITEST_PACKAGE_RESOLVERS,
 } from './package-resolvers';
 
+import { isPackageInstalled } from './resolve';
 import { joinAsQuotedList } from './string';
 
 import type { Maybe, Simplify } from '../types/core';
@@ -246,11 +245,11 @@ export const resolvePackagesSharedSynchronously = <
 
 export const doAllPackagesExist = (
   packages: readonly Package[],
-): boolean => packages.every((thePackage) => isPackageExists(thePackage));
+): boolean => packages.every((thePackage) => isPackageInstalled(thePackage));
 
 export const doesAnyPackageExist = (
   packages: readonly Package[],
-): boolean => packages.some((thePackage) => isPackageExists(thePackage));
+): boolean => packages.some((thePackage) => isPackageInstalled(thePackage));
 
 export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
   const { packages } = moduleInfo;

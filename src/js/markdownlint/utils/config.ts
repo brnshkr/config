@@ -2,16 +2,15 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { resolveModule } from 'local-pkg';
-
 import { pickKeys } from '../../shared/utils/object';
+import { resolveModulePath } from '../../shared/utils/resolve';
 
 import type { Maybe } from '../../shared/types/core';
 import type { Config } from '../types/config';
 import type { ResolvedOptions } from '../types/options';
 
 // NOTICE: markdownlint would load a rule's CommonJS build, and ESM nests that inside an extra `default` it cannot see
-export const resolveCustomRule = (id: string): string => resolveModule(id) ?? id;
+export const resolveCustomRule = (id: string): string => resolveModulePath(id) ?? id;
 
 const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   '$schema',

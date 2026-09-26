@@ -48,8 +48,11 @@ export const MODULES = <const>{
     name: 'javascript',
     packages: {
       optional: [
+        ESLINT_PACKAGES.CONFUSING_BROWSER_GLOBALS,
+        ESLINT_PACKAGES.ESLINT_JS,
         ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU,
         ESLINT_PACKAGES.ESLINT_PLUGIN_UNUSED_IMPORTS,
+        ESLINT_PACKAGES.GLOBALS,
       ],
     },
   },

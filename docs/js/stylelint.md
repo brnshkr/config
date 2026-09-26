@@ -9,6 +9,8 @@
 export { default } from '@brnshkr/config/stylelint';
 ```
 
+Install `stylelint` next to the package. The base rules extend `stylelint-config-standard` when it is installed.
+
 Modules for dialects and plugins — e.g. `scss`, `modules`, `order`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
 
