@@ -211,6 +211,18 @@ final class ContainerTest extends TestCase
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideHostModeCases')]
+    public function testADeclaredValueStaysOffTheCommandLine(string $mode): void
+    {
+        $output = $this->runMakeIn($mode, ['-n', 'show']);
+
+        self::assertStringContainsString('-e CONTAINER_FIXTURE_DECLARED', $output);
+        self::assertStringNotContainsString('from-the-file', $output);
+    }
+
+    /**
+     * @param self::MODE_* $mode
+     */
+    #[DataProvider('provideHostModeCases')]
     public function testTheEditorUrlAToolSeesPointsAtTheHostCheckout(string $mode): void
     {
         $output = $this->runMakeIn($mode, ['show'], ['EDITOR_URL' => 'editor://{cwd}/{file}']);

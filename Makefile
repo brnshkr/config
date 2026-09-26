@@ -52,11 +52,11 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 93.79
 VITEST_MIN_COVERAGE_LINES      := 90.07
 VITEST_MIN_COVERAGE_STATEMENTS := 90.33
 
-_HAS_FORGE_IMAGE = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && $(PRINTF) 1)
-_HAS_SCRIPT      = $(shell command -v $(SCRIPT) >/dev/null 2>&1 && $(PRINTF) 1)
+_HAS_FORGE_IMAGE  = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_IMAGE)
+_HAS_SCRIPT      := $(call _is_on_path,$(SCRIPT))
 
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
-	$(if $(and $(_HAS_DOCKER),$(_HAS_FORGE_IMAGE)),,container) \
+	$(if $(_HAS_FORGE_IMAGE),,container) \
 	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
 
 export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
@@ -119,7 +119,7 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
-_MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
+colors: _MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
@@ -129,8 +129,9 @@ _MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	}' \
 )
 
-_TABLE_COLORS        := $(filter-out $(COLOR_NORMAL),$(_COLORS))
-_COLOR_COLUMN_WIDTHS  = $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
+_TABLE_COLORS := $(filter-out $(COLOR_NORMAL),$(_COLORS))
+
+colors: _COLOR_COLUMN_WIDTHS = $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
 	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s'

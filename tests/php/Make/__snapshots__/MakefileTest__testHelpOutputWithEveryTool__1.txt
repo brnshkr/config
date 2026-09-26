@@ -608,6 +608,7 @@ Functions:
    run_in
     The command a tool named for a compose service runs through, empty on this machine.
     The service is started first, once per run, unless a throwaway container is what runs it.
+    A key the .env files declare passes by name, so its value never reaches a command line.
 
    confirm
     Asks a yes/no question before something destructive happens.
@@ -786,7 +787,7 @@ Variables:
    DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
    DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
    TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
-   TRACE_PREFIX                    ?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only TRACE echoes)
+   TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1004,6 +1005,7 @@ Functions:
    run_in
     The command a tool named for a compose service runs through, empty on this machine.
     The service is started first, once per run, unless a throwaway container is what runs it.
+    A key the .env files declare passes by name, so its value never reaches a command line.
 
     parameters:
       service: string
@@ -1462,7 +1464,7 @@ Variables:
    [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
    [36mDEBUG_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [36mTRACE                         [0m  [90m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
-   [36mTRACE_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only [35mTRACE[0m[90m echoes)[0m
+   [36mTRACE_PREFIX                  [0m  [90m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [35mTRACE[0m[90m echoes)[0m
    [36mANNOUNCEMENT                  [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
    [36mBRNSHKR_CONFIG_ERROR_CODE     [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [35mtheming[0m
@@ -1680,6 +1682,7 @@ Variables:
    [36mrun_in[0m
     [90mThe command a tool named for a compose service runs through, empty on this machine.[0m
     [90mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
+    [90mA key the [35m.env[0m[90m files declare passes by name, so its value never reaches a command line.[0m
 
     [90mparameters:[0m
     [90m  service: string[0m
@@ -1890,7 +1893,7 @@ Variables:
    [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
    [32mDEBUG_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [32mTRACE                         [0m  [0m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
-   [32mTRACE_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only [33mTRACE[0m[0m echoes)[0m
+   [32mTRACE_PREFIX                  [0m  [0m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [33mTRACE[0m[0m echoes)[0m
    [32mANNOUNCEMENT                  [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
    [32mBRNSHKR_CONFIG_ERROR_CODE     [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [33mtheming[0m
@@ -2108,6 +2111,7 @@ Variables:
    [32mrun_in[0m
     [0mThe command a tool named for a compose service runs through, empty on this machine.[0m
     [0mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
+    [0mA key the [33m.env[0m[0m files declare passes by name, so its value never reaches a command line.[0m
 
     [0mparameters:[0m
     [0m  service: string[0m

@@ -190,6 +190,20 @@ export HOST_APP_DIR
 
 _HOST_ENVIRONMENT = HOST_UID='$(HOST_UID)' HOST_GID='$(HOST_GID)' HOST_APP_DIR='$(HOST_APP_DIR)'
 
+#**
+#* Whether a command is on `PATH`, or exists where it names a path, looked up without starting a shell.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: string
+#*
+define _is_on_path
+$(firstword $(wildcard $(if $(findstring /,$1),$1,$(addsuffix /$1,$(subst :, ,$(PATH))))))
+endef
+
+_IS_DETECTED_BY_PARENT := $(filter $(CURDIR),$(_BRNSHKR_DETECTED_IN))
+
 _COMPOSE_CANDIDATES := compose.yaml \
 	compose.yml \
 	docker-compose.yaml \
@@ -203,10 +217,10 @@ _COMPOSE_FILES = $(or \
 	)) \
 )
 
-_COMPOSE        = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
-_HAS_DOCKER     = $(shell command -v $(DOCKER) >/dev/null 2>&1 && $(PRINTF) 1)
-_HAS_CONTAINER  = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
-_IS_SERVICE_RUN = $(filter run,$(APP_SERVICE_MODE))
+_COMPOSE         = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
+_HAS_DOCKER     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
+_HAS_CONTAINER   = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+_IS_SERVICE_RUN  = $(filter run,$(APP_SERVICE_MODE))
 
 define _SERVICE_DIRECTORY_AWK
 /^services:/ { in_services = 1; next }
@@ -221,7 +235,8 @@ in_services && service == _SERVICE && /^    working_dir:/ { \
 endef
 
 ifneq ($(_HAS_CONTAINER),) # container
-_SERVICE_DIRECTORY := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)')
+_SERVICE_DIRECTORY := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
+	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)'))
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null | $(AWK) 'NR <= 2')
@@ -249,7 +264,8 @@ _TERMINAL_KEYS := BRNSHKR_DEBUG \
 	TERM
 
 _COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
-_FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS) $(_DOTENV_KEYS)))
+_FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
+_DECLARED_KEYS     = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
 TARGET_PREFIX  ?= #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
@@ -278,6 +294,20 @@ PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
+_UNQUOTABLE_CHARACTERS := ' " $$ ` \ %
+
+_UNQUOTABLE_NAME := $(or $(if $(findstring $(subst ,, ),$(CURDIR)),$(CURDIR)),$(firstword $(foreach \
+	NAME,$(CURDIR) $(VENDOR) $(PACKAGE),$(if $(strip $(foreach \
+	CHARACTER,$(_UNQUOTABLE_CHARACTERS),$(findstring $(CHARACTER),$(NAME)))),$(NAME)))))
+
+ifneq ($(_UNQUOTABLE_NAME),)
+$(error [$(_LABEL)] `$(_UNQUOTABLE_NAME)` holds a character the recipes cannot quote, so rename it)
+endif
+
+ifneq ($(filter . ..,$(VENDOR) $(PACKAGE)),)
+$(error [$(_LABEL)] `$(_LABEL)` cannot name a package, so fix the manifest's `name`)
+endif
+
 DEBUG               ?= #~~ whether each command is echoed before it runs, without the plumbing around it
 unexport DEBUG       # NOTICE: the `debug` package reads this from the environment
 DEBUG_PREFIX        ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
@@ -285,11 +315,14 @@ _IS_DEBUG            = $(filter-out $(_FALSE),$(DEBUG))
 export BRNSHKR_DEBUG = $(if $(_IS_DEBUG),1)
 
 TRACE        ?= #~~ whether every recipe line is echoed, the plumbing around the commands included
-TRACE_PREFIX ?= $(_ANNOUNCE)$(if $(_IS_TRACE),,@)#vvv #~~ prefix for a line only `TRACE` echoes
+TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)#vvv #~~ prefix for a line only `TRACE` echoes
 _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
-ANNOUNCEMENT ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
-_ANNOUNCE     = $(if $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$@)),$(eval _ANNOUNCED += $@)$(info $(shell $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))))
+ANNOUNCEMENT       ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
+_IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_GOAL)))
+_ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
+_ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(_ANNOUNCEMENT_LOG);)
+_ANNOUNCEMENT_LOG   = $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$(_GOAL)))
 
 _FALSE := 0 false off no
 _TRUE  := 1 true on yes
@@ -302,7 +335,7 @@ _IS_PARALLEL = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
 _UNEXPORTED_VARIABLES = COMPOSER DEBUG ESLINT_FLAGS VITEST
 
 _INHERITED_FLAGS = $(foreach VARIABLE,$(_UNEXPORTED_VARIABLES), \
-	$(if $(filter environment,$(origin $(VARIABLE))),$(VARIABLE)='$($(VARIABLE))'))
+	$(if $(filter environment,$(origin $(VARIABLE))),$(VARIABLE)=$(call _quoted,$($(VARIABLE)))))
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
 
@@ -335,7 +368,12 @@ _EDITORS := $(EDITOR_VSCODE) \
 _EDITOR_URL_VSCODE     := vscode://file/{cwd}/{file}:{line}
 _EDITOR_URL_VSCODE_WSL := vscode://vscode-remote/wsl+{wslDistro}{cwd}/{file}:{line}
 _EDITOR_URL_PHPSTORM   := phpstorm://open?file={cwd}/{file}&line={line}
-_DETECTED_EDITOR        = $(or $(call _editor_from_env),$(call _editor_from_command))
+
+_DETECTED_EDITOR := $(if $(_IS_DETECTED_BY_PARENT),$(_DETECTED_EDITOR),$(if \
+	$(filter vscode,$(TERM_PROGRAM))$(VSCODE_PID),$(EDITOR_VSCODE),$(if \
+	$(filter JetBrains-JediTerm,$(TERMINAL_EMULATOR)),$(EDITOR_PHPSTORM),$(if \
+	$(call _is_on_path,code),$(EDITOR_VSCODE),$(if \
+	$(or $(call _is_on_path,pstorm),$(call _is_on_path,phpstorm)),$(EDITOR_PHPSTORM))))))
 
 EDITOR          ?= $(_DETECTED_EDITOR)#~~ the editor to use, empty for no links
 _EDITOR          = $(or $(filter $(EDITOR),$(_EDITORS)),$(if $(strip $(EDITOR)),$(if $(findstring environment,$(origin EDITOR)),$(_DETECTED_EDITOR))))
@@ -430,8 +468,12 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
-_HADOLINT_FILES   := $(shell $(GIT) ls-files '*Dockerfile' '*Dockerfile.*' 2>/dev/null)
-_ACTIONLINT_FILES := $(shell $(GIT) ls-files '.github/workflows/*.yaml' '.github/workflows/*.yml' 2>/dev/null)
+_NAME_MASKS       := $(shell $(PRINTF) '\037 \036')
+_MASKED_SPACE     := $(word 1,$(_NAME_MASKS))
+_MASKED_NEWLINE   := $(word 2,$(_NAME_MASKS))
+_TRACKED_FILES    := $(shell $(GIT) ls-files -z 2>/dev/null | tr ' \n\000' '\037\036 ')
+_HADOLINT_FILES   := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
+_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
 #**
 #* Whether a tool this project does not install can run here.
@@ -442,7 +484,7 @@ _ACTIONLINT_FILES := $(shell $(GIT) ls-files '.github/workflows/*.yaml' '.github
 #* returns: string
 #*
 define _is_tool_available
-$(if $(_HAS_CONTAINER),1,$(shell command -v $1 >/dev/null 2>&1 && $(PRINTF) 1))
+$(if $(_HAS_CONTAINER),1,$(call _is_on_path,$1))
 endef
 
 _HAS_PHP            = $(wildcard $(CURDIR)/composer.json)
@@ -460,17 +502,25 @@ _HAS_MARKDOWNLINT   = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT      = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT     = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
 _HAS_VITEST         = $(wildcard $(CURDIR)/node_modules/.bin/vitest)
-_HAS_HADOLINT       = $(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint))
-_HAS_ACTIONLINT     = $(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint))
+_HAS_HADOLINT      := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint)))
+_HAS_ACTIONLINT    := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint)))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
 	$(CURDIR)/node_modules/@vitest/coverage-istanbul \
 ))
 
-_HAS_SEMGREP := $(strip $(if $(_HAS_CONTAINER), \
+_HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_HAS_CONTAINER), \
 	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' >/dev/null 2>&1 && $(PRINTF) 1), \
-	$(shell command -v semgrep >/dev/null 2>&1 && $(PRINTF) 1)))
+	$(call _is_on_path,semgrep))))
+
+export _BRNSHKR_DETECTED_IN := $(CURDIR)
+export _DETECTED_EDITOR
+export _HAS_ACTIONLINT
+export _HAS_DOCKER
+export _HAS_HADOLINT
+export _HAS_SEMGREP
+export _SERVICE_DIRECTORY
 
 _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
 
@@ -479,6 +529,9 @@ _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(V
 _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(CURDIR)' \
 	-v _ENABLED_FEATURES=' $(_ENABLED_FEATURES) ' \
 	'function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist } \
+	/^define[[:space:]]/ { is_in_define = 1; next } \
+	/^endef([[:space:]]|$$)/ { is_in_define = 0; next } \
+	is_in_define { next } \
 	/^ifneq/ && index($$0, "wildcard") { \
 		depth += 1; \
 		if (!skip) { \
@@ -598,8 +651,11 @@ ARG8    = $(word 8,$(ARGS))
 ARG9    = $(word 9,$(ARGS))
 ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target was handed, quoted for the shell
 
-_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$@,$(MAKECMDGOALS)))))
+_GOAL       = $@
+_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(MAKECMDGOALS)))))
 _FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
+_IS_DRY_RUN = $(or $(filter %-dry-run,$(_GOAL)),$(call _is_dry_run,$(_ARGS)))
+_DEBUG_FLAG = $(if $(filter %-debug,$(_GOAL)),--debug)
 
 #**
 #* The goal a name reaches, empty where it names nothing.
@@ -663,8 +719,8 @@ _STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARG
 #* returns: list<string>
 #*
 define _suggestions
-$(shell $(PRINTF) '%s\n' $1 \
-	| $(AWK) -v _UNKNOWN='$(or $2,$(_SUGGESTED_FOR))' ' \
+$(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) \
+	| $(AWK) -v _UNKNOWN=$(call _quoted,$(or $2,$(_SUGGESTED_FOR))) ' \
 	function levenshtein(left, right,    left_length, right_length, left_index, right_index, cost, best, previous, current) { \
 		left_length = length(left); \
 		right_length = length(right); \
@@ -710,7 +766,7 @@ _PACKAGE_CONF_DIRS = $(APP_DIR)/vendor/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
 _AUTOLOADER          = $(APP_DIR)/vendor/autoload.php
-_TRACKED_EXTENSIONS := $(sort $(suffix $(shell $(GIT) ls-files 2>/dev/null)))
+_TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
 _FIXER_NAMES        :=
 _ANALYZER_NAMES     :=
 _GROUP_NAMES        :=
@@ -734,8 +790,42 @@ _PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.di
 	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
 	$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist
 
+_HELP_READ_VARIABLES := INDENT \
+	VALUE_WIDTH \
+	_DOTENV_FILE_KEYS \
+	_EDITORS \
+	_EDITOR_UNKNOWN \
+	_EDITOR_URL_TEMPLATE \
+	_HELP_WORDS \
+	_IS_NO_ANSI \
+	_TARGET_ALIAS_MAP \
+	_TARGET_NAMES
+
+_HELP_VARIABLES = $(if $(_HAS_RESOLVE_ARGUMENT),$(_RESOLVED_VARIABLES),$(sort $(_HELP_READ_VARIABLES) $(_CONDITION_VARIABLES)))
+
+define _VARIABLE_NAMES_AWK
+BEGIN { \
+	count = split(_VAR_NAMES, names, " "); \
+	for (idx = 1; idx <= count; idx++) if (names[idx] ~ /^_?[A-Z][A-Z0-9_]*$$/) print names[idx] \
+}
+endef
+
+define _CONDITION_VARIABLES_AWK
+/^(else[[:space:]]+)?if(n?eq|n?def)[[:space:]]/ { \
+	if ($$1 ~ /^ifn?def$$/) print $$2; else if ($$2 ~ /^ifn?def$$/) print $$3; \
+	line = $$0; \
+	while (match(line, /\$$[({][A-Za-z0-9_]+[)}]/)) { \
+		print substr(line, RSTART + 2, RLENGTH - 3); \
+		line = substr(line, RSTART + RLENGTH) \
+	} \
+}
+endef
+
+_RESOLVED_VARIABLES  = $(filter-out %_AWK %_SOURCE _CHANGELOG_% _SUGGESTED_% _TRACKED_FILES,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
+_CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
+
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
-	$(TRACE_PREFIX)$(call _make_vars_as_env) \
+	$(TRACE_PREFIX)$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		_CURDIR="$(abspath $(CURDIR))" \
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
@@ -876,7 +966,7 @@ _CACHES      = $(if $(CACHE_DIR),$(notdir $(wildcard $(CACHE_DIR)/*)))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none #v
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
-	$(TRACE_PREFIX)if [ -z "$(_CACHES)" ]; then \
+	$(TRACE_PREFIX)if [ -z '$(if $(_CACHES),1)' ]; then \
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
 	elif [ -n "$(strip $(ARGS))" ]; then \
 		for name in $(sort $(ARGS)); do \
@@ -885,7 +975,7 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		done; \
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
-		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_CACHES),disjunction)',no-autolink); \
+		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_CACHES),disjunction)),no-autolink); \
 		if $(call confirm,Continue?); then \
 			$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
@@ -906,19 +996,19 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 	$(TRACE_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
 		$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
 	done
-	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
+	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 			exit 0; \
 		}); \
 		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
-	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
+	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
 		{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] \
 			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
 			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
 	})
 
-$(call _target,fresh-dry-run): #~~ lists what `fresh` would remove #vv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,fresh) -- --dry-run $(ARGS)
+$(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove #vv
+$(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
 #---v container
 
@@ -1078,7 +1168,7 @@ $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 define _stage_rule
 $1-%: _SUGGESTED_FOR = $$*
 $1-%:
-	$$(TRACE_PREFIX)$$(if $$(call _goal_of,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),'$$@'); \
+	$$(TRACE_PREFIX)$$(if $$(call _goal_of,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
 		$$(call _suggest,$1-))
 	$$(DEBUG_PREFIX)$$(if $$(call _goal_of,$$*),$$(_DOTENV_RESET)$$(MAKE) $$(_MAKE_FLAGS) $$(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* \
 		$$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS)),:)
@@ -1114,18 +1204,6 @@ define _when_installed
 $(if $(wildcard $(addprefix $(CURDIR)/,$2)),$1)
 endef
 
-#**
-#* The tracked files matching the patterns.
-#*
-#* parameters:
-#*   patterns: list<string>
-#*
-#* returns: list<string>
-#*
-define _tracked_files
-$(shell $(GIT) ls-files $(foreach PATTERN,$1,'$(PATTERN)') 2>/dev/null)
-endef
-
 ifneq ($(_HAS_PHP),) # php
 
 #--- php
@@ -1146,16 +1224,14 @@ $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
 
 $(call _target,composer-list): #~~ lists the files the composer package would ship #vv
-	$(DEBUG_PREFIX)$(COMPOSER) archive --quiet --format=tar --dir=$(APP_DIR) --file=package \
-		&& $(TAR) -tf package.tar \
-		&& $(RM) -f package.tar
+	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
+		&& $(TAR) -tf "$$scratch/package.tar")
 
 $(call _target,composer-pack): #~~ packs the composer package into `./.local/<VENDOR>/<PACKAGE>` #vvv
-	$(DEBUG_PREFIX)$(RM) -rf $(_COMPOSER_PACKAGE_DIR) \
-		&& $(MKDIR) -p $(_COMPOSER_PACKAGE_DIR) \
-		&& $(COMPOSER) archive --quiet --format=tar --dir=$(APP_DIR) --file=package \
-		&& $(TAR) -xf package.tar -C $(_COMPOSER_PACKAGE_DIR) \
-		&& $(RM) -f package.tar
+	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_COMPOSER_PACKAGE_DIR)' \
+		&& $(MKDIR) -p '$(_COMPOSER_PACKAGE_DIR)' \
+		&& $(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
+		&& $(TAR) -xf "$$scratch/package.tar" -C '$(_COMPOSER_PACKAGE_DIR)')
 
 $(call _target,composer-print): #~~ prints the resolved `composer` configuration #vv
 	$(DEBUG_PREFIX)$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS)
@@ -1203,25 +1279,30 @@ _$(_TARGET_PREFIX)assert-pest:
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 
-$(call _target,pest): _$(_TARGET_PREFIX)assert-pest #~~ runs the PHP tests through `pest` in particular #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit) PHP_UNIT='$(PEST)' -- $(ARGS)
+$(call _target,pest): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit) #~~ runs the PHP tests through `pest` in particular #vvv
+$(call _target,pest): PHP_UNIT = $(PEST)
+$(call _target,pest): _GOAL := $(call _target,pest)
 
-$(call _target,pest-coverage): _$(_TARGET_PREFIX)assert-pest #~~ runs them through `pest` and reports its coverage #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit-coverage) PHP_UNIT='$(PEST)' -- $(ARGS)
+$(call _target,pest-coverage): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-coverage) #~~ runs them through `pest` and reports its coverage #vvv
+$(call _target,pest-coverage): PHP_UNIT = $(PEST)
+$(call _target,pest-coverage): _GOAL := $(call _target,pest-coverage)
 
-$(call _target,pest-debug): _$(_TARGET_PREFIX)assert-pest #~~ runs them through `pest` with debugging information #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit-debug) PHP_UNIT='$(PEST)' -- $(ARGS)
+$(call _target,pest-debug): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit) #~~ runs them through `pest` with debugging information #vvv
+$(call _target,pest-debug): PHP_UNIT = $(PEST)
+$(call _target,pest-debug): _GOAL := $(call _target,pest-debug)
 
-$(call _target,pest-list): _$(_TARGET_PREFIX)assert-pest #~~ lists the tests `pest` collects #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit-list) PHP_UNIT='$(PEST)' -- $(ARGS)
+$(call _target,pest-list): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-list) #~~ lists the tests `pest` collects #vvv
+$(call _target,pest-list): PHP_UNIT = $(PEST)
+$(call _target,pest-list): _GOAL := $(call _target,pest-list)
 
-$(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest #~~ runs them through `pest` and updates their snapshots #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit-update) PHP_UNIT='$(PEST)' -- $(ARGS)
+$(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-update) #~~ runs them through `pest` and updates their snapshots #vvv
+$(call _target,pest-update): PHP_UNIT = $(PEST)
+$(call _target,pest-update): _GOAL := $(call _target,pest-update)
 
 $(call _target,phpunit): #~~ runs the PHP tests
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(_DEBUG_FLAG) $(ARGS))
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
@@ -1229,8 +1310,8 @@ $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 
-$(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpunit) -- --debug $(ARGS)
+$(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information instead of progress #vvv
+$(call _target,phpunit-debug): _GOAL := $(call _target,phpunit-debug)
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
@@ -1256,10 +1337,10 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php)
 
 $(call _target,phpstan): #~~ runs `phpstan analyze`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG) $(ARGS))
 
-$(call _target,phpstan-debug): #~~ runs `phpstan analyze` in debug mode #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan) -- --debug $(ARGS)
+$(call _target,phpstan-debug): $(call _target,phpstan) #~~ runs `phpstan analyze` in debug mode #vvv
+$(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -1293,10 +1374,10 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),
 
 $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_FIXER_ARGS))
 
-$(call _target,php-cs-fixer-dry-run): #~~ runs `php-cs-fixer fix` in dry run mode #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,php-cs-fixer) -- --dry-run $(ARGS)
+$(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ runs `php-cs-fixer fix` in dry run mode #v
+$(call _target,php-cs-fixer-dry-run): _GOAL := $(call _target,php-cs-fixer-dry-run)
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -1327,13 +1408,13 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$
 
 $(call _target,rector): #~~ runs `rector process`
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_DEBUG_FLAG) $(_FIXER_ARGS))
 
-$(call _target,rector-debug): #~~ runs `rector process` in debug mode #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --debug $(ARGS)
+$(call _target,rector-debug): $(call _target,rector) #~~ runs `rector process` in debug mode #vvv
+$(call _target,rector-debug): _GOAL := $(call _target,rector-debug)
 
-$(call _target,rector-dry-run): #~~ runs `rector process` in dry run mode #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --dry-run $(ARGS)
+$(call _target,rector-dry-run): $(call _target,rector) #~~ runs `rector process` in dry run mode #v
+$(call _target,rector-dry-run): _GOAL := $(call _target,rector-dry-run)
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -1366,13 +1447,13 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG)
 
 $(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(_IS_DRY_RUN),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_DEBUG_FLAG) $(_FIXER_ARGS))
 
-$(call _target,twig-cs-fixer-debug): #~~ runs `twig-cs-fixer` in debug mode #vvv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --debug $(ARGS)
+$(call _target,twig-cs-fixer-debug): $(call _target,twig-cs-fixer) #~~ runs `twig-cs-fixer` in debug mode #vvv
+$(call _target,twig-cs-fixer-debug): _GOAL := $(call _target,twig-cs-fixer-debug)
 
-$(call _target,twig-cs-fixer-dry-run): #~~ runs `twig-cs-fixer` in dry run mode #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --dry-run $(ARGS)
+$(call _target,twig-cs-fixer-dry-run): $(call _target,twig-cs-fixer) #~~ runs `twig-cs-fixer` in dry run mode #v
+$(call _target,twig-cs-fixer-dry-run): _GOAL := $(call _target,twig-cs-fixer-dry-run)
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
@@ -1407,11 +1488,10 @@ $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
 	$(TRACE_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
 
 $(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PACKAGE>` #vvv
-	$(DEBUG_PREFIX)$(RM) -rf $(_BUN_PACKAGE_DIR) \
-		&& $(MKDIR) -p $(_BUN_PACKAGE_DIR) \
-		&& $(BUN) pm pack --quiet --filename package.tgz >/dev/null \
-		&& $(TAR) -xzf package.tgz -C $(_BUN_PACKAGE_DIR) --strip-components 1 \
-		&& $(RM) -f package.tgz
+	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
+		&& $(MKDIR) -p '$(_BUN_PACKAGE_DIR)' \
+		&& $(BUN) pm pack --quiet --filename "$$scratch_in_app/package.tgz" >/dev/null \
+		&& $(TAR) -xzf "$$scratch/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1)
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
@@ -1485,14 +1565,14 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$
 $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
-		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(call _is_dry_run,$(_ARGS)),,--fix); \
+		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(_IS_DRY_RUN),,--fix); \
 		status=$$?; \
 		[ ! -r '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		exit $$status)
 
-$(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint) -- --dry-run $(ARGS)
+$(call _target,eslint-dry-run): $(call _target,eslint) #~~ runs `eslint` without writing fixes #v
+$(call _target,eslint-dry-run): _GOAL := $(call _target,eslint-dry-run)
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -1511,10 +1591,10 @@ ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-confi
 
 $(call _target,eslint-inspect): #~~ runs `eslint-config-inspector` #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) $(ARGS) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
+	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) $(ARGS) $(if $(filter %-stats,$(_GOAL)),--stats) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
-$(call _target,eslint-inspect-stats): #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #vv
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,eslint-inspect) -- $(ARGS) --stats
+$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #vv
+$(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
 
 endif # /eslint-inspect
 
@@ -1540,13 +1620,13 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
-		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
+		$(if $(_IS_DRY_RUN),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)'))
 
-$(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writing fixes #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,markdownlint) -- --dry-run $(ARGS)
+$(call _target,markdownlint-dry-run): $(call _target,markdownlint) #~~ runs `markdownlint-cli2` without writing fixes #v
+$(call _target,markdownlint-dry-run): _GOAL := $(call _target,markdownlint-dry-run)
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
@@ -1600,13 +1680,13 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
-		$(if $(_IS_DEBUG),--formatter verbose) $(if $(call _is_dry_run,$(_ARGS)),,--fix) \
+		$(if $(_IS_DEBUG),--formatter verbose) $(if $(_IS_DRY_RUN),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(STYLELINT_GLOB)'))
 
-$(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
-	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,stylelint) -- --dry-run $(ARGS)
+$(call _target,stylelint-dry-run): $(call _target,stylelint) #~~ runs `stylelint` without writing fixes #v
+$(call _target,stylelint-dry-run): _GOAL := $(call _target,stylelint-dry-run)
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1839,13 +1919,15 @@ _SEMGREP_DETECTED_RULESETS = default \
 	$(call _when_installed,headless-browser,node_modules/playwright node_modules/playwright-core node_modules/puppeteer) \
 	$(if $(_HADOLINT_FILES),dockerfile) \
 	$(if $(_ACTIONLINT_FILES),github-actions) \
-	$(if $(call _tracked_files,*compose*.yaml *compose*.yml),docker-compose) \
-	$(if $(call _tracked_files,*Chart.yaml k8s/* kubernetes/* helm/*),kubernetes) \
-	$(if $(call _tracked_files,*nginx*.conf nginx/*),nginx) \
-	$(if $(call _tracked_files,*.tf),terraform) \
-	$(if $(shell $(AWK) '/^  - id:/ { found = 1; exit } END { exit !found }' '$(call _host_path,$(SEMGREP_CONFIG))' 2>/dev/null && $(PRINTF) 1),semgrep-rule-lints)
+	$(if $(findstring compose,$(filter %.yaml %.yml,$(_TRACKED_FILES))),docker-compose) \
+	$(if $(filter %Chart.yaml k8s/% kubernetes/% helm/%,$(_TRACKED_FILES)),kubernetes) \
+	$(if $(or $(findstring nginx,$(filter %.conf,$(_TRACKED_FILES))),$(filter nginx/%,$(_TRACKED_FILES))),nginx) \
+	$(if $(filter %.tf,$(_TRACKED_FILES)),terraform) \
+	$(if $(_HAS_SEMGREP_RULES),semgrep-rule-lints)
 
-_SEMGREP_OVERRIDES = $(call _semgrep_overrides,$(call _host_path,$(SEMGREP_CONFIG)))
+_HAS_SEMGREP_RULES = $(eval _HAS_SEMGREP_RULES := $$(shell $$(AWK) '/^  - id:/ { found = 1; exit } END { exit !found }' \
+	'$$(call _host_path,$$(SEMGREP_CONFIG))' 2>/dev/null && $$(PRINTF) 1))$(_HAS_SEMGREP_RULES)
+_SEMGREP_OVERRIDES = $(eval _SEMGREP_OVERRIDES := $$(call _semgrep_overrides,$$(call _host_path,$$(SEMGREP_CONFIG))))$(_SEMGREP_OVERRIDES)
 
 _SEMGREP_RULESETS = $(sort $(filter-out $(patsubst -%,%,$(filter -%,$(_SEMGREP_OVERRIDES))), \
 	$(_SEMGREP_DETECTED_RULESETS) $(patsubst +%,%,$(filter +%,$(_SEMGREP_OVERRIDES)))))
@@ -2065,7 +2147,7 @@ CHANGELOG_NAMES ?= a11y=a11y \
 	yarn=Yarn \
 	yml=YAML#vv #~~ scope names title casing gets wrong, as `<scope>=<name>` pairs, `_` a space
 
-_CHANGELOG_LAST_TAG = $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null)
+_CHANGELOG_LAST_TAG = $(eval _CHANGELOG_LAST_TAG := $$(shell $$(GIT) describe --tags --abbrev=0 2>/dev/null))$(_CHANGELOG_LAST_TAG)
 _IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
 _IS_CHANGELOG_WRITE = $(filter write w,$(_ARG_WORDS))
 _IS_CHANGELOG_NOTES = $(filter notes n,$(_ARG_WORDS))
@@ -2176,10 +2258,10 @@ ifeq ($(TARGET),) # unknown
 	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
 		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
 	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
-		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),'$@' '$(_ALIAS_TARGET)'); \
+		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),$(call _quoted,$@) $(call _quoted,$(_ALIAS_TARGET))); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}),:)
-	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:))
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),$(call _quoted,$@)),:))
 	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
 else
 	$(TRACE_PREFIX):
@@ -2291,6 +2373,7 @@ endef
 #**
 #* The command a tool named for a compose service runs through, empty on this machine.
 #* The service is started first, once per run, unless a throwaway container is what runs it.
+#* A key the `.env` files declare passes by name, so its value never reaches a command line.
 #*
 #* parameters:
 #*   service: string
@@ -2298,7 +2381,7 @@ endef
 #* returns: string
 #*
 define run_in
-$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $1 env $(_forwarded_environment))
+$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment))
 endef
 
 #**
@@ -2383,7 +2466,7 @@ endef
 #* returns: string
 #*
 define _has_positional_arg
-$(strip $(shell $(PRINTF) '%s\n' $1 | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
+$(strip $(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
 	{ \
 		if (skip) { skip = 0; next } \
 		if (index(_VALUE_FLAGS, " " $$0 " ") > 0) { skip = 1; next } \
@@ -2583,7 +2666,7 @@ $(if $(_SUGGESTED_TARGETS),$(if $(word 2,$(_SUGGESTED_TARGETS)), \
 		exec $(_DOTENV_RESET)$(MAKE) $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $1$(_SUGGESTED_TARGETS) \
 			$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)); \
 	fi; \
-	$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$1$(_SUGGESTED_TARGETS)'); \
+	$(call log,Did you mean `%s`?,$(COLOR_NOTICE),$(call _quoted,$1$(_SUGGESTED_TARGETS))); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE)),$(call log,Run `make $(call _target,help)` or just `make` to see available commands.,$(COLOR_NOTICE)); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE))
 endef
@@ -2598,11 +2681,11 @@ endef
 #*
 define _require_known_value
 $(if $(_UNKNOWN_VALUES),{ \
-	$(call log,No $1 named `%s`.,$(COLOR_ERROR),'$(_MISTYPED_VALUE)'); \
+	$(call log,No $1 named `%s`.,$(COLOR_ERROR),$(call _quoted,$(_MISTYPED_VALUE))); \
 	$(if $(_SUGGESTED_VALUES),$(if $(word 2,$(_SUGGESTED_VALUES)), \
-		$(call log,Did you mean %s?,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_SUGGESTED_VALUES),disjunction)'), \
-		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),'$(_SUGGESTED_VALUES)')), \
-		$(call log,Try %s.,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$(_ARG_VALUES),disjunction)',no-autolink)); \
+		$(call log,Did you mean %s?,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_SUGGESTED_VALUES),disjunction))), \
+		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),$(call _quoted,$(_SUGGESTED_VALUES)))), \
+		$(call log,Try %s.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_ARG_VALUES),disjunction)),no-autolink)); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 },:)
 endef
@@ -2696,7 +2779,7 @@ endef
 #* returns: void
 #*
 define _group
-$(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
+$(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
@@ -2757,6 +2840,21 @@ else \
 	[ -n "$$code" ] || { spin_command; exit $$?; }; \
 	exit $$code; \
 fi
+endef
+
+#**
+#* Runs a command with `$$scratch` naming a fresh directory under `.cache`, and `$$scratch_in_app` naming it
+#* where the tools see it, then removes the directory whatever the command did.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: void
+#*
+define _in_scratch_directory
+$(MKDIR) -p '$(CURDIR)/.cache' && scratch="$$($(MKTEMP) -d '$(CURDIR)/.cache/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+scratch_in_app='$(APP_DIR)/.cache/'"$${scratch##*/}"; \
+{ $1; }; status=$$?; $(RM) -rf "$$scratch"; exit $$status
 endef
 
 #**
@@ -2823,7 +2921,19 @@ endef
 #* returns: list<string>
 #*
 define _shell_quoted
-$(foreach WORD,$1,'$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(WORD))')
+$(foreach WORD,$1,'$(call _unmasked,$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(WORD)))')
+endef
+
+#**
+#* A tracked file name with the space and newline that make cannot hold in a list put back.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _unmasked
+$(subst $(_MASKED_SPACE),$(_SPACE),$(subst $(_MASKED_NEWLINE),$(_NEWLINE),$1))
 endef
 
 #**
@@ -2936,6 +3046,11 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 		definition = substr(_TARGETS, position + length(key) + 2); \
 		return substr(definition, 1, index(definition, " ") - 1) \
 	} \
+	function shell_quoted(text,    quoted, position) { \
+		quoted = ""; \
+		while ((position = index(text, "\047"))) { quoted = quoted substr(text, 1, position - 1) "\047\\\047\047"; text = substr(text, position + 1) } \
+		return "\047" quoted text "\047" \
+	} \
 	function render_hyperlink(path,    line, absolute_path, definition) { \
 		if (_URL == "") return ""; \
 		definition = target_definition(path); \
@@ -2950,7 +3065,7 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 		if (index(path, _APP_DIR "/") == 1) path = substr(path, length(_APP_DIR) + 2); \
 		else if (index(path, _CWD "/") == 1) path = substr(path, length(_CWD) + 2); \
 		absolute_path = substr(path, 1, 1) == "/" ? path : _CWD "/" path; \
-		if (system("test -r " absolute_path) != 0) return ""; \
+		if (system("test -r " shell_quoted(absolute_path)) != 0) return ""; \
 		return "\033]8;;" render_url(_URL, path, line) "\033\\" \
 	} \
 	{ \
@@ -2958,6 +3073,7 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 			code_start = RSTART; \
 			code_length = RLENGTH; \
 			inline_code = substr($$0, code_start + 1, code_length - 2); \
+			gsub(/[[:cntrl:]]/, "?", inline_code); \
 			hyperlink = render_hyperlink(inline_code); \
 			hyperlink_end = hyperlink == "" ? "" : "\033]8;;\033\\"; \
 			$$0 = substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end substr($$0, code_start + code_length) \
@@ -3072,42 +3188,17 @@ $(eval _ca_phase := before)$(eval _ca_shared :=)$(eval _ca_own :=)$(foreach \
 endef
 
 #**
-#* Every UPPER_SNAKE variable as `NAME="value"` shell assignments, escaped and flattened to one line.
+#* The variables named as `NAME="value"` shell assignments, escaped and flattened to one line.
+#*
+#* parameters:
+#*   names: list<string>
 #*
 #* returns: string
 #*
 define _make_vars_as_env
-$(foreach VARIABLE,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '\
-	BEGIN { \
-		count = split(_VAR_NAMES, names, " "); \
-		for (idx = 1; idx <= count; idx++) \
-			if (names[idx] ~ /^_?[A-Z][A-Z0-9_]*$$/) \
-				print names[idx] \
-	}' \
-),$(if $(filter simple recursive,$(flavor $(VARIABLE))), \
+$(foreach VARIABLE,$1,$(if $(filter simple recursive,$(flavor $(VARIABLE))), \
 	$(VARIABLE)="$(subst $$,\$$,$(subst ",\",$(subst `,\`,$(subst \,\\,$(subst $(_NEWLINE), ,$($(VARIABLE)))))))" \
 ))
-endef
-
-#**
-#* Returns the detected editor name by inspecting well-known terminal environment variables.
-#*
-#* returns: OneOf<vscode | phpstorm> | empty-string
-#*
-define _editor_from_env
-$(if $(filter vscode,$(TERM_PROGRAM)),$(EDITOR_VSCODE),$(if \
-	$(VSCODE_PID),$(EDITOR_VSCODE),$(if \
-		$(filter JetBrains-JediTerm,$(TERMINAL_EMULATOR)),$(EDITOR_PHPSTORM),)))
-endef
-
-#**
-#* Returns the detected editor name based on command availability in PATH.
-#*
-#* returns: OneOf<vscode | phpstorm> | empty-string
-#*
-define _editor_from_command
-$(if $(shell command -v code >/dev/null 2>&1 && echo 1),$(EDITOR_VSCODE),$(if \
-	$(shell { command -v pstorm || command -v phpstorm; } >/dev/null 2>&1 && echo 1),$(EDITOR_PHPSTORM),))
 endef
 
 #**
@@ -3135,9 +3226,13 @@ $(MKDIR) -p "$$cache" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 for ruleset in $(SEMGREP_RULESETS); do \
 	cached="$$cache/$$ruleset.json"; \
 	[ -r "$$cached" ] && [ -z "$$(find "$$cached" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
-	$(RUN) $(CURL) --silent --show-error --fail --compressed -H 'Accept: application/json' \
-		-o '$(SEMGREP_CACHE)'/"$$ruleset.json.part" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
-		&& $(MV) "$$cached.part" "$$cached" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	part="$$($(MKTEMP) "$$cached.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	$(RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
+		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${part##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
+		|| { $(RM) -f "$$part"; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; \
+	[ ! -r "$$cached" ] || $(CMP) -s "$$part" "$$cached" \
+		|| $(call log,The `%s` ruleset changed since it was last fetched.,$(COLOR_NOTICE),"$$ruleset"); \
+	$(MV) "$$part" "$$cached" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 done; \
 $(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
 	$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
@@ -3162,7 +3257,7 @@ END { \
 endef
 
 define _SEMGREP_RULES_PROGRAM_SOURCE
-import json, sys
+import json, os, sys, tempfile
 arguments = sys.argv[1:]
 separator = arguments.index('--')
 target, sources, ignores = arguments[0], arguments[1:separator], arguments[separator + 1:]
@@ -3180,8 +3275,10 @@ for source in sources:
 for rule_id, globs in scoped.items():
     if rule_id in rules:
         rules[rule_id].setdefault('paths', {}).setdefault('exclude', []).extend(globs)
-with open(target, 'w') as handle:
+descriptor, part = tempfile.mkstemp(dir=os.path.dirname(target))
+with os.fdopen(descriptor, 'w') as handle:
     json.dump({'rules': [rule for rule_id, rule in rules.items() if rule_id not in everywhere]}, handle)
+os.replace(part, target)
 endef
 
 define _SEMGREP_OVERRIDES_AWK

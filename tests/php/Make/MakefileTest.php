@@ -17,19 +17,25 @@ use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
+use function array_diff;
 use function array_first;
 use function array_unique;
+use function array_values;
 use function basename;
 use function count;
+use function dirname;
 use function getenv;
 use function implode;
 use function mb_substr_count;
 use function md5;
 use function mkdir;
 use function readlink;
+use function scandir;
 use function shell_exec;
 use function sprintf;
+use function Symfony\Component\String\b;
 use function Symfony\Component\String\s;
+use function time;
 use function touch;
 
 /**
@@ -51,6 +57,8 @@ final class MakefileTest extends TestCase
     private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
     private const string PACK_DIRECTORY     = __DIR__ . '/../Fixtures/Make/Pack';
     private const string TOOLS_DIRECTORY    = __DIR__ . '/../Fixtures/Make/Tools';
+
+    private const int SHELL_ARGUMENT_LIMIT = 131_072;
 
     /**
      * Snapshot scenarios. Each scenario produces one rendering of `make help`;
@@ -377,6 +385,29 @@ final class MakefileTest extends TestCase
         $result = $this->runMake(['dotenv-show'], directory: self::DOTENV_DIRECTORY, doExpectFailure: true);
 
         self::assertStringContainsString(sprintf('`%s` does not name a stage', basename(self::REFUSED_STAGE_PATH)), $result);
+    }
+
+    public function testAWordInsideADefineIsNoTarget(): void
+    {
+        self::assertStringContainsString('bun \'source\'', $this->runMake(['-n', 'bun', '--', 'source'], directory: self::PROJECT_DIRECTORY));
+    }
+
+    public function testAProjectNameTheRecipesCannotQuoteIsRefused(): void
+    {
+        $this->writeProject(self::UNQUOTABLE_DIRECTORY);
+
+        $result = $this->runMake(['help'], directory: self::UNQUOTABLE_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('holds a character the recipes cannot quote', $result);
+    }
+
+    public function testAPackageNamedForTheParentDirectoryIsRefused(): void
+    {
+        $this->writeProject(self::PARENT_NAME_DIRECTORY, '{"name": "vendor/.."}');
+
+        $result = $this->runMake(['help'], directory: self::PARENT_NAME_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('`vendor/..` cannot name a package', $result);
     }
 
     public function testFixWritesCheckOnlyReadsAndTestOnlyTests(): void
@@ -926,6 +957,33 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('eslint-print', $result);
     }
 
+    public function testCcNamesACacheWithoutRunningItsName(): void
+    {
+        $this->writeCaches([
+            '$(id)',
+            'it\'s',
+            "x\e]0;title\x07y",
+        ]);
+
+        $listed  = $this->runMake(['cc'], directory: self::CACHES_DIRECTORY);
+        $refused = $this->runMake(['cc', 'nope'], directory: self::CACHES_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('$(id), it\'s or x?]0;title?y', $listed);
+        self::assertStringContainsString('Try $(id), it\'s or x?]0;title?y', $refused);
+    }
+
+    public function testALinkedPathIsCheckedWithoutRunningIt(): void
+    {
+        $this->writeCaches(['x;touch${IFS}hyperlink-ran;.d']);
+
+        $this->runMake(['cc', 'x;touch${IFS}hyperlink-ran;.d'], [
+            'NO_ANSI' => '',
+            'EDITOR'  => 'vscode',
+        ], self::CACHES_DIRECTORY);
+
+        self::assertFileDoesNotExist(self::CACHES_DIRECTORY . '/hyperlink-ran');
+    }
+
     public function testAStageGoalRunsNothingWhenTheTargetItNamesIsUnknown(): void
     {
         $known   = $this->runMake(['-n', 'dev-dotenv-show'], directory: self::DOTENV_DIRECTORY);
@@ -961,6 +1019,11 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('_METRIC=\'Classes\' -v _MINIMUM=\'42\'', $run);
         self::assertStringContainsString('_METRIC=\'Methods\' -v _MINIMUM=\'43\'', $run);
         self::assertStringContainsString('_METRIC=\'Lines\' -v _MINIMUM=\'44\'', $run);
+    }
+
+    public function testHelpFitsInOneShellArgument(): void
+    {
+        self::assertLessThan(self::SHELL_ARGUMENT_LIMIT, b($this->runMake(['-n', 'help', 'resolve'], directory: self::PROJECT_DIRECTORY))->length());
     }
 
     public function testResolveListsAValueOnlyADotenvFileProvides(): void
@@ -1360,10 +1423,11 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('`v1;false` does not name a tag', $result);
     }
 
-    public function testALintedFileNameReachesTheShellAsOneWord(): void
+    public function testAnArgumentIsWeighedWithoutRunningIt(): void
     {
-        self::assertStringContainsString('a;false.Dockerfile', $this->runLinter(['hadolint-list', 'HADOLINT_FILES=a;false.Dockerfile']));
-        self::assertStringContainsString('b\'c.yaml', $this->runLinter(['actionlint-list', 'ACTIONLINT_FILES=b\'c.yaml']));
+        $this->runLinter(['hadolint', '--', '$(touch${IFS}positional-ran)'], doExpectFailure: true);
+
+        self::assertFileDoesNotExist(self::LINTERS_DIRECTORY . '/positional-ran');
     }
 
     public function testSemgrepResolvesItsRulesets(): void
@@ -1379,6 +1443,30 @@ final class MakefileTest extends TestCase
         }
 
         $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+    }
+
+    public function testSemgrepSaysWhenARefetchChangedARuleset(): void
+    {
+        $cachedPath = self::LINTERS_DIRECTORY . '/.cache/semgrep/default.json';
+
+        new Filesystem()->dumpFile($cachedPath, '{"rules":[{"id":"old"}]}');
+        touch($cachedPath, time() - 8 * 86_400);
+
+        $output = $this->runLinter(['semgrep', 'SEMGREP_RULESETS=default', 'SEMGREP_CONFIG=conf/shipped.yaml']);
+
+        self::assertStringContainsString('The default ruleset changed since it was last fetched.', $output);
+        self::assertSame(['default.json', 'rules.json'], array_values(array_diff(scandir(dirname($cachedPath)) ?: [], ['.', '..'])));
+    }
+
+    private function writeProject(string $directory, ?string $manifest = null): void
+    {
+        $filesystem = new Filesystem();
+
+        $filesystem->dumpFile($directory . '/Makefile', "include ../../../../../conf/Makefile\n");
+
+        if ($manifest !== null) {
+            $filesystem->dumpFile($directory . '/package.json', $manifest);
+        }
     }
 
     /**

@@ -159,7 +159,8 @@ APP_SERVICE := tools
 ```
 
 Paths map back to your checkout, and inside the container make runs everything directly.
-Declared `.env` keys and command-line variables travel with each command.
+Declared `.env` keys travel with each command by name, so their values stay out of `DEBUG` output and `ps`;
+command-line variables travel with their value.
 Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
 
 | Target | Does |

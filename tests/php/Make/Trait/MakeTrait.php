@@ -39,18 +39,20 @@ use const LOCK_UN;
  */
 trait MakeTrait
 {
-    private const string MAKEFILE_PATH      = __DIR__ . '/../../../../conf/Makefile';
-    private const string FIXTURES_DIRECTORY = __DIR__ . '/../../Fixtures/Make/Help';
-    private const string CONFIGS_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Configs';
-    private const string TSCONFIG_DIRECTORY = __DIR__ . '/../../Fixtures/Make/Typescript';
-    private const string CACHES_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/Caches';
-    private const string FALLBACK_DIRECTORY = __DIR__ . '/../../Fixtures/Make/ConfigFallback';
-    private const string VENDOR_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/ConfigVendor';
-    private const string STARTUP_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Startup';
-    private const string LINTERS_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Linters';
-    private const string DOTENV_DIRECTORY   = __DIR__ . '/../../Fixtures/Make/Dotenv';
-    private const string REFUSED_STAGE_PATH = self::DOTENV_DIRECTORY . '/.env.stage:;false;#';
-    private const string FIXTURE_LOCK_PATH  = __DIR__ . '/../../../../.cache/make-fixtures.lock';
+    private const string MAKEFILE_PATH         = __DIR__ . '/../../../../conf/Makefile';
+    private const string FIXTURES_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/Help';
+    private const string CONFIGS_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Configs';
+    private const string TSCONFIG_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/Typescript';
+    private const string CACHES_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/Caches';
+    private const string FALLBACK_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/ConfigFallback';
+    private const string VENDOR_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/ConfigVendor';
+    private const string STARTUP_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Startup';
+    private const string LINTERS_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Linters';
+    private const string DOTENV_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/Dotenv';
+    private const string REFUSED_STAGE_PATH    = self::DOTENV_DIRECTORY . '/.env.stage:;false;#';
+    private const string UNQUOTABLE_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/it\'s';
+    private const string PARENT_NAME_DIRECTORY = __DIR__ . '/../../Fixtures/Make/ParentName';
+    private const string FIXTURE_LOCK_PATH     = __DIR__ . '/../../../../.cache/make-fixtures.lock';
 
     private const array CONFIG_DIRECTORIES = [
         self::CONFIGS_DIRECTORY,
@@ -135,6 +137,8 @@ trait MakeTrait
             self::TSCONFIG_DIRECTORY . '/tsconfig.json',
             self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
             self::REFUSED_STAGE_PATH,
+            self::CACHES_DIRECTORY . '/hyperlink-ran',
+            self::LINTERS_DIRECTORY . '/positional-ran',
         ];
 
         foreach (self::CONFIG_DIRECTORIES as $fixtureDirectory) {
@@ -157,6 +161,8 @@ trait MakeTrait
         }
 
         self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');
+        self::removeDirectory(self::UNQUOTABLE_DIRECTORY);
+        self::removeDirectory(self::PARENT_NAME_DIRECTORY);
         self::removeDirectory(self::CACHES_DIRECTORY . '/.cache');
         self::removeDirectory(self::LINTERS_DIRECTORY . '/.cache');
     }

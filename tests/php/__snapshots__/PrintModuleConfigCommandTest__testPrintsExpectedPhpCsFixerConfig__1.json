@@ -194,6 +194,7 @@
         "./tests/php/Make/MakefileTest.php",
         "./tests/php/Make/Trait/MakeTrait.php",
         "./tests/php/Mate/ProjectTest.php",
+        "./tests/php/Mate/TestToolTest.php",
         "./tests/php/PhpCsFixerTest.php",
         "./tests/php/PhpStan/ProjectKernelTest.php",
         "./tests/php/PhpStan/Rule/ApiOrInternalTagRuleTest.php",

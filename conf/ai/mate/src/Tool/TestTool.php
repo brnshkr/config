@@ -13,6 +13,7 @@ use Symfony\Component\Process\Exception\RuntimeException;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function escapeshellarg;
 use function explode;
 use function preg_split;
 use function sprintf;
@@ -70,7 +71,7 @@ final class TestTool
             $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'vitest-update' : 'vitest'];
 
             if ($filter !== '') {
-                return [...$command, 'ARGS=' . $filter];
+                return [...$command, 'ARGS=' . escapeshellarg($filter)];
             }
 
             return $command;
@@ -79,7 +80,7 @@ final class TestTool
         $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'pest-update' : 'pest'];
 
         if ($filter !== '') {
-            return [...$command, 'ARGS=--filter ' . $filter];
+            return [...$command, 'ARGS=--filter ' . escapeshellarg($filter)];
         }
 
         return $command;
