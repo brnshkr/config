@@ -16,7 +16,7 @@ on JavaScript, import the shipped module from a test of your own.
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
-    <testsuite name="Spelling">
+    <testsuite name="Brnshkr\Config">
       <directory>../vendor/brnshkr/config/src/php/Testing</directory>
     </testsuite>
   </testsuites>

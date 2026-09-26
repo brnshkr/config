@@ -29,12 +29,12 @@
   </php>
 
   <testsuites>
-    <testsuite name="App\Tests">
-      <directory>../tests</directory>
+    <testsuite name="Brnshkr\Config">
+      <directory>../tests/php</directory>
     </testsuite>
 
-    <testsuite name="Brnshkr\Config">
-      <directory>../vendor/brnshkr/config/src/php/Testing</directory>
+    <testsuite name="Brnshkr\Config shipped">
+      <directory>../src/php/Testing</directory>
     </testsuite>
   </testsuites>
 
@@ -50,7 +50,7 @@
     ignoreSuppressionOfWarnings="true"
   >
     <include>
-      <directory suffix=".php">../src</directory>
+      <directory suffix=".php">../src/php</directory>
     </include>
   </source>
 </phpunit>

@@ -7,7 +7,6 @@
 /conf/ai/claude/skills/
 /conf/php-cs-fixer.php
 /conf/phpstan.php
-/conf/phpunit.xml
 /conf/rector.php
 /conf/twig-cs-fixer.php
 /dist/
