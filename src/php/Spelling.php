@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config;
 
 use Brnshkr\Config\Tests\SpellingTest;
-use Composer\InstalledVersions;
 use JsonException;
-use OutOfBoundsException;
 use RuntimeException;
 
 use function array_any;
@@ -559,12 +557,14 @@ final class Spelling
      */
     private static function readShippedDefaults(): array
     {
-        $fileContents = self::readFile(self::getPackageDirectory() . '/' . self::DEFAULTS_PATH);
+        $fileContents = self::readFile(__DIR__ . '/../../' . self::DEFAULTS_PATH);
 
         if ($fileContents === null) {
-            throw new RuntimeException(
-                sprintf('Shipped file "%s" is missing from "brnshkr/config".', self::DEFAULTS_PATH),
-            );
+            throw new RuntimeException(sprintf(
+                'Shipped file "%s" is missing from "%s".',
+                self::DEFAULTS_PATH,
+                ComposerJson::forThisLibrary()->getPackageFullName(),
+            ));
         }
 
         return Json::decode($fileContents);
@@ -677,30 +677,5 @@ final class Spelling
         fclose($pipe);
 
         return $output;
-    }
-
-    /**
-     * @throws RuntimeException
-     */
-    private static function getPackageDirectory(): string
-    {
-        $localPackagePath  = __DIR__ . '/../..';
-        $localDefaultsPath = $localPackagePath . '/' . self::DEFAULTS_PATH;
-
-        if (is_file($localDefaultsPath) && is_readable($localDefaultsPath)) {
-            return $localPackagePath;
-        }
-
-        try {
-            $installPath = InstalledVersions::getInstallPath('brnshkr/config');
-        } catch (OutOfBoundsException $outOfBoundsException) {
-            throw new RuntimeException('Package "brnshkr/config" is not installed.', $outOfBoundsException->getCode(), $outOfBoundsException);
-        }
-
-        if ($installPath === null) {
-            throw new RuntimeException('Package "brnshkr/config" has no install path.');
-        }
-
-        return $installPath;
     }
 }

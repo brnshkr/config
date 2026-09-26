@@ -136,7 +136,7 @@ exports[`expected markdownlint config 1`] = `
           "message": "Name an organization package by its scope.",
           "name": "scoped-package-names",
           "replace": "@brnshkr/",
-          "searchPattern": "/(?<![\\w/@])brnshkr\\/(?=[a-z])/gu",
+          "searchPattern": "/(?<![\\w/@])\\x62rnshkr\\/(?=[a-z])/gu",
           "searchScope": "text",
         },
         {

@@ -165,8 +165,8 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/MakefileTest.php',
-    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/`,
-    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/v,
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/v,
   },
   {
     file: 'tests/php/Make/MakefileTest.php',

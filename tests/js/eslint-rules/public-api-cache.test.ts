@@ -5,10 +5,11 @@ import path from 'node:path';
 import { expect, test } from 'vitest';
 
 import { isPublicApiFile } from '../../../src/js/eslint/utils/public-api';
+import { packageOrganization } from '../../../src/js/shared/utils/package-json';
 import { makeDirectory, setModificationTime, writeText } from '../utils/filesystem';
 
 test('isPublicApiFile invalidates cache when package.json mtime advances', () => {
-  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'brnshkr-public-api-'));
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), `${packageOrganization}-public-api-`));
   const packageJsonPath = path.join(temporaryRoot, 'package.json');
   const targetFile = path.join(temporaryRoot, 'src/included.ts');
   const alternateFile = path.join(temporaryRoot, 'src/excluded.ts');

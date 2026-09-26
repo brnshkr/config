@@ -15,6 +15,8 @@ import {
   writeOwnValue,
 } from '../../shared/utils/object';
 
+import { packageFullName } from '../../shared/utils/package-json';
+
 import type { Maybe } from '../../shared/types/core';
 import type { AllowedLiteral, Allowlist, SpellingSettings } from '../types/options';
 
@@ -26,7 +28,7 @@ const findShippedDirectory = (): string => {
   const packageJsonPath = findNearestPackageJson(import.meta.dirname);
 
   if (packageJsonPath === undefined) {
-    throw new Error('Unable to locate the shipped defaults of "@brnshkr/config".');
+    throw new Error(`Unable to locate the shipped defaults of "${packageFullName}".`);
   }
 
   return path.join(path.dirname(packageJsonPath), 'conf', 'spelling');

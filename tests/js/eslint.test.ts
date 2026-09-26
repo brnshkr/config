@@ -4,6 +4,8 @@ import { ESLint } from 'eslint';
 import { test } from 'vitest';
 
 import { getConfig } from '../../src/js/eslint';
+import { packageOrganization } from '../../src/js/shared/utils/package-json';
+import { createPattern } from '../../src/js/shared/utils/pattern';
 
 import { snapshotConfigs } from './utils/config-snapshot';
 
@@ -36,7 +38,10 @@ test('expected eslint config', async () => {
       await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd()))
     ),
     normalize: (config) => <JsonObject>JSON.parse(
-      JSON.stringify(config).replaceAll(/"brnshkr:brnshkr@[^"]*"/gv, '"brnshkr:brnshkr@<version>"'),
+      JSON.stringify(config).replaceAll(
+        createPattern('gv')`"${packageOrganization}:${packageOrganization}@[^"]*"`,
+        () => `"${packageOrganization}:${packageOrganization}@<version>"`,
+      ),
     ),
   });
 }, TIMEOUT);

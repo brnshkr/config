@@ -4,13 +4,14 @@
 
 import { MAX_LEN } from '../../shared/utils/constants';
 import { getEnvironmentValue } from '../../shared/utils/environment';
+import { packageOrganizationUpper } from '../../shared/utils/package-json';
 import { TABLE_STYLE } from '../utils/constants';
 
 import type { Config } from '../types/config';
 
 /* eslint-disable ts/naming-convention -- Options need to be cased like this */
 export const markdown = (): Config[] => {
-  const isDebug = (getEnvironmentValue('BRNSHKR_DEBUG') ?? '') !== '';
+  const isDebug = (getEnvironmentValue(`${packageOrganizationUpper}_DEBUG`) ?? '') !== '';
 
   return [
     {

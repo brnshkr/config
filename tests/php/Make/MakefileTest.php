@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\Make;
 
+use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
@@ -720,7 +721,7 @@ final class MakefileTest extends TestCase
         $this->runMake(['configs', 'local'], directory: self::VENDOR_DIRECTORY);
 
         self::assertFileExists(self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php');
-        self::assertFileDoesNotExist(self::VENDOR_DIRECTORY . '/vendor/brnshkr/config/conf/phpstan.php');
+        self::assertFileDoesNotExist(self::VENDOR_DIRECTORY . '/vendor/' . self::getPackageFullName() . '/conf/phpstan.php');
     }
 
     #[Group('tty')]
@@ -767,10 +768,7 @@ final class MakefileTest extends TestCase
     {
         $resolved = $this->runMake(['help', 'resolve', 'vv'], ['VALUE_WIDTH' => '200'], self::VENDOR_DIRECTORY);
 
-        self::assertMatchesRegularExpression(
-            '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/',
-            $resolved,
-        );
+        self::assertMatchesRegularExpression(self::getInstalledPhpStanConfigPattern(), $resolved);
     }
 
     public function testTheConfigAToolReadsIsTheFirstOneThatIsThere(): void
@@ -1286,10 +1284,7 @@ final class MakefileTest extends TestCase
             __DIR__ . '/../Fixtures/Make/ConfigVendor',
         );
 
-        self::assertMatchesRegularExpression(
-            '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/brnshkr\/config\/conf\/phpstan\.dist\.php/',
-            $resolved,
-        );
+        self::assertMatchesRegularExpression(self::getInstalledPhpStanConfigPattern(), $resolved);
     }
 
     public function testTheSearchTakesTheMostSpecificDirectoryThatHasAConfig(): void
@@ -1356,6 +1351,19 @@ final class MakefileTest extends TestCase
         foreach ($names as $name) {
             mkdir(self::CACHES_DIRECTORY . '/.cache/' . $name, recursive: true);
         }
+    }
+
+    private static function getPackageFullName(): string
+    {
+        return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('composer.json names no package.');
+    }
+
+    private static function getInstalledPhpStanConfigPattern(): string
+    {
+        return sprintf(
+            '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/',
+            Str::quoteRegex(self::getPackageFullName()),
+        );
     }
 
     private static function assertContainsSymbol(string $symbol, string $output): void

@@ -2,6 +2,8 @@
  * @internal @brnshkr/config/markdownlint
  */
 
+import { packageOrganization } from '../../shared/utils/package-json';
+import { createPattern } from '../../shared/utils/pattern';
 import { resolveCustomRule } from '../utils/config';
 import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
 
@@ -60,8 +62,8 @@ const RULES = <const>[
   {
     name: 'scoped-package-names',
     message: 'Name an organization package by its scope.',
-    searchPattern: String.raw`/(?<![\w/@])brnshkr\/(?=[a-z])/gu`,
-    replace: '@brnshkr/',
+    searchPattern: String(createPattern('gu')`(?<![\w/@])${packageOrganization}/(?=[a-z])`),
+    replace: `@${packageOrganization}/`,
     searchScope: 'text',
   },
   {
