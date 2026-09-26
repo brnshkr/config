@@ -48,6 +48,7 @@ final class MakefileTest extends TestCase
     private const string SPINNER_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Spinner';
     private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
     private const string PACK_DIRECTORY     = __DIR__ . '/../Fixtures/Make/Pack';
+    private const string TOOLS_DIRECTORY    = __DIR__ . '/../Fixtures/Make/Tools';
 
     /**
      * Snapshot scenarios. Each scenario produces one rendering of `make help`;
@@ -118,6 +119,24 @@ final class MakefileTest extends TestCase
             $scenarios[$name] = $this->runMakeHelp(
                 $scenario['args'] ?? [],
                 $scenario['env'] ?? [],
+            );
+        }
+
+        $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+    }
+
+    public function testHelpOutputWithEveryTool(): void
+    {
+        $scenarios = [];
+
+        foreach (self::SNAPSHOT_SCENARIOS as $name => $scenario) {
+            $scenarios[$name] = $this->runMake(
+                ['help', ...$scenario['args'] ?? []],
+                [
+                    ...$scenario['env'] ?? [],
+                    'PATH' => self::TOOLS_DIRECTORY . '/bin:' . (getenv('PATH') ?: ''),
+                ],
+                self::TOOLS_DIRECTORY,
             );
         }
 
