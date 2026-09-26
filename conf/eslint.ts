@@ -146,4 +146,11 @@ export default getConfig({
     'ts/no-extraneous-class': 'off',
     'unicorn/name-replacements': 'off',
   },
+}, {
+  files: [
+    'docs/js/stylelint.md/**',
+  ],
+  rules: {
+    'unicorn/no-null': 'off',
+  },
 });

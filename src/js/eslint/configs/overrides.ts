@@ -10,7 +10,9 @@ import {
   GLOB_DEVELOPMENT_FILES,
   GLOB_DTS,
   GLOB_EXAMPLES,
+  GLOB_JSDOC_EXPRESSION_FILES,
   GLOB_SCRIPT_FILES,
+  GLOB_STYLELINT_CONFIG,
   GLOB_SVELTE,
   GLOB_TEST_FILES,
   GLOB_TOML,
@@ -160,6 +162,13 @@ const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
         }],
       },
     },
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/stylelint`),
+      files: [GLOB_STYLELINT_CONFIG],
+      rules: {
+        'unicorn/no-null': 'off',
+      },
+    },
   ]
   : [];
 
@@ -222,7 +231,7 @@ const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
     },
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/default-expressions`),
-      files: ['**/*.jsdoc-defaults.md/*.js', '**/*.jsdoc-params.md/*.js', '**/*.jsdoc-properties.md/*.js'],
+      files: GLOB_JSDOC_EXPRESSION_FILES,
       rules: {
         'no-empty-function': 'off',
         'no-new': 'off',

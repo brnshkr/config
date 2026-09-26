@@ -4,6 +4,13 @@ import { ESLint } from 'eslint';
 import { test } from 'vitest';
 
 import { getConfig } from '../../src/js/eslint';
+
+import {
+  GLOB_EXAMPLES,
+  GLOB_JSDOC_EXPRESSION_FILES,
+  GLOB_MD_CODE_BLOCKS,
+} from '../../src/js/eslint/utils/globs';
+
 import { packageOrganization } from '../../src/js/shared/utils/package-json';
 import { createPattern } from '../../src/js/shared/utils/pattern';
 
@@ -28,11 +35,9 @@ test('expected eslint config', async () => {
     globs: [...new Set(packageConfigs.flatMap(({ files }) => (files ?? []).flat()))]
       .filter((glob) => typeof glob === 'string'),
     virtualGlobs: [
-      '**/*.md/**',
-      '**/*.md/*.js',
-      '**/*.jsdoc-defaults.md/*.js',
-      '**/*.jsdoc-params.md/*.js',
-      '**/*.jsdoc-properties.md/*.js',
+      GLOB_MD_CODE_BLOCKS,
+      GLOB_EXAMPLES,
+      ...GLOB_JSDOC_EXPRESSION_FILES,
     ],
     resolve: async (filePath) => <JsonObject>(
       await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd()))

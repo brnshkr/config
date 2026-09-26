@@ -16,7 +16,15 @@ export const GLOB_YAML = '**/*.y?(a)ml';
 export const GLOB_TOML = '**/*.toml';
 export const GLOB_CSS = '**/*.css';
 export const GLOB_MD = '**/*.md';
-export const GLOB_EXAMPLES = '**/*.md/*.js';
+export const GLOB_MD_CODE_BLOCKS = '**/*.md/**';
+export const GLOB_EXAMPLES = String.raw`**/*.md/\*.js`;
+export const GLOB_STYLELINT_CONFIG = '**/?(.)stylelint*.?(c|m)[jt]s';
+
+export const GLOB_JSDOC_EXPRESSION_FILES = <const>[
+  String.raw`**/*.jsdoc-defaults.md/\*.js`,
+  String.raw`**/*.jsdoc-params.md/\*.js`,
+  String.raw`**/*.jsdoc-properties.md/\*.js`,
+] satisfies string[];
 
 export const GLOB_SCRIPT_FILES = <const>[
   '**/*.?(c|m)[jt]s?(x)',

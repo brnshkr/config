@@ -6427,6 +6427,9 @@ exports[`expected eslint config > config-groups 1`] = `
   "scripts/a.js": [
     "scripts/a.js",
   ],
+  "stylelint.config.mjs": [
+    "stylelint.config.mjs",
+  ],
   "tsconfig.build.json": [
     "tsconfig.build.json",
     "tsconfig.json",
@@ -25095,6 +25098,126 @@ exports[`expected eslint config > diff: scripts/a.js 1`] = `
       ],
       "unicorn/no-barrel-files": [
         2,
+      ],
+    },
+    "removedKeys": [
+      "no-new-symbol",
+      "ts/explicit-function-return-type",
+      "ts/explicit-member-accessibility",
+    ],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: stylelint.config.mjs 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "constructor-super": [
+        2,
+      ],
+      "getter-return": [
+        2,
+        {
+          "allowImplicit": false,
+        },
+      ],
+      "import/no-deprecated": [
+        2,
+      ],
+      "jsdoc/check-tag-names": [
+        2,
+        {
+          "definedTags": [
+            "api",
+            "vitest-environment",
+            "vitest-environment-options",
+          ],
+        },
+      ],
+      "jsdoc/no-types": [
+        0,
+      ],
+      "jsdoc/no-undefined-types": [
+        2,
+      ],
+      "jsdoc/require-param": [
+        2,
+      ],
+      "jsdoc/require-param-type": [
+        2,
+      ],
+      "jsdoc/require-property-type": [
+        2,
+      ],
+      "jsdoc/require-returns": [
+        2,
+      ],
+      "jsdoc/require-returns-type": [
+        2,
+      ],
+      "no-class-assign": [
+        2,
+      ],
+      "no-const-assign": [
+        2,
+      ],
+      "no-dupe-args": [
+        2,
+      ],
+      "no-dupe-class-members": [
+        2,
+      ],
+      "no-dupe-keys": [
+        2,
+      ],
+      "no-func-assign": [
+        2,
+      ],
+      "no-import-assign": [
+        2,
+      ],
+      "no-new-native-nonconstructor": [
+        2,
+      ],
+      "no-obj-calls": [
+        2,
+      ],
+      "no-setter-return": [
+        2,
+      ],
+      "no-this-before-super": [
+        2,
+      ],
+      "no-undef": [
+        2,
+        {
+          "typeof": true,
+        },
+      ],
+      "no-unreachable": [
+        2,
+      ],
+      "no-unsafe-negation": [
+        2,
+        {
+          "enforceForOrderingRelations": true,
+        },
+      ],
+      "no-with": [
+        2,
+      ],
+      "strict": [
+        2,
+        "safe",
+      ],
+      "unicorn/no-null": [
+        0,
+        {
+          "checkArguments": true,
+          "checkStrictEquality": true,
+        },
       ],
     },
     "removedKeys": [
