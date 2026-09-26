@@ -2078,7 +2078,11 @@ _CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
 _CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || $(PRINTF) '%s' '$(VERSION)')
 _CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
 
+_CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
+	| $(AWK) '!/^[A-Za-z0-9._+\/-]+$$/ { print; exit }')
+
 $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
+	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+` and `/`))
 	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
 		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
 			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \

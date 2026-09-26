@@ -1353,6 +1353,13 @@ final class MakefileTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
     }
 
+    public function testChangelogRefusesATagItWouldPasteIntoTheShell(): void
+    {
+        $result = $this->runMake(['changelog', 'GIT=printf \'%s\n\' \'v1;false\''], directory: self::CONSUMER_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('`v1;false` does not name a tag', $result);
+    }
+
     public function testALintedFileNameReachesTheShellAsOneWord(): void
     {
         self::assertStringContainsString('a;false.Dockerfile', $this->runLinter(['hadolint-list', 'HADOLINT_FILES=a;false.Dockerfile']));
