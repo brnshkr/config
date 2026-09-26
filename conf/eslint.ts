@@ -132,7 +132,6 @@ export default getConfig({
     'import/export': 'off',
     'import/extensions': 'off',
     'import/no-duplicates': 'off',
-    'import/no-unresolved': 'off',
     'import/order': 'off',
     'jsdoc/no-undefined-types': 'off',
     'jsdoc/require-param': 'off',
@@ -152,5 +151,12 @@ export default getConfig({
   ],
   rules: {
     'unicorn/no-null': 'off',
+  },
+}, {
+  files: [
+    'docs/js/eslint/rules/*.md/**',
+  ],
+  rules: {
+    'import/no-unresolved': 'off',
   },
 });

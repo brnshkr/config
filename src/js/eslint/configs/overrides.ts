@@ -11,6 +11,7 @@ import {
   GLOB_DTS,
   GLOB_EXAMPLES,
   GLOB_JSDOC_EXPRESSION_FILES,
+  GLOB_MD_CODE_BLOCKS,
   GLOB_SCRIPT_FILES,
   GLOB_STYLELINT_CONFIG,
   GLOB_SVELTE,
@@ -75,6 +76,7 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
       ? [{
         name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/imports`),
         files: GLOB_SCRIPT_FILES,
+        ignores: [GLOB_MD_CODE_BLOCKS],
         rules: {
           ...isModuleEnabled(MODULES.import)
             ? {

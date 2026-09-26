@@ -123,12 +123,16 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
         'import/no-default-export': 'off',
         'import/no-extraneous-dependencies': 'off',
         'import/unambiguous': 'off',
-        'node/no-missing-import': 'off',
         'ts/no-redeclare': 'off',
         'ts/no-unused-vars': 'off',
         'unicorn/no-barrel-files': 'off',
         'unused/no-unused-imports': 'off',
         'unused/no-unused-vars': 'off',
+        ...(isModuleEnabled(MODULES.import)
+          ? {
+            'node/no-missing-import': 'off',
+          }
+          : undefined),
       },
     },
   ];
