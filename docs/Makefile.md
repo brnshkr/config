@@ -185,7 +185,8 @@ A `.env` is loaded the way `symfony/dotenv` loads it, so one set of files serves
 
 ## Your own targets
 
-Write them in your `Makefile`, or in any `Makefile` or `*.mk` under `./conf/`, `./conf/make/`, `./.local/` or `./.local/make/`.
+Write them in any `Makefile` or `*.mk` at the root or under `./conf/`, `./conf/make/`, `./.local/`, `./.local/make/`,
+`./.local/conf/` or `./.local/conf/make/`.
 They are read in that order, so `./.local/` overrides what the repository ships.
 
 Reusing a name is fine: yours keeps it and the shared one moves aside,
