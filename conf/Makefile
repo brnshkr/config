@@ -1034,12 +1034,10 @@ BEGIN {
 		value = values[key]
 		gsub(/\$$/, "$$$$", value)
 		gsub(/#/, "\\#", value)
-		if (value ~ /\n/) {
-			gsub(/\n/, _SEPARATOR, value)
-			printf "define %s ?=%s%s%sendef%s", key, _SEPARATOR, value, _SEPARATOR, _SEPARATOR
-		} else {
-			printf "%s ?= %s%s", key, value, _SEPARATOR
-		}
+		gsub(/\n/, "$$(_NEWLINE)", value)
+		sub(/^[ \t]/, "$$()&", value)
+		sub(/\\$$/, "&$$()", value)
+		printf "%s ?= %s%s", key, value, _SEPARATOR
 		printf "export %s%s", key, _SEPARATOR
 		printf "_DOTENV_KEYS += %s%s", key, _SEPARATOR
 		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
