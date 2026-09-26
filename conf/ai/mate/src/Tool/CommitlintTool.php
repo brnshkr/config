@@ -29,7 +29,7 @@ final class CommitlintTool
     public function checkMessage(string $message): string
     {
         return Project::encode(Project::run(
-            ['bun', '--bun', 'x', 'commitlint', '--config', './conf/commitlint.mjs'],
+            ['make', 'NO_ANSI=1', 'commitlint', 'COMMITLINT_SOURCE='],
             input: $message,
         ));
     }

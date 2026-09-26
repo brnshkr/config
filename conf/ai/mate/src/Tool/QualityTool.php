@@ -38,20 +38,20 @@ final class QualityTool
             'fix'   => ['make', 'NO_ANSI=1', 'twig-cs-fixer'],
         ],
         'eslint' => [
-            'check' => ['bun', '--bun', 'run', 'eslint'],
-            'fix'   => ['bun', '--bun', 'run', 'eslint', '--fix'],
+            'check' => ['make', 'NO_ANSI=1', 'eslint-dry-run'],
+            'fix'   => ['make', 'NO_ANSI=1', 'eslint'],
         ],
         'markdownlint' => [
-            'check' => ['bun', '--bun', 'run', 'markdownlint'],
-            'fix'   => ['bun', '--bun', 'run', 'markdownlint', '--fix'],
+            'check' => ['make', 'NO_ANSI=1', 'markdownlint-dry-run'],
+            'fix'   => ['make', 'NO_ANSI=1', 'markdownlint'],
         ],
         'stylelint' => [
-            'check' => ['bun', '--bun', 'run', 'stylelint'],
-            'fix'   => ['bun', '--bun', 'run', 'stylelint', '--fix'],
+            'check' => ['make', 'NO_ANSI=1', 'stylelint-dry-run'],
+            'fix'   => ['make', 'NO_ANSI=1', 'stylelint'],
         ],
         'typescript' => [
-            'check' => ['bun', '--bun', 'run', 'typescript'],
-            'fix'   => ['bun', '--bun', 'run', 'typescript'],
+            'check' => ['make', 'NO_ANSI=1', 'typescript'],
+            'fix'   => ['make', 'NO_ANSI=1', 'typescript'],
         ],
     ];
 

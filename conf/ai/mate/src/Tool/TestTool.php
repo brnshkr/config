@@ -30,7 +30,7 @@ final class TestTool
     ];
 
     /**
-     * @param string $suite the test suite to run ("php" runs Pest via make, "js" runs Vitest via bun)
+     * @param string $suite the test suite to run ("php" runs Pest, "js" runs Vitest, both via make)
      * @param string $filter runs a subset of tests; a Pest --filter value (e.g. a test class name) for "php", a file name filter for "js"; empty runs the full suite
      * @param bool $doesUpdateSnapshots when true, runs with snapshot updates instead of a plain run
      *
@@ -67,19 +67,19 @@ final class TestTool
     private function getCommand(string $suite, string $filter, bool $doesUpdateSnapshots): array
     {
         if ($suite === 'js') {
-            $command = ['bun', '--bun', 'run', $doesUpdateSnapshots ? 'test-update' : 'test'];
+            $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'vitest-update' : 'vitest'];
 
             if ($filter !== '') {
-                return [...$command, $filter];
+                return [...$command, 'ARGS=' . $filter];
             }
 
             return $command;
         }
 
-        $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'test-update' : 'test'];
+        $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'pest-update' : 'pest'];
 
         if ($filter !== '') {
-            return [...$command, '--', '--filter', $filter];
+            return [...$command, 'ARGS=--filter ' . $filter];
         }
 
         return $command;
