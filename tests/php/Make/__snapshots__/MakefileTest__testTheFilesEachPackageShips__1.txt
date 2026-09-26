@@ -34,6 +34,7 @@ src/php/Composer/ComposerJsonManipulator.php
 src/php/Composer/Console.php
 src/php/Composer/Installer.php
 src/php/Composer/Plugin.php
+src/php/Composer/ReleaseAge.php
 src/php/ComposerJson.php
 src/php/EditorUrl.php
 src/php/Exception/UnreachableException.php

@@ -17,3 +17,17 @@ For full usage of any command run `composer help <command>`, `composer <command>
 
 `setup` installs packages and nothing else. Files are `make` work:
 copy `./conf/Makefile.dist` to `./Makefile`, then `make startup` — see [Makefile](./Makefile.md).
+
+## Minimum release age
+
+The plugin holds back versions released less than 7 days ago, as the shipped `bunfig.toml` does for Bun.
+Set under `extra.brnshkr.config` in `composer.json`:
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `minimum-release-age` | `604800` | Seconds a version must be out; `0` turns the check off. |
+| `minimum-release-age-excludes` | `[]` | Excluded packages; `*` matches any run of characters. |
+
+Never held back: the root package, platform packages (`php`, `ext-*`),
+dev versions such as `dev-main` and versions without a release time.
+`-v` lists the versions held back and those taken without a release time.
