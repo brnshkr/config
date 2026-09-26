@@ -1437,7 +1437,7 @@ GIT_HOOKS += commit-msg=$(call _target,commitlint)
 _ANALYZER_NAMES  += commitlint
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 
-$(call _target,commitlint): _$(_TARGET_PREFIX)install-missing-hooks #~~ lints a commit message
+$(call _target,commitlint): $(if $(filter --from --last,$(COMMITLINT_SOURCE)),_$(_TARGET_PREFIX)install-missing-hooks) #~~ lints a commit message
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
 	$(DEBUG_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE)))
 
