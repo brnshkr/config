@@ -4,14 +4,23 @@
 
 import path from 'node:path';
 
+import { compileConfiguredPattern } from '../../shared/utils/configured-pattern';
 import { doesFileExist, findNearestPackageJson, readJsonObjectFile } from '../../shared/utils/filesystem';
-import { isPlainObject, objectEntries, objectKeys } from '../../shared/utils/object';
 
+import {
+  isPlainObject,
+  objectEntries,
+  objectKeys,
+  readOwnValue,
+  writeOwnValue,
+} from '../../shared/utils/object';
+
+import type { Maybe } from '../../shared/types/core';
 import type { AllowedLiteral, Allowlist, SpellingSettings } from '../types/options';
 
 const EVERY_PATH = '*';
 const DEFAULTS_FILE = 'defaults.json';
-const LINE_SUFFIX_PATTERN = /^(?<text>.*):(?<lineNumbers>\d+(?:,\d+)*)$/v;
+const IGNORE_PATTERN_FLAGS = 'u';
 
 const findShippedDirectory = (): string => {
   const packageJsonPath = findNearestPackageJson(import.meta.dirname);
@@ -34,7 +43,7 @@ const readSettingsFile = (filePath: string): Record<string, unknown> => {
 };
 
 const readStringList = (settings: Record<string, unknown>, settingName: string): string[] => {
-  const declaredSetting = settings[settingName];
+  const declaredSetting = readOwnValue(settings, settingName);
 
   return Array.isArray(declaredSetting)
     ? declaredSetting.filter((entry): entry is string => typeof entry === 'string')
@@ -42,7 +51,7 @@ const readStringList = (settings: Record<string, unknown>, settingName: string):
 };
 
 const readStringMap = (settings: Record<string, unknown>, settingName: string): Record<string, string> => {
-  const declaredSetting = settings[settingName];
+  const declaredSetting = readOwnValue(settings, settingName);
   const stringMap: Record<string, string> = {};
 
   if (!isPlainObject(declaredSetting)) {
@@ -51,7 +60,7 @@ const readStringMap = (settings: Record<string, unknown>, settingName: string): 
 
   for (const [settingKey, entry] of objectEntries(declaredSetting)) {
     if (typeof entry === 'string') {
-      stringMap[settingKey] = entry;
+      writeOwnValue(stringMap, settingKey, entry);
     }
   }
 
@@ -59,7 +68,7 @@ const readStringMap = (settings: Record<string, unknown>, settingName: string): 
 };
 
 const readStringListMap = (settings: Record<string, unknown>, settingName: string): Record<string, string[]> => {
-  const declaredSetting = settings[settingName];
+  const declaredSetting = readOwnValue(settings, settingName);
   const stringListMap: Record<string, string[]> = {};
 
   if (!isPlainObject(declaredSetting)) {
@@ -67,16 +76,27 @@ const readStringListMap = (settings: Record<string, unknown>, settingName: strin
   }
 
   for (const settingKey of objectKeys(declaredSetting)) {
-    stringListMap[settingKey] = readStringList(declaredSetting, settingKey);
+    writeOwnValue(stringListMap, settingKey, readStringList(declaredSetting, settingKey));
   }
 
   return stringListMap;
 };
 
-const toSettings = (settings: Record<string, unknown>): SpellingSettings => ({
+// eslint-disable-next-line security/detect-non-literal-regexp -- Shipped patterns are ours
+const compileShippedPattern = (source: string): RegExp => new RegExp(source, IGNORE_PATTERN_FLAGS);
+
+const compileDeclaredPattern = (pattern: string): Maybe<RegExp> => compileConfiguredPattern(
+  pattern,
+  IGNORE_PATTERN_FLAGS,
+);
+
+const toSettings = (
+  settings: Record<string, unknown>,
+  compileIgnorePattern: (pattern: string) => Maybe<RegExp>,
+): SpellingSettings => ({
   fileExtensions: readStringList(settings, 'fileExtensions'),
   fileNames: readStringList(settings, 'fileNames'),
-  ignorePatterns: readStringList(settings, 'ignorePatterns'),
+  ignorePatterns: readStringList(settings, 'ignorePatterns').flatMap((pattern) => compileIgnorePattern(pattern) ?? []),
   britishSpellings: readStringMap(settings, 'britishSpellings'),
   britishStems: readStringList(settings, 'britishStems'),
   stemSuffixes: readStringList(settings, 'stemSuffixes'),
@@ -93,7 +113,7 @@ const mergeSettings = (
 ): SpellingSettings => ({
   fileExtensions: mergeLists(shippedSettings.fileExtensions, declaredSettings.fileExtensions),
   fileNames: mergeLists(shippedSettings.fileNames, declaredSettings.fileNames),
-  ignorePatterns: mergeLists(shippedSettings.ignorePatterns, declaredSettings.ignorePatterns),
+  ignorePatterns: [...shippedSettings.ignorePatterns, ...declaredSettings.ignorePatterns],
   britishSpellings: { ...shippedSettings.britishSpellings, ...declaredSettings.britishSpellings },
   britishStems: mergeLists(shippedSettings.britishStems, declaredSettings.britishStems),
   stemSuffixes: mergeLists(shippedSettings.stemSuffixes, declaredSettings.stemSuffixes),
@@ -102,25 +122,29 @@ const mergeSettings = (
 
 export const readSettings = (rootDirectory: string, configPath: string): SpellingSettings => {
   const shippedPath = path.join(findShippedDirectory(), DEFAULTS_FILE);
-  const shippedSettings = toSettings(readSettingsFile(shippedPath));
+  const shippedSettings = toSettings(readSettingsFile(shippedPath), compileShippedPattern);
   const settingsPath = path.resolve(rootDirectory, configPath);
 
   return doesFileExist(settingsPath)
-    ? mergeSettings(shippedSettings, toSettings(readSettingsFile(settingsPath)))
+    ? mergeSettings(shippedSettings, toSettings(readSettingsFile(settingsPath), compileDeclaredPattern))
     : shippedSettings;
 };
 
-const parseAllowedLiterals = (declaredLiterals: string[]): AllowedLiteral[] => declaredLiterals
-  .map((declaredLiteral) => {
-    const matchedGroups = LINE_SUFFIX_PATTERN.exec(declaredLiteral)?.groups;
+const parseLineNumbers = (lineSuffix: string): Maybe<number[]> => {
+  const lineNumbers = lineSuffix.split(',');
 
-    return {
-      text: matchedGroups?.['text'] ?? declaredLiteral,
-      lineNumbers: matchedGroups === undefined
-        ? undefined
-        : (matchedGroups['lineNumbers'] ?? '').split(',').map(Number),
-    };
-  });
+  return lineNumbers.every((lineNumber) => /^\d+$/v.test(lineNumber)) ? lineNumbers.map(Number) : undefined;
+};
+
+const parseAllowedLiteral = (declaredLiteral: string): AllowedLiteral => {
+  const separatorIndex = declaredLiteral.lastIndexOf(':');
+  const lineNumbers = separatorIndex === -1 ? undefined : parseLineNumbers(declaredLiteral.slice(separatorIndex + 1));
+
+  return {
+    text: lineNumbers === undefined ? declaredLiteral : declaredLiteral.slice(0, separatorIndex),
+    lineNumbers,
+  };
+};
 
 const isCoveredBy = (coveringCandidate: AllowedLiteral, allowedLiteral: AllowedLiteral): boolean => {
   if (coveringCandidate.text.toLowerCase() !== allowedLiteral.text.toLowerCase()) {
@@ -141,7 +165,7 @@ const formatAllowedLiteral = ({ text, lineNumbers }: AllowedLiteral): string => 
   : `${text}:${lineNumbers.join(',')}`);
 
 const rejectCoveredLiterals = (allowlist: Allowlist): void => {
-  const literalsAllowedEverywhere = allowlist[EVERY_PATH] ?? [];
+  const literalsAllowedEverywhere = readOwnValue(allowlist, EVERY_PATH) ?? [];
 
   for (const [allowedPath, allowedLiterals] of objectEntries(allowlist)) {
     for (const [index, allowedLiteral] of allowedLiterals.entries()) {
@@ -165,7 +189,11 @@ export const readAllowlist = (settings: SpellingSettings): Allowlist => {
   const allowlistEntries = objectEntries(settings.allowlist ?? {});
 
   for (const [allowedPath, declaredLiterals] of allowlistEntries) {
-    allowlist[allowedPath] = parseAllowedLiterals(declaredLiterals);
+    writeOwnValue(
+      allowlist,
+      allowedPath,
+      declaredLiterals.map((declaredLiteral) => parseAllowedLiteral(declaredLiteral)),
+    );
   }
 
   rejectCoveredLiterals(allowlist);

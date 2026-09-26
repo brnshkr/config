@@ -2,7 +2,13 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { objectEntries, objectFromEntries, objectKeys } from '../../shared/utils/object';
+import {
+  objectEntries,
+  objectFromEntries,
+  objectKeys,
+  pickKeys,
+} from '../../shared/utils/object';
+
 import { packageOrganization } from '../../shared/utils/package-json';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 
@@ -35,9 +41,7 @@ export const renameRules = (
 );
 /* eslint-enable ts/no-explicit-any -- Restore rule */
 
-const isValidGlobalAdditionalConfigKey = (
-  key: string,
-): key is keyof Omit<Config, 'ignores' | 'files'> => (<const>[
+const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'name',
   'languageOptions',
   'linterOptions',
@@ -45,23 +49,14 @@ const isValidGlobalAdditionalConfigKey = (
   'plugins',
   'rules',
   'settings',
-] satisfies (keyof Omit<Config, 'ignores' | 'files'>)[]).includes(key);
+] satisfies (keyof Omit<Config, 'ignores' | 'files'>)[];
 
 const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
-  const config: Config = {};
+  const config = pickKeys(options, GLOBAL_ADDITIONAL_CONFIG_KEYS);
 
-  for (const [key, value] of objectEntries(options)) {
-    if (isValidGlobalAdditionalConfigKey(key)) {
-      // eslint-disable-next-line ts/no-explicit-any, ts/no-unsafe-assignment -- The type of the value is not important here, just pass it through
-      config[key] = <any>value;
-    }
+  if (config !== undefined) {
+    config.name ??= buildConfigName(MAIN_SCOPES.USERLAND, SUB_SCOPES.GLOBAL);
   }
-
-  if (objectKeys(config).length === 0) {
-    return undefined;
-  }
-
-  config.name ??= buildConfigName(MAIN_SCOPES.USERLAND, SUB_SCOPES.GLOBAL);
 
   return config;
 };

@@ -9,17 +9,17 @@ export const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
 export const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
 export const MESSAGE_ID_UNEXPECTED_TYPE_VALUE = 'unexpectedTypeValue';
 
-const FILE_TYPE_MAP: Record<string, string> = <const>{
-  '.json': 'json',
-  '.css': 'css',
-  '.svg': 'svg',
-  '.png': 'image',
-  '.jpg': 'image',
-  '.jpeg': 'image',
-  '.txt': 'text',
-  '.oct': 'bytes',
-  '.wasm': 'webassembly',
-};
+const FILE_TYPE_MAP = new Map([
+  ['.css', 'css'],
+  ['.jpeg', 'image'],
+  ['.jpg', 'image'],
+  ['.json', 'json'],
+  ['.oct', 'bytes'],
+  ['.png', 'image'],
+  ['.svg', 'svg'],
+  ['.txt', 'text'],
+  ['.wasm', 'webassembly'],
+]);
 
 /**
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-attributes.md
@@ -47,7 +47,7 @@ export const requireImportAttributesRule = <const>{
       }
 
       const extension = sourceValue.slice(extensionIndex).toLowerCase();
-      const expectedValue = FILE_TYPE_MAP[extension];
+      const expectedValue = FILE_TYPE_MAP.get(extension);
 
       if (expectedValue === undefined) {
         return;

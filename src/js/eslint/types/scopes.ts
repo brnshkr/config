@@ -18,6 +18,7 @@ export const MAIN_SCOPES = <const>{
   OVERRIDES: 'overrides',
   PERFECTIONIST: 'perfectionist',
   REGEXP: 'regexp',
+  SECURITY: 'security',
   STYLE: 'style',
   SVELTE: 'svelte',
   TEST: 'test',

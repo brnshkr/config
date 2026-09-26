@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { readOwnValue } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_MD } from '../utils/globs';
@@ -19,7 +20,7 @@ const extractRelevantValues = <
   key: string,
 ): NonNullable<TConfig[TIdentifier]> => {
   for (const config of configs) {
-    const value = config[identifier] ?? undefined;
+    const value = readOwnValue(config, identifier) ?? undefined;
 
     if (value !== undefined && config.name === `markdown/${key}`) {
       return value;

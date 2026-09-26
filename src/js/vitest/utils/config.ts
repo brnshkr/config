@@ -4,13 +4,13 @@
 
 import { mergeConfig } from 'vitest/config';
 
-import { objectAssign, objectEntries, objectKeys } from '../../shared/utils/object';
+import { objectAssign, pickKeys } from '../../shared/utils/object';
 
 import type { Maybe } from '../../shared/types/core';
 import type { Config } from '../types/config';
 import type { ResolvedOptions } from '../types/options';
 
-const isValidGlobalAdditionalConfigKey = (key: string): key is keyof Config => (<const>[
+const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'appType',
   'assetsInclude',
   'base',
@@ -46,24 +46,11 @@ const isValidGlobalAdditionalConfigKey = (key: string): key is keyof Config => (
   'test',
   'tsconfig',
   'worker',
-] satisfies (keyof Config)[]).includes(key);
+] satisfies (keyof Config)[];
 
-const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
-  const config: Config = {};
-
-  for (const [key, value] of objectEntries(options)) {
-    if (isValidGlobalAdditionalConfigKey(key)) {
-      // eslint-disable-next-line ts/no-explicit-any, ts/no-unsafe-assignment -- The type of the value is not important here, just pass it through
-      config[key] = <any>value;
-    }
-  }
-
-  if (objectKeys(config).length === 0) {
-    return undefined;
-  }
-
-  return config;
-};
+const getGlobalAdditionalConfig = (
+  options: ResolvedOptions,
+): Maybe<Config> => pickKeys(options, GLOBAL_ADDITIONAL_CONFIG_KEYS);
 
 export const getUserConfigs = (
   resolvedOptions: ResolvedOptions,

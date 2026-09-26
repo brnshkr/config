@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { readTextFile } from '../../shared/utils/filesystem';
 import { objectEntries, objectFromEntries } from '../../shared/utils/object';
 
 import type { Maybe } from '../../shared/types/core';
@@ -30,10 +31,13 @@ const stripJsonc = (input: string): string => input
   .replaceAll(TRAILING_COMMA_PATTERN, '');
 
 const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
-  try {
-    // eslint-disable-next-line node/no-sync -- Sync read keeps the rule create() function synchronous as ESLint requires
-    const content = fs.readFileSync(filePath, 'utf-8');
+  const content = readTextFile(filePath);
 
+  if (content === undefined) {
+    return undefined;
+  }
+
+  try {
     return <ParsedTsConfig>JSON.parse(stripJsonc(content));
   } catch {
     return undefined;

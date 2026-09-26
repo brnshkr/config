@@ -12,6 +12,13 @@
       "`analyse`",
       "phpstan-analyse"
     ],
+    "src/js/shared/utils/configured-pattern.ts": [
+      ".analyse("
+    ],
+    "src/js/shared/utils/package-resolvers.ts": [
+      "{ analyse }",
+      "{ analyse: typeof analyse }"
+    ],
     "src/php/PhpStan.php": [
       "'analyse'",
       "{analyse,",

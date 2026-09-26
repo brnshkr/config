@@ -7,7 +7,7 @@ import type { Maybe } from '../../shared/types/core';
 export interface SpellingSettings {
   fileExtensions: string[];
   fileNames: string[];
-  ignorePatterns: string[];
+  ignorePatterns: RegExp[];
   britishSpellings: Record<string, string>;
   britishStems: string[];
   stemSuffixes: string[];

@@ -108,6 +108,14 @@ export const MODULES = <const>{
       ],
     },
   },
+  security: {
+    name: 'security',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_SECURITY,
+      ],
+    },
+  },
   style: {
     name: 'style',
     packages: {
@@ -168,5 +176,7 @@ export const MODULES = <const>{
   },
 } satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly EslintPackage[]>>>;
 
+// eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+export const BUILTIN_MODULE = MODULES[packageOrganization];
 export const resolvePackages: AsyncPackageResolver<EslintPackage> = resolvePackagesSharedAsynchronously;
 export const { isModuleEnabled, setModuleEnabled } = createModuleState();

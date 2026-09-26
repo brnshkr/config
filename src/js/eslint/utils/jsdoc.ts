@@ -2,14 +2,14 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { createPattern } from '../../shared/utils/pattern';
+
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type { Maybe } from '../../shared/types/core';
 
 export const TAG_API = 'api';
 export const TAG_INTERNAL = 'internal';
 export type VisibilityTag = typeof TAG_API | typeof TAG_INTERNAL;
-
-const escapeRegExp = (value: string): string => value.replaceAll(/[$\(\)*+.?\[\\\]^\{\|\}]/gv, String.raw`\$&`);
 
 const hasProseAfter = (pattern: RegExp, comment: string): boolean => {
   const prose = pattern.exec(comment)?.groups?.['prose'];
@@ -44,7 +44,7 @@ export const hasTag = (
   comment: Maybe<string>,
   tag: string,
 ): boolean => comment !== undefined
-  && new RegExp(String.raw`@${tag}\b`, 'v').test(comment);
+  && createPattern('v')`@${tag}\b`.test(comment);
 
 export const hasAnyTag = (
   comment: Maybe<string>,
@@ -62,7 +62,7 @@ export const hasDescription = (comment: Maybe<string>): boolean => {
 };
 
 export const hasParameterProse = (comment: string, parameterName: string): boolean => hasProseAfter(
-  new RegExp(String.raw`@param\b[^\n]*?\b${escapeRegExp(parameterName)}\b(?<prose>[^\n]*)`, 'v'),
+  createPattern('v')`@param\b[^\n]*?\b${parameterName}\b(?<prose>[^\n]*)`,
   comment,
 );
 

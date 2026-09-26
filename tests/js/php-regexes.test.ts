@@ -1,10 +1,9 @@
-import fs from 'node:fs';
 import path from 'node:path';
 
 import { expect, test } from 'vitest';
 
 import { createPhpRegexes } from './fixtures/php/regexes';
-import { traverseDirectory } from './utils/filesystem';
+import { readText, traverseDirectory } from './utils/filesystem';
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../..');
 
@@ -73,7 +72,7 @@ const collectWindowPatterns = (window: string): string[] => window
 
 const collectConsumedPatterns = (): Set<string> => new Set(
   collectPhpFiles().flatMap((filePath) => {
-    const lines = fs.readFileSync(filePath, 'utf-8').split('\n');
+    const lines = readText(filePath).split('\n');
 
     return lines.flatMap((line, index) => (CONSUMER_CALLS.some((call) => line.includes(call))
       ? collectWindowPatterns(lines.slice(index, index + CALL_WINDOW_LINES).join('\n'))
@@ -83,7 +82,7 @@ const collectConsumedPatterns = (): Set<string> => new Set(
 
 test('every fixture pattern still exists in its php source', () => {
   const missing = createPhpRegexes().filter(({ file, php }) => {
-    const contents = fs.readFileSync(path.join(REPOSITORY_ROOT, file), 'utf-8');
+    const contents = readText(path.join(REPOSITORY_ROOT, file));
 
     return !collectLiterals(contents).has(php);
   });

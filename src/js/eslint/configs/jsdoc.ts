@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { objectEntries } from '../../shared/utils/object';
+import { objectEntries, readOwnValue } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '../utils/globs';
@@ -258,7 +258,7 @@ export const jsdoc = async (): Promise<Config[]> => {
           ...(<Config['rules']>Object.fromEntries(
             objectEntries(pluginJsdoc.configs['flat/recommended-typescript-error'].rules ?? {})
               .map(([key, value]) => (
-                Object.is(pluginJsdoc.configs['flat/recommended-error'].rules?.[key], value)
+                Object.is(readOwnValue(pluginJsdoc.configs['flat/recommended-error'].rules ?? {}, key), value)
                   ? undefined
                   : [key, value]
               ))

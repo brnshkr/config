@@ -39,14 +39,13 @@ const isScannedPath = (
 export const collectFilePaths = (rootDirectory: string, settings: SpellingSettings): string[] => {
   const scannedExtensions = new Set(settings.fileExtensions);
   const scannedNames = new Set(settings.fileNames);
-  const ignoreExpressions = settings.ignorePatterns.map((ignorePattern) => new RegExp(ignorePattern, 'u'));
 
   return listTrackedFiles(rootDirectory)
     .filter((filePath) => isScannedPath(
       filePath,
       scannedExtensions,
       scannedNames,
-      ignoreExpressions,
+      settings.ignorePatterns,
     ))
     .filter((filePath) => doesFileExist(path.join(rootDirectory, filePath)));
 };

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { expect, test } from 'vitest';
 
 import { isPublicApiFile } from '../../../src/js/eslint/utils/public-api';
+import { makeDirectory, setModificationTime, writeText } from '../utils/filesystem';
 
 test('isPublicApiFile invalidates cache when package.json mtime advances', () => {
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'brnshkr-public-api-'));
@@ -12,11 +13,11 @@ test('isPublicApiFile invalidates cache when package.json mtime advances', () =>
   const targetFile = path.join(temporaryRoot, 'src/included.ts');
   const alternateFile = path.join(temporaryRoot, 'src/excluded.ts');
 
-  fs.mkdirSync(path.join(temporaryRoot, 'src'));
-  fs.writeFileSync(targetFile, 'export {};\n');
-  fs.writeFileSync(alternateFile, 'export {};\n');
+  makeDirectory(path.join(temporaryRoot, 'src'));
+  writeText(targetFile, 'export {};\n');
+  writeText(alternateFile, 'export {};\n');
 
-  fs.writeFileSync(packageJsonPath, JSON.stringify({
+  writeText(packageJsonPath, JSON.stringify({
     name: 'mtime-fixture',
     exports: {
       '.': './dist/included.js',
@@ -32,7 +33,7 @@ test('isPublicApiFile invalidates cache when package.json mtime advances', () =>
   expect(isPublicApiFile(lookupOptions, temporaryRoot, targetFile)).toBe(true);
   expect(isPublicApiFile(lookupOptions, temporaryRoot, alternateFile)).toBe(false);
 
-  fs.writeFileSync(packageJsonPath, JSON.stringify({
+  writeText(packageJsonPath, JSON.stringify({
     name: 'mtime-fixture',
     exports: {
       '.': './dist/excluded.js',
@@ -43,7 +44,7 @@ test('isPublicApiFile invalidates cache when package.json mtime advances', () =>
   const futureDeltaSeconds = 5;
   const future = (Date.now() / millisecondsPerSecond) + futureDeltaSeconds;
 
-  fs.utimesSync(packageJsonPath, future, future);
+  setModificationTime(packageJsonPath, future);
 
   expect(isPublicApiFile(lookupOptions, temporaryRoot, targetFile)).toBe(false);
   expect(isPublicApiFile(lookupOptions, temporaryRoot, alternateFile)).toBe(true);

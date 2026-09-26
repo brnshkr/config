@@ -2,7 +2,7 @@
  * @internal @brnshkr/config
  */
 
-import type { Simplify, ValueOf } from '../types/core';
+import type { Maybe, Simplify, ValueOf } from '../types/core';
 
 export type AnyRecord = Record<PropertyKey, unknown>;
 export type AnyObject<TObject = AnyRecord> = Simplify<Partial<Record<keyof TObject, ValueOf<TObject>>>>;
@@ -14,21 +14,43 @@ export type ObjectFromEntries<TObjectEntries extends ObjectEntries> = Simplify<{
   [TEntry in TObjectEntries[number] as TEntry[0]]: TEntry[1];
 }>;
 
-export const objectKeys = <TObject extends AnyObject<TObject>>(
-  object: TObject,
-): ObjectKeys<TObject> => <ObjectKeys<TObject>>Object.keys(object);
+interface ObjectKeysFunction {
+  <TKey>(map: ReadonlyMap<TKey, unknown>): TKey[];
+  <TObject extends AnyObject<TObject>>(object: TObject): ObjectKeys<TObject>;
+}
 
-export const objectValues = <TObject extends AnyObject<TObject>>(
-  object: TObject,
-): ObjectValues<TObject> => <ObjectValues<TObject>>Object.values(object);
+interface ObjectValuesFunction {
+  <TValue>(map: ReadonlyMap<unknown, TValue>): TValue[];
+  <TObject extends AnyObject<TObject>>(object: TObject): ObjectValues<TObject>;
+}
 
-export const objectEntries = <TObject extends AnyObject<TObject>>(
-  object: TObject,
-): ObjectEntries<TObject> => <ObjectEntries<TObject>>Object.entries(object);
+interface ObjectEntriesFunction {
+  <TKey, TValue>(map: ReadonlyMap<TKey, TValue>): [TKey, TValue][];
+  <TObject extends AnyObject<TObject>>(object: TObject): ObjectEntries<TObject>;
+}
 
-export const objectFromEntries = <TObjectEntries extends ObjectEntries>(
-  entries: TObjectEntries,
-): ObjectFromEntries<TObjectEntries> => <ObjectFromEntries<TObjectEntries>>Object.fromEntries(entries);
+export const objectKeys = <ObjectKeysFunction>(
+  (object: object): unknown[] => (object instanceof Map ? object.keys().toArray() : Object.keys(object))
+);
+
+export const objectValues = <ObjectValuesFunction>(
+  (object: object): unknown[] => (object instanceof Map ? object.values().toArray() : Object.values(object))
+);
+
+export const objectEntries = <ObjectEntriesFunction>(
+  (object: object): unknown[] => (object instanceof Map ? object.entries().toArray() : Object.entries(object))
+);
+
+interface ObjectFromEntriesFunction {
+  <TObjectEntries extends ObjectEntries>(entries: TObjectEntries): ObjectFromEntries<TObjectEntries>;
+  <TKey extends PropertyKey, TValue>(
+    entries: ReadonlyMap<TKey, TValue>,
+  ): string extends TKey ? Record<TKey, TValue> : Partial<Record<TKey, TValue>>;
+}
+
+export const objectFromEntries = <ObjectFromEntriesFunction>(
+  (entries: Iterable<readonly [PropertyKey, unknown]>): AnyRecord => Object.fromEntries(entries)
+);
 
 export const objectFreeze = <TObject extends AnyObject<TObject>>(
   object: TObject,
@@ -38,6 +60,58 @@ export const objectAssign = <TObject extends AnyObject<TObject>>(
   target: TObject,
   source: Partial<TObject>,
 ): TObject => Object.assign(target, source);
+
+interface ReadOwnValueFunction {
+  <TKey, TValue>(map: ReadonlyMap<TKey, TValue>, key: TKey): Maybe<TValue>;
+  <TObject extends object, TKey extends keyof TObject>(object: TObject, key: TKey): Maybe<TObject[TKey]>;
+}
+
+interface WriteOwnValueFunction {
+  <TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TValue): void;
+  <TObject extends object, TKey extends keyof TObject>(object: TObject, key: TKey, value: TObject[TKey]): void;
+}
+
+interface PickKeysFunction {
+  <TKey, TValue>(map: ReadonlyMap<TKey, TValue>, keys: readonly TKey[]): Maybe<Map<TKey, TValue>>;
+  <TObject extends AnyObject<TObject>, TKey extends keyof TObject>(
+    object: TObject,
+    keys: readonly TKey[],
+  ): Maybe<Pick<TObject, TKey>>;
+}
+
+export const readOwnValue = <ReadOwnValueFunction>((object: object, key: PropertyKey): unknown => {
+  if (object instanceof Map) {
+    return object.get(key);
+  }
+
+  return Object.hasOwn(object, key) ? Reflect.get(object, key) : undefined;
+});
+
+export const writeOwnValue = <WriteOwnValueFunction>((object: object, key: PropertyKey, value: unknown): void => {
+  if (object instanceof Map) {
+    object.set(key, value);
+
+    return;
+  }
+
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
+});
+
+export const pickKeys = <PickKeysFunction>((object: object, keys: readonly unknown[]): unknown => {
+  const pickedEntries = (object instanceof Map ? object.entries().toArray() : Object.entries(object))
+    .filter(([key]) => keys.includes(key));
+
+  if (pickedEntries.length === 0) {
+    return undefined;
+  }
+
+  return object instanceof Map ? new Map(pickedEntries) : Object.fromEntries(pickedEntries);
+});
 
 export const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   if (typeof value !== 'object' || !value) {

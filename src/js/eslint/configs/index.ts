@@ -4,7 +4,7 @@
 
 import { packageOrganization } from '../../shared/utils/package-json';
 
-import { builtinConfig } from './builtin';
+import { builtin } from './builtin';
 import { comments } from './comments';
 import { css } from './css';
 import { ignores } from './ignores';
@@ -17,6 +17,7 @@ import { node } from './node';
 import { overrides } from './overrides';
 import { perfectionist } from './perfectionist';
 import { regexp } from './regexp';
+import { security } from './security';
 import { style } from './style';
 import { svelte } from './svelte';
 import { test } from './test';
@@ -26,7 +27,7 @@ import { unicorn } from './unicorn';
 import { yaml } from './yaml';
 
 export const configs = <const>{
-  [packageOrganization]: builtinConfig[packageOrganization],
+  [packageOrganization]: builtin,
   comments,
   css,
   ignores,
@@ -39,6 +40,7 @@ export const configs = <const>{
   overrides,
   perfectionist,
   regexp,
+  security,
   style,
   svelte,
   test,

@@ -4,6 +4,8 @@
 
 import path from 'node:path';
 
+import { compileConfiguredPattern } from '../../../shared/utils/configured-pattern';
+
 import {
   doesFileExist,
   findNearestPackageJson,
@@ -45,7 +47,6 @@ const LAYOUT_SEGMENTS = new Set<string>([
 
 const WILDCARD_SUFFIX = '/*';
 const MODULE_SPECIFIER_SEARCH_DEPTH = 4;
-const DELIMITED_PATTERN = /^(?<delimiter>[^\w\\])(?<source>.*)\k<delimiter>(?<flags>[A-Za-z]*)$/sv;
 
 const OPTION_NAMES = <const>[
   'allowedInternals',
@@ -234,7 +235,7 @@ const stripLayoutSegments = (modulePath: string): string => {
   const segments = modulePath.split('/');
   let start = 0;
 
-  while (start < segments.length - 1 && LAYOUT_SEGMENTS.has(segments[start] ?? '')) {
+  while (start < segments.length - 1 && LAYOUT_SEGMENTS.has(segments.at(start) ?? '')) {
     start += 1;
   }
 
@@ -299,13 +300,7 @@ const buildModuleIdentity = (filePath: string, aliasPaths: Maybe<TsConfigPaths>)
   };
 };
 
-const createExportPattern = (): RegExp => new RegExp(
-  String.raw`^\s*export\s+(?<defaultKeyword>default\s+)?`
-  + String.raw`(?:(?:abstract|async|declare)\s+)*`
-  + String.raw`(?<keyword>class|const|enum|function|interface|let|type|var)\s+`
-  + String.raw`(?<name>[\p{ID_Start}$_][\p{ID_Continue}$]*)`,
-  'v',
-);
+const createExportPattern = (): RegExp => /^\s*export\s+(?<defaultKeyword>default\s+)?(?:(?:abstract|async|declare)\s+)*(?<keyword>class|const|enum|function|interface|let|type|var)\s+(?<name>[\p{ID_Start}$_][\p{ID_Continue}$]*)/v;
 
 const readExportName = (following: string): Maybe<string> => {
   const match = createExportPattern().exec(following);
@@ -420,20 +415,15 @@ const resolveRelativeModulePath = (fromFilePath: string, specifier: string): May
   ].find((candidate) => doesFileExist(candidate));
 };
 
-const toPattern = (entry: string): Maybe<RegExp> => {
-  const groups = DELIMITED_PATTERN.exec(entry)?.groups;
-
-  if (groups === undefined) {
-    return undefined;
-  }
-
-  const source = groups['source'] ?? '';
-  const flags = (groups['flags'] ?? '').replaceAll(/[gy]/gv, '');
-
+const toPattern = (entry: AllowScalar): Maybe<RegExp> => {
   try {
-    return new RegExp(source, flags);
-  } catch {
-    return undefined;
+    return compileConfiguredPattern(entry);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined;
+    }
+
+    throw error;
   }
 };
 
@@ -442,14 +432,7 @@ const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatc
   const patterns: RegExp[] = [];
 
   for (const entry of entries) {
-    if (entry instanceof RegExp) {
-      patterns.push(new RegExp(entry.source, entry.flags.replaceAll(/[gy]/gv, '')));
-
-      continue;
-    }
-
-    const text = typeof entry === 'string' ? entry : '';
-    const pattern = toPattern(text);
+    const pattern = toPattern(entry);
 
     if (pattern !== undefined) {
       patterns.push(pattern);
@@ -457,11 +440,12 @@ const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatc
       continue;
     }
 
+    const text = String(entry);
     const prefix = trimSeparators(text);
 
     if (prefix.length === 0 || !/^[\w@]/v.test(prefix)) {
       throw new Error(
-        `Entry "${entry}" for option "${optionName}" is neither a namespace prefix nor a regular expression.`,
+        `Entry "${text}" for option "${optionName}" is neither a namespace prefix nor a regular expression.`,
       );
     }
 

@@ -124,6 +124,7 @@ export const style = async (): Promise<Config[]> => {
           ignoreUrls: true,
           ignoreStrings: true,
           ignoreComments: true,
+          ignoreRegExpLiterals: true,
         }],
         'style/newline-per-chained-call': 'error',
         'style/no-confusing-arrow': 'error',

@@ -1,10 +1,13 @@
-import fs from 'node:fs';
 import path from 'node:path';
+
+import { createPattern } from '../../../src/js/shared/utils/pattern';
+
+import { readText } from './filesystem';
 
 const PHP_SOURCE_ROOT = path.resolve(import.meta.dirname, '../../../src/php');
 
 const findArrayBody = (source: string, keyName: string): string => {
-  const opening = new RegExp(String.raw`'${keyName}'\s*=>\s*\[`, 'v').exec(source);
+  const opening = createPattern('v')`'${keyName}'\s*=>\s*\[`.exec(source);
 
   if (!opening) {
     return '';
@@ -14,11 +17,11 @@ const findArrayBody = (source: string, keyName: string): string => {
   let depth = 0;
 
   for (let index = start - 1; index < source.length; index += 1) {
-    if (source[index] === '[') {
+    if (source.at(index) === '[') {
       depth += 1;
     }
 
-    if (source[index] === ']') {
+    if (source.at(index) === ']') {
       depth -= 1;
 
       if (depth === 0) {
@@ -36,7 +39,7 @@ const splitNestedArrays = (body: string): string[] => {
   let start = 0;
 
   for (let index = 0; index < body.length; index += 1) {
-    if (body[index] === '[') {
+    if (body.at(index) === '[') {
       if (depth === 0) {
         start = index + 1;
       }
@@ -44,7 +47,7 @@ const splitNestedArrays = (body: string): string[] => {
       depth += 1;
     }
 
-    if (body[index] === ']') {
+    if (body.at(index) === ']') {
       depth -= 1;
 
       if (depth === 0) {
@@ -61,10 +64,7 @@ const extractQuotedValues = (body: string): string[] => body
   .map((match) => match.groups?.['value'] ?? '')
   .toArray();
 
-export const readPhpSource = (relativePath: string): string => fs.readFileSync(
-  path.join(PHP_SOURCE_ROOT, relativePath),
-  'utf-8',
-);
+export const readPhpSource = (relativePath: string): string => readText(path.join(PHP_SOURCE_ROOT, relativePath));
 
 export const extractPhpRuleOptionValues = (
   source: string,

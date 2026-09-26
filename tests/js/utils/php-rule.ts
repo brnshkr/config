@@ -1,15 +1,15 @@
-import fs from 'node:fs';
 import path from 'node:path';
+
+import { createPattern } from '../../../src/js/shared/utils/pattern';
+
+import { readText } from './filesystem';
 
 const PHP_RULE_ROOT = path.resolve(import.meta.dirname, '../../../src/php/PhpStan/Rule');
 
-export const readPhpRuleSource = (relativePath: string): string => fs.readFileSync(
-  path.join(PHP_RULE_ROOT, relativePath),
-  'utf-8',
-);
+export const readPhpRuleSource = (relativePath: string): string => readText(path.join(PHP_RULE_ROOT, relativePath));
 
 export const extractPhpListConstant = (source: string, constantName: string): string[] => {
-  const entries = new RegExp(String.raw`const array ${constantName} = \[(?<entries>[^\]]*)\]`, 'v')
+  const entries = createPattern('v')`const array ${constantName} = \[(?<entries>[^\]]*)\]`
     .exec(source)
     ?.groups?.['entries'] ?? '';
 
@@ -20,6 +20,6 @@ export const extractPhpListConstant = (source: string, constantName: string): st
 };
 
 export const extractPhpStringConstants = (source: string, namePrefix: string): string[] => source
-  .matchAll(new RegExp(String.raw`const string ${namePrefix}\w+\s*=\s*'(?<value>[^']*)'`, 'gv'))
+  .matchAll(createPattern('gv')`const string ${namePrefix}\w+\s*=\s*'(?<value>[^']*)'`)
   .map((match) => match.groups?.['value'] ?? '')
   .toArray();

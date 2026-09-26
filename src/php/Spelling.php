@@ -496,7 +496,7 @@ final class Spelling
         array $ignorePatterns,
     ): bool {
         foreach ($ignorePatterns as $ignorePattern) {
-            if (is_string($ignorePattern) && Str::match($filePath, '~' . $ignorePattern . '~') !== []) {
+            if (is_string($ignorePattern) && Str::match($filePath, Str::isRegex($ignorePattern) ? $ignorePattern : '~' . $ignorePattern . '~') !== []) {
                 return false;
             }
         }

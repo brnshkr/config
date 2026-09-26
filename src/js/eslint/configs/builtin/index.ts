@@ -27,6 +27,9 @@ type ExtractValueTypeFromRecord<TRecord> = TRecord extends Record<string, infer 
 
 export type RuleDefinition = ExtractValueTypeFromRecord<ESLint.Plugin['rules']>;
 
+// eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+const BUILTIN_SCOPE = MAIN_SCOPES[packageOrganizationUpper];
+
 export const RULE_DEFINITIONS = <const>{
   'api-or-internal-tag': apiOrInternalTagRule,
   'boolish-prefix': boolishPrefixRule,
@@ -39,12 +42,12 @@ export const RULE_DEFINITIONS = <const>{
   'type-assertion-style': typeAssertionStyleRule,
 } satisfies Record<string, RuleDefinition>;
 
-const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
+export const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
   const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined);
 
   return [
     {
-      name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.SETUP),
+      name: buildConfigName(BUILTIN_SCOPE, SUB_SCOPES.SETUP),
       plugins: {
         [packageOrganization]: {
           meta: {
@@ -56,7 +59,7 @@ const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Conf
       },
     },
     {
-      name: buildConfigName(MAIN_SCOPES[packageOrganizationUpper], SUB_SCOPES.RULES),
+      name: buildConfigName(BUILTIN_SCOPE, SUB_SCOPES.RULES),
       files: GLOB_SCRIPT_FILES,
       rules: {
         [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
@@ -75,8 +78,4 @@ const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Conf
       } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,
     },
   ];
-};
-
-export const builtinConfig = {
-  [packageOrganization]: builtin,
 };

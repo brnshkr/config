@@ -3,7 +3,7 @@
  */
 
 import { INDENT } from '../../shared/utils/constants';
-import { objectAssign } from '../../shared/utils/object';
+import { objectAssign, objectEntries } from '../../shared/utils/object';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_JSON5, GLOB_JSON, GLOB_JSONC } from '../utils/globs';
@@ -521,11 +521,12 @@ export const json = async (): Promise<Config[]> => {
   }
 
   const createRulesConfig = (
-    language: 'json' | 'jsonc' | 'json5',
+    language: keyof typeof LANGUAGE_TO_GLOB_MAP,
+    files: string[],
   ): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSON, `${SUB_SCOPES.RULES}-${language}`),
     language: `json/${language}`,
-    files: LANGUAGE_TO_GLOB_MAP[language],
+    files,
     ...(language === 'json'
       ? {
         ignores: JSON_FILES_TO_TREAT_AS_JSONC,
@@ -569,9 +570,7 @@ export const json = async (): Promise<Config[]> => {
       name: buildConfigName(MAIN_SCOPES.JSON, SUB_SCOPES.SETUP),
       plugins,
     },
-    createRulesConfig('json'),
-    createRulesConfig('jsonc'),
-    createRulesConfig('json5'),
+    ...objectEntries(LANGUAGE_TO_GLOB_MAP).map(([language, files]) => createRulesConfig(language, files)),
     ...jsoncSortConfigs,
   ].filter(Boolean);
 };

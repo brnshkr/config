@@ -33,6 +33,7 @@ export const css = (): Config[] => [
       'color-hex-length': 'long',
       'color-named': 'never',
       'color-no-invalid-hex': true,
+      // eslint-disable-next-line security/detect-non-literal-regexp -- Split so that a project-wide search for the marker skips this line
       'comment-word-disallowed-list': [new RegExp(`^${['TO', 'DO'].join('')}`, 'v')],
       'declaration-no-important': true,
       'declaration-property-value-disallowed-list': {

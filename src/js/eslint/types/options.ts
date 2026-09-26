@@ -209,6 +209,15 @@ export interface ConfigOptions {
   regexp: boolean;
 
   /**
+   * Enables `eslint-plugin-security`.
+   *
+   * @default `Enabled when "eslint-plugin-security" is installed.`
+   *
+   * @see https://github.com/eslint-community/eslint-plugin-security
+   */
+  security: boolean;
+
+  /**
    * Enables `@stylistic/eslint-plugin`.
    *
    * @default `Enabled when "@stylistic/eslint-plugin" is installed.`

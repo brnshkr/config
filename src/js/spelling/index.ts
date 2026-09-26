@@ -1,6 +1,8 @@
 import path from 'node:path';
 
 import { readTextFile } from '../shared/utils/filesystem';
+import { readOwnValue } from '../shared/utils/object';
+import { createPattern } from '../shared/utils/pattern';
 
 import { collectFilePaths } from './utils/files';
 import { buildPatterns } from './utils/patterns';
@@ -16,8 +18,6 @@ import type {
 
 const EVERY_PATH = '*';
 const DEFAULT_CONFIG_PATH = 'conf/spelling.json';
-const REGEX_METACHARACTERS = /[$\(\)*+.?\[\\\]^\{\|\}]/gv;
-const escapeRegexLiteral = (value: string): string => value.replaceAll(REGEX_METACHARACTERS, String.raw`\$&`);
 
 const maskAllowedLiterals = (
   line: string,
@@ -29,7 +29,7 @@ const maskAllowedLiterals = (
   for (const { text, lineNumbers } of allowedLiterals) {
     if (lineNumbers === undefined || lineNumbers.includes(lineNumber)) {
       maskedLine = maskedLine.replaceAll(
-        new RegExp(escapeRegexLiteral(text), 'giu'),
+        createPattern('giu')`${text}`,
         (matchedText) => '.'.repeat(matchedText.length),
       );
     }
@@ -67,7 +67,7 @@ const findInFile = (
   patterns: SpellingPattern[],
   allowlist: Allowlist,
 ): SpellingFinding[] => {
-  const allowedLiterals = [...allowlist[EVERY_PATH] ?? [], ...allowlist[filePath] ?? []];
+  const allowedLiterals = [...readOwnValue(allowlist, EVERY_PATH) ?? [], ...readOwnValue(allowlist, filePath) ?? []];
   const findings: SpellingFinding[] = [];
 
   for (const [index, line] of fileContents.split('\n').entries()) {

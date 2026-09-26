@@ -24,7 +24,7 @@ export const doesFileExist = (filePath: string): boolean => {
 
 export const getMtime = (filePath: string): Maybe<number> => {
   try {
-    // eslint-disable-next-line node/no-sync -- Synchronous stat mirrors ESLint's lifecycle
+    // eslint-disable-next-line node/no-sync, security/detect-non-literal-fs-filename -- Synchronous stat mirrors ESLint's lifecycle; paths come from the project being checked
     return fs.statSync(filePath).mtimeMs;
   } catch {
     return undefined;
@@ -33,7 +33,7 @@ export const getMtime = (filePath: string): Maybe<number> => {
 
 export const readTextFile = (filePath: string): Maybe<string> => {
   try {
-    // eslint-disable-next-line node/no-sync -- Synchronous read mirrors ESLint's lifecycle
+    // eslint-disable-next-line node/no-sync, security/detect-non-literal-fs-filename -- Synchronous read mirrors ESLint's lifecycle; paths come from the project being checked
     return fs.readFileSync(filePath, 'utf-8');
   } catch {
     return undefined;

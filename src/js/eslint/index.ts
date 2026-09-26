@@ -5,7 +5,13 @@ import { packageOrganization } from '../shared/utils/package-json';
 
 import { configs } from './configs';
 import { getUserConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
+
+import {
+  BUILTIN_MODULE,
+  isModuleEnabled,
+  MODULES,
+  setModuleEnabled,
+} from './utils/module';
 
 import type { Awaitable } from '../shared/types/core';
 import type { Config, ConfigNames, ResolvableConfig } from './types/config';
@@ -55,7 +61,7 @@ export const getConfig = (
 // eslint-disable-next-line ts/promise-function-async -- Explicitly mark function as synchronous since the promises are handled by the composer
 ): FlatConfigComposer<Config, ConfigNames> => {
   const resolvedOptions = <const>{
-    [packageOrganization]: isModuleEnabledByDefault(MODULES[packageOrganization]),
+    [packageOrganization]: isModuleEnabledByDefault(BUILTIN_MODULE),
     comments: isModuleEnabledByDefault(MODULES.comments),
     css: isModuleEnabledByDefault(MODULES.css),
     import: isModuleEnabledByDefault(MODULES.import),
@@ -65,6 +71,7 @@ export const getConfig = (
     node: isModuleEnabledByDefault(MODULES.node),
     perfectionist: isModuleEnabledByDefault(MODULES.perfectionist),
     regexp: isModuleEnabledByDefault(MODULES.regexp),
+    security: isModuleEnabledByDefault(MODULES.security),
     style: isModuleEnabledByDefault(MODULES.style),
     svelte: isModuleEnabledByDefault(MODULES.svelte),
     test: isModuleEnabledByDefault(MODULES.test),
@@ -75,7 +82,8 @@ export const getConfig = (
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
-  setModuleEnabled(MODULES[packageOrganization], resolvedOptions[packageOrganization]);
+  // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+  setModuleEnabled(BUILTIN_MODULE, resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.comments, resolvedOptions.comments);
   setModuleEnabled(MODULES.css, resolvedOptions.css !== false);
   setModuleEnabled(MODULES.import, resolvedOptions.import);
@@ -85,6 +93,7 @@ export const getConfig = (
   setModuleEnabled(MODULES.node, resolvedOptions.node !== false);
   setModuleEnabled(MODULES.perfectionist, resolvedOptions.perfectionist);
   setModuleEnabled(MODULES.regexp, resolvedOptions.regexp);
+  setModuleEnabled(MODULES.security, resolvedOptions.security);
   setModuleEnabled(MODULES.style, resolvedOptions.style);
   setModuleEnabled(MODULES.svelte, resolvedOptions.svelte);
   setModuleEnabled(MODULES.test, resolvedOptions.test);
@@ -127,7 +136,8 @@ export const getConfig = (
     ));
   }
 
-  if (isModuleEnabled(MODULES[packageOrganization])) {
+  if (isModuleEnabled(BUILTIN_MODULE)) {
+    // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
     appendToComposer(configs[packageOrganization](resolvedOptions.typescript));
   }
 
@@ -137,6 +147,10 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.regexp)) {
     appendToComposer(configs.regexp());
+  }
+
+  if (isModuleEnabled(MODULES.security)) {
+    appendToComposer(configs.security());
   }
 
   if (isModuleEnabled(MODULES.unicorn)) {

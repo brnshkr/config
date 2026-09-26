@@ -5,12 +5,13 @@
 import { isPackageExists } from 'local-pkg';
 
 import { log } from './log';
-import { objectEntries } from './object';
+import { objectEntries, objectFromEntries, readOwnValue } from './object';
 
 import {
   COMMITLINT_PACKAGE_RESOLVERS,
   ESLINT_PACKAGE_RESOLVERS,
   MARKDOWNLINT_PACKAGE_RESOLVERS,
+  PATTERN_PACKAGE_RESOLVERS,
   STYLELINT_PACKAGE_RESOLVERS,
   VITEST_PACKAGE_RESOLVERS,
 } from './package-resolvers';
@@ -23,6 +24,7 @@ const PACKAGE_RESOLVERS = <const>{
   ...COMMITLINT_PACKAGE_RESOLVERS,
   ...ESLINT_PACKAGE_RESOLVERS,
   ...MARKDOWNLINT_PACKAGE_RESOLVERS,
+  ...PATTERN_PACKAGE_RESOLVERS,
   ...STYLELINT_PACKAGE_RESOLVERS,
   ...VITEST_PACKAGE_RESOLVERS,
 };
@@ -86,21 +88,33 @@ const warnMissingPackages = (
   log(`Run \`bun a -D -E ${packages.join(' ')}\` to install.`);
 };
 
-const packageCache: Record<string, unknown> = {};
+const packageCache = new Map<Package>();
 
 type PackageType = keyof NonNullable<ModuleInfo['packages']>;
 
 const loadPackageAsynchronously = async (thePackage: Package): Promise<unknown> => {
+  const resolvePackage = readOwnValue(PACKAGE_RESOLVERS, thePackage);
+
+  if (resolvePackage === undefined) {
+    return false;
+  }
+
   try {
-    return await PACKAGE_RESOLVERS[thePackage]();
+    return await resolvePackage();
   } catch {
     return false;
   }
 };
 
 const loadPackageSynchronously = (thePackage: Package): unknown => {
+  const resolvePackage = readOwnValue(PACKAGE_RESOLVERS, thePackage);
+
+  if (resolvePackage === undefined) {
+    return false;
+  }
+
   try {
-    return PACKAGE_RESOLVERS[thePackage]();
+    return resolvePackage();
   } catch {
     return false;
   }
@@ -115,9 +129,9 @@ const collectPackagesAsynchronously = async (
 
   for (const thePackage of packages) {
     // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
-    const resolvedPackage = packageCache[thePackage] ?? await loadPackageAsynchronously(thePackage);
+    const resolvedPackage = packageCache.get(thePackage) ?? await loadPackageAsynchronously(thePackage);
 
-    packageCache[thePackage] ??= resolvedPackage;
+    packageCache.set(thePackage, resolvedPackage);
 
     if (type === 'requiredAll' && resolvedPackage === false) {
       warnMissingPackages(moduleInfo, packages, type);
@@ -139,9 +153,9 @@ const collectPackagesSynchronously = (
   const collectedPackages: unknown[] = [];
 
   for (const thePackage of packages) {
-    const resolvedPackage = packageCache[thePackage] ?? loadPackageSynchronously(thePackage);
+    const resolvedPackage = packageCache.get(thePackage) ?? loadPackageSynchronously(thePackage);
 
-    packageCache[thePackage] ??= resolvedPackage;
+    packageCache.set(thePackage, resolvedPackage);
 
     if (type === 'requiredAll' && resolvedPackage === false) {
       warnMissingPackages(moduleInfo, packages, type);
@@ -166,7 +180,7 @@ export const resolvePackagesSharedAsynchronously = async <
     return <ResolvedPackages<TModuleInfo, TType>>{};
   }
 
-  const resolvedPackages: Record<string, unknown[]> = {};
+  const resolvedPackages = new Map<PackageType, unknown[]>();
 
   const packages = type === undefined
     ? moduleInfo.packages
@@ -178,17 +192,19 @@ export const resolvePackagesSharedAsynchronously = async <
     }
 
     // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
-    resolvedPackages[currentType] = await collectPackagesAsynchronously(moduleInfo, currentType, currentPackages);
+    const collectedPackages = await collectPackagesAsynchronously(moduleInfo, currentType, currentPackages);
+
+    resolvedPackages.set(currentType, collectedPackages);
 
     if (currentType === 'requiredAny'
-      && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
+      && collectedPackages.filter((thePackage) => thePackage !== undefined).length === 0) {
       warnMissingPackages(moduleInfo, currentPackages, currentType);
     }
   }
 
   return <ResolvedPackages<TModuleInfo, TType>>(type === undefined
-    ? resolvedPackages
-    : (resolvedPackages[<keyof typeof moduleInfo.packages>type] ?? []));
+    ? objectFromEntries(resolvedPackages)
+    : (resolvedPackages.get(<PackageType>type) ?? []));
 };
 
 export const resolvePackagesSharedSynchronously = <
@@ -202,7 +218,7 @@ export const resolvePackagesSharedSynchronously = <
     return <ResolvedPackages<TModuleInfo, TType>>{};
   }
 
-  const resolvedPackages: Record<string, unknown[]> = {};
+  const resolvedPackages = new Map<PackageType, unknown[]>();
 
   const packages = type === undefined
     ? moduleInfo.packages
@@ -213,17 +229,19 @@ export const resolvePackagesSharedSynchronously = <
       continue;
     }
 
-    resolvedPackages[currentType] = collectPackagesSynchronously(moduleInfo, currentType, currentPackages);
+    const collectedPackages = collectPackagesSynchronously(moduleInfo, currentType, currentPackages);
+
+    resolvedPackages.set(currentType, collectedPackages);
 
     if (currentType === 'requiredAny'
-      && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
+      && collectedPackages.filter((thePackage) => thePackage !== undefined).length === 0) {
       warnMissingPackages(moduleInfo, currentPackages, currentType);
     }
   }
 
   return <ResolvedPackages<TModuleInfo, TType>>(type === undefined
-    ? resolvedPackages
-    : (resolvedPackages[<keyof typeof moduleInfo.packages>type] ?? []));
+    ? objectFromEntries(resolvedPackages)
+    : (resolvedPackages.get(<PackageType>type) ?? []));
 };
 
 export const doAllPackagesExist = (

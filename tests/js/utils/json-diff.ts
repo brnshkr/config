@@ -1,4 +1,4 @@
-import { objectEntries } from '../../../src/js/shared/utils/object';
+import { objectEntries, readOwnValue, writeOwnValue } from '../../../src/js/shared/utils/object';
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 
@@ -27,10 +27,10 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
 
   for (const [object1Key, object1Value] of objectEntries(object1)) {
     if (Object.hasOwn(object2, object1Key)) {
-      const object2Value = <JsonValue>object2[object1Key];
+      const object2Value = <JsonValue>readOwnValue(object2, object1Key);
 
       if (!isEqual(object1Value, object2Value)) {
-        changedValues[object1Key] = object2Value;
+        writeOwnValue(changedValues, object1Key, object2Value);
       }
     } else {
       removedKeys.push(String(object1Key));
@@ -39,7 +39,7 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
 
   for (const [object2Key, object2Value] of objectEntries(object2)) {
     if (!Object.hasOwn(object1, object2Key)) {
-      addedValues[object2Key] = object2Value;
+      writeOwnValue(addedValues, object2Key, object2Value);
     }
   }
 
@@ -60,15 +60,15 @@ export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): Con
       continue;
     }
 
-    const object2Value = <JsonValue>object2[object1Key];
+    const object2Value = <JsonValue>readOwnValue(object2, object1Key);
 
     if (isEqual(object1Value, object2Value)) {
       continue;
     }
 
-    diff[object1Key] = (isPlainObject(object1Value) && isPlainObject(object2Value))
+    writeOwnValue(diff, String(object1Key), (isPlainObject(object1Value) && isPlainObject(object2Value))
       ? diffObjects(object1Value, object2Value)
-      : object2Value;
+      : object2Value);
   }
 
   for (const [object2Key, object2Value] of objectEntries(object2)) {

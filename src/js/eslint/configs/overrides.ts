@@ -2,7 +2,6 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { packageOrganization } from '../../shared/utils/package-json';
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 
@@ -20,7 +19,7 @@ import {
   GLOB_YAML_FIXED_EXTENSION_FILES,
 } from '../utils/globs';
 
-import { isModuleEnabled, MODULES } from '../utils/module';
+import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '../utils/module';
 import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
 
 import { DEFAULT_TYPE_AWARE_IGNORES } from './typescript';
@@ -164,9 +163,21 @@ const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
   ]
   : [];
 
+const securityOverrides: Config[] = (isModuleEnabled(MODULES.security) && isModuleEnabled(MODULES.regexp))
+  ? [
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SECURITY}/regexp`),
+      files: GLOB_SCRIPT_FILES,
+      rules: {
+        'security/detect-unsafe-regex': 'off',
+      },
+    },
+  ]
+  : [];
+
 const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
   ? [
-    ...(isModuleEnabled(MODULES[packageOrganization])
+    ...(isModuleEnabled(BUILTIN_MODULE)
       ? [{
         name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/internal-tag`),
         files: GLOB_SCRIPT_FILES,
@@ -296,6 +307,7 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
   ...buildTypeAwareImportOverrides(typescriptOptions),
   ...testOverrides,
   ...unicornOverrides,
+  ...securityOverrides,
   ...jsdocOverrides,
   ...svelteOverrides,
   ...tomlOverrides,

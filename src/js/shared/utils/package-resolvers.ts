@@ -2,9 +2,16 @@
  * @internal @brnshkr/config
  */
 
+import { createRequire } from 'node:module';
+
 import { isPackageExists } from 'local-pkg';
 
 import { interopImport } from './interop-import';
+
+import type { RegExpParser } from '@eslint-community/regexpp';
+import type { analyse } from 'scslre';
+
+const requireModule = createRequire(import.meta.url);
 
 export const ESLINT_PACKAGES = <const>{
   ESLINT_CSS: '@eslint/css',
@@ -21,6 +28,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_PLUGIN_N: 'eslint-plugin-n',
   ESLINT_PLUGIN_PERFECTIONIST: 'eslint-plugin-perfectionist',
   ESLINT_PLUGIN_REGEXP: 'eslint-plugin-regexp',
+  ESLINT_PLUGIN_SECURITY: 'eslint-plugin-security',
   ESLINT_PLUGIN_STYLISTIC: '@stylistic/eslint-plugin',
   ESLINT_PLUGIN_SVELTE: 'eslint-plugin-svelte',
   ESLINT_PLUGIN_TOML: 'eslint-plugin-toml',
@@ -79,6 +87,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_REGEXP]: async () => interopImport(
     import('eslint-plugin-regexp'),
+  ),
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_SECURITY]: async () => interopImport(
+    import('eslint-plugin-security'),
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_STYLISTIC]: async () => interopImport(
     import('@stylistic/eslint-plugin'),
@@ -163,6 +174,19 @@ export const MARKDOWNLINT_PACKAGE_RESOLVERS = <const>{
     MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_TABLE_FORMAT,
   ),
 } satisfies Record<MarkdownlintPackage, () => boolean>;
+
+export const PATTERN_PACKAGES = <const>{
+  REGEXPP: '@eslint-community/regexpp',
+  SCSLRE: 'scslre',
+};
+
+export type PatternPackage = typeof PATTERN_PACKAGES[keyof typeof PATTERN_PACKAGES];
+
+// NOTICE: Configured patterns are compiled synchronously, and both packages are CommonJS
+export const PATTERN_PACKAGE_RESOLVERS = <const>{
+  [PATTERN_PACKAGES.REGEXPP]: () => <{ RegExpParser: typeof RegExpParser }>requireModule(PATTERN_PACKAGES.REGEXPP),
+  [PATTERN_PACKAGES.SCSLRE]: () => <{ analyse: typeof analyse }>requireModule(PATTERN_PACKAGES.SCSLRE),
+} satisfies Record<PatternPackage, () => unknown>;
 
 export const STYLELINT_PACKAGES = <const>{
   POSTCSS_HTML: 'postcss-html',

@@ -59,8 +59,6 @@ const SRC_ROOT_CANDIDATES = <const>[
   '.',
 ];
 
-const REEXPORT_NAME_PART = String.raw`(?:\*(?:\s+as\s+[\p{ID_Start}$_][\p{ID_Continue}$]*)?|\{[^\}]*\})`;
-
 const normalizeRoot = (value: string): string => toPosix(value)
   .replace(/^\.\//v, '')
   .replace(/\/$/v, '');
@@ -99,6 +97,12 @@ const findFirstExistingFile = (candidates: Iterable<string>): Maybe<string> => {
   return undefined;
 };
 
+const isInsideDirectory = (directory: string, candidatePath: string): boolean => {
+  const relativePath = path.relative(directory, candidatePath);
+
+  return relativePath !== '..' && !relativePath.startsWith(`..${path.sep}`) && !path.isAbsolute(relativePath);
+};
+
 const buildSourceCandidates = (
   baseAbsolute: string,
   sourceExtensions: readonly string[],
@@ -119,12 +123,15 @@ const resolveSourceForDistributionFile = (
     distributionRelativePath.replace(/(?:\.d\.[cm]?ts|\.[cm]?jsx?)$/v, ''),
   );
 
-  return findFirstExistingFile(buildSourceCandidates(baseAbsolute, sourceExtensions));
+  return isInsideDirectory(packageRoot, baseAbsolute)
+    ? findFirstExistingFile(buildSourceCandidates(baseAbsolute, sourceExtensions))
+    : undefined;
 };
 
 const resolveImportSpecifier = (
   fromFilePath: string,
   specifier: string,
+  packageRoot: string,
   sourceExtensions: readonly string[],
 ): Maybe<string> => {
   if (!specifier.startsWith('.')) {
@@ -132,6 +139,11 @@ const resolveImportSpecifier = (
   }
 
   const absoluteBase = path.resolve(path.dirname(fromFilePath), specifier);
+
+  if (!isInsideDirectory(packageRoot, absoluteBase)) {
+    return undefined;
+  }
+
   const candidates = buildSourceCandidates(absoluteBase, sourceExtensions);
 
   return findFirstExistingFile(
@@ -141,6 +153,7 @@ const resolveImportSpecifier = (
 
 const collectReexports = (
   entryPath: string,
+  packageRoot: string,
   sourceExtensions: readonly string[],
   visitedPaths: Set<string>,
 ): void => {
@@ -156,10 +169,7 @@ const collectReexports = (
     return;
   }
 
-  const reexportPattern = new RegExp(
-    String.raw`\bexport\s+(?:type\s+)?${REEXPORT_NAME_PART}\s+from\s+["'](?<specifier>[^"']+)["']`,
-    'gv',
-  );
+  const reexportPattern = /\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+[\p{ID_Start}$_][\p{ID_Continue}$]*)?|\{[^\}]*\})\s+from\s+["'](?<specifier>[^"']+)["']/gv;
 
   for (const match of content.matchAll(reexportPattern)) {
     const specifier = match.groups?.['specifier'];
@@ -168,10 +178,20 @@ const collectReexports = (
       continue;
     }
 
-    const resolvedPath = resolveImportSpecifier(entryPath, specifier, sourceExtensions);
+    const resolvedPath = resolveImportSpecifier(
+      entryPath,
+      specifier,
+      packageRoot,
+      sourceExtensions,
+    );
 
     if (resolvedPath !== undefined) {
-      collectReexports(resolvedPath, sourceExtensions, visitedPaths);
+      collectReexports(
+        resolvedPath,
+        packageRoot,
+        sourceExtensions,
+        visitedPaths,
+      );
     }
   }
 };
@@ -206,7 +226,12 @@ const collectApiSourceFiles = (
       .find((candidatePath) => candidatePath !== undefined);
 
     if (resolvedPath !== undefined) {
-      collectReexports(resolvedPath, sourceExtensions, apiSourceFiles);
+      collectReexports(
+        resolvedPath,
+        packageRoot,
+        sourceExtensions,
+        apiSourceFiles,
+      );
     }
   }
 

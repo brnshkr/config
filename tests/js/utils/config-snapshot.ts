@@ -1,6 +1,8 @@
 import { Minimatch } from 'minimatch';
 import { expect } from 'vitest';
 
+import { objectFromEntries, objectKeys } from '../../../src/js/shared/utils/object';
+
 import { traverseDirectory } from './filesystem';
 import { computeConfigDiff } from './json-diff';
 
@@ -61,7 +63,7 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
   ));
 
   if (globs !== undefined) {
-    expectEveryGlobCovered(globs, virtualGlobs, configs.keys().toArray());
+    expectEveryGlobCovered(globs, virtualGlobs, objectKeys(configs));
   }
 
   const groups = new Map<string, string[]>();
@@ -79,9 +81,9 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
     }
   }
 
-  expect(Object.fromEntries(groups)).toMatchSnapshot('config-groups');
+  expect(objectFromEntries(groups)).toMatchSnapshot('config-groups');
 
-  const [baseName, ...otherNames] = groups.keys().toArray();
+  const [baseName, ...otherNames] = objectKeys(groups);
 
   if (baseName === undefined) {
     return;

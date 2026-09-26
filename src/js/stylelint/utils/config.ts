@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { objectEntries, objectKeys } from '../../shared/utils/object';
+import { pickKeys } from '../../shared/utils/object';
 import { packageOrganization } from '../../shared/utils/package-json';
 
 import type { Maybe } from '../../shared/types/core';
@@ -16,9 +16,7 @@ export const buildOverrideName = (
   .filter(Boolean)
   .join('/');
 
-const isValidGlobalAdditionalConfigKey = (
-  key: string,
-): key is keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'> => (<const>[
+const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'extends',
   'plugins',
   'ignoreFiles',
@@ -42,24 +40,11 @@ const isValidGlobalAdditionalConfigKey = (
   'validate',
   'maxWarnings',
   'referenceFiles',
-] satisfies (keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>)[]).includes(key);
+] satisfies (keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>)[];
 
-const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
-  const config: Config = {};
-
-  for (const [key, value] of objectEntries(options)) {
-    if (isValidGlobalAdditionalConfigKey(key)) {
-      // eslint-disable-next-line ts/no-explicit-any, ts/no-unsafe-assignment -- The type of the value is not important here, just pass it through
-      config[key] = <any>value;
-    }
-  }
-
-  if (objectKeys(config).length === 0) {
-    return undefined;
-  }
-
-  return config;
-};
+const getGlobalAdditionalConfig = (
+  options: ResolvedOptions,
+): Maybe<Config> => pickKeys(options, GLOBAL_ADDITIONAL_CONFIG_KEYS);
 
 export const getUserConfigs = (
   resolvedOptions: ResolvedOptions,
