@@ -1718,6 +1718,8 @@ HADOLINT       ?= $(RUN) hadolint#v #~~ command that runs `hadolint`
 HADOLINT_FILES ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
 HADOLINT_FLAGS ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `hadolint`
 
+_QUOTED_HADOLINT_FILES = $(call _shell_quoted,$(HADOLINT_FILES))
+
 _HADOLINT_VALUE_FLAGS := --config \
 	--failure-threshold \
 	--format \
@@ -1731,15 +1733,15 @@ _GROUP_NAMES    += hadolint
 $(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
-		$(if $(call _has_positional_arg,$(_ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)))
+		$(if $(call _has_positional_arg,$(_ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)))
 
 $(call _target,hadolint-group): #~~ counts the `hadolint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) --format json \
-		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)),code,message)
+		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)),code,message)
 
 $(call _target,hadolint-list): #~~ lists the dockerfiles `hadolint` reads #vv
-	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
 
 $(call _target,hadolint-print): #~~ prints the resolved `hadolint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
@@ -1758,6 +1760,8 @@ ACTIONLINT       ?= $(RUN) actionlint#v #~~ command that runs `actionlint`
 ACTIONLINT_FILES ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
 ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI),-no-color)#v #~~ additional flags passed to `actionlint`
 
+_QUOTED_ACTIONLINT_FILES = $(call _shell_quoted,$(ACTIONLINT_FILES))
+
 _ACTIONLINT_VALUE_FLAGS := -config-file \
 	-format \
 	-ignore \
@@ -1770,15 +1774,15 @@ _GROUP_NAMES    += actionlint
 $(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) \
-		$(if $(call _has_positional_arg,$(_ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)))
+		$(if $(call _has_positional_arg,$(_ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)))
 
 $(call _target,actionlint-group): #~~ counts the `actionlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) -format '{{json .}}' \
-		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)),kind,message)
+		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)),kind,message)
 
 $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
-	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
 
 endif # /actionlint
 

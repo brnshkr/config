@@ -1353,6 +1353,12 @@ final class MakefileTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
     }
 
+    public function testALintedFileNameReachesTheShellAsOneWord(): void
+    {
+        self::assertStringContainsString('a;false.Dockerfile', $this->runLinter(['hadolint-list', 'HADOLINT_FILES=a;false.Dockerfile']));
+        self::assertStringContainsString('b\'c.yaml', $this->runLinter(['actionlint-list', 'ACTIONLINT_FILES=b\'c.yaml']));
+    }
+
     public function testSemgrepResolvesItsRulesets(): void
     {
         $scenarios = [];
