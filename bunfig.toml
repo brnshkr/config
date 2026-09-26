@@ -2,4 +2,5 @@ telemetry = false
 
 [install]
 exact = true
+minimumReleaseAge = 604800
 peer = false
