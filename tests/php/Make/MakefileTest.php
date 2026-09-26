@@ -236,13 +236,27 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString("\033]8;;phpstorm://open?file=", $phpstorm);
     }
 
-    public function testDebugFlagEchoesRecipeLines(): void
+    public function testOnlyTraceEchoesRecipeLines(): void
     {
+        $withTrace    = $this->runMakeHelp(env: ['TRACE' => '1']);
         $withDebug    = $this->runMakeHelp(env: ['DEBUG' => '1']);
-        $withoutDebug = $this->runMakeHelp();
+        $withoutFlags = $this->runMakeHelp();
 
-        self::assertStringContainsString('_CURDIR=', $withDebug);
-        self::assertStringNotContainsString('_CURDIR=', $withoutDebug);
+        self::assertStringContainsString('_CURDIR=', $withTrace);
+        self::assertStringNotContainsString('_CURDIR=', $withDebug);
+        self::assertStringNotContainsString('_CURDIR=', $withoutFlags);
+    }
+
+    public function testDebugEchoesTheCommandBehindTheSpinnerAndTraceItsWrapper(): void
+    {
+        $withDebug    = $this->runMake(['spin'], ['DEBUG' => '1'], self::SPINNER_DIRECTORY);
+        $withTrace    = $this->runMake(['spin'], ['TRACE' => '1'], self::SPINNER_DIRECTORY);
+        $withoutFlags = $this->runMake(['spin'], directory: self::SPINNER_DIRECTORY);
+
+        self::assertStringContainsString("'ran\\n'; exit 0\n", $withDebug);
+        self::assertStringNotContainsString('spin_command', $withDebug);
+        self::assertStringContainsString('spin_command', $withTrace);
+        self::assertSame("ran\n", $withoutFlags);
     }
 
     public function testEveryAwkImplementationProducesIdenticalOutput(): void
@@ -921,7 +935,8 @@ final class MakefileTest extends TestCase
             ['NO_ANSI' => '1', 'DEBUG' => '1'],
         );
 
-        self::assertStringContainsString('APP_ENV=test dotenv-show', $output);
+        self::assertStringContainsString('APP_ENV=test', $output);
+        self::assertStringContainsString('| LC_ALL=C sort', $output);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
     }
 

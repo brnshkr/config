@@ -187,8 +187,8 @@ Variables:
    COLLISION_PREFIX               ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                         ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                        ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
-   DEBUG                          ?=                                                   (whether the commands are echoed before they run)
-   TRACE                          ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
+   DEBUG                          ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
+   TRACE                          ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
    ANNOUNCEMENT                   ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
   common
    STARTUP_TARGETS                ?=                                                   (this project's own targets, run by startup after the dependencies)
@@ -414,8 +414,8 @@ Variables:
    VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                         ?=  0.0.0-dev                                        (package version)
-   DEBUG                           ?=                                                   (whether the commands are echoed before they run)
-   TRACE                           ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
+   DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
+   TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
   theming
    INDENT                          ?=  1                                                (indent used in make help output)
@@ -783,10 +783,10 @@ Variables:
    VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                         ?=  0.0.0-dev                                        (package version)
-   DEBUG                           ?=                                                   (whether the commands are echoed before they run)
+   DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
    DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                           ?=                                                   (whether the guards are echoed too, which DEBUG leaves out)
-   TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)
+   TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
+   TRACE_PREFIX                    ?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only TRACE echoes)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
   theming
@@ -1459,10 +1459,10 @@ Variables:
    [36mVENDOR                        [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
    [36mPACKAGE                       [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [36mVERSION                       [0m  [90m?=  0.0.0-dev                                        (package version)[0m
-   [36mDEBUG                         [0m  [90m?=                                                   (whether the commands are echoed before they run)[0m
+   [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
    [36mDEBUG_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [36mTRACE                         [0m  [90m?=                                                   (whether the guards are echoed too, which [35mDEBUG[0m[90m leaves out)[0m
-   [36mTRACE_PREFIX                  [0m  [90m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
+   [36mTRACE                         [0m  [90m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
+   [36mTRACE_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only [35mTRACE[0m[90m echoes)[0m
    [36mANNOUNCEMENT                  [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
    [36mBRNSHKR_CONFIG_ERROR_CODE     [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [35mtheming[0m
@@ -1887,10 +1887,10 @@ Variables:
    [32mVENDOR                        [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
    [32mPACKAGE                       [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [32mVERSION                       [0m  [0m?=  0.0.0-dev                                        (package version)[0m
-   [32mDEBUG                         [0m  [0m?=                                                   (whether the commands are echoed before they run)[0m
+   [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
    [32mDEBUG_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [32mTRACE                         [0m  [0m?=                                                   (whether the guards are echoed too, which [33mDEBUG[0m[0m leaves out)[0m
-   [32mTRACE_PREFIX                  [0m  [0m?=  $(if $(_IS_TRACE),,@)                            (prefix for a guard command)[0m
+   [32mTRACE                         [0m  [0m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
+   [32mTRACE_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(_IS_TRACE),,@)                (prefix for a line only [33mTRACE[0m[0m echoes)[0m
    [32mANNOUNCEMENT                  [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
    [32mBRNSHKR_CONFIG_ERROR_CODE     [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
   [33mtheming[0m

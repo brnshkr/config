@@ -278,14 +278,14 @@ PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
-DEBUG               ?= #~~ whether the commands are echoed before they run
+DEBUG               ?= #~~ whether each command is echoed before it runs, without the plumbing around it
 unexport DEBUG       # NOTICE: the `debug` package reads this from the environment
 DEBUG_PREFIX        ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
 _IS_DEBUG            = $(filter-out $(_FALSE),$(DEBUG))
 export BRNSHKR_DEBUG = $(if $(_IS_DEBUG),1)
 
-TRACE        ?= #~~ whether the guards are echoed too, which `DEBUG` leaves out
-TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)#vvv #~~ prefix for a guard command
+TRACE        ?= #~~ whether every recipe line is echoed, the plumbing around the commands included
+TRACE_PREFIX ?= $(_ANNOUNCE)$(if $(_IS_TRACE),,@)#vvv #~~ prefix for a line only `TRACE` echoes
 _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
 ANNOUNCEMENT ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
@@ -735,7 +735,7 @@ _PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.di
 	$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist
 
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
-	$(DEBUG_PREFIX)$(call _make_vars_as_env) \
+	$(TRACE_PREFIX)$(call _make_vars_as_env) \
 		_CURDIR="$(abspath $(CURDIR))" \
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
@@ -769,10 +769,10 @@ $(call _target,install-hooks): #~~ installs this project's git hooks, replacing 
 		$(call log,`install-hooks` needs a git checkout.,$(COLOR_ERROR)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
-	$(DEBUG_PREFIX)$(call _install_git_hooks,yes)
+	$(TRACE_PREFIX)$(call _install_git_hooks,yes)
 
 _$(_TARGET_PREFIX)install-missing-hooks:
-	$(DEBUG_PREFIX)$(call _install_git_hooks)
+	$(TRACE_PREFIX)$(call _install_git_hooks)
 
 CONFIG              ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
 ARCHIVE_EXTRA_PATHS ?= #v #~~ paths an archive ships beside the autoload roots, a trailing `/` taking the whole tree
@@ -789,7 +789,7 @@ _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONF
 
 $(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
 	$(TRACE_PREFIX)$(call _require_known_value,config)
-	$(DEBUG_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
+	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		if [ -f "$$target" ]; then \
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
@@ -831,7 +831,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 			extended=""; \
 		fi; \
 	done
-	$(DEBUG_PREFIX)for entry in $(foreach PLACED_CONFIG,$(call _selected_configs,$(_PLACED_CONFIGS)),'$(PLACED_CONFIG)'); do \
+	$(TRACE_PREFIX)for entry in $(foreach PLACED_CONFIG,$(call _selected_configs,$(_PLACED_CONFIGS)),'$(PLACED_CONFIG)'); do \
 		target="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
 		[ -r "$$source" ] || continue; \
@@ -843,7 +843,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
 	done
-	$(DEBUG_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
+	$(TRACE_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
 		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(APP_DIR)/.gitattributes $(APP_DIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
 	},[ ! -r '$(CURDIR)/.gitattributes' ] || { \
@@ -853,7 +853,7 @@ $(call _target,configs): #~~ writes the tool configs this project is missing, `l
 			$(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
 		}; \
 	})
-	$(DEBUG_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
+	$(TRACE_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
 		relative="$${source#$(CURDIR)/}"; \
@@ -876,7 +876,7 @@ _CACHES      = $(if $(CACHE_DIR),$(notdir $(wildcard $(CACHE_DIR)/*)))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none #v
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
-	$(DEBUG_PREFIX)if [ -z "$(_CACHES)" ]; then \
+	$(TRACE_PREFIX)if [ -z "$(_CACHES)" ]; then \
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
 	elif [ -n "$(strip $(ARGS))" ]; then \
 		for name in $(sort $(ARGS)); do \
@@ -903,15 +903,15 @@ $(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--a
 		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
-	$(DEBUG_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
+	$(TRACE_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
 		$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
 	done
-	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
+	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 			exit 0; \
 		}); \
 		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
-	$(DEBUG_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
+	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(call _is_dry_run,$(_ARGS)),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
 		{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] \
 			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
 			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
@@ -1130,7 +1130,7 @@ PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
 
 COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
-COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_DEBUG),-vvv)#v #~~ additional flags passed to `composer`
+COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
 
@@ -1214,13 +1214,13 @@ $(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest #~~ runs them through
 
 $(call _target,phpunit): #~~ runs the PHP tests
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(ARGS))
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 
 $(call _target,phpunit-debug): #~~ runs the PHP tests with debugging information instead of progress #vvv
@@ -1250,17 +1250,17 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php)
 
 $(call _target,phpstan): #~~ runs `phpstan analyze`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(ARGS))
 
 $(call _target,phpstan-debug): #~~ runs `phpstan analyze` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan) -- --debug $(ARGS)
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --no-progress --error-format=json $(ARGS),identifier,message)
+	$(TRACE_PREFIX)$(call _group,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --no-progress --error-format=json $(ARGS),identifier,message)
 
 $(call _target,phpstan-list): #~~ lists all files that are processed by `phpstan` #vv
-	$(DEBUG_PREFIX)$(call _capture,$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan-raw) -- --debug 2>&1) \
+	$(TRACE_PREFIX)$(call _capture,$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan-raw) -- --debug 2>&1) \
 		| $(AWK) 'match($$0, /.+\.php$$/) { print substr($$0, RSTART, RLENGTH) }'
 
 $(call _target,phpstan-print): #~~ prints the resolved `phpstan` configuration #vv
@@ -1287,18 +1287,18 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),
 
 $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS))
 
 $(call _target,php-cs-fixer-dry-run): #~~ runs `php-cs-fixer fix` in dry run mode #v
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,php-cs-fixer) -- --dry-run $(ARGS)
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers)
+	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers)
 
 $(call _target,php-cs-fixer-list): #~~ lists all files that are processed by `php-cs-fixer` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) 2>&1) \
+	$(TRACE_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) 2>&1) \
 		| $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }'
 
 $(call _target,php-cs-fixer-print): #~~ prints the `php-cs-fixer` rules in use #vv
@@ -1321,7 +1321,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$
 
 $(call _target,rector): #~~ runs `rector process`
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS))
 
 $(call _target,rector-debug): #~~ runs `rector process` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,rector) -- --debug $(ARGS)
@@ -1331,15 +1331,15 @@ $(call _target,rector-dry-run): #~~ runs `rector process` in dry run mode #v
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors)
+	$(TRACE_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors)
 
 $(call _target,rector-list): #~~ lists all files that are processed by `rector` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
+	$(TRACE_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
 
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
+	$(TRACE_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
 
 $(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
@@ -1360,7 +1360,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG)
 
 $(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(call _is_dry_run,$(_ARGS)),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_FIXER_ARGS))
 
 $(call _target,twig-cs-fixer-debug): #~~ runs `twig-cs-fixer` in debug mode #vvv
 	$(DEBUG_PREFIX)$(MAKE) $(_MAKE_FLAGS) $(call _target,twig-cs-fixer) -- --debug $(ARGS)
@@ -1370,11 +1370,11 @@ $(call _target,twig-cs-fixer-dry-run): #~~ runs `twig-cs-fixer` in dry run mode 
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description)
+	$(TRACE_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description)
 
 $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
+	$(TRACE_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
 
 $(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
@@ -1390,7 +1390,7 @@ BUN       ?= $(RUN) bun#v #~~ command that runs `bun`
 BUN_FLAGS ?= --bun#v #~~ flags passed to `bun` before the command
 
 _BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
-_BUN_INSTALL      = $(BUN) install
+_BUN_INSTALL      = $(BUN) install$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
 
 _PACK_NAMES += bun-pack
 
@@ -1398,7 +1398,7 @@ $(call _target,bun): #~~ runs `bun`
 	$(DEBUG_PREFIX)$(BUN) $(ARGS)
 
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
-	$(DEBUG_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
+	$(TRACE_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
 
 $(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(RM) -rf $(_BUN_PACKAGE_DIR) \
@@ -1439,7 +1439,7 @@ _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 
 $(call _target,commitlint): $(if $(filter --from --last,$(COMMITLINT_SOURCE)),_$(_TARGET_PREFIX)install-missing-hooks) #~~ lints a commit message
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE)))
+	$(TRACE_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) $(if $(ARGS),$(ARGS),$(COMMITLINT_SOURCE)))
 
 $(call _target,commitlint-print): #~~ prints the resolved `commitlint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
@@ -1478,7 +1478,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
 $(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(call _is_dry_run,$(_ARGS)),,--fix); \
 		status=$$?; \
 		[ ! -r '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
@@ -1490,7 +1490,7 @@ $(call _target,eslint-dry-run): #~~ runs `eslint` without writing fixes #v
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json --output-file /dev/stdout $(ARGS),ruleId,message)
+	$(TRACE_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json --output-file /dev/stdout $(ARGS),ruleId,message)
 
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -1533,7 +1533,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),
 
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
+	$(TRACE_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
 		$(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_MARKDOWNLINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
@@ -1544,7 +1544,7 @@ $(call _target,markdownlint-dry-run): #~~ runs `markdownlint-cli2` without writi
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)'))
+	$(TRACE_PREFIX)$(call _group,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) $(if $(call _has_positional_arg,$(ARGS),$(_MARKDOWNLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(MARKDOWNLINT_GLOB)'))
 
 endif # /markdownlint
 
@@ -1593,7 +1593,7 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs
 
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
+	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
 		$(if $(_IS_DEBUG),--formatter verbose) $(if $(call _is_dry_run,$(_ARGS)),,--fix) \
 		$(if $(call _has_positional_arg,$(call _without_dry_run,$(_ARGS)),$(_STYLELINT_VALUE_FLAGS)), \
 			$(_FIXER_ARGS), \
@@ -1604,7 +1604,7 @@ $(call _target,stylelint-dry-run): #~~ runs `stylelint` without writing fixes #v
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
+	$(TRACE_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -1631,11 +1631,11 @@ _LINKED_CONFIGS  += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))
 
 $(call _target,typescript): #~~ runs the `tsc` type check
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) $(ARGS))
 
 $(call _target,typescript-group): #~~ counts the `tsc` errors by code #v
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) --pretty false $(ARGS))
+	$(TRACE_PREFIX)$(call _group,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) --pretty false $(ARGS))
 
 $(call _target,typescript-list): #~~ lists the files the `tsc` project includes #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
@@ -1679,13 +1679,13 @@ _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call
 
 $(call _target,vitest): #~~ runs `vitest`
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
 
 ifneq ($(_HAS_VITEST_COVERAGE),) # vitest-coverage
 
 $(call _target,vitest-coverage): #~~ runs `vitest` and reports how much of the source it reaches #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS))
 
 endif # /vitest-coverage
 
@@ -1695,7 +1695,7 @@ $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update)
+	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update)
 
 endif # /vitest
 
@@ -1724,16 +1724,16 @@ _GROUP_NAMES    += hadolint
 
 $(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
+	$(TRACE_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
 		$(if $(call _has_positional_arg,$(_ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)))
 
 $(call _target,hadolint-group): #~~ counts the `hadolint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) --format json \
+	$(TRACE_PREFIX)$(call _group,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) --format json \
 		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(HADOLINT_FILES)),code,message)
 
 $(call _target,hadolint-list): #~~ lists the dockerfiles `hadolint` reads #vv
-	$(DEBUG_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
 
 $(call _target,hadolint-print): #~~ prints the resolved `hadolint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
@@ -1763,16 +1763,16 @@ _GROUP_NAMES    += actionlint
 
 $(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _spinner,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) \
+	$(TRACE_PREFIX)$(call _spinner,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) \
 		$(if $(call _has_positional_arg,$(_ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)))
 
 $(call _target,actionlint-group): #~~ counts the `actionlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
-	$(DEBUG_PREFIX)$(call _group,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) -format '{{json .}}' \
+	$(TRACE_PREFIX)$(call _group,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) -format '{{json .}}' \
 		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(ACTIONLINT_FILES)),kind,message)
 
 $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
-	$(DEBUG_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
 
 endif # /actionlint
 
@@ -1858,20 +1858,20 @@ _GROUP_NAMES    += semgrep
 
 $(call _target,semgrep): #~~ runs `semgrep` over this project's sources
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(DEBUG_PREFIX)$(call _semgrep_rules)
-	$(DEBUG_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) $(ARGS))
 
 $(call _target,semgrep-group): #~~ counts the `semgrep` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(DEBUG_PREFIX)$(call _semgrep_rules)
-	$(DEBUG_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message)
+	$(TRACE_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message)
 
 $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
-	$(DEBUG_PREFIX)$(PRINTF) '%s\n' $(SEMGREP_RULESETS)
+	$(TRACE_PREFIX)$(PRINTF) '%s\n' $(SEMGREP_RULESETS)
 
 $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(DEBUG_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _semgrep_rules)
 	$(DEBUG_PREFIX)$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS)
 
 $(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
@@ -2069,7 +2069,7 @@ _CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG
 _CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
 
 $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
-	$(DEBUG_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
+	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
 		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
 			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
 			_CHANGELOG_COMPARE="$(_CHANGELOG_COMPARE)" \
@@ -2161,14 +2161,14 @@ $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
 ifeq ($(TARGET),) # unknown
 	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
 		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
-	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
 		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),'$@' '$(_ALIAS_TARGET)'); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}),:)
-	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:))
-	$(DEBUG_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),'$@'),:))
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
 else
-	$(DEBUG_PREFIX):
+	$(TRACE_PREFIX):
 endif # /unknown
 
 _PREFLIGHT := _$(_TARGET_PREFIX)assert-no-collisions
@@ -2452,7 +2452,7 @@ endef
 #* returns: void
 #*
 define _php_program
-$(PHP) -r "$$$1" $(_AUTOLOADER) $2
+$(call _echo_command,$(PHP) $1 $(_AUTOLOADER) $2)$(PHP) -r "$$$1" $(_AUTOLOADER) $2
 endef
 
 #**
@@ -2682,7 +2682,7 @@ endef
 #* returns: void
 #*
 define _group
-label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
+$(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),'$@'))); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
@@ -2712,7 +2712,7 @@ endef
 #* returns: void
 #*
 define _spinner
-spin_command() { $1; }; \
+$(call _echo_command,$1)spin_command() { $1; }; \
 has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] \
 	&& [ -n '$(SCRIPT)' ] \
 	&& command -v $(SCRIPT) >/dev/null 2>&1 \
@@ -2754,7 +2754,7 @@ endef
 #* returns: void
 #*
 define _capture
-output=$$($1) || { $(PRINTF) '%s\n' "$$output" >&2; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; $(PRINTF) '%s\n' "$$output"
+$(call _echo_command,$1)output=$$($1) || { $(PRINTF) '%s\n' "$$output" >&2; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; $(PRINTF) '%s\n' "$$output"
 endef
 
 #**
@@ -2786,6 +2786,18 @@ endef
 #*
 define _announce_excluded_groups
 $(if $(strip $1),$(call log,Leaving out the %s $(if $(word 2,$1),groups,group).,$(COLOR_NOTICE),'$(call _join_as_quoted_list,$1)'),:)
+endef
+
+#**
+#* Prints the command a wrapper runs, on stderr and only under `DEBUG`.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: string
+#*
+define _echo_command
+$(if $(and $(_IS_DEBUG),$(if $(_IS_TRACE),,1)),$(PRINTF) '%s\n' '$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(strip $1))' >&2; )
 endef
 
 #**

@@ -99,7 +99,7 @@ Every tool is three variables
 | `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
 | `CACHE_DIR` | Where the tools keep their caches, and what `cc` clears. |
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
-| `DEBUG`, `TRACE` | Echo each command as it runs. `TRACE` echoes the guards along with them. |
+| `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
 | `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |
 | `LOGO`, `NO_ANSI`, `THEME`, `EDITOR`, `EDITOR_URL` | How output is printed and where its links point. Empty disables the logo or the links. `EDITOR` is detected when unset, and one inherited from the shell naming another editor is ignored rather than rejected. |
 
