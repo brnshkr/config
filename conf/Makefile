@@ -3403,7 +3403,7 @@ foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
 
 $$projectDirectory = dirname($$argv[2]);
 $$doesExist = static fn (string $$path): bool => file_exists(
-    $$projectDirectory . '/' . trim((string) preg_replace('#^(?:\./)+#', '', $$path), '/'),
+    $$projectDirectory . '/' . mb_trim((string) preg_replace('#^(?:\./)+#', '', $$path), '/'),
 );
 $$shippedPaths = array_filter($$shippedPaths, $$doesExist);
 $$declaredPaths = array_filter($$declaredPaths, $$doesExist);
@@ -3418,9 +3418,9 @@ $$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirec
     foreach ($$paths as $$path) {
         $$path = (string) preg_replace('#^(?:\./)+#', '', $$path);
         $$isWholeTree = $$wholeTree
-            ? is_dir($$projectDirectory . '/' . trim($$path, '/'))
+            ? is_dir($$projectDirectory . '/' . mb_trim($$path, '/'))
             : str_ends_with($$path, '/');
-        $$path = '/' . trim($$path, '/');
+        $$path = '/' . mb_trim($$path, '/');
         $$expanded[] = $$path;
 
         if ($$isWholeTree) {
@@ -3444,14 +3444,14 @@ $$shippedPaths = array_values(array_unique($$shippedPaths));
 
 sort($$shippedPaths);
 
-$$pathWidth = max(array_map(strlen(...), [...$$shippedPaths, '*']));
+$$pathWidth = max(array_map(mb_strlen(...), [...$$shippedPaths, '*']));
 $$renderedLines = [
-    sprintf('%-' . $$pathWidth . 's  export-ignore', '*'),
-    sprintf('%-' . $$pathWidth . 's  export-ignore', '.*'),
+    mb_str_pad('*', $$pathWidth) . '  export-ignore',
+    mb_str_pad('.*', $$pathWidth) . '  export-ignore',
 ];
 
 foreach ($$shippedPaths as $$path) {
-    $$renderedLines[] = sprintf('%-' . $$pathWidth . 's -export-ignore', $$path)
+    $$renderedLines[] = mb_str_pad($$path, $$pathWidth) . ' -export-ignore'
         . (isset($$shippedLookup[$$path]) ? '' : ' -export-subst');
 }
 
@@ -3459,7 +3459,7 @@ $$currentContents = (string) file_get_contents($$attributesPath);
 $$generatedRegion = "###> brnshkr/config ###\n" . implode("\n", $$renderedLines) . "\n###< brnshkr/config ###";
 $$updatedContents = str_contains($$currentContents, '###> brnshkr/config ###')
     ? preg_replace('/###> brnshkr\/config ###.*###< brnshkr\/config ###/s', $$generatedRegion, $$currentContents, 1)
-    : rtrim($$currentContents, "\n") . "\n\n" . $$generatedRegion . "\n";
+    : mb_rtrim($$currentContents, "\n") . "\n\n" . $$generatedRegion . "\n";
 
 if ($$updatedContents !== null && $$updatedContents !== $$currentContents) {
     file_put_contents($$attributesPath, $$updatedContents);
@@ -3578,7 +3578,7 @@ $$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$h
     $$isInApp = str_starts_with($$fileName, $$appDirectory . '/');
     $$url     = strtr($$urlTemplate, [
         '{cwd}'  => $$isInApp ? $$hostDirectory : '',
-        '{file}' => $$isInApp ? substr($$fileName, strlen($$appDirectory) + 1) : ltrim($$fileName, '/'),
+        '{file}' => $$isInApp ? mb_substr($$fileName, mb_strlen($$appDirectory) + 1) : mb_ltrim($$fileName, '/'),
         '{line}' => (string) new ReflectionClass($$name)->getStartLine(),
     ]);
 
@@ -3586,7 +3586,7 @@ $$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$h
 };
 
 $$printSection = static function (string $$title, array $$names) use ($$link): void {
-    echo $$title, PHP_EOL, str_repeat('=', strlen($$title)), PHP_EOL, PHP_EOL;
+    echo $$title, PHP_EOL, str_repeat('=', mb_strlen($$title)), PHP_EOL, PHP_EOL;
 
     foreach ($$names as $$name) {
         echo ' * ', $$link($$name), PHP_EOL;
