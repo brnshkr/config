@@ -3,8 +3,9 @@
  */
 
 import { ERROR } from '../utils/constants';
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { MODULES, resolvePackages } from '../utils/module';
 
+import type { RuleOutcome } from '@commitlint/types';
 import type { TenseOptions } from 'commitlint-plugin-tense/dist/library/ensure-tense';
 import type { Config } from '../types/config';
 
@@ -31,10 +32,12 @@ const ALLOWLIST = <const>[
 
 export const tense = (options?: Partial<TenseOptions>): Config[] => {
   const {
-    requiredAll: [isCommitlintPluginTenseInstalled],
+    requiredAll: [commitlintPluginTense],
   } = resolvePackages(MODULES.tense);
 
-  if (!isCommitlintPluginTenseInstalled) {
+  const subjectTenseRule = commitlintPluginTense?.rules['tense/subject-tense'];
+
+  if (!subjectTenseRule) {
     return [];
   }
 
@@ -46,7 +49,17 @@ export const tense = (options?: Partial<TenseOptions>): Config[] => {
   return [
     {
       plugins: [
-        PACKAGES.COMMITLINT_PLUGIN_TENSE,
+        {
+          rules: {
+            'tense/subject-tense': async (parsedCommit, ruleCondition, ruleOptions): Promise<RuleOutcome> => {
+              const commitWithFirstSubjectWord = structuredClone(parsedCommit);
+
+              commitWithFirstSubjectWord['subject'] = parsedCommit['subject']?.split(/\s+/v, 1)[0] ?? '';
+
+              return subjectTenseRule(commitWithFirstSubjectWord, ruleCondition, ruleOptions);
+            },
+          },
+        },
       ],
       rules: {
         'tense/subject-tense': [ERROR, 'always', {

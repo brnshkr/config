@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { interopImport } from './interop-import';
 import { isPackageInstalled } from './resolve';
 
+import type { Plugin } from '@commitlint/types';
 import type { RegExpParser } from '@eslint-community/regexpp';
 import type { analyse } from 'scslre';
 
@@ -149,10 +150,10 @@ export const COMMITLINT_PACKAGE_RESOLVERS = <const>{
   [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES]: () => isPackageInstalled(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES,
   ),
-  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => isPackageInstalled(
+  [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => <Plugin>requireModule(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE,
   ),
-} satisfies Record<CommitlintPackage, () => boolean>;
+} satisfies Record<CommitlintPackage, (() => boolean) | (() => Plugin)>;
 
 export const MARKDOWNLINT_PACKAGES = <const>{
   MARKDOWNLINT_GITHUB: '@github/markdownlint-github',

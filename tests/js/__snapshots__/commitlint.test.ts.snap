@@ -62,7 +62,9 @@ exports[`expected commitlint config 1`] = `
         'function-rules/type-min-length': [AsyncFunction: functionRule]
       }
     },
-    tense: { rules: { 'tense/subject-tense': [Function: subjectTense] } }
+    local: {
+      rules: { 'tense/subject-tense': [AsyncFunction: tense/subject-tense] }
+    }
   },
   rules: {
     'body-leading-blank': [ 2, 'always' ],

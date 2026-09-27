@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/commitlint
  */
 
-import { pickKeys } from '../../shared/utils/object';
+import { objectEntries, objectFromEntries, pickKeys } from '../../shared/utils/object';
 
 import type { Maybe } from '../../shared/types/core';
 import type { Config } from '../types/config';
@@ -31,6 +31,20 @@ export const getUserConfigs = (
   getGlobalAdditionalConfig(resolvedOptions),
   ...additionalConfigs,
 ].filter(Boolean);
+
+const mergeInlinePlugins = (pluginsToMerge: NonNullable<Config['plugins']>): NonNullable<Config['plugins']> => {
+  const namedPlugins = pluginsToMerge.filter((pluginToMerge) => typeof pluginToMerge === 'string');
+  const inlinePlugins = pluginsToMerge.filter((pluginToMerge) => typeof pluginToMerge !== 'string');
+
+  return inlinePlugins.length === 0
+    ? namedPlugins
+    : [
+      ...namedPlugins,
+      {
+        rules: objectFromEntries(inlinePlugins.flatMap((inlinePlugin) => objectEntries(inlinePlugin.rules))),
+      },
+    ];
+};
 
 // eslint-disable-next-line complexity -- Extracting these assignments to separate functions would not improve readability
 export const includeConfigs = (config: Config, configsToInclude: Config[]): void => {
@@ -73,10 +87,10 @@ export const includeConfigs = (config: Config, configsToInclude: Config[]): void
     }
 
     if (configToInclude.plugins !== undefined) {
-      config.plugins = [...new Set([
+      config.plugins = mergeInlinePlugins([...new Set([
         ...config.plugins ?? [],
         ...configToInclude.plugins,
-      ])];
+      ])]);
     }
 
     if (configToInclude.helpUrl !== undefined) {
