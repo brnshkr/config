@@ -524,7 +524,7 @@ _HAS_ESLINT_INSPECT = $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspe
 _HAS_MARKDOWNLINT   = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT      = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT     = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
-_HAS_VITEST         = $(wildcard $(CURDIR)/node_modules/.bin/vitest)
+_HAS_VITEST         = $(and $(wildcard $(CURDIR)/node_modules/.bin/vitest),$(wildcard $(CURDIR)/node_modules/vite/package.json))
 _HAS_HADOLINT      := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint)))
 _HAS_ACTIONLINT    := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint)))
 
