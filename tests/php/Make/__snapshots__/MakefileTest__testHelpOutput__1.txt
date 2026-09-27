@@ -317,8 +317,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -577,8 +577,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -891,8 +891,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -1427,8 +1427,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -1742,8 +1742,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -2056,8 +2056,8 @@ Variables:
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from CURDIR in a container)
-   HOST_UID                    ?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)
+   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
+   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)
    TARGET_PREFIX               ?=                                                   (namespaces every target this file defines, so brnshkr gives brnshkr-lint)
    COLLISION_PREFIX            ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
@@ -2451,8 +2451,8 @@ Available commands:
    [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [36mRUN                       [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)[0m
    [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from [35mCURDIR[0m[90m in a container)[0m
-   [36mHOST_UID                  [0m  [90m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
-   [36mHOST_GID                  [0m  [90m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
+   [36mHOST_UID                  [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
+   [36mHOST_GID                  [0m  [90m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [36mHOST_APP_DIR              [0m  [90m?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)[0m
    [36mTARGET_PREFIX             [0m  [90m?=                                                   (namespaces every target this file defines, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
    [36mCOLLISION_PREFIX          [0m  [90m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m
@@ -2765,8 +2765,8 @@ Available commands:
    [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [32mRUN                       [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty where they run on this machine)[0m
    [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, which differs from [33mCURDIR[0m[0m in a container)[0m
-   [32mHOST_UID                  [0m  [0m?=  $(or $(shell id -u 2>/dev/null),1000)            (user a container writes the bind mount as)[0m
-   [32mHOST_GID                  [0m  [0m?=  $(or $(shell id -g 2>/dev/null),1000)            (group a container writes the bind mount as)[0m
+   [32mHOST_UID                  [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
+   [32mHOST_GID                  [0m  [0m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [32mHOST_APP_DIR              [0m  [0m?=  $(CURDIR)                                        (where this project sits on this machine, which a compose file binds)[0m
    [32mTARGET_PREFIX             [0m  [0m?=                                                   (namespaces every target this file defines, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
    [32mCOLLISION_PREFIX          [0m  [0m?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)[0m

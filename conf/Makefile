@@ -203,13 +203,11 @@ APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of ent
 IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
 RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty where they run on this machine
 APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
-HOST_UID         ?= $(or $(shell id -u 2>/dev/null),1000)#vv #~~ user a container writes the bind mount as
-HOST_GID         ?= $(or $(shell id -g 2>/dev/null),1000)#vv #~~ group a container writes the bind mount as
+HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
+HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
 HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, which a compose file binds
 
-export HOST_UID
-export HOST_GID
-export HOST_APP_DIR
+_HOST_IDS = $(eval _HOST_IDS := $$(shell id -u 2>/dev/null; id -g 2>/dev/null))$(_HOST_IDS)
 
 _HOST_ENVIRONMENT = HOST_UID='$(HOST_UID)' HOST_GID='$(HOST_GID)' HOST_APP_DIR='$(HOST_APP_DIR)'
 
@@ -258,6 +256,11 @@ in_services && service == _SERVICE && /^    working_dir:/ { \
 endef
 
 ifneq ($(_HAS_CONTAINER),) # container
+
+export HOST_UID
+export HOST_GID
+export HOST_APP_DIR
+
 _SERVICE_DIRECTORY := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
 	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)'))
 
@@ -491,12 +494,12 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
-_NAME_MASKS       := $(shell $(PRINTF) '\037 \036')
-_MASKED_SPACE     := $(word 1,$(_NAME_MASKS))
-_MASKED_NEWLINE   := $(word 2,$(_NAME_MASKS))
-_TRACKED_FILES    := $(shell $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
-_HADOLINT_FILES   := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
-_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
+_MASKS_AND_TRACKED_FILES := $(shell $(PRINTF) '\037 \036 '; $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
+_MASKED_SPACE            := $(word 1,$(_MASKS_AND_TRACKED_FILES))
+_MASKED_NEWLINE          := $(word 2,$(_MASKS_AND_TRACKED_FILES))
+_TRACKED_FILES           := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(_MASKS_AND_TRACKED_FILES))
+_HADOLINT_FILES          := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
+_ACTIONLINT_FILES        := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
 #**
 #* Whether a tool this project does not install can run here.
@@ -866,7 +869,8 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
 		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call _color,$(COLOR_LOGO))$(subst $(_NEWLINE),\n,$(LOGO))$(_ANSI_RESET)__BRNSHKR_LOGO_END__'),)" \
-		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),$(call _to_title_case,$(PACKAGE)))$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
+		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),@@brnshkr-package@@)$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
+		_HEADER_PACKAGE="$(PACKAGE)" \
 		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		_HAS_LIST_SCOPES_ARGUMENT="$(_HAS_LIST_SCOPES_ARGUMENT)" \
@@ -1094,9 +1098,9 @@ _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(fi
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
 
-_DOTENV_REFUSED_STAGES := $(shell for file in .env.*; do \
+_DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
 	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
-done)
+done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
 $(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
@@ -3075,8 +3079,8 @@ endef
 #* returns: void
 #*
 define log
-$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3 \
-	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes))
+$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
+	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes)))
 endef
 
 #**
@@ -3217,27 +3221,6 @@ endef
 #*
 define _color
 $(if $(_IS_NO_ANSI),,\033[$(if $(call _get_modifiers,$2),$(call _get_modifiers,$2);)$(call _get_color,$1,$2)m)
-endef
-
-#**
-#* Converts a string to title case, treating a hyphen as a word break.
-#*
-#* parameters:
-#*   text: string
-#*
-#* returns: string
-#*
-define _to_title_case
-$(shell $(PRINTF) '%s\n' '$1' | \
-	$(AWK) '{ \
-		gsub(/-/, " "); \
-		for (i = 1; i <= NF; i += 1 ) { \
-			$$i = toupper(substr($$i, 1, 1)) \
-			substr($$i, 2) \
-		} \
-	} \
-	1' \
-)
 endef
 
 #**
@@ -4441,11 +4424,17 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 		walk(children[scope_path, idx], depth + 1, section, column)
 	}
 }
-function print_header(    logo, logo_reset) {
+function to_title_case(text,    words, word_count, word_index, titled_text) {
+	word_count = split(text, words, "-")
+	for (word_index = 1; word_index <= word_count; word_index += 1) titled_text = titled_text (word_index > 1 ? " " : "") toupper(substr(words[word_index], 1, 1)) substr(words[word_index], 2)
+	return titled_text
+}
+function print_header(    logo, logo_reset, header_title) {
 	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
 	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
 	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset
-	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"]
+	header_title = ENVIRON["_HEADER_TITLE"]; sub(/@@brnshkr-package@@/, to_title_case(ENVIRON["_HEADER_PACKAGE"]), header_title)
+	if (length(trim(header_title)) > 0) printf "%s\n\n", header_title
 	printf "%s\n", ENVIRON["_HEADER_USAGE"]
 }
 function render_environment_value(value) { gsub(/\n/, " ", value); return truncate(value, ENVIRON["VALUE_WIDTH"] + 0) }
