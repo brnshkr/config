@@ -540,6 +540,139 @@ _HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_H
 	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' >/dev/null 2>&1 && $(PRINTF) 1), \
 	$(call _is_on_path,semgrep))))
 
+_TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
+_TESTS_DIRECTORY    := $(wildcard $(CURDIR)/tests)
+
+#**
+#* The value it is given when this project tracks a file the extensions name, or when git cannot say.
+#*
+#* parameters:
+#*   value: list<string>
+#*   extensions: list<string>
+#*
+#* returns: list<string>
+#*
+define _when_tracked
+$(if $(_TRACKED_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_TRACKED_EXTENSIONS)),$1),$1)
+endef
+
+#**
+#* The value it is given when any of the paths are there, so a list only claims what this project has.
+#*
+#* parameters:
+#*   value: list<string>
+#*   paths: list<string>
+#*
+#* returns: list<string>
+#*
+define _when_installed
+$(if $(wildcard $(addprefix $(CURDIR)/,$2)),$1)
+endef
+
+#**
+#* The value a setting holds so far, or its default `_<setting>` where nothing set it before this file.
+#*
+#* parameters:
+#*   setting: string
+#*
+#* returns: list<string>
+#*
+define _setting_or_default
+$(if $(filter undefined,$(origin $1)),$(_$1),$($1))
+endef
+
+#**
+#* The tool's name when its feature is on and this project tracks a file the setting's extensions name.
+#*
+#* parameters:
+#*   name: string
+#*   feature: string
+#*   setting: string
+#*
+#* returns: string
+#*
+define _tool_reading_tracked_files
+$(if $2,$(call _when_tracked,$1,$(call _setting_or_default,$3)))
+endef
+
+_PHP_EXTENSIONS           := php
+_TWIG_CS_FIXER_EXTENSIONS := twig
+_MARKDOWNLINT_EXTENSIONS  := md markdown
+_TYPESCRIPT_EXTENSIONS    := ts tsx cts mts
+_VITEST_EXTENSIONS        := ts tsx js jsx mts cts mjs cjs
+
+_ESLINT_EXTENSIONS := js cjs mjs jsx \
+	$(call _when_installed,ts cts mts tsx,node_modules/typescript-eslint) \
+	$(call _when_installed,svelte,node_modules/eslint-plugin-svelte) \
+	$(call _when_installed,json,node_modules/@eslint/json) \
+	$(call _when_installed,jsonc json5,node_modules/eslint-plugin-jsonc) \
+	$(call _when_installed,yml yaml,node_modules/eslint-plugin-yml) \
+	$(call _when_installed,toml,node_modules/eslint-plugin-toml) \
+	$(call _when_installed,css,node_modules/@eslint/css) \
+	$(call _when_installed,md,node_modules/@eslint/markdown)
+
+_STYLELINT_EXTENSIONS := css \
+	$(call _when_installed,less,node_modules/stylelint-config-standard-less) \
+	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
+	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html)
+
+_PHPUNIT_NAME       := $(if $(_TESTS_DIRECTORY),$(call _tool_reading_tracked_files,phpunit,$(and $(_HAS_PHP),$(_HAS_PHPUNIT)),PHP_EXTENSIONS))
+_PHPSTAN_NAME       := $(call _tool_reading_tracked_files,phpstan,$(and $(_HAS_PHP),$(_HAS_PHPSTAN)),PHP_EXTENSIONS)
+_PHP_CS_FIXER_NAME  := $(call _tool_reading_tracked_files,php-cs-fixer,$(and $(_HAS_PHP),$(_HAS_PHP_CS_FIXER)),PHP_EXTENSIONS)
+_RECTOR_NAME        := $(call _tool_reading_tracked_files,rector,$(and $(_HAS_PHP),$(_HAS_RECTOR)),PHP_EXTENSIONS)
+_TWIG_CS_FIXER_NAME := $(call _tool_reading_tracked_files,twig-cs-fixer,$(and $(_HAS_PHP),$(_HAS_TWIG_CS_FIXER)),TWIG_CS_FIXER_EXTENSIONS)
+_COMMITLINT_NAME    := $(if $(and $(_HAS_JS),$(_HAS_COMMITLINT)),commitlint)
+_ESLINT_NAME        := $(call _tool_reading_tracked_files,eslint,$(and $(_HAS_JS),$(_HAS_ESLINT)),ESLINT_EXTENSIONS)
+_MARKDOWNLINT_NAME  := $(call _tool_reading_tracked_files,markdownlint,$(and $(_HAS_JS),$(_HAS_MARKDOWNLINT)),MARKDOWNLINT_EXTENSIONS)
+_STYLELINT_NAME     := $(call _tool_reading_tracked_files,stylelint,$(and $(_HAS_JS),$(_HAS_STYLELINT)),STYLELINT_EXTENSIONS)
+_TYPESCRIPT_NAME    := $(call _tool_reading_tracked_files,typescript,$(and $(_HAS_JS),$(_HAS_TYPESCRIPT)),TYPESCRIPT_EXTENSIONS)
+_VITEST_NAME        := $(if $(_TESTS_DIRECTORY),$(call _tool_reading_tracked_files,vitest,$(and $(_HAS_JS),$(_HAS_VITEST)),VITEST_EXTENSIONS))
+_HADOLINT_NAME      := $(if $(_HAS_HADOLINT),hadolint)
+_ACTIONLINT_NAME    := $(if $(_HAS_ACTIONLINT),actionlint)
+_SEMGREP_NAME       := $(if $(_HAS_SEMGREP),semgrep)
+
+_FIXER_NAMES := $(strip \
+	$(_PHP_CS_FIXER_NAME) \
+	$(_RECTOR_NAME) \
+	$(_TWIG_CS_FIXER_NAME) \
+	$(_ESLINT_NAME) \
+	$(_MARKDOWNLINT_NAME) \
+	$(_STYLELINT_NAME) \
+)
+
+_ANALYZER_NAMES := $(strip \
+	$(_PHPSTAN_NAME) \
+	$(_COMMITLINT_NAME) \
+	$(_TYPESCRIPT_NAME) \
+	$(_HADOLINT_NAME) \
+	$(_ACTIONLINT_NAME) \
+	$(_SEMGREP_NAME) \
+)
+
+_GROUP_NAMES := $(strip \
+	$(_PHPSTAN_NAME) \
+	$(_PHP_CS_FIXER_NAME) \
+	$(_RECTOR_NAME) \
+	$(_TWIG_CS_FIXER_NAME) \
+	$(_ESLINT_NAME) \
+	$(_MARKDOWNLINT_NAME) \
+	$(_STYLELINT_NAME) \
+	$(_TYPESCRIPT_NAME) \
+	$(_HADOLINT_NAME) \
+	$(_ACTIONLINT_NAME) \
+	$(_SEMGREP_NAME) \
+)
+
+_TEST_NAMES      := $(strip $(_PHPUNIT_NAME) $(_VITEST_NAME))
+_COVERAGE_NAMES  := $(strip $(_PHPUNIT_NAME) $(if $(_HAS_VITEST_COVERAGE),$(_VITEST_NAME)))
+_HAS_CHECK       := $(or $(_FIXER_NAMES),$(_ANALYZER_NAMES),$(CHECK_TARGETS))
+_HAS_FIX         := $(or $(_FIXER_NAMES),$(FIX_TARGETS))
+_HAS_GROUP       := $(or $(_GROUP_NAMES),$(GROUP_TARGETS))
+_HAS_TEST        := $(or $(_TEST_NAMES),$(TEST_TARGETS))
+_HAS_TEST_UPDATE := $(_TEST_NAMES)
+_HAS_COVERAGE    := $(_COVERAGE_NAMES)
+_HAS_CI          := $(or $(_HAS_CHECK),$(_HAS_TEST),$(CI_TARGETS))
+
 export _BRNSHKR_DETECTED_IN := $(CURDIR)
 export _DETECTED_EDITOR
 export _HAS_ACTIONLINT
@@ -703,9 +836,9 @@ $(or $(filter $1,$(_ALL_TARGETS)),$(filter $(call _target,$1),$(_ALL_TARGETS)))
 endef
 
 TARGET_ALIASES ?= h=help \
-	c=check \
-	t=test \
-	f=fix#~~ short names for targets, as `<alias>=<target>` pairs
+	$(if $(_HAS_CHECK),c=check) \
+	$(if $(_HAS_TEST),t=test) \
+	$(if $(_HAS_FIX),f=fix)#~~ short names for targets, as `<alias>=<target>` pairs
 
 _TARGET_ALIAS_MAP = $(foreach PAIR,$(TARGET_ALIASES),$(lastword $(subst =, ,$(PAIR)))=$(firstword $(subst =, ,$(PAIR))))
 
@@ -798,17 +931,11 @@ endef
 _PACKAGE_CONF_DIRS = $(APP_DIR)/vendor/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
-_AUTOLOADER          = $(APP_DIR)/vendor/autoload.php
-_TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
-_FIXER_NAMES        :=
-_ANALYZER_NAMES     :=
-_GROUP_NAMES        :=
-_TEST_NAMES         :=
-_COVERAGE_NAMES     :=
-_PACK_NAMES         :=
-_PLAIN_CONFIGS       = $(APP_DIR)/.gitignore
-_LAYERED_CONFIGS     =
-_LINKED_CONFIGS      =
+_AUTOLOADER       = $(APP_DIR)/vendor/autoload.php
+_PACK_NAMES      :=
+_PLAIN_CONFIGS    = $(APP_DIR)/.gitignore
+_LAYERED_CONFIGS  =
+_LINKED_CONFIGS   =
 
 _CSS_CUSTOM_DATA       := $(CURDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json
 _STYLESHEET_EXTENSIONS := css less pcss postcss sass scss styl
@@ -1229,39 +1356,11 @@ endef
 
 $(foreach STAGE,$(_DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
 
-#---v helpers
-
-#**
-#* The value it is given when this project tracks a file the extensions name, or when git cannot say.
-#*
-#* parameters:
-#*   value: list<string>
-#*   extensions: list<string>
-#*
-#* returns: list<string>
-#*
-define _when_tracked
-$(if $(_TRACKED_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_TRACKED_EXTENSIONS)),$1),$1)
-endef
-
-#**
-#* The value it is given when any of the paths are there, so a list only claims what this project has.
-#*
-#* parameters:
-#*   value: list<string>
-#*   paths: list<string>
-#*
-#* returns: list<string>
-#*
-define _when_installed
-$(if $(wildcard $(addprefix $(CURDIR)/,$2)),$1)
-endef
-
 ifneq ($(_HAS_PHP),) # php
 
 #--- php
 
-PHP_EXTENSIONS ?= php#vv #~~ extensions the PHP tools read
+PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
 
 #--- composer
 
@@ -1321,8 +1420,6 @@ _PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
 
 _PHP_UNIT_GROUP_FLAGS = $(foreach GROUP,$(PHP_UNIT_EXCLUDED_GROUPS),--exclude-group $(GROUP))
 
-_TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
-_COVERAGE_NAMES  += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,phpunit,$(PHP_EXTENSIONS)))
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
 
 _$(_TARGET_PREFIX)assert-pest:
@@ -1386,8 +1483,6 @@ PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
-_ANALYZER_NAMES  += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,phpstan): #~~ runs `phpstan analyze`
@@ -1425,8 +1520,6 @@ PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
 PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
-_FIXER_NAMES     += $(call _when_tracked,php-cs-fixer,$(PHP_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,php-cs-fixer,$(PHP_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
@@ -1459,8 +1552,6 @@ RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` bina
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
 RECTOR_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `rector`
 
-_FIXER_NAMES     += $(call _when_tracked,rector,$(PHP_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,rector,$(PHP_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,rector): #~~ runs `rector process`
@@ -1498,10 +1589,8 @@ ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
 TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
 TWIG_CS_FIXER_FLAGS  ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
-TWIG_CS_FIXER_EXTENSIONS ?= twig#vv #~~ extensions `twig-cs-fixer` reads
+TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig-cs-fixer` reads
 
-_FIXER_NAMES     += $(call _when_tracked,twig-cs-fixer,$(TWIG_CS_FIXER_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,twig-cs-fixer,$(TWIG_CS_FIXER_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
 
 $(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
@@ -1579,7 +1668,6 @@ _COMMITLINT_PARTS = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
 
 GIT_HOOKS += commit-msg=$(call _target,commitlint)
 
-_ANALYZER_NAMES  += commitlint
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 
 $(call _target,commitlint): $(if $(filter --from --last,$(COMMITLINT_SOURCE)),_$(_TARGET_PREFIX)install-missing-hooks) #~~ lints a commit message
@@ -1604,20 +1692,8 @@ unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
 _ESLINT_OUTPUT := $(APP_DIR)/.cache/eslint.output
 
-_ESLINT_EXTENSIONS := js cjs mjs jsx \
-	$(call _when_installed,ts cts mts tsx,node_modules/typescript-eslint) \
-	$(call _when_installed,svelte,node_modules/eslint-plugin-svelte) \
-	$(call _when_installed,json,node_modules/@eslint/json) \
-	$(call _when_installed,jsonc json5,node_modules/eslint-plugin-jsonc) \
-	$(call _when_installed,yml yaml,node_modules/eslint-plugin-yml) \
-	$(call _when_installed,toml,node_modules/eslint-plugin-toml) \
-	$(call _when_installed,css,node_modules/@eslint/css) \
-	$(call _when_installed,md,node_modules/@eslint/markdown)
-
 ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, which follows the modules its config enables
 
-_FIXER_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,eslint,$(ESLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
 
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
@@ -1667,13 +1743,11 @@ MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command
 MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/conf/markdownlint.mjs $(APP_DIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
 MARKDOWNLINT_FLAGS      ?= #v #~~ additional flags passed to `markdownlint-cli2`
-MARKDOWNLINT_EXTENSIONS ?= md markdown#vv #~~ extensions `markdownlint` reads
+MARKDOWNLINT_EXTENSIONS ?= $(_MARKDOWNLINT_EXTENSIONS)#vv #~~ extensions `markdownlint` reads
 
 _MARKDOWNLINT_VALUE_FLAGS := --config \
 	--configPointer
 
-_FIXER_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,markdownlint,$(MARKDOWNLINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),mjs),$(MARKDOWNLINT_EXTENSIONS))
 
 $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
@@ -1725,15 +1799,8 @@ _STYLELINT_VALUE_FLAGS := --cache-location \
 	-i \
 	-o
 
-_STYLELINT_EXTENSIONS := css \
-	$(call _when_installed,less,node_modules/stylelint-config-standard-less) \
-	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
-	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html)
-
 STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` can parse, which follows the syntaxes its config pulls in
 
-_FIXER_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,stylelint,$(STYLELINT_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
 
 $(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
@@ -1765,14 +1832,12 @@ ifneq ($(_HAS_TYPESCRIPT),) # typescript
 TYPESCRIPT            ?= $(BUN) $(BUN_FLAGS) x tsc#v #~~ command that runs `tsc`
 TYPESCRIPT_CONFIG     ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` project
 TYPESCRIPT_FLAGS      ?= --noEmit $(if $(_IS_DEBUG),--extendedDiagnostics)#v #~~ additional flags passed to `tsc`
-TYPESCRIPT_EXTENSIONS ?= ts tsx cts mts#vv #~~ extensions `tsc` type checks
+TYPESCRIPT_EXTENSIONS ?= $(_TYPESCRIPT_EXTENSIONS)#vv #~~ extensions `tsc` type checks
 
 _TYPESCRIPT_PROJECT := $(APP_DIR)/conf/tsconfig.json
 
-_ANALYZER_NAMES  += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
-_GROUP_NAMES     += $(call _when_tracked,typescript,$(TYPESCRIPT_EXTENSIONS))
-_PLAIN_CONFIGS   += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
-_LINKED_CONFIGS  += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
+_PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
+_LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
 
 $(call _target,typescript): #~~ runs the `tsc` type check
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
@@ -1799,7 +1864,7 @@ ifneq ($(_HAS_VITEST),) # vitest
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 unexport VITEST    # NOTICE: Vitest sets this to mark its own runs
 VITEST_CONFIG     ?= $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_DIR)/conf/vitest.mjs $(APP_DIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
-VITEST_EXTENSIONS ?= ts tsx js jsx mts cts mjs cjs#vv #~~ extensions `vitest` runs tests from
+VITEST_EXTENSIONS ?= $(_VITEST_EXTENSIONS)#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
 VITEST_COVERAGE_DIR            ?= $(APP_DIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
@@ -1818,8 +1883,6 @@ VITEST_COVERAGE_FLAGS?= --coverage \
 	--coverage.thresholds.lines=$(VITEST_MIN_COVERAGE_LINES) \
 	--coverage.thresholds.statements=$(VITEST_MIN_COVERAGE_STATEMENTS)#v #~~ additional flags passed when collecting coverage
 
-_TEST_NAMES      += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS)))
-_COVERAGE_NAMES  += $(if $(_HAS_VITEST_COVERAGE),$(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,vitest,$(VITEST_EXTENSIONS))))
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
 
 $(call _target,vitest): #~~ runs `vitest`
@@ -1866,9 +1929,6 @@ _HADOLINT_VALUE_FLAGS := --config \
 	-f \
 	-t
 
-_ANALYZER_NAMES += hadolint
-_GROUP_NAMES    += hadolint
-
 $(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
@@ -1906,9 +1966,6 @@ _ACTIONLINT_VALUE_FLAGS := -config-file \
 	-ignore \
 	-pyflakes \
 	-shellcheck
-
-_ANALYZER_NAMES += actionlint
-_GROUP_NAMES    += actionlint
 
 $(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
@@ -2003,9 +2060,6 @@ _SEMGREP_VALUE_FLAGS := --config \
 	--timeout \
 	-c \
 	-e
-
-_ANALYZER_NAMES += semgrep
-_GROUP_NAMES    += semgrep
 
 $(call _target,semgrep): #~~ runs `semgrep` over this project's sources
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
@@ -2250,23 +2304,27 @@ _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 
 CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
+ifneq ($(_HAS_CHECK),)
 $(call _target,check): #~~ runs the fixers without writing, and every analyzer
-	$(TRACE_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS)$(CHECK_TARGETS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_DRY_RUNS)$(_ANALYZERS)$(CHECK_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
+endif
 
-_CI_TARGETS := $(call _target,check) \
-	$(call _target,test)
+_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
+	$(if $(_HAS_TEST),$(call _target,test))
 
 CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
 
+ifneq ($(_HAS_CI),)
 $(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
 	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
 		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
 	):
+endif
 
+ifneq ($(_HAS_COVERAGE),)
 $(call _target,coverage): #~~ runs the tests and fails below the minimum coverage #vv
-	$(TRACE_PREFIX)$(if $(_COVERAGE),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_COVERAGE),$(MAKE) $(_VERB_FLAGS) $(_COVERAGE),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
+endif
 
 _FIX_ORDER := rector+php-cs-fixer \
 	twig-cs-fixer \
@@ -2278,9 +2336,10 @@ _FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(
 
 FIX_TARGETS ?= #v #~~ this project's own targets, run by `fix`
 
+ifneq ($(_HAS_FIX),)
 $(call _target,fix): #~~ runs every fixer this project has, writing its fixes
-	$(TRACE_PREFIX)$(if $(_FIX_CHAINS)$(FIX_TARGETS),:,$(call log,No fixer to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_FIX_CHAINS)$(FIX_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS) $(FIX_TARGETS),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS) $(FIX_TARGETS)
+endif
 
 _$(_TARGET_PREFIX)fix-%:
 	$(DEBUG_PREFIX)$(foreach NAME,$(filter $(_FIXER_NAMES),$(subst +, ,$*)), \
@@ -2289,22 +2348,25 @@ _$(_TARGET_PREFIX)fix-%:
 
 GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
 
+ifneq ($(_HAS_GROUP),)
 $(call _target,group): #~~ counts every tool's findings by identifier #v
-	$(TRACE_PREFIX)$(if $(_GROUPS)$(GROUP_TARGETS),:,$(call log,No tool to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_GROUPS)$(GROUP_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
+endif
 
 $(call _target,pack): $(_PACKS) #~~ packs every stack's package into `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
 TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
 
+ifneq ($(_HAS_TEST),)
 $(call _target,test): #~~ runs the tests of every stack this project has
-	$(TRACE_PREFIX)$(if $(_TESTS)$(TEST_TARGETS),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_TESTS)$(TEST_TARGETS),$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS)
+endif
 
+ifneq ($(_HAS_TEST_UPDATE),)
 $(call _target,test-update): #~~ runs those tests and updates their snapshots #v
-	$(TRACE_PREFIX)$(if $(_UPDATES),:,$(call log,No test to run.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(_UPDATES),$(MAKE) $(_VERB_FLAGS) $(_UPDATES),:)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
+endif
 
 FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` to build what its tests read
 
@@ -4558,8 +4620,15 @@ is_in_documentation {
 			}
 			raw = raw " " continuation
 		}
-		add("variables", var_name, trim(strip_verbosity(raw)), (is_in_ifndef ? "?=" : var_operator), var_description, line_number, var_verbosity)
+		shown_value = trim(strip_verbosity(raw))
+		referenced_internal_name = substr(shown_value, 3, length(shown_value) - 3)
+		if (shown_value ~ /^\$$\(_[A-Z0-9_]+\)$$/ && referenced_internal_name in literal_internal_value)
+			shown_value = literal_internal_value[referenced_internal_name]
+		add("variables", var_name, shown_value, (is_in_ifndef ? "?=" : var_operator), var_description, line_number, var_verbosity)
 		scraped_variable[var_name] = 1
+	} else {
+		internal_value = trim(substr(var_source, index(var_source, "=") + 1))
+		if (!index(internal_value, "$$") && !index(internal_value, "\\")) literal_internal_value[var_name] = internal_value
 	}
 	next
 }

@@ -140,9 +140,6 @@ Available commands:
  brnshkr
   common
    help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
-   check, c                    runs the fixers without writing, and every analyzer
-   fix, f                      runs every fixer this project has, writing its fixes
-   test, t                     runs the tests of every stack this project has
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -266,11 +263,6 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes the tool configs this project is missing, local its private ones too
    cc                          removes the caches named, or all of them when given none
-   check, c                    runs the fixers without writing, and every analyzer
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -378,7 +370,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -490,13 +482,6 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -647,7 +632,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -800,14 +785,7 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
    pack                        packs every stack's package into ./.local
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -961,7 +939,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -1114,14 +1092,7 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
    pack                        packs every stack's package into ./.local
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -1253,9 +1224,6 @@ Available commands:
 - brnshkr
 -  common
 -   help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
--   check, c                    runs the fixers without writing, and every analyzer
--   fix, f                      runs every fixer this project has, writing its fixes
--   test, t                     runs the tests of every stack this project has
   app
    commands
 -   root-makefile-command       command from root Makefile auto-include
@@ -1323,9 +1291,6 @@ Available commands:
 - brnshkr
 -  common
 -   help, h                     show this help, narrowed by any scope named and widened by v, vv or vvv
--   check, c                    runs the fixers without writing, and every analyzer
--   fix, f                      runs every fixer this project has, writing its fixes
--   test, t                     runs the tests of every stack this project has
   app
    commands
 -   root-makefile-command       command from root Makefile auto-include
@@ -1497,7 +1462,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -1651,14 +1616,7 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
    pack                        packs every stack's package into ./.local
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -1812,7 +1770,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -1965,14 +1923,7 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
    pack                        packs every stack's package into ./.local
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -2126,7 +2077,7 @@ Variables:
    ARG8                         =  $(word 8,$(ARGS))
    ARG9                         =  $(word 9,$(ARGS))
    ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES              ?=  h=help c=check t=test f=fix                      (short names for targets, as <alias>=<target> pairs)
+   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -2279,14 +2230,7 @@ Available commands:
    cc                          removes the caches named, or all of them when given none
    fresh                       removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run               lists what fresh would remove
-   check, c                    runs the fixers without writing, and every analyzer
-   ci                          runs CI_TARGETS one after the other
-   coverage                    runs the tests and fails below the minimum coverage
-   fix, f                      runs every fixer this project has, writing its fixes
-   group                       counts every tool's findings by identifier
    pack                        packs every stack's package into ./.local
-   test, t                     runs the tests of every stack this project has
-   test-update                 runs those tests and updates their snapshots
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -2521,7 +2465,7 @@ Available commands:
    [36mARG8                      [0m  [90m =  $(word 8,$(ARGS))[0m
    [36mARG9                      [0m  [90m =  $(word 9,$(ARGS))[0m
    [36mARGS                      [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [36mTARGET_ALIASES            [0m  [90m?=  h=help c=check t=test f=fix                      (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
+   [36mTARGET_ALIASES            [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
   [35mcommon[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after the dependencies)[0m
    [36mGIT_HOOKS                 [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
@@ -2674,14 +2618,7 @@ Available commands:
    [36mcc                        [0m  [90mremoves the caches named, or all of them when given none[0m
    [36mfresh                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
    [36mfresh-dry-run             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
-   [36mcheck, c                  [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36mci                        [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
-   [36mcoverage                  [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36mfix, f                    [0m  [90mruns every fixer this project has, writing its fixes[0m
-   [36mgroup                     [0m  [90mcounts every tool's findings by identifier[0m
    [36mpack                      [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
-   [36mtest, t                   [0m  [90mruns the tests of every stack this project has[0m
-   [36mtest-update               [0m  [90mruns those tests and updates their snapshots[0m
    [36mfixtures                  [0m  [90mbuilds the fixtures this project's tests read[0m
   [35mchangelog[0m
    [36mchangelog                 [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
@@ -2835,7 +2772,7 @@ Available commands:
    [32mARG8                      [0m  [0m =  $(word 8,$(ARGS))[0m
    [32mARG9                      [0m  [0m =  $(word 9,$(ARGS))[0m
    [32mARGS                      [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [32mTARGET_ALIASES            [0m  [0m?=  h=help c=check t=test f=fix                      (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
+   [32mTARGET_ALIASES            [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
   [33mcommon[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after the dependencies)[0m
    [32mGIT_HOOKS                 [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
@@ -2988,14 +2925,7 @@ Available commands:
    [32mcc                        [0m  [0mremoves the caches named, or all of them when given none[0m
    [32mfresh                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
    [32mfresh-dry-run             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
-   [32mcheck, c                  [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32mci                        [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
-   [32mcoverage                  [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32mfix, f                    [0m  [0mruns every fixer this project has, writing its fixes[0m
-   [32mgroup                     [0m  [0mcounts every tool's findings by identifier[0m
    [32mpack                      [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
-   [32mtest, t                   [0m  [0mruns the tests of every stack this project has[0m
-   [32mtest-update               [0m  [0mruns those tests and updates their snapshots[0m
    [32mfixtures                  [0m  [0mbuilds the fixtures this project's tests read[0m
   [33mchangelog[0m
    [32mchangelog                 [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m

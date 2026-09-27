@@ -546,15 +546,6 @@ final class MakefileTest extends TestCase
         self::assertMatchesRegularExpression('/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
-    public function testAVerbWithNothingToRunSaysSo(): void
-    {
-        $directory = __DIR__ . '/../Fixtures/Make/Consumer';
-
-        self::assertStringContainsString('No fixer to run.', $this->runMake(['fix'], directory: $directory));
-        self::assertStringContainsString('No tool to run.', $this->runMake(['check'], directory: $directory));
-        self::assertStringContainsString('No test to run.', $this->runMake(['test'], directory: $directory));
-    }
-
     public function testTheScopeListNamesOnlyScopesWithSomethingToShow(): void
     {
         $plain   = $this->runMakeHelp(['ls']);
@@ -591,19 +582,19 @@ final class MakefileTest extends TestCase
     {
         $directory = __DIR__ . '/../Fixtures/Make/Collision';
 
-        self::assertStringContainsString('collision', $this->runMake(['check'], directory: $directory));
-        self::assertContainsSymbol('brnshkr-check', $this->runMake(['help'], directory: $directory));
+        self::assertStringContainsString('collision', $this->runMake(['fixtures'], directory: $directory));
+        self::assertContainsSymbol('brnshkr-fixtures', $this->runMake(['help', 'v'], directory: $directory));
     }
 
     public function testACollisionInsideAChosenNamespaceIsRefused(): void
     {
         $result = $this->runMake(
-            ['shared-check'],
+            ['shared-fixtures'],
             directory: __DIR__ . '/../Fixtures/Make/PrefixedCollision',
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('shared-check is defined in', $result);
+        self::assertStringContainsString('shared-fixtures is defined in', $result);
         self::assertStringContainsString('TARGET_PREFIX', $result);
     }
 
@@ -655,7 +646,7 @@ final class MakefileTest extends TestCase
         $none   = $this->runMake(['-p', 'PHONY=0'], directory: self::CONSUMER_DIRECTORY);
 
         self::assertMatchesRegularExpression('/^\.PHONY:.* consumer-command /m', $all);
-        self::assertMatchesRegularExpression('/^\.PHONY:(?!.* consumer-command ).* check /m', $shared);
+        self::assertMatchesRegularExpression('/^\.PHONY:(?!.* consumer-command ).* help /m', $shared);
         self::assertMatchesRegularExpression('/^\.PHONY:\s*$/m', $none);
     }
 

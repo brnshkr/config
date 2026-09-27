@@ -185,8 +185,8 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/MakefileTest.php',
-    php: String.raw`/^\.PHONY:(?!.* consumer-command ).* check /m`,
-    regex: /^\.PHONY:(?!.* consumer-command ).* check /mv,
+    php: String.raw`/^\.PHONY:(?!.* consumer-command ).* help /m`,
+    regex: /^\.PHONY:(?!.* consumer-command ).* help /mv,
   },
   {
     file: 'tests/php/Make/MakefileTest.php',
