@@ -370,9 +370,10 @@ BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown 
 INDENT      ?= 1#~~ indent used in `make help` output
 VALUE_WIDTH ?= 48#~~ widest a value column gets in `make help`, past which a value is truncated
 
-NO_ANSI         ?= #~~ whether ANSI escapes are suppressed
-_IS_NO_ANSI      = $(filter-out $(_FALSE),$(NO_ANSI))
-_NO_ANSI_OPTION  = $(if $(_IS_NO_ANSI),--no-ansi)
+NO_ANSI             ?= #~~ whether ANSI escapes are suppressed
+_IS_NO_ANSI          = $(filter-out $(_FALSE),$(NO_ANSI))
+_NO_ANSI_OPTION      = $(if $(_IS_NO_ANSI),--no-ansi)
+_IS_PROGRESS_HIDDEN  = $(or $(_IS_CI),$(_IS_NO_ANSI))
 
 THEME         ?= #~~ the theme to use
 THEME_BRNSHKR := brnshkr
@@ -1366,7 +1367,7 @@ PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
 
 COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
-COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction --no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
+COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
 
@@ -1479,7 +1480,7 @@ ifneq ($(_HAS_PHPSTAN),) # phpstan
 
 PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
-PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
+PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
@@ -1518,7 +1519,7 @@ ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
 
 PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
-PHP_CS_FIXER_FLAGS  ?= --show-progress=dots $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
+PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
@@ -1550,7 +1551,7 @@ ifneq ($(_HAS_RECTOR),) # rector
 
 RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` binary
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
-RECTOR_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `rector`
+RECTOR_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
