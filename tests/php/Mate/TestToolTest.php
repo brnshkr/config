@@ -38,13 +38,14 @@ final class TestToolTest extends TestCase
         new Filesystem()->remove(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH);
     }
 
-    public function testASnapshotInANestedSnapshotDirectoryIsReported(): void
+    public function testASnapshotChangedBeforeTheRunIsListedAsUnchanged(): void
     {
         new Filesystem()->dumpFile(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH, '');
 
         $result = new TestTool()->runTests('php', 'noSuchTestMatchesThisFilter');
 
-        self::assertStringContainsString(self::NESTED_SNAPSHOT_PATH, $result);
+        self::assertStringContainsString("changedSnapshots[0]:\n", $result);
+        self::assertStringContainsString('unchangedDirtySnapshots[1]: ' . self::NESTED_SNAPSHOT_PATH, $result);
     }
 
     public function testAFilterReachesTheRunnerAsOneArgument(): void

@@ -11,10 +11,14 @@ use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
 use function array_filter;
-use function array_map;
+use function array_intersect_assoc;
+use function array_key_exists;
+use function array_keys;
 use function array_values;
 use function escapeshellarg;
 use function explode;
+use function hash_file;
+use function is_file;
 use function preg_split;
 use function sprintf;
 
@@ -40,7 +44,7 @@ final class TestTool
      */
     #[McpTool(
         name: 'project-tests-run',
-        description: 'Runs a test suite of this repository ("php" = Pest, "js" = Vitest). Supports filtering and updating snapshots; reports which snapshot files changed afterwards.',
+        description: 'Runs a test suite of this repository ("php" = Pest, "js" = Vitest). Supports filtering and updating snapshots; reports which snapshot files the run changed, and which were already changed and left alone.',
     )]
     public function runTests(string $suite = 'php', string $filter = '', bool $doesUpdateSnapshots = false): string
     {
@@ -48,17 +52,21 @@ final class TestTool
 
         if ($snapshotPathspec === null) {
             return Project::encode([
-                'exitCode'         => 1,
-                'output'           => sprintf('Unknown suite "%s". Valid suites: "php", "js".', $suite),
-                'changedSnapshots' => [],
+                'exitCode'                => 1,
+                'output'                  => sprintf('Unknown suite "%s". Valid suites: "php", "js".', $suite),
+                'changedSnapshots'        => [],
+                'unchangedDirtySnapshots' => [],
             ]);
         }
 
-        $result = Project::run($this->getCommand($suite, $filter, $doesUpdateSnapshots));
+        $snapshotHashesBeforeRun = $this->getDirtySnapshotHashes($snapshotPathspec);
+        $result                  = Project::run($this->getCommand($suite, $filter, $doesUpdateSnapshots));
+        $snapshotHashesAfterRun  = $this->getDirtySnapshotHashes($snapshotPathspec);
 
         return Project::encode([
             ...$result,
-            'changedSnapshots' => $this->getChangedSnapshots($snapshotPathspec),
+            'changedSnapshots'        => $this->getPathsWithDifferentHashes($snapshotHashesBeforeRun, $snapshotHashesAfterRun),
+            'unchangedDirtySnapshots' => array_keys(array_intersect_assoc($snapshotHashesAfterRun, $snapshotHashesBeforeRun)),
         ]);
     }
 
@@ -89,21 +97,45 @@ final class TestTool
     /**
      * @param non-empty-string $snapshotPathspec
      *
-     * @return list<string>
+     * @return array<non-empty-string, ?non-falsy-string>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    private function getChangedSnapshots(string $snapshotPathspec): array
+    private function getDirtySnapshotHashes(string $snapshotPathspec): array
     {
-        $status = Project::run(['git', 'status', '--porcelain', '--untracked-files=all', '--', $snapshotPathspec]);
+        $status         = Project::run(['git', 'status', '--porcelain', '--untracked-files=all', '--', $snapshotPathspec]);
+        $snapshotHashes = [];
 
+        foreach (explode("\n", $status['output']) as $statusLine) {
+            $dirtySnapshotPath = (preg_split('/\s+/', Str::trim($statusLine), 2) ?: [])[1] ?? '';
+
+            if ($dirtySnapshotPath === '' || !Str::isNonDecimalIntString($dirtySnapshotPath)) {
+                continue;
+            }
+
+            $absoluteSnapshotPath = Project::getRootDirectory() . '/' . $dirtySnapshotPath;
+
+            $snapshotHashes[$dirtySnapshotPath] = is_file($absoluteSnapshotPath)
+                ? (hash_file('xxh128', $absoluteSnapshotPath) ?: null)
+                : null;
+        }
+
+        return $snapshotHashes;
+    }
+
+    /**
+     * @param array<non-empty-string, ?non-falsy-string> $snapshotHashesBeforeRun
+     * @param array<non-empty-string, ?non-falsy-string> $snapshotHashesAfterRun
+     *
+     * @return list<string>
+     */
+    private function getPathsWithDifferentHashes(array $snapshotHashesBeforeRun, array $snapshotHashesAfterRun): array
+    {
         return array_values(array_filter(
-            array_map(
-                static fn (string $line): string => (preg_split('/\s+/', Str::trim($line), 2) ?: [])[1] ?? '',
-                explode("\n", $status['output']),
-            ),
-            static fn (string $path): bool => $path !== '',
+            array_keys([...$snapshotHashesBeforeRun, ...$snapshotHashesAfterRun]),
+            static fn (string $path): bool => array_key_exists($path, $snapshotHashesBeforeRun) !== array_key_exists($path, $snapshotHashesAfterRun)
+                || ($snapshotHashesBeforeRun[$path] ?? null) !== ($snapshotHashesAfterRun[$path] ?? null),
         ));
     }
 }
