@@ -17,7 +17,7 @@ For a JavaScript package the path is `./node_modules/@brnshkr/config/conf/Makefi
 Neither path resolves before that stack is installed, so [`./conf/Makefile.dist`](../conf/Makefile.dist)
 guards the include and adds a `bootstrap` target that installs and runs `startup`. Copy it to `./Makefile`.
 
-`make startup` installs each stack, writes any tool config the repository is missing and runs `STARTUP_TARGETS`.
+`make startup` installs each stack, writes any file the repository is missing and runs `STARTUP_TARGETS`.
 After that, `make` on its own prints the help.
 
 ## Targets
@@ -33,13 +33,13 @@ Across both stacks:
 
 | Target | Description |
 | --- | --- |
-| `startup` | Installs each stack, writes any missing tool config, then runs `STARTUP_TARGETS`. |
+| `startup` | Installs each stack, writes any missing file, then runs `STARTUP_TARGETS`. |
 | `fix` | Runs every fixer and writes its fixes. |
 | `check` | Runs every fixer and analyzer without writing anything. |
 | `test` | Runs every stack's tests. |
 | `ci` | Runs `CI_TARGETS` in order — `check` then `test`, unless set to include `fix` first. |
 | `test-update` | Runs them and updates their snapshots. |
-| `configs` | Writes any config the repository is missing. Name some to write only those, `--force` to overwrite. |
+| `configs` | Writes any file the repository is missing, `--tools` each tool's config too. Name some to write only those, `--force` to overwrite. |
 | `pack` | Packs every stack's package into `./.local`. |
 | `changelog` | Prints the changelog for `CHANGELOG_RANGE`, or writes it into `CHANGELOG_DIR`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
@@ -116,8 +116,10 @@ and a repository content with the shipped defaults keeps neither.
 `<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
 at once — which is how a developer with a private file checks what the gate will read.
 
-`make configs` writes what the repository is missing: each tool's tracked config half, a `.gitignore`,
+`make configs` writes what the repository is missing: a `.gitignore`, the TypeScript project
 and the editor files the package ships, which land where an editor reads them rather than in `./conf/`.
+A tool reads its shipped config where the repository keeps none, so `make configs -- --tools` adds each
+tool's tracked half only for a repository about to change a default.
 Each comes from the package, or from the repository's own `./conf/<name>.example` where it keeps one,
 and a copied PHP config is given the project's root namespace in its `@internal` tag.
 Naming configs writes only those, so `make configs eslint editorconfig` leaves every other one alone.
@@ -126,8 +128,9 @@ A named config that already exists is offered for overwriting rather than skippe
 Where the repository has a `composer.json`, the block between the markers in `.gitattributes` is rewritten
 on every run from the autoload roots and `ARCHIVE_EXTRA_PATHS` that exist, and appended where it is missing,
 so what an archive ships follows the manifest and `git archive` and `composer archive` ship the same files.
-`make configs local` writes the private halves as well, each delegating to the tracked file rather than
-restating it: an `include` for a PHP config, an `export { default } from` for a JavaScript one.
+`make configs --local` writes the tracked and the private halves,
+each private one delegating to the tracked file rather than restating it:
+an `include` for a PHP config, an `export { default } from` for a JavaScript one.
 A recipe whose config is missing everywhere names the path it wants and the variable it came from.
 
 ## Changelog

@@ -1039,14 +1039,17 @@ ARCHIVE_EXTRA_PATHS ?= #v #~~ paths an archive ships beside the autoload roots, 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
 
-_NAMED_CONFIGS    = $(filter-out local l force f,$(_ARG_WORDS))
-_IS_FORCED_CONFIG = $(filter force f,$(_ARG_WORDS))
-_CONFIG_NAMES     = $(sort $(foreach CONFIG,$(_CONFIGS) $(_PLACED_CONFIGS) $(_LINKED_CONFIGS),$(call _config_name,$(CONFIG))))
+_NAMED_CONFIGS        = $(filter-out tools t local l force f,$(_ARG_WORDS))
+_IS_FORCED_CONFIG     = $(filter force f,$(_ARG_WORDS))
+_IS_PRIVATE_CONFIG    = $(filter local l,$(_ARG_WORDS))
+_IS_TOOL_CONFIG       = $(or $(filter tools t,$(_ARG_WORDS)),$(_IS_PRIVATE_CONFIG),$(_NAMED_CONFIGS))
+_TRACKED_TOOL_CONFIGS = $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG)))
+_CONFIG_NAMES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_PLACED_CONFIGS) $(_LINKED_CONFIGS),$(call _config_name,$(CONFIG))))
 
-_CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG))) \
-	$(if $(filter local l,$(_ARG_WORDS)),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
+_CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
+	$(if $(_IS_PRIVATE_CONFIG),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
 
-$(call _target,configs): #~~ writes the tool configs this project is missing, `local` its private ones too #v
+$(call _target,configs): #~~ writes the files this project is missing, `tools` its tool configs too, `local` their private halves #v
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		if [ -f "$$target" ]; then \
@@ -4740,7 +4743,7 @@ $(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
-$(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) local l force f
+$(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) tools t local l force f
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

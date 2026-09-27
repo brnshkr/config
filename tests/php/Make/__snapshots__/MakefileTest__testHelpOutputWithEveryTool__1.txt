@@ -308,7 +308,7 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the tool configs this project is missing, local its private ones too
+   configs                writes the files this project is missing, tools its tool configs too, local their private halves
    cc                     removes the caches named, or all of them when given none
    check, c               runs the fixers without writing, and every analyzer
    fix, f                 runs every fixer this project has, writing its fixes
@@ -633,7 +633,7 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the tool configs this project is missing, local its private ones too
+   configs                writes the files this project is missing, tools its tool configs too, local their private halves
    cc                     removes the caches named, or all of them when given none
    fresh                  removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run          lists what fresh would remove
@@ -1056,7 +1056,7 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the tool configs this project is missing, local its private ones too
+   configs                writes the files this project is missing, tools its tool configs too, local their private halves
    cc                     removes the caches named, or all of them when given none
    fresh                  removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run          lists what fresh would remove
@@ -1745,7 +1745,7 @@ Variables:
    [36mhelp, h              [0m  [90mshow this help, narrowed by any scope named and widened by [35mv[0m[90m, [35mvv[0m[90m or [35mvvv[0m[90m[0m
    [36mstartup              [0m  [90mbrings a fresh checkout to a workable state[0m
    [36minstall-hooks        [0m  [90minstalls this project's git hooks, replacing any that exist[0m
-   [36mconfigs              [0m  [90mwrites the tool configs this project is missing, [35mlocal[0m[90m its private ones too[0m
+   [36mconfigs              [0m  [90mwrites the files this project is missing, [35mtools[0m[90m its tool configs too, [35mlocal[0m[90m their private halves[0m
    [36mcc                   [0m  [90mremoves the caches named, or all of them when given none[0m
    [36mfresh                [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
    [36mfresh-dry-run        [0m  [90mlists what [35mfresh[0m[90m would remove[0m
@@ -2181,7 +2181,7 @@ Variables:
    [32mhelp, h              [0m  [0mshow this help, narrowed by any scope named and widened by [33mv[0m[0m, [33mvv[0m[0m or [33mvvv[0m[0m[0m
    [32mstartup              [0m  [0mbrings a fresh checkout to a workable state[0m
    [32minstall-hooks        [0m  [0minstalls this project's git hooks, replacing any that exist[0m
-   [32mconfigs              [0m  [0mwrites the tool configs this project is missing, [33mlocal[0m[0m its private ones too[0m
+   [32mconfigs              [0m  [0mwrites the files this project is missing, [33mtools[0m[0m its tool configs too, [33mlocal[0m[0m their private halves[0m
    [32mcc                   [0m  [0mremoves the caches named, or all of them when given none[0m
    [32mfresh                [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
    [32mfresh-dry-run        [0m  [0mlists what [33mfresh[0m[0m would remove[0m

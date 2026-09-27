@@ -672,8 +672,8 @@ final class MakefileTest extends TestCase
 
     public function testConfigsWritesOnlyWhatTheProjectIsMissing(): void
     {
-        $created = $this->runMake(['configs'], directory: self::CONFIGS_DIRECTORY);
-        $kept    = $this->runMake(['configs'], directory: self::CONFIGS_DIRECTORY);
+        $created = $this->runMake(['configs', 'tools'], directory: self::CONFIGS_DIRECTORY);
+        $kept    = $this->runMake(['configs', 'tools'], directory: self::CONFIGS_DIRECTORY);
 
         self::assertStringContainsString('[acme/configs] Created', $created);
         self::assertStringContainsString('already exists', $kept);
@@ -1498,7 +1498,7 @@ final class MakefileTest extends TestCase
 
     public function testAnExampleComesFromTheOtherInstallationWhenThisOneHasNone(): void
     {
-        $result = $this->runMake(['configs'], directory: self::FALLBACK_DIRECTORY);
+        $result = $this->runMake(['configs', 'tools'], directory: self::FALLBACK_DIRECTORY);
 
         self::assertStringContainsString('Created', $result);
         self::assertFileExists(self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php');
