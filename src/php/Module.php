@@ -123,6 +123,10 @@ enum Module: string
      */
     private static function warnMissing(array $candidates, string $message): void
     {
+        if (!ComposerJson::forProjectUsingThisLibrary()->hasInstalledVersions()) {
+            return;
+        }
+
         /**
          * @var list<Package> $warnedPackages
          */

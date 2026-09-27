@@ -504,18 +504,15 @@ final class ComposerJson
      */
     public function getInstalledPackages(): array
     {
-        $this->rawInstalledVersionData ??= InstalledVersions::getAllRawData();
-        $packageFullName = $this->getPackageFullName() ?? '__root__';
+        return $this->getRootInstalledPackages() ?? [];
+    }
 
-        $data = array_find(
-            $this->rawInstalledVersionData,
-            static fn (array $installed): bool => $installed['root']['name'] === $packageFullName,
-        );
-
-        return array_values(array_filter(
-            array_keys($data['versions'] ?? []),
-            static fn (string $name): bool => !Str::isEmpty($name),
-        ));
+    /**
+     * @throws RuntimeException
+     */
+    public function hasInstalledVersions(): bool
+    {
+        return $this->getRootInstalledPackages() !== null;
     }
 
     /**
@@ -579,6 +576,31 @@ final class ComposerJson
         $this->data = null;
 
         $this->read();
+    }
+
+    /**
+     * @return list<non-empty-string>|null
+     *
+     * @throws RuntimeException
+     */
+    private function getRootInstalledPackages(): ?array
+    {
+        $this->rawInstalledVersionData ??= InstalledVersions::getAllRawData();
+        $packageFullName = $this->getPackageFullName() ?? '__root__';
+
+        $data = array_find(
+            $this->rawInstalledVersionData,
+            static fn (array $installed): bool => $installed['root']['name'] === $packageFullName,
+        );
+
+        if ($data === null) {
+            return null;
+        }
+
+        return array_values(array_filter(
+            array_keys($data['versions']),
+            static fn (string $name): bool => !Str::isEmpty($name),
+        ));
     }
 
     /**
