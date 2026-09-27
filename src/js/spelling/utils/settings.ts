@@ -24,6 +24,9 @@ const EVERY_PATH = '*';
 const DEFAULTS_FILE = 'defaults.json';
 const IGNORE_PATTERN_FLAGS = 'u';
 
+/**
+ * @throws {Error}
+ */
 const findShippedDirectory = (): string => {
   const packageJsonPath = findNearestPackageJson(import.meta.dirname);
 
@@ -34,6 +37,9 @@ const findShippedDirectory = (): string => {
   return path.join(path.dirname(packageJsonPath), 'conf', 'spelling');
 };
 
+/**
+ * @throws {Error}
+ */
 const readSettingsFile = (filePath: string): Record<string, unknown> => {
   const settings = readJsonObjectFile(filePath);
 
@@ -166,6 +172,9 @@ const formatAllowedLiteral = ({ text, lineNumbers }: AllowedLiteral): string => 
   ? text
   : `${text}:${lineNumbers.join(',')}`);
 
+/**
+ * @throws {Error}
+ */
 const rejectCoveredLiterals = (allowlist: Allowlist): void => {
   const literalsAllowedEverywhere = readOwnValue(allowlist, EVERY_PATH) ?? [];
 

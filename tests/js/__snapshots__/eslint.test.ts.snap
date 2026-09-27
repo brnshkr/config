@@ -1871,7 +1871,32 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "never",
     ],
     "jsdoc/require-jsdoc": [
-      0,
+      2,
+      {
+        "checkAllFunctionExpressions": false,
+        "checkConstructors": true,
+        "checkGetters": true,
+        "checkSetters": true,
+        "contexts": [
+          "ArrowFunctionExpression:not([async=true]):has(ThrowStatement)",
+          "FunctionDeclaration:not([async=true]):has(ThrowStatement)",
+          "FunctionExpression:not([async=true]):has(ThrowStatement)",
+        ],
+        "enableFixer": true,
+        "exemptEmptyConstructors": false,
+        "exemptEmptyFunctions": false,
+        "exemptOverloadedImplementations": false,
+        "fixerMessage": "",
+        "require": {
+          "ArrowFunctionExpression": false,
+          "ClassDeclaration": false,
+          "ClassExpression": false,
+          "FunctionDeclaration": false,
+          "FunctionExpression": false,
+          "MethodDefinition": false,
+        },
+        "skipInterveningOverloadedDeclarations": true,
+      },
     ],
     "jsdoc/require-next-description": [
       0,

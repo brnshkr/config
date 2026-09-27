@@ -12,6 +12,9 @@ import { getTsEslintParserIfExists } from './typescript';
 
 import type { Config } from '../types/config';
 
+/**
+ * @throws {Error}
+ */
 const extractRelevantConfig = (configs: Config[], key: string): Config => {
   for (const config of configs) {
     if (config.name === `svelte:${key}` && config.rules) {

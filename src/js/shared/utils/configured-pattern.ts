@@ -38,6 +38,9 @@ const readPatternParts = (pattern: RegExp | string, bareSourceFlags?: PatternFla
     };
 };
 
+/**
+ * @throws {Error}
+ */
 const assertLinearBacktracking = ({ source, flags }: PatternParts): void => {
   const [regexpp, scslre] = resolvePackagesSharedSynchronously(<const>{
     name: 'patterns',

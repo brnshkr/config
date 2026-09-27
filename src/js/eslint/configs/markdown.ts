@@ -11,6 +11,9 @@ import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
 import type { Config } from '../types/config';
 import type { MarkdownOptions } from '../types/options';
 
+/**
+ * @throws {Error}
+ */
 const extractRelevantValues = <
   TIdentifier extends keyof TConfig,
   TConfig extends Config,

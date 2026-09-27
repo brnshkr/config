@@ -415,6 +415,9 @@ const resolveRelativeModulePath = (fromFilePath: string, specifier: string): May
   ].find((candidate) => doesFileExist(candidate));
 };
 
+/**
+ * @throws {Error}
+ */
 const toPattern = (entry: AllowScalar): Maybe<RegExp> => {
   try {
     return compileConfiguredPattern(entry);
@@ -427,6 +430,9 @@ const toPattern = (entry: AllowScalar): Maybe<RegExp> => {
   }
 };
 
+/**
+ * @throws {Error}
+ */
 const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatcher => {
   const prefixes: string[] = [];
   const patterns: RegExp[] = [];
@@ -463,6 +469,9 @@ const isMappedEntry = (entry: unknown): entry is Record<string, AllowScalar[]> =
   && !Array.isArray(entry)
   && !(entry instanceof RegExp);
 
+/**
+ * @throws {TypeError}
+ */
 const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
   const bare: AllowScalar[] = [];
   const bounded: BoundedAllowEntry[] = [];

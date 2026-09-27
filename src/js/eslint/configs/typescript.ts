@@ -53,6 +53,9 @@ const resolveTypeAwareOptions = (
   return typeAwareOptions;
 };
 
+/**
+ * @throws {Error}
+ */
 const extractRelevantRules = (configs: TsEslintConfigArray, key: string): NonNullable<Config['rules']> => {
   for (const config of configs) {
     if (config.name === `typescript-eslint/${key}` && config.rules) {

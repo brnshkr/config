@@ -21,6 +21,12 @@ const TAGS_BY_MODULE = <const>{
 
 const EXAMPLE_CODE_REGEX = '/```(?:js|javascript|ts|typescript)\\s*\\n([\\s\\S]*?)\\n\\s*```/gv';
 
+const THROWING_FUNCTION_CONTEXTS = <const>[
+  'ArrowFunctionExpression:not([async=true]):has(ThrowStatement)',
+  'FunctionDeclaration:not([async=true]):has(ThrowStatement)',
+  'FunctionExpression:not([async=true]):has(ThrowStatement)',
+] satisfies string[];
+
 export const TAG_SEQUENCE = [
   {
     tags: [
@@ -311,7 +317,13 @@ export const jsdoc = async (): Promise<Config[]> => {
           'jsdoc/require-param-description': 'off',
           'jsdoc/require-property-description': 'off',
           'jsdoc/require-returns-description': 'off',
-          'jsdoc/require-jsdoc': 'off',
+          'jsdoc/require-jsdoc': ['error', {
+            contexts: THROWING_FUNCTION_CONTEXTS,
+            require: {
+              // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+              FunctionDeclaration: false,
+            },
+          }],
           'jsdoc/require-template': 'error',
           'jsdoc/require-throws': 'error',
           'jsdoc/sort-tags': ['error', {

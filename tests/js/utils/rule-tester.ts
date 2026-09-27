@@ -96,6 +96,9 @@ export interface RuleTests {
   invalid: RuleTester.InvalidTestCase[];
 }
 
+/**
+ * @throws {Error}
+ */
 const getRuleName = (rule: RuleDefinition): string => {
   const name = objectEntries(RULE_DEFINITIONS).find(([, definition]) => definition === rule)?.[0];
 
