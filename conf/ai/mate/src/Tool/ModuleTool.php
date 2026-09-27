@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Mate\Tool;
 
+use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Mate\Support\Project;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Str;
@@ -65,7 +66,7 @@ final class ModuleTool
      */
     #[McpTool(
         name: 'project-module-config',
-        description: 'Prints the fully resolved configuration of a brnshkr/config module as JSON via the composer plugin command "brnshkr:config:print-module-config".',
+        description: 'Prints the fully resolved configuration of a module as JSON.',
     )]
     public function printModuleConfig(string $module): string
     {
@@ -82,6 +83,11 @@ final class ModuleTool
             ]);
         }
 
-        return Project::encode(Project::run(['php', 'scripts/composer.php', 'brnshkr:config:print-module-config', $resolvedModule->value]));
+        return Project::encode(Project::run([
+            'make',
+            'NO_ANSI=1',
+            'composer',
+            'ARGS=' . new PrintModuleConfigCommand()->getName() . ' ' . $resolvedModule->value,
+        ]));
     }
 }

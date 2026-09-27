@@ -895,6 +895,63 @@ final class MakefileTest extends TestCase
         self::assertStringNotContainsString('cOME', $result);
     }
 
+    public function testAnOptionWithAValueReachesTheTargetItFollows(): void
+    {
+        $result = $this->runMake(
+            ['--', '--shared=1', 'consumer-arguments', '--own=2', 'consumer-arguments-second', '--second=$HOME'],
+            directory: self::CONSUMER_DIRECTORY,
+        );
+
+        self::assertStringContainsString('consumer-arguments [\'--own=2\' \'--shared=1\']', $result);
+        self::assertStringContainsString('consumer-arguments-second [\'--second=', $result);
+        self::assertStringContainsString('\' \'--shared=1\'] [\'--second=', $result);
+        self::assertStringNotContainsString('--second=OME', $result);
+    }
+
+    public function testAnOptionWithAValueIsWeighedAsAnArgument(): void
+    {
+        $this->writeCaches(['first']);
+
+        $result = $this->runMake(['cc', '--', '--first=x'], directory: self::CACHES_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('No cache named first=x', $result);
+        self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/first');
+    }
+
+    public function testAFileArgumentRunsWithoutMakeReportingIt(): void
+    {
+        $result = $this->runMake(['consumer-arguments', '.', '../Consumer'], directory: self::CONSUMER_DIRECTORY);
+
+        self::assertStringContainsString('consumer-arguments [\'.\' \'../Consumer\']', $result);
+        self::assertStringNotContainsString('is up to date', $result);
+    }
+
+    public function testASubcommandTheArgumentsNameReplacesTheTargetsOwn(): void
+    {
+        $environment = ['PATH' => self::TOOLS_DIRECTORY . '/bin:' . (getenv('PATH') ?: '')];
+
+        $phpStan = $this->runMake(
+            ['-n', 'phpstan', '_COMMAND=', '--', 'clear-result-cache', '--level', '5', 'src', '--error-format=json'],
+            $environment,
+            self::TOOLS_DIRECTORY,
+        );
+
+        $rector = $this->runMake(
+            ['-n', 'rector', '_COMMAND=', '--', 'process', '--dry-run', '--output-format=json', 'src'],
+            $environment,
+            self::TOOLS_DIRECTORY,
+        );
+
+        $ownLevel = $this->runMake(['-n', 'phpstan', '--', '--level', '5'], $environment, self::TOOLS_DIRECTORY);
+
+        self::assertStringContainsString('\'clear-result-cache\' \'src\' \'--error-format=json\' --configuration', $phpStan);
+        self::assertStringNotContainsString('analyze', $phpStan);
+        self::assertStringContainsString('\'process\' \'--output-format=json\' \'src\' --config', $rector);
+        self::assertStringNotContainsString('rector process', $rector);
+        self::assertStringContainsString('--dry-run', $rector);
+        self::assertStringContainsString('phpstan analyze \'--level\' \'5\' --configuration', $ownLevel);
+    }
+
     public function testAScopeTakingAReservedNameIsRefused(): void
     {
         $result = $this->runMake(['help'], directory: self::RESERVED_DIRECTORY, doExpectFailure: true);
@@ -1006,6 +1063,16 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('APP_ENV=test', $output);
         self::assertStringContainsString('| LC_ALL=C sort', $output);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
+    }
+
+    #[Group('tty')]
+    public function testAConfirmationWhoseInputIsNoTerminalTakesTheDefault(): void
+    {
+        $this->writeCaches(['first']);
+
+        $this->runMakeOnATty(['cc', '</dev/null'], self::CACHES_DIRECTORY, "y\n");
+
+        self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/first');
     }
 
     public function testEverySourceAProjectPinsAFloorInReachesTheRun(): void

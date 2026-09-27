@@ -25,9 +25,9 @@ use function sprintf;
  */
 final class TestTool
 {
-    private const array SNAPSHOT_DIR_MAP = [
-        'php' => 'tests/php/__snapshots__',
-        'js'  => 'tests/js/__snapshots__',
+    private const array SNAPSHOT_PATHSPEC_MAP = [
+        'php' => ':(glob)tests/php/**/__snapshots__/*',
+        'js'  => ':(glob)tests/js/**/__snapshots__/*',
     ];
 
     /**
@@ -44,9 +44,9 @@ final class TestTool
     )]
     public function runTests(string $suite = 'php', string $filter = '', bool $doesUpdateSnapshots = false): string
     {
-        $snapshotDir = self::SNAPSHOT_DIR_MAP[$suite] ?? null;
+        $snapshotPathspec = self::SNAPSHOT_PATHSPEC_MAP[$suite] ?? null;
 
-        if ($snapshotDir === null) {
+        if ($snapshotPathspec === null) {
             return Project::encode([
                 'exitCode'         => 1,
                 'output'           => sprintf('Unknown suite "%s". Valid suites: "php", "js".', $suite),
@@ -58,7 +58,7 @@ final class TestTool
 
         return Project::encode([
             ...$result,
-            'changedSnapshots' => $this->getChangedSnapshots($snapshotDir),
+            'changedSnapshots' => $this->getChangedSnapshots($snapshotPathspec),
         ]);
     }
 
@@ -87,16 +87,16 @@ final class TestTool
     }
 
     /**
-     * @param non-empty-string $snapshotDir
+     * @param non-empty-string $snapshotPathspec
      *
      * @return list<string>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    private function getChangedSnapshots(string $snapshotDir): array
+    private function getChangedSnapshots(string $snapshotPathspec): array
     {
-        $status = Project::run(['git', 'status', '--porcelain', '--', $snapshotDir]);
+        $status = Project::run(['git', 'status', '--porcelain', '--untracked-files=all', '--', $snapshotPathspec]);
 
         return array_values(array_filter(
             array_map(

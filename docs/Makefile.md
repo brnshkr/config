@@ -65,10 +65,9 @@ and `-coverage` measures how much of the source the tests reach.
 Anything after a target reaches the tool, so `make phpstan src/Service` and `make composer require symfony/finder`
 both work. A word that is itself a target is run as one, which is why `make cc phpstan` runs both rather
 than clearing one cache. Several targets run in the order given and stop at the first failure, `make -k` runs the rest.
-Make claims two shapes for itself: `name=value` becomes a variable of its own,
-and anything starting with a dash becomes one of its own options.
-Write the value with a space, and put `--` in front of the flags: `make phpunit -- --filter Name`.
-A target of your own reads them as `ARGS`, one at a time as `ARG1` through `ARG9`,
+Make reads a word starting with a dash as one of its own options, so flags go behind `--`:
+`make phpunit -- --filter Name`, or `--filter=Name`. Any other `name=value` sets a variable, as `DEBUG=1` does.
+A target of your own reads its arguments as `ARGS`, one at a time as `ARG1` through `ARG9`,
 and `TARGET` names the target they followed. Each one is quoted, so `make phpunit -- --filter 'A|B'`
 reaches the tool rather than the shell. Make splits its command line on spaces before any of this runs,
 so an argument that contains one has to come in as `make phpunit ARGS="--filter 'a b'"`.

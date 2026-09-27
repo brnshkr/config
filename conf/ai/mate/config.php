@@ -10,19 +10,30 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->parameters()
         ->set('matesofmate_composer.custom_command', [
+            'make',
+            'NO_ANSI=1',
             'composer',
-            '--working-dir=.',
+            '--',
         ])
         ->set('matesofmate_phpstan.custom_command', [
-            './vendor/bin/phpstan',
-            '--configuration=./conf/phpstan.dist.php',
+            'make',
+            'NO_ANSI=1',
+            'phpstan',
+            '_COMMAND=',
+            '--',
         ])
         ->set('matesofmate_phpunit.custom_command', [
-            './vendor/bin/pest',
-            '--configuration=./conf/phpunit.xml',
+            'make',
+            'NO_ANSI=1',
+            'pest',
+            '--',
         ])
         ->set('matesofmate_rector.custom_command', [
-            './vendor/bin/rector',
+            'make',
+            'NO_ANSI=1',
+            'rector',
+            '_COMMAND=',
+            '--',
         ])
     ;
 };

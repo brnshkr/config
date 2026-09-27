@@ -23,7 +23,7 @@
 #     - Arguments before the first valid target are passed to ALL invoked targets
 #     - Arguments between two targets are passed only to the preceding target
 #     - Runs that contain no valid targets trigger the error defined in .DEFAULT target
-#     - Arguments shaped 'name=value' are taken by make itself, so an option's value is written with a space
+#     - Arguments shaped 'name=value' are taken by make itself, unless the name starts with a dash
 #     - Make claims a dash-prefixed word as its own option, so flags follow a '--' separator
 #
 #   Examples of what the above-mentioned looks like:
@@ -152,23 +152,39 @@ _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST)
 
 #---vvv tools
 
-SHELL  := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
-CP     ?= cp#~~ path to `cp` binary
+#---- shell
+
+SHELL := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
+PHP   ?= $(RUN) php#~~ command that runs `php`
+
+#---- files
+
 CAT    ?= cat#~~ path to `cat` binary
-RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
-MKDIR  ?= mkdir#~~ path to `mkdir` binary
-MV     ?= mv#~~ path to `mv` binary
-CMP    ?= cmp#~~ path to `cmp` binary
 CHMOD  ?= chmod#~~ path to `chmod` binary
+CMP    ?= cmp#~~ path to `cmp` binary
+CP     ?= cp#~~ path to `cp` binary
 LN     ?= ln#~~ path to `ln` binary
-PRINTF ?= printf#~~ path to `printf` binary
-AWK    ?= awk#~~ path to `awk` binary
-PHP    ?= $(RUN) php#~~ command that runs `php`
-TAR    ?= tar#~~ path to `tar` binary
-GIT    ?= git#~~ path to `git` binary
+MKDIR  ?= mkdir#~~ path to `mkdir` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
+MV     ?= mv#~~ path to `mv` binary
+RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
+TAR    ?= tar#~~ path to `tar` binary
+
+#---- text
+
+AWK    ?= awk#~~ path to `awk` binary
+PRINTF ?= printf#~~ path to `printf` binary
+TR     ?= tr#~~ path to `tr` binary
+
+#---- processes
+
+PS     ?= ps#~~ path to `ps` binary
 SCRIPT ?= script#~~ path to `script` binary
-CURL   ?= curl#~~ path to `curl` binary
+
+#---- sources
+
+CURL ?= curl#~~ path to `curl` binary
+GIT  ?= git#~~ path to `git` binary
 
 #---v settings
 
@@ -471,7 +487,7 @@ MODIFIER_REVERSE   := reverse
 _NAME_MASKS       := $(shell $(PRINTF) '\037 \036')
 _MASKED_SPACE     := $(word 1,$(_NAME_MASKS))
 _MASKED_NEWLINE   := $(word 2,$(_NAME_MASKS))
-_TRACKED_FILES    := $(shell $(GIT) ls-files -z 2>/dev/null | tr ' \n\000' '\037\036 ')
+_TRACKED_FILES    := $(shell $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
 _HADOLINT_FILES   := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
 _ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
@@ -652,10 +668,17 @@ ARG9    = $(word 9,$(ARGS))
 ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target was handed, quoted for the shell
 
 _GOAL       = $@
-_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(MAKECMDGOALS)))))
+_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS)))))
 _FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
 _IS_DRY_RUN = $(or $(filter %-dry-run,$(_GOAL)),$(call _is_dry_run,$(_ARGS)))
 _DEBUG_FLAG = $(if $(filter %-debug,$(_GOAL)),--debug)
+
+_OPTION_VARIABLES = $(strip $(foreach NAME,$(filter -%,$(.VARIABLES)),$(if $(filter command line,$(origin $(NAME))),$(NAME))))
+_MAKE_ARGV        = $(eval _MAKE_ARGV := $$(shell { $$(TR) '\000' ' ' </proc/$$$$PPID/cmdline || $$(PS) -ww -o args= -p $$$$PPID; } 2>/dev/null))$(_MAKE_ARGV)
+
+_GOAL_WORDS = $(if $(and $(_OPTION_VARIABLES),$(_MAKE_ARGV)),$(foreach WORD,$(_MAKE_ARGV),$(if $(or \
+	$(filter $(WORD),$(MAKECMDGOALS)), \
+	$(filter $(_OPTION_VARIABLES),$(firstword $(subst =, ,$(WORD))))),$(WORD))),$(MAKECMDGOALS))
 
 #**
 #* The goal a name reaches, empty where it names nothing.
@@ -1331,13 +1354,17 @@ PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` 
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
 PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
+_PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
+
 _ANALYZER_NAMES  += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
 _GROUP_NAMES     += $(call _when_tracked,phpstan,$(PHP_EXTENSIONS))
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,phpstan): #~~ runs `phpstan analyze`
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) $(_COMMAND) $(_PHP_STAN_ARGS) --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG))
+
+$(call _target,phpstan): _COMMAND = analyze
 
 $(call _target,phpstan-debug): $(call _target,phpstan) #~~ runs `phpstan analyze` in debug mode #vvv
 $(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
@@ -1408,7 +1435,9 @@ _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$
 
 $(call _target,rector): #~~ runs `rector process`
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_DEBUG_FLAG) $(_FIXER_ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) $(_COMMAND) $(_FIXER_ARGS) --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_DEBUG_FLAG))
+
+$(call _target,rector): _COMMAND = process
 
 $(call _target,rector-debug): $(call _target,rector) #~~ runs `rector process` in debug mode #vvv
 $(call _target,rector-debug): _GOAL := $(call _target,rector-debug)
@@ -2253,6 +2282,13 @@ $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
 	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
 	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
 
+_FILE_GOALS := $(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS)))
+
+ifneq ($(_FILE_GOALS),)
+.PHONY: $(_FILE_GOALS)
+$(_FILE_GOALS): ; @:
+endif
+
 .DEFAULT:
 ifeq ($(TARGET),) # unknown
 	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
@@ -2453,6 +2489,21 @@ endef
 #*
 define _without_dry_run
 $(filter-out --dry-run,$1)
+endef
+
+#**
+#* The given words without an option, in its `--name value` and its `--name=value` form.
+#*
+#* parameters:
+#*   option: string
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _without_option
+$(eval _IS_OPTION_VALUE_NEXT :=)$(strip $(foreach WORD,$2,$(if \
+	$(_IS_OPTION_VALUE_NEXT),$(eval _IS_OPTION_VALUE_NEXT :=),$(if \
+	$(filter $1,$(WORD)),$(eval _IS_OPTION_VALUE_NEXT := 1),$(filter-out $1=%,$(WORD))))))
 endef
 
 #**
@@ -2954,7 +3005,7 @@ endef
 
 #**
 #* Asks a yes/no question before something destructive happens.
-#* It answers itself where nobody can: under `CI`, or without a terminal to ask at, it answers the default.
+#* It answers itself where nobody can: under `CI`, or where its input is no terminal, it answers the default.
 #* It succeeds on yes, so the caller reads it as a condition and says what it skipped.
 #*
 #* parameters:
@@ -2965,7 +3016,7 @@ endef
 #*
 define confirm
 { \
-	if [ -n "$(_IS_CI)" ] || ! ( : < /dev/tty ) 2>/dev/null; then \
+	if [ -n "$(_IS_CI)" ] || [ ! -t 0 ] || ! ( : < /dev/tty ) 2>/dev/null; then \
 		$(if $(filter yes,$2),true,false); \
 	else \
 		$(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
