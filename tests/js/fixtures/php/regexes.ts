@@ -248,5 +248,35 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/^\/composer\.json\s+-export-ignore$/m`,
     regex: /^\/composer\.json\s+-export-ignore$/mv,
   },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^Exported:$/m`,
+    regex: /^Exported:$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/m`,
+    regex: /^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\s+\.\/\.env\n\s+DOTENV_FIXTURE_PLAIN\s+one\s+\(replaced by the environment\)$/m`,
+    regex: /^\s+\.\/\.env\n\s+DOTENV_FIXTURE_PLAIN\s+one\s+\(replaced by the environment\)$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\s+DOTENV_FIXTURE_LAYER\s+base\s+\(replaced by \.\/\.env\.dev\.local\)$/m`,
+    regex: /^\s+DOTENV_FIXTURE_LAYER\s+base\s+\(replaced by \.\/\.env\.dev\.local\)$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\s+\.\/\.env\.dev\.local\n\s+DOTENV_FIXTURE_LAYER\s+dev-local$/m`,
+    regex: /^\s+\.\/\.env\.dev\.local\n\s+DOTENV_FIXTURE_LAYER\s+dev-local$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/m`,
+    regex: /^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/mv,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

@@ -99,6 +99,12 @@
 #     make help resolve
 #     make help r
 #
+#   Printing what the Makefiles export, then what each environment file set:
+#     make help env
+#     make help e
+#     make help -- --env
+#     make help env vvv  —  private exports as well
+#
 #   Header overrides (LOGO, PACKAGE, VERSION, EDITOR):
 #     <VAR> = <unset>  —  fall back to the default (built-in logo, auto-detected editor)
 #     <VAR> = <value>  —  use the given value (EDITOR rejects values outside the supported list)
@@ -119,11 +125,12 @@ _ARG_WORDS = $(patsubst -%,%,$(patsubst --%,%,$(_ARGS)))
 
 _HELP_VERBOSITY_ARGS       = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
 _HELP_VERBOSITY            = $(words $(subst v,v ,$(lastword $(sort $(_HELP_VERBOSITY_ARGS)))))
-_HELP_WORDS               := list-scopes ls resolve r
+_HELP_WORDS               := list-scopes ls resolve r env e
 _HELP_RESERVED_ARGS        = $(_HELP_WORDS) $(_HELP_VERBOSITY_ARGS)
 _HELP_SCOPES               = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(_ARG_WORDS)))
 _HAS_LIST_SCOPES_ARGUMENT  = $(if $(filter list-scopes ls,$(_ARG_WORDS)),1)
 _HAS_RESOLVE_ARGUMENT      = $(if $(filter resolve r,$(_ARG_WORDS)),1)
+_HAS_ENV_ARGUMENT          = $(if $(filter env e,$(_ARG_WORDS)),1)
 
 _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
@@ -844,11 +851,17 @@ define _CONDITION_VARIABLES_AWK
 }
 endef
 
+_HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
+	_HIDDEN_NAMES="_HELP_AWK _DOTENV_REPORT_AWK OLDPWD PWD SHLVL $(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter environment,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
+	_COMMAND_LINE_NAMES="$(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
+	_DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
+
 _RESOLVED_VARIABLES  = $(filter-out %_AWK %_SOURCE _CHANGELOG_% _SUGGESTED_% _TRACKED_FILES,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
 $(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
-	$(TRACE_PREFIX)$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
+	$(TRACE_PREFIX)$(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
+		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
 		_CURDIR="$(abspath $(CURDIR))" \
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
@@ -858,6 +871,7 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		_HAS_LIST_SCOPES_ARGUMENT="$(_HAS_LIST_SCOPES_ARGUMENT)" \
 		_HAS_RESOLVE_ARGUMENT="$(_HAS_RESOLVE_ARGUMENT)" \
+		_HAS_ENV_ARGUMENT="$(_HAS_ENV_ARGUMENT)" \
 		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
 		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
@@ -1108,9 +1122,10 @@ function interpolate(value,    out, name, start, stop) {
 	}
 	return out value
 }
-function load(path,    line, key, value, quote, continued) {
+function load(path,    line, key, value, quote, continued, line_number, key_line_number) {
 	if ((getline line < path) < 0) return 0
 	do {
+		key_line_number = ++line_number
 		sub(/\r$$/, "", line)
 		if (line ~ /^[ \t]*($$|#)/) continue
 		sub(/^[ \t]*export[ \t]+/, "", line)
@@ -1123,6 +1138,7 @@ function load(path,    line, key, value, quote, continued) {
 		if (quote == "\"" || quote == SQ) {
 			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
 				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`")
+				line_number += 1
 				sub(/\r$$/, "", continued)
 				value = value "\n" continued
 			}
@@ -1135,6 +1151,7 @@ function load(path,    line, key, value, quote, continued) {
 		if (quote != SQ) value = interpolate(value)
 		if (!(key in values)) order[++count] = key
 		values[key] = value
+		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_value[record_count] = value; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
 	} while ((getline line < path) > 0)
 	close(path)
 	return 1
@@ -1148,6 +1165,15 @@ BEGIN {
 	for (i in tests) if (tests[i] == env) is_test = 1
 	if (!is_test) { load(_BASE ".local"); env = environment(env) }
 	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
+	if (_REPORT) {
+		for (record_index = 1; record_index <= record_count; record_index += 1) {
+			key = record_key[record_index]
+			value = record_value[record_index]
+			gsub(/\n/, " ", value)
+			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], key, value, (key in ENVIRON) ? "environment" : (last_record_of_key[key] != record_index) ? record_file[last_record_of_key[key]] : "", record_line[record_index]
+		}
+		exit
+	}
 	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
 	values[_ENV_KEY] = env
 	for (i = 1; i <= count; i += 1) {
@@ -1166,17 +1192,17 @@ BEGIN {
 }
 endef
 
-_DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell \
-	$(AWK) \
-		-v _BASE='$(_DOTENV_BASE)' \
-		-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
-		-v _ENV_VALUE='$($(DOTENV_ENV_KEY))' \
-		-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
-		-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
-		-v _PREFIX='$(_LABEL)' \
-		-v _SEPARATOR='$(_DOTENV_SEPARATOR)' \
-		'$(_DOTENV_AWK)' \
-))
+_DOTENV_ENV_VALUE := $($(DOTENV_ENV_KEY))
+
+_DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
+	-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
+	-v _ENV_VALUE='$(_DOTENV_ENV_VALUE)' \
+	-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
+	-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
+	-v _PREFIX='$(_LABEL)' \
+	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
+
+_DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell $(AWK) $(_DOTENV_AWK_FLAGS) '$(_DOTENV_AWK)'))
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 
@@ -4118,6 +4144,14 @@ function render_url(template, file, line) {
 	gsub(/\{line\}/, line, template)
 	return template
 }
+function render_link(text, path, line_number,    url) {
+	if (index(path, ENVIRON["_APP_DIR"] "/") == 1) path = substr(path, length(ENVIRON["_APP_DIR"]) + 2)
+	if (index(path, ENVIRON["_CURDIR"] "/") == 1) path = substr(path, length(ENVIRON["_CURDIR"]) + 2)
+	url = (path != "" ? render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], path, line_number) : "")
+	if (url == "" || ENVIRON["_IS_NO_ANSI"]) return text
+	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
+}
+function named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
 function line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
@@ -4366,18 +4400,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			else if (section == "commands") text = render_inline_code(text)
 			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text) }
 			else if (section == "description") text = render_inline_code(text)
-			file = section_file[scope_path, section, idx]
-			line = section_line[scope_path, section, idx]
-			if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
-			if (index(file, ENVIRON["_CURDIR"] "/") == 1) file = substr(file, length(ENVIRON["_CURDIR"]) + 2)
-			url = (file != "" ? render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], file, line) : "")
-			hyperlink = ""
-			hyperlink_end = ""
-			if (url != "" && !ENVIRON["_IS_NO_ANSI"]) {
-				hyperlink = "\033]8;;" url "\033\\"
-				hyperlink_end = "\033]8;;\033\\"
-			}
-			entry_linked = hyperlink entry hyperlink_end
+			entry_linked = render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
 			entry_pad = width - length(entry)
 			if (entry_pad < 0) entry_pad = 0
 			entry_padded = entry_linked repeat(" ", entry_pad)
@@ -4418,6 +4441,63 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 		walk(children[scope_path, idx], depth + 1, section, column)
 	}
 }
+function print_header(    logo, logo_reset) {
+	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
+	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
+	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset
+	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"]
+	printf "%s\n", ENVIRON["_HEADER_USAGE"]
+}
+function render_environment_value(value) { gsub(/\n/, " ", value); return truncate(value, ENVIRON["VALUE_WIDTH"] + 0) }
+function print_environment_row(name, path, line_number, value, replacement_note,    indentation, linked_name) {
+	indentation = repeat(" ", 2 * ENVIRON["INDENT"])
+	linked_name = render_link(name, path, line_number) repeat(" ", environment_name_width - length(name))
+	if (replacement_note == "") printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", indentation, linked_name, value
+	else printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s  (%s),$(COLOR_DESCRIPTION))\n", indentation, linked_name, value repeat(" ", environment_value_width - display_width(value)), render_inline_code(replacement_note)
+}
+function print_environment(    listed_names, name_index, exported_name, exported_names, exported_name_count, sort_index, compare_index, held_name, record_fields, record_index, record_path, previous_record_path, replacement_note) {
+	split(ENVIRON["_HIDDEN_NAMES"], listed_names, /[[:space:]]+/)
+	for (name_index in listed_names) if (listed_names[name_index] != "") is_hidden_name[listed_names[name_index]] = 1
+	split(ENVIRON["_COMMAND_LINE_NAMES"], listed_names, /[[:space:]]+/)
+	for (name_index in listed_names) if (listed_names[name_index] != "") is_command_line_name[listed_names[name_index]] = 1
+	dotenv_record_count = split(ENVIRON["_DOTENV_REPORT"], dotenv_records, "\n")
+	for (record_index = 1; record_index <= dotenv_record_count; record_index += 1) {
+		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
+		is_dotenv_name[record_fields[2]] = 1
+		if (length(record_fields[2]) > environment_name_width) environment_name_width = length(record_fields[2])
+		if (display_width(render_environment_value(record_fields[3])) > environment_value_width) environment_value_width = display_width(render_environment_value(record_fields[3]))
+	}
+	split(ENVIRON["_EXPORTED_NAMES"], listed_names, /[[:space:]]+/)
+	for (name_index in listed_names) {
+		exported_name = listed_names[name_index]
+		if (exported_name == "" || exported_name in is_hidden_name || exported_name in is_dotenv_name || !(exported_name in ENVIRON)) continue
+		if (verbosity < 3 && (exported_name ~ /^_/ || exported_name == "MAKEFLAGS" || exported_name == "SHELL")) continue
+		exported_names[++exported_name_count] = exported_name
+		if (length(exported_name) > environment_name_width) environment_name_width = length(exported_name)
+	}
+	for (sort_index = 2; sort_index <= exported_name_count; sort_index += 1) {
+		held_name = exported_names[sort_index]; compare_index = sort_index - 1
+		while (compare_index >= 1 && exported_names[compare_index] > held_name) { exported_names[compare_index + 1] = exported_names[compare_index]; compare_index -= 1 }
+		exported_names[compare_index + 1] = held_name
+	}
+	if (exported_name_count > 0) printf "\n$(call text,Exported:,$(COLOR_SECTION_LABEL))\n"
+	for (name_index = 1; name_index <= exported_name_count; name_index += 1) {
+		exported_name = exported_names[name_index]
+		print_environment_row(exported_name, variable_definition_file[exported_name], variable_definition_line[exported_name], render_environment_value(ENVIRON[exported_name]), "")
+	}
+	for (record_index = 1; record_index <= dotenv_record_count; record_index += 1) {
+		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
+		record_path = named_path(record_fields[1])
+		if (previous_record_path == "") printf "\n$(call text,Environment files:,$(COLOR_SECTION_LABEL))\n"
+		if (record_path != previous_record_path) printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", ENVIRON["INDENT"]), record_path
+		previous_record_path = record_path
+		replacement_note = ""
+		if (record_fields[2] in is_command_line_name) replacement_note = "replaced by the command line"
+		else if (record_fields[4] == "environment") replacement_note = "replaced by the environment"
+		else if (record_fields[4] != "") replacement_note = "replaced by `" named_path(record_fields[4]) "`"
+		print_environment_row(record_fields[2], record_fields[1], record_fields[5], render_environment_value(record_fields[3]), replacement_note)
+	}
+}
 function print_section(has_previous, section, label, column,    top_idx, top_path, found, needs_separator) {
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx]
@@ -4446,6 +4526,13 @@ is_in_documentation {
 }
 /^define[[:space:]]+/ { handle_define(""); is_in_define = 1; next }
 /^#!!/ { sub(/^#!![ ]*/, ""); add("description", "", strip_verbosity($$0), "", "", FNR); next }
+/^export[ \t]+[A-Za-z0-9_]+[ \t]*[?:+!]*=/ {
+	match($$0, /^export[ \t]+/)
+	exported_variable_name = substr($$0, RLENGTH + 1)
+	sub(/[ \t?:+!=].*/, "", exported_variable_name)
+	if (!(exported_variable_name in variable_definition_file)) { variable_definition_file[exported_variable_name] = FILENAME; variable_definition_line[exported_variable_name] = FNR }
+	next
+}
 /^[A-Za-z0-9_]+[ \t]*[?:+!]*=/ {
 	line_number = FNR
 	var_source = $$0
@@ -4461,6 +4548,7 @@ is_in_documentation {
 	match(var_rest, /^[ \t]*[?:+!]*=/)
 	var_operator = substr(var_rest, RSTART, RLENGTH)
 	gsub(/[ \t]/, "", var_operator)
+	if (!(var_name in variable_definition_file)) { variable_definition_file[var_name] = FILENAME; variable_definition_line[var_name] = line_number }
 	if (var_name !~ /^_/) {
 		raw = substr(var_source, index(var_source, "=") + 1)
 		while (raw ~ /\\[ \t]*$$/) {
@@ -4566,12 +4654,9 @@ END {
 		}
 		exit 0
 	}
+	if (ENVIRON["_HAS_ENV_ARGUMENT"] != "") { print_header(); print_environment(); exit 0 }
 	if (ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "") add_dotenv_variables()
-	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
-	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
-	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset
-	if (length(trim(ENVIRON["_HEADER_TITLE"])) > 0) printf "%s\n\n", ENVIRON["_HEADER_TITLE"]
-	printf "%s\n", ENVIRON["_HEADER_USAGE"]
+	print_header()
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx]
 		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
@@ -4598,4 +4683,5 @@ $(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRA
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) local l force f
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
+$(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

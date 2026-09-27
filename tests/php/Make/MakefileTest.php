@@ -19,11 +19,13 @@ use Symfony\Component\Process\Process;
 
 use function array_diff;
 use function array_first;
+use function array_map;
 use function array_unique;
 use function array_values;
 use function basename;
 use function count;
 use function dirname;
+use function explode;
 use function getenv;
 use function implode;
 use function mb_substr_count;
@@ -1063,6 +1065,44 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('APP_ENV=test', $output);
         self::assertStringContainsString('| LC_ALL=C sort', $output);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $output);
+    }
+
+    public function testEnvListsTheExportsThenWhatEachEnvironmentFileSet(): void
+    {
+        $outputOfEachForm = array_map(
+            fn (array $args): string => $this->runMake(
+                ['help', ...$args],
+                ['DOTENV_FIXTURE_PLAIN' => 'from the environment'],
+                self::DOTENV_DIRECTORY,
+            ),
+            [['env'], ['e'], ['--', '-e'], ['--', '--env']],
+        );
+
+        $plainOutput                 = $outputOfEachForm[0];
+        $outputWithPrivateExports    = $this->runMake(['help', 'env', 'vvv'], directory: self::DOTENV_DIRECTORY);
+        $outputWithACommandLineValue = $this->runMake(['help', 'env', 'DOTENV_FIXTURE_LATER=typed'], directory: self::DOTENV_DIRECTORY);
+
+        $outputWithEditorLinks = $this->runMake(
+            ['help', 'env'],
+            ['NO_ANSI' => '', 'EDITOR' => 'vscode', 'EDITOR_URL' => 'acme://open/{file}#{line}'],
+            self::DOTENV_DIRECTORY,
+        );
+
+        [$exportedSection, $environmentFileSection] = explode('Environment files:', $plainOutput, 2) + ['', ''];
+
+        self::assertCount(1, array_unique($outputOfEachForm));
+        self::assertMatchesRegularExpression('/^Exported:$/m', $exportedSection);
+        self::assertMatchesRegularExpression('/^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/m', $exportedSection);
+        self::assertStringNotContainsString('DOTENV_FIXTURE_', $exportedSection);
+        self::assertStringNotContainsString('PWD', $exportedSection);
+        self::assertStringNotContainsString('_HAS_DOCKER', $plainOutput);
+        self::assertStringContainsString('_HAS_DOCKER', $outputWithPrivateExports);
+        self::assertMatchesRegularExpression('/^\s+\.\/\.env\n\s+DOTENV_FIXTURE_PLAIN\s+one\s+\(replaced by the environment\)$/m', $environmentFileSection);
+        self::assertMatchesRegularExpression('/^\s+DOTENV_FIXTURE_LAYER\s+base\s+\(replaced by \.\/\.env\.dev\.local\)$/m', $environmentFileSection);
+        self::assertMatchesRegularExpression('/^\s+\.\/\.env\.dev\.local\n\s+DOTENV_FIXTURE_LAYER\s+dev-local$/m', $environmentFileSection);
+        self::assertMatchesRegularExpression('/^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/m', $outputWithACommandLineValue);
+        self::assertStringContainsString("acme://open/Makefile#13\e\\FIXTURE_MAKEFILE_EXPORT", $outputWithEditorLinks);
+        self::assertStringContainsString("acme://open/.env#4\e\\DOTENV_FIXTURE_PLAIN", $outputWithEditorLinks);
     }
 
     #[Group('tty')]

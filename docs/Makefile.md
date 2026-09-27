@@ -27,7 +27,8 @@ a `package.json`, and each tool's own appear once that tool is installed and the
 Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help brnshkr.phpstan`
 — a bare `phpstan` is a target, and naming one runs it.
 `make help ls` lists the scopes with something to show at that verbosity,
-and `make help resolve` prints what each variable expands to.
+`make help resolve` prints what each variable expands to,
+and `make help env` what the Makefiles export, then what each environment file set and what replaced it.
 Across both stacks:
 
 | Target | Description |
