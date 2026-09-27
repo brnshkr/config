@@ -25,7 +25,7 @@ import {
 import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '../utils/module';
 import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
 
-import { DEFAULT_TYPE_AWARE_IGNORES } from './typescript';
+import { getTypeAwareIgnores } from './typescript';
 import { FILE_NAMES_TO_IGNORE } from './unicorn';
 
 import type { Config } from '../types/config';
@@ -113,23 +113,38 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
   ]
   : [];
 
-const buildTypeAwareImportOverrides = (
-  typescriptOptions?: boolean | Partial<TypescriptOptions>,
-): Config[] => {
-  const resolvedOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
+const isTypeAware = (typescriptOptions?: Partial<TypescriptOptions>): boolean => isModuleEnabled(MODULES.typescript)
+  && (typescriptOptions?.typeAware ?? doesTsConfigExist(resolveTsConfigPath(typescriptOptions))) !== false;
 
-  const hasTypeAwareLinting = isModuleEnabled(MODULES.import)
-    && isModuleEnabled(MODULES.typescript)
-    && (resolvedOptions?.typeAware ?? doesTsConfigExist(resolveTsConfigPath(resolvedOptions))) !== false;
-
-  return hasTypeAwareLinting
+const buildTypeAwareImportOverrides = (typescriptOptions?: Partial<TypescriptOptions>): Config[] => (
+  (isModuleEnabled(MODULES.import) && isTypeAware(typescriptOptions))
     ? [
       {
         name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/type-aware`),
         files: [GLOB_TS],
-        ignores: DEFAULT_TYPE_AWARE_IGNORES,
+        ignores: getTypeAwareIgnores(typescriptOptions),
         rules: {
           'import/no-deprecated': 'off',
+        },
+      },
+    ]
+    : []
+);
+
+const buildTypeUnawareJsdocOverrides = (typescriptOptions?: Partial<TypescriptOptions>): Config[] => {
+  if (!isModuleEnabled(MODULES.jsdoc)) {
+    return [];
+  }
+
+  const typeUnawareFiles = isTypeAware(typescriptOptions) ? getTypeAwareIgnores(typescriptOptions) : GLOB_SCRIPT_FILES;
+
+  return typeUnawareFiles.length > 0
+    ? [
+      {
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/type-unaware`),
+        files: typeUnawareFiles,
+        rules: {
+          'jsdoc/no-unnecessary-type-assertion': 'off',
         },
       },
     ]
@@ -312,31 +327,36 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
   ]
   : [];
 
-export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => [
-  ...jsOverrides,
-  ...tsOverrides,
-  ...buildTypeAwareImportOverrides(typescriptOptions),
-  ...testOverrides,
-  ...unicornOverrides,
-  ...securityOverrides,
-  ...jsdocOverrides,
-  ...svelteOverrides,
-  ...tomlOverrides,
-  ...yamlOverrides,
-  {
-    name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${SUB_SCOPES.DEVELOPMENT}/general`),
-    files: GLOB_DEVELOPMENT_FILES,
-    rules: {
-      'max-lines': 'off',
-      'max-lines-per-function': 'off',
-      'no-irregular-whitespace': 'off',
-      'no-restricted-exports': 'off',
-      'import/max-dependencies': 'off',
-      'import/no-default-export': 'off',
-      'import/no-rename-default': 'off',
-      'import/no-named-as-default-member': 'off',
-      'node/no-sync': 'off',
-      'unicorn/no-barrel-files': 'off',
+export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
+  const resolvedTypescriptOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
+
+  return [
+    ...jsOverrides,
+    ...tsOverrides,
+    ...buildTypeAwareImportOverrides(resolvedTypescriptOptions),
+    ...buildTypeUnawareJsdocOverrides(resolvedTypescriptOptions),
+    ...testOverrides,
+    ...unicornOverrides,
+    ...securityOverrides,
+    ...jsdocOverrides,
+    ...svelteOverrides,
+    ...tomlOverrides,
+    ...yamlOverrides,
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${SUB_SCOPES.DEVELOPMENT}/general`),
+      files: GLOB_DEVELOPMENT_FILES,
+      rules: {
+        'max-lines': 'off',
+        'max-lines-per-function': 'off',
+        'no-irregular-whitespace': 'off',
+        'no-restricted-exports': 'off',
+        'import/max-dependencies': 'off',
+        'import/no-default-export': 'off',
+        'import/no-rename-default': 'off',
+        'import/no-named-as-default-member': 'off',
+        'node/no-sync': 'off',
+        'unicorn/no-barrel-files': 'off',
+      },
     },
-  },
-];
+  ];
+};

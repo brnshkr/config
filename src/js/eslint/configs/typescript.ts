@@ -14,9 +14,14 @@ import type { Maybe } from '../../shared/types/core';
 import type { Config, TsEslintConfigArray, TsEslintParser } from '../types/config';
 import type { TypeAwareOptions, TypescriptOptions } from '../types/options';
 
-export const DEFAULT_TYPE_AWARE_IGNORES = [
+const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,
 ];
+
+export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [...new Set([
+  ...typeof options?.typeAware === 'object' ? (options.typeAware.ignores ?? []) : DEFAULT_TYPE_AWARE_IGNORES,
+  ...options?.ignores ?? [],
+])];
 
 export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>> => {
   if (!isModuleEnabled(MODULES.typescript)) {
@@ -33,19 +38,17 @@ export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>
 const resolveTypeAwareOptions = (
   resolvedOptions: TypescriptOptions,
   files: NonNullable<TypeAwareOptions['files']>,
-  ignoredGlobs: NonNullable<TypeAwareOptions['ignores']>,
 ): TypeAwareOptions => {
   const typeAwareOptions: TypeAwareOptions = typeof resolvedOptions.typeAware === 'object'
     ? resolvedOptions.typeAware
     : {
-      ignores: DEFAULT_TYPE_AWARE_IGNORES,
       tsconfig: typeof resolvedOptions.typeAware === 'string'
         ? resolvedOptions.typeAware
         : undefined,
     };
 
   typeAwareOptions.files = [...new Set([...(typeAwareOptions.files ?? []), ...files])];
-  typeAwareOptions.ignores = [...new Set([...(typeAwareOptions.ignores ?? []), ...ignoredGlobs])];
+  typeAwareOptions.ignores = getTypeAwareIgnores(resolvedOptions);
 
   return typeAwareOptions;
 };
@@ -158,7 +161,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
   const hasEnabledTypeAwareness = resolvedOptions.typeAware !== false;
 
   const typeAwareOptions = hasEnabledTypeAwareness
-    ? resolveTypeAwareOptions(resolvedOptions, files, ignoredGlobs)
+    ? resolveTypeAwareOptions(resolvedOptions, files)
     : {};
 
   const createParserConfig = (isTypeAware: boolean): Config => ({

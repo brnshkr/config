@@ -6385,6 +6385,9 @@ exports[`expected eslint config > config-groups 1`] = `
     "8.d.mts",
     "9.d.cts",
   ],
+  "README.md/0_0.mjs": [
+    "README.md/0_0.mjs",
+  ],
   "__mocks__/a.ts": [
     "__mocks__/a.ts",
     "a.config.ts",
@@ -6398,6 +6401,14 @@ exports[`expected eslint config > config-groups 1`] = `
     "29.spec.ts",
     "30.bench.ts",
     "31.benchmark.ts",
+  ],
+  "a.ts/0_a.md/*.js": [
+    "a.ts/0_a.md/*.js",
+  ],
+  "a.ts/1_dummy.jsdoc-defaults.md/*.js": [
+    "a.ts/1_dummy.jsdoc-defaults.md/*.js",
+    "a.ts/2_dummy.jsdoc-params.md/*.js",
+    "a.ts/3_dummy.jsdoc-properties.md/*.js",
   ],
   "classes/a.d.ts": [
     "classes/a.d.ts",
@@ -20236,6 +20247,1130 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
       ],
     },
     "removedKeys": [
+      "no-new-symbol",
+      "ts/explicit-function-return-type",
+      "ts/explicit-member-accessibility",
+    ],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: README.md/0_0.mjs 1`] = `
+{
+  "languageOptions": {
+    "addedValues": {},
+    "changedValues": {
+      "parserOptions": {
+        "ecmaFeatures": {
+          "impliedStrict": true,
+          "jsx": true,
+        },
+        "ecmaVersion": "latest",
+        "extraFileExtensions": {},
+        "sourceType": "module",
+      },
+    },
+    "removedKeys": [],
+  },
+  "rules": {
+    "addedValues": {
+      "eol-last": [
+        0,
+      ],
+      "padded-blocks": [
+        0,
+      ],
+    },
+    "changedValues": {
+      "consistent-return": [
+        2,
+        {
+          "treatUndefinedAsUnspecified": false,
+        },
+      ],
+      "constructor-super": [
+        2,
+      ],
+      "dot-notation": [
+        2,
+        {
+          "allowKeywords": true,
+          "allowPattern": "",
+        },
+      ],
+      "getter-return": [
+        2,
+        {
+          "allowImplicit": false,
+        },
+      ],
+      "import/default": [
+        2,
+      ],
+      "import/max-dependencies": [
+        2,
+        {
+          "max": 15,
+        },
+      ],
+      "import/named": [
+        2,
+      ],
+      "import/no-deprecated": [
+        2,
+      ],
+      "import/no-extraneous-dependencies": [
+        0,
+        {
+          "devDependencies": [
+            "**/*.config.?(c|m)[jt]s",
+            "**/__mocks__/**",
+            "**/{conf,tests}/**",
+            "**/types/declarations/reset.d.ts",
+          ],
+          "includeTypes": true,
+        },
+      ],
+      "import/no-named-as-default-member": [
+        2,
+      ],
+      "import/no-rename-default": [
+        2,
+      ],
+      "import/no-unresolved": [
+        2,
+        {
+          "caseSensitive": true,
+          "caseSensitiveStrict": true,
+          "commonjs": true,
+        },
+      ],
+      "import/unambiguous": [
+        0,
+      ],
+      "jsdoc/check-tag-names": [
+        2,
+        {
+          "definedTags": [
+            "api",
+            "vitest-environment",
+            "vitest-environment-options",
+          ],
+        },
+      ],
+      "jsdoc/no-types": [
+        0,
+      ],
+      "jsdoc/no-undefined-types": [
+        2,
+      ],
+      "jsdoc/no-unnecessary-type-assertion": [
+        0,
+        {
+          "preferConstToLiteralTuples": true,
+        },
+      ],
+      "jsdoc/require-param": [
+        2,
+      ],
+      "jsdoc/require-param-type": [
+        2,
+      ],
+      "jsdoc/require-property-type": [
+        2,
+      ],
+      "jsdoc/require-returns": [
+        2,
+      ],
+      "jsdoc/require-returns-type": [
+        2,
+      ],
+      "max-lines": [
+        2,
+        {
+          "max": 300,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "max-lines-per-function": [
+        2,
+        {
+          "IIFEs": true,
+          "max": 50,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "no-alert": [
+        0,
+      ],
+      "no-class-assign": [
+        2,
+      ],
+      "no-console": [
+        0,
+        {},
+      ],
+      "no-const-assign": [
+        2,
+      ],
+      "no-dupe-args": [
+        2,
+      ],
+      "no-dupe-class-members": [
+        2,
+      ],
+      "no-dupe-keys": [
+        2,
+      ],
+      "no-func-assign": [
+        2,
+      ],
+      "no-implied-eval": [
+        2,
+      ],
+      "no-import-assign": [
+        2,
+      ],
+      "no-inline-comments": [
+        0,
+        {},
+      ],
+      "no-irregular-whitespace": [
+        2,
+        {
+          "skipComments": false,
+          "skipJSXText": false,
+          "skipRegExps": false,
+          "skipStrings": false,
+          "skipTemplates": false,
+        },
+      ],
+      "no-magic-numbers": [
+        0,
+        {
+          "detectObjects": false,
+          "enforceConst": true,
+          "ignore": [
+            -1,
+            0,
+            1,
+            100,
+            42069,
+          ],
+          "ignoreArrayIndexes": false,
+          "ignoreClassFieldInitialValues": false,
+          "ignoreDefaultValues": false,
+          "ignoreEnums": false,
+          "ignoreNumericLiteralTypes": false,
+          "ignoreReadonlyClassProperties": false,
+          "ignoreTypeIndexes": false,
+        },
+      ],
+      "no-new-native-nonconstructor": [
+        2,
+      ],
+      "no-obj-calls": [
+        2,
+      ],
+      "no-restricted-exports": [
+        2,
+        {
+          "restrictedNamedExports": [
+            "default",
+          ],
+        },
+      ],
+      "no-setter-return": [
+        2,
+      ],
+      "no-this-before-super": [
+        2,
+      ],
+      "no-throw-literal": [
+        2,
+      ],
+      "no-unreachable": [
+        2,
+      ],
+      "no-unsafe-negation": [
+        2,
+        {
+          "enforceForOrderingRelations": true,
+        },
+      ],
+      "no-with": [
+        2,
+      ],
+      "node/no-sync": [
+        2,
+      ],
+      "prefer-destructuring": [
+        2,
+      ],
+      "prefer-promise-reject-errors": [
+        2,
+        {
+          "allowEmptyReject": false,
+        },
+      ],
+      "require-await": [
+        2,
+      ],
+      "ts/no-redeclare": [
+        0,
+      ],
+      "unicode-bom": [
+        0,
+        "never",
+      ],
+      "unused/no-unused-imports": [
+        0,
+      ],
+      "unused/no-unused-vars": [
+        0,
+      ],
+    },
+    "removedKeys": [
+      "ts/await-thenable",
+      "ts/no-array-delete",
+      "ts/no-base-to-string",
+      "ts/no-duplicate-type-constituents",
+      "ts/no-floating-promises",
+      "ts/no-for-in-array",
+      "ts/no-implied-eval",
+      "ts/no-misused-promises",
+      "ts/no-redundant-type-constituents",
+      "ts/no-unnecessary-type-assertion",
+      "ts/no-unsafe-argument",
+      "ts/no-unsafe-assignment",
+      "ts/no-unsafe-call",
+      "ts/no-unsafe-enum-comparison",
+      "ts/no-unsafe-member-access",
+      "ts/no-unsafe-return",
+      "ts/no-unsafe-unary-minus",
+      "ts/only-throw-error",
+      "ts/prefer-promise-reject-errors",
+      "ts/require-await",
+      "ts/restrict-plus-operands",
+      "ts/restrict-template-expressions",
+      "ts/unbound-method",
+      "ts/no-confusing-void-expression",
+      "ts/no-deprecated",
+      "ts/no-generated-empty-object-type",
+      "ts/no-meaningless-void-operator",
+      "ts/no-misused-spread",
+      "ts/no-mixed-enums",
+      "ts/no-unnecessary-boolean-literal-compare",
+      "ts/no-unnecessary-condition",
+      "ts/no-unnecessary-template-expression",
+      "ts/no-unnecessary-type-arguments",
+      "ts/no-unnecessary-type-conversion",
+      "ts/no-unnecessary-type-parameters",
+      "ts/no-useless-default-assignment",
+      "ts/prefer-reduce-type-parameter",
+      "ts/prefer-return-this-type",
+      "ts/related-getter-setter-pairs",
+      "no-return-await",
+      "ts/return-await",
+      "ts/use-unknown-in-catch-callback-variable",
+      "ts/dot-notation",
+      "ts/non-nullable-type-assertion-style",
+      "ts/prefer-find",
+      "ts/prefer-includes",
+      "ts/prefer-nullish-coalescing",
+      "ts/prefer-optional-chain",
+      "ts/prefer-regexp-exec",
+      "ts/prefer-string-starts-ends-with",
+      "ts/consistent-return",
+      "ts/consistent-type-exports",
+      "ts/no-unnecessary-qualifier",
+      "ts/prefer-destructuring",
+      "ts/promise-function-async",
+      "ts/prefer-readonly",
+      "ts/require-array-sort-compare",
+      "ts/strict-boolean-expressions",
+      "ts/strict-void-return",
+      "ts/switch-exhaustiveness-check",
+      "no-new-symbol",
+      "ts/explicit-function-return-type",
+      "ts/explicit-member-accessibility",
+    ],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: a.ts/0_a.md/*.js 1`] = `
+{
+  "languageOptions": {
+    "addedValues": {},
+    "changedValues": {
+      "parserOptions": {
+        "ecmaFeatures": {
+          "impliedStrict": true,
+          "jsx": true,
+        },
+        "ecmaVersion": "latest",
+        "extraFileExtensions": {},
+        "sourceType": "module",
+      },
+    },
+    "removedKeys": [],
+  },
+  "rules": {
+    "addedValues": {
+      "eol-last": [
+        0,
+      ],
+      "padded-blocks": [
+        0,
+      ],
+    },
+    "changedValues": {
+      "consistent-return": [
+        2,
+        {
+          "treatUndefinedAsUnspecified": false,
+        },
+      ],
+      "constructor-super": [
+        2,
+      ],
+      "dot-notation": [
+        2,
+        {
+          "allowKeywords": true,
+          "allowPattern": "",
+        },
+      ],
+      "getter-return": [
+        2,
+        {
+          "allowImplicit": false,
+        },
+      ],
+      "import/default": [
+        2,
+      ],
+      "import/max-dependencies": [
+        2,
+        {
+          "max": 15,
+        },
+      ],
+      "import/named": [
+        2,
+      ],
+      "import/no-deprecated": [
+        2,
+      ],
+      "import/no-extraneous-dependencies": [
+        0,
+        {
+          "devDependencies": [
+            "**/*.config.?(c|m)[jt]s",
+            "**/__mocks__/**",
+            "**/{conf,tests}/**",
+            "**/types/declarations/reset.d.ts",
+          ],
+          "includeTypes": true,
+        },
+      ],
+      "import/no-named-as-default-member": [
+        2,
+      ],
+      "import/no-rename-default": [
+        2,
+      ],
+      "import/no-self-import": [
+        0,
+      ],
+      "import/unambiguous": [
+        0,
+      ],
+      "jsdoc/check-tag-names": [
+        2,
+        {
+          "definedTags": [
+            "api",
+            "vitest-environment",
+            "vitest-environment-options",
+          ],
+        },
+      ],
+      "jsdoc/no-types": [
+        0,
+      ],
+      "jsdoc/no-undefined-types": [
+        2,
+      ],
+      "jsdoc/no-unnecessary-type-assertion": [
+        0,
+        {
+          "preferConstToLiteralTuples": true,
+        },
+      ],
+      "jsdoc/require-param": [
+        2,
+      ],
+      "jsdoc/require-param-type": [
+        2,
+      ],
+      "jsdoc/require-property-type": [
+        2,
+      ],
+      "jsdoc/require-returns": [
+        2,
+      ],
+      "jsdoc/require-returns-type": [
+        2,
+      ],
+      "max-lines": [
+        2,
+        {
+          "max": 300,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "max-lines-per-function": [
+        2,
+        {
+          "IIFEs": true,
+          "max": 50,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "no-alert": [
+        0,
+      ],
+      "no-class-assign": [
+        2,
+      ],
+      "no-console": [
+        0,
+        {},
+      ],
+      "no-const-assign": [
+        2,
+      ],
+      "no-dupe-args": [
+        2,
+      ],
+      "no-dupe-class-members": [
+        2,
+      ],
+      "no-dupe-keys": [
+        2,
+      ],
+      "no-func-assign": [
+        2,
+      ],
+      "no-implied-eval": [
+        2,
+      ],
+      "no-import-assign": [
+        2,
+      ],
+      "no-inline-comments": [
+        0,
+        {},
+      ],
+      "no-irregular-whitespace": [
+        2,
+        {
+          "skipComments": false,
+          "skipJSXText": false,
+          "skipRegExps": false,
+          "skipStrings": false,
+          "skipTemplates": false,
+        },
+      ],
+      "no-magic-numbers": [
+        0,
+        {
+          "detectObjects": false,
+          "enforceConst": true,
+          "ignore": [
+            -1,
+            0,
+            1,
+            100,
+            42069,
+          ],
+          "ignoreArrayIndexes": false,
+          "ignoreClassFieldInitialValues": false,
+          "ignoreDefaultValues": false,
+          "ignoreEnums": false,
+          "ignoreNumericLiteralTypes": false,
+          "ignoreReadonlyClassProperties": false,
+          "ignoreTypeIndexes": false,
+        },
+      ],
+      "no-new-native-nonconstructor": [
+        2,
+      ],
+      "no-obj-calls": [
+        2,
+      ],
+      "no-restricted-exports": [
+        2,
+        {
+          "restrictedNamedExports": [
+            "default",
+          ],
+        },
+      ],
+      "no-setter-return": [
+        2,
+      ],
+      "no-this-before-super": [
+        2,
+      ],
+      "no-throw-literal": [
+        2,
+      ],
+      "no-unreachable": [
+        2,
+      ],
+      "no-unsafe-negation": [
+        2,
+        {
+          "enforceForOrderingRelations": true,
+        },
+      ],
+      "no-with": [
+        2,
+      ],
+      "node/no-missing-require": [
+        0,
+      ],
+      "node/no-sync": [
+        2,
+      ],
+      "prefer-destructuring": [
+        2,
+      ],
+      "prefer-promise-reject-errors": [
+        2,
+        {
+          "allowEmptyReject": false,
+        },
+      ],
+      "require-await": [
+        2,
+      ],
+      "style/eol-last": [
+        0,
+        "always",
+      ],
+      "style/no-multiple-empty-lines": [
+        0,
+        {
+          "max": 1,
+          "maxBOF": 0,
+          "maxEOF": 0,
+        },
+      ],
+      "ts/no-redeclare": [
+        0,
+      ],
+      "ts/no-unused-expressions": [
+        0,
+        {
+          "allowShortCircuit": false,
+          "allowTaggedTemplates": false,
+          "allowTernary": false,
+        },
+      ],
+      "unicode-bom": [
+        0,
+        "never",
+      ],
+      "unicorn/no-null": [
+        0,
+        {
+          "checkArguments": true,
+          "checkStrictEquality": true,
+        },
+      ],
+      "unicorn/no-useless-undefined": [
+        0,
+        {
+          "checkArguments": true,
+          "checkArrowFunctionBody": true,
+        },
+      ],
+      "unused/no-unused-imports": [
+        0,
+      ],
+      "unused/no-unused-vars": [
+        0,
+      ],
+    },
+    "removedKeys": [
+      "ts/await-thenable",
+      "ts/no-array-delete",
+      "ts/no-base-to-string",
+      "ts/no-duplicate-type-constituents",
+      "ts/no-floating-promises",
+      "ts/no-for-in-array",
+      "ts/no-implied-eval",
+      "ts/no-misused-promises",
+      "ts/no-redundant-type-constituents",
+      "ts/no-unnecessary-type-assertion",
+      "ts/no-unsafe-argument",
+      "ts/no-unsafe-assignment",
+      "ts/no-unsafe-call",
+      "ts/no-unsafe-enum-comparison",
+      "ts/no-unsafe-member-access",
+      "ts/no-unsafe-return",
+      "ts/no-unsafe-unary-minus",
+      "ts/only-throw-error",
+      "ts/prefer-promise-reject-errors",
+      "ts/require-await",
+      "ts/restrict-plus-operands",
+      "ts/restrict-template-expressions",
+      "ts/unbound-method",
+      "ts/no-confusing-void-expression",
+      "ts/no-deprecated",
+      "ts/no-generated-empty-object-type",
+      "ts/no-meaningless-void-operator",
+      "ts/no-misused-spread",
+      "ts/no-mixed-enums",
+      "ts/no-unnecessary-boolean-literal-compare",
+      "ts/no-unnecessary-condition",
+      "ts/no-unnecessary-template-expression",
+      "ts/no-unnecessary-type-arguments",
+      "ts/no-unnecessary-type-conversion",
+      "ts/no-unnecessary-type-parameters",
+      "ts/no-useless-default-assignment",
+      "ts/prefer-reduce-type-parameter",
+      "ts/prefer-return-this-type",
+      "ts/related-getter-setter-pairs",
+      "no-return-await",
+      "ts/return-await",
+      "ts/use-unknown-in-catch-callback-variable",
+      "ts/dot-notation",
+      "ts/non-nullable-type-assertion-style",
+      "ts/prefer-find",
+      "ts/prefer-includes",
+      "ts/prefer-nullish-coalescing",
+      "ts/prefer-optional-chain",
+      "ts/prefer-regexp-exec",
+      "ts/prefer-string-starts-ends-with",
+      "ts/consistent-return",
+      "ts/consistent-type-exports",
+      "ts/no-unnecessary-qualifier",
+      "ts/prefer-destructuring",
+      "ts/promise-function-async",
+      "ts/prefer-readonly",
+      "ts/require-array-sort-compare",
+      "ts/strict-boolean-expressions",
+      "ts/strict-void-return",
+      "ts/switch-exhaustiveness-check",
+      "no-new-symbol",
+      "ts/explicit-function-return-type",
+      "ts/explicit-member-accessibility",
+    ],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: a.ts/1_dummy.jsdoc-defaults.md/*.js 1`] = `
+{
+  "languageOptions": {
+    "addedValues": {},
+    "changedValues": {
+      "parserOptions": {
+        "ecmaFeatures": {
+          "impliedStrict": true,
+          "jsx": true,
+        },
+        "ecmaVersion": "latest",
+        "extraFileExtensions": {},
+        "sourceType": "module",
+      },
+    },
+    "removedKeys": [],
+  },
+  "rules": {
+    "addedValues": {
+      "eol-last": [
+        0,
+      ],
+      "padded-blocks": [
+        0,
+      ],
+    },
+    "changedValues": {
+      "consistent-return": [
+        2,
+        {
+          "treatUndefinedAsUnspecified": false,
+        },
+      ],
+      "constructor-super": [
+        2,
+      ],
+      "dot-notation": [
+        2,
+        {
+          "allowKeywords": true,
+          "allowPattern": "",
+        },
+      ],
+      "getter-return": [
+        2,
+        {
+          "allowImplicit": false,
+        },
+      ],
+      "import/default": [
+        2,
+      ],
+      "import/max-dependencies": [
+        2,
+        {
+          "max": 15,
+        },
+      ],
+      "import/named": [
+        2,
+      ],
+      "import/no-deprecated": [
+        2,
+      ],
+      "import/no-extraneous-dependencies": [
+        0,
+        {
+          "devDependencies": [
+            "**/*.config.?(c|m)[jt]s",
+            "**/__mocks__/**",
+            "**/{conf,tests}/**",
+            "**/types/declarations/reset.d.ts",
+          ],
+          "includeTypes": true,
+        },
+      ],
+      "import/no-named-as-default-member": [
+        2,
+      ],
+      "import/no-rename-default": [
+        2,
+      ],
+      "import/no-self-import": [
+        0,
+      ],
+      "import/unambiguous": [
+        0,
+      ],
+      "jsdoc/check-tag-names": [
+        2,
+        {
+          "definedTags": [
+            "api",
+            "vitest-environment",
+            "vitest-environment-options",
+          ],
+        },
+      ],
+      "jsdoc/no-types": [
+        0,
+      ],
+      "jsdoc/no-undefined-types": [
+        2,
+      ],
+      "jsdoc/no-unnecessary-type-assertion": [
+        0,
+        {
+          "preferConstToLiteralTuples": true,
+        },
+      ],
+      "jsdoc/require-param": [
+        2,
+      ],
+      "jsdoc/require-param-type": [
+        2,
+      ],
+      "jsdoc/require-property-type": [
+        2,
+      ],
+      "jsdoc/require-returns": [
+        2,
+      ],
+      "jsdoc/require-returns-type": [
+        2,
+      ],
+      "max-lines": [
+        2,
+        {
+          "max": 300,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "max-lines-per-function": [
+        2,
+        {
+          "IIFEs": true,
+          "max": 50,
+          "skipBlankLines": true,
+          "skipComments": true,
+        },
+      ],
+      "no-alert": [
+        0,
+      ],
+      "no-class-assign": [
+        2,
+      ],
+      "no-console": [
+        0,
+        {},
+      ],
+      "no-const-assign": [
+        2,
+      ],
+      "no-dupe-args": [
+        2,
+      ],
+      "no-dupe-class-members": [
+        2,
+      ],
+      "no-dupe-keys": [
+        2,
+      ],
+      "no-func-assign": [
+        2,
+      ],
+      "no-implied-eval": [
+        2,
+      ],
+      "no-import-assign": [
+        2,
+      ],
+      "no-inline-comments": [
+        0,
+        {},
+      ],
+      "no-irregular-whitespace": [
+        2,
+        {
+          "skipComments": false,
+          "skipJSXText": false,
+          "skipRegExps": false,
+          "skipStrings": false,
+          "skipTemplates": false,
+        },
+      ],
+      "no-magic-numbers": [
+        0,
+        {
+          "detectObjects": false,
+          "enforceConst": true,
+          "ignore": [
+            -1,
+            0,
+            1,
+            100,
+            42069,
+          ],
+          "ignoreArrayIndexes": false,
+          "ignoreClassFieldInitialValues": false,
+          "ignoreDefaultValues": false,
+          "ignoreEnums": false,
+          "ignoreNumericLiteralTypes": false,
+          "ignoreReadonlyClassProperties": false,
+          "ignoreTypeIndexes": false,
+        },
+      ],
+      "no-new": [
+        0,
+      ],
+      "no-new-native-nonconstructor": [
+        2,
+      ],
+      "no-obj-calls": [
+        2,
+      ],
+      "no-restricted-exports": [
+        2,
+        {
+          "restrictedNamedExports": [
+            "default",
+          ],
+        },
+      ],
+      "no-setter-return": [
+        2,
+      ],
+      "no-this-before-super": [
+        2,
+      ],
+      "no-throw-literal": [
+        2,
+      ],
+      "no-unreachable": [
+        2,
+      ],
+      "no-unsafe-negation": [
+        2,
+        {
+          "enforceForOrderingRelations": true,
+        },
+      ],
+      "no-with": [
+        2,
+      ],
+      "node/no-missing-require": [
+        0,
+      ],
+      "node/no-sync": [
+        2,
+      ],
+      "prefer-destructuring": [
+        2,
+      ],
+      "prefer-promise-reject-errors": [
+        2,
+        {
+          "allowEmptyReject": false,
+        },
+      ],
+      "require-await": [
+        2,
+      ],
+      "style/eol-last": [
+        0,
+        "always",
+      ],
+      "style/no-extra-parens": [
+        0,
+        "all",
+        {
+          "ignoredNodes": [
+            "ArrowFunctionExpression[body.type=ConditionalExpression]",
+            "SpreadElement[argument.type=ConditionalExpression]",
+            "SpreadElement[argument.type=LogicalExpression]",
+            "SpreadElement[argument.type=AwaitExpression]",
+          ],
+          "nestedBinaryExpressions": false,
+          "nestedConditionalExpressions": false,
+          "ternaryOperandBinaryExpressions": false,
+        },
+      ],
+      "style/no-multiple-empty-lines": [
+        0,
+        {
+          "max": 1,
+          "maxBOF": 0,
+          "maxEOF": 0,
+        },
+      ],
+      "style/semi": [
+        0,
+        "always",
+      ],
+      "ts/no-redeclare": [
+        0,
+      ],
+      "ts/no-unused-expressions": [
+        0,
+        {
+          "allowShortCircuit": false,
+          "allowTaggedTemplates": false,
+          "allowTernary": false,
+        },
+      ],
+      "unicode-bom": [
+        0,
+        "never",
+      ],
+      "unicorn/no-null": [
+        0,
+        {
+          "checkArguments": true,
+          "checkStrictEquality": true,
+        },
+      ],
+      "unicorn/no-useless-undefined": [
+        0,
+        {
+          "checkArguments": true,
+          "checkArrowFunctionBody": true,
+        },
+      ],
+      "unused/no-unused-imports": [
+        0,
+      ],
+      "unused/no-unused-vars": [
+        0,
+      ],
+    },
+    "removedKeys": [
+      "ts/await-thenable",
+      "ts/no-array-delete",
+      "ts/no-base-to-string",
+      "ts/no-duplicate-type-constituents",
+      "ts/no-floating-promises",
+      "ts/no-for-in-array",
+      "ts/no-implied-eval",
+      "ts/no-misused-promises",
+      "ts/no-redundant-type-constituents",
+      "ts/no-unnecessary-type-assertion",
+      "ts/no-unsafe-argument",
+      "ts/no-unsafe-assignment",
+      "ts/no-unsafe-call",
+      "ts/no-unsafe-enum-comparison",
+      "ts/no-unsafe-member-access",
+      "ts/no-unsafe-return",
+      "ts/no-unsafe-unary-minus",
+      "ts/only-throw-error",
+      "ts/prefer-promise-reject-errors",
+      "ts/require-await",
+      "ts/restrict-plus-operands",
+      "ts/restrict-template-expressions",
+      "ts/unbound-method",
+      "ts/no-confusing-void-expression",
+      "ts/no-deprecated",
+      "ts/no-generated-empty-object-type",
+      "ts/no-meaningless-void-operator",
+      "ts/no-misused-spread",
+      "ts/no-mixed-enums",
+      "ts/no-unnecessary-boolean-literal-compare",
+      "ts/no-unnecessary-condition",
+      "ts/no-unnecessary-template-expression",
+      "ts/no-unnecessary-type-arguments",
+      "ts/no-unnecessary-type-conversion",
+      "ts/no-unnecessary-type-parameters",
+      "ts/no-useless-default-assignment",
+      "ts/prefer-reduce-type-parameter",
+      "ts/prefer-return-this-type",
+      "ts/related-getter-setter-pairs",
+      "no-return-await",
+      "ts/return-await",
+      "ts/use-unknown-in-catch-callback-variable",
+      "ts/dot-notation",
+      "ts/non-nullable-type-assertion-style",
+      "ts/prefer-find",
+      "ts/prefer-includes",
+      "ts/prefer-nullish-coalescing",
+      "ts/prefer-optional-chain",
+      "ts/prefer-regexp-exec",
+      "ts/prefer-string-starts-ends-with",
+      "ts/consistent-return",
+      "ts/consistent-type-exports",
+      "ts/no-unnecessary-qualifier",
+      "ts/prefer-destructuring",
+      "ts/promise-function-async",
+      "ts/prefer-readonly",
+      "ts/require-array-sort-compare",
+      "ts/strict-boolean-expressions",
+      "ts/strict-void-return",
+      "ts/switch-exhaustiveness-check",
       "no-new-symbol",
       "ts/explicit-function-return-type",
       "ts/explicit-member-accessibility",

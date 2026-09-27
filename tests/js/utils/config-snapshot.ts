@@ -11,7 +11,7 @@ import type { JsonObject } from './json-diff';
 interface SnapshotConfigsOptions {
   fixturesDirectory: string;
   globs?: string[];
-  virtualGlobs?: string[];
+  virtualFiles?: string[];
   resolve: (filePath: string) => Promise<JsonObject> | JsonObject;
   normalize?: (config: JsonObject) => JsonObject;
 }
@@ -32,12 +32,10 @@ const stripRoot = (config: JsonObject): JsonObject => {
   return <JsonObject>JSON.parse(JSON.stringify(config).replaceAll(root, '<root>'));
 };
 
-const expectEveryGlobCovered = (globs: string[], virtualGlobs: string[], names: string[]): void => {
+const expectEveryGlobCovered = (globs: string[], names: string[]): void => {
   expect(globs.length).toBeGreaterThan(0);
 
-  const uncovered = globs
-    .filter((glob) => !virtualGlobs.includes(glob))
-    .filter((glob) => names.every((name) => !new Minimatch(glob, { dot: true }).match(name)));
+  const uncovered = globs.filter((glob) => names.every((name) => !new Minimatch(glob, { dot: true }).match(name)));
 
   expect(uncovered).toStrictEqual([]);
 };
@@ -46,13 +44,16 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
   const {
     fixturesDirectory,
     globs,
-    virtualGlobs = [],
+    virtualFiles = [],
     resolve,
     normalize,
   } = options;
 
   const configs = new Map(await Promise.all(
-    listFixtures(fixturesDirectory).map(async (filePath): Promise<[string, JsonObject]> => {
+    [
+      ...listFixtures(fixturesDirectory),
+      ...virtualFiles.map((virtualFile) => `${fixturesDirectory}/${virtualFile}`),
+    ].map(async (filePath): Promise<[string, JsonObject]> => {
       const config = await resolve(filePath);
 
       return [
@@ -63,7 +64,7 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
   ));
 
   if (globs !== undefined) {
-    expectEveryGlobCovered(globs, virtualGlobs, objectKeys(configs));
+    expectEveryGlobCovered(globs, objectKeys(configs));
   }
 
   const groups = new Map<string, string[]>();

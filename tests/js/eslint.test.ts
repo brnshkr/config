@@ -4,13 +4,6 @@ import { ESLint } from 'eslint';
 import { test } from 'vitest';
 
 import { getConfig } from '../../src/js/eslint';
-
-import {
-  GLOB_EXAMPLES,
-  GLOB_JSDOC_EXPRESSION_FILES,
-  GLOB_MD_CODE_BLOCKS,
-} from '../../src/js/eslint/utils/globs';
-
 import { packageOrganization } from '../../src/js/shared/utils/package-json';
 import { createPattern } from '../../src/js/shared/utils/pattern';
 
@@ -34,10 +27,12 @@ test('expected eslint config', async () => {
     fixturesDirectory: FIXTURES_DIRECTORY,
     globs: [...new Set(packageConfigs.flatMap(({ files }) => (files ?? []).flat()))]
       .filter((glob) => typeof glob === 'string'),
-    virtualGlobs: [
-      GLOB_MD_CODE_BLOCKS,
-      GLOB_EXAMPLES,
-      ...GLOB_JSDOC_EXPRESSION_FILES,
+    virtualFiles: [
+      'README.md/0_0.mjs',
+      'a.ts/0_a.md/*.js',
+      'a.ts/1_dummy.jsdoc-defaults.md/*.js',
+      'a.ts/2_dummy.jsdoc-params.md/*.js',
+      'a.ts/3_dummy.jsdoc-properties.md/*.js',
     ],
     resolve: async (filePath) => <JsonObject>(
       await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd()))
