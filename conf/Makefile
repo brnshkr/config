@@ -671,7 +671,7 @@ _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 ))
 
 _HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_HAS_CONTAINER), \
-	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' >/dev/null 2>&1 && $(PRINTF) 1), \
+	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' </dev/null >/dev/null 2>&1 && $(PRINTF) 1), \
 	$(call _is_on_path,semgrep))))
 
 _TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
