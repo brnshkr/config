@@ -29,7 +29,7 @@ Frequently used:
 
 - `make fix` — every fixer, writing its fixes
 - `make check` — every fixer and analyzer, writing nothing
-- `make ci` — `make check` then `make test`
+- `make ci` — `make check`, `make audit`, then `make test`
 - `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
 - `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
 - `make inspect-eslint` — inspect the ESLint configuration, `make inspect-eslint-stats` to also time every rule

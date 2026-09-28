@@ -647,23 +647,26 @@ define _is_tool_available
 $(if $(_HAS_CONTAINER),1,$(call _is_on_path,$1))
 endef
 
-_HAS_PHP            = $(wildcard $(CURDIR)/composer.json)
-_HAS_PHPUNIT        = $(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit)
-_HAS_PHPSTAN        = $(wildcard $(CURDIR)/vendor/bin/phpstan)
-_HAS_PHP_CS_FIXER   = $(wildcard $(CURDIR)/vendor/bin/php-cs-fixer)
-_HAS_RECTOR         = $(wildcard $(CURDIR)/vendor/bin/rector)
-_HAS_TWIG_CS_FIXER  = $(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer)
-_HAS_JS             = $(wildcard $(CURDIR)/package.json)
-_HAS_BUN_INSPECT    = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
-_HAS_COMMITLINT     = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
-_HAS_ESLINT         = $(wildcard $(CURDIR)/node_modules/.bin/eslint)
-_HAS_ESLINT_INSPECT = $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector)
-_HAS_MARKDOWNLINT   = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
-_HAS_STYLELINT      = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
-_HAS_TYPESCRIPT     = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
-_HAS_VITEST         = $(and $(wildcard $(CURDIR)/node_modules/.bin/vitest),$(wildcard $(CURDIR)/node_modules/vite/package.json))
-_HAS_HADOLINT      := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint)))
-_HAS_ACTIONLINT    := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint)))
+_HAS_PHP             = $(wildcard $(CURDIR)/composer.json)
+_HAS_PHPUNIT         = $(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit)
+_HAS_PHPSTAN         = $(wildcard $(CURDIR)/vendor/bin/phpstan)
+_HAS_PHP_CS_FIXER    = $(wildcard $(CURDIR)/vendor/bin/php-cs-fixer)
+_HAS_RECTOR          = $(wildcard $(CURDIR)/vendor/bin/rector)
+_HAS_TWIG_CS_FIXER   = $(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer)
+_HAS_JS              = $(wildcard $(CURDIR)/package.json)
+_HAS_BUN_INSPECT     = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
+_HAS_COMMITLINT      = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
+_HAS_ESLINT          = $(wildcard $(CURDIR)/node_modules/.bin/eslint)
+_HAS_ESLINT_INSPECT  = $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector)
+_HAS_MARKDOWNLINT    = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
+_HAS_STYLELINT       = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
+_HAS_TYPESCRIPT      = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
+_HAS_VITEST          = $(and $(wildcard $(CURDIR)/node_modules/.bin/vitest),$(wildcard $(CURDIR)/node_modules/vite/package.json))
+_HAS_HADOLINT       := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint)))
+_HAS_ACTIONLINT     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint)))
+_HAS_COMPOSER_AUDIT  = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/composer.lock))
+_HAS_BUN_AUDIT       = $(and $(_HAS_JS),$(wildcard $(CURDIR)/bun.lock))
+_HAS_AUDIT           = $(or $(_HAS_COMPOSER_AUDIT),$(_HAS_BUN_AUDIT))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
@@ -793,7 +796,7 @@ _HAS_GROUP       := $(or $(_GROUP_NAMES),$(GROUP_TARGETS))
 _HAS_TEST        := $(or $(_TEST_NAMES),$(TEST_TARGETS))
 _HAS_TEST_UPDATE := $(_TEST_NAMES)
 _HAS_COVERAGE    := $(_COVERAGE_NAMES)
-_HAS_CI          := $(or $(_HAS_CHECK),$(_HAS_TEST),$(CI_TARGETS))
+_HAS_CI          := $(or $(_HAS_CHECK),$(_HAS_AUDIT),$(_HAS_TEST),$(CI_TARGETS))
 
 export _BRNSHKR_DETECTED_IN := $(CURDIR)
 export _DETECTED_EDITOR
@@ -1413,6 +1416,7 @@ PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
 COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
+COMPOSER_AUDIT_FLAGS  ?= --locked#vv #~~ additional flags passed to `composer audit`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
 
@@ -1420,6 +1424,11 @@ _PACK_NAMES += composer-pack
 
 $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
+
+ifneq ($(_HAS_COMPOSER_AUDIT),)
+$(call _target,composer-audit): #~~ runs `composer audit` over the locked dependencies #vv
+	$(TRACE_PREFIX)$(call _spinner,$(COMPOSER) audit $(COMPOSER_AUDIT_FLAGS) $(ARGS))
+endif
 
 $(call _target,composer-list): #~~ lists the files the composer package would ship #vv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
@@ -1667,8 +1676,9 @@ ifneq ($(_HAS_JS),) # js
 
 #--- bun
 
-BUN       ?= $(RUN) bun#v #~~ command that runs `bun`
-BUN_FLAGS ?= --bun#v #~~ flags passed to `bun` before the command
+BUN             ?= $(RUN) bun#v #~~ command that runs `bun`
+BUN_FLAGS       ?= --bun#v #~~ flags passed to `bun` before the command
+BUN_AUDIT_FLAGS ?= #vv #~~ additional flags passed to `bun audit`
 
 _BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
 _BUN_INSTALL      = $(BUN) install$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
@@ -1677,6 +1687,11 @@ _PACK_NAMES += bun-pack
 
 $(call _target,bun): #~~ runs `bun`
 	$(DEBUG_PREFIX)$(BUN) $(ARGS)
+
+ifneq ($(_HAS_BUN_AUDIT),)
+$(call _target,bun-audit): #~~ runs `bun audit` over the locked dependencies #vv
+	$(TRACE_PREFIX)$(call _spinner,$(BUN) audit $(BUN_AUDIT_FLAGS) $(ARGS))
+endif
 
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
 	$(TRACE_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
@@ -2347,6 +2362,12 @@ _UPDATES   := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)-upd
 _COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERAGE_NAME)-coverage))
 _GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
 _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
+_AUDITS    := $(if $(_HAS_COMPOSER_AUDIT),$(call _target,composer-audit)) $(if $(_HAS_BUN_AUDIT),$(call _target,bun-audit))
+
+ifneq ($(_HAS_AUDIT),)
+$(call _target,audit): #~~ checks every stack's locked dependencies for known vulnerabilities
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
+endif
 
 CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
@@ -2356,6 +2377,7 @@ $(call _target,check): #~~ runs the fixers without writing, and every analyzer
 endif
 
 _CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
+	$(if $(_HAS_AUDIT),$(call _target,audit)) \
 	$(if $(_HAS_TEST),$(call _target,test))
 
 CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order

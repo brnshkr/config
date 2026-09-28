@@ -35,8 +35,9 @@ Across both stacks:
 | `startup` | Installs each stack, writes any missing file, then runs `STARTUP_TARGETS`. |
 | `fix` | Runs every fixer and writes its fixes. |
 | `check` | Runs every fixer and analyzer without writing anything. |
+| `audit` | Checks every stack's locked dependencies for known advisories, run by `ci` too; `composer-audit` and `bun-audit` check one. `COMPOSER_AUDIT_FLAGS` and `BUN_AUDIT_FLAGS` take ignores or a severity floor. |
 | `test` | Runs every stack's tests. |
-| `ci` | Runs `CI_TARGETS` in order — `check` then `test`, unless set to include `fix` first. |
+| `ci` | Runs `CI_TARGETS` in order — `check`, `audit`, then `test`, unless set to include `fix` first. |
 | `test-update` | Runs them and updates their snapshots. |
 | `configs` | Writes any file the repository is missing, `--tools` each tool's config too. Name some, or their files, to write only those, `--force` to overwrite. |
 | `pack` | Packs every stack's package into `./.local`. |

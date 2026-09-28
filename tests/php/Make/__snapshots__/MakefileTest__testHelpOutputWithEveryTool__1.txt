@@ -491,6 +491,7 @@ Variables:
   composer
    COMPOSER                        ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
+   COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
   phpunit
    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, which is Pest when it is installed)
    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
@@ -524,6 +525,7 @@ Variables:
   bun
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
+   BUN_AUDIT_FLAGS                 ?=                                                   (additional flags passed to bun audit)
    NODE_MODULES_INSPECTOR          ?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs node-modules-inspector)
    NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
@@ -885,6 +887,7 @@ Variables:
   composer
    COMPOSER                        ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
+   COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
   phpunit
    PEST                            ?=  $(RUN) $(_PEST_BINARY)                           (command that runs pest)
    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, which is Pest when it is installed)
@@ -919,6 +922,7 @@ Variables:
   bun
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
+   BUN_AUDIT_FLAGS                 ?=                                                   (additional flags passed to bun audit)
    NODE_MODULES_INSPECTOR          ?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs node-modules-inspector)
    NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
@@ -1574,6 +1578,7 @@ Variables:
   [35mcomposer[0m
    [36mCOMPOSER                      [0m  [90m?=  $(RUN) composer                                  (command that runs [35mcomposer[0m[90m)[0m
    [36mCOMPOSER_FLAGS                [0m  [90m?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to [35mcomposer[0m[90m)[0m
+   [36mCOMPOSER_AUDIT_FLAGS          [0m  [90m?=  --locked                                         (additional flags passed to [35mcomposer audit[0m[90m)[0m
   [35mphpunit[0m
    [36mPEST                          [0m  [90m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [35mpest[0m[90m)[0m
    [36mPHP_UNIT                      [0m  [90m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, which is Pest when it is installed)[0m
@@ -1608,6 +1613,7 @@ Variables:
   [35mbun[0m
    [36mBUN                           [0m  [90m?=  $(RUN) bun                                       (command that runs [35mbun[0m[90m)[0m
    [36mBUN_FLAGS                     [0m  [90m?=  --bun                                            (flags passed to [35mbun[0m[90m before the command)[0m
+   [36mBUN_AUDIT_FLAGS               [0m  [90m?=                                                   (additional flags passed to [35mbun audit[0m[90m)[0m
    [36mNODE_MODULES_INSPECTOR        [0m  [90m?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs [35mnode-modules-inspector[0m[90m)[0m
    [36mNODE_MODULES_INSPECTOR_FLAGS  [0m  [90m?=                                                   (additional flags passed to [35mnode-modules-inspector[0m[90m)[0m
   [35mcommitlint[0m
@@ -2010,6 +2016,7 @@ Variables:
   [33mcomposer[0m
    [32mCOMPOSER                      [0m  [0m?=  $(RUN) composer                                  (command that runs [33mcomposer[0m[0m)[0m
    [32mCOMPOSER_FLAGS                [0m  [0m?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to [33mcomposer[0m[0m)[0m
+   [32mCOMPOSER_AUDIT_FLAGS          [0m  [0m?=  --locked                                         (additional flags passed to [33mcomposer audit[0m[0m)[0m
   [33mphpunit[0m
    [32mPEST                          [0m  [0m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [33mpest[0m[0m)[0m
    [32mPHP_UNIT                      [0m  [0m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, which is Pest when it is installed)[0m
@@ -2044,6 +2051,7 @@ Variables:
   [33mbun[0m
    [32mBUN                           [0m  [0m?=  $(RUN) bun                                       (command that runs [33mbun[0m[0m)[0m
    [32mBUN_FLAGS                     [0m  [0m?=  --bun                                            (flags passed to [33mbun[0m[0m before the command)[0m
+   [32mBUN_AUDIT_FLAGS               [0m  [0m?=                                                   (additional flags passed to [33mbun audit[0m[0m)[0m
    [32mNODE_MODULES_INSPECTOR        [0m  [0m?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs [33mnode-modules-inspector[0m[0m)[0m
    [32mNODE_MODULES_INSPECTOR_FLAGS  [0m  [0m?=                                                   (additional flags passed to [33mnode-modules-inspector[0m[0m)[0m
   [33mcommitlint[0m
