@@ -1,21 +1,28 @@
 {
   "recommendations": [
+    // ###> brnshkr/config ###
+    // General
     "aeschli.vscode-css-formatter",
-    "bmewburn.vscode-intelephense-client",
+    "EditorConfig.EditorConfig",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "usernamehw.errorlens",
+    "yzhang.markdown-all-in-one",
+
+    // JS
     "bradlc.vscode-tailwindcss",
     "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
-    "EditorConfig.EditorConfig",
+    "oven.bun-vscode",
+    "stylelint.vscode-stylelint",
+
+    // PHP
+    "bmewburn.vscode-intelephense-client",
     "junstyle.php-cs-fixer",
     "mblode.twig-language-2",
-    "oven.bun-vscode",
-    "redhat.vscode-xml",
-    "redhat.vscode-yaml",
     "SanderRonde.phpstan-vscode",
-    "stylelint.vscode-stylelint",
-    "tamasfe.even-better-toml",
-    "usernamehw.errorlens",
-    "xdebug.php-debug",
-    "yzhang.markdown-all-in-one"
+    "xdebug.php-debug"
+    // ###< brnshkr/config ###
   ]
 }

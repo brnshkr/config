@@ -40,6 +40,12 @@ export const toml = async (): Promise<Config[]> => {
           emptyObjects: 'never',
         }],
         'toml/no-mixed-type-in-array': 'error',
+        'toml/spaced-comment': ['error', 'always', {
+          markers: [
+            '##>',
+            '##<',
+          ],
+        }],
       },
     },
   ];

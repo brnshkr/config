@@ -2,6 +2,7 @@ STARTUP_TARGETS :=
 
 APP_SERVICE ?= app
 
+###> brnshkr/config ###
 _BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile \
 	$(CURDIR)/vendor/brnshkr/config/conf/Makefile
 
@@ -14,7 +15,14 @@ bootstrap:
 else
 include $(firstword $(wildcard $(_BRNSHKR_CONFIG_PATHS)))
 endif
+###< brnshkr/config ###
 
+#-- app
+
+ping: #~~ answers pong
+	$(DEBUG_PREFIX)$(call log,pong,$(COLOR_SUCCESS))
+
+###> brnshkr/config ###
 _BRNSHKR_COMPOSE_CANDIDATES := compose.yaml \
 	compose.yml \
 	docker-compose.yaml \
@@ -30,3 +38,4 @@ _BRNSHKR_COMPOSE_FILES = $(or \
 
 _BRNSHKR_COMPOSE = docker compose $(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
 _BRNSHKR_RUN     = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))
+###< brnshkr/config ###

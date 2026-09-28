@@ -456,7 +456,8 @@ Variables:
     COLOR_INLINE_CODE              ?=  $(COLOR_SECONDARY)
     COLOR_HIGHLIGHT                ?=  $(COLOR_YELLOW)
   arguments
-   TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)
+   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
+   TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
    ARG1                             =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through ARG9)
    ARG2                             =  $(word 2,$(ARGS))
    ARG3                             =  $(word 3,$(ARGS))
@@ -467,7 +468,6 @@ Variables:
    ARG8                             =  $(word 8,$(ARGS))
    ARG9                             =  $(word 9,$(ARGS))
    ARGS                             =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                       ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -842,7 +842,8 @@ Variables:
     MODIFIER_BOLD                  :=  bold
     MODIFIER_REVERSE               :=  reverse
   arguments
-   TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)
+   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
+   TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
    ARG1                             =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through ARG9)
    ARG2                             =  $(word 2,$(ARGS))
    ARG3                             =  $(word 3,$(ARGS))
@@ -853,7 +854,6 @@ Variables:
    ARG8                             =  $(word 8,$(ARGS))
    ARG9                             =  $(word 9,$(ARGS))
    ARGS                             =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)
-   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
   common
    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                       ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -1531,7 +1531,8 @@ Variables:
     [36mMODIFIER_BOLD                [0m  [90m:=  bold[0m
     [36mMODIFIER_REVERSE             [0m  [90m:=  reverse[0m
   [35marguments[0m
-   [36mTARGET                        [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
+   [36mTARGET_ALIASES                [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
+   [36mTARGET                        [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)[0m
    [36mARG1                          [0m  [90m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [35mARG9[0m[90m)[0m
    [36mARG2                          [0m  [90m =  $(word 2,$(ARGS))[0m
    [36mARG3                          [0m  [90m =  $(word 3,$(ARGS))[0m
@@ -1542,7 +1543,6 @@ Variables:
    [36mARG8                          [0m  [90m =  $(word 8,$(ARGS))[0m
    [36mARG9                          [0m  [90m =  $(word 9,$(ARGS))[0m
    [36mARGS                          [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [36mTARGET_ALIASES                [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
   [35mcommon[0m
    [36mSTARTUP_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after the dependencies)[0m
    [36mGIT_HOOKS                     [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
@@ -1967,7 +1967,8 @@ Variables:
     [32mMODIFIER_BOLD                [0m  [0m:=  bold[0m
     [32mMODIFIER_REVERSE             [0m  [0m:=  reverse[0m
   [33marguments[0m
-   [32mTARGET                        [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDG… (the first target of this run)[0m
+   [32mTARGET_ALIASES                [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
+   [32mTARGET                        [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)[0m
    [32mARG1                          [0m  [0m =  $(word 1,$(ARGS))                                (the running target's first argument, and so on through [33mARG9[0m[0m)[0m
    [32mARG2                          [0m  [0m =  $(word 2,$(ARGS))[0m
    [32mARG3                          [0m  [0m =  $(word 3,$(ARGS))[0m
@@ -1978,7 +1979,6 @@ Variables:
    [32mARG8                          [0m  [0m =  $(word 8,$(ARGS))[0m
    [32mARG9                          [0m  [0m =  $(word 9,$(ARGS))[0m
    [32mARGS                          [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target was handed, quoted for the shell)[0m
-   [32mTARGET_ALIASES                [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
   [33mcommon[0m
    [32mSTARTUP_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after the dependencies)[0m
    [32mGIT_HOOKS                     [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m

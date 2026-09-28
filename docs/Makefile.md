@@ -24,8 +24,7 @@ After that, `make` on its own prints the help.
 
 `make help` lists what the repository can run: the PHP targets need a `composer.json`, the JavaScript ones
 a `package.json`, and each tool's own appear once that tool is installed and the repository has files it reads.
-Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help brnshkr.phpstan`
-— a bare `phpstan` is a target, and naming one runs it.
+Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help phpstan` or `make help brnshkr.phpstan`.
 `make help ls` lists the scopes with something to show at that verbosity,
 `make help resolve` prints what each variable expands to,
 and `make help env` what the Makefiles export, then what each environment file set and what replaced it.
@@ -39,12 +38,12 @@ Across both stacks:
 | `test` | Runs every stack's tests. |
 | `ci` | Runs `CI_TARGETS` in order — `check` then `test`, unless set to include `fix` first. |
 | `test-update` | Runs them and updates their snapshots. |
-| `configs` | Writes any file the repository is missing, `--tools` each tool's config too. Name some to write only those, `--force` to overwrite. |
+| `configs` | Writes any file the repository is missing, `--tools` each tool's config too. Name some, or their files, to write only those, `--force` to overwrite. |
 | `pack` | Packs every stack's package into `./.local`. |
 | `changelog` | Prints the changelog for `CHANGELOG_RANGE`, or writes it into `CHANGELOG_DIR`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
-| `cc` | Removes cached tool state, naming what it will remove and asking first. |
+| `cc` | Removes the caches of the tools or files named, or all of them after asking. |
 | `fresh` | Removes every untracked file, reinstalls and runs `startup`, asking first. `--force` skips the question, `--all` takes `./.local` and `.env*.local` too. |
 | `fresh-dry-run` | Lists what `fresh` would remove. |
 
@@ -64,8 +63,10 @@ and `-coverage` measures how much of the source the tests reach.
 `make help` names the ones each tool has.
 
 Anything after a target reaches the tool, so `make phpstan src/Service` and `make composer require symfony/finder`
-both work. A word that is itself a target is run as one, which is why `make cc phpstan` runs both rather
-than clearing one cache. Several targets run in the order given and stop at the first failure, `make -k` runs the rest.
+both work. A word that is itself a target is run as one, except after `help`, `configs` or `cc`,
+where every word is a name: `make cc phpstan` clears one cache and runs nothing else,
+and a target of your own there is refused. Several targets run in the order given and stop at the first failure,
+`make -k` runs the rest.
 Make reads a word starting with a dash as one of its own options, so flags go behind `--`:
 `make phpunit -- --filter Name`, or `--filter=Name`. Any other `name=value` sets a variable, as `DEBUG=1` does.
 A target of your own reads its arguments as `ARGS`, one at a time as `ARG1` through `ARG9`,
@@ -116,22 +117,20 @@ and a repository content with the shipped defaults keeps neither.
 `<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
 at once — which is how a developer with a private file checks what the gate will read.
 
-`make configs` writes what the repository is missing: a `.gitignore`, the TypeScript project
-and the editor files the package ships, which land where an editor reads them rather than in `./conf/`.
-A tool reads its shipped config where the repository keeps none, so `make configs -- --tools` adds each
-tool's tracked half only for a repository about to change a default.
-Each comes from the package, or from the repository's own `./conf/<name>.example` where it keeps one,
-and a copied PHP config is given the project's root namespace in its `@internal` tag.
-Naming configs writes only those, so `make configs eslint editorconfig` leaves every other one alone.
-A named config that already exists is offered for overwriting rather than skipped,
-`--force` overwrites without asking, and an unknown name lists what there is.
-Where the repository has a `composer.json`, the block between the markers in `.gitattributes` is rewritten
-on every run from the autoload roots and `ARCHIVE_EXTRA_PATHS` that exist, and appended where it is missing,
-so what an archive ships follows the manifest and `git archive` and `composer archive` ship the same files.
-`make configs --local` writes the tracked and the private halves,
-each private one delegating to the tracked file rather than restating it:
-an `include` for a PHP config, an `export { default } from` for a JavaScript one.
-A recipe whose config is missing everywhere names the path it wants and the variable it came from.
+`make configs` keeps the package's part of each file between `###> brnshkr/config ###` markers,
+refreshed on every run. Everything outside them stays the repository's own and comes after, so it wins.
+
+| File | Package part |
+| --- | --- |
+| `.gitignore` | caches, dependencies and private configs of what is installed |
+| `.gitattributes` | line endings and binaries, plus export rules from the autoload roots and `ARCHIVE_EXTRA_PATHS` |
+| `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, `css.customData` lists every tracked `.vscode/*.css-data.json` |
+| `bunfig.toml` | Bun's defaults, ending in `[install]`: install keys and other tables go below it, top-level keys above |
+| `.vscode/tailwind.css-data.json` | the whole file, while Tailwind is installed |
+| `./Makefile` copied from `./conf/Makefile.dist` | its two marked parts, around the repository's own targets |
+
+`--tools` also writes each tool's tracked config, `--local` its private half too; `--force` overwrites without asking.
+A name writes that config, a file name exactly that file: `make configs phpstan.php` is the private half alone.
 
 ## Changelog
 

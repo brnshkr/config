@@ -1,0 +1,58 @@
+{
+  //////////
+  /// JS ///
+  //////////
+
+  // Formatters
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+
+  // CSS
+  "tailwindCSS.emmetCompletions": true,
+  "css.lint.unknownAtRules": "ignore",
+  "css.validate": false,
+  "scss.lint.unknownAtRules": "ignore",
+  "scss.validate": false,
+  "stylelint.configBasedir": "./",
+  "stylelint.validate": [
+    "css",
+    "html",
+    "less",
+    "scss",
+    "svelte",
+    "vue-html",
+    "vue",
+    "xml"
+  ],
+
+  // JS/TS
+  "js/ts.tsdk.path": "./node_modules/typescript/lib",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.preferences.quoteStyle": "single",
+  "svelte.enable-ts-plugin": true,
+  "eslint.workingDirectories": ["."],
+  "eslint.validate": [
+    "css",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "json5",
+    "jsonc",
+    "markdown",
+    "svelte",
+    "toml",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "yaml"
+  ],
+
+  // Markdown
+  "markdownlint.configPointer": "/config"
+}

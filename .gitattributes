@@ -1,3 +1,4 @@
+###> brnshkr/config ###
 * text=auto eol=lf
 
 *.7z    binary
@@ -28,35 +29,37 @@
 *.lock  linguist-generated
 *.min.* linguist-vendored
 
-###> brnshkr/config ###
-*                                       export-ignore
-.*                                      export-ignore
-/LICENSE                               -export-ignore
-/README.md                             -export-ignore
-/composer.json                         -export-ignore
-/conf                                  -export-ignore -export-subst
-/conf/.gitignore.dist                  -export-ignore
-/conf/Makefile                         -export-ignore
-/conf/Makefile.dist                    -export-ignore
-/conf/actionlint.dist.yaml             -export-ignore
-/conf/editorconfig.dist                -export-ignore
-/conf/gitattributes.dist               -export-ignore
-/conf/hadolint.dist.yaml               -export-ignore
-/conf/launch.dist.json                 -export-ignore
-/conf/php-cs-fixer.dist.php            -export-ignore
-/conf/phpstan                          -export-ignore
-/conf/phpstan.dist.php                 -export-ignore
-/conf/phpstan/**                       -export-ignore
-/conf/phpunit.dist.xml                 -export-ignore
-/conf/rector.dist.php                  -export-ignore
-/conf/semgrep.dist.yaml                -export-ignore
-/conf/spelling                         -export-ignore
-/conf/spelling/**                      -export-ignore
-/conf/twig-cs-fixer.dist.php           -export-ignore
-/conf/vscode-css-custom-data.dist.json -export-ignore
-/conf/vscode-extensions.dist.json      -export-ignore
-/conf/vscode-settings.dist.jsonc       -export-ignore
-/src                                   -export-ignore -export-subst
-/src/php                               -export-ignore
-/src/php/**                            -export-ignore
+*                                         export-ignore
+.*                                        export-ignore
+/LICENSE                                 -export-ignore
+/README.md                               -export-ignore
+/composer.json                           -export-ignore
+/conf                                    -export-ignore -export-subst
+/conf/Makefile                           -export-ignore
+/conf/Makefile.dist                      -export-ignore
+/conf/actionlint.dist.yaml               -export-ignore
+/conf/editorconfig.dist                  -export-ignore
+/conf/gitattributes.dist                 -export-ignore
+/conf/hadolint.dist.yaml                 -export-ignore
+/conf/launch.dist.json                   -export-ignore
+/conf/php-cs-fixer.dist.php              -export-ignore
+/conf/phpstan                            -export-ignore
+/conf/phpstan.dist.php                   -export-ignore
+/conf/phpstan/**                         -export-ignore
+/conf/phpunit.dist.xml                   -export-ignore
+/conf/rector.dist.php                    -export-ignore
+/conf/semgrep.dist.yaml                  -export-ignore
+/conf/spelling                           -export-ignore
+/conf/spelling/**                        -export-ignore
+/conf/twig-cs-fixer.dist.php             -export-ignore
+/conf/vscode-extensions.dist.jsonc       -export-ignore
+/conf/vscode-extensions.js.dist.jsonc    -export-ignore
+/conf/vscode-extensions.php.dist.jsonc   -export-ignore
+/conf/vscode-settings.dist.jsonc         -export-ignore
+/conf/vscode-settings.js.dist.jsonc      -export-ignore
+/conf/vscode-settings.php.dist.jsonc     -export-ignore
+/conf/vscode-tailwind.css-data.dist.json -export-ignore
+/src                                     -export-ignore -export-subst
+/src/php                                 -export-ignore
+/src/php/**                              -export-ignore
 ###< brnshkr/config ###

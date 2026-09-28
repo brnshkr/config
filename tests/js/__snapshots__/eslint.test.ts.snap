@@ -14669,6 +14669,13 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       ],
       "toml/spaced-comment": [
         2,
+        "always",
+        {
+          "markers": [
+            "##>",
+            "##<",
+          ],
+        },
       ],
       "toml/table-bracket-spacing": [
         2,

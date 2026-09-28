@@ -26,7 +26,6 @@
     "./vitest": "./dist/vitest/index.mjs"
   },
   "files": [
-    "./conf/.gitignore.dist",
     "./conf/Makefile",
     "./conf/Makefile.dist",
     "./conf/actionlint.dist.yaml",
@@ -43,9 +42,13 @@
     "./conf/tsconfig.dist.json",
     "./conf/tsconfig.json",
     "./conf/vitest.dist.mjs",
-    "./conf/vscode-css-custom-data.dist.json",
-    "./conf/vscode-extensions.dist.json",
+    "./conf/vscode-extensions.dist.jsonc",
+    "./conf/vscode-extensions.js.dist.jsonc",
+    "./conf/vscode-extensions.php.dist.jsonc",
     "./conf/vscode-settings.dist.jsonc",
+    "./conf/vscode-settings.js.dist.jsonc",
+    "./conf/vscode-settings.php.dist.jsonc",
+    "./conf/vscode-tailwind.css-data.dist.json",
     "./dist"
   ],
   "peerDependencies": {

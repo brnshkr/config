@@ -200,6 +200,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/^collision$/m`,
+    regex: /^collision$/mv,
+  },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
     php: String.raw`/--dry-run\n.*phpstan analyze.*\n.*phpunit/s`,
     regex: /--dry-run\n.*phpstan analyze.*\n.*phpunit/sv,
   },

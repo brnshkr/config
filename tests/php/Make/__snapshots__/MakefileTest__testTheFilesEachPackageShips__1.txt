@@ -2,7 +2,6 @@
 LICENSE
 README.md
 composer.json
-conf/.gitignore.dist
 conf/Makefile
 conf/Makefile.dist
 conf/actionlint.dist.yaml
@@ -20,9 +19,13 @@ conf/rector.dist.php
 conf/semgrep.dist.yaml
 conf/spelling/defaults.json
 conf/twig-cs-fixer.dist.php
-conf/vscode-css-custom-data.dist.json
-conf/vscode-extensions.dist.json
+conf/vscode-extensions.dist.jsonc
+conf/vscode-extensions.js.dist.jsonc
+conf/vscode-extensions.php.dist.jsonc
 conf/vscode-settings.dist.jsonc
+conf/vscode-settings.js.dist.jsonc
+conf/vscode-settings.php.dist.jsonc
+conf/vscode-tailwind.css-data.dist.json
 src/php/Composer/Command/AbstractCommand.php
 src/php/Composer/Command/BrnshkrConfigCommand.php
 src/php/Composer/Command/CommandProvider.php
@@ -135,7 +138,6 @@ src/php/TwigCsFixer.php
 package.json
 LICENSE
 README.md
-conf/.gitignore.dist
 conf/Makefile
 conf/Makefile.dist
 conf/actionlint.dist.yaml
@@ -152,9 +154,13 @@ conf/stylelint.dist.mjs
 conf/tsconfig.dist.json
 conf/tsconfig.json
 conf/vitest.dist.mjs
-conf/vscode-css-custom-data.dist.json
-conf/vscode-extensions.dist.json
+conf/vscode-extensions.dist.jsonc
+conf/vscode-extensions.js.dist.jsonc
+conf/vscode-extensions.php.dist.jsonc
 conf/vscode-settings.dist.jsonc
+conf/vscode-settings.js.dist.jsonc
+conf/vscode-settings.php.dist.jsonc
+conf/vscode-tailwind.css-data.dist.json
 dist/commitlint/index.d.mts
 dist/commitlint/index.mjs
 dist/eslint/index.d.mts

@@ -694,17 +694,17 @@ final class MakefileTest extends TestCase
         self::assertSame('conf/tsconfig.json', readlink(self::TSCONFIG_DIRECTORY . '/tsconfig.json'));
     }
 
-    public function testARepositoryWithoutComposerGetsNoEmptyExportBlock(): void
+    public function testARepositoryWithoutComposerGetsNoExportLines(): void
     {
         $this->runMake(['configs'], directory: self::TSCONFIG_DIRECTORY);
 
         $gitattributes = new Filesystem()->readFile(self::TSCONFIG_DIRECTORY . '/.gitattributes');
 
-        self::assertStringNotContainsString('brnshkr/config ###', $gitattributes);
-        self::assertStringEndsWith("linguist-vendored\n", $gitattributes);
+        self::assertStringNotContainsString('export-ignore', $gitattributes);
+        self::assertStringEndsWith("linguist-vendored\n###< brnshkr/config ###\n", $gitattributes);
     }
 
-    public function testAComposerProjectWithoutMarkersGetsTheExportBlockAppended(): void
+    public function testAComposerProjectWithoutMarkersGetsTheBlockAheadOfItsOwnLines(): void
     {
         new Filesystem()->dumpFile(self::CONFIGS_DIRECTORY . '/.gitattributes', "*.png binary\n");
 
@@ -712,11 +712,11 @@ final class MakefileTest extends TestCase
 
         $gitattributes = new Filesystem()->readFile(self::CONFIGS_DIRECTORY . '/.gitattributes');
 
-        self::assertStringStartsWith("*.png binary\n\n###> brnshkr/config ###\n", $gitattributes);
+        self::assertStringStartsWith("###> brnshkr/config ###\n", $gitattributes);
         self::assertMatchesRegularExpression('/^\/composer\.json\s+-export-ignore$/m', $gitattributes);
         self::assertStringNotContainsString('/LICENSE', $gitattributes);
         self::assertStringNotContainsString('/README.md', $gitattributes);
-        self::assertStringEndsWith("###< brnshkr/config ###\n", $gitattributes);
+        self::assertStringEndsWith("###< brnshkr/config ###\n\n*.png binary\n", $gitattributes);
     }
 
     public function testTheTypescriptProjectFallsBackToAFileWhereLinkingFails(): void
@@ -742,6 +742,18 @@ final class MakefileTest extends TestCase
 
             $this->removeWhatTheFixturesWrote();
         }
+    }
+
+    public function testConfigsWritesExactlyTheFileItIsNamed(): void
+    {
+        $this->runMake(['configs', 'phpstan.php'], directory: self::CONFIGS_DIRECTORY);
+
+        self::assertFileEquals(
+            self::CONFIGS_DIRECTORY . '/conf/phpstan.php.example',
+            self::CONFIGS_DIRECTORY . '/conf/phpstan.php',
+        );
+        self::assertFileDoesNotExist(self::CONFIGS_DIRECTORY . '/conf/phpstan.dist.php');
+        self::assertFileDoesNotExist(self::CONFIGS_DIRECTORY . '/.gitignore');
     }
 
     public function testThePrivateHalfIsWrittenFromATemplateWhenTheProjectHasNone(): void
@@ -970,6 +982,29 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('Removed ./.cache/first', $removed);
         self::assertDirectoryDoesNotExist(self::CACHES_DIRECTORY . '/.cache/first');
         self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/second');
+    }
+
+    public function testCcTakesAToolNameAndNeverRunsTheTargetItNames(): void
+    {
+        $this->writeCaches(['help.cache', 'other']);
+
+        $removed = $this->runMake(['cc', 'help'], directory: self::CACHES_DIRECTORY);
+
+        self::assertStringContainsString('Removed ./.cache/help.cache', $removed);
+        self::assertStringNotContainsString('Usage:', $removed);
+        self::assertDirectoryExists(self::CACHES_DIRECTORY . '/.cache/other');
+    }
+
+    public function testAProjectTargetAfterANamingVerbIsRefusedBeforeAnythingRuns(): void
+    {
+        $result = $this->runMake(
+            ['cc', 'fixtures'],
+            directory: __DIR__ . '/../Fixtures/Make/Collision',
+            doExpectFailure: true,
+        );
+
+        self::assertStringContainsString('fixtures is a target of this project, so it cannot follow cc', $result);
+        self::assertDoesNotMatchRegularExpression('/^collision$/m', $result);
     }
 
     public function testCcRefusesACacheNameTheProjectDoesNotHave(): void

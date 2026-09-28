@@ -11,8 +11,7 @@ include ./conf/Makefile
 
 VERSION := 0.0.1-beta.5
 
-ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
-	./conf/Makefile \
+ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/Makefile.dist \
 	./conf/actionlint.dist.yaml \
 	./conf/editorconfig.dist \
@@ -27,9 +26,13 @@ ARCHIVE_EXTRA_PATHS := ./conf/.gitignore.dist \
 	./conf/semgrep.dist.yaml \
 	./conf/spelling/ \
 	./conf/twig-cs-fixer.dist.php \
-	./conf/vscode-css-custom-data.dist.json \
-	./conf/vscode-extensions.dist.json \
-	./conf/vscode-settings.dist.jsonc#vvv
+	./conf/vscode-extensions.dist.jsonc \
+	./conf/vscode-extensions.js.dist.jsonc \
+	./conf/vscode-extensions.php.dist.jsonc \
+	./conf/vscode-settings.dist.jsonc \
+	./conf/vscode-settings.js.dist.jsonc \
+	./conf/vscode-settings.php.dist.jsonc \
+	./conf/vscode-tailwind.css-data.dist.json#vvv
 
 #--- forge
 

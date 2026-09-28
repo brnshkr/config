@@ -1,0 +1,26 @@
+{
+  ///////////
+  /// PHP ///
+  ///////////
+
+  // Binaries
+  "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
+  "php-cs-fixer.executablePathWindows": "${workspaceFolder}\\vendor\\bin\\php-cs-fixer.bat",
+  "phpstan.binPath": "./vendor/bin/phpstan",
+
+  // Formatters
+  "[php]": {
+    "editor.defaultFormatter": "junstyle.php-cs-fixer"
+  },
+  "[twig]": {
+    "editor.defaultFormatter": "mblode.twig-language-2"
+  },
+
+  // Telemetry
+  "intelephense.telemetry.enabled": false,
+
+  // Analysis
+  "phpstan.enableStatusBar": false,
+  "phpstan.showTypeOnHover": true
+  // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
+}

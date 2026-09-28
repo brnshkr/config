@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    // JS
+    "bradlc.vscode-tailwindcss",
+    "DavidAnson.vscode-markdownlint",
+    "dbaeumer.vscode-eslint",
+    "oven.bun-vscode",
+    "stylelint.vscode-stylelint"
+  ]
+}

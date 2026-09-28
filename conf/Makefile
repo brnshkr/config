@@ -571,29 +571,17 @@ $(if $(wildcard $(addprefix $(CURDIR)/,$2)),$1)
 endef
 
 #**
-#* The value a setting holds so far, or its default `_<setting>` where nothing set it before this file.
-#*
-#* parameters:
-#*   setting: string
-#*
-#* returns: list<string>
-#*
-define _setting_or_default
-$(if $(filter undefined,$(origin $1)),$(_$1),$($1))
-endef
-
-#**
-#* The tool's name when its feature is on and this project tracks a file the setting's extensions name.
+#* The tool's name where it is on and this project tracks a file it reads.
 #*
 #* parameters:
 #*   name: string
 #*   feature: string
-#*   setting: string
+#*   extensions_setting: string
 #*
 #* returns: string
 #*
-define _tool_reading_tracked_files
-$(if $2,$(call _when_tracked,$1,$(call _setting_or_default,$3)))
+define _get_tracked_tool
+$(if $2,$(call _when_tracked,$1,$(or $($3),$(_$3))))
 endef
 
 _PHP_EXTENSIONS           := php
@@ -602,7 +590,7 @@ _MARKDOWNLINT_EXTENSIONS  := md markdown
 _TYPESCRIPT_EXTENSIONS    := ts tsx cts mts
 _VITEST_EXTENSIONS        := ts tsx js jsx mts cts mjs cjs
 
-_ESLINT_EXTENSIONS := js cjs mjs jsx \
+_ESLINT_EXTENSIONS := $(if $(_HAS_ESLINT),js cjs mjs jsx \
 	$(call _when_installed,ts cts mts tsx,node_modules/typescript-eslint) \
 	$(call _when_installed,svelte,node_modules/eslint-plugin-svelte) \
 	$(call _when_installed,json,node_modules/@eslint/json) \
@@ -610,24 +598,24 @@ _ESLINT_EXTENSIONS := js cjs mjs jsx \
 	$(call _when_installed,yml yaml,node_modules/eslint-plugin-yml) \
 	$(call _when_installed,toml,node_modules/eslint-plugin-toml) \
 	$(call _when_installed,css,node_modules/@eslint/css) \
-	$(call _when_installed,md,node_modules/@eslint/markdown)
+	$(call _when_installed,md,node_modules/@eslint/markdown))
 
-_STYLELINT_EXTENSIONS := css \
+_STYLELINT_EXTENSIONS := $(if $(_HAS_STYLELINT),css \
 	$(call _when_installed,less,node_modules/stylelint-config-standard-less) \
 	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
-	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html)
+	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html))
 
-_PHPUNIT_NAME       := $(if $(_TESTS_DIRECTORY),$(call _tool_reading_tracked_files,phpunit,$(and $(_HAS_PHP),$(_HAS_PHPUNIT)),PHP_EXTENSIONS))
-_PHPSTAN_NAME       := $(call _tool_reading_tracked_files,phpstan,$(and $(_HAS_PHP),$(_HAS_PHPSTAN)),PHP_EXTENSIONS)
-_PHP_CS_FIXER_NAME  := $(call _tool_reading_tracked_files,php-cs-fixer,$(and $(_HAS_PHP),$(_HAS_PHP_CS_FIXER)),PHP_EXTENSIONS)
-_RECTOR_NAME        := $(call _tool_reading_tracked_files,rector,$(and $(_HAS_PHP),$(_HAS_RECTOR)),PHP_EXTENSIONS)
-_TWIG_CS_FIXER_NAME := $(call _tool_reading_tracked_files,twig-cs-fixer,$(and $(_HAS_PHP),$(_HAS_TWIG_CS_FIXER)),TWIG_CS_FIXER_EXTENSIONS)
+_PHPUNIT_NAME       := $(if $(_TESTS_DIRECTORY),$(call _get_tracked_tool,phpunit,$(and $(_HAS_PHP),$(_HAS_PHPUNIT)),PHP_EXTENSIONS))
+_PHPSTAN_NAME       := $(call _get_tracked_tool,phpstan,$(and $(_HAS_PHP),$(_HAS_PHPSTAN)),PHP_EXTENSIONS)
+_PHP_CS_FIXER_NAME  := $(call _get_tracked_tool,php-cs-fixer,$(and $(_HAS_PHP),$(_HAS_PHP_CS_FIXER)),PHP_EXTENSIONS)
+_RECTOR_NAME        := $(call _get_tracked_tool,rector,$(and $(_HAS_PHP),$(_HAS_RECTOR)),PHP_EXTENSIONS)
+_TWIG_CS_FIXER_NAME := $(call _get_tracked_tool,twig-cs-fixer,$(and $(_HAS_PHP),$(_HAS_TWIG_CS_FIXER)),TWIG_CS_FIXER_EXTENSIONS)
 _COMMITLINT_NAME    := $(if $(and $(_HAS_JS),$(_HAS_COMMITLINT)),commitlint)
-_ESLINT_NAME        := $(call _tool_reading_tracked_files,eslint,$(and $(_HAS_JS),$(_HAS_ESLINT)),ESLINT_EXTENSIONS)
-_MARKDOWNLINT_NAME  := $(call _tool_reading_tracked_files,markdownlint,$(and $(_HAS_JS),$(_HAS_MARKDOWNLINT)),MARKDOWNLINT_EXTENSIONS)
-_STYLELINT_NAME     := $(call _tool_reading_tracked_files,stylelint,$(and $(_HAS_JS),$(_HAS_STYLELINT)),STYLELINT_EXTENSIONS)
-_TYPESCRIPT_NAME    := $(call _tool_reading_tracked_files,typescript,$(and $(_HAS_JS),$(_HAS_TYPESCRIPT)),TYPESCRIPT_EXTENSIONS)
-_VITEST_NAME        := $(if $(_TESTS_DIRECTORY),$(call _tool_reading_tracked_files,vitest,$(and $(_HAS_JS),$(_HAS_VITEST)),VITEST_EXTENSIONS))
+_ESLINT_NAME        := $(call _get_tracked_tool,eslint,$(and $(_HAS_JS),$(_HAS_ESLINT)),ESLINT_EXTENSIONS)
+_MARKDOWNLINT_NAME  := $(call _get_tracked_tool,markdownlint,$(and $(_HAS_JS),$(_HAS_MARKDOWNLINT)),MARKDOWNLINT_EXTENSIONS)
+_STYLELINT_NAME     := $(call _get_tracked_tool,stylelint,$(and $(_HAS_JS),$(_HAS_STYLELINT)),STYLELINT_EXTENSIONS)
+_TYPESCRIPT_NAME    := $(call _get_tracked_tool,typescript,$(and $(_HAS_JS),$(_HAS_TYPESCRIPT)),TYPESCRIPT_EXTENSIONS)
+_VITEST_NAME        := $(if $(_TESTS_DIRECTORY),$(call _get_tracked_tool,vitest,$(and $(_HAS_JS),$(_HAS_VITEST)),VITEST_EXTENSIONS))
 _HADOLINT_NAME      := $(if $(_HAS_HADOLINT),hadolint)
 _ACTIONLINT_NAME    := $(if $(_HAS_ACTIONLINT),actionlint)
 _SEMGREP_NAME       := $(if $(_HAS_SEMGREP),semgrep)
@@ -776,6 +764,7 @@ endef
 #* The name a shared target ends up with.
 #* Its own, unless this project took that name, in which case the first free one behind
 #* `COLLISION_PREFIX`, numbered if the project took that too.
+#* A private one while the goal before it takes it as a name, so that it does not run.
 #*
 #* parameters:
 #*   name: string
@@ -783,8 +772,9 @@ endef
 #* returns: string
 #*
 define _target
-$(or $(firstword $(filter-out $(_CONSUMER_TARGETS),$(_TARGET_PREFIX)$1 $(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1 $(foreach \
-	NUMBER,1 2 3 4 5 6 7 8 9,$(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1-$(NUMBER)))),$(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1)
+$(foreach SHARED_TARGET,$(or $(firstword $(filter-out $(_CONSUMER_TARGETS),$(_TARGET_PREFIX)$1 $(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1 $(foreach \
+	NUMBER,1 2 3 4 5 6 7 8 9,$(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1-$(NUMBER)))),$(_COLLISION_PREFIX)$(_TARGET_PREFIX)$1),$(if \
+	$(filter $(SHARED_TARGET),$(_NAMED_TARGETS)),_$(SHARED_TARGET)-as-name,$(SHARED_TARGET)))
 endef
 
 _CONSUMER_TARGETS  := $(call _targets_from,$(_CONSUMER_MAKEFILES))
@@ -799,7 +789,42 @@ _DUPLICATE_TARGETS := $(strip $(foreach NAME,$(_CONSUMER_TARGETS),$(if $(word 2,
 
 #---vv arguments
 
-TARGET := $(firstword $(filter $(_ALL_TARGETS),$(MAKECMDGOALS)))#~~ the first target of this run
+#**
+#* The goal a name reaches, empty where it names nothing.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _get_goal
+$(or $(filter $1,$(_ALL_TARGETS)),$(filter $(call _target,$1),$(_ALL_TARGETS)))
+endef
+
+#**
+#* The target an alias stands for, empty where the name is no alias.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _get_alias_target
+$(strip $(foreach PAIR,$(TARGET_ALIASES),$(if $(filter $(firstword $(subst =, ,$(PAIR))),$(patsubst -%,%,$1)),$(lastword $(subst =, ,$(PAIR))))))
+endef
+
+TARGET_ALIASES ?= h=help \
+	$(if $(_HAS_CHECK),c=check) \
+	$(if $(_HAS_TEST),t=test) \
+	$(if $(_HAS_FIX),f=fix)#~~ short names for targets, as `<alias>=<target>` pairs
+
+_FIRST_GOAL        := $(firstword $(foreach GOAL,$(MAKECMDGOALS),$(if $(filter $(_ALL_TARGETS),$(GOAL))$(call _get_alias_target,$(GOAL)),$(GOAL))))
+_NAMING_GOAL       := $(filter $(foreach NAME,help configs cc,$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
+_NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)))
+_NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subst =, ,$(PAIR)))),$(_NAME_GOALS))
+_NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
+
+TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(MAKECMDGOALS))))#~~ the first target of this run
 ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on through `ARG9`
 ARG2    = $(word 2,$(ARGS))
 ARG3    = $(word 3,$(ARGS))
@@ -811,8 +836,16 @@ ARG8    = $(word 8,$(ARGS))
 ARG9    = $(word 9,$(ARGS))
 ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target was handed, quoted for the shell
 
-_GOAL       = $@
-_ARGS       = $(if $(filter command line,$(origin ARGS)),$(ARGS),$(strip $(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS)))))
+_GOAL = $@
+
+_ARGS = $(strip $(if $(filter command line,$(origin ARGS)) \
+	,$(ARGS), \
+	$(if $(_NAMING_GOAL) \
+		,$(filter-out $(_FIRST_GOAL) --,$(_GOAL_WORDS)), \
+		$(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS))) \
+	) \
+))
+
 _FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
 _IS_DRY_RUN = $(or $(filter %-dry-run,$(_GOAL)),$(call _is_dry_run,$(_ARGS)))
 _DEBUG_FLAG = $(if $(filter %-debug,$(_GOAL)),--debug)
@@ -824,29 +857,9 @@ _GOAL_WORDS = $(if $(and $(_OPTION_VARIABLES),$(_MAKE_ARGV)),$(foreach WORD,$(_M
 	$(filter $(WORD),$(MAKECMDGOALS)), \
 	$(filter $(_OPTION_VARIABLES),$(firstword $(subst =, ,$(WORD))))),$(WORD))),$(MAKECMDGOALS))
 
-#**
-#* The goal a name reaches, empty where it names nothing.
-#*
-#* parameters:
-#*   name: string
-#*
-#* returns: string
-#*
-define _goal_of
-$(or $(filter $1,$(_ALL_TARGETS)),$(filter $(call _target,$1),$(_ALL_TARGETS)))
-endef
-
-TARGET_ALIASES ?= h=help \
-	$(if $(_HAS_CHECK),c=check) \
-	$(if $(_HAS_TEST),t=test) \
-	$(if $(_HAS_FIX),f=fix)#~~ short names for targets, as `<alias>=<target>` pairs
-
 _TARGET_ALIAS_MAP = $(foreach PAIR,$(TARGET_ALIASES),$(lastword $(subst =, ,$(PAIR)))=$(firstword $(subst =, ,$(PAIR))))
-
-_ALIAS_TARGET = $(strip $(foreach PAIR,$(TARGET_ALIASES), \
-	$(if $(filter $(patsubst -%,%,$@),$(firstword $(subst =, ,$(PAIR)))),$(lastword $(subst =, ,$(PAIR))))))
-
-_ALIAS_GOAL = $(call _goal_of,$(_ALIAS_TARGET))
+_ALIAS_TARGET     = $(call _get_alias_target,$@)
+_ALIAS_GOAL       = $(call _get_goal,$(_ALIAS_TARGET))
 
 _TAKEN_ALIASES := $(strip $(foreach PAIR,$(TARGET_ALIASES), \
 	$(filter $(firstword $(subst =, ,$(PAIR))),$(_ALL_TARGETS))))
@@ -855,7 +868,7 @@ _MALFORMED_ALIASES := $(strip $(foreach PAIR,$(TARGET_ALIASES), \
 	$(if $(filter 2,$(words $(subst =, ,$(PAIR)))),,$(PAIR))))
 
 _DANGLING_ALIASES := $(strip $(foreach PAIR,$(filter-out $(_MALFORMED_ALIASES),$(TARGET_ALIASES)), \
-	$(if $(call _goal_of,$(lastword $(subst =, ,$(PAIR)))),,$(PAIR))))
+	$(if $(call _get_goal,$(lastword $(subst =, ,$(PAIR)))),,$(PAIR))))
 
 ifneq ($(_TAKEN_ALIASES),) # taken
 $(error [$(_LABEL)] `$(firstword $(_TAKEN_ALIASES))` is a target, so it cannot also be an alias)
@@ -914,9 +927,10 @@ _SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \
 	$(call _suggestions,$(_TARGET_GOALS)),$(call _suggestions,$(_STAGE_GOALS))))
 
 _ARG_VALUES       =
-_UNKNOWN_VALUES   = $(if $(_ARG_VALUES),$(filter-out $(_ARG_VALUES),$(_ARG_WORDS)))
+_ARG_FILES        =
+_UNKNOWN_VALUES   = $(if $(_ARG_VALUES),$(filter-out $(_ARG_VALUES) $(_ARG_FILES),$(_ARG_WORDS)))
 _MISTYPED_VALUE   = $(firstword $(_UNKNOWN_VALUES))
-_SUGGESTED_VALUES = $(call _suggestions,$(_ARG_VALUES),$(_MISTYPED_VALUE))
+_SUGGESTED_VALUES = $(call _suggestions,$(sort $(_ARG_VALUES) $(_ARG_FILES)),$(_MISTYPED_VALUE))
 
 #--- common
 
@@ -934,22 +948,45 @@ _PACKAGE_CONF_DIRS = $(APP_DIR)/vendor/brnshkr/config/conf \
 
 _AUTOLOADER       = $(APP_DIR)/vendor/autoload.php
 _PACK_NAMES      :=
-_PLAIN_CONFIGS    = $(APP_DIR)/.gitignore
+_PLAIN_CONFIGS    =
 _LAYERED_CONFIGS  =
 _LINKED_CONFIGS   =
 
-_CSS_CUSTOM_DATA       := $(CURDIR)/.vscode/css-custom-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-css-custom-data.dist.json
-_STYLESHEET_EXTENSIONS := css less pcss postcss sass scss styl
+_CSS_DATA_CONFIGS = $(call _when_installed,$(CURDIR)/.vscode/tailwind.css-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-tailwind.css-data.dist.json,node_modules/tailwindcss)
 
-_STYLESHEET_PACKAGES := node_modules/@brnshkr/typography \
-	node_modules/tailwindcss
+_CSS_DATA_FILES = $(sort \
+	$(foreach CONFIG,$(_CSS_DATA_CONFIGS),$(call _get_file_name,$(CONFIG))) \
+	$(foreach FILE,$(patsubst .vscode/%,%,$(filter .vscode/%.css-data.json,$(_TRACKED_FILES))),$(if \
+		$(findstring /,$(FILE))$(findstring ",$(FILE))$(findstring \,$(FILE)),,$(FILE))) \
+)
 
-_PLACED_CONFIGS = $(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
+_MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
+	$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist \
+	$(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
-	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.json \
-	$(or $(call _when_tracked,$(_CSS_CUSTOM_DATA),$(_STYLESHEET_EXTENSIONS)),$(call _when_installed,$(_CSS_CUSTOM_DATA),$(_STYLESHEET_PACKAGES))) \
-	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml) \
-	$(CURDIR)/.gitattributes|$(_BRNSHKR_CONFIG_DIR)/gitattributes.dist
+	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
+	$(_CSS_DATA_CONFIGS) \
+	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/conf/bunfig.toml.example),$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml)) \
+	$(CURDIR)/Makefile|$(_BRNSHKR_CONFIG_DIR)/Makefile.dist
+
+_STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
+	$(if $(wildcard $(CURDIR)/composer.json),php)
+
+_EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(foreach FILE,$(_CSS_DATA_FILES),'    "./.vscode/'$(call _shell_quoted,$(FILE))'",') '  ]') \
+	$(call _get_editor_setting,$(_STYLELINT_NAME),stylelint.configFile,$(STYLELINT_CONFIG)) \
+	$(if $(and $(_ESLINT_NAME),$(call _get_editor_config,$(ESLINT_CONFIG))),'  "eslint.options": {' '    "overrideConfigFile": "$(call _get_editor_config,$(ESLINT_CONFIG))"' '  }') \
+	$(call _get_editor_setting,$(_MARKDOWNLINT_NAME),markdownlint.configFile,$(MARKDOWNLINT_CONFIG)) \
+	$(call _get_editor_setting,$(_PHP_CS_FIXER_NAME),php-cs-fixer.config,$(PHP_CS_FIXER_CONFIG)) \
+	$(call _get_editor_setting,$(_PHPSTAN_NAME),phpstan.configFile,$(PHP_STAN_CONFIG))
+
+_GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
+	/.cache/ \
+	/.local/ \
+	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
+	$(if $(wildcard $(CURDIR)/composer.json),/vendor/) \
+	$(if $(_HAS_VITEST),/.vitest/) \
+	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(subst .dist.,.,$(_LAYERED_CONFIGS))))), \
+	$(if $(filter $(patsubst /%,%,$(IGNORED_PATH)),$(_TRACKED_FILES)),,$(IGNORED_PATH)))
 
 _HELP_READ_VARIABLES := INDENT \
 	VALUE_WIDTH \
@@ -1044,14 +1081,17 @@ _IS_FORCED_CONFIG     = $(filter force f,$(_ARG_WORDS))
 _IS_PRIVATE_CONFIG    = $(filter local l,$(_ARG_WORDS))
 _IS_TOOL_CONFIG       = $(or $(filter tools t,$(_ARG_WORDS)),$(_IS_PRIVATE_CONFIG),$(_NAMED_CONFIGS))
 _TRACKED_TOOL_CONFIGS = $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG)))
-_CONFIG_NAMES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_PLACED_CONFIGS) $(_LINKED_CONFIGS),$(call _config_name,$(CONFIG))))
+_PRIVATE_TOOL_CONFIGS = $(subst .dist.,.,$(_LAYERED_CONFIGS))
+_CONFIG_NAMES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_MANAGED_CONFIGS) $(_LINKED_CONFIGS),$(call _get_short_name,$(CONFIG))))
+_CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_PRIVATE_TOOL_CONFIGS) $(_MANAGED_CONFIGS) $(_LINKED_CONFIGS),$(call _get_file_name,$(CONFIG))))
 
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
-	$(if $(_IS_PRIVATE_CONFIG),$(subst .dist.,.,$(_LAYERED_CONFIGS))))
+	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
 $(call _target,configs): #~~ writes the files this project is missing, `tools` its tool configs too, `local` their private halves #v
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
+		$(call _refuse_links,"$$target" "$${target%/*}" "$${target}.example"); \
 		if [ -f "$$target" ]; then \
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
@@ -1093,28 +1133,13 @@ $(call _target,configs): #~~ writes the files this project is missing, `tools` i
 			extended=""; \
 		fi; \
 	done
-	$(TRACE_PREFIX)for entry in $(foreach PLACED_CONFIG,$(call _selected_configs,$(_PLACED_CONFIGS)),'$(PLACED_CONFIG)'); do \
+	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	trap '$(RM) -f "$$body_path"' EXIT; \
+	for entry in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(_MANAGED_CONFIGS)),'$(MANAGED_CONFIG)'); do \
 		target="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
-		[ -r "$$source" ] || continue; \
-		if [ -f "$$target" ]; then \
-			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
-			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
-		fi; \
-		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
-		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
+		$(call _write_managed_config); \
 	done
-	$(TRACE_PREFIX)$(if $(wildcard $(CURDIR)/composer.json),[ ! -r '$(CURDIR)/.gitattributes' ] || { \
-		updated_path=$$($(PHP) -r "$$_GITATTRIBUTES_PROGRAM" $(APP_DIR)/.gitattributes $(APP_DIR)/composer.json '$(strip $(ARCHIVE_EXTRA_PATHS))') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		[ -z "$$updated_path" ] || $(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
-	},[ ! -r '$(CURDIR)/.gitattributes' ] || { \
-		kept=$$($(AWK) '$(_EMPTY_EXPORT_BLOCK_AWK)' '$(CURDIR)/.gitattributes') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		[ "$$kept" = "$$($(CAT) '$(CURDIR)/.gitattributes')" ] || { \
-			$(PRINTF) '%s\n' "$$kept" > '$(CURDIR)/.gitattributes' || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Updated `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(APP_DIR)/.gitattributes)'); \
-		}; \
-	})
 	$(TRACE_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
 		link="$${entry%%|*}"; \
 		source="$${entry#*|}"; \
@@ -1124,7 +1149,7 @@ $(call _target,configs): #~~ writes the files this project is missing, `tools` i
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
 		[ -r "$$source" ] || continue; \
-		if $(LN) -sf "$$relative" "$$link" 2>/dev/null; then \
+		if $(LN) -sfn "$$relative" "$$link" 2>/dev/null; then \
 			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}" "./$$relative"); \
 		else \
 			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative\"" '}' > "$$link" \
@@ -1133,21 +1158,23 @@ $(call _target,configs): #~~ writes the files this project is missing, `tools` i
 		fi; \
 	done
 
-CACHE_DIR   ?= $(CURDIR)/.cache#v #~~ directory the tools keep their caches in
-_CACHES      = $(if $(CACHE_DIR),$(notdir $(wildcard $(CACHE_DIR)/*)))
+CACHE_DIR     ?= $(CURDIR)/.cache#v #~~ directory the tools keep their caches in
+_CACHES        = $(strip $(if $(CACHE_DIR),$(foreach CACHE,$(notdir $(wildcard $(CACHE_DIR)/*)),$(if $(findstring %,$(CACHE)),,$(CACHE)))))
+_CACHE_NAMES   = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
+_NAMED_CACHES  = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none #v
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
 	$(TRACE_PREFIX)if [ -z '$(if $(_CACHES),1)' ]; then \
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
-	elif [ -n "$(strip $(ARGS))" ]; then \
-		for name in $(sort $(ARGS)); do \
+	elif [ -n '$(if $(_NAMED_CACHES),1)' ]; then \
+		for name in $(call _shell_quoted,$(_NAMED_CACHES)); do \
 			$(RM) -rf "$(CACHE_DIR)/$$name" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s/%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))' "$$name"); \
 		done; \
 	else \
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
-		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_CACHES),disjunction)),no-autolink); \
+		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_CACHE_NAMES),disjunction)),no-autolink); \
 		if $(call confirm,Continue?); then \
 			$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
@@ -1352,9 +1379,9 @@ $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 define _stage_rule
 $1-%: _SUGGESTED_FOR = $$*
 $1-%:
-	$$(TRACE_PREFIX)$$(if $$(call _goal_of,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
+	$$(TRACE_PREFIX)$$(if $$(call _get_goal,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
 		$$(call _suggest,$1-))
-	$$(DEBUG_PREFIX)$$(if $$(call _goal_of,$$*),$$(_DOTENV_RESET)$$(MAKE) $$(_MAKE_FLAGS) $$(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* \
+	$$(DEBUG_PREFIX)$$(if $$(call _get_goal,$$*),$$(_DOTENV_RESET)$$(MAKE) $$(_MAKE_FLAGS) $$(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* \
 		$$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS)),:)
 endef
 
@@ -2378,11 +2405,21 @@ $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
 	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
 	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
 
-_FILE_GOALS := $(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS)))
+_FILE_GOALS := $(if $(_NAMING_GOAL),,$(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS))))
+_NAME_WORDS := $(strip $(foreach WORD,$(filter-out $(_ALL_TARGETS),$(_NAME_GOALS)),$(if $(findstring %,$(WORD))$(findstring :,$(WORD))$(findstring /,$(WORD)),,$(WORD))))
 
 ifneq ($(_FILE_GOALS),)
 .PHONY: $(_FILE_GOALS)
 $(_FILE_GOALS): ; @:
+endif
+
+ifneq ($(_NAMED_TARGETS),)
+.PHONY: $(_NAMED_TARGETS)
+$(_NAMED_TARGETS): ; @:
+endif
+
+ifneq ($(_NAME_WORDS),)
+$(_NAME_WORDS):: ; @:
 endif
 
 .DEFAULT:
@@ -2405,15 +2442,22 @@ $(filter-out $(_PREFLIGHT),$(_ALL_TARGETS)): | $(_PREFLIGHT)
 
 _$(_TARGET_PREFIX)assert-no-collisions:
 ifneq ($(_DUPLICATE_TARGETS),) # duplicates
-	$(TRACE_PREFIX)$(foreach NAME,$(_DUPLICATE_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(NAME))))')$(_NEWLINE))
+	$(foreach NAME,$(_DUPLICATE_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(NAME))))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_DUPLICATE_TARGETS)),them,it)$(_COMMA) since this project defines the same name twice.,$(COLOR_NOTICE))
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /duplicates
 ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
-	$(TRACE_PREFIX)$(foreach NAME,$(_COLLIDING_TARGETS),$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
+	$(foreach NAME,$(_COLLIDING_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_COLLIDING_TARGETS)),them,it)$(_COMMA) since `TARGET_PREFIX` is already the namespace this project chose.,$(COLOR_NOTICE))
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /collisions
+ifneq ($(_NAMED_OWN_TARGETS),) # own names
+	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(_FIRST_GOAL)')$(_NEWLINE))
+	$(TRACE_PREFIX)$(if $(word 2,$(_NAMED_OWN_TARGETS)), \
+		$(call log,Run them in make calls of their own$(_COMMA) or pass them as `ARGS="%s"`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'), \
+		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
+	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
+endif # /own names
 
 PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` for the shared ones only or `0` for none
 
@@ -2622,15 +2666,144 @@ $(strip $(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) | $(AWK) -v _VALUE_FLA
 endef
 
 #**
-#* The name a config answers to, which is its file name without a leading dot, a `.dist` or a suffix.
+#* The name a config or a cache answers to, which is its file name without a leading dot, a `.dist` or a suffix.
 #*
 #* parameters:
 #*   path: string
 #*
 #* returns: string
 #*
-define _config_name
+define _get_short_name
 $(firstword $(subst ., ,$(patsubst .%,%,$(notdir $(lastword $(subst |, ,$1))))))
+endef
+
+#**
+#* The file name a config is written to.
+#*
+#* parameters:
+#*   path: string
+#*
+#* returns: string
+#*
+define _get_file_name
+$(notdir $(firstword $(subst |, ,$1)))
+endef
+
+#**
+#* Appends the entries of a shipped JSONC file and of its variant per stack, without their outer lines.
+#*
+#* parameters:
+#*   outer_line_count: int
+#*
+#* returns: void
+#*
+define _append_stack_entries
+for shipped_part in "$$source" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$${source%.dist.*}.$(SUFFIX).dist.$${source##*.}"); do \
+	[ -r "$$shipped_part" ] || continue; \
+	[ ! -s "$$body_path" ] || $(PRINTF) '\n' >> "$$body_path"; \
+	$(AWK) -v outer_line_count=$1 '{ part_lines[NR] = $$0 } \
+		END { for (line_index = outer_line_count + 1; line_index <= NR - outer_line_count; line_index += 1) print part_lines[line_index] }' \
+		"$$shipped_part" >> "$$body_path"; \
+done
+endef
+
+#**
+#* The config an editor opens: tracked or shipped, never a private half.
+#*
+#* parameters:
+#*   path: string
+#*
+#* returns: string
+#*
+define _get_editor_config
+$(addprefix ./,$(patsubst $(APP_DIR)/%,%,$(firstword \
+	$(foreach CANDIDATE,$1 $(call _tracked,$1),$(if $(or $(filter $(patsubst $(APP_DIR)/%,%,$(CANDIDATE)),$(_TRACKED_FILES)),$(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CANDIDATE))),$(CANDIDATE))) \
+	$(foreach DIRECTORY,$(_PACKAGE_CONF_DIRS),$(call _configs_in,$(DIRECTORY),$(notdir $(call _tracked,$1)))))))
+endef
+
+#**
+#* A VS Code setting naming a tool's config, where the tool runs and its config exists.
+#*
+#* parameters:
+#*   tool_name: string
+#*   key: string
+#*   config: string
+#*
+#* returns: string
+#*
+define _get_editor_setting
+$(if $(and $1,$(call _get_editor_config,$3)),'  "$2": "$(call _get_editor_config,$3)"')
+endef
+
+#**
+#* Stops a write that a symbolic link in the checkout would carry elsewhere.
+#*
+#* parameters:
+#*   paths: list<string>
+#*
+#* returns: void
+#*
+define _refuse_links
+for checked_path in $1; do \
+	[ ! -L "$$checked_path" ] || { \
+		$(call log,`%s` is a symbolic link$(_COMMA) which `configs` does not follow.,$(COLOR_ERROR),"./$${checked_path#$(CURDIR)/}") >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}; \
+done
+endef
+
+#**
+#* Writes a managed config: its marked block, or the whole file.
+#*
+#* returns: void
+#*
+define _write_managed_config
+case "$$target" in */Makefile) $(AWK) '/^###> brnshkr\/config ###$$/ { is_marked = 1 } END { exit !is_marked }' "$$target" 2>/dev/null || continue;; esac; \
+[ -z "$$source" ] || [ -r "$$source" ] || continue; \
+$(call _refuse_links,"$$target" "$${target%/*}" "$$source"); \
+: > "$$body_path"; \
+block_anchor=; block_indent=; comment_prefix=; deduplication=lines; is_whole_file=; written_verb=Updated; \
+[ -f "$$target" ] || written_verb=Created; \
+case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
+case "$$target" in \
+	*/.gitignore) $(PRINTF) '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) > "$$body_path";; \
+	*/.gitattributes) $(CAT) "$$source" > "$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
+		$(PRINTF) '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
+	} >> "$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+	*/.editorconfig|*/bunfig.toml) $(CAT) "$$source" > "$$body_path"; deduplication=sections;; \
+	*/settings.json) $(call _append_stack_entries,1); \
+		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),$(PRINTF) '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
+		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication=keys; \
+		[ -f "$$target" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$target")" ] || $(PRINTF) '%s\n' '{' '}' > "$$target";; \
+	*/extensions.json) $(call _append_stack_entries,2); \
+		block_anchor='"recommendations"'; block_indent='    '; comment_prefix='// '; \
+		[ -f "$$target" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$target")" ] || $(PRINTF) '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$target";; \
+	*/Makefile) $(AWK) '/^###< brnshkr\/config ###$$/ { is_inside = 0; print } is_inside { print } /^###> brnshkr\/config ###$$/ { is_inside = 1 }' \
+		"$$source" > "$$body_path"; deduplication=;; \
+	*) is_whole_file=1;; \
+esac; \
+if [ -n "$$is_whole_file" ]; then \
+	$(CMP) -s "$$source" "$$target" 2>/dev/null || { \
+		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${target#$(CURDIR)/}"); \
+	}; \
+else \
+	[ -f "$$target" ] || : > "$$target"; \
+	updated_contents="$$(_MANAGED_BLOCK_OPEN="$${comment_prefix}###> brnshkr/config ###" \
+		_MANAGED_BLOCK_CLOSE="$${comment_prefix}###< brnshkr/config ###" \
+		_MANAGED_BLOCK_ANCHOR="$$block_anchor" \
+		_MANAGED_BLOCK_INDENT="$$block_indent" \
+		_MANAGED_BLOCK_DEDUPLICATION="$$deduplication" \
+		_MANAGED_BLOCK_BODY="$$body_path" \
+		$(AWK) "$$_MANAGED_BLOCK_AWK" "$$target")" || { \
+		$(call log,`%s` has unpaired or extra markers$(_COMMA) or no place for the block.,$(COLOR_ERROR),"./$${target#$(CURDIR)/}") >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}; \
+	[ "$$updated_contents" = "$$($(CAT) "$$target")" ] || { \
+		$(PRINTF) '%s\n' "$$updated_contents" > "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${target#$(CURDIR)/}"); \
+	}; \
+fi
 endef
 
 #**
@@ -2642,7 +2815,7 @@ endef
 #* returns: list<string>
 #*
 define _selected_configs
-$(if $(_NAMED_CONFIGS),$(foreach CONFIG,$1,$(if $(filter $(call _config_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG))),$1)
+$(if $(_NAMED_CONFIGS),$(foreach CONFIG,$1,$(if $(filter $(call _get_short_name,$(CONFIG)) $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG))),$1)
 endef
 
 #**
@@ -3367,18 +3540,177 @@ endef
 
 #---vvv programs
 
-define _EMPTY_EXPORT_BLOCK_AWK
-{ lines[NR] = $$0 } \
-END { \
-	for (line = 1; line <= NR; line += 1) { \
-		if (lines[line] == "###> brnshkr/config ###" && lines[line + 1] == "###< brnshkr/config ###") { \
-			if (count > 0 && kept[count] == "") count -= 1; \
-			line += 1; \
-			continue \
-		} \
-		kept[++count] = lines[line] \
-	} \
-	for (line = 1; line <= count; line += 1) print kept[line] \
+define _MANAGED_BLOCK_AWK_SOURCE
+function trimmed(untrimmed_text) {
+	sub(/^[[:space:]]+/, "", untrimmed_text)
+	sub(/[[:space:]]+$$/, "", untrimmed_text)
+	return untrimmed_text
+}
+function without_comma(line_text) {
+	sub(/,[[:space:]]*$$/, "", line_text)
+	return line_text
+}
+function scan(line_text,    character_index, character, is_in_string, is_escaped) {
+	scanned_code = is_jsonc ? "" : line_text
+	scanned_end = 0
+	for (character_index = 1; is_jsonc && character_index <= length(line_text); character_index += 1) {
+		character = substr(line_text, character_index, 1)
+		if (is_in_block_comment) {
+			if (character == "*" && substr(line_text, character_index + 1, 1) == "/") {
+				is_in_block_comment = 0
+				character_index += 1
+			}
+			continue
+		}
+		if (!is_in_string && character == "/" && substr(line_text, character_index + 1, 1) == "/") break
+		if (!is_in_string && character == "/" && substr(line_text, character_index + 1, 1) == "*") {
+			is_in_block_comment = 1
+			character_index += 1
+			continue
+		}
+		if (is_in_string) {
+			if (is_escaped) is_escaped = 0
+			else if (character == "\\") is_escaped = 1
+			else if (character == "\"") is_in_string = 0
+		} else if (character == "\"") is_in_string = 1
+		scanned_code = scanned_code character
+		if (character !~ /[[:space:]]/) scanned_end = character_index
+	}
+}
+function depth_change(code_text,    character_index, character, depth_delta, is_in_string, is_escaped) {
+	for (character_index = 1; character_index <= length(code_text); character_index += 1) {
+		character = substr(code_text, character_index, 1)
+		if (is_in_string) {
+			if (is_escaped) is_escaped = 0
+			else if (character == "\\") is_escaped = 1
+			else if (character == "\"") is_in_string = 0
+		} else if (character == "\"") is_in_string = 1
+		else if (character == "{" || character == "[") depth_delta += 1
+		else if (character == "}" || character == "]") depth_delta -= 1
+	}
+	return depth_delta
+}
+function entry_key(code_text) {
+	return match(code_text, /^[[:space:]]*"[^"]+"[[:space:]]*:/) ? trimmed(substr(code_text, RSTART, RLENGTH)) : ""
+}
+function keep(line_text, code_text, code_end) {
+	kept_lines[++kept_count] = line_text
+	kept_codes[kept_count] = code_text
+	kept_ends[kept_count] = code_end
+}
+function append_block(block_indent, is_spaced, segment_index,    body_index) {
+	if (is_spaced) keep("", "", 0)
+	keep(block_indent open_marker, "", 0)
+	for (body_index = 1; body_index <= segment_sizes[segment_index]; body_index += 1)
+		keep(segment_lines[segment_index, body_index], segment_codes[segment_index, body_index], segment_ends[segment_index, body_index])
+	keep(block_indent close_marker, "", 0)
+	if (is_spaced) keep("", "", 0)
+	is_block_written = 1
+	is_after_block = 1
+	section = block_last_section
+}
+function next_text(lines, line_count, from_index,    line_index) {
+	for (line_index = from_index; line_index <= line_count; line_index += 1)
+		if (trimmed(lines[line_index]) != "") return trimmed(lines[line_index])
+	return ""
+}
+BEGIN {
+	open_marker = ENVIRON["_MANAGED_BLOCK_OPEN"]
+	close_marker = ENVIRON["_MANAGED_BLOCK_CLOSE"]
+	anchor = ENVIRON["_MANAGED_BLOCK_ANCHOR"]
+	deduplication = ENVIRON["_MANAGED_BLOCK_DEDUPLICATION"]
+	is_jsonc = open_marker ~ /^\/\//
+	segment_count = 1
+	while ((getline body_line < ENVIRON["_MANAGED_BLOCK_BODY"]) > 0) {
+		if (body_line == close_marker) {
+			segment_count += 1
+			continue
+		}
+		scan(body_line)
+		body_index = ++segment_sizes[segment_count]
+		segment_lines[segment_count, body_index] = body_line
+		segment_codes[segment_count, body_index] = scanned_code
+		segment_ends[segment_count, body_index] = scanned_end
+		line_text = trimmed(body_line)
+		if (deduplication == "sections" && line_text ~ /^\[/) block_last_section = line_text
+		body_texts[block_last_section SUBSEP without_comma(line_text)] = 1
+		if (!depth && entry_key(scanned_code) != "") body_keys[entry_key(scanned_code)] = 1
+		depth += depth_change(scanned_code)
+	}
+	if (segment_count > 1 && !segment_sizes[segment_count]) segment_count -= 1
+	is_in_block_comment = 0
+	depth = 0
+}
+{ target_lines[++target_count] = $$0 }
+END {
+	for (line_index = 1; line_index <= target_count; line_index += 1) {
+		scan(target_lines[line_index])
+		target_codes[line_index] = scanned_code
+		target_ends[line_index] = scanned_end
+		line_text = trimmed(target_lines[line_index])
+		if (!first_header_index && deduplication == "sections" && line_text ~ /^\[/) first_header_index = line_index
+		if (!is_in_region && line_text == open_marker) {
+			region_starts[++region_count] = line_index
+			is_in_region = 1
+		} else if (is_in_region && line_text == close_marker) {
+			region_ends[region_count] = line_index
+			is_in_region = 0
+		}
+	}
+	if (is_in_region || (region_count && region_count != segment_count) || (!region_count && segment_count != 1)) exit 1
+	insert_index = deduplication == "sections" ? first_header_index : 1
+	region_index = 1
+	for (line_index = 1; line_index <= target_count; line_index += 1) {
+		if (region_index <= region_count && line_index == region_starts[region_index]) {
+			block_indent = target_lines[line_index]
+			sub(/[^[:space:]].*$$/, "", block_indent)
+			append_block(block_indent, 0, region_index)
+			line_index = region_ends[region_index]
+			region_index += 1
+			continue
+		}
+		if (!region_count && !is_block_written && anchor == "" && line_index == insert_index) append_block("", 1, 1)
+		line_text = trimmed(target_lines[line_index])
+		code_text = target_codes[line_index]
+		if (deduplication == "sections" && line_text ~ /^\[/) {
+			is_duplicate = is_after_block && line_text == block_last_section
+			is_after_block = 0
+			section = line_text
+		} else is_duplicate = deduplication != "" && line_text != "" && (section SUBSEP without_comma(line_text)) in body_texts
+		if (deduplication == "keys") {
+			if (depth == 1 && entry_key(code_text) in body_keys) is_dropping_entry = 1
+			is_duplicate = is_dropping_entry || (is_duplicate && line_text ~ /^\/\//)
+			depth += depth_change(code_text)
+			if (depth == 1) is_dropping_entry = 0
+		}
+		if (!is_duplicate) keep(target_lines[line_index], code_text, target_ends[line_index])
+		if (!region_count && !is_block_written && anchor != "" && target_lines[line_index] ~ anchor && depth_change(code_text) == 1)
+			append_block(ENVIRON["_MANAGED_BLOCK_INDENT"], 0, 1)
+	}
+	if (!is_block_written && anchor != "") exit 1
+	if (!is_block_written) append_block("", 1, 1)
+	for (line_index = 1; line_index <= kept_count; line_index += 1) {
+		line_text = trimmed(kept_lines[line_index])
+		if (deduplication == "sections" && line_text ~ /^\[/ && next_text(kept_lines, kept_count, line_index + 1) ~ /^(\[|$$)/) continue
+		if (deduplication == "" || line_text != "" || (printed_count && trimmed(printed_lines[printed_count]) != "")) {
+			printed_lines[++printed_count] = kept_lines[line_index]
+			printed_codes[printed_count] = kept_codes[line_index]
+			printed_ends[printed_count] = kept_ends[line_index]
+		}
+	}
+	while (printed_count && trimmed(printed_lines[printed_count]) == "") printed_count -= 1
+	for (line_index = 1; line_index <= printed_count; line_index += 1) {
+		code_end = printed_ends[line_index]
+		if (code_end) {
+			following_code = next_text(printed_codes, printed_count, line_index + 1)
+			last_character = substr(printed_lines[line_index], code_end, 1)
+			if (following_code ~ /^[]}]/ && last_character == ",")
+				printed_lines[line_index] = substr(printed_lines[line_index], 1, code_end - 1) substr(printed_lines[line_index], code_end + 1)
+			else if (following_code != "" && following_code !~ /^[]}]/ && last_character !~ /[,{[]/)
+				printed_lines[line_index] = substr(printed_lines[line_index], 1, code_end) "," substr(printed_lines[line_index], code_end + 1)
+		}
+		print printed_lines[line_index]
+	}
 }
 endef
 
@@ -3432,11 +3764,10 @@ END { if (!failed) close_entry() }
 endef
 
 define _GITATTRIBUTES_PROGRAM_SOURCE
-$$attributesPath = $$argv[1];
-$$manifest = json_decode((string) file_get_contents($$argv[2]), true, flags: JSON_THROW_ON_ERROR);
+$$manifest = json_decode((string) file_get_contents($$argv[1]), true, flags: JSON_THROW_ON_ERROR);
 
 $$shippedPaths = ['composer.json', 'LICENSE', 'README.md'];
-$$declaredPaths = array_filter(explode(' ', $$argv[3] ?? ''));
+$$declaredPaths = array_filter(explode(' ', $$argv[2] ?? ''));
 
 foreach (['psr-4', 'psr-0', 'classmap', 'files'] as $$section) {
     foreach ((array) ($$manifest['autoload'][$$section] ?? []) as $$sectionPaths) {
@@ -3450,7 +3781,7 @@ foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
     $$shippedPaths[] = $$binaryPath;
 }
 
-$$projectDirectory = dirname($$argv[2]);
+$$projectDirectory = dirname($$argv[1]);
 $$doesExist = static fn (string $$path): bool => file_exists(
     $$projectDirectory . '/' . mb_trim((string) preg_replace('#^(?:\./)+#', '', $$path), '/'),
 );
@@ -3504,16 +3835,7 @@ foreach ($$shippedPaths as $$path) {
         . (isset($$shippedLookup[$$path]) ? '' : ' -export-subst');
 }
 
-$$currentContents = (string) file_get_contents($$attributesPath);
-$$generatedRegion = "###> brnshkr/config ###\n" . implode("\n", $$renderedLines) . "\n###< brnshkr/config ###";
-$$updatedContents = str_contains($$currentContents, '###> brnshkr/config ###')
-    ? preg_replace('/###> brnshkr\/config ###.*###< brnshkr\/config ###/s', $$generatedRegion, $$currentContents, 1)
-    : mb_rtrim($$currentContents, "\n") . "\n\n" . $$generatedRegion . "\n";
-
-if ($$updatedContents !== null && $$updatedContents !== $$currentContents) {
-    file_put_contents($$attributesPath, $$updatedContents);
-    echo $$attributesPath;
-}
+echo implode("\n", $$renderedLines), "\n";
 endef
 
 define _NAME_INTERNAL_TAG_PROGRAM_SOURCE
@@ -4671,6 +4993,15 @@ END {
 			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Rename it; help reads \"$(call text,%s,$(MODIFIER_UNDERLINE))\" as a word of its own.\n", scope_path
 			exit $(BRNSHKR_CONFIG_ERROR_CODE)
 		}
+	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
+		filter = scope_filter[filter_idx]
+		if (filter == "" || index(filter, "/") || (filter in seen_scope)) continue
+		match_count = 0
+		for (scope_path in seen_scope) {
+			if (substr(scope_path, length(scope_path) - length(filter)) != "/" filter) continue
+			scope_filter[++match_count == 1 ? filter_idx : ++scope_filter_count] = scope_path
+		}
+	}
 	unknown_filter_count = 0
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
 		filter = scope_filter[filter_idx]
@@ -4737,13 +5068,16 @@ endef
 
 export EDITOR_URL
 
-$(call _target,cc): _ARG_VALUES = $(_CACHES)
+$(call _target,cc): _ARG_VALUES = $(_CACHE_NAMES)
+$(call _target,cc): _ARG_FILES = $(_CACHES)
 $(call _target,changelog): export _CHANGELOG_AWK = $(_CHANGELOG_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
+$(call _target,configs): export _MANAGED_BLOCK_AWK = $(_MANAGED_BLOCK_AWK_SOURCE)
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) tools t local l force f
+$(call _target,configs): _ARG_FILES = $(_CONFIG_FILES)
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

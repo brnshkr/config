@@ -1,30 +1,4 @@
 {
-  ////////////////////////
-  /// Project specific ///
-  ////////////////////////
-
-  // CSS
-  "stylelint.configFile": "./conf/stylelint.dist.mjs",
-  "stylelint.configBasedir": "./",
-
-  // JS/TS
-  "js/ts.tsdk.path": "./node_modules/typescript/lib",
-  "eslint.options": {
-    "overrideConfigFile": "./conf/eslint.dist.mjs"
-  },
-  "eslint.workingDirectories": ["."],
-
-  // Markdown
-  "markdownlint.configFile": "./conf/markdownlint.dist.mjs",
-  "markdownlint.configPointer": "/config",
-
-  // PHP
-  "php-cs-fixer.config": "./conf/php-cs-fixer.php;./conf/php-cs-fixer.dist.php",
-  "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
-  "php-cs-fixer.executablePathWindows": "${workspaceFolder}\\vendor\\bin\\php-cs-fixer.bat",
-  "phpstan.binPath": "./vendor/bin/phpstan",
-  "phpstan.configFile": "./conf/phpstan.php,./conf/phpstan.dist.php",
-
   ///////////////
   /// General ///
   ///////////////
@@ -63,9 +37,6 @@
   "[html]": {
     "editor.defaultFormatter": "vscode.html-language-features"
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },
@@ -74,15 +45,6 @@
   },
   "[markdown]": {
     "editor.defaultFormatter": "yzhang.markdown-all-in-one"
-  },
-  "[php]": {
-    "editor.defaultFormatter": "junstyle.php-cs-fixer"
-  },
-  "[twig]": {
-    "editor.defaultFormatter": "mblode.twig-language-2"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[xml]": {
     "editor.defaultFormatter": "redhat.vscode-xml"
@@ -96,7 +58,6 @@
   "partialDiff.enableTelemetry": false,
   "redhat.telemetry.enabled": false,
   "telemetry.telemetryLevel": "off", // NOTICE: Can only be turned off in the default settings
-  "intelephense.telemetry.enabled": false,
 
   // Copilot
   "github.copilot.enable": {
@@ -262,53 +223,6 @@
   /////////////////////////
   /// Language specific ///
   /////////////////////////
-
-  // CSS
-  "css.customData": [
-    "./.vscode/css-custom-data.json"
-  ],
-  "tailwindCSS.emmetCompletions": true,
-  "css.lint.unknownAtRules": "ignore",
-  "css.validate": false,
-  "scss.lint.unknownAtRules": "ignore",
-  "scss.validate": false,
-  "stylelint.validate": [
-    "css",
-    "html",
-    "less",
-    "scss",
-    "svelte",
-    "vue-html",
-    "vue",
-    "xml"
-  ],
-
-  // JS/TS
-  "js/ts.updateImportsOnFileMove.enabled": "always",
-  "js/ts.preferences.importModuleSpecifier": "non-relative",
-  "js/ts.preferences.quoteStyle": "single",
-  "svelte.enable-ts-plugin": true,
-  "eslint.validate": [
-    "css",
-    "html",
-    "javascript",
-    "javascriptreact",
-    "json",
-    "json5",
-    "jsonc",
-    "markdown",
-    "svelte",
-    "toml",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "yaml"
-  ],
-
-  // PHP
-  "phpstan.enableStatusBar": false,
-  "phpstan.showTypeOnHover": true,
-  // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
 
   // JSON
   "json.schemas": [

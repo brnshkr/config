@@ -1,3 +1,4 @@
+###> brnshkr/config ###
 root = true
 
 [*]
@@ -17,3 +18,4 @@ indent_size = 4
 
 [{Makefile,*.mk}]
 indent_style = tab
+###< brnshkr/config ###

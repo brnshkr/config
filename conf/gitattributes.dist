@@ -27,6 +27,3 @@
 
 *.lock  linguist-generated
 *.min.* linguist-vendored
-
-###> brnshkr/config ###
-###< brnshkr/config ###
