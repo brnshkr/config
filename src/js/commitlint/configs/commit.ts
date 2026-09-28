@@ -15,7 +15,6 @@ export const commit = (): Config[] => [
     rules: {
       'body-case': [ERROR, 'always', 'sentence-case'],
       'body-leading-blank': [ERROR, 'always'],
-      // @ts-expect-error -- Upstream types this as a case rule, but the rule itself accepts no value
       'breaking-change-exclamation-mark': [ERROR, 'always'],
       'footer-leading-blank': [ERROR, 'always'],
       'header-case': [ERROR, 'always', 'lower-case'],

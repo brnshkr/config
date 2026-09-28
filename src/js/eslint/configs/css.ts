@@ -153,8 +153,18 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
         }],
         ...(isModuleEnabled(MODULES.unicorn)
           ? {
+            'unicorn/no-deprecated-css-features': 'error',
+            'unicorn/no-duplicate-css-selectors': 'error',
+            'unicorn/no-duplicate-font-family-names': 'error',
+            'unicorn/no-invalid-media-features': 'error',
             'unicorn/no-missing-local-resource': 'error',
+            'unicorn/no-nesting-with-mixed-specificity': 'error',
+            'unicorn/no-redundant-nested-style-rules': 'error',
+            'unicorn/no-unknown-css-annotations': 'error',
+            'unicorn/no-unknown-pseudo-selectors': 'error',
+            'unicorn/no-unscoped-css-nesting-selector': 'error',
             'unicorn/prefer-explicit-viewport-units': 'error',
+            'unicorn/prefer-media-feature-range-syntax': 'error',
           }
           : undefined),
       },

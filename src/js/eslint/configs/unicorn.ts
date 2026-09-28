@@ -224,10 +224,8 @@ export const unicorn = async (): Promise<Config[]> => {
         }],
         'unicorn/prefer-dispose': 'error',
         'unicorn/prefer-error-is-error': 'error',
-        'unicorn/prefer-minimal-ternary': ['error', {
-          checkComputedMemberAccess: true,
-          checkVaryingBase: true,
-        }],
+        'unicorn/prefer-json-import': 'error',
+        'unicorn/prefer-minimal-ternary': 'error',
         'unicorn/prefer-queue-microtask': ['error', {
           checkSetImmediate: true,
           checkSetTimeout: true,
@@ -235,6 +233,8 @@ export const unicorn = async (): Promise<Config[]> => {
         'unicorn/prefer-regexp-escape': 'error',
         'unicorn/prefer-short-arrow-method': 'error',
         'unicorn/prefer-switch': 'off',
+        'unicorn/prefer-temporal-conversion': 'off',
+        'unicorn/prefer-ternary': 'off',
         'unicorn/require-css-escape': ['error', {
           checkAllSelectors: true,
         }],

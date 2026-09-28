@@ -63,9 +63,7 @@ export const isPublicApiFile = (
 ): boolean => {
   const resolution = loadPublicApiResolution(options, cwd);
 
-  return resolution === undefined
-    ? false
-    : resolution.apiSourceFiles.has(toPosix(path.resolve(filename)));
+  return resolution?.apiSourceFiles.has(toPosix(path.resolve(filename))) === true;
 };
 
 export const clearPublicApiResolutionCache = (): void => {

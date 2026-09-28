@@ -21,12 +21,14 @@ const findArrayBody = (source: string, keyName: string): string => {
       depth += 1;
     }
 
-    if (source.at(index) === ']') {
-      depth -= 1;
+    if (source.at(index) !== ']') {
+      continue;
+    }
 
-      if (depth === 0) {
-        return source.slice(start, index);
-      }
+    depth -= 1;
+
+    if (depth === 0) {
+      return source.slice(start, index);
     }
   }
 
@@ -47,12 +49,14 @@ const splitNestedArrays = (body: string): string[] => {
       depth += 1;
     }
 
-    if (body.at(index) === ']') {
-      depth -= 1;
+    if (body.at(index) !== ']') {
+      continue;
+    }
 
-      if (depth === 0) {
-        nested.push(body.slice(start, index));
-      }
+    depth -= 1;
+
+    if (depth === 0) {
+      nested.push(body.slice(start, index));
     }
   }
 
