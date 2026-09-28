@@ -103,6 +103,9 @@ Variables:
   variables
    APP_VARIABLE  ?=  value (a variable of the project's own)
  brnshkr
+  settings
+   DEBUG         ?=        (whether each command is echoed)
+   TRACE         ?=        (whether every recipe line is echoed)
   commitlint
    GIT_HOOKS     +=  commit-msg=$(call _target,commitlint)
 
@@ -115,9 +118,17 @@ Available commands:
  brnshkr
   common
    help, h        show this help, narrowed by any scope named and widened by v, vv or vvv
+   startup        brings a fresh checkout to a workable state
+   configs        writes missing files, tools configs, local private halves
+   cc             removes the caches named, or all of them when given none
+   fresh          removes every untracked file and runs startup, --all the private ones too
    check, c       runs the fixers without writing, and every analyzer
+   ci             runs CI_TARGETS one after the other
+   coverage       runs the tests and fails below the minimum coverage
    fix, f         runs every fixer this project has, writing its fixes
+   group, g       counts every tool's findings by identifier
    test, t        runs the tests of every stack this project has
+   test-update    runs those tests and updates their snapshots
   composer
    composer       runs composer
   phpunit
@@ -175,8 +186,6 @@ Variables:
    APP_VARIABLE                   ?=  value                                            (a variable of the project's own)
  brnshkr
   settings
-   DOCKER                         ?=  docker                                           (command that runs docker)
-   DOCKER_COMPOSE                 ?=  $(DOCKER) compose                                (command that runs compose)
    COMPOSE_FILE                   ?=                                                   (compose files, colon-separated, instead of the ones this project has)
    APP_SERVICE                    ?=  app                                              (compose service the tools run in, empty to run them on this machine)
    APP_SERVICE_MODE               ?=  exec                                             (run starts a throwaway container instead of entering the running one)
@@ -187,8 +196,8 @@ Variables:
    COLLISION_PREFIX               ?=  brnshkr                                          (namespace given to a shared target whose name this project already uses)
    VENDOR                         ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                        ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
-   DEBUG                          ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
-   TRACE                          ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
+   DEBUG                          ?=                                                   (whether each command is echoed)
+   TRACE                          ?=                                                   (whether every recipe line is echoed)
    ANNOUNCEMENT                   ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
   dotenv
    DOTENV                         ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
@@ -308,11 +317,14 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the files this project is missing, tools its tool configs too, local their private halves
+   configs                writes missing files, tools configs, local private halves
    cc                     removes the caches named, or all of them when given none
+   fresh                  removes every untracked file and runs startup, --all the private ones too
    check, c               runs the fixers without writing, and every analyzer
+   ci                     runs CI_TARGETS one after the other
+   coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
-   group                  counts every tool's findings by identifier
+   group, g               counts every tool's findings by identifier
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
    fixtures               builds the fixtures this project's tests read
@@ -398,8 +410,6 @@ Variables:
    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
  brnshkr
   settings
-   DOCKER                          ?=  docker                                           (command that runs docker)
-   DOCKER_COMPOSE                  ?=  $(DOCKER) compose                                (command that runs compose)
    COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of the ones this project has)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty to run them on this machine)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering the running one)
@@ -414,8 +424,8 @@ Variables:
    VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                         ?=  0.0.0-dev                                        (package version)
-   DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
-   TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
+   DEBUG                           ?=                                                   (whether each command is echoed)
+   TRACE                           ?=                                                   (whether every recipe line is echoed)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
   dotenv
    DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
@@ -635,7 +645,7 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the files this project is missing, tools its tool configs too, local their private halves
+   configs                writes missing files, tools configs, local private halves
    cc                     removes the caches named, or all of them when given none
    fresh                  removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run          lists what fresh would remove
@@ -643,7 +653,7 @@ Available commands:
    ci                     runs CI_TARGETS one after the other
    coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
-   group                  counts every tool's findings by identifier
+   group, g               counts every tool's findings by identifier
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
    fixtures               builds the fixtures this project's tests read
@@ -752,33 +762,30 @@ Variables:
    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
  brnshkr
   tools
-   shell
+   runtimes
     SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
     PHP                            ?=  $(RUN) php                                       (command that runs php)
-   files
+    DOCKER                         ?=  docker                                           (command that runs docker)
+    DOCKER_COMPOSE                 ?=  $(DOCKER) compose                                (command that runs compose)
+   utilities
+    AWK                            ?=  awk                                              (path to awk binary)
     CAT                            ?=  cat                                              (path to cat binary)
     CHMOD                          ?=  chmod                                            (path to chmod binary)
     CMP                            ?=  cmp                                              (path to cmp binary)
     CP                             ?=  cp                                               (path to cp binary)
+    CURL                           ?=  curl                                             (path to curl binary)
+    GIT                            ?=  git                                              (path to git binary)
     LN                             ?=  ln                                               (path to ln binary)
     MKDIR                          ?=  mkdir                                            (path to mkdir binary)
     MKTEMP                         ?=  mktemp                                           (path to mktemp binary)
     MV                             ?=  mv                                               (path to mv binary)
-    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    TAR                            ?=  tar                                              (path to tar binary)
-   text
-    AWK                            ?=  awk                                              (path to awk binary)
     PRINTF                         ?=  printf                                           (path to printf binary)
-    TR                             ?=  tr                                               (path to tr binary)
-   processes
     PS                             ?=  ps                                               (path to ps binary)
+    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
     SCRIPT                         ?=  script                                           (path to script binary)
-   sources
-    CURL                           ?=  curl                                             (path to curl binary)
-    GIT                            ?=  git                                              (path to git binary)
+    TAR                            ?=  tar                                              (path to tar binary)
+    TR                             ?=  tr                                               (path to tr binary)
   settings
-   DOCKER                          ?=  docker                                           (command that runs docker)
-   DOCKER_COMPOSE                  ?=  $(DOCKER) compose                                (command that runs compose)
    COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of the ones this project has)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty to run them on this machine)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering the running one)
@@ -793,9 +800,9 @@ Variables:
    VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)
    VERSION                         ?=  0.0.0-dev                                        (package version)
-   DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
+   DEBUG                           ?=                                                   (whether each command is echoed)
    DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
+   TRACE                           ?=                                                   (whether every recipe line is echoed)
    TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
@@ -1060,7 +1067,7 @@ Available commands:
    help, h                show this help, narrowed by any scope named and widened by v, vv or vvv
    startup                brings a fresh checkout to a workable state
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes the files this project is missing, tools its tool configs too, local their private halves
+   configs                writes missing files, tools configs, local private halves
    cc                     removes the caches named, or all of them when given none
    fresh                  removes every untracked file and runs startup, --all the private ones too
    fresh-dry-run          lists what fresh would remove
@@ -1068,7 +1075,7 @@ Available commands:
    ci                     runs CI_TARGETS one after the other
    coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
-   group                  counts every tool's findings by identifier
+   group, g               counts every tool's findings by identifier
    pack                   packs every stack's package into ./.local
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
@@ -1184,6 +1191,7 @@ brnshkr.phpstan
 brnshkr.phpunit
 brnshkr.rector
 brnshkr.semgrep
+brnshkr.settings
 brnshkr.stylelint
 brnshkr.twig-cs-fixer
 brnshkr.typescript
@@ -1192,8 +1200,8 @@ local
 
 === diff: resolve ===
 @@ @@
-    APP_VARIABLE  ?=  value (a variable of the project's own)
-  brnshkr
+    DEBUG         ?=        (whether each command is echoed)
+    TRACE         ?=        (whether every recipe line is echoed)
    commitlint
 -   GIT_HOOKS     +=  commit-msg=$(call _target,commitlint)
 +   GIT_HOOKS     +=  commit-msg=commitlint
@@ -1232,11 +1240,8 @@ brnshkr.theming
 brnshkr.theming.colors
 brnshkr.theming.modifiers
 brnshkr.tools
-brnshkr.tools.files
-brnshkr.tools.processes
-brnshkr.tools.shell
-brnshkr.tools.sources
-brnshkr.tools.text
+brnshkr.tools.runtimes
+brnshkr.tools.utilities
 brnshkr.twig-cs-fixer
 brnshkr.typescript
 brnshkr.vitest
@@ -1443,33 +1448,30 @@ Variables:
    [36mAPP_VARIABLE                  [0m  [90m?=  value                                            (a variable of the project's own)[0m
  [35mbrnshkr[0m
   [35mtools[0m
-   [35mshell[0m
+   [35mruntimes[0m
     [36mSHELL                        [0m  [90m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
     [36mPHP                          [0m  [90m?=  $(RUN) php                                       (command that runs [35mphp[0m[90m)[0m
-   [35mfiles[0m
+    [36mDOCKER                       [0m  [90m?=  docker                                           (command that runs [35mdocker[0m[90m)[0m
+    [36mDOCKER_COMPOSE               [0m  [90m?=  $(DOCKER) compose                                (command that runs [35mcompose[0m[90m)[0m
+   [35mutilities[0m
+    [36mAWK                          [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
     [36mCAT                          [0m  [90m?=  cat                                              (path to [35mcat[0m[90m binary)[0m
     [36mCHMOD                        [0m  [90m?=  chmod                                            (path to [35mchmod[0m[90m binary)[0m
     [36mCMP                          [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
     [36mCP                           [0m  [90m?=  cp                                               (path to [35mcp[0m[90m binary)[0m
+    [36mCURL                         [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
+    [36mGIT                          [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
     [36mLN                           [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
     [36mMKDIR                        [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
     [36mMKTEMP                       [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
     [36mMV                           [0m  [90m?=  mv                                               (path to [35mmv[0m[90m binary)[0m
-    [36mRM                           [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
-    [36mTAR                          [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
-   [35mtext[0m
-    [36mAWK                          [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
     [36mPRINTF                       [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
-    [36mTR                           [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
-   [35mprocesses[0m
     [36mPS                           [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
+    [36mRM                           [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                       [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
-   [35msources[0m
-    [36mCURL                         [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
-    [36mGIT                          [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
+    [36mTAR                          [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
+    [36mTR                           [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
   [35msettings[0m
-   [36mDOCKER                        [0m  [90m?=  docker                                           (command that runs [35mdocker[0m[90m)[0m
-   [36mDOCKER_COMPOSE                [0m  [90m?=  $(DOCKER) compose                                (command that runs [35mcompose[0m[90m)[0m
    [36mCOMPOSE_FILE                  [0m  [90m?=                                                   (compose files, colon-separated, instead of the ones this project has)[0m
    [36mAPP_SERVICE                   [0m  [90m?=  app                                              (compose service the tools run in, empty to run them on this machine)[0m
    [36mAPP_SERVICE_MODE              [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering the running one)[0m
@@ -1484,9 +1486,9 @@ Variables:
    [36mVENDOR                        [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
    [36mPACKAGE                       [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [36mVERSION                       [0m  [90m?=  0.0.0-dev                                        (package version)[0m
-   [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
+   [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed)[0m
    [36mDEBUG_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [36mTRACE                         [0m  [90m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
+   [36mTRACE                         [0m  [90m?=                                                   (whether every recipe line is echoed)[0m
    [36mTRACE_PREFIX                  [0m  [90m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [35mTRACE[0m[90m echoes)[0m
    [36mANNOUNCEMENT                  [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
    [36mBRNSHKR_CONFIG_ERROR_CODE     [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
@@ -1751,7 +1753,7 @@ Variables:
    [36mhelp, h              [0m  [90mshow this help, narrowed by any scope named and widened by [35mv[0m[90m, [35mvv[0m[90m or [35mvvv[0m[90m[0m
    [36mstartup              [0m  [90mbrings a fresh checkout to a workable state[0m
    [36minstall-hooks        [0m  [90minstalls this project's git hooks, replacing any that exist[0m
-   [36mconfigs              [0m  [90mwrites the files this project is missing, [35mtools[0m[90m its tool configs too, [35mlocal[0m[90m their private halves[0m
+   [36mconfigs              [0m  [90mwrites missing files, [35mtools[0m[90m configs, [35mlocal[0m[90m private halves[0m
    [36mcc                   [0m  [90mremoves the caches named, or all of them when given none[0m
    [36mfresh                [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
    [36mfresh-dry-run        [0m  [90mlists what [35mfresh[0m[90m would remove[0m
@@ -1759,7 +1761,7 @@ Variables:
    [36mci                   [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
    [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
    [36mfix, f               [0m  [90mruns every fixer this project has, writing its fixes[0m
-   [36mgroup                [0m  [90mcounts every tool's findings by identifier[0m
+   [36mgroup, g             [0m  [90mcounts every tool's findings by identifier[0m
    [36mpack                 [0m  [90mpacks every stack's package into [35m./.local[0m[90m[0m
    [36mtest, t              [0m  [90mruns the tests of every stack this project has[0m
    [36mtest-update          [0m  [90mruns those tests and updates their snapshots[0m
@@ -1881,33 +1883,30 @@ Variables:
    [32mAPP_VARIABLE                  [0m  [0m?=  value                                            (a variable of the project's own)[0m
  [33mbrnshkr[0m
   [33mtools[0m
-   [33mshell[0m
+   [33mruntimes[0m
     [32mSHELL                        [0m  [0m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
     [32mPHP                          [0m  [0m?=  $(RUN) php                                       (command that runs [33mphp[0m[0m)[0m
-   [33mfiles[0m
+    [32mDOCKER                       [0m  [0m?=  docker                                           (command that runs [33mdocker[0m[0m)[0m
+    [32mDOCKER_COMPOSE               [0m  [0m?=  $(DOCKER) compose                                (command that runs [33mcompose[0m[0m)[0m
+   [33mutilities[0m
+    [32mAWK                          [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
     [32mCAT                          [0m  [0m?=  cat                                              (path to [33mcat[0m[0m binary)[0m
     [32mCHMOD                        [0m  [0m?=  chmod                                            (path to [33mchmod[0m[0m binary)[0m
     [32mCMP                          [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
     [32mCP                           [0m  [0m?=  cp                                               (path to [33mcp[0m[0m binary)[0m
+    [32mCURL                         [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
+    [32mGIT                          [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
     [32mLN                           [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
     [32mMKDIR                        [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
     [32mMKTEMP                       [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
     [32mMV                           [0m  [0m?=  mv                                               (path to [33mmv[0m[0m binary)[0m
-    [32mRM                           [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
-    [32mTAR                          [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
-   [33mtext[0m
-    [32mAWK                          [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
     [32mPRINTF                       [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
-    [32mTR                           [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
-   [33mprocesses[0m
     [32mPS                           [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
+    [32mRM                           [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                       [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
-   [33msources[0m
-    [32mCURL                         [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
-    [32mGIT                          [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
+    [32mTAR                          [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
+    [32mTR                           [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
   [33msettings[0m
-   [32mDOCKER                        [0m  [0m?=  docker                                           (command that runs [33mdocker[0m[0m)[0m
-   [32mDOCKER_COMPOSE                [0m  [0m?=  $(DOCKER) compose                                (command that runs [33mcompose[0m[0m)[0m
    [32mCOMPOSE_FILE                  [0m  [0m?=                                                   (compose files, colon-separated, instead of the ones this project has)[0m
    [32mAPP_SERVICE                   [0m  [0m?=  app                                              (compose service the tools run in, empty to run them on this machine)[0m
    [32mAPP_SERVICE_MODE              [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering the running one)[0m
@@ -1922,9 +1921,9 @@ Variables:
    [32mVENDOR                        [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
    [32mPACKAGE                       [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, taken from the manifest or the directory when unset)[0m
    [32mVERSION                       [0m  [0m?=  0.0.0-dev                                        (package version)[0m
-   [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed before it runs, without the plumbing around it)[0m
+   [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed)[0m
    [32mDEBUG_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
-   [32mTRACE                         [0m  [0m?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)[0m
+   [32mTRACE                         [0m  [0m?=                                                   (whether every recipe line is echoed)[0m
    [32mTRACE_PREFIX                  [0m  [0m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [33mTRACE[0m[0m echoes)[0m
    [32mANNOUNCEMENT                  [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
    [32mBRNSHKR_CONFIG_ERROR_CODE     [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
@@ -2189,7 +2188,7 @@ Variables:
    [32mhelp, h              [0m  [0mshow this help, narrowed by any scope named and widened by [33mv[0m[0m, [33mvv[0m[0m or [33mvvv[0m[0m[0m
    [32mstartup              [0m  [0mbrings a fresh checkout to a workable state[0m
    [32minstall-hooks        [0m  [0minstalls this project's git hooks, replacing any that exist[0m
-   [32mconfigs              [0m  [0mwrites the files this project is missing, [33mtools[0m[0m its tool configs too, [33mlocal[0m[0m their private halves[0m
+   [32mconfigs              [0m  [0mwrites missing files, [33mtools[0m[0m configs, [33mlocal[0m[0m private halves[0m
    [32mcc                   [0m  [0mremoves the caches named, or all of them when given none[0m
    [32mfresh                [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
    [32mfresh-dry-run        [0m  [0mlists what [33mfresh[0m[0m would remove[0m
@@ -2197,7 +2196,7 @@ Variables:
    [32mci                   [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
    [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
    [32mfix, f               [0m  [0mruns every fixer this project has, writing its fixes[0m
-   [32mgroup                [0m  [0mcounts every tool's findings by identifier[0m
+   [32mgroup, g             [0m  [0mcounts every tool's findings by identifier[0m
    [32mpack                 [0m  [0mpacks every stack's package into [33m./.local[0m[0m[0m
    [32mtest, t              [0m  [0mruns the tests of every stack this project has[0m
    [32mtest-update          [0m  [0mruns those tests and updates their snapshots[0m

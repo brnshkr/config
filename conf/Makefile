@@ -159,50 +159,41 @@ _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST)
 
 #---vvv tools
 
-#---- shell
+#---- runtimes
 
-SHELL := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
-PHP   ?= $(RUN) php#~~ command that runs `php`
+SHELL          := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
+PHP            ?= $(RUN) php#~~ command that runs `php`
+DOCKER         ?= docker#~~ command that runs `docker`
+DOCKER_COMPOSE ?= $(DOCKER) compose#~~ command that runs `compose`
 
-#---- files
+#---- utilities
 
+AWK    ?= awk#~~ path to `awk` binary
 CAT    ?= cat#~~ path to `cat` binary
 CHMOD  ?= chmod#~~ path to `chmod` binary
 CMP    ?= cmp#~~ path to `cmp` binary
 CP     ?= cp#~~ path to `cp` binary
+CURL   ?= curl#~~ path to `curl` binary
+GIT    ?= git#~~ path to `git` binary
 LN     ?= ln#~~ path to `ln` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
 MV     ?= mv#~~ path to `mv` binary
-RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
-TAR    ?= tar#~~ path to `tar` binary
-
-#---- text
-
-AWK    ?= awk#~~ path to `awk` binary
 PRINTF ?= printf#~~ path to `printf` binary
+PS     ?= ps#~~ path to `ps` binary
+RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
+SCRIPT ?= script#~~ path to `script` binary
+TAR    ?= tar#~~ path to `tar` binary
 TR     ?= tr#~~ path to `tr` binary
 
-#---- processes
+#--- settings
 
-PS     ?= ps#~~ path to `ps` binary
-SCRIPT ?= script#~~ path to `script` binary
-
-#---- sources
-
-CURL ?= curl#~~ path to `curl` binary
-GIT  ?= git#~~ path to `git` binary
-
-#---v settings
-
-DOCKER           ?= docker#v #~~ command that runs `docker`
-DOCKER_COMPOSE   ?= $(DOCKER) compose#v #~~ command that runs `compose`
 COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of the ones this project has
-APP_SERVICE      ?= app#~~ compose service the tools run in, empty to run them on this machine
+APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty to run them on this machine
 APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering the running one
 IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
-RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty where they run on this machine
-APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, which differs from `CURDIR` in a container
+RUN              ?= $(call run_in,$(APP_SERVICE))#v #~~ command the tools run through, empty where they run on this machine
+APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#v #~~ where the tools see the sources, which differs from `CURDIR` in a container
 HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
 HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, which a compose file binds
@@ -279,10 +270,10 @@ _COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line
 _FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
 _DECLARED_KEYS     = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
-TARGET_PREFIX  ?= #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
+TARGET_PREFIX  ?= #v #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
 
-COLLISION_PREFIX  ?= brnshkr#~~ namespace given to a shared target whose name this project already uses
+COLLISION_PREFIX  ?= brnshkr#v #~~ namespace given to a shared target whose name this project already uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
 define _MANIFEST_NAME_AWK
@@ -301,8 +292,8 @@ _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/compos
 _MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MANIFEST)))
 endif # /manifest
 
-VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#~~ package name, taken from the manifest or the directory when unset
+VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#v #~~ package name, taken from the manifest or the directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
@@ -320,17 +311,17 @@ ifneq ($(filter . ..,$(VENDOR) $(PACKAGE)),)
 $(error [$(_LABEL)] `$(_LABEL)` cannot name a package, so fix the manifest's `name`)
 endif
 
-DEBUG               ?= #~~ whether each command is echoed before it runs, without the plumbing around it
+DEBUG               ?= #~~ whether each command is echoed
 unexport DEBUG       # NOTICE: the `debug` package reads this from the environment
 DEBUG_PREFIX        ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
 _IS_DEBUG            = $(filter-out $(_FALSE),$(DEBUG))
 export BRNSHKR_DEBUG = $(if $(_IS_DEBUG),1)
 
-TRACE        ?= #~~ whether every recipe line is echoed, the plumbing around the commands included
+TRACE        ?= #~~ whether every recipe line is echoed
 TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)#vvv #~~ prefix for a line only `TRACE` echoes
 _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
-ANNOUNCEMENT       ?= Running `%s`#~~ message a verb prints before each target it runs, `%s` being the target, empty for none
+ANNOUNCEMENT       ?= Running `%s`#v #~~ message a verb prints before each target it runs, `%s` being the target, empty for none
 _IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_GOAL)))
 _ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
 _ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(_ANNOUNCEMENT_LOG);)
@@ -952,7 +943,8 @@ endef
 TARGET_ALIASES ?= h=help \
 	$(if $(_HAS_CHECK),c=check) \
 	$(if $(_HAS_TEST),t=test) \
-	$(if $(_HAS_FIX),f=fix)#~~ short names for targets, as `<alias>=<target>` pairs
+	$(if $(_HAS_FIX),f=fix) \
+	$(if $(_HAS_GROUP),g=group)#~~ short names for targets, as `<alias>=<target>` pairs
 
 _FIRST_GOAL        := $(firstword $(foreach GOAL,$(MAKECMDGOALS),$(if $(filter $(_ALL_TARGETS),$(GOAL))$(call _get_alias_target,$(GOAL)),$(GOAL))))
 _NAMING_GOAL       := $(filter $(foreach NAME,help configs cc,$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
@@ -1190,7 +1182,7 @@ _STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
 	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
 	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install))
 
-$(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state #v
+$(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
@@ -1224,7 +1216,7 @@ _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOO
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
-$(call _target,configs): #~~ writes the files this project is missing, `tools` its tool configs too, `local` their private halves #v
+$(call _target,configs): #~~ writes missing files, `tools` configs, `local` private halves
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		$(call _refuse_links,"$$target" "$${target%/*}" "$${target}.example"); \
@@ -1299,7 +1291,7 @@ _CACHES        = $(strip $(if $(CACHE_DIR),$(foreach CACHE,$(notdir $(wildcard $
 _CACHE_NAMES   = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
 _NAMED_CACHES  = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
-$(call _target,cc): #~~ removes the caches named, or all of them when given none #v
+$(call _target,cc): #~~ removes the caches named, or all of them when given none
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
 	$(TRACE_PREFIX)if [ -z '$(if $(_CACHES),1)' ]; then \
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
@@ -1323,7 +1315,7 @@ _GIT_CLEAN_BASE_FLAGS  = $(if $(filter --all -a,$(_ARGS)),,-e /.local -e .env*.l
 _GIT_CLEAN_DRY_FLAGS   = -xdffn $(_GIT_CLEAN_BASE_FLAGS)
 _GIT_CLEAN_FORCE_FLAGS = -xdff $(_GIT_CLEAN_BASE_FLAGS)
 
-$(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--all` the private ones too #vv
+$(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--all` the private ones too
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
 		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
@@ -2383,14 +2375,14 @@ _CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
 CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
 
 ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `CI_TARGETS` one after the other #vv
+$(call _target,ci): #~~ runs `CI_TARGETS` one after the other
 	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
 		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
 	):
 endif
 
 ifneq ($(_HAS_COVERAGE),)
-$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage #vv
+$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
 endif
 
@@ -2417,7 +2409,7 @@ _$(_TARGET_PREFIX)fix-%:
 GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
 
 ifneq ($(_HAS_GROUP),)
-$(call _target,group): #~~ counts every tool's findings by identifier #v
+$(call _target,group): #~~ counts every tool's findings by identifier
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
 endif
 
@@ -2432,7 +2424,7 @@ $(call _target,test): #~~ runs the tests of every stack this project has
 endif
 
 ifneq ($(_HAS_TEST_UPDATE),)
-$(call _target,test-update): #~~ runs those tests and updates their snapshots #v
+$(call _target,test-update): #~~ runs those tests and updates their snapshots
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
 endif
 
