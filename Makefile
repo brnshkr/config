@@ -161,7 +161,7 @@ colors: #~~ prints a table of all supported colors with combinations with all su
 		$(PRINTF) '\n'; \
 	)
 
-#-- helpers
+#--- helpers
 
 #**
 #* Repeats a string a given number of times.
