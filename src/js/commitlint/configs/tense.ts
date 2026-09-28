@@ -25,6 +25,7 @@ const ALLOWLIST = <const>[
   'non-empty-string',
   'pad',
   'promote',
+  'prove',
   'spell',
   'throw',
   'widen',

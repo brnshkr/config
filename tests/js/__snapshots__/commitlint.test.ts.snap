@@ -116,8 +116,9 @@ exports[`expected commitlint config 1`] = `
           'harden',           'hoist',
           'measure',          'missing',
           'non-empty-string', 'pad',
-          'promote',          'spell',
-          'throw',            'widen'
+          'promote',          'prove',
+          'spell',            'throw',
+          'widen'
         ]
       }
     ]
