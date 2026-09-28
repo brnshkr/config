@@ -341,6 +341,18 @@ final class MakefileTest extends TestCase
         }
     }
 
+    public function testAComposeFileReadsWhatOnlyAnEnvironmentFileSets(): void
+    {
+        $directory = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
+
+        $result = $this->runMake(['app-dir'], [
+            'DOCKER'          => $directory . '/bin/docker',
+            'IS_IN_CONTAINER' => '',
+        ], $directory);
+
+        self::assertStringContainsString('app-dir=/srv/from-environment-file', $result);
+    }
+
     public function testDotenvResolution(): void
     {
         $scenarios = [];

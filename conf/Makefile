@@ -209,7 +209,10 @@ HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, wh
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell id -u 2>/dev/null; id -g 2>/dev/null))$(_HOST_IDS)
 
-_HOST_ENVIRONMENT = HOST_UID='$(HOST_UID)' HOST_GID='$(HOST_GID)' HOST_APP_DIR='$(HOST_APP_DIR)'
+_HOST_ENVIRONMENT = $(_DOTENV_ENVIRONMENT) \
+	HOST_UID='$(HOST_UID)' \
+	HOST_GID='$(HOST_GID)' \
+	HOST_APP_DIR='$(HOST_APP_DIR)'
 
 #**
 #* Whether a command is on `PATH`, or exists where it names a path, looked up without starting a shell.
@@ -255,23 +258,6 @@ in_services && service == _SERVICE && /^    working_dir:/ { \
 }
 endef
 
-ifneq ($(_HAS_CONTAINER),) # container
-
-export HOST_UID
-export HOST_GID
-export HOST_APP_DIR
-
-_SERVICE_DIRECTORY := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
-	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)'))
-
-ifeq ($(_SERVICE_DIRECTORY),)
-_COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null | $(AWK) 'NR <= 2')
-
-$(error $(if $(_COMPOSE_REFUSAL),$(DOCKER_COMPOSE) says: $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` names no \
-	service with a `working_dir` in $(_COMPOSE_FILES)), so fix it or leave `APP_SERVICE` empty to run the \
-	tools on this machine)
-endif
-endif # /container
 
 _CONTAINER_KEYS := APP_DIR \
 	APP_SERVICE \
@@ -364,6 +350,153 @@ _INHERITED_FLAGS = $(foreach VARIABLE,$(_UNEXPORTED_VARIABLES), \
 	$(if $(filter environment,$(origin $(VARIABLE))),$(VARIABLE)=$(call _quoted,$($(VARIABLE)))))
 
 BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown by this Makefile
+
+#---v dotenv
+
+DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, or `0` to load none
+DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
+DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
+DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.local` file, as a test run must be reproducible
+_DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
+_DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
+_DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
+
+_DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
+	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
+done))
+
+ifneq ($(_DOTENV_REFUSED_STAGES),)
+$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
+endif
+
+_DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
+
+define _DOTENV_AWK
+function fail(message) { if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
+function shell_quoted(text,    quoted, position) {
+	quoted = ""
+	while ((position = index(text, SQ))) { quoted = quoted substr(text, 1, position - 1) SQ "\\" SQ SQ; text = substr(text, position + 1) }
+	return SQ quoted text SQ
+}
+function unquote(value,    quote) {
+	quote = substr(value, 1, 1)
+	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2)
+	return value
+}
+function interpolate(value,    out, name, start, stop) {
+	out = ""
+	while ((start = index(value, "$${")) > 0) {
+		stop = index(substr(value, start), "}")
+		if (stop == 0) break
+		name = substr(value, start + 2, stop - 3)
+		out = out substr(value, 1, start - 1) ((name in ENVIRON) ? ENVIRON[name] : (name in values) ? values[name] : "")
+		value = substr(value, start + stop)
+	}
+	return out value
+}
+function load(path,    line, key, value, quote, continued, line_number, key_line_number) {
+	if ((getline line < path) < 0) return 0
+	do {
+		key_line_number = ++line_number
+		sub(/\r$$/, "", line)
+		if (line ~ /^[ \t]*($$|#)/) continue
+		sub(/^[ \t]*export[ \t]+/, "", line)
+		if (line !~ /^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/) continue
+		key = line
+		sub(/[ \t]*=.*$$/, "", key)
+		value = substr(line, index(line, "=") + 1)
+		sub(/^[ \t]+/, "", value)
+		quote = substr(value, 1, 1)
+		if (quote == "\"" || quote == SQ) {
+			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
+				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`")
+				line_number += 1
+				sub(/\r$$/, "", continued)
+				value = value "\n" continued
+			}
+		} else {
+			sub(/[ \t]+#.*$$/, "", value)
+			sub(/[ \t]+$$/, "", value)
+		}
+		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`")
+		value = unquote(value)
+		if (quote != SQ) value = interpolate(value)
+		if (!(key in values)) order[++count] = key
+		values[key] = value
+		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_value[record_count] = value; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
+	} while ((getline line < path) > 0)
+	close(path)
+	return 1
+}
+function environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
+BEGIN {
+	SQ = sprintf("%c", 39)
+	if (!load(_BASE)) load(_BASE ".dist")
+	env = environment(_DEFAULT_ENV)
+	split(_TEST_ENVS, tests, /[ \t]+/)
+	for (i in tests) if (tests[i] == env) is_test = 1
+	if (!is_test) { load(_BASE ".local"); env = environment(env) }
+	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
+	if (_REPORT) {
+		for (record_index = 1; record_index <= record_count; record_index += 1) {
+			key = record_key[record_index]
+			value = record_value[record_index]
+			gsub(/\n/, " ", value)
+			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], key, value, (key in ENVIRON) ? "environment" : (last_record_of_key[key] != record_index) ? record_file[last_record_of_key[key]] : "", record_line[record_index]
+		}
+		exit
+	}
+	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
+	values[_ENV_KEY] = env
+	if (_ENVIRONMENT) {
+		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], shell_quoted(values[order[i]])
+		exit
+	}
+	for (i = 1; i <= count; i += 1) {
+		key = order[i]
+		value = values[key]
+		gsub(/\$$/, "$$$$", value)
+		gsub(/#/, "\\#", value)
+		gsub(/\n/, "$$(_NEWLINE)", value)
+		sub(/^[ \t]/, "$$()&", value)
+		sub(/\\$$/, "&$$()", value)
+		printf "%s ?= %s%s", key, value, _SEPARATOR
+		printf "export %s%s", key, _SEPARATOR
+		printf "_DOTENV_KEYS += %s%s", key, _SEPARATOR
+		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
+	}
+}
+endef
+
+_DOTENV_ENV_VALUE := $($(DOTENV_ENV_KEY))
+
+_DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
+	-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
+	-v _ENV_VALUE='$(_DOTENV_ENV_VALUE)' \
+	-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
+	-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
+	-v _PREFIX='$(_LABEL)' \
+	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
+
+_DOTENV_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
+	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
+
+ifneq ($(_HAS_CONTAINER),) # container
+
+export HOST_UID
+export HOST_GID
+export HOST_APP_DIR
+
+_SERVICE_DIRECTORY := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
+	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)'))
+
+ifeq ($(_SERVICE_DIRECTORY),)
+_COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null \
+	| $(AWK) 'NR == 1 { sub(/^error while interpolating [^:]*: /, ""); print }')
+
+$(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the compose file or empty `APP_SERVICE`)
+endif
+endif # /container
 
 #---vv theming
 
@@ -1245,124 +1378,6 @@ SEMVER_PRERELEASE        ?= $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE_PART
 SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower one: what npm and Composer can both express, spelled npm's way
 SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry accepts in a published version
 SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semantic version grammar, as a POSIX extended regular expression
-
-#---v dotenv
-
-DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, or `0` to load none
-DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
-DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
-DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.local` file, as a test run must be reproducible
-_DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
-_DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
-_DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
-
-_DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
-	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
-done))
-
-ifneq ($(_DOTENV_REFUSED_STAGES),)
-$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
-endif
-
-_DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
-
-define _DOTENV_AWK
-function fail(message) { gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
-function unquote(value,    quote) {
-	quote = substr(value, 1, 1)
-	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2)
-	return value
-}
-function interpolate(value,    out, name, start, stop) {
-	out = ""
-	while ((start = index(value, "$${")) > 0) {
-		stop = index(substr(value, start), "}")
-		if (stop == 0) break
-		name = substr(value, start + 2, stop - 3)
-		out = out substr(value, 1, start - 1) ((name in ENVIRON) ? ENVIRON[name] : (name in values) ? values[name] : "")
-		value = substr(value, start + stop)
-	}
-	return out value
-}
-function load(path,    line, key, value, quote, continued, line_number, key_line_number) {
-	if ((getline line < path) < 0) return 0
-	do {
-		key_line_number = ++line_number
-		sub(/\r$$/, "", line)
-		if (line ~ /^[ \t]*($$|#)/) continue
-		sub(/^[ \t]*export[ \t]+/, "", line)
-		if (line !~ /^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/) continue
-		key = line
-		sub(/[ \t]*=.*$$/, "", key)
-		value = substr(line, index(line, "=") + 1)
-		sub(/^[ \t]+/, "", value)
-		quote = substr(value, 1, 1)
-		if (quote == "\"" || quote == SQ) {
-			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
-				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`")
-				line_number += 1
-				sub(/\r$$/, "", continued)
-				value = value "\n" continued
-			}
-		} else {
-			sub(/[ \t]+#.*$$/, "", value)
-			sub(/[ \t]+$$/, "", value)
-		}
-		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`")
-		value = unquote(value)
-		if (quote != SQ) value = interpolate(value)
-		if (!(key in values)) order[++count] = key
-		values[key] = value
-		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_value[record_count] = value; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
-	} while ((getline line < path) > 0)
-	close(path)
-	return 1
-}
-function environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
-BEGIN {
-	SQ = sprintf("%c", 39)
-	if (!load(_BASE)) load(_BASE ".dist")
-	env = environment(_DEFAULT_ENV)
-	split(_TEST_ENVS, tests, /[ \t]+/)
-	for (i in tests) if (tests[i] == env) is_test = 1
-	if (!is_test) { load(_BASE ".local"); env = environment(env) }
-	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
-	if (_REPORT) {
-		for (record_index = 1; record_index <= record_count; record_index += 1) {
-			key = record_key[record_index]
-			value = record_value[record_index]
-			gsub(/\n/, " ", value)
-			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], key, value, (key in ENVIRON) ? "environment" : (last_record_of_key[key] != record_index) ? record_file[last_record_of_key[key]] : "", record_line[record_index]
-		}
-		exit
-	}
-	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
-	values[_ENV_KEY] = env
-	for (i = 1; i <= count; i += 1) {
-		key = order[i]
-		value = values[key]
-		gsub(/\$$/, "$$$$", value)
-		gsub(/#/, "\\#", value)
-		gsub(/\n/, "$$(_NEWLINE)", value)
-		sub(/^[ \t]/, "$$()&", value)
-		sub(/\\$$/, "&$$()", value)
-		printf "%s ?= %s%s", key, value, _SEPARATOR
-		printf "export %s%s", key, _SEPARATOR
-		printf "_DOTENV_KEYS += %s%s", key, _SEPARATOR
-		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
-	}
-}
-endef
-
-_DOTENV_ENV_VALUE := $($(DOTENV_ENV_KEY))
-
-_DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
-	-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
-	-v _ENV_VALUE='$(_DOTENV_ENV_VALUE)' \
-	-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
-	-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
-	-v _PREFIX='$(_LABEL)' \
-	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
 
 _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell $(AWK) $(_DOTENV_AWK_FLAGS) '$(_DOTENV_AWK)'))
 

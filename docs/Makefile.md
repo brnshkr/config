@@ -163,6 +163,7 @@ APP_SERVICE := tools
 Paths map back to your checkout, and inside the container make runs everything directly.
 Declared `.env` keys travel with each command by name, so their values stay out of `DEBUG` output and `ps`;
 command-line variables travel with their value.
+The compose file itself may interpolate any key the environment files set, `.env.local` and stage files included.
 Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
 
 | Target | Does |

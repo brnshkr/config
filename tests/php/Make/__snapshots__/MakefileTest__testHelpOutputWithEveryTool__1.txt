@@ -190,6 +190,11 @@ Variables:
    DEBUG                          ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
    TRACE                          ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
    ANNOUNCEMENT                   ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
+  dotenv
+   DOTENV                         ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
+   DOTENV_ENV_KEY                 ?=  APP_ENV                                          (variable naming the current environment)
+   DOTENV_DEFAULT_ENV             ?=  dev                                              (environment assumed when the variable is unset)
+   DOTENV_TEST_ENVS               ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   common
    STARTUP_TARGETS                ?=                                                   (this project's own targets, run by startup after the dependencies)
    GIT_HOOKS                      ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
@@ -202,11 +207,6 @@ Variables:
    TEST_TARGETS                   ?=                                                   (this project's own targets, run by test)
    FIXTURE_TARGETS                ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                          ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
-  dotenv
-   DOTENV                         ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
-   DOTENV_ENV_KEY                 ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV             ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS               ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   composer
    COMPOSER                       ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                 ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
@@ -417,6 +417,11 @@ Variables:
    DEBUG                           ?=                                                   (whether each command is echoed before it runs, without the plumbing around it)
    TRACE                           ?=                                                   (whether every recipe line is echoed, the plumbing around the commands included)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
+  dotenv
+   DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
+   DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
+   DOTENV_DEFAULT_ENV              ?=  dev                                              (environment assumed when the variable is unset)
+   DOTENV_TEST_ENVS                ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   theming
    INDENT                          ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                     ?=  48                                               (widest a value column gets in make help, past which a value is truncated)
@@ -481,11 +486,6 @@ Variables:
    TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures to build what its tests read)
    PHONY                           ?=  1                                                (targets marked .PHONY, shared for the shared ones only or 0 for none)
-  dotenv
-   DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
-   DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV              ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS                ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   php
    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
   composer
@@ -797,6 +797,11 @@ Variables:
    TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message a verb prints before each target it runs, %s being the target, empty for none)
    BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
+  dotenv
+   DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
+   DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
+   DOTENV_DEFAULT_ENV              ?=  dev                                              (environment assumed when the variable is unset)
+   DOTENV_TEST_ENVS                ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   theming
    INDENT                          ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                     ?=  48                                               (widest a value column gets in make help, past which a value is truncated)
@@ -875,11 +880,6 @@ Variables:
     SEMVER_PRERELEASE_STRICT       ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)
     SEMVER_BUILD                   ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)
     SEMVER_REGEX                   ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)
-  dotenv
-   DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, or 0 to load none)
-   DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV              ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS                ?=  test                                             (environments that skip the .local file, as a test run must be reproducible)
   php
    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
   composer
@@ -1486,6 +1486,11 @@ Variables:
    [36mTRACE_PREFIX                  [0m  [90m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [35mTRACE[0m[90m echoes)[0m
    [36mANNOUNCEMENT                  [0m  [90m?=  Running `%s`                                     (message a verb prints before each target it runs, [35m%s[0m[90m being the target, empty for none)[0m
    [36mBRNSHKR_CONFIG_ERROR_CODE     [0m  [90m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
+  [35mdotenv[0m
+   [36mDOTENV                        [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
+   [36mDOTENV_ENV_KEY                [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [36mDOTENV_DEFAULT_ENV            [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [36mDOTENV_TEST_ENVS              [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
   [35mtheming[0m
    [36mINDENT                        [0m  [90m?=  1                                                (indent used in [35mmake help[0m[90m output)[0m
    [36mVALUE_WIDTH                   [0m  [90m?=  48                                               (widest a value column gets in [35mmake help[0m[90m, past which a value is truncated)[0m
@@ -1564,11 +1569,6 @@ Variables:
     [36mSEMVER_PRERELEASE_STRICT     [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
     [36mSEMVER_BUILD                 [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
     [36mSEMVER_REGEX                 [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
-  [35mdotenv[0m
-   [36mDOTENV                        [0m  [90m?=  1                                                (base path of the environment files, [35m1[0m[90m for [35m.env[0m[90m, or [35m0[0m[90m to load none)[0m
-   [36mDOTENV_ENV_KEY                [0m  [90m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [36mDOTENV_DEFAULT_ENV            [0m  [90m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [36mDOTENV_TEST_ENVS              [0m  [90m?=  test                                             (environments that skip the [35m.local[0m[90m file, as a test run must be reproducible)[0m
   [35mphp[0m
    [36mPHP_EXTENSIONS                [0m  [90m?=  php                                              (extensions the PHP tools read)[0m
   [35mcomposer[0m
@@ -1922,6 +1922,11 @@ Variables:
    [32mTRACE_PREFIX                  [0m  [0m?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only [33mTRACE[0m[0m echoes)[0m
    [32mANNOUNCEMENT                  [0m  [0m?=  Running `%s`                                     (message a verb prints before each target it runs, [33m%s[0m[0m being the target, empty for none)[0m
    [32mBRNSHKR_CONFIG_ERROR_CODE     [0m  [0m?=  69                                               (the error code for custom errors thrown by this Makefile)[0m
+  [33mdotenv[0m
+   [32mDOTENV                        [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
+   [32mDOTENV_ENV_KEY                [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
+   [32mDOTENV_DEFAULT_ENV            [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
+   [32mDOTENV_TEST_ENVS              [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
   [33mtheming[0m
    [32mINDENT                        [0m  [0m?=  1                                                (indent used in [33mmake help[0m[0m output)[0m
    [32mVALUE_WIDTH                   [0m  [0m?=  48                                               (widest a value column gets in [33mmake help[0m[0m, past which a value is truncated)[0m
@@ -2000,11 +2005,6 @@ Variables:
     [32mSEMVER_PRERELEASE_STRICT     [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one: what npm and Composer can both express, spelled npm's way)[0m
     [32mSEMVER_BUILD                 [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry accepts in a published version)[0m
     [32mSEMVER_REGEX                 [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semantic version grammar, as a POSIX extended regular expression)[0m
-  [33mdotenv[0m
-   [32mDOTENV                        [0m  [0m?=  1                                                (base path of the environment files, [33m1[0m[0m for [33m.env[0m[0m, or [33m0[0m[0m to load none)[0m
-   [32mDOTENV_ENV_KEY                [0m  [0m?=  APP_ENV                                          (variable naming the current environment)[0m
-   [32mDOTENV_DEFAULT_ENV            [0m  [0m?=  dev                                              (environment assumed when the variable is unset)[0m
-   [32mDOTENV_TEST_ENVS              [0m  [0m?=  test                                             (environments that skip the [33m.local[0m[0m file, as a test run must be reproducible)[0m
   [33mphp[0m
    [32mPHP_EXTENSIONS                [0m  [0m?=  php                                              (extensions the PHP tools read)[0m
   [33mcomposer[0m
