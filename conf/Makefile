@@ -1444,7 +1444,7 @@ $(call _target,composer-print): #~~ prints the resolved `composer` configuration
 	$(DEBUG_PREFIX)$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS)
 
 _$(_TARGET_PREFIX)composer-install:
-	$(DEBUG_PREFIX)$(_COMPOSER_INSTALL)
+	$(TRACE_PREFIX)$(call _spinner,$(_COMPOSER_INSTALL))
 
 #--- phpunit
 
@@ -1713,7 +1713,7 @@ $(call _target,bun-inspect): #~~ runs `node-modules-inspector` #v
 endif # /bun-inspect
 
 _$(_TARGET_PREFIX)bun-install:
-	$(DEBUG_PREFIX)$(_BUN_INSTALL)
+	$(TRACE_PREFIX)$(call _spinner,$(_BUN_INSTALL))
 
 #--- commitlint
 
