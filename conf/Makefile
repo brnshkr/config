@@ -188,15 +188,15 @@ TR     ?= tr#~~ path to `tr` binary
 
 #--- settings
 
-COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of the ones this project has
-APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty to run them on this machine
-APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering the running one
+COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of this project's
+APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty for this machine
+APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering one
 IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
-RUN              ?= $(call run_in,$(APP_SERVICE))#v #~~ command the tools run through, empty where they run on this machine
-APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#v #~~ where the tools see the sources, which differs from `CURDIR` in a container
+RUN              ?= $(call run_in,$(APP_SERVICE))#v #~~ command the tools run through, empty on this machine
+APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#v #~~ where the tools see the sources, not `CURDIR` in a container
 HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
-HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, which a compose file binds
+HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell id -u 2>/dev/null; id -g 2>/dev/null))$(_HOST_IDS)
 
@@ -270,10 +270,10 @@ _COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line
 _FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
 _DECLARED_KEYS     = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
-TARGET_PREFIX  ?= #v #~~ namespaces every target this file defines, so `brnshkr` gives `brnshkr-lint`
+TARGET_PREFIX  ?= #v #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
 
-COLLISION_PREFIX  ?= brnshkr#v #~~ namespace given to a shared target whose name this project already uses
+COLLISION_PREFIX  ?= brnshkr#v #~~ namespace for a shared target whose name this project uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
 define _MANIFEST_NAME_AWK
@@ -293,7 +293,7 @@ _MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MA
 endif # /manifest
 
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#v #~~ package name, taken from the manifest or the directory when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#v #~~ package name, from the manifest or directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
@@ -321,7 +321,7 @@ TRACE        ?= #~~ whether every recipe line is echoed
 TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)#vvv #~~ prefix for a line only `TRACE` echoes
 _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
-ANNOUNCEMENT       ?= Running `%s`#v #~~ message a verb prints before each target it runs, `%s` being the target, empty for none
+ANNOUNCEMENT       ?= Running `%s`#v #~~ message before each target a verb runs, `%s` the target
 _IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_GOAL)))
 _ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
 _ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(_ANNOUNCEMENT_LOG);)
@@ -344,10 +344,10 @@ BRNSHKR_CONFIG_ERROR_CODE ?= 69#vvv #~~ the error code for custom errors thrown 
 
 #---v dotenv
 
-DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, or `0` to load none
+DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, `0` none
 DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
 DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
-DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.local` file, as a test run must be reproducible
+DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.env.local` file
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
@@ -492,7 +492,7 @@ endif # /container
 #---vv theming
 
 INDENT      ?= 1#~~ indent used in `make help` output
-VALUE_WIDTH ?= 48#~~ widest a value column gets in `make help`, past which a value is truncated
+VALUE_WIDTH ?= 48#~~ widest value column in `make help`, truncated past it
 
 NO_ANSI             ?= #~~ whether ANSI escapes are suppressed
 _IS_NO_ANSI          = $(filter-out $(_FALSE),$(NO_ANSI))
@@ -509,7 +509,7 @@ _THEMES := $(THEME_BRNSHKR) \
 _THEME_DEFAULT := $(THEME_BRNSHKR)
 _THEME         := $(if $(filter $(THEME),$(_THEMES)),$(THEME),$(_THEME_DEFAULT))
 
-EDITOR_URL      ?= #~~ URL template the entries link to, in `{cwd}`, `{file}`, `{line}` and `{wslDistro}`
+EDITOR_URL      ?= #~~ link template with `{cwd}` `{file}` `{line}` `{wslDistro}`
 EDITOR_VSCODE   := vscode
 EDITOR_PHPSTORM := phpstorm
 
@@ -953,7 +953,7 @@ _NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subs
 _NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
 
 TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(MAKECMDGOALS))))#~~ the first target of this run
-ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on through `ARG9`
+ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on to `ARG9`
 ARG2    = $(word 2,$(ARGS))
 ARG3    = $(word 3,$(ARGS))
 ARG4    = $(word 4,$(ARGS))
@@ -962,7 +962,7 @@ ARG6    = $(word 6,$(ARGS))
 ARG7    = $(word 7,$(ARGS))
 ARG8    = $(word 8,$(ARGS))
 ARG9    = $(word 9,$(ARGS))
-ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target was handed, quoted for the shell
+ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target got, quoted for the shell
 
 _GOAL = $@
 
@@ -1155,7 +1155,7 @@ _HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
 _RESOLVED_VARIABLES  = $(filter-out %_AWK %_SOURCE _CHANGELOG_% _SUGGESTED_% _TRACKED_FILES,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
-$(call _target,help): #~~ show this help, narrowed by any scope named and widened by `v`, `vv` or `vvv`
+$(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
 	$(TRACE_PREFIX)$(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
 		_CURDIR="$(abspath $(CURDIR))" \
@@ -1176,7 +1176,7 @@ $(call _target,help): #~~ show this help, narrowed by any scope named and widene
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
 
-STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after the dependencies
+STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after installs
 
 _STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
 	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
@@ -1198,8 +1198,8 @@ $(call _target,install-hooks): #~~ installs this project's git hooks, replacing 
 _$(_TARGET_PREFIX)install-missing-hooks:
 	$(TRACE_PREFIX)$(call _install_git_hooks)
 
-CONFIG              ?= #v #~~ `local` or `dist` to pin which config every tool reads, rather than the first that is there
-ARCHIVE_EXTRA_PATHS ?= #v #~~ paths an archive ships beside the autoload roots, a trailing `/` taking the whole tree
+CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first found
+ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
@@ -1216,7 +1216,7 @@ _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOO
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
-$(call _target,configs): #~~ writes missing files, `tools` configs, `local` private halves
+$(call _target,configs): #~~ writes missing files, `tools` configs, `local` private ones
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		$(call _refuse_links,"$$target" "$${target%/*}" "$${target}.example"); \
@@ -1368,11 +1368,11 @@ endif # /container
 #---- constants
 
 SEMVER_NUMBER            ?= (0|[1-9][0-9]*)#~~ a numeric identifier, which carries no leading zero
-SEMVER_PRERELEASE_PART   ?= (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)#~~ one prerelease identifier, which carries no leading zero when it is numeric
+SEMVER_PRERELEASE_PART   ?= (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)#~~ one prerelease identifier, no leading zero when numeric
 SEMVER_PRERELEASE        ?= $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE_PART))*#~~ the prerelease grammar semver itself permits
-SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower one: what npm and Composer can both express, spelled npm's way
-SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry accepts in a published version
-SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semantic version grammar, as a POSIX extended regular expression
+SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower one npm and Composer share, spelled npm's way
+SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry publishes
+SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semver grammar, as a POSIX extended regular expression
 
 _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell $(AWK) $(_DOTENV_AWK_FLAGS) '$(_DOTENV_AWK)'))
 
@@ -1426,7 +1426,7 @@ $(call _target,composer-list): #~~ lists the files the composer package would sh
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
 		&& $(TAR) -tf "$$scratch/package.tar")
 
-$(call _target,composer-pack): #~~ packs the composer package into `./.local/<VENDOR>/<PACKAGE>` #vvv
+$(call _target,composer-pack): #~~ packs the composer package to `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_COMPOSER_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_COMPOSER_PACKAGE_DIR)' \
 		&& $(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
@@ -1443,16 +1443,16 @@ _$(_TARGET_PREFIX)composer-install:
 ifneq ($(_HAS_PHPUNIT),) # phpunit
 
 PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
-PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, which is Pest when it is installed
+PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, Pest when installed
 PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/conf/phpunit.xml $(APP_DIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
 PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
 PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
-PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ text report the minimum is read from, where the runner has no minimum of its own
-PHP_UNIT_MIN_COVERAGE         ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
-PHP_UNIT_MIN_COVERAGE_CLASSES ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the class metric must reach, which Pest cannot read
-PHP_UNIT_MIN_COVERAGE_METHODS ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the method metric must reach, which Pest cannot read
+PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ report the minimum is read from, where the runner has none
+PHP_UNIT_MIN_COVERAGE         ?= 100#v #~~ percentage every metric must reach, `0` for no floor
+PHP_UNIT_MIN_COVERAGE_CLASSES ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the class metric must reach, unread by Pest
+PHP_UNIT_MIN_COVERAGE_METHODS ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the method metric must reach, unread by Pest
 PHP_UNIT_MIN_COVERAGE_LINES   ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
 PHP_UNIT_COVERAGE_FLAGS       ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),--min=$(_PHP_UNIT_FLOOR)),$(if $(_PHP_UNIT_FLOORS),--coverage-text=$(PHP_UNIT_COVERAGE_FILE))) --coverage-html $(PHP_UNIT_COVERAGE_DIR)#v #~~ additional flags passed when collecting coverage
 
@@ -1501,13 +1501,13 @@ $(call _target,phpunit): #~~ runs the PHP tests
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(_DEBUG_FLAG) $(ARGS))
 
-$(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much of the source they reach #v
+$(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much source they reach #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 
-$(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information instead of progress #vvv
+$(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information, not progress #vvv
 $(call _target,phpunit-debug): _GOAL := $(call _target,phpunit-debug)
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
@@ -1640,7 +1640,7 @@ TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
 
-$(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or lints only when `--dry-run` is passed
+$(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or `lint` under `--dry-run`
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(_IS_DRY_RUN),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_DEBUG_FLAG) $(_FIXER_ARGS))
 
@@ -1688,7 +1688,7 @@ endif
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
 	$(TRACE_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
 
-$(call _target,bun-pack): #~~ packs the bun package into `./.local/<VENDOR>/<PACKAGE>` #vvv
+$(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_BUN_PACKAGE_DIR)' \
 		&& $(BUN) pm pack --quiet --filename "$$scratch_in_app/package.tgz" >/dev/null \
@@ -1713,7 +1713,7 @@ ifneq ($(_HAS_COMMITLINT),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
 COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/commitlint.mjs $(APP_DIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
-COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, instead of a single message
+COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, not one message
 COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
 
@@ -1745,12 +1745,12 @@ unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
 _ESLINT_OUTPUT := $(APP_DIR)/.cache/eslint.output
 
-ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, which follows the modules its config enables
+ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, set by its config's modules
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
 
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
-$(call _target,eslint): #~~ runs `eslint`, and writes its fixes unless `--dry-run` is passed
+$(call _target,eslint): #~~ runs `eslint`, writing fixes unless `--dry-run`
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(_IS_DRY_RUN),,--fix); \
@@ -1781,7 +1781,7 @@ $(call _target,eslint-inspect): #~~ runs `eslint-config-inspector` #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) $(ARGS) $(if $(filter %-stats,$(_GOAL)),--stats) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
-$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ runs `eslint-config-inspector` and times every rule with a full lint on startup #vv
+$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ runs `eslint-config-inspector` with a timed full lint #vv
 $(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
 
 endif # /eslint-inspect
@@ -1803,7 +1803,7 @@ _MARKDOWNLINT_VALUE_FLAGS := --config \
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),mjs),$(MARKDOWNLINT_EXTENSIONS))
 
-$(call _target,markdownlint): #~~ runs `markdownlint-cli2`, and writes its fixes unless `--dry-run` is passed
+$(call _target,markdownlint): #~~ runs `markdownlint-cli2`, writing fixes unless `--dry-run`
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
 		$(if $(_IS_DRY_RUN),,--fix) \
@@ -1852,11 +1852,11 @@ _STYLELINT_VALUE_FLAGS := --cache-location \
 	-i \
 	-o
 
-STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` can parse, which follows the syntaxes its config pulls in
+STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` parses, set by its config's syntaxes
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
 
-$(call _target,stylelint): #~~ runs `stylelint`, and writes its fixes unless `--dry-run` is passed
+$(call _target,stylelint): #~~ runs `stylelint`, writing fixes unless `--dry-run`
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
 		$(if $(_IS_DEBUG),--formatter verbose) $(if $(_IS_DRY_RUN),,--fix) \
@@ -1921,7 +1921,7 @@ VITEST_EXTENSIONS ?= $(_VITEST_EXTENSIONS)#vv #~~ extensions `vitest` runs tests
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
 VITEST_COVERAGE_DIR            ?= $(APP_DIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
-VITEST_MIN_COVERAGE            ?= 100#v #~~ percentage every metric must reach, `0` to collect coverage without a floor
+VITEST_MIN_COVERAGE            ?= 100#v #~~ percentage every metric must reach, `0` for no floor
 VITEST_MIN_COVERAGE_BRANCHES   ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the branch metric must reach
 VITEST_MIN_COVERAGE_FUNCTIONS  ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the function metric must reach
 VITEST_MIN_COVERAGE_LINES      ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
@@ -2041,12 +2041,12 @@ ifneq ($(_HAS_SEMGREP),) # semgrep
 
 SEMGREP          ?= $(RUN) semgrep#v #~~ command that runs `semgrep`
 SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/conf/semgrep.yaml $(APP_DIR)/conf/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
-SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets `semgrep` runs, auto-detected unless `x-brnshkr` says otherwise
+SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets, detected unless `x-brnshkr` sets them
 SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `semgrep`
 SEMGREP_CACHE    ?= $(APP_DIR)/.cache/semgrep#vv #~~ path to the `semgrep` ruleset cache
 SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
-SEMGREP_PYTHON   ?= $(RUN) python3#vvv #~~ command that runs `python3`, which merges the `semgrep` rulesets
+SEMGREP_PYTHON   ?= $(RUN) python3#vvv #~~ command that runs `python3`, merging `semgrep` rulesets
 
 _LAYERED_CONFIGS += $(call _layered,$(SEMGREP_CONFIG),yaml)
 
@@ -2192,7 +2192,7 @@ CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	twig=🌿_Twig \
 	ui=🎨_UI \
 	vscode=💻_Editor \
-	general=🧰_General#vv #~~ headings per scope root, as `<root>=<heading>` pairs, `_` a space
+	general=🧰_General#vv #~~ headings per root, as `<root>=<heading>` pairs, `_` a space
 
 CHANGELOG_NAMES ?= a11y=a11y \
 	acl=ACL \
@@ -2311,7 +2311,7 @@ CHANGELOG_NAMES ?= a11y=a11y \
 	xml=XML \
 	yaml=YAML \
 	yarn=Yarn \
-	yml=YAML#vv #~~ scope names title casing gets wrong, as `<scope>=<name>` pairs, `_` a space
+	yml=YAML#vv #~~ title-casing fixes, as `<scope>=<name>` pairs, `_` a space
 
 _CHANGELOG_LAST_TAG = $(eval _CHANGELOG_LAST_TAG := $$(shell $$(GIT) describe --tags --abbrev=0 2>/dev/null))$(_CHANGELOG_LAST_TAG)
 _IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
@@ -2357,7 +2357,7 @@ _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 _AUDITS    := $(if $(_HAS_COMPOSER_AUDIT),$(call _target,composer-audit)) $(if $(_HAS_BUN_AUDIT),$(call _target,bun-audit))
 
 ifneq ($(_HAS_AUDIT),)
-$(call _target,audit): #~~ checks every stack's locked dependencies for known vulnerabilities
+$(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
 endif
 
@@ -2413,7 +2413,7 @@ $(call _target,group): #~~ counts every tool's findings by identifier
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
 endif
 
-$(call _target,pack): $(_PACKS) #~~ packs every stack's package into `./.local` #vvv
+$(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
 TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
@@ -2428,7 +2428,7 @@ $(call _target,test-update): #~~ runs those tests and updates their snapshots
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
 endif
 
-FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` to build what its tests read
+FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
 
 $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
 	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
@@ -2488,7 +2488,7 @@ ifneq ($(_NAMED_OWN_TARGETS),) # own names
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /own names
 
-PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` for the shared ones only or `0` for none
+PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 
 .PHONY: $(if $(filter-out $(_FALSE),$(PHONY)),$(if $(filter shared,$(PHONY)),$(_SHARED_TARGETS),$(_ALL_TARGETS)))
 
