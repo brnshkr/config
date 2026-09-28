@@ -38,6 +38,30 @@ final class Project
     }
 
     /**
+     * @param non-empty-string $target
+     * @param array<non-empty-string, string> $variables
+     * @param ?string $input
+     *
+     * @return array{
+     *     exitCode: int,
+     *     output: string,
+     * }
+     *
+     * @throws LogicException
+     * @throws RuntimeException
+     */
+    public static function runTarget(string $target, array $variables = [], ?string $input = null): array
+    {
+        $command = ['make', 'NO_ANSI=1', $target];
+
+        foreach ($variables as $name => $value) {
+            $command[] = $name . '=' . $value;
+        }
+
+        return self::run($command, input: $input);
+    }
+
+    /**
      * @param non-empty-list<non-empty-string> $command
      * @param positive-int $timeoutSeconds
      * @param string|null $input data to pass to the process via stdin

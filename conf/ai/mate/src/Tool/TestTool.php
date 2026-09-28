@@ -60,7 +60,7 @@ final class TestTool
         }
 
         $snapshotHashesBeforeRun = $this->getDirtySnapshotHashes($snapshotPathspec);
-        $result                  = Project::run($this->getCommand($suite, $filter, $doesUpdateSnapshots));
+        $result                  = $this->runSuite($suite, $filter, $doesUpdateSnapshots);
         $snapshotHashesAfterRun  = $this->getDirtySnapshotHashes($snapshotPathspec);
 
         return Project::encode([
@@ -71,27 +71,23 @@ final class TestTool
     }
 
     /**
-     * @return non-empty-list<non-empty-string>
+     * @return array{
+     *     exitCode: int,
+     *     output: string,
+     * }
+     *
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    private function getCommand(string $suite, string $filter, bool $doesUpdateSnapshots): array
+    private function runSuite(string $suite, string $filter, bool $doesUpdateSnapshots): array
     {
-        if ($suite === 'js') {
-            $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'vitest-update' : 'vitest'];
+        $runner         = $suite === 'js' ? 'vitest' : 'pest';
+        $filterArgument = $suite === 'js' ? escapeshellarg($filter) : '--filter ' . escapeshellarg($filter);
 
-            if ($filter !== '') {
-                return [...$command, 'ARGS=' . escapeshellarg($filter)];
-            }
-
-            return $command;
-        }
-
-        $command = ['make', 'NO_ANSI=1', $doesUpdateSnapshots ? 'pest-update' : 'pest'];
-
-        if ($filter !== '') {
-            return [...$command, 'ARGS=--filter ' . escapeshellarg($filter)];
-        }
-
-        return $command;
+        return Project::runTarget(
+            $doesUpdateSnapshots ? $runner . '-update' : $runner,
+            $filter === '' ? [] : ['ARGS' => $filterArgument],
+        );
     }
 
     /**

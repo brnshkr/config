@@ -28,9 +28,6 @@ final class CommitlintTool
     )]
     public function checkMessage(string $message): string
     {
-        return Project::encode(Project::run(
-            ['make', 'NO_ANSI=1', 'commitlint', 'COMMITLINT_SOURCE='],
-            input: $message,
-        ));
+        return Project::encode(Project::runTarget('commitlint', ['COMMITLINT_SOURCE' => ''], $message));
     }
 }

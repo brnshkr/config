@@ -83,11 +83,8 @@ final class ModuleTool
             ]);
         }
 
-        return Project::encode(Project::run([
-            'make',
-            'NO_ANSI=1',
-            'composer',
-            'ARGS=' . new PrintModuleConfigCommand()->getName() . ' ' . $resolvedModule->value,
+        return Project::encode(Project::runTarget('composer', [
+            'ARGS' => new PrintModuleConfigCommand()->getName() . ' ' . $resolvedModule->value,
         ]));
     }
 }

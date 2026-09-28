@@ -10,7 +10,8 @@ use Mcp\Capability\Attribute\McpTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
-use function array_keys;
+use function array_fill_keys;
+use function in_array;
 use function sprintf;
 
 /**
@@ -20,43 +21,32 @@ use function sprintf;
  */
 final class QualityTool
 {
-    private const array COMMAND_MAP = [
-        'phpstan' => [
-            'check' => ['make', 'NO_ANSI=1', 'phpstan'],
-            'fix'   => ['make', 'NO_ANSI=1', 'phpstan'],
-        ],
-        'php-cs-fixer' => [
-            'check' => ['make', 'NO_ANSI=1', 'php-cs-fixer-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'php-cs-fixer'],
-        ],
-        'rector' => [
-            'check' => ['make', 'NO_ANSI=1', 'rector-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'rector'],
-        ],
-        'twig-cs-fixer' => [
-            'check' => ['make', 'NO_ANSI=1', 'twig-cs-fixer-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'twig-cs-fixer'],
-        ],
-        'eslint' => [
-            'check' => ['make', 'NO_ANSI=1', 'eslint-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'eslint'],
-        ],
-        'markdownlint' => [
-            'check' => ['make', 'NO_ANSI=1', 'markdownlint-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'markdownlint'],
-        ],
-        'stylelint' => [
-            'check' => ['make', 'NO_ANSI=1', 'stylelint-dry-run'],
-            'fix'   => ['make', 'NO_ANSI=1', 'stylelint'],
-        ],
-        'typescript' => [
-            'check' => ['make', 'NO_ANSI=1', 'typescript'],
-            'fix'   => ['make', 'NO_ANSI=1', 'typescript'],
-        ],
+    private const array TOOLS = [
+        'phpstan',
+        'php-cs-fixer',
+        'rector',
+        'twig-cs-fixer',
+        'eslint',
+        'markdownlint',
+        'stylelint',
+        'typescript',
+    ];
+
+    private const array CHECK_ONLY_TOOLS = [
+        'phpstan',
+        'typescript',
+    ];
+
+    private const array EDITOR_DETECTION_VARIABLES = [
+        'VSCODE_PID',
+        'VSCODE_CWD',
+        'JETBRAINS_IDE',
+        'VIM',
+        'NVIM',
     ];
 
     /**
-     * @param string $tool the tool to run, one of the keys of {@see self::COMMAND_MAP}
+     * @param string $tool the tool to run, one of {@see self::TOOLS}
      * @param bool $isDryRun when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
      *
      * @throws LogicException
@@ -68,19 +58,20 @@ final class QualityTool
     )]
     public function runQualityTool(string $tool, bool $isDryRun = true): string
     {
-        $commands = self::COMMAND_MAP[$tool] ?? null;
-
-        if ($commands === null) {
+        if (!in_array($tool, self::TOOLS, true)) {
             return Project::encode([
                 'exitCode' => 1,
                 'output'   => sprintf(
                     'Unknown tool "%s". Valid tools: %s.',
                     $tool,
-                    Str::joinAsQuotedList(array_keys(self::COMMAND_MAP)),
+                    Str::joinAsQuotedList(self::TOOLS),
                 ),
             ]);
         }
 
-        return Project::encode(Project::run($isDryRun ? $commands['check'] : $commands['fix']));
+        return Project::encode(Project::runTarget(
+            $isDryRun && !in_array($tool, self::CHECK_ONLY_TOOLS, true) ? $tool . '-dry-run' : $tool,
+            $tool === 'eslint' ? array_fill_keys(self::EDITOR_DETECTION_VARIABLES, '') : [],
+        ));
     }
 }
