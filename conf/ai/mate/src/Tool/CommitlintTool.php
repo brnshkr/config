@@ -28,6 +28,13 @@ final class CommitlintTool
     )]
     public function checkMessage(string $message): string
     {
+        if ($message === '') {
+            return Project::encode([
+                'exitCode' => 1,
+                'output'   => 'The message is empty.',
+            ]);
+        }
+
         return Project::encode(Project::runTarget('commitlint', ['COMMITLINT_SOURCE' => ''], $message));
     }
 }

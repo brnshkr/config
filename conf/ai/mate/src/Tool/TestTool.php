@@ -20,7 +20,6 @@ use function explode;
 use function hash_file;
 use function is_file;
 use function preg_split;
-use function sprintf;
 
 /**
  * Runs the test suites of this repository.
@@ -29,9 +28,24 @@ use function sprintf;
  */
 final class TestTool
 {
-    private const array SNAPSHOT_PATHSPEC_MAP = [
-        'php' => ':(glob)tests/php/**/__snapshots__/*',
-        'js'  => ':(glob)tests/js/**/__snapshots__/*',
+    /**
+     * @phpstan-var non-empty-array<'php'|'js', array{
+     *     runner: non-empty-string,
+     *     filterPrefix: string,
+     *     snapshotPathspec: non-empty-string,
+     * }>
+     */
+    private const array SUITE_MAP = [
+        'php' => [
+            'runner'           => 'pest',
+            'filterPrefix'     => '--filter ',
+            'snapshotPathspec' => ':(glob)tests/php/**/__snapshots__/*',
+        ],
+        'js' => [
+            'runner'           => 'vitest',
+            'filterPrefix'     => '',
+            'snapshotPathspec' => ':(glob)tests/js/**/__snapshots__/*',
+        ],
     ];
 
     /**
@@ -48,20 +62,18 @@ final class TestTool
     )]
     public function runTests(string $suite = 'php', string $filter = '', bool $doesUpdateSnapshots = false): string
     {
-        $snapshotPathspec = self::SNAPSHOT_PATHSPEC_MAP[$suite] ?? null;
+        $suiteSettings = self::SUITE_MAP[$suite] ?? null;
 
-        if ($snapshotPathspec === null) {
-            return Project::encode([
-                'exitCode'                => 1,
-                'output'                  => sprintf('Unknown suite "%s". Valid suites: "php", "js".', $suite),
+        if ($suiteSettings === null) {
+            return Project::encodeUnknownValue('suite', $suite, array_keys(self::SUITE_MAP), [
                 'changedSnapshots'        => [],
                 'unchangedDirtySnapshots' => [],
             ]);
         }
 
-        $snapshotHashesBeforeRun = $this->getDirtySnapshotHashes($snapshotPathspec);
-        $result                  = $this->runSuite($suite, $filter, $doesUpdateSnapshots);
-        $snapshotHashesAfterRun  = $this->getDirtySnapshotHashes($snapshotPathspec);
+        $snapshotHashesBeforeRun = $this->getDirtySnapshotHashes($suiteSettings['snapshotPathspec']);
+        $result                  = $this->runSuite($suiteSettings, $filter, $doesUpdateSnapshots);
+        $snapshotHashesAfterRun  = $this->getDirtySnapshotHashes($suiteSettings['snapshotPathspec']);
 
         return Project::encode([
             ...$result,
@@ -71,6 +83,12 @@ final class TestTool
     }
 
     /**
+     * @param array{
+     *     runner: non-empty-string,
+     *     filterPrefix: string,
+     *     snapshotPathspec: non-empty-string,
+     * } $suiteSettings
+     *
      * @return array{
      *     exitCode: int,
      *     output: string,
@@ -79,14 +97,11 @@ final class TestTool
      * @throws LogicException
      * @throws RuntimeException
      */
-    private function runSuite(string $suite, string $filter, bool $doesUpdateSnapshots): array
+    private function runSuite(array $suiteSettings, string $filter, bool $doesUpdateSnapshots): array
     {
-        $runner         = $suite === 'js' ? 'vitest' : 'pest';
-        $filterArgument = $suite === 'js' ? escapeshellarg($filter) : '--filter ' . escapeshellarg($filter);
-
         return Project::runTarget(
-            $doesUpdateSnapshots ? $runner . '-update' : $runner,
-            $filter === '' ? [] : ['ARGS' => $filterArgument],
+            $doesUpdateSnapshots ? $suiteSettings['runner'] . '-update' : $suiteSettings['runner'],
+            $filter === '' ? [] : ['ARGS' => $suiteSettings['filterPrefix'] . escapeshellarg($filter)],
         );
     }
 
@@ -124,7 +139,7 @@ final class TestTool
      * @param array<non-empty-string, ?non-falsy-string> $snapshotHashesBeforeRun
      * @param array<non-empty-string, ?non-falsy-string> $snapshotHashesAfterRun
      *
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private function getPathsWithDifferentHashes(array $snapshotHashesBeforeRun, array $snapshotHashesAfterRun): array
     {

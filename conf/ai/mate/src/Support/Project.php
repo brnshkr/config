@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Mate\Support;
 
+use Brnshkr\Config\Str;
 use Symfony\AI\Mate\Encoding\ResponseEncoder;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
@@ -40,7 +41,7 @@ final class Project
     /**
      * @param non-empty-string $target
      * @param array<non-empty-string, string> $variables
-     * @param ?string $input
+     * @param ?non-empty-string $input
      *
      * @return array{
      *     exitCode: int,
@@ -64,7 +65,7 @@ final class Project
     /**
      * @param non-empty-list<non-empty-string> $command
      * @param positive-int $timeoutSeconds
-     * @param string|null $input data to pass to the process via stdin
+     * @param ?non-empty-string $input data to pass to the process via stdin
      *
      * @return array{
      *     exitCode: int,
@@ -99,5 +100,19 @@ final class Project
             'exitCode' => $process->getExitCode() ?? -1,
             'output'   => $output->toString(),
         ];
+    }
+
+    /**
+     * @param non-empty-string $noun
+     * @param non-empty-list<non-empty-string> $validValues
+     * @param array<non-empty-string, mixed> $extraFields
+     */
+    public static function encodeUnknownValue(string $noun, string $value, array $validValues, array $extraFields = []): string
+    {
+        return self::encode([
+            'exitCode' => 1,
+            'output'   => sprintf('Unknown %s "%s". Valid %ss: %s.', $noun, $value, $noun, Str::joinAsQuotedList($validValues)),
+            ...$extraFields,
+        ]);
     }
 }

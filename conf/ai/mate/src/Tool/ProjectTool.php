@@ -91,14 +91,14 @@ final class ProjectTool
     }
 
     /**
-     * @param list<string> $rules
-     * @param list<string> $docs
+     * @param list<non-empty-string> $rules
+     * @param list<non-empty-string> $docs
      *
      * @return array{
-     *     implementedRules: list<string>,
-     *     documentedRules: list<string>,
-     *     rulesMissingDocs: list<string>,
-     *     docsMissingRules: list<string>,
+     *     implementedRules: list<non-empty-string>,
+     *     documentedRules: list<non-empty-string>,
+     *     rulesMissingDocs: list<non-empty-string>,
+     *     docsMissingRules: list<non-empty-string>,
      * }
      */
     private function buildDocsReport(array $rules, array $docs): array
@@ -112,15 +112,15 @@ final class ProjectTool
     }
 
     /**
-     * @param list<string> $phpRules
-     * @param list<string> $jsRules
+     * @param list<non-empty-string> $phpRules
+     * @param list<non-empty-string> $jsRules
      *
      * @return array{
-     *     pairedRules: list<string>,
-     *     phpRulesMissingJsCounterpart: list<string>,
-     *     jsRulesMissingPhpCounterpart: list<string>,
-     *     intentionallyPhpOnly: list<string>,
-     *     intentionallyJsOnly: list<string>,
+     *     pairedRules: list<non-empty-string>,
+     *     phpRulesMissingJsCounterpart: list<non-empty-string>,
+     *     jsRulesMissingPhpCounterpart: list<non-empty-string>,
+     *     intentionallyPhpOnly: list<non-empty-string>,
+     *     intentionallyJsOnly: list<non-empty-string>,
      * }
      */
     private function buildParityReport(array $phpRules, array $jsRules): array
@@ -131,7 +131,7 @@ final class ProjectTool
         foreach ($phpRules as $phpRule) {
             $jsRule = $this->toJsRuleName($phpRule);
 
-            if (in_array($jsRule, $jsRules, true)) {
+            if ($jsRule !== '' && in_array($jsRule, $jsRules, true)) {
                 $pairedRules[] = $jsRule;
 
                 continue;
@@ -163,18 +163,20 @@ final class ProjectTool
      * @param non-empty-string $pattern
      * @param non-empty-string $extension
      *
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private function getRuleNames(string $pattern, string $extension): array
     {
         return array_values(array_filter(
             $this->getBasenamesByGlob($pattern, $extension),
-            static fn (string $name): bool => $name !== 'index',
+            static fn (string $name): bool => $name !== '' && $name !== 'index',
         ));
     }
 
     /**
      * @param non-empty-string $file
+     *
+     * @return non-empty-string
      *
      * @throws IOException
      * @throws JsonException
@@ -186,7 +188,7 @@ final class ProjectTool
         $manifest = Json::decode($contents);
         $version  = $manifest['version'] ?? null;
 
-        if (!is_string($version)) {
+        if (!is_string($version) || $version === '') {
             throw new RuntimeException(sprintf('Failed reading the version from "%s".', $file));
         }
 

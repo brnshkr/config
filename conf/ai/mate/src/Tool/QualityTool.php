@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Mate\Support\Project;
-use Brnshkr\Config\Str;
 use Mcp\Capability\Attribute\McpTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
 use function array_fill_keys;
 use function in_array;
-use function sprintf;
 
 /**
  * Runs the quality tools of this repository.
@@ -21,6 +19,9 @@ use function sprintf;
  */
 final class QualityTool
 {
+    /**
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
     private const array TOOLS = [
         'phpstan',
         'php-cs-fixer',
@@ -32,11 +33,17 @@ final class QualityTool
         'typescript',
     ];
 
+    /**
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
     private const array CHECK_ONLY_TOOLS = [
         'phpstan',
         'typescript',
     ];
 
+    /**
+     * @phpstan-var non-empty-list<non-empty-string>
+     */
     private const array EDITOR_DETECTION_VARIABLES = [
         'VSCODE_PID',
         'VSCODE_CWD',
@@ -59,14 +66,7 @@ final class QualityTool
     public function runQualityTool(string $tool, bool $isDryRun = true): string
     {
         if (!in_array($tool, self::TOOLS, true)) {
-            return Project::encode([
-                'exitCode' => 1,
-                'output'   => sprintf(
-                    'Unknown tool "%s". Valid tools: %s.',
-                    $tool,
-                    Str::joinAsQuotedList(self::TOOLS),
-                ),
-            ]);
+            return Project::encodeUnknownValue('tool', $tool, self::TOOLS);
         }
 
         return Project::encode(Project::runTarget(

@@ -7,7 +7,6 @@ namespace Brnshkr\Config\Mate\Tool;
 use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Mate\Support\Project;
 use Brnshkr\Config\Module;
-use Brnshkr\Config\Str;
 use Mcp\Capability\Attribute\McpTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
@@ -73,14 +72,7 @@ final class ModuleTool
         $resolvedModule = Module::tryFrom($module);
 
         if ($resolvedModule === null) {
-            return Project::encode([
-                'exitCode' => 1,
-                'output'   => sprintf(
-                    'Unknown module "%s". Valid modules: %s.',
-                    $module,
-                    Str::joinAsQuotedList(Module::values()),
-                ),
-            ]);
+            return Project::encodeUnknownValue('module', $module, Module::values());
         }
 
         return Project::encode(Project::runTarget('composer', [
