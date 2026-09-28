@@ -54,8 +54,8 @@ Frequently used:
 
 ## 🤖 AI tooling
 
-This repo ships a project-aware MCP server ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants,
-wired up under [`./conf/ai/`](../conf/ai). It installs itself on `composer install` (the `mate/` directory is generated),
-and is picked up automatically by Claude Code (`.mcp.json`) and Codex (`./conf/ai/bin/codex`).
+This repo ships project-aware tools ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants,
+wired up under [`./conf/ai/`](../conf/ai). They install themselves on `composer install` (the `mate/` directory is generated),
+and an agent runs them as `./scripts/mate.php tools:call <tool>`.
 Agents must read [`AGENTS.md`](../AGENTS.md) first;
 how the setup works and how to extend it lives in [`./conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).

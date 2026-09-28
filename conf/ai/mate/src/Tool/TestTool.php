@@ -6,7 +6,7 @@ namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Mate\Support\Project;
 use Brnshkr\Config\Str;
-use Mcp\Capability\Attribute\McpTool;
+use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
@@ -56,7 +56,7 @@ final class TestTool
      * @throws LogicException
      * @throws RuntimeException
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-tests-run',
         description: 'Runs a test suite of this repository ("php" = Pest, "js" = Vitest). Supports filtering and updating snapshots; reports which snapshot files the run changed, and which were already changed and left alone.',
     )]

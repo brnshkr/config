@@ -9,6 +9,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  */
 return static function (ContainerConfigurator $containerConfigurator): void {
     $containerConfigurator->parameters()
+        ->set('mate.invocation', './scripts/mate.php')
         ->set('matesofmate_composer.custom_command', [
             'make',
             'NO_ANSI=1',

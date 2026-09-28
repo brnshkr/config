@@ -10,16 +10,18 @@ Stale guidance is worse than none.
 
 ## Tools
 
-- Prefer `project-*` MCP tools:
-  `project-quality-check` (phpstan/php-cs-fixer/rector/twig-cs-fixer/eslint/markdownlint/stylelint/typescript; dry-run default),
-  `project-tests-run` (`php`=Pest, `js`=Vitest; filter + snapshot update + changed-snapshot report),
-  `project-modules-list`/`project-module-config`,
+- Prefer the `project-*` mate tools, run as `./scripts/mate.php tools:call <tool> --<param>=<value>`
+  (a boolean as a bare flag; answers in TOON):
+  `project-quality-check --tool=<tool>` (phpstan/php-cs-fixer/rector/twig-cs-fixer/eslint/markdownlint/stylelint/typescript;
+  dry-run by default, `--isDryRun=false` writes),
+  `project-tests-run --suite=php|js` (Pest or Vitest; `--filter`, `--doesUpdateSnapshots`, reports changed snapshots),
+  `project-modules-list`/`project-module-config --module=<module>`,
   `project-version-sync-check`,
   `project-rule-docs-audit`,
-  `project-commitlint-check`.
-- `phpstan-*`/`rector-*`: always pass `configuration=conf/<tool>.dist.php`.
+  `project-commitlint-check --message=<draft>`.
+- `phpstan-*`/`rector-*`: always pass `--configuration=conf/<tool>.dist.php`.
   `phpunit-run` = Pest via custom_command.
-- Deep refs in `conf/ai/docs/`: `ai` (this AI/MCP setup — read before changing it), `commit`, `php`, `js`, `make`.
+- Deep refs in `conf/ai/docs/`: `ai` (this AI setup — read before changing it), `commit`, `php`, `js`, `make`.
 
 ## Code style
 

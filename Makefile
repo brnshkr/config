@@ -82,8 +82,12 @@ watch: #~~ rebuilds `./dist/` as the sources change
 
 #--- mate
 
-MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate#v
+_MATE_BINARY     := $(APP_DIR)/vendor/bin/mate
+MATE             := $(RUN) $(_MATE_BINARY)#v
 _MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
+
+mate: #~~ runs mate where the tools run
+	$(DEBUG_PREFIX)$(MATE) $(ARGS)
 
 discover: #~~ runs mate discover
 	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
@@ -100,6 +104,10 @@ discover: #~~ runs mate discover
 			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
 			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
 	fi
+
+# NOTICE: `./scripts/mate.php` feeds its arguments here separated by NUL, so none of their quoting is lost on the way
+_mate-from-stdin:
+	$(DEBUG_PREFIX)$(RUN) xargs -0 $(_MATE_BINARY)
 
 #---vvv debug
 

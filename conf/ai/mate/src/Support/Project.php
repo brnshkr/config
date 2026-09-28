@@ -23,6 +23,15 @@ final class Project
 {
     private const int MAX_OUTPUT_LENGTH = 20_000;
 
+    /**
+     * @phpstan-var array<non-empty-string, false>
+     */
+    private const array INHERITED_MAKE_VARIABLES = [
+        'MAKEFLAGS' => false,
+        'MAKELEVEL' => false,
+        'MFLAGS'    => false,
+    ];
+
     private function __construct() {}
 
     public static function getRootDirectory(): string
@@ -77,7 +86,7 @@ final class Project
      */
     public static function run(array $command, int $timeoutSeconds = 600, ?string $input = null): array
     {
-        $process = new Process($command, self::getRootDirectory(), null, $input, (float) $timeoutSeconds);
+        $process = new Process($command, self::getRootDirectory(), self::INHERITED_MAKE_VARIABLES, $input, (float) $timeoutSeconds);
 
         $process->run();
 

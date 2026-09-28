@@ -7,8 +7,8 @@ namespace Brnshkr\Config\Mate\Tool;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Mate\Support\Project;
 use JsonException;
-use Mcp\Capability\Attribute\McpTool;
 use RuntimeException;
+use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -55,7 +55,7 @@ final class ProjectTool
      * @throws JsonException
      * @throws RuntimeException
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-version-sync-check',
         description: 'Compares the version declared in package.json and composer.json, which must stay in sync (CI validates this).',
     )]
@@ -71,7 +71,7 @@ final class ProjectTool
         ]);
     }
 
-    #[McpTool(
+    #[MateTool(
         name: 'project-rule-docs-audit',
         description: 'Cross-checks the custom PHPStan and ESLint rules against their doc pages and against each other, reporting rules without docs, docs without rules and rules that exist on only one of the two stacks.',
     )]

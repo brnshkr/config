@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Mate\Support\Project;
-use Mcp\Capability\Attribute\McpTool;
+use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
@@ -59,7 +59,7 @@ final class QualityTool
      * @throws LogicException
      * @throws RuntimeException
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-quality-check',
         description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, markdownlint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (phpstan and typescript are check-only).',
     )]

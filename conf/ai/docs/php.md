@@ -15,10 +15,10 @@
 
 - A PHPStan rule is a class in `src/php/PhpStan/Rule/`, a test in `tests/php/PhpStan/Rule/`,
   fixtures in `tests/php/Fixtures/PhpStan/Rule/<Name>/` and a page `docs/php/phpstan/rules/<Name>.md`.
-  Check the pairing with MCP `project-rule-docs-audit`.
+  Check the pairing with `project-rule-docs-audit`.
 - A rule test marks expected errors with `// ERROR <context>` in its fixture. A rule reporting two errors on one line
   uses PHPStan's `RuleTestCase` with an explicit list instead.
 - Fixtures use the vendor `Acme` and are not analyzed.
 - A command extending `AbstractCommand` catches its exceptions, so assert its exit code and output, never
   `expectException`.
-- Regenerate snapshots with MCP `project-tests-run` and `doesUpdateSnapshots=true`.
+- Regenerate snapshots with `project-tests-run --doesUpdateSnapshots`.

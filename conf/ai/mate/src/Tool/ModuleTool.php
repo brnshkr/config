@@ -7,7 +7,7 @@ namespace Brnshkr\Config\Mate\Tool;
 use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
 use Brnshkr\Config\Mate\Support\Project;
 use Brnshkr\Config\Module;
-use Mcp\Capability\Attribute\McpTool;
+use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
@@ -23,7 +23,7 @@ final class ModuleTool
     /**
      * @throws \RuntimeException when the project's `composer.json` cannot be read
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-modules-list',
         description: 'Lists all brnshkr/config modules (phpcsfixer, phpstan, rector, twigcsfixer) with their default config file and the required/optional packages including installation status.',
     )]
@@ -63,7 +63,7 @@ final class ModuleTool
      * @throws LogicException
      * @throws RuntimeException
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-module-config',
         description: 'Prints the fully resolved configuration of a module as JSON.',
     )]

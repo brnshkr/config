@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Mate\Support\Project;
-use Mcp\Capability\Attribute\McpTool;
+use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
@@ -22,7 +22,7 @@ final class CommitlintTool
      * @throws LogicException
      * @throws RuntimeException
      */
-    #[McpTool(
+    #[MateTool(
         name: 'project-commitlint-check',
         description: 'Lints a commit message draft against the Commitlint rules of this repository without creating a commit. Use before committing to validate type, scope and body formatting.',
     )]

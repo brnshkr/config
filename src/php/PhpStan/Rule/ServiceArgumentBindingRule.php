@@ -421,9 +421,13 @@ final readonly class ServiceArgumentBindingRule implements Rule
         $names = [];
 
         foreach ($value->items as $item) {
-            $name = $item->key instanceof String_ ? self::toParameterName($item->key->value) : null;
+            if (!$item->key instanceof String_) {
+                continue;
+            }
 
-            if ($name !== null && $item->key !== null) {
+            $name = self::toParameterName($item->key->value);
+
+            if ($name !== null) {
                 $names[] = [
                     'name' => $name,
                     'line' => $item->key->getStartLine(),
