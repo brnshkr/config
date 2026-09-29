@@ -1311,30 +1311,84 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		fi; \
 	fi
 
-_GIT_CLEAN_BASE_FLAGS  = $(if $(filter --all -a,$(_ARGS)),,-e /.local -e .env*.local)
-_GIT_CLEAN_DRY_FLAGS   = -xdffn $(_GIT_CLEAN_BASE_FLAGS)
-_GIT_CLEAN_FORCE_FLAGS = -xdff $(_GIT_CLEAN_BASE_FLAGS)
+FRESH_KEEP ?= /.local/ \
+	*.local \
+	*.local.* \
+	/.idea/ \
+	/.vscode/ \
+	/.fleet/ \
+	/.zed/ \
+	/.history/ \
+	/.claude/ \
+	/.agents/ \
+	/.cursor/ \
+	/.aider* \
+	/.continue/ \
+	/.windsurf/#v #~~ patterns `fresh` keeps, unless `--all` is passed
 
-$(call _target,fresh): #~~ removes every untracked file and runs `startup`, `--all` the private ones too
+_IS_FRESH_ALL    = $(filter --all -a,$(_ARGS))
+_FRESH_UNTRACKED = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --exclude-standard
+_FRESH_KEPT      = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --ignored --directory $(_FRESH_EXCLUDES)
+
+_FRESH_DIST_FILES = $(foreach \
+	FILE,$(_TRACKED_FILES),$(if $(or $(filter %.dist,$(FILE)),$(findstring .dist.,$(notdir $(FILE)))),$(FILE)))
+
+_FRESH_DIST_SIBLINGS = $(foreach \
+	FILE,$(_FRESH_DIST_FILES),/$(patsubst ./%,%,$(dir $(FILE)))$(patsubst %.dist,%,$(subst .dist.,.,$(notdir $(FILE)))))
+
+_FRESH_EXCLUDES = $(if $(_IS_FRESH_ALL),,$(foreach \
+	FRESH_PATTERN,$(FRESH_KEEP) $(_FRESH_DIST_SIBLINGS),--exclude='$(FRESH_PATTERN)'))
+
+_FRESH_OPTIONS = set -f; \
+	set -- -xdf$(if $(_IS_FRESH_ALL),f) $(_FRESH_EXCLUDES); \
+	$(if $(_IS_FRESH_ALL),:,untracked=$$($(_FRESH_UNTRACKED)) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	newline=$$($(PRINTF) '\n_'); \
+	IFS=$${newline%_}; \
+	for path in $$untracked; do \
+		set -- "$$@" --exclude="/$$($(PRINTF) '%s' "$$path" | $(AWK) "$$_FRESH_ESCAPE_AWK")"; \
+	done; \
+	unset IFS)
+
+$(call _target,fresh): #~~ removes ignored files but private ones, reruns `startup`
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
 		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
-	$(TRACE_PREFIX)LC_ALL=C $(GIT) clean $(_GIT_CLEAN_DRY_FLAGS) | while read -r path; do \
-		$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${path#Would remove }"); \
+	$(TRACE_PREFIX)$(GIT) rev-parse --verify --quiet HEAD >/dev/null || { \
+		$(call log,`fresh` needs a commit to reset to.,$(COLOR_ERROR)) >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}
+	$(TRACE_PREFIX)$(if $(_IS_FRESH_ALL),:,$(call _capture,$(_FRESH_KEPT)) | $(AWK) "$$_FRESH_KEPT_AWK" \
+		| while IFS= read -r path; do \
+			$(call log,Keeping `./%s`.,$(COLOR_NOTICE),"$$path"); \
+		done)
+	$(TRACE_PREFIX)$(if $(_IS_FRESH_ALL),:,$(call _capture,$(_FRESH_UNTRACKED)) | while IFS= read -r path; do \
+		[ -n "$$path" ] || continue; \
+		$(call log,Keeping `./%s` (untracked).,$(COLOR_NOTICE),"$$path"); \
+	done)
+	$(TRACE_PREFIX)$(_FRESH_OPTIONS); $(call _capture,LC_ALL=C $(GIT) clean -n "$$@") | while IFS= read -r line; do \
+		[ -n "$$line" ] || continue; \
+		if [ "$${line#Would skip repository }" != "$$line" ]; then \
+			$(call log,Keeping `./%s/` (repository).,$(COLOR_NOTICE),"$${line#Would skip repository }"); \
+		else \
+			$(call log,Would remove `./%s`.,$(COLOR_NOTICE),"$${line#Would remove }"); \
+		fi; \
 	done
 	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,$(if $(filter --force -f,$(_ARGS)),:,$(call confirm,Remove them and reinstall?) || { \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 			exit 0; \
 		}); \
-		$(GIT) clean $(_GIT_CLEAN_FORCE_FLAGS))
-	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,[ -n "$$($(GIT) clean $(_GIT_CLEAN_DRY_FLAGS))" ] || { \
-		{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] \
-			|| { $(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) is_installing=_IS_INSTALLING=1; }; } \
-			&& $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
-	})
+		$(_FRESH_OPTIONS); $(GIT) clean "$$@")
+	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,$(_FRESH_OPTIONS); \
+		remaining=$$(LC_ALL=C $(GIT) clean -n "$$@") || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		[ "$${remaining#*Would remove }" != "$$remaining" ] || { \
+			{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] || { \
+				$(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) \
+				is_installing=_IS_INSTALLING=1; \
+			}; } && $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
+		})
 
-$(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove #vv
+$(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove and keep #vv
 $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
 #---v container
@@ -4422,6 +4476,23 @@ END {
 }
 endef
 
+define _FRESH_ESCAPE_AWK_SOURCE
+{
+	escaped = ""
+	while (match($$0, /[][*?\\]/)) {
+		escaped = escaped substr($$0, 1, RSTART - 1) "\\" substr($$0, RSTART, 1)
+		$$0 = substr($$0, RSTART + 1)
+	}
+	print escaped $$0
+}
+endef
+
+define _FRESH_KEPT_AWK_SOURCE
+previous != "" && !(previous ~ /\/$$/ && index($$0, previous) == 1) { print previous }
+{ previous = $$0 }
+END { if (previous != "") print previous }
+endef
+
 define _GROUP_AWK_SOURCE
 function repeat(text, times,    out) { out = ""; while (times-- > 0) out = out text; return out }
 function value(record, key,    pattern) {
@@ -5107,6 +5178,8 @@ $(call _target,configs): export _MANAGED_BLOCK_AWK = $(_MANAGED_BLOCK_AWK_SOURCE
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) tools t local l force f
 $(call _target,configs): _ARG_FILES = $(_CONFIG_FILES)
+$(call _target,fresh): export _FRESH_ESCAPE_AWK = $(_FRESH_ESCAPE_AWK_SOURCE)
+$(call _target,fresh): export _FRESH_KEPT_AWK = $(_FRESH_KEPT_AWK_SOURCE)
 $(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
 $(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
 $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

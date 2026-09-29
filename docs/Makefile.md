@@ -45,8 +45,8 @@ Across both stacks:
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
 | `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
 | `cc` | Removes the caches of the tools or files named, or all of them after asking. |
-| `fresh` | Removes every untracked file, reinstalls and runs `startup`, asking first. `--force` skips the question, `--all` takes `./.local` and `.env*.local` too. |
-| `fresh-dry-run` | Lists what `fresh` would remove. |
+| `fresh` | Removes every ignored file but `FRESH_KEEP` and the private half of each tracked `.dist` file, then reinstalls and runs `startup`, asking first. Untracked files and nested repositories stay too; `--all` removes everything. `--force` skips the question. Needs a commit to reset to. |
+| `fresh-dry-run` | Lists what `fresh` would remove and keep. |
 
 `make -j` runs tools in parallel, keeping fixers that write the same files in order.
 A verb names each target before running it and carries on past a failing one.
@@ -100,6 +100,7 @@ Every tool is three variables
 | `VERSION` | What the header shows. `0.0.0-dev` until the repository sets it. |
 | `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
 | `CACHE_DIR` | Where the tools keep their caches, and what `cc` clears. |
+| `FRESH_KEEP` | What `fresh` leaves alone: `./.local`, `*.local` and `*.local.*` files, editor and agent directories. Add a pattern with `+=` below the include, drop one with `FRESH_KEEP := $(filter-out /.idea/,$(FRESH_KEEP))`. |
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
 | `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
 | `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |

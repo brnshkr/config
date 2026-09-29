@@ -147,7 +147,7 @@ Available commands:
    startup                     brings a fresh checkout to a workable state
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh                       removes ignored files but private ones, reruns startup
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -203,6 +203,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
    GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
@@ -269,7 +270,7 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
+   fresh                       removes ignored files but private ones, reruns startup
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -387,6 +388,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -485,8 +487,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -646,6 +648,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -785,8 +788,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    pack                        packs every stack's package to ./.local
    fixtures                    builds the fixtures this project's tests read
   changelog
@@ -950,6 +953,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -1089,8 +1093,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    pack                        packs every stack's package to ./.local
    fixtures                    builds the fixtures this project's tests read
   changelog
@@ -1465,6 +1469,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -1605,8 +1610,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    pack                        packs every stack's package to ./.local
    fixtures                    builds the fixtures this project's tests read
   changelog
@@ -1770,6 +1775,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -1909,8 +1915,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    pack                        packs every stack's package to ./.local
    fixtures                    builds the fixtures this project's tests read
   changelog
@@ -2074,6 +2080,7 @@ Variables:
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -2213,8 +2220,8 @@ Available commands:
    install-hooks               installs this project's git hooks, replacing any that exist
    configs                     writes missing files, tools configs, local private ones
    cc                          removes the caches named, or all of them when given none
-   fresh                       removes every untracked file and runs startup, --all the private ones too
-   fresh-dry-run               lists what fresh would remove
+   fresh                       removes ignored files but private ones, reruns startup
+   fresh-dry-run               lists what fresh would remove and keep
    pack                        packs every stack's package to ./.local
    fixtures                    builds the fixtures this project's tests read
   changelog
@@ -2459,6 +2466,7 @@ Available commands:
    [36mCONFIG                    [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
    [36mARCHIVE_EXTRA_PATHS       [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
    [36mCACHE_DIR                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
+   [36mFRESH_KEEP                [0m  [90m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
    [36mCHECK_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIX_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
@@ -2598,8 +2606,8 @@ Available commands:
    [36minstall-hooks             [0m  [90minstalls this project's git hooks, replacing any that exist[0m
    [36mconfigs                   [0m  [90mwrites missing files, [35mtools[0m[90m configs, [35mlocal[0m[90m private ones[0m
    [36mcc                        [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36mfresh                     [0m  [90mremoves every untracked file and runs [35mstartup[0m[90m, [35m--all[0m[90m the private ones too[0m
-   [36mfresh-dry-run             [0m  [90mlists what [35mfresh[0m[90m would remove[0m
+   [36mfresh                     [0m  [90mremoves ignored files but private ones, reruns [35mstartup[0m[90m[0m
+   [36mfresh-dry-run             [0m  [90mlists what [35mfresh[0m[90m would remove and keep[0m
    [36mpack                      [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mfixtures                  [0m  [90mbuilds the fixtures this project's tests read[0m
   [35mchangelog[0m
@@ -2763,6 +2771,7 @@ Available commands:
    [32mCONFIG                    [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
    [32mARCHIVE_EXTRA_PATHS       [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
    [32mCACHE_DIR                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
+   [32mFRESH_KEEP                [0m  [0m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
    [32mCHECK_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIX_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
@@ -2902,8 +2911,8 @@ Available commands:
    [32minstall-hooks             [0m  [0minstalls this project's git hooks, replacing any that exist[0m
    [32mconfigs                   [0m  [0mwrites missing files, [33mtools[0m[0m configs, [33mlocal[0m[0m private ones[0m
    [32mcc                        [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32mfresh                     [0m  [0mremoves every untracked file and runs [33mstartup[0m[0m, [33m--all[0m[0m the private ones too[0m
-   [32mfresh-dry-run             [0m  [0mlists what [33mfresh[0m[0m would remove[0m
+   [32mfresh                     [0m  [0mremoves ignored files but private ones, reruns [33mstartup[0m[0m[0m
+   [32mfresh-dry-run             [0m  [0mlists what [33mfresh[0m[0m would remove and keep[0m
    [32mpack                      [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mfixtures                  [0m  [0mbuilds the fixtures this project's tests read[0m
   [33mchangelog[0m
