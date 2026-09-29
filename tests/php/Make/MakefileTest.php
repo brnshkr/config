@@ -678,8 +678,8 @@ final class MakefileTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('./conf/phpstan.php is missing', $result);
-        self::assertStringNotContainsString('/app/conf/phpstan.php is missing', $result);
+        self::assertStringContainsString('./conf/phpstan.php, which PHP_STAN_CONFIG names, is missing', $result);
+        self::assertStringNotContainsString('/app/conf/phpstan.php', $result);
     }
 
     public function testConfigsWritesOnlyWhatTheProjectIsMissing(): void

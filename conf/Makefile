@@ -3125,7 +3125,10 @@ endef
 #*
 define _require_file
 test -r '$(call _host_path,$1)' || { \
-	$(call log,`%s` is missing$(_COMMA) set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') >&2; \
+	$(if $(filter command% environment%,$(origin $2)) \
+		,$(call log,`%s`$(_COMMA) which `%s` names$(_COMMA) is missing.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2'), \
+		$(call log,`%s` is missing$(_COMMA) set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') \
+	) >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
 endef
