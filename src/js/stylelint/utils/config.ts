@@ -2,13 +2,20 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { pickKeys } from '../../shared/utils/object';
+import {
+  createConfigMerger,
+  merge,
+  replace,
+  union,
+} from '../../shared/utils/config-merger';
+
 import { packageOrganization } from '../../shared/utils/package-json';
 
-import type { Maybe } from '../../shared/types/core';
+import type { MergeStrategies } from '../../shared/utils/config-merger';
 import type { Config } from '../types/config';
-import type { ResolvedOptions } from '../types/options';
 import type { Override } from '../types/overrides';
+
+type MergedConfig = Omit<Config, 'computeEditInfo' | 'ignorePatterns' | `_${string}`>;
 
 export const buildOverrideName = (
   override: Override,
@@ -16,184 +23,52 @@ export const buildOverrideName = (
   .filter(Boolean)
   .join('/');
 
-const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
-  'extends',
-  'plugins',
-  'ignoreFiles',
-  'rules',
-  'quiet',
-  'formatter',
-  'defaultSeverity',
-  'ignoreDisables',
-  'reportNeedlessDisables',
-  'reportInvalidScopeDisables',
-  'reportDescriptionlessDisables',
-  'reportUnscopedDisables',
-  'configurationComment',
-  'overrides',
-  'customSyntax',
-  'processors',
-  'languageOptions',
-  'allowEmptyInput',
-  'cache',
-  'fix',
-  'validate',
-  'maxWarnings',
-  'referenceFiles',
-] satisfies (keyof Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>)[];
+const MERGE_STRATEGIES = <const>{
+  extends: union,
+  plugins: union,
+  ignoreFiles: union,
+  rules: merge,
+  quiet: replace,
+  formatter: replace,
+  defaultSeverity: replace,
+  ignoreDisables: replace,
+  reportNeedlessDisables: replace,
+  reportInvalidScopeDisables: replace,
+  reportDescriptionlessDisables: replace,
+  reportUnscopedDisables: replace,
+  maxWarnings: replace,
+  configurationComment: replace,
+  overrides: (currentOverrides, overridesToInclude) => [
+    ...(currentOverrides ?? []).filter(
+      (existingOverride) => overridesToInclude.every(
+        (overrideToInclude) => overrideToInclude.name === undefined
+          || overrideToInclude.name !== existingOverride.name,
+      ),
+    ),
+    ...overridesToInclude,
+  ],
+  customSyntax: replace,
+  processors: union,
+  referenceFiles: union,
+  languageOptions: (currentLanguageOptions, languageOptionsToInclude) => {
+    const currentSyntax = currentLanguageOptions?.syntax ?? {};
+    const syntaxToInclude = languageOptionsToInclude.syntax ?? {};
 
-const getGlobalAdditionalConfig = (
-  options: ResolvedOptions,
-): Maybe<Config> => pickKeys(options, GLOBAL_ADDITIONAL_CONFIG_KEYS);
+    return {
+      ...currentLanguageOptions,
+      ...languageOptionsToInclude,
+      syntax: {
+        atRules: merge(currentSyntax.atRules, syntaxToInclude.atRules ?? {}),
+        cssWideKeywords: union(currentSyntax.cssWideKeywords, syntaxToInclude.cssWideKeywords ?? []),
+        properties: merge(currentSyntax.properties, syntaxToInclude.properties ?? {}),
+        types: merge(currentSyntax.types, syntaxToInclude.types ?? {}),
+      },
+    };
+  },
+  allowEmptyInput: replace,
+  cache: replace,
+  fix: replace,
+  validate: replace,
+} satisfies MergeStrategies<MergedConfig>;
 
-export const getUserConfigs = (
-  resolvedOptions: ResolvedOptions,
-  additionalConfigs: Config[],
-): Config[] => [
-  getGlobalAdditionalConfig(resolvedOptions),
-  ...additionalConfigs,
-].filter(Boolean);
-
-// eslint-disable-next-line complexity, max-lines-per-function, max-statements -- Extracting these assignments to separate functions would not improve readability
-export const includeConfigs = (config: Config, configsToInclude: Config[]): void => {
-  for (const configToInclude of configsToInclude) {
-    if (configToInclude.extends !== undefined) {
-      config.extends = [...new Set([
-        ...(Array.isArray(config.extends)
-          ? (config.extends ?? [])
-          : [config.extends].filter(Boolean)),
-        ...(Array.isArray(configToInclude.extends)
-          ? (configToInclude.extends ?? [])
-          : [configToInclude.extends].filter(Boolean)),
-      ])];
-    }
-
-    if (configToInclude.plugins !== undefined) {
-      config.plugins = [...new Set([
-        ...(Array.isArray(config.plugins)
-          ? (config.plugins ?? [])
-          : [config.plugins].filter(Boolean)),
-        ...(Array.isArray(configToInclude.plugins)
-          ? (configToInclude.plugins ?? [])
-          : [configToInclude.plugins].filter(Boolean)),
-      ])];
-    }
-
-    if (configToInclude.ignoreFiles !== undefined) {
-      config.ignoreFiles = [...new Set([
-        ...(Array.isArray(config.ignoreFiles)
-          ? (config.ignoreFiles ?? [])
-          : [config.ignoreFiles].filter(Boolean)),
-        ...(Array.isArray(configToInclude.ignoreFiles)
-          ? (configToInclude.ignoreFiles ?? [])
-          : [configToInclude.ignoreFiles].filter(Boolean)),
-      ])];
-    }
-
-    if (configToInclude.rules !== undefined) {
-      config.rules = {
-        ...config.rules,
-        ...configToInclude.rules,
-      };
-    }
-
-    if (configToInclude.quiet !== undefined) {
-      config.quiet = configToInclude.quiet;
-    }
-
-    if (configToInclude.formatter !== undefined) {
-      config.formatter = configToInclude.formatter;
-    }
-
-    if (configToInclude.defaultSeverity !== undefined) {
-      config.defaultSeverity = configToInclude.defaultSeverity;
-    }
-
-    if (configToInclude.ignoreDisables !== undefined) {
-      config.ignoreDisables = configToInclude.ignoreDisables;
-    }
-
-    if (configToInclude.reportNeedlessDisables !== undefined) {
-      config.reportNeedlessDisables = configToInclude.reportNeedlessDisables;
-    }
-
-    if (configToInclude.reportInvalidScopeDisables !== undefined) {
-      config.reportInvalidScopeDisables = configToInclude.reportInvalidScopeDisables;
-    }
-
-    if (configToInclude.reportDescriptionlessDisables !== undefined) {
-      config.reportDescriptionlessDisables = configToInclude.reportDescriptionlessDisables;
-    }
-
-    if (configToInclude.reportUnscopedDisables !== undefined) {
-      config.reportUnscopedDisables = configToInclude.reportUnscopedDisables;
-    }
-
-    if (configToInclude.configurationComment !== undefined) {
-      config.configurationComment = configToInclude.configurationComment;
-    }
-
-    if (configToInclude.overrides !== undefined) {
-      const overridesToInclude = configToInclude.overrides;
-
-      config.overrides = [
-        ...(config.overrides ?? []).filter(
-          (existingOverride) => overridesToInclude.every(
-            (overrideToInclude) => overrideToInclude.name === undefined
-              || overrideToInclude.name !== existingOverride.name,
-          ),
-        ),
-        ...overridesToInclude,
-      ];
-    }
-
-    if (configToInclude.customSyntax !== undefined) {
-      config.customSyntax = configToInclude.customSyntax;
-    }
-
-    if (configToInclude.processors !== undefined) {
-      config.processors = [...new Set([...(config.processors ?? []), ...configToInclude.processors])];
-    }
-
-    if (configToInclude.languageOptions !== undefined) {
-      config.languageOptions = {
-        ...config.languageOptions,
-        ...configToInclude.languageOptions,
-        syntax: {
-          atRules: {
-            ...config.languageOptions?.syntax?.atRules,
-            ...configToInclude.languageOptions.syntax?.atRules,
-          },
-          cssWideKeywords: [...new Set([
-            ...config.languageOptions?.syntax?.cssWideKeywords ?? [],
-            ...configToInclude.languageOptions.syntax?.cssWideKeywords ?? [],
-          ])],
-          properties: {
-            ...config.languageOptions?.syntax?.properties,
-            ...configToInclude.languageOptions.syntax?.properties,
-          },
-          types: {
-            ...config.languageOptions?.syntax?.types,
-            ...configToInclude.languageOptions.syntax?.types,
-          },
-        },
-      };
-    }
-
-    if (configToInclude.allowEmptyInput !== undefined) {
-      config.allowEmptyInput = configToInclude.allowEmptyInput;
-    }
-
-    if (configToInclude.cache !== undefined) {
-      config.cache = configToInclude.cache;
-    }
-
-    if (configToInclude.fix !== undefined) {
-      config.fix = configToInclude.fix;
-    }
-
-    if (configToInclude.validate !== undefined) {
-      config.validate = configToInclude.validate;
-    }
-  }
-};
+export const { getUserConfigs, includeConfigs } = createConfigMerger<MergedConfig>(MERGE_STRATEGIES);
