@@ -104,7 +104,8 @@ Every tool is three variables
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
 | `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
 | `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |
-| `LOGO`, `NO_ANSI`, `THEME`, `EDITOR`, `EDITOR_URL` | How output is printed and where its links point. Empty disables the logo or the links. `EDITOR` is detected when unset, and one inherited from the shell naming another editor is ignored rather than rejected. |
+| `NO_COLOR`, `FORCE_COLOR`, `CLICOLOR`, `CLICOLOR_FORCE` | Colors, on a terminal or in CI by default. [`NO_COLOR`](https://no-color.org), `CLICOLOR=0` and `TERM=dumb` turn them off, [`FORCE_COLOR`](https://force-color.org) and `CLICOLOR_FORCE` on; off wins. |
+| `LOGO`, `THEME`, `EDITOR`, `EDITOR_URL` | How output is printed and where its links point. Empty disables the logo or the links. `EDITOR` is detected when unset, and one inherited from the shell naming another editor is ignored rather than rejected. |
 
 A flag is off when it is empty, `0`, `false`, `off` or `no`, and on for anything else.
 `SEMVER_REGEX`, and the four parts it is built from, are there for a repository that has to match a version string itself.

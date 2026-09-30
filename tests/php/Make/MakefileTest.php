@@ -62,6 +62,11 @@ final class MakefileTest extends TestCase
 
     private const int SHELL_ARGUMENT_LIMIT = 131_072;
 
+    private const array COLORED_ENV = [
+        'NO_COLOR'    => '',
+        'FORCE_COLOR' => '1',
+    ];
+
     /**
      * Snapshot scenarios. Each scenario produces one rendering of `make help`;
      * identical outputs are de-duplicated in the snapshot, with the surviving
@@ -101,9 +106,9 @@ final class MakefileTest extends TestCase
         'no-version'             => ['env' => ['VERSION' => '']],
         'no-header'              => ['env' => ['LOGO' => '', 'PACKAGE' => '', 'VERSION' => '']],
         'editor-empty'           => ['args' => ['vvv'], 'env' => ['EDITOR' => '']],
-        'theme-brnshkr-explicit' => ['args' => ['vvv'], 'env' => ['THEME' => 'brnshkr', 'NO_ANSI' => '']],
-        'theme-symfony'          => ['args' => ['vvv'], 'env' => ['THEME' => 'symfony', 'NO_ANSI' => '']],
-        'theme-unknown'          => ['args' => ['vvv'], 'env' => ['THEME' => 'bogus', 'NO_ANSI' => '']],
+        'theme-brnshkr-explicit' => ['args' => ['vvv'], 'env' => ['THEME' => 'brnshkr', ...self::COLORED_ENV]],
+        'theme-symfony'          => ['args' => ['vvv'], 'env' => ['THEME' => 'symfony', ...self::COLORED_ENV]],
+        'theme-unknown'          => ['args' => ['vvv'], 'env' => ['THEME' => 'bogus', ...self::COLORED_ENV]],
     ];
 
     /**
@@ -229,7 +234,7 @@ final class MakefileTest extends TestCase
 
     public function testAnsiEscapesAreEmittedWhenColorsAreEnabled(): void
     {
-        $withColors    = $this->runMakeHelp(env: ['NO_ANSI' => '']);
+        $withColors    = $this->runMakeHelp(env: self::COLORED_ENV);
         $withoutColors = $this->runMakeHelp();
 
         self::assertStringContainsString("\033[", $withColors);
@@ -238,9 +243,15 @@ final class MakefileTest extends TestCase
 
     public function testEditorHyperlinksMatchSelectedEditor(): void
     {
-        $vscode    = $this->runMakeHelp(['vvv'], ['NO_ANSI' => '', 'EDITOR' => 'vscode']);
-        $vscodeWsl = $this->runMakeHelp(['vvv'], ['NO_ANSI' => '', 'EDITOR' => 'vscode', 'WSL_DISTRO_NAME' => 'Ubuntu']);
-        $phpstorm  = $this->runMakeHelp(['vvv'], ['NO_ANSI' => '', 'EDITOR' => 'phpstorm']);
+        $vscode = $this->runMakeHelp(['vvv'], ['EDITOR' => 'vscode', ...self::COLORED_ENV]);
+
+        $vscodeWsl = $this->runMakeHelp(['vvv'], [
+            'EDITOR'          => 'vscode',
+            'WSL_DISTRO_NAME' => 'Ubuntu',
+            ...self::COLORED_ENV,
+        ]);
+
+        $phpstorm = $this->runMakeHelp(['vvv'], ['EDITOR' => 'phpstorm', ...self::COLORED_ENV]);
 
         self::assertStringContainsString("\033]8;;vscode://file/", $vscode);
         self::assertStringContainsString("\033]8;;vscode://vscode-remote/wsl+Ubuntu/", $vscodeWsl);
@@ -1074,8 +1085,8 @@ final class MakefileTest extends TestCase
         $this->writeCaches(['x;touch${IFS}hyperlink-ran;.d']);
 
         $this->runMake(['cc', 'x;touch${IFS}hyperlink-ran;.d'], [
-            'NO_ANSI' => '',
-            'EDITOR'  => 'vscode',
+            'EDITOR' => 'vscode',
+            ...self::COLORED_ENV,
         ], self::CACHES_DIRECTORY);
 
         self::assertFileDoesNotExist(self::CACHES_DIRECTORY . '/hyperlink-ran');
@@ -1097,7 +1108,7 @@ final class MakefileTest extends TestCase
             ['test-dotenv-shw'],
             self::DOTENV_DIRECTORY,
             "y\n",
-            ['NO_ANSI' => '1', 'DEBUG' => '1'],
+            ['NO_COLOR' => '1', 'DEBUG' => '1'],
         );
 
         self::assertStringContainsString('APP_ENV=test', $output);
@@ -1122,7 +1133,7 @@ final class MakefileTest extends TestCase
 
         $outputWithEditorLinks = $this->runMake(
             ['help', 'env'],
-            ['NO_ANSI' => '', 'EDITOR' => 'vscode', 'EDITOR_URL' => 'acme://open/{file}#{line}'],
+            ['EDITOR' => 'vscode', 'EDITOR_URL' => 'acme://open/{file}#{line}', ...self::COLORED_ENV],
             self::DOTENV_DIRECTORY,
         );
 
@@ -1321,9 +1332,9 @@ final class MakefileTest extends TestCase
     public function testEditorLinksFollowTheTemplateTheProjectGives(): void
     {
         $result = $this->runMakeHelp(['vvv'], [
-            'NO_ANSI'    => '',
             'EDITOR'     => 'vscode',
             'EDITOR_URL' => 'acme://open/{file}#{line}',
+            ...self::COLORED_ENV,
         ]);
 
         self::assertStringContainsString("\033]8;;acme://open/", $result);
@@ -1364,8 +1375,8 @@ final class MakefileTest extends TestCase
         $helpDirectory = self::getRealPath(self::FIXTURES_DIRECTORY);
 
         $result = $this->runMakeHelp(['vvv'], [
-            'NO_ANSI'    => '',
             'EDITOR_URL' => 'acme://open/{cwd}/{file}#{line}',
+            ...self::COLORED_ENV,
         ]);
 
         self::assertStringContainsString('acme://open/' . $helpDirectory . '/.local/Makefile#', $result);
@@ -1377,8 +1388,8 @@ final class MakefileTest extends TestCase
         $configsDirectory = self::getRealPath(self::CONFIGS_DIRECTORY);
 
         $result = $this->runMake(['configs'], [
-            'NO_ANSI'    => '',
             'EDITOR_URL' => 'acme://open/{cwd}/{file}#{line}',
+            ...self::COLORED_ENV,
         ], directory: self::CONFIGS_DIRECTORY);
 
         self::assertStringContainsString('acme://open/' . $configsDirectory . '/.gitignore#', $result);
@@ -1749,7 +1760,7 @@ final class MakefileTest extends TestCase
             '/dev/null',
         ], env: [
             ...self::getBaselineEnvironment(),
-            'NO_ANSI' => '',
+            'NO_COLOR' => '',
             ...$env,
         ]);
 

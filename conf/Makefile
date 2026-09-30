@@ -40,9 +40,10 @@
 #
 # A flag is off when it is empty or one of '0', 'false', 'off' and 'no', and on for any other value.
 #
-# All make runs can be prepend with the NO_ANSI flag to disable any ANSI escape sequences in the output:
-#   - make NO_ANSI=1 help
-#   - NO_ANSI=1 make help
+# Output is colored on a terminal or in CI. NO_COLOR (https://no-color.org) turns it off,
+# FORCE_COLOR (https://force-color.org) turns it on:
+#   - make NO_COLOR=1 help
+#   - FORCE_COLOR=1 make help | less -R
 #
 # The `make help` command automatically generates documentation based on specially formatted comments:
 #   Scope headers (control grouping and nesting in the help output):
@@ -261,9 +262,12 @@ _CONTAINER_KEYS := APP_DIR \
 
 _TERMINAL_KEYS := BRNSHKR_DEBUG \
 	CI \
+	CLICOLOR \
+	CLICOLOR_FORCE \
 	COLUMNS \
 	EDITOR_URL \
-	NO_ANSI \
+	FORCE_COLOR \
+	NO_COLOR \
 	TERM
 
 _COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
@@ -494,10 +498,22 @@ endif # /container
 INDENT      ?= 1#~~ indent used in `make help` output
 VALUE_WIDTH ?= 48#~~ widest value column in `make help`, truncated past it
 
-NO_ANSI             ?= #~~ whether ANSI escapes are suppressed
-_IS_NO_ANSI          = $(filter-out $(_FALSE),$(NO_ANSI))
-_NO_ANSI_OPTION      = $(if $(_IS_NO_ANSI),--no-ansi)
-_IS_PROGRESS_HIDDEN  = $(or $(_IS_CI),$(_IS_NO_ANSI))
+NO_COLOR            ?= #~~ whether color is off, on for any value per no-color.org
+_IS_COLOR_FORCED     = $(or $(filter-out $(_FALSE),$(FORCE_COLOR)),$(filter-out $(_FALSE),$(CLICOLOR_FORCE)))
+_CAN_SHOW_COLOR      = $(or $(_IS_CI),$(MAKE_TERMOUT),$(filter 3.% 4.0%,$(MAKE_VERSION)))
+_NO_ANSI_OPTION      = $(if $(_IS_NO_COLOR),--no-ansi)
+_IS_PROGRESS_HIDDEN  = $(or $(_IS_CI),$(_IS_NO_COLOR))
+
+_IS_NO_COLOR = $(or \
+	$(NO_COLOR), \
+	$(if $(_IS_COLOR_FORCED),,$(or $(filter $(_FALSE),$(CLICOLOR)),$(filter dumb,$(TERM)),$(if $(_CAN_SHOW_COLOR),,1))) \
+)
+
+ifneq ($(_IS_NO_COLOR),)
+export NO_COLOR := 1
+else
+unexport NO_COLOR
+endif
 
 THEME         ?= #~~ the theme to use
 THEME_BRNSHKR := brnshkr
@@ -537,7 +553,7 @@ _EDITOR_URL_TEMPLATE = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(or \
 ))
 
 _EDITOR_URL      = $(subst {cwd},$(CURDIR),$(_EDITOR_URL_TEMPLATE))
-_INLINE_CODE_URL = $(if $(_IS_NO_ANSI),,$(_EDITOR_URL_TEMPLATE))
+_INLINE_CODE_URL = $(if $(_IS_NO_COLOR),,$(_EDITOR_URL_TEMPLATE))
 
 ifeq ($(origin LOGO),undefined) # logo
 define LOGO
@@ -1123,7 +1139,7 @@ _HELP_READ_VARIABLES := INDENT \
 	_EDITOR_UNKNOWN \
 	_EDITOR_URL_TEMPLATE \
 	_HELP_WORDS \
-	_IS_NO_ANSI \
+	_IS_NO_COLOR \
 	_TARGET_ALIAS_MAP \
 	_TARGET_NAMES
 
@@ -1499,7 +1515,7 @@ ifneq ($(_HAS_PHPUNIT),) # phpunit
 PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
 PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, Pest when installed
 PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/conf/phpunit.xml $(APP_DIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
-PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--colors=never)#v #~~ additional flags passed to the test runner
+PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--colors=never)#v #~~ additional flags passed to the test runner
 PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
@@ -1769,7 +1785,7 @@ COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `c
 COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/commitlint.mjs $(APP_DIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
 COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, not one message
 COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
-COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI),--color false)#v #~~ additional flags passed to `commitlint`
+COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLOR),--color false)#v #~~ additional flags passed to `commitlint`
 
 _COMMITLINT_PARTS = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
 
@@ -1794,7 +1810,7 @@ ifneq ($(_HAS_ESLINT),) # eslint
 ESLINT                ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
 ESLINT_CONFIG         ?= $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_DIR)/conf/eslint.mjs $(APP_DIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
 ESLINT_CACHE          ?= $(APP_DIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
-ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `eslint`
+ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `eslint`
 unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
 _ESLINT_OUTPUT := $(APP_DIR)/.cache/eslint.output
@@ -1882,7 +1898,7 @@ STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `sty
 STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/stylelint.mjs $(APP_DIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
 STYLELINT_CACHE  ?= $(APP_DIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
-STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `stylelint`
+STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
 	--cache-strategy \
@@ -2025,7 +2041,7 @@ ifneq ($(_HAS_HADOLINT),) # hadolint
 
 HADOLINT       ?= $(RUN) hadolint#v #~~ command that runs `hadolint`
 HADOLINT_FILES ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
-HADOLINT_FLAGS ?= $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `hadolint`
+HADOLINT_FLAGS ?= $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `hadolint`
 
 _QUOTED_HADOLINT_FILES = $(call _shell_quoted,$(HADOLINT_FILES))
 
@@ -2064,7 +2080,7 @@ ifneq ($(_HAS_ACTIONLINT),) # actionlint
 
 ACTIONLINT       ?= $(RUN) actionlint#v #~~ command that runs `actionlint`
 ACTIONLINT_FILES ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
-ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI),-no-color)#v #~~ additional flags passed to `actionlint`
+ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR),-no-color)#v #~~ additional flags passed to `actionlint`
 
 _QUOTED_ACTIONLINT_FILES = $(call _shell_quoted,$(ACTIONLINT_FILES))
 
@@ -2096,7 +2112,7 @@ ifneq ($(_HAS_SEMGREP),) # semgrep
 SEMGREP          ?= $(RUN) semgrep#v #~~ command that runs `semgrep`
 SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/conf/semgrep.yaml $(APP_DIR)/conf/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
 SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets, detected unless `x-brnshkr` sets them
-SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_ANSI),--no-color)#v #~~ additional flags passed to `semgrep`
+SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `semgrep`
 SEMGREP_CACHE    ?= $(APP_DIR)/.cache/semgrep#vv #~~ path to the `semgrep` ruleset cache
 SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
@@ -2573,10 +2589,10 @@ _ANSI_COLOR_BRIGHT_MAGENTA := 95
 _ANSI_COLOR_BRIGHT_CYAN    := 96
 _ANSI_COLOR_BRIGHT_WHITE   := 97
 
-_ANSI_RESET       = $(if $(_IS_NO_ANSI),,\033[0m)
-_ANSI_CLEAR_LINE  = $(if $(_IS_NO_ANSI),,\033[2K)
-_ANSI_HIDE_CURSOR = $(if $(_IS_NO_ANSI),,\033[?25l)
-_ANSI_SHOW_CURSOR = $(if $(_IS_NO_ANSI),,\033[?25h)
+_ANSI_RESET       = $(if $(_IS_NO_COLOR),,\033[0m)
+_ANSI_CLEAR_LINE  = $(if $(_IS_NO_COLOR),,\033[2K)
+_ANSI_HIDE_CURSOR = $(if $(_IS_NO_COLOR),,\033[?25l)
+_ANSI_SHOW_CURSOR = $(if $(_IS_NO_COLOR),,\033[?25h)
 
 _UPPER_normal  := NORMAL
 _UPPER_black   := BLACK
@@ -3186,7 +3202,7 @@ endef
 #*
 define _group
 $(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
-has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] && has_spinner=1;) \
+has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
 		$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
@@ -3216,7 +3232,7 @@ endef
 #*
 define _spinner
 $(call _echo_command,$1)spin_command() { $1; }; \
-has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_ANSI)),,[ -t 1 ] \
+has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] \
 	&& [ -n '$(SCRIPT)' ] \
 	&& command -v $(SCRIPT) >/dev/null 2>&1 \
 	&& has_spinner=1;) \
@@ -3545,7 +3561,7 @@ endef
 #* returns: string
 #*
 define _color
-$(if $(_IS_NO_ANSI),,\033[$(if $(call _get_modifiers,$2),$(call _get_modifiers,$2);)$(call _get_color,$1,$2)m)
+$(if $(_IS_NO_COLOR),,\033[$(if $(call _get_modifiers,$2),$(call _get_modifiers,$2);)$(call _get_color,$1,$2)m)
 endef
 
 #**
@@ -4622,7 +4638,7 @@ function render_link(text, path, line_number,    url) {
 	if (index(path, ENVIRON["_APP_DIR"] "/") == 1) path = substr(path, length(ENVIRON["_APP_DIR"]) + 2)
 	if (index(path, ENVIRON["_CURDIR"] "/") == 1) path = substr(path, length(ENVIRON["_CURDIR"]) + 2)
 	url = (path != "" ? render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], path, line_number) : "")
-	if (url == "" || ENVIRON["_IS_NO_ANSI"]) return text
+	if (url == "" || ENVIRON["_IS_NO_COLOR"]) return text
 	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
 }
 function named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }

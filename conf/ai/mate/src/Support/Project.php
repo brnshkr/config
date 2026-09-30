@@ -62,7 +62,7 @@ final class Project
      */
     public static function runTarget(string $target, array $variables = [], ?string $input = null): array
     {
-        $command = ['make', 'NO_ANSI=1', $target];
+        $command = ['make', 'NO_COLOR=1', $target];
 
         foreach ($variables as $name => $value) {
             $command[] = $name . '=' . $value;

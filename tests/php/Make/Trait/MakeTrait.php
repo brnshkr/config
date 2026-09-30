@@ -64,7 +64,7 @@ trait MakeTrait
 
     private const array BASELINE_ENV = [
         'MAKEFLAGS'         => '',
-        'NO_ANSI'           => '1',
+        'NO_COLOR'          => '1',
         'WSL_DISTRO_NAME'   => '',
         'TERM_PROGRAM'      => '',
         'TERMINAL_EMULATOR' => '',

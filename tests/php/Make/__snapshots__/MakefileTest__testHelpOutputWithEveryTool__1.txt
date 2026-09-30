@@ -223,7 +223,7 @@ Variables:
   phpunit
    PHP_UNIT                       ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
    PHP_UNIT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
-   PHP_UNIT_FLAGS                 ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),… (additional flags passed to the test runner)
+   PHP_UNIT_FLAGS                 ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
    PHP_UNIT_EXCLUDED_GROUPS       ?=                                                   (test groups the runner leaves out)
    PHP_UNIT_SNAPSHOT_FLAGS        ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
    PHP_UNIT_COVERAGE_DIR          ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
@@ -253,7 +253,7 @@ Variables:
   commitlint
    COMMITLINT                     ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
    COMMITLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
-   COMMITLINT_FLAGS               ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI… (additional flags passed to commitlint)
+   COMMITLINT_FLAGS               ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
    GIT_HOOKS                      +=  commit-msg=$(call _target,commitlint)
   eslint
    ESLINT                         ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
@@ -285,11 +285,11 @@ Variables:
   hadolint
    HADOLINT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
    HADOLINT                       ?=  $(RUN) hadolint                                  (command that runs hadolint)
-   HADOLINT_FLAGS                 ?=  $(if $(_IS_NO_ANSI),--no-color)                  (additional flags passed to hadolint)
+   HADOLINT_FLAGS                 ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
   actionlint
    ACTIONLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
    ACTIONLINT                     ?=  $(RUN) actionlint                                (command that runs actionlint)
-   ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI)… (additional flags passed to actionlint)
+   ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
    SEMGREP                        ?=  $(RUN) semgrep                                   (command that runs semgrep)
    SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
@@ -436,7 +436,7 @@ Variables:
   theming
    INDENT                          ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                     ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                         ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                        ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                           ?=                                                   (the theme to use)
    THEME_BRNSHKR                   :=  brnshkr
    THEME_SYMFONY                   :=  symfony
@@ -507,7 +507,7 @@ Variables:
   phpunit
    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
-   PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),… (additional flags passed to the test runner)
+   PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
    PHP_UNIT_EXCLUDED_GROUPS        ?=                                                   (test groups the runner leaves out)
    PHP_UNIT_SNAPSHOT_FLAGS         ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
    PHP_UNIT_COVERAGE_DIR           ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
@@ -545,7 +545,7 @@ Variables:
    COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
    COMMITLINT_RANGE                ?=                                                   (commit range to lint, as <from>..<to>, not one message)
    COMMITLINT_SOURCE               ?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages commitlint reads)
-   COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI… (additional flags passed to commitlint)
+   COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
    GIT_HOOKS                       +=  commit-msg=$(call _target,commitlint)
   eslint
    ESLINT                          ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
@@ -589,12 +589,12 @@ Variables:
    HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
    HADOLINT                        ?=  $(RUN) hadolint                                  (command that runs hadolint)
    HADOLINT_FILES                  ?=  $(_HADOLINT_FILES)                               (dockerfiles hadolint reads)
-   HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_ANSI),--no-color)                  (additional flags passed to hadolint)
+   HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
   actionlint
    ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
    ACTIONLINT                      ?=  $(RUN) actionlint                                (command that runs actionlint)
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
-   ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI)… (additional flags passed to actionlint)
+   ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
    SEMGREP                         ?=  $(RUN) semgrep                                   (command that runs semgrep)
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
@@ -816,7 +816,7 @@ Variables:
   theming
    INDENT                          ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                     ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                         ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                        ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                           ?=                                                   (the theme to use)
    THEME_BRNSHKR                   :=  brnshkr
    THEME_SYMFONY                   :=  symfony
@@ -902,7 +902,7 @@ Variables:
    PEST                            ?=  $(RUN) $(_PEST_BINARY)                           (command that runs pest)
    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
-   PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),… (additional flags passed to the test runner)
+   PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
    PHP_UNIT_EXCLUDED_GROUPS        ?=                                                   (test groups the runner leaves out)
    PHP_UNIT_SNAPSHOT_FLAGS         ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
    PHP_UNIT_COVERAGE_DIR           ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
@@ -940,7 +940,7 @@ Variables:
    COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
    COMMITLINT_RANGE                ?=                                                   (commit range to lint, as <from>..<to>, not one message)
    COMMITLINT_SOURCE               ?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages commitlint reads)
-   COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI… (additional flags passed to commitlint)
+   COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
    GIT_HOOKS                       +=  commit-msg=$(call _target,commitlint)
   eslint
    ESLINT                          ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
@@ -984,12 +984,12 @@ Variables:
    HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
    HADOLINT                        ?=  $(RUN) hadolint                                  (command that runs hadolint)
    HADOLINT_FILES                  ?=  $(_HADOLINT_FILES)                               (dockerfiles hadolint reads)
-   HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_ANSI),--no-color)                  (additional flags passed to hadolint)
+   HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
   actionlint
    ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
    ACTIONLINT                      ?=  $(RUN) actionlint                                (command that runs actionlint)
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
-   ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI)… (additional flags passed to actionlint)
+   ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
    SEMGREP                         ?=  $(RUN) semgrep                                   (command that runs semgrep)
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
@@ -1503,7 +1503,7 @@ Variables:
   [35mtheming[0m
    [36mINDENT                        [0m  [90m?=  1                                                (indent used in [35mmake help[0m[90m output)[0m
    [36mVALUE_WIDTH                   [0m  [90m?=  48                                               (widest value column in [35mmake help[0m[90m, truncated past it)[0m
-   [36mNO_ANSI                       [0m  [90m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [36mNO_COLOR                      [0m  [90m?=                                                   (whether color is off, on for any value per no-color.org)[0m
    [36mTHEME                         [0m  [90m?=                                                   (the theme to use)[0m
    [36mTHEME_BRNSHKR                 [0m  [90m:=  brnshkr[0m
    [36mTHEME_SYMFONY                 [0m  [90m:=  symfony[0m
@@ -1589,7 +1589,7 @@ Variables:
    [36mPEST                          [0m  [90m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [35mpest[0m[90m)[0m
    [36mPHP_UNIT                      [0m  [90m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)[0m
    [36mPHP_UNIT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)[0m
-   [36mPHP_UNIT_FLAGS                [0m  [90m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),… (additional flags passed to the test runner)[0m
+   [36mPHP_UNIT_FLAGS                [0m  [90m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)[0m
    [36mPHP_UNIT_EXCLUDED_GROUPS      [0m  [90m?=                                                   (test groups the runner leaves out)[0m
    [36mPHP_UNIT_SNAPSHOT_FLAGS       [0m  [90m?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)[0m
    [36mPHP_UNIT_COVERAGE_DIR         [0m  [90m?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)[0m
@@ -1627,7 +1627,7 @@ Variables:
    [36mCOMMITLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to [35mcommitlint[0m[90m config)[0m
    [36mCOMMITLINT_RANGE              [0m  [90m?=                                                   (commit range to lint, as [35m<from>..<to>[0m[90m, not one message)[0m
    [36mCOMMITLINT_SOURCE             [0m  [90m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [35mcommitlint[0m[90m reads)[0m
-   [36mCOMMITLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI… (additional flags passed to [35mcommitlint[0m[90m)[0m
+   [36mCOMMITLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [35mcommitlint[0m[90m)[0m
    [36mGIT_HOOKS                     [0m  [90m+=  commit-msg=$(call _target,commitlint)[0m
   [35meslint[0m
    [36mESLINT                        [0m  [90m?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs [35meslint[0m[90m)[0m
@@ -1671,12 +1671,12 @@ Variables:
    [36mHADOLINT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [35mhadolint[0m[90m config)[0m
    [36mHADOLINT                      [0m  [90m?=  $(RUN) hadolint                                  (command that runs [35mhadolint[0m[90m)[0m
    [36mHADOLINT_FILES                [0m  [90m?=  $(_HADOLINT_FILES)                               (dockerfiles [35mhadolint[0m[90m reads)[0m
-   [36mHADOLINT_FLAGS                [0m  [90m?=  $(if $(_IS_NO_ANSI),--no-color)                  (additional flags passed to [35mhadolint[0m[90m)[0m
+   [36mHADOLINT_FLAGS                [0m  [90m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [35mhadolint[0m[90m)[0m
   [35mactionlint[0m
    [36mACTIONLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [35mactionlint[0m[90m config)[0m
    [36mACTIONLINT                    [0m  [90m?=  $(RUN) actionlint                                (command that runs [35mactionlint[0m[90m)[0m
    [36mACTIONLINT_FILES              [0m  [90m?=  $(_ACTIONLINT_FILES)                             (workflows [35mactionlint[0m[90m reads)[0m
-   [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI)… (additional flags passed to [35mactionlint[0m[90m)[0m
+   [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [35mactionlint[0m[90m)[0m
   [35msemgrep[0m
    [36mSEMGREP                       [0m  [90m?=  $(RUN) semgrep                                   (command that runs [35msemgrep[0m[90m)[0m
    [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to [35msemgrep[0m[90m config)[0m
@@ -1939,7 +1939,7 @@ Variables:
   [33mtheming[0m
    [32mINDENT                        [0m  [0m?=  1                                                (indent used in [33mmake help[0m[0m output)[0m
    [32mVALUE_WIDTH                   [0m  [0m?=  48                                               (widest value column in [33mmake help[0m[0m, truncated past it)[0m
-   [32mNO_ANSI                       [0m  [0m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [32mNO_COLOR                      [0m  [0m?=                                                   (whether color is off, on for any value per no-color.org)[0m
    [32mTHEME                         [0m  [0m?=                                                   (the theme to use)[0m
    [32mTHEME_BRNSHKR                 [0m  [0m:=  brnshkr[0m
    [32mTHEME_SYMFONY                 [0m  [0m:=  symfony[0m
@@ -2025,7 +2025,7 @@ Variables:
    [32mPEST                          [0m  [0m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [33mpest[0m[0m)[0m
    [32mPHP_UNIT                      [0m  [0m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)[0m
    [32mPHP_UNIT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)[0m
-   [32mPHP_UNIT_FLAGS                [0m  [0m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_ANSI),… (additional flags passed to the test runner)[0m
+   [32mPHP_UNIT_FLAGS                [0m  [0m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)[0m
    [32mPHP_UNIT_EXCLUDED_GROUPS      [0m  [0m?=                                                   (test groups the runner leaves out)[0m
    [32mPHP_UNIT_SNAPSHOT_FLAGS       [0m  [0m?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)[0m
    [32mPHP_UNIT_COVERAGE_DIR         [0m  [0m?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)[0m
@@ -2063,7 +2063,7 @@ Variables:
    [32mCOMMITLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to [33mcommitlint[0m[0m config)[0m
    [32mCOMMITLINT_RANGE              [0m  [0m?=                                                   (commit range to lint, as [33m<from>..<to>[0m[0m, not one message)[0m
    [32mCOMMITLINT_SOURCE             [0m  [0m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [33mcommitlint[0m[0m reads)[0m
-   [32mCOMMITLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_ANSI… (additional flags passed to [33mcommitlint[0m[0m)[0m
+   [32mCOMMITLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [33mcommitlint[0m[0m)[0m
    [32mGIT_HOOKS                     [0m  [0m+=  commit-msg=$(call _target,commitlint)[0m
   [33meslint[0m
    [32mESLINT                        [0m  [0m?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs [33meslint[0m[0m)[0m
@@ -2107,12 +2107,12 @@ Variables:
    [32mHADOLINT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [33mhadolint[0m[0m config)[0m
    [32mHADOLINT                      [0m  [0m?=  $(RUN) hadolint                                  (command that runs [33mhadolint[0m[0m)[0m
    [32mHADOLINT_FILES                [0m  [0m?=  $(_HADOLINT_FILES)                               (dockerfiles [33mhadolint[0m[0m reads)[0m
-   [32mHADOLINT_FLAGS                [0m  [0m?=  $(if $(_IS_NO_ANSI),--no-color)                  (additional flags passed to [33mhadolint[0m[0m)[0m
+   [32mHADOLINT_FLAGS                [0m  [0m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [33mhadolint[0m[0m)[0m
   [33mactionlint[0m
    [32mACTIONLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [33mactionlint[0m[0m config)[0m
    [32mACTIONLINT                    [0m  [0m?=  $(RUN) actionlint                                (command that runs [33mactionlint[0m[0m)[0m
    [32mACTIONLINT_FILES              [0m  [0m?=  $(_ACTIONLINT_FILES)                             (workflows [33mactionlint[0m[0m reads)[0m
-   [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_ANSI)… (additional flags passed to [33mactionlint[0m[0m)[0m
+   [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [33mactionlint[0m[0m)[0m
   [33msemgrep[0m
    [32mSEMGREP                       [0m  [0m?=  $(RUN) semgrep                                   (command that runs [33msemgrep[0m[0m)[0m
    [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to [33msemgrep[0m[0m config)[0m

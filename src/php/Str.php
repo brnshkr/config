@@ -13,6 +13,7 @@ use function array_last;
 use function array_map;
 use function array_slice;
 use function count;
+use function getenv;
 use function implode;
 use function is_string;
 use function mb_ltrim;
@@ -263,5 +264,14 @@ final readonly class Str
                 0 => '',
                 1 => isset($strings[0]) ? sprintf('"%s"', $strings[0]) : '',
             ][count($strings)];
+    }
+
+    public static function fromEnvironment(string $name): string
+    {
+        return match (true) {
+            is_string($_SERVER[$name] ?? null) => $_SERVER[$name],
+            is_string($_ENV[$name] ?? null)    => $_ENV[$name],
+            default                            => (string) getenv($name),
+        };
     }
 }

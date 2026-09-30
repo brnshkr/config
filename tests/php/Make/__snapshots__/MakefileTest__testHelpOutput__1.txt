@@ -334,7 +334,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -588,7 +588,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -893,7 +893,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -1409,7 +1409,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -1715,7 +1715,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -2020,7 +2020,7 @@ Variables:
   theming
    INDENT                      ?=  1                                                (indent used in make help output)
    VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_ANSI                     ?=                                                   (whether ANSI escapes are suppressed)
+   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
    THEME                       ?=                                                   (the theme to use)
    THEME_BRNSHKR               :=  brnshkr
    THEME_SYMFONY               :=  symfony
@@ -2406,7 +2406,7 @@ Available commands:
   [35mtheming[0m
    [36mINDENT                    [0m  [90m?=  1                                                (indent used in [35mmake help[0m[90m output)[0m
    [36mVALUE_WIDTH               [0m  [90m?=  48                                               (widest value column in [35mmake help[0m[90m, truncated past it)[0m
-   [36mNO_ANSI                   [0m  [90m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [36mNO_COLOR                  [0m  [90m?=                                                   (whether color is off, on for any value per no-color.org)[0m
    [36mTHEME                     [0m  [90m?=                                                   (the theme to use)[0m
    [36mTHEME_BRNSHKR             [0m  [90m:=  brnshkr[0m
    [36mTHEME_SYMFONY             [0m  [90m:=  symfony[0m
@@ -2711,7 +2711,7 @@ Available commands:
   [33mtheming[0m
    [32mINDENT                    [0m  [0m?=  1                                                (indent used in [33mmake help[0m[0m output)[0m
    [32mVALUE_WIDTH               [0m  [0m?=  48                                               (widest value column in [33mmake help[0m[0m, truncated past it)[0m
-   [32mNO_ANSI                   [0m  [0m?=                                                   (whether ANSI escapes are suppressed)[0m
+   [32mNO_COLOR                  [0m  [0m?=                                                   (whether color is off, on for any value per no-color.org)[0m
    [32mTHEME                     [0m  [0m?=                                                   (the theme to use)[0m
    [32mTHEME_BRNSHKR             [0m  [0m:=  brnshkr[0m
    [32mTHEME_SYMFONY             [0m  [0m:=  symfony[0m

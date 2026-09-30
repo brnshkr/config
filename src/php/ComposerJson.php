@@ -24,7 +24,6 @@ use function explode;
 use function file_get_contents;
 use function file_put_contents;
 use function getcwd;
-use function getenv;
 use function in_array;
 use function is_array;
 use function is_dir;
@@ -172,11 +171,7 @@ final class ComposerJson
      */
     public static function forProjectUsingThisLibrary(): self
     {
-        $composer = Str::trim(match (true) {
-            is_string($_SERVER['COMPOSER'] ?? null) => $_SERVER['COMPOSER'],
-            is_string($_ENV['COMPOSER'] ?? null)    => $_ENV['COMPOSER'],
-            default                                 => (string) getenv('COMPOSER'),
-        });
+        $composer = Str::trim(Str::fromEnvironment('COMPOSER'));
 
         if (!Str::isEmpty($composer) && is_dir($composer)) {
             throw new RuntimeException(sprintf(

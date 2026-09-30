@@ -16,10 +16,8 @@ use Symfony\Component\Finder\Finder;
 use function array_keys;
 use function dirname;
 use function getcwd;
-use function getenv;
 use function is_file;
 use function is_readable;
-use function is_string;
 use function iterator_to_array;
 use function realpath;
 use function sprintf;
@@ -61,7 +59,7 @@ final readonly class ProjectKernel
      */
     public static function getEnvironment(): string
     {
-        $environment = Str::trim(is_string($_SERVER['APP_ENV'] ?? null) ? $_SERVER['APP_ENV'] : (string) getenv('APP_ENV'));
+        $environment = Str::trim(Str::fromEnvironment('APP_ENV'));
 
         return Str::isEmpty($environment) ? self::DEFAULT_ENVIRONMENT : $environment;
     }
@@ -174,7 +172,7 @@ final readonly class ProjectKernel
      */
     private static function getConfiguredClassName(): ?string
     {
-        $configured = Str::trim((string) getenv(self::CLASS_ENVIRONMENT_VARIABLE));
+        $configured = Str::trim(Str::fromEnvironment(self::CLASS_ENVIRONMENT_VARIABLE));
 
         return Str::isEmpty($configured) ? null : $configured;
     }
