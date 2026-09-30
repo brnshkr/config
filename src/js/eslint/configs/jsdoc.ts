@@ -2,7 +2,13 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { objectEntries, readOwnValue } from '../../shared/utils/object';
+import {
+  objectEntries,
+  objectFromEntries,
+  objectKeys,
+  readOwnValue,
+} from '../../shared/utils/object';
+
 import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
 import { buildConfigName } from '../utils/config';
 import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '../utils/globs';
@@ -20,6 +26,23 @@ const TAGS_BY_MODULE = <const>{
 } satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
 
 const EXAMPLE_CODE_REGEX = '/```(?:js|javascript|ts|typescript)\\s*\\n([\\s\\S]*?)\\n\\s*```/gv';
+
+export const DESCRIPTION_DASHES = <const>{
+  param: 'always',
+  property: 'always',
+  template: 'always',
+  returns: 'never',
+  throws: 'never',
+} satisfies Record<string, 'always' | 'never'>;
+
+export const THROWS_DESCRIPTION_WORDS = <const>[
+  'when',
+  'unless',
+];
+
+const FRAGMENT_DESCRIPTION_TAGS = objectKeys(DESCRIPTION_DASHES).filter((tag) => tag !== 'throws');
+const DESCRIPTION_FRAGMENT_PATTERN = String.raw`/^(?!\p{Lu}[\p{Ll}\s])[\s\S]*(?<!\.)$/v`;
+const THROWS_DESCRIPTION_PATTERN = String.raw`/^(?:$|(?:${THROWS_DESCRIPTION_WORDS.join('|')})\s[\s\S]*(?<!\.)$)/v`;
 
 const THROWING_FUNCTION_CONTEXTS = <const>[
   'ArrowFunctionExpression:not([async=true]):has(ThrowStatement)',
@@ -297,7 +320,18 @@ export const jsdoc = async (): Promise<Config[]> => {
               'default',
             ],
           }],
-          'jsdoc/match-description': 'error',
+          'jsdoc/match-description': ['error', {
+            tags: {
+              ...objectFromEntries(FRAGMENT_DESCRIPTION_TAGS.map((tag) => [tag, {
+                match: DESCRIPTION_FRAGMENT_PATTERN,
+                message: `The \`@${tag}\` description starts lowercase and ends without a period.`,
+              }])),
+              throws: {
+                match: THROWS_DESCRIPTION_PATTERN,
+                message: `The \`@throws\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
+              },
+            },
+          }],
           'jsdoc/multiline-blocks': ['error', {
             noSingleLineBlocks: true,
             singleLineTags: [],
@@ -313,7 +347,9 @@ export const jsdoc = async (): Promise<Config[]> => {
           'jsdoc/normalize-see-links': 'error',
           'jsdoc/prefer-import-tag': 'error',
           'jsdoc/require-asterisk-prefix': 'error',
-          'jsdoc/require-hyphen-before-param-description': ['error', 'never'],
+          'jsdoc/require-hyphen-before-param-description': ['error', DESCRIPTION_DASHES.param, {
+            tags: objectFromEntries(objectEntries(DESCRIPTION_DASHES).filter(([tag]) => tag !== 'param')),
+          }],
           'jsdoc/require-param-description': 'off',
           'jsdoc/require-property-description': 'off',
           'jsdoc/require-returns-description': 'off',

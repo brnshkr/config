@@ -33,8 +33,8 @@ final readonly class ModelNoFrameworkTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $model model namespace
-     * @param non-empty-list<non-empty-string> $isolatedFrom namespaces the model must not reach
+     * @param non-empty-string $model - model namespace
+     * @param non-empty-list<non-empty-string> $isolatedFrom - namespaces the model must not reach
      */
     public function __construct(
         private string $model,

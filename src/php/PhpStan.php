@@ -20,6 +20,7 @@ use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use Brnshkr\Config\PhpStan\Rule\ServiceArgumentBindingRule;
+use Brnshkr\Config\PhpStan\Rule\TagDescriptionRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Brnshkr\Config\Tests\PhpStanTest;
 use Carbon\Carbon;
@@ -176,7 +177,7 @@ final class PhpStan
      * extension, and editor-URL handling. Conditionally enables strict rules, type-perfect and
      * Symplify rules when their packages are installed.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return Config finalized config array
      *
@@ -201,7 +202,7 @@ final class PhpStan
      * This is what a private `conf/phpstan.php` reaches for: the tracked config it includes stays the
      * baseline, and every verb here adds to it rather than replacing what that file configured.
      *
-     * @param Config $config config to extend
+     * @param Config $config - config to extend
      *
      * @return self the builder, holding that config
      *
@@ -225,7 +226,7 @@ final class PhpStan
      * The same baseline as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return self the builder, pre-configured with the baseline
      *
@@ -304,6 +305,7 @@ final class PhpStan
                 NamedArgumentsUsageRule::class,
                 PublicApiDocumentationRule::class,
                 ResolvableDocReferenceRule::class,
+                TagDescriptionRule::class,
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallers' => self::getDevelopmentNamespaceExemptions(),
                 ]),
@@ -417,7 +419,7 @@ final class PhpStan
      * Merge additional `includes` paths into the config, neon or php, keeping their order and
      * dropping duplicates.
      *
-     * @param list<non-empty-string> $includePaths absolute or relative paths to merge in
+     * @param list<non-empty-string> $includePaths - absolute or relative paths to merge in
      */
     public function addIncludes(array $includePaths): self
     {
@@ -429,7 +431,7 @@ final class PhpStan
     /**
      * Replace the `includes` paths outright.
      *
-     * @param list<non-empty-string> $includePaths neon or php paths, replacing any already merged in
+     * @param list<non-empty-string> $includePaths - neon or php paths, replacing any already merged in
      */
     public function setIncludes(array $includePaths): self
     {
@@ -443,7 +445,7 @@ final class PhpStan
      *
      * Nested option maps merge key by key; a list replaces the list already there.
      *
-     * @param array<non-empty-string, mixed> $parameters map of parameter name to value
+     * @param array<non-empty-string, mixed> $parameters - map of parameter name to value
      */
     public function setParameters(array $parameters): self
     {
@@ -462,8 +464,8 @@ final class PhpStan
      * ({@see self::setLevel()}, {@see self::setPaths()} etc.) where one exists, and
      * {@see self::removeParameter()} first where a nested map has to go rather than merge.
      *
-     * @param non-empty-string&non-decimal-int-string $key parameter name as it appears under the `parameters:` section
-     * @param mixed $value parameter value
+     * @param non-empty-string&non-decimal-int-string $key - parameter name as it appears under the `parameters:` section
+     * @param mixed $value - parameter value
      */
     public function setParameter(string $key, mixed $value): self
     {
@@ -475,7 +477,7 @@ final class PhpStan
      *
      * Removing and setting again is how a nested value is replaced rather than merged into.
      *
-     * @param non-empty-string $key parameter key to drop
+     * @param non-empty-string $key - parameter key to drop
      */
     public function removeParameter(string $key): self
     {
@@ -485,7 +487,7 @@ final class PhpStan
     /**
      * Drop `parameters` keys, leaving PHPStan on its own defaults for them.
      *
-     * @param list<non-empty-string> $keys parameter keys to drop
+     * @param list<non-empty-string> $keys - parameter keys to drop
      */
     public function removeParameters(array $keys): self
     {
@@ -502,7 +504,7 @@ final class PhpStan
      * Plain class-string entries land under `rules:`; service-array entries (from
      * {@see self::configureRule()}) land under `services:` with the correct tag.
      *
-     * @param list<class-string|RuleService> $rules rule class-strings or pre-configured rule services
+     * @param list<class-string|RuleService> $rules - rule class-strings or pre-configured rule services
      */
     public function addRules(array $rules): self
     {
@@ -516,7 +518,7 @@ final class PhpStan
      *
      * Clears the `rules` list only; services registered by other means are left in place.
      *
-     * @param list<class-string|RuleService> $rules rule class-strings or service definitions
+     * @param list<class-string|RuleService> $rules - rule class-strings or service definitions
      */
     public function setRules(array $rules): self
     {
@@ -531,10 +533,10 @@ final class PhpStan
      * The baseline registers its rules as services, so overriding one means dropping that service
      * and registering it again; this does both.
      *
-     * @template TNode of Node
+     * @template TNode of Node - the node type the rule handles
      *
-     * @param class-string<Rule<TNode>> $rule rule class implementing PHPStan's Rule interface
-     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
+     * @param class-string<Rule<TNode>> $rule - rule class implementing PHPStan's Rule interface
+     * @param array<array-key, mixed> $arguments - constructor arguments keyed by parameter name
      *
      * @example
      * ```php
@@ -557,7 +559,7 @@ final class PhpStan
      *
      * Removes matching entries from both the `rules:` and `services:` sections.
      *
-     * @param list<class-string> $rules rule class-strings to drop
+     * @param list<class-string> $rules - rule class-strings to drop
      */
     public function removeRules(array $rules): self
     {
@@ -575,7 +577,7 @@ final class PhpStan
      * Service entries usually come from {@see self::configureRule()},
      * {@see self::configureStaticThrowTypeExtension()} or {@see self::configurePhpAtTest()}.
      *
-     * @param list<Service> $services service definitions to merge
+     * @param list<Service> $services - service definitions to merge
      */
     public function addServices(array $services): self
     {
@@ -593,7 +595,7 @@ final class PhpStan
     /**
      * Replace the registered services outright.
      *
-     * @param list<Service> $services service definitions, replacing every service already registered
+     * @param list<Service> $services - service definitions, replacing every service already registered
      */
     public function setServices(array $services): self
     {
@@ -608,7 +610,7 @@ final class PhpStan
      * When a class-string is passed, every service with that `class` key is removed.
      * When a service array is passed, removal matches on (class + arguments).
      *
-     * @param list<class-string|Service> $services services to drop
+     * @param list<class-string|Service> $services - services to drop
      */
     public function removeServices(array $services): self
     {
@@ -641,7 +643,7 @@ final class PhpStan
     /**
      * Set the PHPStan analysis rule level.
      *
-     * @param int<0, 10>|'max' $level numeric level 0-10 or the string "max"
+     * @param int<0, 10>|'max' $level - numeric level 0-10 or the string "max"
      *
      * @see https://phpstan.org/user-guide/rule-levels
      */
@@ -656,11 +658,11 @@ final class PhpStan
      * Exclusions accept either a flat list (treated as `analyseAndScan`) or the structured
      * `{analyse, analyseAndScan}` shape PHPStan understands.
      *
-     * @param list<non-empty-string> $paths paths to analyze
+     * @param list<non-empty-string> $paths - paths to analyze
      * @param list<non-empty-string>|array{
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
-     * } $excludedPaths Excluded paths (flat list or structured)
+     * } $excludedPaths - excluded paths, as a flat list or structured
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      *
@@ -686,7 +688,7 @@ final class PhpStan
     /**
      * Add paths to analyze, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $paths absolute or relative paths to append
+     * @param list<non-empty-string> $paths - absolute or relative paths to append
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -705,7 +707,7 @@ final class PhpStan
     /**
      * Drop paths from the analyzed set.
      *
-     * @param list<non-empty-string> $paths paths to stop analyzing
+     * @param list<non-empty-string> $paths - paths to stop analyzing
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -733,7 +735,7 @@ final class PhpStan
      * @param list<non-empty-string>|array{
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
-     * } $excludedPaths Excluded paths (flat list or structured)
+     * } $excludedPaths - excluded paths, as a flat list or structured
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -757,7 +759,7 @@ final class PhpStan
      * @param list<non-empty-string>|array{
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
-     * } $excludedPaths Excluded paths to append (flat list or structured)
+     * } $excludedPaths - excluded paths to append, as a flat list or structured
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -789,7 +791,7 @@ final class PhpStan
     /**
      * Drop paths from every exclusion group they appear in.
      *
-     * @param list<non-empty-string> $excludedPaths paths to stop excluding
+     * @param list<non-empty-string> $excludedPaths - paths to stop excluding
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -820,7 +822,7 @@ final class PhpStan
     /**
      * Add bootstrap files PHPStan requires before analysis, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $bootstrapFiles paths to bootstrap PHP files
+     * @param list<non-empty-string> $bootstrapFiles - paths to bootstrap PHP files
      */
     public function addBootstrapFiles(array $bootstrapFiles): self
     {
@@ -835,7 +837,7 @@ final class PhpStan
     /**
      * Replace the bootstrap files outright.
      *
-     * @param list<non-empty-string> $bootstrapFiles paths to the files PHPStan loads before analysis
+     * @param list<non-empty-string> $bootstrapFiles - paths to the files PHPStan loads before analysis
      */
     public function setBootstrapFiles(array $bootstrapFiles): self
     {
@@ -845,7 +847,7 @@ final class PhpStan
     /**
      * Drop bootstrap files, leaving the rest loaded.
      *
-     * @param list<non-empty-string> $bootstrapFiles paths to stop loading
+     * @param list<non-empty-string> $bootstrapFiles - paths to stop loading
      */
     public function removeBootstrapFiles(array $bootstrapFiles): self
     {
@@ -864,7 +866,7 @@ final class PhpStan
     /**
      * Add files PHPStan reads the symbols of without analyzing them, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $scanFiles paths to scan for symbols
+     * @param list<non-empty-string> $scanFiles - paths to scan for symbols
      */
     public function addScanFiles(array $scanFiles): self
     {
@@ -879,7 +881,7 @@ final class PhpStan
     /**
      * Replace the scanned files outright.
      *
-     * @param list<non-empty-string> $scanFiles paths PHPStan reads the symbols of
+     * @param list<non-empty-string> $scanFiles - paths PHPStan reads the symbols of
      */
     public function setScanFiles(array $scanFiles): self
     {
@@ -889,7 +891,7 @@ final class PhpStan
     /**
      * Drop scanned files, leaving the rest scanned.
      *
-     * @param list<non-empty-string> $scanFiles paths to stop scanning
+     * @param list<non-empty-string> $scanFiles - paths to stop scanning
      */
     public function removeScanFiles(array $scanFiles): self
     {
@@ -908,7 +910,7 @@ final class PhpStan
     /**
      * Add directories PHPStan scans the way {@see self::addScanFiles()} scans a file.
      *
-     * @param list<non-empty-string> $scanDirectories directories to scan for symbols
+     * @param list<non-empty-string> $scanDirectories - directories to scan for symbols
      */
     public function addScanDirectories(array $scanDirectories): self
     {
@@ -923,7 +925,7 @@ final class PhpStan
     /**
      * Override the cache directory PHPStan writes to.
      *
-     * @param ?non-empty-string $temporaryDirectory cache directory path, or null to use the PHPStan default
+     * @param ?non-empty-string $temporaryDirectory - cache directory path, or null to use the PHPStan default
      *
      * @see https://phpstan.org/config-reference#caching
      */
@@ -950,7 +952,7 @@ final class PhpStan
      *     path?: non-empty-string,
      *     paths?: list<non-empty-string>,
      *     reportUnmatched?: bool,
-     * }>|non-empty-string $ignoredErrors Ignored-error definitions
+     * }>|non-empty-string $ignoredErrors - ignored-error definitions
      *
      * @see https://phpstan.org/user-guide/ignoring-errors#ignoring-in-configuration-file
      *
@@ -986,7 +988,7 @@ final class PhpStan
      *     path?: non-empty-string,
      *     paths?: list<non-empty-string>,
      *     reportUnmatched?: bool,
-     * }>|non-empty-string $ignoredErrors Ignored-error definitions, replacing every one already configured
+     * }>|non-empty-string $ignoredErrors - ignored-error definitions, replacing every one already configured
      */
     public function setIgnoredErrors(string|array $ignoredErrors): self
     {
@@ -999,7 +1001,7 @@ final class PhpStan
      * An entry is matched on its `identifier`, or on its `message` when it has none, so the short forms
      * and the full shape are removed the same way.
      *
-     * @param list<non-empty-string> $ignoredErrors identifiers or messages to stop ignoring
+     * @param list<non-empty-string> $ignoredErrors - identifiers or messages to stop ignoring
      *
      * @example
      * ```php
@@ -1019,7 +1021,7 @@ final class PhpStan
     /**
      * Drop included configuration files, by path.
      *
-     * @param list<non-empty-string> $includePaths paths to stop including
+     * @param list<non-empty-string> $includePaths - paths to stop including
      *
      * @example
      * ```php
@@ -1039,7 +1041,7 @@ final class PhpStan
     /**
      * Toggle PHPStan feature flags by name.
      *
-     * @param array<non-empty-string, bool> $featureToggles map of feature-toggle name to enable/disable
+     * @param array<non-empty-string, bool> $featureToggles - map of feature-toggle name to enable/disable
      */
     public function setFeatureToggles(array $featureToggles): self
     {
@@ -1049,7 +1051,7 @@ final class PhpStan
     /**
      * Drop named feature toggles, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys toggle names to drop, leaving PHPStan on its own default for them
+     * @param list<non-empty-string> $keys - toggle names to drop, leaving PHPStan on its own default for them
      */
     public function removeFeatureToggles(array $keys): self
     {
@@ -1059,7 +1061,7 @@ final class PhpStan
     /**
      * Configure PHPStan exception-checking parameters.
      *
-     * @param array<non-empty-string, mixed> $exceptions exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
+     * @param array<non-empty-string, mixed> $exceptions - exception-handling configuration (uncheckedExceptionRegexes, check, etc.)
      *
      * @see https://phpstan.org/config-reference#exceptions
      */
@@ -1071,7 +1073,7 @@ final class PhpStan
     /**
      * Drop named exception-checking keys, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys exception-handling keys to drop
+     * @param list<non-empty-string> $keys - exception-handling keys to drop
      */
     public function removeExceptions(array $keys): self
     {
@@ -1084,7 +1086,7 @@ final class PhpStan
      * An entry is a class name — covering the class and everything extending it, with none of the
      * escaping a pattern needs — or a delimited regular expression matched against the class name.
      *
-     * @param list<non-empty-string> $exceptions class names or delimited patterns
+     * @param list<non-empty-string> $exceptions - class names or delimited patterns
      *
      * @see https://phpstan.org/config-reference#exceptions
      *
@@ -1121,7 +1123,7 @@ final class PhpStan
      * Clears both the class list and the pattern list before adding, so the declaration is exactly
      * what is passed here.
      *
-     * @param list<non-empty-string> $exceptions class names or delimited patterns
+     * @param list<non-empty-string> $exceptions - class names or delimited patterns
      */
     public function setUncheckedExceptions(array $exceptions): self
     {
@@ -1137,7 +1139,7 @@ final class PhpStan
      * An entry is matched as it was given: a class name drops that class, a pattern drops that
      * pattern. Dropping a class name does not drop a pattern that happens to match it.
      *
-     * @param list<non-empty-string> $exceptions class names or delimited patterns to stop declaring
+     * @param list<non-empty-string> $exceptions - class names or delimited patterns to stop declaring
      */
     public function removeUncheckedExceptions(array $exceptions): self
     {
@@ -1155,7 +1157,7 @@ final class PhpStan
      * declares its own by shipping `conf/phpstan/unchecked-exceptions.php` returning a list of class
      * names.
      *
-     * @param non-empty-string $package the Composer package name to read the declaration from
+     * @param non-empty-string $package - the Composer package name to read the declaration from
      *
      * @throws RuntimeException when the package is not installed or declares nothing
      *
@@ -1177,7 +1179,7 @@ final class PhpStan
      * The inverse of {@see self::addUncheckedExceptionsFrom()}, for dropping a package's declaration
      * wholesale when the consuming project wants those exceptions checked after all.
      *
-     * @param non-empty-string $package the Composer package name to read the declaration from
+     * @param non-empty-string $package - the Composer package name to read the declaration from
      *
      * @throws RuntimeException when the package is not installed or declares nothing
      */
@@ -1189,7 +1191,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-strict-rules` extension, keeping the options not named.
      *
-     * @param array<non-empty-string, bool> $strictRules map of strict-rule name to enabled flag
+     * @param array<non-empty-string, bool> $strictRules - map of strict-rule name to enabled flag
      *
      * @throws RuntimeException when `phpstan/phpstan-strict-rules` is not installed
      *
@@ -1205,7 +1207,7 @@ final class PhpStan
     /**
      * Drop named strict rules, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys strict-rule names to drop
+     * @param list<non-empty-string> $keys - strict-rule names to drop
      */
     public function removeStrictRules(array $keys): self
     {
@@ -1215,7 +1217,7 @@ final class PhpStan
     /**
      * Configure the coverage thresholds of `tomasvotruba/type-coverage`, keeping the options not named.
      *
-     * @param array<non-empty-string, bool|float|int|null> $options map of type-coverage option name to its value
+     * @param array<non-empty-string, bool|float|int|null> $options - map of type-coverage option name to its value
      *
      * @throws RuntimeException when `tomasvotruba/type-coverage` is not installed
      *
@@ -1231,7 +1233,7 @@ final class PhpStan
     /**
      * Drop named type-coverage options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys type-coverage option names to drop
+     * @param list<non-empty-string> $keys - type-coverage option names to drop
      */
     public function removeTypeCoverage(array $keys): self
     {
@@ -1241,7 +1243,7 @@ final class PhpStan
     /**
      * Configure the type-perfect rules of `tomasvotruba/type-coverage`, keeping the options not named.
      *
-     * @param array<non-empty-string, bool> $options map of type-perfect option name to enabled flag
+     * @param array<non-empty-string, bool> $options - map of type-perfect option name to enabled flag
      *
      * @throws RuntimeException when `tomasvotruba/type-coverage` is not installed
      *
@@ -1257,7 +1259,7 @@ final class PhpStan
     /**
      * Drop named type-perfect options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys type-perfect option names to drop
+     * @param list<non-empty-string> $keys - type-perfect option names to drop
      */
     public function removeTypePerfect(array $keys): self
     {
@@ -1267,8 +1269,8 @@ final class PhpStan
     /**
      * Set the editor-URL template used for clickable error locations.
      *
-     * @param EditorUrl::EDITOR_* $editor editor identifier (e.g. `vscode`, `phpstorm`)
-     * @param ?non-empty-string $currentWorkingDirectory override for the path prefix; null uses the runtime cwd
+     * @param EditorUrl::EDITOR_* $editor - editor identifier (e.g. `vscode`, `phpstorm`)
+     * @param ?non-empty-string $currentWorkingDirectory - override for the path prefix; null uses the runtime cwd
      */
     public function setEditor(string $editor, ?string $currentWorkingDirectory = null): self
     {
@@ -1278,7 +1280,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-symfony` extension, keeping the options not named.
      *
-     * @param array<non-empty-string, mixed> $options Symfony-extension options (containerXmlPath, consoleApplicationLoader, etc.)
+     * @param array<non-empty-string, mixed> $options - options of the Symfony extension, such as `containerXmlPath` or `consoleApplicationLoader`
      *
      * @throws RuntimeException when `phpstan/phpstan-symfony` is not installed
      *
@@ -1294,7 +1296,7 @@ final class PhpStan
     /**
      * Drop named Symfony extension options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys Symfony option names to drop
+     * @param list<non-empty-string> $keys - option names of the Symfony extension to drop
      */
     public function removeSymfony(array $keys): self
     {
@@ -1304,7 +1306,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-doctrine` extension, keeping the options not named.
      *
-     * @param array<non-empty-string, mixed> $options Doctrine-extension options (objectManagerLoader, queryBuilderClass, etc.)
+     * @param array<non-empty-string, mixed> $options - options of the Doctrine extension, such as `objectManagerLoader` or `queryBuilderClass`
      *
      * @throws RuntimeException when `phpstan/phpstan-doctrine` is not installed
      *
@@ -1320,7 +1322,7 @@ final class PhpStan
     /**
      * Drop named Doctrine extension options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys Doctrine option names to drop
+     * @param list<non-empty-string> $keys - option names of the Doctrine extension to drop
      */
     public function removeDoctrine(array $keys): self
     {
@@ -1330,7 +1332,7 @@ final class PhpStan
     /**
      * Configure the `phpstan/phpstan-phpunit` extension, keeping the options not named.
      *
-     * @param array<non-empty-string, mixed> $options PHPUnit-extension options (reportMissingDataProviderReturnType, etc.)
+     * @param array<non-empty-string, mixed> $options - PHPUnit-extension options (reportMissingDataProviderReturnType, etc.)
      *
      * @throws RuntimeException when `phpstan/phpstan-phpunit` is not installed
      *
@@ -1346,7 +1348,7 @@ final class PhpStan
     /**
      * Drop named PHPUnit extension options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys PHPUnit option names to drop
+     * @param list<non-empty-string> $keys - PHPUnit option names to drop
      */
     public function removePhpUnit(array $keys): self
     {
@@ -1356,7 +1358,7 @@ final class PhpStan
     /**
      * Configure the opt-in rule groups and return type extensions of `symplify/phpstan-rules`, keeping the options not named.
      *
-     * @param array<non-empty-string, bool> $options map of symplify option name to enabled flag
+     * @param array<non-empty-string, bool> $options - map of symplify option name to enabled flag
      *
      * @throws RuntimeException when `symplify/phpstan-rules` is not installed
      *
@@ -1372,7 +1374,7 @@ final class PhpStan
     /**
      * Drop named symplify options, leaving the options not named.
      *
-     * @param list<non-empty-string> $keys symplify option names to drop
+     * @param list<non-empty-string> $keys - symplify option names to drop
      */
     public function removeSymplify(array $keys): self
     {
@@ -1385,7 +1387,7 @@ final class PhpStan
      * Accepts either flat service definitions or nested lists (the latter is the shape returned
      * by the {@see Architecture} factory methods), and flattens them before registration.
      *
-     * @param list<PhpAtService|list<PhpAtService>> $architecture PHPat services or nested service lists
+     * @param list<PhpAtService|list<PhpAtService>> $architecture - PHPat services or nested service lists
      *
      * @throws InvalidArgumentException when a test class is configured twice with different arguments
      * @throws RuntimeException when `phpat/phpat` is not installed
@@ -1425,7 +1427,7 @@ final class PhpStan
      * Drops every PHPat test already registered before adding, so the architecture is exactly what is
      * passed here. Services that are not PHPat tests are left in place.
      *
-     * @param list<PhpAtService|list<PhpAtService>> $architecture PHPat services or nested service lists
+     * @param list<PhpAtService|list<PhpAtService>> $architecture - PHPat services or nested service lists
      *
      * @throws InvalidArgumentException when a test class is configured twice with different arguments
      * @throws RuntimeException when `phpat/phpat` is not installed
@@ -1447,7 +1449,7 @@ final class PhpStan
      * nested lists of either, and flattens before delegating to {@see self::removeServices()}.
      * Use this to opt out of selected rules from an {@see Architecture} preset.
      *
-     * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture rules to drop
+     * @param list<class-string|PhpAtService|list<class-string|PhpAtService>> $architecture - rules to drop
      *
      * @example
      * ```php
@@ -1478,10 +1480,10 @@ final class PhpStan
      * Use when a rule needs configuration that cannot be expressed as a bare class-string
      * passed to {@see self::addRules()}.
      *
-     * @template TNode of Node
+     * @template TNode of Node - the node type the rule handles
      *
-     * @param class-string<Rule<TNode>> $class rule class implementing PHPStan's Rule interface
-     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
+     * @param class-string<Rule<TNode>> $class - rule class implementing PHPStan's Rule interface
+     * @param array<array-key, mixed> $arguments - constructor arguments keyed by parameter name
      *
      * @return RuleService tagged service definition ready for `services:`
      *
@@ -1509,8 +1511,8 @@ final class PhpStan
     /**
      * Build a tagged service definition for a dynamic static-method throw-type extension.
      *
-     * @param class-string<DynamicStaticMethodThrowTypeExtension> $class extension class
-     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
+     * @param class-string<DynamicStaticMethodThrowTypeExtension> $class - extension class
+     * @param array<array-key, mixed> $arguments - constructor arguments keyed by parameter name
      *
      * @return StaticThrowTypeExtensionService tagged service definition ready for `services:`
      *
@@ -1538,8 +1540,8 @@ final class PhpStan
      *
      * Used internally by {@see Architecture} factory methods and rarely called directly.
      *
-     * @param class-string $class PHPat `*Test` class
-     * @param array<array-key, mixed> $arguments constructor arguments keyed by parameter name
+     * @param class-string $class - PHPat `*Test` class
+     * @param array<array-key, mixed> $arguments - constructor arguments keyed by parameter name
      *
      * @return PhpAtService tagged service definition ready for `services:`
      *
@@ -1695,8 +1697,8 @@ final class PhpStan
     /**
      * Drop values out of one of the `exceptions` lists.
      *
-     * @param non-empty-string&non-decimal-int-string $key the exceptions key holding the list
-     * @param list<non-empty-string> $values values to drop out of it
+     * @param non-empty-string&non-decimal-int-string $key - the exceptions key holding the list
+     * @param list<non-empty-string> $values - values to drop out of it
      */
     private function removeException(string $key, array $values): self
     {
@@ -1718,8 +1720,8 @@ final class PhpStan
     /**
      * Drop named keys out of a map-valued `parameters` entry, leaving the rest of the map intact.
      *
-     * @param non-empty-string $parameter the parameter holding the map
-     * @param list<non-empty-string> $keys keys to drop out of it
+     * @param non-empty-string $parameter - the parameter holding the map
+     * @param list<non-empty-string> $keys - keys to drop out of it
      */
     private function removeParameterKeys(string $parameter, array $keys): self
     {

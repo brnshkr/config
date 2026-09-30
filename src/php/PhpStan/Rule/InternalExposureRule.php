@@ -63,7 +63,7 @@ final readonly class InternalExposureRule implements Rule
     /**
      * @internal invoked by PHPStan
      *
-     * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
+     * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
      */
     public function __construct(
         private ReflectionProvider $reflectionProvider,

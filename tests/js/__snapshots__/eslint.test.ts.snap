@@ -1792,6 +1792,30 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "jsdoc/match-description": [
       2,
+      {
+        "tags": {
+          "param": {
+            "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
+            "message": "The \`@param\` description starts lowercase and ends without a period.",
+          },
+          "property": {
+            "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
+            "message": "The \`@property\` description starts lowercase and ends without a period.",
+          },
+          "returns": {
+            "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
+            "message": "The \`@returns\` description starts lowercase and ends without a period.",
+          },
+          "template": {
+            "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
+            "message": "The \`@template\` description starts lowercase and ends without a period.",
+          },
+          "throws": {
+            "match": "/^(?:$|(?:when|unless)\\s[\\s\\S]*(?<!\\.)$)/v",
+            "message": "The \`@throws\` description starts with \`when\` or \`unless\`.",
+          },
+        },
+      },
     ],
     "jsdoc/match-name": [
       0,
@@ -1868,7 +1892,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "jsdoc/require-hyphen-before-param-description": [
       2,
-      "never",
+      "always",
+      {
+        "tags": {
+          "property": "always",
+          "returns": "never",
+          "template": "always",
+          "throws": "never",
+        },
+      },
     ],
     "jsdoc/require-jsdoc": [
       2,

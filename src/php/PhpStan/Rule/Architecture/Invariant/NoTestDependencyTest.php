@@ -35,8 +35,8 @@ final readonly class NoTestDependencyTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root production namespace
-     * @param non-empty-list<non-empty-string> $developmentNamespaces namespaces autoloaded for development only
+     * @param non-empty-string $root - production namespace
+     * @param non-empty-list<non-empty-string> $developmentNamespaces - namespaces autoloaded for development only
      */
     public function __construct(
         private string $root,

@@ -16,8 +16,8 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *
  * @api
  *
- * @param optionsAndGlobalConfig per-module toggles and global markdownlint-cli2 fields merged with the defaults
- * @param additionalConfigs extra config entries merged after the built-in ones
+ * @param optionsAndGlobalConfig - per-module toggles and global markdownlint-cli2 fields merged with the defaults
+ * @param additionalConfigs - extra config entries merged after the built-in ones
  *
  * @returns final config ready to be consumed by markdownlint-cli2
  *

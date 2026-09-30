@@ -33,8 +33,8 @@ final readonly class DomainNoApplicationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domain domain layer namespace
-     * @param non-empty-string $application application layer namespace
+     * @param non-empty-string $domain - domain layer namespace
+     * @param non-empty-string $application - application layer namespace
      */
     public function __construct(
         private string $domain,

@@ -1,12 +1,20 @@
 import { expect, test } from 'vitest';
 
-import { TAG_SEQUENCE } from '../../src/js/eslint/configs/jsdoc';
+import { DESCRIPTION_DASHES, TAG_SEQUENCE, THROWS_DESCRIPTION_WORDS } from '../../src/js/eslint/configs/jsdoc';
+import { objectEntries } from '../../src/js/shared/utils/object';
 
-import { extractPhpRuleOptionGroups, extractPhpRuleOptionValues, readPhpSource } from './utils/php-source';
+import {
+  extractPhpConstantFlags,
+  extractPhpConstantValues,
+  extractPhpRuleOptionGroups,
+  extractPhpRuleOptionValues,
+  readPhpSource,
+} from './utils/php-source';
 
 const FALSE_FRIENDS = new Set(['type']);
 const MINIMUM_SHARED_TAGS = 20;
 const phpSource = readPhpSource('PhpCsFixer.php');
+const tagDescriptionSource = readPhpSource('PhpStan/Rule/TagDescriptionRule.php');
 const phpOrder = extractPhpRuleOptionValues(phpSource, 'phpdoc_order', 'order');
 const phpGroups = extractPhpRuleOptionGroups(phpSource, 'phpdoc_separation', 'groups');
 const javascriptGroups = TAG_SEQUENCE.map(({ tags }) => tags);
@@ -37,4 +45,15 @@ test('the php groups and the php order agree', () => {
   const groupedTags = [...new Set(phpGroups.flat().map((tag) => stripTwinPrefix(tag)))];
 
   expect(groupedTags).toStrictEqual(phpOrder.filter((tag) => groupedTags.includes(tag)));
+});
+
+test('both stacks put a dash before the same tag descriptions', () => {
+  const javascriptDashes = objectEntries(DESCRIPTION_DASHES)
+    .map(([tag, dash]) => `${tag === 'returns' ? 'return' : tag}=${String(dash === 'always')}`);
+
+  expect(extractPhpConstantFlags(tagDescriptionSource, 'DESCRIPTION_DASHES')).toStrictEqual(javascriptDashes);
+});
+
+test('both stacks open a throws description with the same words', () => {
+  expect(extractPhpConstantValues(tagDescriptionSource, 'THROWS_DESCRIPTION_WORDS')).toStrictEqual([...THROWS_DESCRIPTION_WORDS]);
 });

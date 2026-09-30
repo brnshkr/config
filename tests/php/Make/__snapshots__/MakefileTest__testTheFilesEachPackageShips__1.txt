@@ -124,6 +124,7 @@ src/php/PhpStan/Rule/NamedArgumentsUsageRule.php
 src/php/PhpStan/Rule/PublicApiDocumentationRule.php
 src/php/PhpStan/Rule/ResolvableDocReferenceRule.php
 src/php/PhpStan/Rule/ServiceArgumentBindingRule.php
+src/php/PhpStan/Rule/TagDescriptionRule.php
 src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php
 src/php/PhpStan/Rule/Trait/RuleTrait.php
 src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php

@@ -49,9 +49,9 @@ final class TestTool
     ];
 
     /**
-     * @param string $suite the test suite to run ("php" runs Pest, "js" runs Vitest, both via make)
-     * @param string $filter runs a subset of tests; a Pest --filter value (e.g. a test class name) for "php", a file name filter for "js"; empty runs the full suite
-     * @param bool $doesUpdateSnapshots when true, runs with snapshot updates instead of a plain run
+     * @param string $suite - the test suite to run ("php" runs Pest, "js" runs Vitest, both via make)
+     * @param string $filter - runs a subset of tests; a Pest --filter value (e.g. a test class name) for "php", a file name filter for "js"; empty runs the full suite
+     * @param bool $doesUpdateSnapshots - when true, runs with snapshot updates instead of a plain run
      *
      * @throws LogicException
      * @throws RuntimeException

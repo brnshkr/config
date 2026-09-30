@@ -29,6 +29,7 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use ReflectionException;
 
+use function array_any;
 use function in_array;
 use function is_string;
 use function sprintf;
@@ -37,8 +38,9 @@ use function sprintf;
  * Holds every `@api` symbol to a consistent docblock standard.
  *
  * A description in prose, one `@param` per parameter, an `@return` that says what the value is,
- * and an `@example` wherever calling the symbol takes arguments. A file-level `@api` or
- * `@internal` sets the default for everything in the file, and a per-symbol tag overrides it.
+ * a description on every `@throws`, `@property` and `@template` tag, and an `@example` wherever
+ * calling the symbol takes arguments. A file-level `@api` or `@internal` sets the default for
+ * everything in the file, and a per-symbol tag overrides it.
  *
  * A top-level `return` in an `@api` file needs a description too, either on the `return` or on
  * the source it returns — a `new ClassName(...)` falls back to the class docblock, a
@@ -51,6 +53,8 @@ use function sprintf;
  *
  * @no-named-arguments
  *
+ * @phpstan-import-type DocTag from RuleTrait
+ *
  * @implements Rule<NodeAbstract>
  *
  * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/PublicApiDocumentationRule.md
@@ -60,10 +64,16 @@ final readonly class PublicApiDocumentationRule implements Rule
 {
     use RuleTrait;
 
+    private const array DESCRIBED_TAG_KINDS = [
+        'property',
+        'template',
+        'throws',
+    ];
+
     /**
      * @internal invoked by PHPStan
      *
-     * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
+     * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
      */
     public function __construct(
         private ReflectionProvider $reflectionProvider,
@@ -110,11 +120,18 @@ final readonly class PublicApiDocumentationRule implements Rule
 
         $doc = $classLike->getDocComment();
 
-        if (self::getEffectiveVisibilityTag($doc, $fileDoc) !== self::TAG_API || self::hasDescription($doc)) {
+        if (self::getEffectiveVisibilityTag($doc, $fileDoc) !== self::TAG_API) {
             return [];
         }
 
-        return [self::buildDescriptionError(self::getKindForClassLike($classLike), self::getClassLikeName($classLike), $classLike->getStartLine())];
+        $kind = self::getKindForClassLike($classLike);
+        $name = self::getClassLikeName($classLike);
+        $line = $classLike->getStartLine();
+
+        return [
+            ...(self::hasDescription($doc) ? [] : [self::buildDescriptionError($kind, $name, $line)]),
+            ...self::buildTagDescriptionErrors($kind, $name, self::getDocTags($doc?->getText() ?? ''), $line),
+        ];
     }
 
     /**
@@ -142,7 +159,8 @@ final readonly class PublicApiDocumentationRule implements Rule
         $kind   = self::getKindForFunctionLike($node);
         $name   = $node->name->toString();
         $line   = $node->getStartLine();
-        $errors = [];
+        $tags   = self::getDocTags($docText);
+        $errors = self::buildTagDescriptionErrors($kind, $name, $tags, $line);
 
         if ($kind !== self::KIND_CONSTRUCTOR && !self::hasDescription($doc)) {
             $errors[] = self::buildDescriptionError($kind, $name, $line);
@@ -157,7 +175,7 @@ final readonly class PublicApiDocumentationRule implements Rule
                 continue;
             }
 
-            if (!self::hasParamProse($docText, $param->var->name)) {
+            if (!self::hasParamProse($tags, $param->var->name)) {
                 $errors[] = self::buildRuleError(sprintf(
                     '%s `%s` is `@api`; parameter `$%s` must have an `@param` tag with a description.',
                     $kind,
@@ -167,7 +185,7 @@ final readonly class PublicApiDocumentationRule implements Rule
             }
         }
 
-        if (self::needsReturnProse($node->returnType) && !self::hasReturnWithProse($docText)) {
+        if (self::needsReturnProse($node->returnType) && !self::hasReturnWithProse($tags)) {
             $errors[] = self::buildRuleError(sprintf(
                 '%s `%s` is `@api` and returns a non-void type; an `@return` tag with a description is required.',
                 $kind,
@@ -368,18 +386,54 @@ final readonly class PublicApiDocumentationRule implements Rule
         return Str::match($beforeTags, '/^[\t ]*\*[\t ]+(?!@)[^\s*\/][^\n]*/m') !== [];
     }
 
-    private static function hasParamProse(string $docText, string $paramName): bool
+    /**
+     * @param list<DocTag> $tags
+     */
+    private static function hasParamProse(array $tags, string $paramName): bool
     {
-        $after = Str::match($docText, sprintf('/@param\s[^@]*?\$%s\b(?<description>[^\n]*)/', $paramName))['description'] ?? null;
-
-        return $after !== null && Str::match($after, '/[A-Za-z]/') !== [];
+        return array_any(
+            $tags,
+            static fn (array $tag): bool => $tag['kind'] === 'param'
+                && $tag['name'] === '$' . $paramName
+                && self::hasProse($tag['description']),
+        );
     }
 
-    private static function hasReturnWithProse(string $docText): bool
+    /**
+     * @param list<DocTag> $tags
+     */
+    private static function hasReturnWithProse(array $tags): bool
     {
-        $after = Str::match($docText, '/@return\s+\S+\s+(?<description>\S[^\n]*)/')['description'] ?? null;
+        return array_any($tags, static fn (array $tag): bool => $tag['kind'] === 'return' && self::hasProse($tag['description']));
+    }
 
-        return $after !== null && Str::match($after, '/[A-Za-z]/') !== [];
+    private static function hasProse(string $description): bool
+    {
+        return Str::match(Str::trim($description, '- ', 'start'), '/[A-Za-z]/') !== [];
+    }
+
+    /**
+     * @param self::KIND_* $kind
+     * @param list<DocTag> $tags
+     *
+     * @return list<IdentifierRuleError>
+     */
+    private static function buildTagDescriptionErrors(string $kind, string $name, array $tags, int $line): array
+    {
+        $errors = [];
+
+        foreach ($tags as $tag) {
+            if (in_array($tag['kind'], self::DESCRIBED_TAG_KINDS, true) && !self::hasProse($tag['description'])) {
+                $errors[] = self::buildRuleError(sprintf(
+                    '%s `%s` is `@api`; its `%s` tag needs a description.',
+                    $kind,
+                    $name,
+                    $tag['tag'],
+                ), $line);
+            }
+        }
+
+        return $errors;
     }
 
     /**
@@ -403,6 +457,8 @@ final readonly class PublicApiDocumentationRule implements Rule
             return self::KIND_FUNCTION;
         }
 
-        return $node->name->toString() === '__construct' ? self::KIND_CONSTRUCTOR : self::KIND_METHOD;
+        return $node->name->toString() === '__construct'
+            ? self::KIND_CONSTRUCTOR
+            : self::KIND_METHOD;
     }
 }

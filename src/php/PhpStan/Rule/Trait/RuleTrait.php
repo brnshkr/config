@@ -17,6 +17,19 @@ use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Trait_;
 use PHPStan\Analyser\Scope;
+use PHPStan\PhpDocParser\Ast\Attribute;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PropertyTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\TemplateTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ThrowsTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\TypelessParamTagValueNode;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Rules\IdentifierRuleError;
@@ -24,11 +37,20 @@ use PHPStan\Rules\RuleErrorBuilder;
 use RuntimeException;
 
 use function array_any;
+use function is_int;
 use function lcfirst;
 use function sprintf;
 
 /**
  * @internal
+ *
+ * @phpstan-type DocTag array{
+ *     kind: 'param'|'property'|'return'|'template'|'throws',
+ *     tag: string,
+ *     name: string,
+ *     description: string,
+ *     line: int,
+ * }
  */
 trait RuleTrait
 {
@@ -48,6 +70,50 @@ trait RuleTrait
     protected const string TAG_INTERNAL           = 'internal';
     protected const string TAG_NAMED_ARGUMENTS    = 'named-arguments';
     protected const string TAG_NO_NAMED_ARGUMENTS = 'no-named-arguments';
+
+    /**
+     * @return list<DocTag>
+     */
+    private static function getDocTags(string $docText): array
+    {
+        if (!Str::startsWith($docText, '/**')) {
+            return [];
+        }
+
+        $parserConfig    = new ParserConfig(['lines' => true]);
+        $constExprParser = new ConstExprParser($parserConfig);
+        $phpDocParser    = new PhpDocParser($parserConfig, new TypeParser($parserConfig, $constExprParser), $constExprParser);
+        $tags            = [];
+
+        foreach ($phpDocParser->parse(new TokenIterator(new Lexer($parserConfig)->tokenize($docText)))->getTags() as $phpDocTagNode) {
+            $value     = $phpDocTagNode->value;
+            $startLine = $phpDocTagNode->getAttribute(Attribute::START_LINE);
+
+            $describedTag = match (true) {
+                $value instanceof ParamTagValueNode,
+                $value instanceof TypelessParamTagValueNode => ['param', $value->parameterName, $value->description],
+                $value instanceof PropertyTagValueNode      => ['property', $value->propertyName, $value->description],
+                $value instanceof TemplateTagValueNode      => ['template', $value->name, $value->description],
+                $value instanceof ReturnTagValueNode        => ['return', '', $value->description],
+                $value instanceof ThrowsTagValueNode        => ['throws', '', $value->description],
+                default                                     => null,
+            };
+
+            if ($describedTag === null) {
+                continue;
+            }
+
+            $tags[] = [
+                'kind'        => $describedTag[0],
+                'tag'         => $phpDocTagNode->name,
+                'name'        => $describedTag[1],
+                'description' => Str::trim($describedTag[2]),
+                'line'        => is_int($startLine) ? $startLine : 1,
+            ];
+        }
+
+        return $tags;
+    }
 
     private static function buildRuleError(string $message, int $line, bool $isIgnorable = true): IdentifierRuleError
     {

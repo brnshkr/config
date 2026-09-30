@@ -11,11 +11,94 @@ export const TAG_API = 'api';
 export const TAG_INTERNAL = 'internal';
 export type VisibilityTag = typeof TAG_API | typeof TAG_INTERNAL;
 
-const hasProseAfter = (pattern: RegExp, comment: string): boolean => {
-  const prose = pattern.exec(comment)?.groups?.['prose'];
+export interface JsdocTag {
+  tag: string;
+  name: string;
+  description: string;
+}
 
-  return typeof prose === 'string' && /[A-Za-z]/v.test(prose);
+const NAMED_TAGS = new Set([
+  'param',
+  'property',
+  'template',
+]);
+
+const createTagLinePattern = (): RegExp => /^@(?<tag>[^\s\/]+)(?=\s|$)/v;
+
+const findClosingIndex = (text: string, brackets: RegExp, opening: string): Maybe<number> => {
+  let depth = 0;
+
+  for (const bracket of text.matchAll(brackets)) {
+    depth += bracket[0] === opening ? 1 : -1;
+
+    if (depth === 0) {
+      return bracket.index;
+    }
+  }
+
+  return undefined;
 };
+
+const skipType = (text: string): Maybe<string> => {
+  if (!text.startsWith('{')) {
+    return text;
+  }
+
+  const closingIndex = findClosingIndex(text, /[\{\}]/gv, '{');
+
+  return closingIndex === undefined ? undefined : text.slice(closingIndex + 1);
+};
+
+const readName = (text: string, tag: string): string => {
+  if (text.startsWith('[')) {
+    return text.slice(0, (findClosingIndex(text, /[\[\]]/gv, '[') ?? -1) + 1);
+  }
+
+  return /^"[^"]*"/v.exec(text)?.[0]
+    ?? (tag === 'template' ? /^[^\s,]+(?:\s*,\s*[^\s,]+)*/v : /^\S+/v).exec(text)?.[0]
+    ?? '';
+};
+
+const splitTag = (tag: string, body: string): JsdocTag => {
+  const textAfterType = skipType(body.trimStart())?.trimStart() ?? '';
+  const name = NAMED_TAGS.has(tag) ? readName(textAfterType, tag) : '';
+
+  return {
+    tag,
+    name,
+    description: textAfterType.slice(name.length).trim(),
+  };
+};
+
+export const parseJsdocTags = (comment: string): JsdocTag[] => {
+  const tagBodies: {
+    tag: string;
+    lines: string[];
+  }[] = [];
+
+  let isFenced = false;
+
+  for (const line of comment.replaceAll(/^\/\*\*|\*\/$/gv, '').split('\n')) {
+    const content = line.replace(/^\s*\*?\s?/v, '');
+    const tagName = isFenced ? undefined : createTagLinePattern().exec(content)?.groups?.['tag'];
+
+    if (tagName === undefined) {
+      tagBodies.at(-1)?.lines.push(content);
+    } else {
+      tagBodies.push({
+        tag: tagName,
+        lines: [content.slice(tagName.length + 1)],
+      });
+    }
+
+    isFenced = content.matchAll(/```/gv).reduce((wasFenced) => !wasFenced, isFenced);
+  }
+
+  return tagBodies.map(({ tag, lines }) => splitTag(tag, lines.join('\n')));
+};
+
+const hasProse = (description: string): boolean => /[A-Za-z]/v.test(description.replace(/^-\s*/v, ''));
+const normalizeName = (name: string): string => name.replaceAll(/^["\[]|["\]]$/gv, '').split('=', 1)[0]?.trim() ?? '';
 
 export const isBlockComment = (
   comment: Maybe<TSESTree.Comment>,
@@ -61,15 +144,16 @@ export const hasDescription = (comment: Maybe<string>): boolean => {
   return /^[\t ]*\*[\t ]+[[^\s*\/]--@][^\n]*/mv.test(beforeTags);
 };
 
-export const hasParameterProse = (comment: string, parameterName: string): boolean => hasProseAfter(
-  createPattern('v')`@param\b[^\n]*?\b${parameterName}\b(?<prose>[^\n]*)`,
-  comment,
+export const hasParameterProse = (comment: string, parameterName: string): boolean => parseJsdocTags(comment).some(
+  ({ tag, name, description }) => tag === 'param' && normalizeName(name) === parameterName && hasProse(description),
 );
 
-export const hasReturnsWithProse = (comment: string): boolean => hasProseAfter(
-  /@returns?\s+\S+\s+(?<prose>\S[^\n]*)/v,
-  comment,
+export const hasReturnsWithProse = (comment: string): boolean => parseJsdocTags(comment).some(
+  ({ tag, description }) => (tag === 'returns' || tag === 'return') && hasProse(description),
 );
+
+export const getUndescribedTags = (comment: string, tagNames: readonly string[]): JsdocTag[] => parseJsdocTags(comment)
+  .filter(({ tag, description }) => tagNames.includes(tag) && !hasProse(description));
 
 export const getVisibilityTag = (comment: Maybe<string>): Maybe<VisibilityTag> => {
   if (hasTag(comment, TAG_INTERNAL)) {

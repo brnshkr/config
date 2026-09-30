@@ -19,6 +19,7 @@ import {
   extractBlockComment,
   getEffectiveVisibilityTag,
   getFileLevelBlockComment,
+  getUndescribedTags,
   hasDescription,
   hasParameterProse,
   hasReturnsWithProse,
@@ -40,6 +41,13 @@ export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
 export const MESSAGE_ID_MISSING_PARAM = 'missingParam';
 export const MESSAGE_ID_MISSING_RETURNS = 'missingReturns';
 export const MESSAGE_ID_MISSING_EXAMPLE = 'missingExample';
+export const MESSAGE_ID_MISSING_TAG_DESCRIPTION = 'missingTagDescription';
+
+const DESCRIBED_TAGS = <const>[
+  'property',
+  'template',
+  'throws',
+];
 
 const KIND_METHOD = 'Method';
 const KIND_CONSTRUCTOR = 'Constructor';
@@ -118,6 +126,25 @@ const reportMissingDescription = (
   });
 };
 
+const checkTagDescriptions = (
+  ruleContext: RuleContext,
+  documented: Pick<FunctionLike, 'anchor' | 'comment' | 'kind' | 'name'>,
+): void => {
+  const undescribedTags = getUndescribedTags(documented.comment ?? '', DESCRIBED_TAGS);
+
+  for (const { tag } of undescribedTags) {
+    ruleContext.context.report({
+      node: documented.anchor,
+      messageId: MESSAGE_ID_MISSING_TAG_DESCRIPTION,
+      data: {
+        kind: documented.kind,
+        name: documented.name,
+        tag,
+      },
+    });
+  }
+};
+
 const checkFunctionParameters = (ruleContext: RuleContext, functionLike: FunctionLike, text: string): void => {
   for (const parameter of functionLike.parameters) {
     const parameterName = getParameterName(parameter);
@@ -189,6 +216,7 @@ const checkFunctionLike = (ruleContext: RuleContext, functionLike: FunctionLike)
   }
 
   checkFunctionParameters(ruleContext, functionLike, text);
+  checkTagDescriptions(ruleContext, functionLike);
 
   const isFluent = isFluentReturn(functionLike.returnType);
 
@@ -295,6 +323,8 @@ const checkSymbol = (ruleContext: RuleContext, symbol: ExportedSymbol): void => 
     );
   }
 
+  checkTagDescriptions(ruleContext, symbol);
+
   if (symbol.kind === 'Class') {
     checkClassMembers(ruleContext, symbol.declaration);
   } else if (symbol.kind === 'Interface') {
@@ -340,6 +370,7 @@ export const publicApiDocumentationRule = <const>{
       [MESSAGE_ID_MISSING_PARAM]: '{{ kind }} `{{ name }}` is `@api`; parameter `{{ parameterName }}` must have a `@param` tag with a description.',
       [MESSAGE_ID_MISSING_RETURNS]: '{{ kind }} `{{ name }}` is `@api` and returns a non-void type; a `@returns` tag with a description is required.',
       [MESSAGE_ID_MISSING_EXAMPLE]: '{{ kind }} `{{ name }}` is `@api` and accepts parameters; an `@example` tag is required.',
+      [MESSAGE_ID_MISSING_TAG_DESCRIPTION]: '{{ kind }} `{{ name }}` is `@api`; its `@{{ tag }}` tag needs a description.',
     },
   },
   create: (context) => {

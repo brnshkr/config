@@ -65,7 +65,7 @@ final class Rector
      * Caller may pass a Finder to narrow paths under analysis; otherwise the project-wide
      * {@see FileFinder} defaults apply.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return RectorConfigBuilder configured builder ready for Rector
      *
@@ -91,7 +91,7 @@ final class Rector
      * The paths that config resolved stay as they are, so {@see self::setPaths()} is the only way to
      * change them from here.
      *
-     * @param RectorConfigBuilder $rectorConfigBuilder config to extend
+     * @param RectorConfigBuilder $rectorConfigBuilder - config to extend
      *
      * @return self the builder, wrapping that config
      *
@@ -115,7 +115,7 @@ final class Rector
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return self the builder, pre-configured with the baseline
      *
@@ -184,7 +184,7 @@ final class Rector
     /**
      * Add rules, keeping the ones already configured.
      *
-     * @param list<class-string<RectorInterface>> $rules rule classes to add
+     * @param list<class-string<RectorInterface>> $rules - rule classes to add
      *
      * @example
      * ```php
@@ -207,7 +207,7 @@ final class Rector
      * through `withPreparedSets()`, which this cannot reach — dropping one of those is
      * {@see self::removeRules()}.
      *
-     * @param list<class-string<RectorInterface>> $rules rule classes to run, replacing every one added here
+     * @param list<class-string<RectorInterface>> $rules - rule classes to run, replacing every one added here
      *
      * @example
      * ```php
@@ -224,7 +224,7 @@ final class Rector
     /**
      * Add skip entries, keeping the ones already configured.
      *
-     * @param array<array-key, mixed> $skips rule classes, paths, or `[rule => paths]` entries
+     * @param array<array-key, mixed> $skips - rule classes, paths, or `[rule => paths]` entries
      *
      * @example
      * ```php
@@ -245,7 +245,7 @@ final class Rector
      * so removing one means skipping it. That reaches set-provided rules, which a subtractive list
      * could not.
      *
-     * @param list<class-string<RectorInterface>> $rules rule classes to stop running
+     * @param list<class-string<RectorInterface>> $rules - rule classes to stop running
      *
      * @example
      * ```php
@@ -260,7 +260,7 @@ final class Rector
     /**
      * Set the paths Rector processes, replacing the ones already there.
      *
-     * @param list<non-empty-string> $paths paths to process
+     * @param list<non-empty-string> $paths - paths to process
      *
      * @example
      * ```php
@@ -277,7 +277,7 @@ final class Rector
     /**
      * Add paths to process, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $paths paths to append
+     * @param list<non-empty-string> $paths - paths to append
      *
      * @example
      * ```php
@@ -296,7 +296,7 @@ final class Rector
     /**
      * Drop paths from the run, leaving the rest processed.
      *
-     * @param list<non-empty-string> $paths paths to stop processing
+     * @param list<non-empty-string> $paths - paths to stop processing
      *
      * @example
      * ```php
@@ -318,7 +318,7 @@ final class Rector
      *
      * Drops the baseline's skips, so the run skips exactly what is passed here.
      *
-     * @param array<array-key, mixed> $skips skip entries, replacing every one already configured
+     * @param array<array-key, mixed> $skips - skip entries, replacing every one already configured
      *
      * @example
      * ```php
@@ -337,7 +337,7 @@ final class Rector
      *
      * Matches an entry as it was given: a rule class drops that rule's skip, a path drops that path's.
      *
-     * @param array<array-key, mixed> $skips skip entries to stop skipping
+     * @param array<array-key, mixed> $skips - skip entries to stop skipping
      *
      * @example
      * ```php

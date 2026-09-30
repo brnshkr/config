@@ -30,7 +30,7 @@ final readonly class EntityNoHttpFoundationTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module containing the `Entity` folder
+     * @param non-empty-list<non-empty-string> $roots - root namespaces, one per module containing the `Entity` folder
      */
     public function __construct(
         private array $roots,

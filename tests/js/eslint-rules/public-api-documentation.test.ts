@@ -7,6 +7,7 @@ import {
   MESSAGE_ID_MISSING_EXAMPLE,
   MESSAGE_ID_MISSING_PARAM,
   MESSAGE_ID_MISSING_RETURNS,
+  MESSAGE_ID_MISSING_TAG_DESCRIPTION,
   publicApiDocumentationRule,
 } from '../../../src/js/eslint/configs/builtin/public-api-documentation';
 
@@ -61,6 +62,32 @@ test('publicApiDocumentationRule scenarios', () => {
            * add(1, 2);
            */
           export const add = (a: number, b: number): number => a + b;
+        `),
+      ),
+      buildValidCase(
+        '@api function with multi-line types and one-word prose',
+        wrap(`
+          /**
+           * Merges two records.
+           *
+           * @api
+           *
+           * @template {object} TRecord - the record shape
+           *
+           * @param first - the base
+           * @param {{
+           *   extra: string,
+           * }} second - the overlay
+           *   spanning lines
+           *
+           * @returns merged
+           *
+           * @throws when the records clash
+           *
+           * @example
+           * merge({}, { extra: 'x' });
+           */
+          export const merge = <TRecord extends object>(first: TRecord, second: object): TRecord => first;
         `),
       ),
       buildValidCase(
@@ -181,6 +208,72 @@ test('publicApiDocumentationRule scenarios', () => {
           MESSAGE_ID_MISSING_PARAM,
           MESSAGE_ID_MISSING_RETURNS,
           MESSAGE_ID_MISSING_EXAMPLE,
+        ],
+      ),
+      buildInvalidCase(
+        '@api function whose multi-line returns type has no prose',
+        wrap(`
+          /**
+           * Reads the user.
+           *
+           * @api
+           *
+           * @param id - the id
+           *
+           * @returns {{
+           *   name: string,
+           * }}
+           *
+           * @example
+           * read(1);
+           */
+          export const read = (id: number): { name: string } => ({ name: String(id) });
+        `),
+        [MESSAGE_ID_MISSING_RETURNS],
+      ),
+      buildInvalidCase(
+        '@api function with a dash but no param prose',
+        wrap(`
+          /**
+           * Reads the user.
+           *
+           * @api
+           *
+           * @param id -
+           *
+           * @returns the user
+           *
+           * @example
+           * read(1);
+           */
+          export const read = (id: number): string => String(id);
+        `),
+        [MESSAGE_ID_MISSING_PARAM],
+      ),
+      buildInvalidCase(
+        '@api function with undescribed throws and template tags',
+        wrap(`
+          /**
+           * Wraps the value.
+           *
+           * @api
+           *
+           * @template TValue
+           *
+           * @param value - the value
+           *
+           * @returns the wrapped value
+           *
+           * @throws {Error}
+           *
+           * @example
+           * wrap(1);
+           */
+          export const wrapValue = <TValue>(value: TValue): TValue[] => [value];
+        `),
+        [
+          MESSAGE_ID_MISSING_TAG_DESCRIPTION,
+          MESSAGE_ID_MISSING_TAG_DESCRIPTION,
         ],
       ),
       buildInvalidCase(

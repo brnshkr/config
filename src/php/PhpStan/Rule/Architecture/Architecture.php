@@ -114,10 +114,10 @@ final class Architecture
      * Every namespace comes from the project's own `composer.json`, and passing one explicitly
      * overrides the derived value. What the runtime host provides is exempt without configuration.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param ?list<non-empty-string> $developmentNamespaces development-only namespaces, or null to read them from `autoload-dev`
-     * @param ?list<non-empty-string> $developmentPackages namespaces of development-only packages, or null to derive them
-     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param ?list<non-empty-string> $developmentNamespaces - development-only namespaces, or null to read them from `autoload-dev`
+     * @param ?list<non-empty-string> $developmentPackages - namespaces of development-only packages, or null to derive them
+     * @param list<non-empty-string> $except - further namespaces the runtime host provides
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -175,12 +175,12 @@ final class Architecture
     /**
      * Build the rules a published package should hold to.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param ?non-empty-string $exceptionInterface the package's own exception interface, or null to skip the rule
-     * @param ?non-empty-string $model namespace the libraries populating it must not reach
-     * @param list<non-empty-string> $isolatedFrom namespaces the model must not depend on
-     * @param array<non-empty-string, non-empty-string> $facades map of label to facade class
-     * @param list<non-empty-string> $except namespaces the runtime host provides
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param ?non-empty-string $exceptionInterface - the package's own exception interface, or null to skip the rule
+     * @param ?non-empty-string $model - namespace the libraries populating it must not reach
+     * @param list<non-empty-string> $isolatedFrom - namespaces the model must not depend on
+     * @param array<non-empty-string, non-empty-string> $facades - map of label to facade class
+     * @param list<non-empty-string> $except - namespaces the runtime host provides
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -243,11 +243,11 @@ final class Architecture
      *
      * Intended for classic layered architectures with strict inward dependency flow.
      *
-     * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
-     * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
-     * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $domain - domain layer namespace, or null for `<root>\Domain`
+     * @param ?non-empty-string $application - application layer namespace, or null for `<root>\Application`
+     * @param ?non-empty-string $infrastructure - infrastructure layer namespace, or null for `<root>\Infrastructure`
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -304,16 +304,16 @@ final class Architecture
      *
      * Module isolation rules are only generated when at least two modules exist.
      *
-     * @param ?non-empty-string $domain domain layer namespace, or null for `<root>\Domain`
-     * @param ?non-empty-string $application application layer namespace, or null for `<root>\Application`
-     * @param ?non-empty-string $infrastructure infrastructure layer namespace, or null for `<root>\Infrastructure`
-     * @param ?non-empty-string $interface interface layer namespace
-     * @param ?non-empty-string $valueObject value object namespace requiring immutability
-     * @param ?non-empty-string $domainEvent domain event namespace requiring immutability
-     * @param list<non-empty-string> $isolatedFrom framework namespaces forbidden in the domain layer
-     * @param list<non-empty-string> $modules module names participating in isolation rules
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $domain - domain layer namespace, or null for `<root>\Domain`
+     * @param ?non-empty-string $application - application layer namespace, or null for `<root>\Application`
+     * @param ?non-empty-string $infrastructure - infrastructure layer namespace, or null for `<root>\Infrastructure`
+     * @param ?non-empty-string $interface - interface layer namespace
+     * @param ?non-empty-string $valueObject - value object namespace requiring immutability
+     * @param ?non-empty-string $domainEvent - domain event namespace requiring immutability
+     * @param list<non-empty-string> $isolatedFrom - framework namespaces forbidden in the domain layer
+     * @param list<non-empty-string> $modules - module names participating in isolation rules
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -431,10 +431,10 @@ final class Architecture
      *
      * Requires at least two modules.
      *
-     * @param non-empty-list<non-empty-string> $modules module names
-     * @param ?non-empty-string $pattern namespace pattern containing the "{name}" placeholder, or null for `<root>\{name}`
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param non-empty-list<non-empty-string> $modules - module names
+     * @param ?non-empty-string $pattern - namespace pattern containing the "{name}" placeholder, or null for `<root>\{name}`
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured module isolation rule services
      *
@@ -503,9 +503,9 @@ final class Architecture
      *   - Fixtures
      *   - Dependency injection
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $modules optional module names
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $modules - optional module names
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Symfony architecture rule services
      *
@@ -542,9 +542,9 @@ final class Architecture
      * The application-only fixture placement is dropped, and the bundle may not depend on the
      * application that installs it.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param non-empty-string $application namespace of the installing application
-     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application - namespace of the installing application
+     * @param list<non-empty-string> $except - further namespaces the runtime host provides
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -572,9 +572,9 @@ final class Architecture
     /**
      * Build the rules a reusable Laravel package should hold to.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param non-empty-string $application namespace of the installing application
-     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application - namespace of the installing application
+     * @param list<non-empty-string> $except - further namespaces the runtime host provides
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -602,9 +602,9 @@ final class Architecture
     /**
      * Build the rules a reusable Tempest package should hold to.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param non-empty-string $application namespace of the installing application
-     * @param list<non-empty-string> $except further namespaces the runtime host provides
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param non-empty-string $application - namespace of the installing application
+     * @param list<non-empty-string> $except - further namespaces the runtime host provides
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
@@ -639,10 +639,10 @@ final class Architecture
      *
      * When modules are provided, rules are generated per module root.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param ?non-empty-string $migrationsNamespace doctrine migrations namespace, or null when the package ships none
-     * @param list<non-empty-string> $modules optional module names
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param ?non-empty-string $migrationsNamespace - doctrine migrations namespace, or null when the package ships none
+     * @param list<non-empty-string> $modules - optional module names
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Doctrine architecture rule services
      *
@@ -715,9 +715,9 @@ final class Architecture
      *   - Scopes
      *   - Casts
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $modules optional module names
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $modules - optional module names
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Laravel architecture rule services
      *
@@ -759,9 +759,9 @@ final class Architecture
      *
      * Module isolation rules are only generated when at least two modules exist.
      *
-     * @param ?non-empty-string $root root namespace, or null to read it from `autoload`
-     * @param list<non-empty-string> $modules optional module names
-     * @param list<non-empty-string> $except namespaces the runtime host provides, exempt from the development-dependency rule
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param list<non-empty-string> $modules - optional module names
+     * @param list<non-empty-string> $except - namespaces the runtime host provides, exempt from the development-dependency rule
      *
      * @return non-empty-list<PhpAtService> configured Tempest architecture rule services
      *

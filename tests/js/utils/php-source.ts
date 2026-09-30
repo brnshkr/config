@@ -68,6 +68,11 @@ const extractQuotedValues = (body: string): string[] => body
   .map((match) => match.groups?.['value'] ?? '')
   .toArray();
 
+const findConstantBody = (source: string, constantName: string): string => createPattern('v')`const array ${constantName} = \[(?<body>[^\]]*)\]`
+  .exec(source)
+  ?.groups
+  ?.['body'] ?? '';
+
 export const readPhpSource = (relativePath: string): string => readText(path.join(PHP_SOURCE_ROOT, relativePath));
 
 export const extractPhpRuleOptionValues = (
@@ -82,3 +87,15 @@ export const extractPhpRuleOptionGroups = (
   optionName: string,
 ): string[][] => splitNestedArrays(findArrayBody(findArrayBody(source, ruleName), optionName))
   .map((group) => extractQuotedValues(group));
+
+export const extractPhpConstantValues = (source: string, constantName: string): string[] => extractQuotedValues(
+  findConstantBody(source, constantName),
+);
+
+export const extractPhpConstantFlags = (
+  source: string,
+  constantName: string,
+): string[] => findConstantBody(source, constantName)
+  .matchAll(/'(?<key>[^']+)'\s*=>\s*(?<flag>false|true)/gv)
+  .map((match) => `${match.groups?.['key'] ?? ''}=${match.groups?.['flag'] ?? ''}`)
+  .toArray();

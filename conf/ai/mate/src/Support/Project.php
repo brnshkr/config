@@ -74,7 +74,7 @@ final class Project
     /**
      * @param non-empty-list<non-empty-string> $command
      * @param positive-int $timeoutSeconds
-     * @param ?non-empty-string $input data to pass to the process via stdin
+     * @param ?non-empty-string $input - data to pass to the process via stdin
      *
      * @return array{
      *     exitCode: int,

@@ -43,7 +43,7 @@ final readonly class ModuleIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-list<ModuleIsolation> $modules every module, with its siblings
+     * @param non-empty-list<ModuleIsolation> $modules - every module, with its siblings
      */
     public function __construct(
         private array $modules,

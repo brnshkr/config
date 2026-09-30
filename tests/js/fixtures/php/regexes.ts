@@ -80,23 +80,18 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'src/php/PhpStan/Rule/PublicApiDocumentationRule.php',
-    php: String.raw`/@param\s[^@]*?\$%s\b(?<description>[^\n]*)/`,
-    regex: /@param\s[^@]*?\$paramName\b(?<description>[^\n]*)/v,
-  },
-  {
-    file: 'src/php/PhpStan/Rule/PublicApiDocumentationRule.php',
     php: String.raw`/[A-Za-z]/`,
     regex: /[A-Za-z]/v,
   },
   {
     file: 'src/php/PhpStan/Rule/PublicApiDocumentationRule.php',
-    php: String.raw`/@return\s+\S+\s+(?<description>\S[^\n]*)/`,
-    regex: /@return\s+\S+\s+(?<description>\S[^\n]*)/v,
-  },
-  {
-    file: 'src/php/PhpStan/Rule/PublicApiDocumentationRule.php',
     php: String.raw`/\*\s+@inheritDoc\b/i`,
     regex: /\*\s+@inheritDoc\b/iv,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/TagDescriptionRule.php',
+    php: String.raw`/^\p{Lu}[\p{Ll}\s]/`,
+    regex: /^\p{Lu}[\p{Ll}\s]/v,
   },
   {
     file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',

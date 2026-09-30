@@ -53,8 +53,8 @@ final readonly class FileFinder
      * Reuses the caller's Finder when provided (calling `in('.')` if no source directory is set);
      * otherwise constructs a new Finder rooted at the current working directory.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null to scan the working directory
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions file extensions to include
+     * @param ?Finder $finder - pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions - file extensions to include
      *
      * @return Finder configured Finder ready for iteration
      *
@@ -127,8 +127,8 @@ final readonly class FileFinder
      * Convenience over {@see self::get()} for callers that only need the absolute paths,
      * not the underlying SplFileInfo objects.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null to scan the working directory
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions file extensions to include
+     * @param ?Finder $finder - pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions - file extensions to include
      *
      * @return list<non-empty-string> absolute paths to matched files
      *

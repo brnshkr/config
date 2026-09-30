@@ -31,8 +31,7 @@ follow them, don't restate them. Beyond what tooling catches:
 
 ### PHP
 
-- Summary line = full sentence (capital + period). `@param`/`@return`/`@throws` descriptions = lowercase fragments,
-  no trailing period.
+- Summary line = full sentence (capital + period).
 - PHPDoc array shapes multi-line: one key per line, 4-space indent, trailing comma.
   Never `array{a: int, b: string}` on one line.
 - Plain `@param`/`@return`/`@var`; reach for `@phpstan-*` only when the type uses `self::*` or sits on a typed
@@ -63,6 +62,8 @@ follow them, don't restate them. Beyond what tooling catches:
 
 ### Docs + docblocks
 
+- Tag descriptions, both stacks: ` - ` after `@param`/`@property`/`@template`, none after `@return(s)`/`@throws`;
+  lowercase fragment, no trailing period; `@throws` opens with `when` or `unless`.
 - List items by shape: definition/continuation bullets → lowercase start, no trailing period;
   standalone facts → capital + period.
 - Examples use the Acme universe (vendor `Acme`, modules `User` + `Email`); never `App`.

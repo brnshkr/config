@@ -32,8 +32,8 @@ final class JsonSnapshotDriver extends JsonDriver
     /**
      * Compare the snapshot with what the run produced, entry by entry.
      *
-     * @param mixed $expected the snapshot as it was written
-     * @param mixed $actual what this run produced
+     * @param mixed $expected - the snapshot as it was written
+     * @param mixed $actual - what this run produced
      *
      * @throws JsonException when either side is a string that is not JSON
      *

@@ -26,9 +26,9 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *
  * @api
  *
- * @param optionsAndGlobalConfig per-module toggles and global flat-config fields (`files`,
+ * @param optionsAndGlobalConfig - per-module toggles and global flat-config fields (`files`,
  * `ignores`, `languageOptions`, etc.) merged with the defaults
- * @param additionalConfigs extra flat-config entries appended after the built-in ones
+ * @param additionalConfigs - extra flat-config entries appended after the built-in ones
  *
  * @returns configured {@link FlatConfigComposer} that resolves to the final flat-config array
  *

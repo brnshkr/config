@@ -22,8 +22,8 @@ export const formatUser = (user, isShort) => {
  *
  * @api
  *
- * @param {User} user the user being rendered
- * @param {boolean} isShort whether to collapse the result to a single line
+ * @param {User} user - the user being rendered
+ * @param {boolean} isShort - whether to collapse the result to a single line
  *
  * @returns {string} the rendered display string
  *

@@ -33,7 +33,7 @@ final readonly class ValueObjectImmutableTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $valueObject namespace containing the project's value objects
+     * @param non-empty-string $valueObject - namespace containing the project's value objects
      */
     public function __construct(
         private string $valueObject,

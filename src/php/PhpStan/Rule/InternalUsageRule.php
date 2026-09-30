@@ -89,9 +89,9 @@ final readonly class InternalUsageRule implements Rule
     /**
      * @internal invoked by PHPStan
      *
-     * @param ReflectionProvider $reflectionProvider PHPStan reflection provider (auto-wired)
-     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedInternals what may be reached
-     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedCallers who may reach it
+     * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedInternals - what may be reached
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedCallers - who may reach it
      *
      * @throws InvalidArgumentException when an entry is neither a namespace prefix nor a delimited regex pattern
      */

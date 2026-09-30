@@ -17,7 +17,7 @@ use Symfony\Component\Process\Exception\RuntimeException;
 final class CommitlintTool
 {
     /**
-     * @param string $message the commit message draft to lint (subject line plus optional body)
+     * @param string $message - the commit message draft to lint (subject line plus optional body)
      *
      * @throws LogicException
      * @throws RuntimeException

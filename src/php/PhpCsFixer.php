@@ -53,7 +53,7 @@ final readonly class PhpCsFixer
      * Caller may pass a Finder to narrow scope (e.g. lint a single subdirectory); otherwise
      * the project-wide {@see FileFinder} defaults apply.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return PhpCsFixerConfig configured Config instance ready for php-cs-fixer
      *
@@ -77,7 +77,7 @@ final readonly class PhpCsFixer
      * This is what a private `conf/php-cs-fixer.php` reaches for: the tracked config it includes stays
      * the baseline, and every verb here adds to it rather than replacing what that file configured.
      *
-     * @param PhpCsFixerConfig $phpCsFixerConfig config to extend
+     * @param PhpCsFixerConfig $phpCsFixerConfig - config to extend
      *
      * @return self the builder, wrapping that config
      *
@@ -101,7 +101,7 @@ final readonly class PhpCsFixer
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return self the builder, pre-configured with the baseline
      *
@@ -559,7 +559,7 @@ final readonly class PhpCsFixer
      * baseline. This one merges, and {@see self::setRules()} is there when replacing is what was
      * meant.
      *
-     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules - map of rule name to configuration
      *
      * @example
      * ```php
@@ -576,7 +576,7 @@ final readonly class PhpCsFixer
     /**
      * Set rules, discarding every rule configured so far.
      *
-     * @param array<non-empty-string, array<string, mixed>|bool> $rules map of rule name to configuration
+     * @param array<non-empty-string, array<string, mixed>|bool> $rules - map of rule name to configuration
      *
      * @example
      * ```php
@@ -593,7 +593,7 @@ final readonly class PhpCsFixer
     /**
      * Remove rules by name.
      *
-     * @param list<non-empty-string> $rules rule names to drop
+     * @param list<non-empty-string> $rules - rule names to drop
      *
      * @example
      * ```php

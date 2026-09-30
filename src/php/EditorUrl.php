@@ -68,10 +68,10 @@ final readonly class EditorUrl
      * working-directory prefix is either the caller-supplied path or, when none is given,
      * PHPStan's own `%currentWorkingDirectory%` substitution.
      *
-     * @template TEditor of ?self::EDITOR_*
+     * @template TEditor of ?self::EDITOR_* - the editor asked for, or null to detect one
      *
-     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
-     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; PHPStan's own `%currentWorkingDirectory%` substitution is used when null
+     * @param TEditor $editor - target editor identifier; auto-detected from the environment when null
+     * @param ?string $currentWorkingDirectory - absolute path prefixed to the file segment of the generated URL; PHPStan's own `%currentWorkingDirectory%` substitution is used when null
      *
      * @return (TEditor is null ? ?string : string) URL template ready to be passed as PHPStan's `editorUrl` parameter; `null` when no editor is configured or detected
      *
@@ -102,10 +102,10 @@ final readonly class EditorUrl
      * working-directory prefix is resolved at build time — either from the caller-supplied
      * path or, when none is given, from `getcwd()` (falling back to `.` if even that fails).
      *
-     * @template TEditor of ?self::EDITOR_*
+     * @template TEditor of ?self::EDITOR_* - the editor asked for, or null to detect one
      *
-     * @param TEditor $editor target editor identifier; auto-detected from the environment when null
-     * @param ?string $currentWorkingDirectory absolute path prefixed to the file segment of the generated URL; `getcwd()` is used when null, falling back to `.` when `getcwd()` itself fails
+     * @param TEditor $editor - target editor identifier; auto-detected from the environment when null
+     * @param ?string $currentWorkingDirectory - absolute path prefixed to the file segment of the generated URL; `getcwd()` is used when null, falling back to `.` when `getcwd()` itself fails
      *
      * @return (TEditor is null ? ?string : string) URL template ready to be passed as Rector's `editorUrl` setting; `null` when no editor is configured or detected
      *
@@ -130,7 +130,7 @@ final readonly class EditorUrl
     }
 
     /**
-     * @template TEditor of ?self::EDITOR_*
+     * @template TEditor of ?self::EDITOR_* - the editor asked for, or null to detect one
      *
      * @param TEditor $editor
      * @param array{

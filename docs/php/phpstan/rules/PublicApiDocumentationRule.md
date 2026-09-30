@@ -3,7 +3,8 @@
 Symbols marked as `@api` must carry a docblock that explains them in prose. Every class, interface, trait, enum,
 top-level function, and non-private method on an `@api` class has to have a real description before the first PHPDoc tag,
 an `@param` line per parameter with a description after the variable name, an `@return` line that describes what the value
-represents when the symbol returns something non-void, and an `@example` block whenever calling it involves arguments.
+represents when the symbol returns something non-void, a description on every `@throws`, `@property` and `@template` tag,
+and an `@example` block whenever calling it involves arguments.
 The aim is that anyone landing on a public symbol gets the same level of guidance no matter where in the codebase it lives.
 
 ```php
@@ -31,8 +32,8 @@ final class UserService
     /**
      * Renames the given user.
      *
-     * @param User $user the user being renamed
-     * @param string $name new display name, trimmed and validated against the username policy
+     * @param User $user - the user being renamed
+     * @param string $name - new display name, trimmed and validated against the username policy
      *
      * @return User the freshly persisted user, reloaded from the database
      *
@@ -60,8 +61,8 @@ function formatUser(User $user, bool $isShort): string {}
 /**
  * Formats a user for display in a listing.
  *
- * @param User $user the user being rendered
- * @param bool $isShort whether to collapse the result to a single line
+ * @param User $user - the user being rendered
+ * @param bool $isShort - whether to collapse the result to a single line
  *
  * @return string the rendered, escape-safe display string
  *

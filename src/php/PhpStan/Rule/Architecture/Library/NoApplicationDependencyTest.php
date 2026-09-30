@@ -33,8 +33,8 @@ final readonly class NoApplicationDependencyTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root package namespace
-     * @param non-empty-string $application namespace of the installing application
+     * @param non-empty-string $root - package namespace
+     * @param non-empty-string $application - namespace of the installing application
      */
     public function __construct(
         private string $root,

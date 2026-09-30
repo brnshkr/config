@@ -38,6 +38,7 @@ final class ProjectTool
      */
     private const array PHP_ONLY_RULES = [
         'NamedArgumentsTagRule',
+        'TagDescriptionRule',
     ];
 
     /**

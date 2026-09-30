@@ -35,9 +35,9 @@ final readonly class NoDevelopmentDependencyTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root production namespace
-     * @param non-empty-list<non-empty-string> $forbiddenNamespaces namespaces of the development-only packages
-     * @param list<non-empty-string> $excludedNamespaces namespaces autoloaded for development only, which the rule does not cover
+     * @param non-empty-string $root - production namespace
+     * @param non-empty-list<non-empty-string> $forbiddenNamespaces - namespaces of the development-only packages
+     * @param list<non-empty-string> $excludedNamespaces - namespaces autoloaded for development only, which the rule does not cover
      */
     public function __construct(
         private string $root,

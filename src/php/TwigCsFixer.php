@@ -54,7 +54,7 @@ final readonly class TwigCsFixer
      * Caller may pass a Finder to narrow scope; otherwise the project-wide {@see FileFinder}
      * defaults apply (Twig extension only).
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return TwigCsFixerConfig configured Config instance ready for twig-cs-fixer
      *
@@ -77,7 +77,7 @@ final readonly class TwigCsFixer
      * This is what a private `conf/twig-cs-fixer.php` reaches for: the tracked config it includes stays
      * the baseline, and every verb here adds to it rather than replacing what that file configured.
      *
-     * @param TwigCsFixerConfig $twigCsFixerConfig config to extend
+     * @param TwigCsFixerConfig $twigCsFixerConfig - config to extend
      *
      * @return self the builder, wrapping that config
      *
@@ -101,7 +101,7 @@ final readonly class TwigCsFixer
      * The same configuration as {@see self::getConfig()}, as a builder to extend before
      * {@see self::build()} finalizes it.
      *
-     * @param ?Finder $finder pre-configured Finder to extend, or null for project defaults
+     * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults
      *
      * @return self the builder, pre-configured with the baseline
      *
@@ -163,7 +163,7 @@ final readonly class TwigCsFixer
     /**
      * Add rules, keeping the ones already configured.
      *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to add
+     * @param list<NodeRuleInterface|RuleInterface> $rules - rules to add
      *
      * @example
      * ```php
@@ -184,7 +184,7 @@ final readonly class TwigCsFixer
      *
      * Clears the ruleset the standard brought in before adding, so the run uses exactly these rules.
      *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to run, replacing every one already configured
+     * @param list<NodeRuleInterface|RuleInterface> $rules - rules to run, replacing every one already configured
      *
      * @example
      * ```php
@@ -205,7 +205,7 @@ final readonly class TwigCsFixer
     /**
      * Replace rules of the same class, keeping every other rule.
      *
-     * @param list<NodeRuleInterface|RuleInterface> $rules rules to override with
+     * @param list<NodeRuleInterface|RuleInterface> $rules - rules to override with
      *
      * @example
      * ```php
@@ -224,7 +224,7 @@ final readonly class TwigCsFixer
     /**
      * Remove rules by class name.
      *
-     * @param list<class-string<NodeRuleInterface|RuleInterface>> $rules rule classes to drop
+     * @param list<class-string<NodeRuleInterface|RuleInterface>> $rules - rule classes to drop
      *
      * @example
      * ```php

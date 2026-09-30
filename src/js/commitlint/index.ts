@@ -15,8 +15,8 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *
  * @api
  *
- * @param optionsAndGlobalConfig per-module toggles and global commitlint fields merged with the defaults
- * @param additionalConfigs extra config entries merged after the built-in ones
+ * @param optionsAndGlobalConfig - per-module toggles and global commitlint fields merged with the defaults
+ * @param additionalConfigs - extra config entries merged after the built-in ones
  *
  * @returns final commitlint config ready to be consumed by commitlint
  *

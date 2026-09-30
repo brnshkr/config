@@ -58,7 +58,7 @@ final class ModuleTool
     }
 
     /**
-     * @param string $module the module to resolve (one of the names returned by project-modules-list)
+     * @param string $module - the module to resolve (one of the names returned by project-modules-list)
      *
      * @throws LogicException
      * @throws RuntimeException

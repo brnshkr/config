@@ -53,8 +53,8 @@ final class QualityTool
     ];
 
     /**
-     * @param string $tool the tool to run, one of {@see self::TOOLS}
-     * @param bool $isDryRun when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
+     * @param string $tool - the tool to run, one of {@see self::TOOLS}
+     * @param bool $isDryRun - when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
      *
      * @throws LogicException
      * @throws RuntimeException

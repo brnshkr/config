@@ -37,8 +37,8 @@ final readonly class RoleFoldersExhaustiveTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
-     * @param non-empty-list<non-empty-string> $allowedFolders whitelisted top-level folder names
+     * @param non-empty-list<non-empty-string> $roots - root namespaces, one per module
+     * @param non-empty-list<non-empty-string> $allowedFolders - whitelisted top-level folder names
      */
     public function __construct(
         private array $roots,

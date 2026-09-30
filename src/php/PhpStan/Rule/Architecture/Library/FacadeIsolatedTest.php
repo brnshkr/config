@@ -37,9 +37,9 @@ final readonly class FacadeIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $facade fully-qualified facade class
-     * @param non-empty-string $namespace namespace holding what the facade builds
-     * @param non-empty-string $label short label used in the violation message
+     * @param non-empty-string $facade - fully-qualified facade class
+     * @param non-empty-string $namespace - namespace holding what the facade builds
+     * @param non-empty-string $label - short label used in the violation message
      */
     public function __construct(
         private string $facade,

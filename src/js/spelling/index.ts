@@ -94,7 +94,7 @@ const findInFile = (
  *
  * @api
  *
- * @param options where to scan, which settings to read, and which files to look at
+ * @param options - where to scan, which settings to read, and which files to look at
  *
  * @returns every finding, sorted by path, line and word
  *

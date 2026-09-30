@@ -22,6 +22,8 @@ to a specific framework or architecture style — they are opt-in and configured
 
 - [`ResolvableDocReferenceRule`](./ResolvableDocReferenceRule.md)
   — every `@see` and `@link` target must name a symbol that exists
+- [`TagDescriptionRule`](./TagDescriptionRule.md)
+  — tag descriptions must be dashed, lowercase fragments
 
 ## Public API
 

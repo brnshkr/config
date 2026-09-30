@@ -35,8 +35,8 @@ final readonly class ExceptionPlacementTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root production namespace
-     * @param list<non-empty-string> $excludedNamespaces namespaces autoloaded for development only, which the rule does not cover
+     * @param non-empty-string $root - production namespace
+     * @param list<non-empty-string> $excludedNamespaces - namespaces autoloaded for development only, which the rule does not cover
      */
     public function __construct(
         private string $root,

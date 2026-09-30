@@ -32,7 +32,7 @@ final readonly class MessageTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-list<non-empty-string> $roots root namespaces, one per module
+     * @param non-empty-list<non-empty-string> $roots - root namespaces, one per module
      */
     public function __construct(
         private array $roots,

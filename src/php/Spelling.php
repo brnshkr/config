@@ -68,19 +68,19 @@ final class Spelling
     /**
      * Scan a repository and return every finding, sorted by path, line and word.
      *
-     * @param non-empty-string $rootDirectory repository root the scan runs against
-     * @param string $configPath repository config path, relative to the root
-     * @param ?list<string> $paths files to scan, derived from the tracked files when null
+     * @param non-empty-string $rootDirectory - repository root the scan runs against
+     * @param string $configPath - repository config path, relative to the root
+     * @param ?list<string> $paths - files to scan, derived from the tracked files when null
      *
      * @return list<array{
      *     path: string,
      *     line: int,
      *     word: string,
      *     suggestion: string,
-     * }>
+     * }> every finding, sorted by path, line and word
      *
-     * @throws JsonException
-     * @throws RuntimeException
+     * @throws JsonException when the settings file is not valid JSON
+     * @throws RuntimeException when a setting is malformed or an allowed word is already covered
      *
      * @example
      * ```php

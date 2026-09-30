@@ -34,8 +34,8 @@ final readonly class ExceptionInterfaceTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $root production namespace
-     * @param non-empty-string $interface the package's own exception interface
+     * @param non-empty-string $root - production namespace
+     * @param non-empty-string $interface - the package's own exception interface
      */
     public function __construct(
         private string $root,

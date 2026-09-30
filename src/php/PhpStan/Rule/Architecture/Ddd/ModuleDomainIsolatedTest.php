@@ -45,8 +45,8 @@ final readonly class ModuleDomainIsolatedTest
     /**
      * @internal invoked by PHPat
      *
-     * @param non-empty-string $domain domain layer namespace
-     * @param non-empty-list<ModuleIsolation> $modules every module, with its siblings
+     * @param non-empty-string $domain - domain layer namespace
+     * @param non-empty-list<ModuleIsolation> $modules - every module, with its siblings
      */
     public function __construct(
         private string $domain,
