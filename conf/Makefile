@@ -4362,9 +4362,10 @@ function major_of(version,    value) {
 	return value
 }
 function flush(section, version, compare,    position, label, printed, out) {
-	if (!(section in has_content)) return ""
+	if (_all != "" && !(section in section_commit_count)) return ""
 	if (_major != "" && major_of(version) != _major) return ""
 	out = (version == "") ? "" : "## " ((compare != "") ? "[" version "](" compare ")" : version) "\n"
+	if (!(section in has_content)) return out ((out == "") ? "" : "\n") "_No changes_\n"
 	if ((section in breaking)) out = out "\n### " breaking_label "\n\n" breaking[section]
 	for (position = 1; position <= rank; position += 1) {
 		label = ordered[position]
@@ -4426,6 +4427,7 @@ BEGIN {
 		section_version[section] = tag
 	}
 
+	section_commit_count[section] += 1
 	if (subject !~ /^[a-z]+(\([^)]+\))?!?: /) next
 
 	scope = ""
