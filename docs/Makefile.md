@@ -202,3 +202,8 @@ Should that name be taken too, the shared one is numbered — `brnshkr-check-1` 
 `TARGET_PREFIX := brnshkr` moves all of them aside at once,
 making `make check` into `make brnshkr-check`;
 the separator is added for you and your own targets keep their names.
+
+Your own Makefile can reshape the shared help: `#---! brnshkr.theming` shows that scope by default,
+`#---vv! brnshkr.theming` from `vv`, `#---!! brnshkr.theming` only when named.
+`#~~! phpstan-debug` does the same for a target, variable or function.
+The most specific line wins; unknown names, wrong depths and duplicates fail `make help`.

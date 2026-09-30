@@ -59,6 +59,12 @@
 #       #---vvv name  —  contents hidden unless verbosity >= 3
 #       (and so on)
 #
+#   Overrides (a scope or symbol another file declares; the dashes match the scope's depth):
+#     #---! brnshkr.theming    —  show the scope at verbosity 0
+#     #---vv! brnshkr.theming  —  show it from verbosity 2
+#     #---!! brnshkr.theming   —  hide it unless named
+#     #~~! phpstan-debug       —  the same for a command, variable or function
+#
 #   Inline description comments (attach metadata to a specific symbol):
 #     VARIABLE ?= value#~~ description  —  annotate a variable with a description
 #     command: #~~ description          —  annotate a command with a description
@@ -4760,19 +4766,37 @@ function is_scope_target(path,    i, f) {
 	}
 	return 0
 }
-function is_scope_visible(path) { return scope_verbosity[path] + 0 <= verbosity }
+function is_scope_named(path,    i, f) {
+	for (i = 1; i <= scope_filter_count; i += 1) {
+		f = scope_filter[i]
+		if (f != "" && (f == path || index(f, path "/") == 1)) return 1
+	}
+	return 0
+}
+function is_scope_hidden(path) { return scope_is_hidden[path] && !is_listing_hidden && !is_scope_named(path) }
+function is_scope_visible(path) { return !is_scope_hidden(path) && scope_verbosity[path] + 0 <= verbosity }
+function is_entry_visible(scope_path, section, idx) {
+	if ((scope_path, section, idx) in entry_override_level)
+		return !entry_override_is_hidden[scope_path, section, idx] && entry_override_level[scope_path, section, idx] <= verbosity
+	if (section_verbosity[scope_path, section, idx] + 0 > verbosity) return 0
+	if (section_file[scope_path, section, idx] == scope_override_file[scope_path]) return scope_base_verbosity[scope_path] <= verbosity
+	return is_scope_visible(scope_path)
+}
 function scope_has_visible_entries(scope_path, section,    idx) {
 	if (!matches_scope(scope_path)) return 0
 	if (!is_scope_target(scope_path)) return 0
-	if (!is_scope_visible(scope_path)) return 0
 	for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1)
-		if (section_verbosity[scope_path, section, idx] + 0 <= verbosity) return 1
+		if (is_entry_visible(scope_path, section, idx)) return 1
 	return 0
 }
 function push_scope(level, name, verbosity,    current, parent_verbosity, parent) {
 	scope_at[level] = (level > 0 && scope_at[level - 1] != "" ? scope_at[level - 1] "/" name : name)
 	scope_depth = level
 	current = scope_at[level]
+	scope_marker_verbosity[current] = verbosity
+	if (!((current, FILENAME) in scope_declared_in)) scope_declaration_count[current] += 1
+	scope_declared_in[current, FILENAME] = 1
+	scope_parent[current] = (level > 0 ? scope_at[level - 1] : "")
 	parent_verbosity = (level > 0 ? scope_verbosity[scope_at[level - 1]] + 0 : 0)
 	scope_verbosity[current] = (verbosity > parent_verbosity ? verbosity : parent_verbosity)
 	if (current in seen_scope) return
@@ -4785,6 +4809,87 @@ function push_scope(level, name, verbosity,    current, parent_verbosity, parent
 	} else {
 		child_count[parent] += 1
 		children[parent, child_count[parent]] = current
+	}
+}
+function record_override(kind, marker, depth,    count, shown_path) {
+	count = ++override_count
+	match(marker, /^v*/)
+	override_level[count] = RLENGTH
+	if (RLENGTH > max_verbosity) max_verbosity = RLENGTH
+	marker = substr(marker, RLENGTH + 1)
+	override_is_hidden[count] = (substr(marker, 1, 2) == "!!")
+	override_name[count] = trim(substr(marker, override_is_hidden[count] ? 3 : 2))
+	override_kind[count] = kind
+	override_depth[count] = depth
+	override_file[count] = FILENAME
+	shown_path = named_path(FILENAME)
+	if (shown_path !~ /^\.?\//) shown_path = "./" shown_path
+	override_location[count] = render_link(shown_path ":" FNR, FILENAME, FNR)
+}
+function fail_override(message, notice) {
+	printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", message
+	if (notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", notice
+	exit $(BRNSHKR_CONFIG_ERROR_CODE)
+}
+function fail_unknown_override(count, notice) {
+	fail_override(sprintf("Unknown %s \"$(call text,%s,$(COLOR_WARNING))\" at %s.", \
+		override_kind[count], override_name[count], override_location[count]), notice)
+}
+function is_symbol_named(entry, name) { sub(/, .*/, "", entry); return index("/" entry "/", "/" name "/") > 0 }
+function apply_symbol_override(count,    sections, section_index, section, scope_path, idx, is_matched) {
+	split("variables functions commands", sections, " ")
+	for (scope_path in seen_scope)
+		for (section_index = 1; section_index <= 3; section_index += 1) {
+			section = sections[section_index]
+			for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
+				if (section_file[scope_path, section, idx] == override_file[count]) continue
+				if (!is_symbol_named(section_name[scope_path, section, idx], override_name[count])) continue
+				is_matched = 1
+				entry_override_level[scope_path, section, idx] = override_level[count]
+				entry_override_is_hidden[scope_path, section, idx] = override_is_hidden[count]
+			}
+		}
+	if (!is_matched) fail_unknown_override(count, "")
+}
+function apply_overrides(    count, key, segment_count, segments, first) {
+	for (count = 1; count <= override_count; count += 1) {
+		key = override_name[count]
+		if (override_kind[count] == "scope") {
+			segment_count = split(key, segments, ".")
+			if (segment_count != override_depth[count] + 1)
+				fail_override(sprintf("\"$(call text,%s,$(COLOR_WARNING))\" at %s is a depth-%d scope, not depth %d.", \
+					key, override_location[count], segment_count - 1, override_depth[count]), \
+					sprintf("Write \"$(call text,#%s!,$(MODIFIER_UNDERLINE))\" for it.", repeat("-", segment_count + 1)))
+			gsub(/\./, "/", key)
+			if (scope_declaration_count[key] + 0 <= ((key, override_file[count]) in scope_declared_in))
+				fail_unknown_override(count, "Run \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.")
+		}
+		if ((override_kind[count], key) in override_index) {
+			first = override_index[override_kind[count], key]
+			fail_override(sprintf("Duplicate override of \"$(call text,%s,$(COLOR_WARNING))\" at %s and %s.", \
+				override_name[count], override_location[first], override_location[count]), "")
+		}
+		override_index[override_kind[count], key] = count
+		if (override_kind[count] == "symbol") apply_symbol_override(count)
+	}
+}
+function resolve_scope_level(path,    parent, count) {
+	if (path in is_scope_level_resolved) return
+	is_scope_level_resolved[path] = 1
+	parent = scope_parent[path]
+	if (parent != "") resolve_scope_level(parent)
+	scope_base_verbosity[path] = scope_marker_verbosity[path] + 0
+	if (parent != "" && scope_base_verbosity[parent] > scope_base_verbosity[path])
+		scope_base_verbosity[path] = scope_base_verbosity[parent]
+	scope_verbosity[path] = scope_marker_verbosity[path] + 0
+	if (parent != "" && scope_verbosity[parent] > scope_verbosity[path]) scope_verbosity[path] = scope_verbosity[parent]
+	scope_is_hidden[path] = (parent != "" ? scope_is_hidden[parent] : 0)
+	scope_override_file[path] = (parent != "" ? scope_override_file[parent] : "")
+	if (("scope", path) in override_index) {
+		count = override_index["scope", path]
+		scope_verbosity[path] = override_level[count]
+		scope_is_hidden[path] = override_is_hidden[count]
+		scope_override_file[path] = override_file[count]
 	}
 }
 function alias_of(name,    map, position, remainder) {
@@ -4853,9 +4958,9 @@ function lowest_verbosity(scope_path,    shown, level) {
 }
 function tree_max(scope_path, depth, section, mode,    best, idx, width, child_width, value) {
 	if (!matches_scope(scope_path)) return 0
-	if (is_scope_visible(scope_path) && is_scope_target(scope_path)) {
+	if (is_scope_target(scope_path)) {
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue
+			if (!is_entry_visible(scope_path, section, idx)) continue
 			if (mode == "value" && section_description[scope_path, section, idx] == "") continue
 			value = section_text[scope_path, section, idx]
 			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]])
@@ -4880,7 +4985,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 		padding = repeat(" ", (depth + 2) * ENVIRON["INDENT"])
 		width = column - (depth + 2) * ENVIRON["INDENT"]
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
-			if (section_verbosity[scope_path, section, idx] + 0 > verbosity) continue
+			if (!is_entry_visible(scope_path, section, idx)) continue
 			entry = section_name[scope_path, section, idx]
 			text = section_text[scope_path, section, idx]
 			extra = section_extra[scope_path, section, idx]
@@ -5013,6 +5118,8 @@ is_in_define { next }
 /^else([[:space:]]|$$)/ { else_condition($$0); next }
 /^endif([[:space:]]|$$)/ { if (condition_depth > 0) { condition_depth--; is_in_ifndef = 0 } next }
 condition_depth > 0 && !condition_is_active[condition_depth] { next }
+/^#-+v*!/ { match($$0, /^#-+/); record_override("scope", substr($$0, RLENGTH + 1), RLENGTH - 3); next }
+/^#~~v*!/ { record_override("symbol", substr($$0, 4), -1); next }
 /^#-+/ { match($$0, /^#-+/); scope_dash_count = RLENGTH - 1; scope_suffix = substr($$0, RLENGTH + 1); match(scope_suffix, /^v*/); scope_verbosity_count = RLENGTH; push_scope(scope_dash_count - 2, trim(substr(scope_suffix, scope_verbosity_count + 1)), scope_verbosity_count); next }
 /^#\*\*/ { is_in_documentation = 1; documentation_text = ""; next }
 is_in_documentation {
@@ -5112,6 +5219,8 @@ END {
 			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Rename it; help reads \"$(call text,%s,$(MODIFIER_UNDERLINE))\" as a word of its own.\n", scope_path
 			exit $(BRNSHKR_CONFIG_ERROR_CODE)
 		}
+	apply_overrides()
+	for (scope_path in seen_scope) resolve_scope_level(scope_path)
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
 		filter = scope_filter[filter_idx]
 		if (filter == "" || index(filter, "/") || (filter in seen_scope)) continue
@@ -5144,6 +5253,7 @@ END {
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	if (ENVIRON["_HAS_LIST_SCOPES_ARGUMENT"]) {
+		is_listing_hidden = 1
 		listed_count = 0
 		for (scope_path in seen_scope) {
 			if (scope_path == "main") continue
@@ -5161,8 +5271,9 @@ END {
 			listed_paths[compare_idx + 1] = current_path
 		}
 		for (listed_idx = 1; listed_idx <= listed_count; listed_idx += 1) {
+			listed_suffix = (scope_is_hidden[listed_paths[listed_idx]] ? " (hidden)" : "")
 			gsub(/\//, ".", listed_paths[listed_idx])
-			print listed_paths[listed_idx]
+			print listed_paths[listed_idx] listed_suffix
 		}
 		exit 0
 	}
