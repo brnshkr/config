@@ -2628,6 +2628,70 @@ $(call _ansi,$2 $3)$1$(_ANSI_RESET)
 endef
 
 #**
+#* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
+#* Anything in backticks renders as inline code. The message is a `printf` format, so a value goes
+#* in as an argument rather than being pasted in. A literal comma has to be written as `$(_COMMA)`.
+#* A backticked span that names a target or an existing path links to it, which `no-autolink` turns
+#* off where the sentence is about neither.
+#*
+#* parameters:
+#*   message: string
+#*   color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
+#*   arguments?: list<string>
+#*   autolink?: OneOf<autolink | no-autolink> = autolink
+#*
+#* returns: void
+#*
+define log
+$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
+	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes)))
+endef
+
+#**
+#* The command a tool named for a compose service runs through, empty on this machine.
+#* The service is started first, once per run, unless a throwaway container is what runs it.
+#* A key the `.env` files declare passes by name, so its value never reaches a command line.
+#*
+#* parameters:
+#*   service: string
+#*
+#* returns: string
+#*
+define run_in
+$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment))
+endef
+
+#**
+#* Asks a yes/no question before something destructive happens.
+#* It answers itself where nobody can: under `CI`, or where its input is no terminal, it answers the default.
+#* It succeeds on yes, so the caller reads it as a condition and says what it skipped.
+#*
+#* parameters:
+#*   question: string
+#*   default?: OneOf<yes | no> = no
+#*
+#* returns: void
+#*
+define confirm
+{ \
+	if [ -n "$(_IS_CI)" ] || [ ! -t 0 ] || ! ( : < /dev/tty ) 2>/dev/null; then \
+		$(if $(filter yes,$2),true,false); \
+	else \
+		$(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
+			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,yes) >&2 \
+			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
+			&& read -r answer < /dev/tty \
+			&& trap - $(_SIGNAL_INTERRUPT) \
+			&& case "$$answer" in \
+				[yY]|[yY][eE][sS]) true;; \
+				"") $(if $(filter yes,$2),true,false);; \
+				*) false;; \
+			esac; \
+	fi; \
+}
+endef
+
+#**
 #* The path on this machine of a file the tools see under `APP_DIR`.
 #*
 #* parameters:
@@ -2649,20 +2713,6 @@ endef
 #*
 define _quoted
 $(_QUOTE)$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)$(_QUOTE)
-endef
-
-#**
-#* The command a tool named for a compose service runs through, empty on this machine.
-#* The service is started first, once per run, unless a throwaway container is what runs it.
-#* A key the `.env` files declare passes by name, so its value never reaches a command line.
-#*
-#* parameters:
-#*   service: string
-#*
-#* returns: string
-#*
-define run_in
-$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment))
 endef
 
 #**
@@ -3378,56 +3428,6 @@ $(if $(word 2,$1),$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(foreach \
 	ITEM,$(filter-out $(lastword $1),$1),`$(ITEM)`)) $(if \
 	$(filter disjunction,$2),or,and) `$(lastword $1)`,$(if \
 	$1,`$1`))
-endef
-
-#**
-#* Asks a yes/no question before something destructive happens.
-#* It answers itself where nobody can: under `CI`, or where its input is no terminal, it answers the default.
-#* It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-#*
-#* parameters:
-#*   question: string
-#*   default?: OneOf<yes | no> = no
-#*
-#* returns: void
-#*
-define confirm
-{ \
-	if [ -n "$(_IS_CI)" ] || [ ! -t 0 ] || ! ( : < /dev/tty ) 2>/dev/null; then \
-		$(if $(filter yes,$2),true,false); \
-	else \
-		$(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
-			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,yes) >&2 \
-			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
-			&& read -r answer < /dev/tty \
-			&& trap - $(_SIGNAL_INTERRUPT) \
-			&& case "$$answer" in \
-				[yY]|[yY][eE][sS]) true;; \
-				"") $(if $(filter yes,$2),true,false);; \
-				*) false;; \
-			esac; \
-	fi; \
-}
-endef
-
-#**
-#* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
-#* Anything in backticks renders as inline code. The message is a `printf` format, so a value goes
-#* in as an argument rather than being pasted in. A literal comma has to be written as `$(_COMMA)`.
-#* A backticked span that names a target or an existing path links to it, which `no-autolink` turns
-#* off where the sentence is about neither.
-#*
-#* parameters:
-#*   message: string
-#*   color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-#*   arguments?: list<string>
-#*   autolink?: OneOf<autolink | no-autolink> = autolink
-#*
-#* returns: void
-#*
-define log
-$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
-	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes)))
 endef
 
 #**

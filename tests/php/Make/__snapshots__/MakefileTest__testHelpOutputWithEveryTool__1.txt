@@ -303,9 +303,9 @@ Functions:
  brnshkr
   helpers
    text     wraps a string in ANSI color and modifier escapes, resetting after it
+   log      prints a message behind the <VENDOR>/<PACKAGE> label
    run_in   the command a tool named for a compose service runs through, empty on this machine
    confirm  asks a yes/no question before something destructive happens
-   log      prints a message behind the <VENDOR>/<PACKAGE> label
 
 Available commands:
  app
@@ -619,6 +619,13 @@ Functions:
     Wraps a string in ANSI color and modifier escapes, resetting after it.
     The color and the modifiers may be given together or apart.
 
+   log
+    Prints a message behind the <VENDOR>/<PACKAGE> label.
+    Anything in backticks renders as inline code. The message is a printf format, so a value goes
+    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
+
    run_in
     The command a tool named for a compose service runs through, empty on this machine.
     The service is started first, once per run, unless a throwaway container is what runs it.
@@ -628,13 +635,6 @@ Functions:
     Asks a yes/no question before something destructive happens.
     It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
     It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
 
 Available commands:
  app
@@ -1023,6 +1023,21 @@ Functions:
 
     returns: string
 
+   log
+    Prints a message behind the <VENDOR>/<PACKAGE> label.
+    Anything in backticks renders as inline code. The message is a printf format, so a value goes
+    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+    A backticked span that names a target or an existing path links to it, which no-autolink turns
+    off where the sentence is about neither.
+
+    parameters:
+      message: string
+      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
+      arguments?: list<string>
+      autolink?: OneOf<autolink | no-autolink> = autolink
+
+    returns: void
+
    run_in
     The command a tool named for a compose service runs through, empty on this machine.
     The service is started first, once per run, unless a throwaway container is what runs it.
@@ -1041,21 +1056,6 @@ Functions:
     parameters:
       question: string
       default?: OneOf<yes | no> = no
-
-    returns: void
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
 
     returns: void
 
@@ -1710,6 +1710,21 @@ Variables:
 
     [90mreturns: string[0m
 
+   [36mlog[0m
+    [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
+    [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
+    [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
+    [90mA backticked span that names a target or an existing path links to it, which [35mno-autolink[0m[90m turns[0m
+    [90moff where the sentence is about neither.[0m
+
+    [90mparameters:[0m
+    [90m  message: string[0m
+    [90m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
+    [90m  arguments?: list<string>[0m
+    [90m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
+
+    [90mreturns: void[0m
+
    [36mrun_in[0m
     [90mThe command a tool named for a compose service runs through, empty on this machine.[0m
     [90mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
@@ -1728,21 +1743,6 @@ Variables:
     [90mparameters:[0m
     [90m  question: string[0m
     [90m  default?: OneOf<yes | no> = no[0m
-
-    [90mreturns: void[0m
-
-   [36mlog[0m
-    [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
-    [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
-    [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
-    [90mA backticked span that names a target or an existing path links to it, which [35mno-autolink[0m[90m turns[0m
-    [90moff where the sentence is about neither.[0m
-
-    [90mparameters:[0m
-    [90m  message: string[0m
-    [90m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
-    [90m  arguments?: list<string>[0m
-    [90m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
 
     [90mreturns: void[0m
 
@@ -2146,6 +2146,21 @@ Variables:
 
     [0mreturns: string[0m
 
+   [32mlog[0m
+    [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
+    [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
+    [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
+    [0mA backticked span that names a target or an existing path links to it, which [33mno-autolink[0m[0m turns[0m
+    [0moff where the sentence is about neither.[0m
+
+    [0mparameters:[0m
+    [0m  message: string[0m
+    [0m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
+    [0m  arguments?: list<string>[0m
+    [0m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
+
+    [0mreturns: void[0m
+
    [32mrun_in[0m
     [0mThe command a tool named for a compose service runs through, empty on this machine.[0m
     [0mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
@@ -2164,21 +2179,6 @@ Variables:
     [0mparameters:[0m
     [0m  question: string[0m
     [0m  default?: OneOf<yes | no> = no[0m
-
-    [0mreturns: void[0m
-
-   [32mlog[0m
-    [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
-    [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
-    [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
-    [0mA backticked span that names a target or an existing path links to it, which [33mno-autolink[0m[0m turns[0m
-    [0moff where the sentence is about neither.[0m
-
-    [0mparameters:[0m
-    [0m  message: string[0m
-    [0m  color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>[0m
-    [0m  arguments?: list<string>[0m
-    [0m  autolink?: OneOf<autolink | no-autolink> = autolink[0m
 
     [0mreturns: void[0m
 
