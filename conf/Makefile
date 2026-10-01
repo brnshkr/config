@@ -5089,10 +5089,14 @@ function to_title_case(text,    words, word_count, word_index, titled_text) {
 	for (word_index = 1; word_index <= word_count; word_index += 1) titled_text = titled_text (word_index > 1 ? " " : "") toupper(substr(words[word_index], 1, 1)) substr(words[word_index], 2)
 	return titled_text
 }
-function print_header(    logo, logo_reset, header_title) {
-	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_reset = ""
+function print_header(    logo, logo_open, logo_reset, logo_lines, line_count, line_idx, header_title) {
+	logo = ENVIRON["_HEADER_LOGO"]; sub(/__BRNSHKR_LOGO_END__$$/, "", logo); logo_open = ""; logo_reset = ""
+	if (match(logo, /^\033\[[0-9;]*m/)) { logo_open = substr(logo, 1, RLENGTH); logo = substr(logo, RLENGTH + 1) }
 	if (match(logo, /\033\[[0-9;]*m$$/)) { logo_reset = substr(logo, RSTART); logo = substr(logo, 1, RSTART - 1) }
-	if (length(trim(logo)) > 0) printf "%s%s\n", logo, logo_reset
+	if (length(trim(logo)) > 0) {
+		line_count = split(logo, logo_lines, "\n")
+		for (line_idx = 1; line_idx <= line_count; line_idx += 1) printf "%s%s%s\n", logo_open, logo_lines[line_idx], logo_reset
+	}
 	header_title = ENVIRON["_HEADER_TITLE"]; sub(/@@brnshkr-package@@/, to_title_case(ENVIRON["_HEADER_PACKAGE"]), header_title)
 	if (length(trim(header_title)) > 0) printf "%s\n\n", header_title
 	printf "%s\n", ENVIRON["_HEADER_USAGE"]
