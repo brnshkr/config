@@ -11,9 +11,13 @@ use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 use function chdir;
+use function dirname;
 use function getcwd;
+use function realpath;
+use function sys_get_temp_dir;
 
 /**
  * @internal
@@ -98,6 +102,30 @@ final class ComposerJsonTest extends TestCase
     public function testDevelopmentNamespacesComeFromAutoloadDev(): void
     {
         self::assertSame(['Acme\Tests'], self::fixture('transitive')->getDevelopmentNamespaces());
+    }
+
+    public function testAManifestNotNamedComposerJsonResolvesAgainstItsOwnDirectory(): void
+    {
+        $directory = __DIR__ . '/Fixtures/ComposerJson/renamed';
+
+        self::assertSame([realpath($directory)], ComposerJson::forPath($directory . '/acme.json')->getDevelopmentDirectories());
+    }
+
+    public function testAnAbsoluteVendorDirectoryIsTakenAsIs(): void
+    {
+        $filesystem = new Filesystem();
+        $manifest   = sys_get_temp_dir() . '/brnshkr-absolute-vendor/composer.json';
+
+        $filesystem->dumpFile($manifest, Json::encode([
+            'require-dev' => ['acme/direct-dev' => '^1.0'],
+            'config'      => ['vendor-dir' => __DIR__ . '/Fixtures/ComposerJson/transitive/vendor'],
+        ]));
+
+        try {
+            self::assertContains('Acme\DirectDev', ComposerJson::forPath($manifest)->getDevelopmentOnlyPackageNamespaces());
+        } finally {
+            $filesystem->remove(dirname($manifest));
+        }
     }
 
     /**

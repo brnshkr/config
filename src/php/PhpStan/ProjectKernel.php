@@ -14,7 +14,6 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 use function array_keys;
-use function dirname;
 use function getcwd;
 use function is_file;
 use function is_readable;
@@ -70,7 +69,7 @@ final readonly class ProjectKernel
     public static function getRootDirectory(): string
     {
         try {
-            $projectPath = dirname(ComposerJson::forProjectUsingThisLibrary()->path);
+            $projectPath = ComposerJson::forProjectUsingThisLibrary()->getDirectory();
         } catch (RuntimeException) {
             return getcwd() ?: '.';
         }
@@ -153,7 +152,7 @@ final readonly class ProjectKernel
     {
         $projectPath = sprintf(
             '%s/%s/%s.php',
-            dirname(ComposerJson::forProjectUsingThisLibrary()->path),
+            ComposerJson::forProjectUsingThisLibrary()->getDirectory(),
             self::LOADER_DIRECTORY,
             $name,
         );

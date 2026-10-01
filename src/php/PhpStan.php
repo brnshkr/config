@@ -58,7 +58,6 @@ use function array_pop;
 use function array_unique;
 use function array_values;
 use function class_exists;
-use function dirname;
 use function explode;
 use function function_exists;
 use function get_debug_type;
@@ -2261,7 +2260,7 @@ final class PhpStan
      */
     private static function getRootUncheckedExceptions(): array
     {
-        $path = dirname(ComposerJson::forProjectUsingThisLibrary()->path) . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
+        $path = ComposerJson::forProjectUsingThisLibrary()->getDirectory() . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
 
         if (!is_file($path) || !is_readable($path)) {
             return [];

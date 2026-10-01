@@ -20,6 +20,7 @@ use function array_map;
 use function array_merge;
 use function array_unique;
 use function array_values;
+use function dirname;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
@@ -195,6 +196,11 @@ final class ComposerJson
         return self::$projectInstances[$path];
     }
 
+    public function getDirectory(): string
+    {
+        return dirname($this->path);
+    }
+
     /**
      * @return ?non-empty-string
      *
@@ -343,11 +349,10 @@ final class ComposerJson
      */
     public function getDevelopmentDirectories(): array
     {
-        $directory   = Str::trimSuffix($this->path, 'composer.json');
         $directories = [];
 
         foreach ($this->readNamespaceMap('autoload-dev') as $relative) {
-            $absolute = realpath($directory . Str::trimSuffix($relative, '/'));
+            $absolute = realpath($this->getDirectory() . '/' . Str::trimSuffix($relative, '/'));
 
             if ($absolute !== false && is_dir($absolute)) {
                 $directories[] = $absolute;
@@ -822,7 +827,9 @@ final class ComposerJson
         $configured = $config['vendor-dir'] ?? null;
         $directory  = is_string($configured) && !Str::isEmpty($configured) ? $configured : 'vendor';
 
-        return Str::trimSuffix($this->path, 'composer.json') . $directory;
+        return Str::startsWith($directory, '/')
+            ? $directory
+            : $this->getDirectory() . '/' . $directory;
     }
 
     /**
