@@ -19,6 +19,7 @@ use Symfony\Component\Process\Process;
 
 use function array_diff;
 use function array_first;
+use function array_key_first;
 use function array_map;
 use function array_unique;
 use function array_values;
@@ -38,6 +39,7 @@ use function sprintf;
 use function Symfony\Component\String\s;
 use function time;
 use function touch;
+use function uasort;
 
 /**
  * @internal
@@ -1711,16 +1713,33 @@ final class MakefileTest extends TestCase
             'header'         => '',
         ]));
 
+        $renderedOutputs = [$baseScenario => $baseOutput];
+
         foreach ($outputGroups as $outputGroup) {
-            if ($outputGroup['representative'] === $baseScenario) {
+            $name   = $outputGroup['representative'];
+            $output = $outputGroup['output'];
+
+            if ($name === $baseScenario) {
                 continue;
             }
 
-            $diff = $differ->diff($baseOutput, $outputGroup['output']);
+            $diffs = array_map(
+                static fn (string $reference): string => $differ->diff($reference, $output),
+                $renderedOutputs,
+            );
 
-            $rendered .= Str::length($diff) < Str::length($outputGroup['output'])
-                ? sprintf("=== diff: %s ===\n%s\n", $outputGroup['representative'], $diff)
-                : sprintf("=== full: %s ===\n%s\n", $outputGroup['representative'], $outputGroup['output']);
+            uasort(
+                $diffs,
+                static fn (string $first, string $second): int => Str::length($first) <=> Str::length($second),
+            );
+
+            $closest = array_key_first($diffs);
+
+            $rendered .= Str::length($diffs[$closest]) < Str::length($output)
+                ? sprintf("=== diff: %s from %s ===\n%s\n", $name, $closest, $diffs[$closest])
+                : sprintf("=== full: %s ===\n%s\n", $name, $output);
+
+            $renderedOutputs[$name] = $output;
         }
 
         return $rendered;

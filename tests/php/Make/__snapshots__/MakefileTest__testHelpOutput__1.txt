@@ -285,845 +285,360 @@ Available commands:
  local
   local-mk-command             command from .local/test.mk auto-include
 
-=== full: verbosity-vv ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
+=== diff: verbosity-vv from verbosity-v ===
+@@ @@
+  app
+   Application Makefile of the test fixture
+   Covers all make help AWK features for snapshot testing
++  shown at verbosity >= 2
+  local
+   Local overrides for the test fixture
+ 
+@@ @@
+    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
+    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
++   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
++   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
++   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
+    TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
+    COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
+    VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
+    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
++   VERSION                     ?=  0.0.0-dev                                        (package version)
+    DEBUG                       ?=                                                   (whether each command is echoed)
+    TRACE                       ?=                                                   (whether every recipe line is echoed)
+    ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
+@@ @@
+    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
+    DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
+    DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
++  theming
++   INDENT                      ?=  1                                                (indent used in make help output)
++   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
++   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
++   THEME                       ?=                                                   (the theme to use)
++   THEME_BRNSHKR               :=  brnshkr
++   THEME_SYMFONY               :=  symfony
++   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
++   EDITOR_VSCODE               :=  vscode
++   EDITOR_PHPSTORM             :=  phpstorm
++   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
++   colors
++    COLOR_NORMAL               :=  normal
++    COLOR_BLACK                :=  black
++    COLOR_RED                  :=  red
++    COLOR_GREEN                :=  green
++    COLOR_YELLOW               :=  yellow
++    COLOR_BLUE                 :=  blue
++    COLOR_MAGENTA              :=  magenta
++    COLOR_CYAN                 :=  cyan
++    COLOR_WHITE                :=  white
++    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
++    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
++    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
++    COLOR_ERROR                ?=  $(COLOR_RED)
++    COLOR_WARNING              ?=  $(COLOR_YELLOW)
++    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
++    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
++    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
++    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
++    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
++    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
++    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
++    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
++    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
++    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
++    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
++    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
++  arguments
++   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
++   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
++   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
++   ARG2                         =  $(word 2,$(ARGS))
++   ARG3                         =  $(word 3,$(ARGS))
++   ARG4                         =  $(word 4,$(ARGS))
++   ARG5                         =  $(word 5,$(ARGS))
++   ARG6                         =  $(word 6,$(ARGS))
++   ARG7                         =  $(word 7,$(ARGS))
++   ARG8                         =  $(word 8,$(ARGS))
++   ARG9                         =  $(word 9,$(ARGS))
++   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
+   common
+    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
+    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
+@@ @@
+    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
+    FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
+    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
++   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
+    GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
+    TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
+@@ @@
+   changelog
+    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
++   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
++   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
++   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
++   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
++   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
++   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
+  app
+   variables
+    BASE_URL                    ?=  https://example.com                              (base URL for the application)
+    TIMEOUT                     :=  30                                               (connection timeout in seconds)
++   RETRIES                     +=  3                                                (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
+    CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
+@@ @@
+    NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
+   advanced
+    UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
++   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
++  hidden-group
++   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
+ 
+ Functions:
+  brnshkr
+   helpers
+-   text                         wraps a string in ANSI color and modifier escapes, resetting after it
+-   log                          prints a message behind the <VENDOR>/<PACKAGE> label
+-   run_in                       the command a tool named for a compose service runs through, empty on this machine
+-   confirm                      asks a yes/no question before something destructive happens
++   text
++    Wraps a string in ANSI color and modifier escapes, resetting after it.
++    The color and the modifiers may be given together or apart.
++
++   log
++    Prints a message behind the <VENDOR>/<PACKAGE> label.
++    Anything in backticks renders as inline code. The message is a printf format, so a value goes
++    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
++    A backticked span that names a target or an existing path links to it, which no-autolink turns
++    off where the sentence is about neither.
++
++   run_in
++    The command a tool named for a compose service runs through, empty on this machine.
++    The service is started first, once per run, unless a throwaway container is what runs it.
++    A key the .env files declare passes by name, so its value never reaches a command line.
++
++   confirm
++    Asks a yes/no question before something destructive happens.
++    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
++    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
++
+  app
+   advanced
+-   resolve_env                  resolves the environment name from context
++   resolve_env
++    Resolves the environment name from context.
++    Defaults to dev when ENV is not set.
+    no_docs_fn                   function without a documentation block
+-   documented_and_described_fn  inline description overrides the derived one
++   documented_and_described_fn
++    Documentation block whose first sentence would be derived as a description
++    but is overridden by the inline #~~ tag below.
+    undescribed_fn
+    verbose_described_fn         described function shown at verbosity >= 1 (via scope)
+ 
+@@ @@
+    configs                     writes missing files, tools configs, local private ones
+    cc                          removes the caches named, or all of them when given none
+    fresh                       removes ignored files but private ones, reruns startup
++   fresh-dry-run               lists what fresh would remove and keep
+    fixtures                    builds the fixtures this project's tests read
+   changelog
+    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
+@@ @@
+    no-desc-command             
+   verbose-group
+    verbose-command             shown at verbosity >= 1
++   verbose-hidden-command      shown at verbosity >= 2
++  very-verbose-group
++   very-verbose-command        shown at verbosity >= 2
++   very-verbose-sub
++    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    depth-three
++     depth-three-command       depth-3 subsection
++     depth-four
++      depth-four-command       depth-4 subsection (arbitrary nesting depth)
+  local
+   local-mk-command             command from .local/test.mk auto-include
 
-Help (0.0.0-dev)
+=== diff: verbosity-vvv from verbosity-vv ===
+@@ @@
+ 
+ Variables:
+  brnshkr
++  tools
++   runtimes
++    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
++    PHP                        ?=  $(RUN) php                                       (command that runs php)
++    DOCKER                     ?=  docker                                           (command that runs docker)
++    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
++   utilities
++    AWK                        ?=  awk                                              (path to awk binary)
++    CAT                        ?=  cat                                              (path to cat binary)
++    CHMOD                      ?=  chmod                                            (path to chmod binary)
++    CMP                        ?=  cmp                                              (path to cmp binary)
++    CP                         ?=  cp                                               (path to cp binary)
++    CURL                       ?=  curl                                             (path to curl binary)
++    GIT                        ?=  git                                              (path to git binary)
++    LN                         ?=  ln                                               (path to ln binary)
++    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
++    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
++    MV                         ?=  mv                                               (path to mv binary)
++    PRINTF                     ?=  printf                                           (path to printf binary)
++    PS                         ?=  ps                                               (path to ps binary)
++    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
++    SCRIPT                     ?=  script                                           (path to script binary)
++    TAR                        ?=  tar                                              (path to tar binary)
++    TR                         ?=  tr                                               (path to tr binary)
+   settings
+    COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
+    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
+@@ @@
+    PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
+    VERSION                     ?=  0.0.0-dev                                        (package version)
+    DEBUG                       ?=                                                   (whether each command is echoed)
++   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
+    TRACE                       ?=                                                   (whether every recipe line is echoed)
++   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
+    ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
++   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
+   dotenv
+    DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
+    DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
+@@ @@
+     COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
+     COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
+     COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
++   modifiers
++    MODIFIER_NORMAL            :=  normal
++    MODIFIER_UNDERLINE         :=  underline
++    MODIFIER_BRIGHT            :=  bright
++    MODIFIER_BOLD              :=  bold
++    MODIFIER_REVERSE           :=  reverse
+   arguments
+    TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
+    TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
+@@ @@
+    TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
+    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
+    PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
++  semver
++   constants
++    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
++    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
++    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
++    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
++    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
++    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
+   hadolint
+    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+   actionlint
+@@ @@
+    text
+     Wraps a string in ANSI color and modifier escapes, resetting after it.
+     The color and the modifiers may be given together or apart.
++
++    parameters:
++      text: string
++      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
+ 
++    returns: string
++
+    log
+     Prints a message behind the <VENDOR>/<PACKAGE> label.
+     Anything in backticks renders as inline code. The message is a printf format, so a value goes
+@@ @@
+     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
+     A backticked span that names a target or an existing path links to it, which no-autolink turns
+     off where the sentence is about neither.
++
++    parameters:
++      message: string
++      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++      arguments?: list<string>
++      autolink?: OneOf<autolink | no-autolink> = autolink
+ 
++    returns: void
++
+    run_in
+     The command a tool named for a compose service runs through, empty on this machine.
+     The service is started first, once per run, unless a throwaway container is what runs it.
+     A key the .env files declare passes by name, so its value never reaches a command line.
++
++    parameters:
++      service: string
+ 
++    returns: string
++
+    confirm
+     Asks a yes/no question before something destructive happens.
+     It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
+     It succeeds on yes, so the caller reads it as a condition and says what it skipped.
++
++    parameters:
++      question: string
++      default?: OneOf<yes | no> = no
++
++    returns: void
+ 
+  app
+   advanced
+@@ @@
+    resolve_env
+     Resolves the environment name from context.
+     Defaults to dev when ENV is not set.
++
++    This paragraph only renders at vvv verbosity.
++
++    usage:
++      $(call resolve_env)
++
++    returns: string
+    no_docs_fn                   function without a documentation block
+    documented_and_described_fn
+     Documentation block whose first sentence would be derived as a description
+@@ @@
+    cc                          removes the caches named, or all of them when given none
+    fresh                       removes ignored files but private ones, reruns startup
+    fresh-dry-run               lists what fresh would remove and keep
++   pack                        packs every stack's package to ./.local
+    fixtures                    builds the fixtures this project's tests read
+   changelog
+    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
+@@ @@
+    verbose-hidden-command      shown at verbosity >= 2
+   very-verbose-group
+    very-verbose-command        shown at verbosity >= 2
++   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
+    very-verbose-sub
+     deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
+     depth-three
+@@ @@
+      depth-three-command       depth-3 subsection
+      depth-four
+       depth-four-command       depth-4 subsection (arbitrary nesting depth)
++  ultra-verbose-group
++   ultra-verbose-command       shown at verbosity >= 3
+  local
+   local-mk-command             command from .local/test.mk auto-include
 
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                                 (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
- local
-  local-mk-command             command from .local/test.mk auto-include
-
-=== full: verbosity-vvv ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  tools
-   runtimes
-    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                        ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                     ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                        ?=  awk                                              (path to awk binary)
-    CAT                        ?=  cat                                              (path to cat binary)
-    CHMOD                      ?=  chmod                                            (path to chmod binary)
-    CMP                        ?=  cmp                                              (path to cmp binary)
-    CP                         ?=  cp                                               (path to cp binary)
-    CURL                       ?=  curl                                             (path to curl binary)
-    GIT                        ?=  git                                              (path to git binary)
-    LN                         ?=  ln                                               (path to ln binary)
-    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
-    MV                         ?=  mv                                               (path to mv binary)
-    PRINTF                     ?=  printf                                           (path to printf binary)
-    PS                         ?=  ps                                               (path to ps binary)
-    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                     ?=  script                                           (path to script binary)
-    TAR                        ?=  tar                                              (path to tar binary)
-    TR                         ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL            :=  normal
-    MODIFIER_UNDERLINE         :=  underline
-    MODIFIER_BRIGHT            :=  bright
-    MODIFIER_BOLD              :=  bold
-    MODIFIER_REVERSE           :=  reverse
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                                 (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-
-    This paragraph only renders at vvv verbosity.
-
-    usage:
-      $(call resolve_env)
-
-    returns: string
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   pack                        packs every stack's package to ./.local
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
-  ultra-verbose-group
-   ultra-verbose-command       shown at verbosity >= 3
- local
-  local-mk-command             command from .local/test.mk auto-include
-
-=== full: verbosity-vvvv ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  tools
-   runtimes
-    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                        ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                     ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                        ?=  awk                                              (path to awk binary)
-    CAT                        ?=  cat                                              (path to cat binary)
-    CHMOD                      ?=  chmod                                            (path to chmod binary)
-    CMP                        ?=  cmp                                              (path to cmp binary)
-    CP                         ?=  cp                                               (path to cp binary)
-    CURL                       ?=  curl                                             (path to curl binary)
-    GIT                        ?=  git                                              (path to git binary)
-    LN                         ?=  ln                                               (path to ln binary)
-    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
-    MV                         ?=  mv                                               (path to mv binary)
-    PRINTF                     ?=  printf                                           (path to printf binary)
-    PS                         ?=  ps                                               (path to ps binary)
-    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                     ?=  script                                           (path to script binary)
-    TAR                        ?=  tar                                              (path to tar binary)
-    TR                         ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL            :=  normal
-    MODIFIER_UNDERLINE         :=  underline
-    MODIFIER_BRIGHT            :=  bright
-    MODIFIER_BOLD              :=  bold
-    MODIFIER_REVERSE           :=  reverse
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                                 (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-
-    This paragraph only renders at vvv verbosity.
-
-    usage:
-      $(call resolve_env)
-
-    returns: string
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   pack                        packs every stack's package to ./.local
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
-  ultra-verbose-group
-   ultra-verbose-command       shown at verbosity >= 3
-   ultra-hidden-command        shown at verbosity >= 4 (scope v3 + entry v4 marker)
-  hyper-verbose-group
-   hyper-verbose-command       shown at verbosity >= 4 (arbitrary depth)
- local
-  local-mk-command             command from .local/test.mk auto-include
+=== diff: verbosity-vvvv from verbosity-vvv ===
+@@ @@
+       depth-four-command       depth-4 subsection (arbitrary nesting depth)
+   ultra-verbose-group
+    ultra-verbose-command       shown at verbosity >= 3
++   ultra-hidden-command        shown at verbosity >= 4 (scope v3 + entry v4 marker)
++  hyper-verbose-group
++   hyper-verbose-command       shown at verbosity >= 4 (arbitrary depth)
+  local
+   local-mk-command             command from .local/test.mk auto-include
 
 === full: list-scopes ===
 app
@@ -1134,7 +649,7 @@ brnshkr.common
 brnshkr.settings
 local
 
-=== diff: resolve ===
+=== diff: resolve from default ===
 @@ @@
     UNDESCRIBED                 ?=  raw-value
     CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
@@ -1195,1061 +710,151 @@ Available commands:
    multi-a/multi-b        multi-target command (appears joined with /)
    no-desc-command        
 
-=== full: scope-filter-group ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-
-Variables:
- app
-  variables
-   BASE_URL                    ?=  https://example.com (base URL for the application)
-   TIMEOUT                     :=  30                  (connection timeout in seconds)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
-   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
-
-Available commands:
- app
-  commands
-   root-makefile-command  command from root Makefile auto-include
-   multi-a/multi-b        multi-target command (appears joined with /)
-   no-desc-command        
-
-=== full: scope-filter-multiple ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- local
-  Local overrides for the test fixture
-
-Available commands:
- app
-  commands
-   root-makefile-command  command from root Makefile auto-include
-   multi-a/multi-b        multi-target command (appears joined with /)
-   no-desc-command        
- local
-  local-mk-command        command from .local/test.mk auto-include
-
-=== full: scope-filter-union ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Variables:
- app
-  variables
-   BASE_URL                    ?=  https://example.com (base URL for the application)
-   TIMEOUT                     :=  30                  (connection timeout in seconds)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
-   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
-
-Available commands:
- app
-  commands
-   root-makefile-command  command from root Makefile auto-include
-   multi-a/multi-b        multi-target command (appears joined with /)
-   no-desc-command        
-
-=== full: scope-filter-verbosity ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Variables:
- app
-  variables
-   BASE_URL                    ?=  https://example.com (base URL for the application)
-   TIMEOUT                     :=  30                  (connection timeout in seconds)
-   RETRIES                     +=  3                   (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second        (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
-
-=== full: ifdef-defined ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  tools
-   runtimes
-    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                        ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                     ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                        ?=  awk                                              (path to awk binary)
-    CAT                        ?=  cat                                              (path to cat binary)
-    CHMOD                      ?=  chmod                                            (path to chmod binary)
-    CMP                        ?=  cmp                                              (path to cmp binary)
-    CP                         ?=  cp                                               (path to cp binary)
-    CURL                       ?=  curl                                             (path to curl binary)
-    GIT                        ?=  git                                              (path to git binary)
-    LN                         ?=  ln                                               (path to ln binary)
-    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
-    MV                         ?=  mv                                               (path to mv binary)
-    PRINTF                     ?=  printf                                           (path to printf binary)
-    PS                         ?=  ps                                               (path to ps binary)
-    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                     ?=  script                                           (path to script binary)
-    TAR                        ?=  tar                                              (path to tar binary)
-    TR                         ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL            :=  normal
-    MODIFIER_UNDERLINE         :=  underline
-    MODIFIER_BRIGHT            :=  bright
-    MODIFIER_BOLD              :=  bold
-    MODIFIER_REVERSE           :=  reverse
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFDEF_VARIABLE              :=  from-ifdef-block                                 (variable inside ifdef (shown only when IS_DEFINED is set))
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-ifdef-branch                                (value from else-ifdef chain (primary branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-
-    This paragraph only renders at vvv verbosity.
-
-    usage:
-      $(call resolve_env)
-
-    returns: string
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   pack                        packs every stack's package to ./.local
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
-  ultra-verbose-group
-   ultra-verbose-command       shown at verbosity >= 3
- local
-  local-mk-command             command from .local/test.mk auto-include
-
-=== full: else-ifeq-de ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  tools
-   runtimes
-    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                        ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                     ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                        ?=  awk                                              (path to awk binary)
-    CAT                        ?=  cat                                              (path to cat binary)
-    CHMOD                      ?=  chmod                                            (path to chmod binary)
-    CMP                        ?=  cmp                                              (path to cmp binary)
-    CP                         ?=  cp                                               (path to cp binary)
-    CURL                       ?=  curl                                             (path to curl binary)
-    GIT                        ?=  git                                              (path to git binary)
-    LN                         ?=  ln                                               (path to ln binary)
-    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
-    MV                         ?=  mv                                               (path to mv binary)
-    PRINTF                     ?=  printf                                           (path to printf binary)
-    PS                         ?=  ps                                               (path to ps binary)
-    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                     ?=  script                                           (path to script binary)
-    TAR                        ?=  tar                                              (path to tar binary)
-    TR                         ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL            :=  normal
-    MODIFIER_UNDERLINE         :=  underline
-    MODIFIER_BRIGHT            :=  bright
-    MODIFIER_BOLD              :=  bold
-    MODIFIER_REVERSE           :=  reverse
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Hallo                                            (greeting selected by else-ifeq chain (de branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  gamma                                            (second of two sequential ifeq blocks (de branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                           (value from else-ifdef chain (LANG branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-
-    This paragraph only renders at vvv verbosity.
-
-    usage:
-      $(call resolve_env)
-
-    returns: string
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   pack                        packs every stack's package to ./.local
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
-  ultra-verbose-group
-   ultra-verbose-command       shown at verbosity >= 3
- local
-  local-mk-command             command from .local/test.mk auto-include
-
-=== full: else-ifeq-fr ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Help (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- brnshkr
-  Shared targets from the brnshkr/config package
- app
-  Application Makefile of the test fixture
-  Covers all make help AWK features for snapshot testing
-  shown at verbosity >= 2
- local
-  Local overrides for the test fixture
-
-Variables:
- brnshkr
-  tools
-   runtimes
-    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                        ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                     ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE             ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                        ?=  awk                                              (path to awk binary)
-    CAT                        ?=  cat                                              (path to cat binary)
-    CHMOD                      ?=  chmod                                            (path to chmod binary)
-    CMP                        ?=  cmp                                              (path to cmp binary)
-    CP                         ?=  cp                                               (path to cp binary)
-    CURL                       ?=  curl                                             (path to curl binary)
-    GIT                        ?=  git                                              (path to git binary)
-    LN                         ?=  ln                                               (path to ln binary)
-    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
-    MV                         ?=  mv                                               (path to mv binary)
-    PRINTF                     ?=  printf                                           (path to printf binary)
-    PS                         ?=  ps                                               (path to ps binary)
-    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                     ?=  script                                           (path to script binary)
-    TAR                        ?=  tar                                              (path to tar binary)
-    TR                         ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX               ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX            ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                      ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                     ?=  0.0.0-dev                                        (package version)
-   DEBUG                       ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                       ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE   ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                      ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY              ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV          ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS            ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                      ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                 ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                    ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                       ?=                                                   (the theme to use)
-   THEME_BRNSHKR               :=  brnshkr
-   THEME_SYMFONY               :=  symfony
-   EDITOR_URL                  ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE               :=  vscode
-   EDITOR_PHPSTORM             :=  phpstorm
-   EDITOR                      ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL               :=  normal
-    COLOR_BLACK                :=  black
-    COLOR_RED                  :=  red
-    COLOR_GREEN                :=  green
-    COLOR_YELLOW               :=  yellow
-    COLOR_BLUE                 :=  blue
-    COLOR_MAGENTA              :=  magenta
-    COLOR_CYAN                 :=  cyan
-    COLOR_WHITE                :=  white
-    COLOR_PRIMARY              ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY            ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY             ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                ?=  $(COLOR_RED)
-    COLOR_WARNING              ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE               ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS              ?=  $(COLOR_GREEN)
-    COLOR_LOGO                 ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS      ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM        ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL        ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION          ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE          ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT            ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL            :=  normal
-    MODIFIER_UNDERLINE         :=  underline
-    MODIFIER_BRIGHT            :=  bright
-    MODIFIER_BOLD              :=  bold
-    MODIFIER_REVERSE           :=  reverse
-  arguments
-   TARGET_ALIASES              ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                         =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                         =  $(word 2,$(ARGS))
-   ARG3                         =  $(word 3,$(ARGS))
-   ARG4                         =  $(word 4,$(ARGS))
-   ARG5                         =  $(word 5,$(ARGS))
-   ARG6                         =  $(word 6,$(ARGS))
-   ARG7                         =  $(word 7,$(ARGS))
-   ARG8                         =  $(word 8,$(ARGS))
-   ARG9                         =  $(word 9,$(ARGS))
-   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-  actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE             ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS   ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
- app
-  variables
-   BASE_URL                    ?=  https://example.com                              (base URL for the application)
-   TIMEOUT                     :=  30                                               (connection timeout in seconds)
-   RETRIES                     +=  3                                                (retry count)
-   UNDESCRIBED                 ?=  raw-value
-   CONTINUATION_VARIABLE       ?=  first second third                               (value assembled from continuation lines)
-   CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
-   IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
-   IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
-   IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
-   DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
-   LANG_GREETING               :=  Bonjour                                          (greeting selected by else-ifeq chain (fr branch))
-   QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
-   QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
-   SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
-   ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                           (value from else-ifdef chain (LANG branch))
-   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
-   NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
-  advanced
-   UPPER_MACRO                 :=  (macro)                                          (define-based macro variable)
-   VERBOSE_MACRO               :=  (macro)                                          (macro variable shown at verbosity >= 2)
-  hidden-group
-   HIDDEN_GROUP_VARIABLE       ?=  hidden-group-value                               (variable shown at verbosity >= 2)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
- app
-  advanced
-   resolve_env
-    Resolves the environment name from context.
-    Defaults to dev when ENV is not set.
-
-    This paragraph only renders at vvv verbosity.
-
-    usage:
-      $(call resolve_env)
-
-    returns: string
-   no_docs_fn                   function without a documentation block
-   documented_and_described_fn
-    Documentation block whose first sentence would be derived as a description
-    but is overridden by the inline #~~ tag below.
-   undescribed_fn
-   verbose_described_fn         described function shown at verbosity >= 1 (via scope)
-
-Available commands:
-  root-mk-command              command from root test.mk auto-include
-  conf-makefile-command        command from conf/Makefile auto-include
-  conf-mk-command              command from conf/test.mk auto-include
-  conf-make-makefile-command   command from conf/make/Makefile auto-include
-  conf-make-mk-command         command from conf/make/test.mk auto-include
-  local-makefile-command       command from .local/Makefile auto-include
-  local-make-makefile-command  command from .local/make/Makefile auto-include
-  local-make-mk-command        command from .local/make/test.mk auto-include
- brnshkr
-  common
-   help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
-   fresh-dry-run               lists what fresh would remove and keep
-   pack                        packs every stack's package to ./.local
-   fixtures                    builds the fixtures this project's tests read
-  changelog
-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
- app
-  commands
-   root-makefile-command       command from root Makefile auto-include
-   hidden-command              shown at verbosity >= 1
-   multi-a/multi-b             multi-target command (appears joined with /)
-   no-desc-command             
-  verbose-group
-   verbose-command             shown at verbosity >= 1
-   verbose-hidden-command      shown at verbosity >= 2
-  very-verbose-group
-   very-verbose-command        shown at verbosity >= 2
-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
-   very-verbose-sub
-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
-    depth-three
-     depth-three-command       depth-3 subsection
-     depth-four
-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
-  ultra-verbose-group
-   ultra-verbose-command       shown at verbosity >= 3
- local
-  local-mk-command             command from .local/test.mk auto-include
-
-=== diff: override-logo ===
+=== diff: scope-filter-group from scope-filter-single ===
+@@ @@
+ Usage:
+   make <command> [--] [arguments]
+ 
++Description:
++ app
++  Application Makefile of the test fixture
++  Covers all make help AWK features for snapshot testing
++
++Variables:
++ app
++  variables
++   BASE_URL                    ?=  https://example.com (base URL for the application)
++   TIMEOUT                     :=  30                  (connection timeout in seconds)
++   UNDESCRIBED                 ?=  raw-value
++   CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
++   IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
++   IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
++   IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
++   DEDUP_VARIABLE              :=  branch-b            (deduplicated — first branch wins, this is dropped)
++   LANG_GREETING               :=  Hello               (greeting selected by else-ifeq chain (default branch))
++   QUOTED_DOUBLE_VARIABLE      :=  matched             (quoted condition form (double-quoted operands))
++   QUOTED_BRACE_VARIABLE       :=  default             (quoted condition fallthrough (brace expansion form))
++   SEQUENTIAL_FIRST_VARIABLE   :=  beta                (first of two sequential ifeq blocks (default branch))
++   SEQUENTIAL_SECOND_VARIABLE  :=  delta               (second of two sequential ifeq blocks (default branch))
++   ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
++   ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
++   NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
++
+ Available commands:
+  app
+   commands
+
+=== diff: scope-filter-multiple from scope-filter-single ===
+@@ @@
+ Usage:
+   make <command> [--] [arguments]
+ 
++Description:
++ local
++  Local overrides for the test fixture
++
+ Available commands:
+  app
+   commands
+@@ @@
+    root-makefile-command  command from root Makefile auto-include
+    multi-a/multi-b        multi-target command (appears joined with /)
+    no-desc-command        
++ local
++  local-mk-command        command from .local/test.mk auto-include
+
+=== diff: scope-filter-union from scope-filter-group ===
+@@ @@
+ Usage:
+   make <command> [--] [arguments]
+ 
+-Description:
+- app
+-  Application Makefile of the test fixture
+-  Covers all make help AWK features for snapshot testing
+-
+ Variables:
+  app
+   variables
+
+=== diff: scope-filter-verbosity from scope-filter-union ===
+@@ @@
+   variables
+    BASE_URL                    ?=  https://example.com (base URL for the application)
+    TIMEOUT                     :=  30                  (connection timeout in seconds)
++   RETRIES                     +=  3                   (retry count)
+    UNDESCRIBED                 ?=  raw-value
+    CONTINUATION_VARIABLE       ?=  first second third  (value assembled from continuation lines)
++   CONTINUATION_HIDDEN         ?=  first second        (hidden until v, its marker sitting on the line that ends it)
+    IFNDEF_VARIABLE             ?=  default-value       (variable in ifndef block (operator always shown as ?=))
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)             (macro variable inside ifndef shows ?= operator)
+    IFEQ_ELSE_VARIABLE          :=  else-value          (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+@@ @@
+    ELSE_IFDEF_VARIABLE         :=  from-else-branch    (value from else-ifdef chain (default branch))
+    ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch  (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default      (ifeq with $(call f) on lhs (default branch))
+-
+-Available commands:
+- app
+-  commands
+-   root-makefile-command  command from root Makefile auto-include
+-   multi-a/multi-b        multi-target command (appears joined with /)
+-   no-desc-command        
+
+=== diff: ifdef-defined from verbosity-vvv ===
+@@ @@
+    CONTINUATION_HIDDEN         ?=  first second                                     (hidden until v, its marker sitting on the line that ends it)
+    IFNDEF_VARIABLE             ?=  default-value                                    (variable in ifndef block (operator always shown as ?=))
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
++   IFDEF_VARIABLE              :=  from-ifdef-block                                 (variable inside ifdef (shown only when IS_DEFINED is set))
+    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
+    LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
+@@ @@
+    QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
+    SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
+-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                                 (value from else-ifdef chain (default branch))
++   ELSE_IFDEF_VARIABLE         :=  from-ifdef-branch                                (value from else-ifdef chain (primary branch))
+    ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
+   advanced
+
+=== diff: else-ifeq-de from verbosity-vvv ===
+@@ @@
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
+    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
+-   LANG_GREETING               :=  Hello                                            (greeting selected by else-ifeq chain (default branch))
++   LANG_GREETING               :=  Hallo                                            (greeting selected by else-ifeq chain (de branch))
+    QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
+    QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
+-   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
+-   ELSE_IFDEF_VARIABLE         :=  from-else-branch                                 (value from else-ifdef chain (default branch))
++   SEQUENTIAL_SECOND_VARIABLE  :=  gamma                                            (second of two sequential ifeq blocks (de branch))
++   ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                           (value from else-ifdef chain (LANG branch))
+    ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
+   advanced
+
+=== diff: else-ifeq-fr from else-ifeq-de ===
+@@ @@
+    IFNDEF_MACRO_VARIABLE       ?=  (macro)                                          (macro variable inside ifndef shows ?= operator)
+    IFEQ_ELSE_VARIABLE          :=  else-value                                       (variable from else branch (dedup: DEDUP_VARIABLE skipped here))
+    DEDUP_VARIABLE              :=  branch-b                                         (deduplicated — first branch wins, this is dropped)
+-   LANG_GREETING               :=  Hallo                                            (greeting selected by else-ifeq chain (de branch))
++   LANG_GREETING               :=  Bonjour                                          (greeting selected by else-ifeq chain (fr branch))
+    QUOTED_DOUBLE_VARIABLE      :=  matched                                          (quoted condition form (double-quoted operands))
+    QUOTED_BRACE_VARIABLE       :=  default                                          (quoted condition fallthrough (brace expansion form))
+    SEQUENTIAL_FIRST_VARIABLE   :=  beta                                             (first of two sequential ifeq blocks (default branch))
+-   SEQUENTIAL_SECOND_VARIABLE  :=  gamma                                            (second of two sequential ifeq blocks (de branch))
++   SEQUENTIAL_SECOND_VARIABLE  :=  delta                                            (second of two sequential ifeq blocks (default branch))
+    ELSE_IFDEF_VARIABLE         :=  from-else-ifdef-branch                           (value from else-ifdef chain (LANG branch))
+    ELSE_IFNDEF_VARIABLE        ?=  from-ifndef-branch                               (value from else-ifndef chain (primary branch))
+    NESTED_CALL_VARIABLE        :=  nested-default                                   (ifeq with $(call f) on lhs (default branch))
+
+=== diff: override-logo from default ===
 @@ @@
 -   ___               __   __
 -  / _ )_______  ____/ /  / /__ ____
@@ -2262,7 +867,7 @@ Available commands:
  
  Usage:
 
-=== diff: override-package ===
+=== diff: override-package from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -2273,7 +878,7 @@ Available commands:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: override-version ===
+=== diff: override-version from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -2284,18 +889,15 @@ Available commands:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-logo ===
+=== diff: no-logo from override-logo ===
 @@ @@
--   ___               __   __
--  / _ )_______  ____/ /  / /__ ____
-- / _  / __/ _ \(_--/ _ \/  ´_// __/
--/____/_/ /_//_/___/_//_/_/\_\/_/
--
+-CUSTOM LOGO LINE 1
+-CUSTOM LOGO LINE 2
  Help (0.0.0-dev)
  
  Usage:
 
-=== diff: no-package ===
+=== diff: no-package from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -2306,24 +908,19 @@ Available commands:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-version ===
+=== diff: no-version from no-package ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
  
--Help (0.0.0-dev)
+-(0.0.0-dev)
 +Help
  
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-header ===
+=== diff: no-header from no-logo ===
 @@ @@
--   ___               __   __
--  / _ )_______  ____/ /  / /__ ____
-- / _  / __/ _ \(_--/ _ \/  ´_// __/
--/____/_/ /_//_/___/_//_/_/\_\/_/
--
 -Help (0.0.0-dev)
 -
  Usage:

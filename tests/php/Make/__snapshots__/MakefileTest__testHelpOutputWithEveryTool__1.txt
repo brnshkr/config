@@ -740,441 +740,204 @@ Available commands:
   changelog
    changelog              prints the changelog, or writes it to CHANGELOG_DIR
 
-=== full: verbosity-vvv ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Tools (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Description:
- app
-  Makefile of a project with every tool installed and a file for each to read
- brnshkr
-  Shared targets from the brnshkr/config package
-
-Variables:
-  APP_SERVICE                      :=  
- app
-  variables
-   APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
- brnshkr
-  tools
-   runtimes
-    SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
-    PHP                            ?=  $(RUN) php                                       (command that runs php)
-    DOCKER                         ?=  docker                                           (command that runs docker)
-    DOCKER_COMPOSE                 ?=  $(DOCKER) compose                                (command that runs compose)
-   utilities
-    AWK                            ?=  awk                                              (path to awk binary)
-    CAT                            ?=  cat                                              (path to cat binary)
-    CHMOD                          ?=  chmod                                            (path to chmod binary)
-    CMP                            ?=  cmp                                              (path to cmp binary)
-    CP                             ?=  cp                                               (path to cp binary)
-    CURL                           ?=  curl                                             (path to curl binary)
-    GIT                            ?=  git                                              (path to git binary)
-    LN                             ?=  ln                                               (path to ln binary)
-    MKDIR                          ?=  mkdir                                            (path to mkdir binary)
-    MKTEMP                         ?=  mktemp                                           (path to mktemp binary)
-    MV                             ?=  mv                                               (path to mv binary)
-    PRINTF                         ?=  printf                                           (path to printf binary)
-    PS                             ?=  ps                                               (path to ps binary)
-    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
-    SCRIPT                         ?=  script                                           (path to script binary)
-    TAR                            ?=  tar                                              (path to tar binary)
-    TR                             ?=  tr                                               (path to tr binary)
-  settings
-   COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
-   APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering one)
-   IS_IN_CONTAINER                 ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
-   RUN                             ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
-   APP_DIR                         ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   HOST_UID                        ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
-   HOST_GID                        ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-   HOST_APP_DIR                    ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX                   ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX                ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                         ?=  0.0.0-dev                                        (package version)
-   DEBUG                           ?=                                                   (whether each command is echoed)
-   DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
-   TRACE                           ?=                                                   (whether every recipe line is echoed)
-   TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
-   ANNOUNCEMENT                    ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
-   BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
-  dotenv
-   DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
-   DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
-   DOTENV_DEFAULT_ENV              ?=  dev                                              (environment assumed when the variable is unset)
-   DOTENV_TEST_ENVS                ?=  test                                             (environments that skip the .env.local file)
-  theming
-   INDENT                          ?=  1                                                (indent used in make help output)
-   VALUE_WIDTH                     ?=  48                                               (widest value column in make help, truncated past it)
-   NO_COLOR                        ?=                                                   (whether color is off, on for any value per no-color.org)
-   THEME                           ?=                                                   (the theme to use)
-   THEME_BRNSHKR                   :=  brnshkr
-   THEME_SYMFONY                   :=  symfony
-   EDITOR_URL                      ?=                                                   (link template with {cwd} {file} {line} {wslDistro})
-   EDITOR_VSCODE                   :=  vscode
-   EDITOR_PHPSTORM                 :=  phpstorm
-   EDITOR                          ?=  $(_DETECTED_EDITOR)                              (the editor to use, empty for no links)
-   colors
-    COLOR_NORMAL                   :=  normal
-    COLOR_BLACK                    :=  black
-    COLOR_RED                      :=  red
-    COLOR_GREEN                    :=  green
-    COLOR_YELLOW                   :=  yellow
-    COLOR_BLUE                     :=  blue
-    COLOR_MAGENTA                  :=  magenta
-    COLOR_CYAN                     :=  cyan
-    COLOR_WHITE                    :=  white
-    COLOR_PRIMARY                  ?=  $(COLOR_CYAN)
-    COLOR_SECONDARY                ?=  $(COLOR_MAGENTA)
-    COLOR_TERTIARY                 ?=  $(COLOR_BLACK) $(MODIFIER_BRIGHT)
-    COLOR_ERROR                    ?=  $(COLOR_RED)
-    COLOR_WARNING                  ?=  $(COLOR_YELLOW)
-    COLOR_NOTICE                   ?=  $(COLOR_MAGENTA)
-    COLOR_SUCCESS                  ?=  $(COLOR_GREEN)
-    COLOR_LOGO                     ?=  $(COLOR_SECONDARY)
-    COLOR_TITLE                    ?=  $(COLOR_PRIMARY) $(MODIFIER_UNDERLINE)
-    COLOR_USAGE_ARGUMENTS          ?=  $(COLOR_PRIMARY)
-    COLOR_USAGE_PROGRAM            ?=  $(COLOR_PRIMARY)
-    COLOR_SECTION_LABEL            ?=  $(COLOR_SECONDARY)
-    COLOR_SCOPE                    ?=  $(COLOR_SECONDARY)
-    COLOR_ENTRY                    ?=  $(COLOR_PRIMARY)
-    COLOR_DESCRIPTION              ?=  $(COLOR_TERTIARY)
-    COLOR_INLINE_CODE              ?=  $(COLOR_SECONDARY)
-    COLOR_HIGHLIGHT                ?=  $(COLOR_YELLOW)
-   modifiers
-    MODIFIER_NORMAL                :=  normal
-    MODIFIER_UNDERLINE             :=  underline
-    MODIFIER_BRIGHT                :=  bright
-    MODIFIER_BOLD                  :=  bold
-    MODIFIER_REVERSE               :=  reverse
-  arguments
-   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
-   TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
-   ARG1                             =  $(word 1,$(ARGS))                                (the running target's first argument, and so on to ARG9)
-   ARG2                             =  $(word 2,$(ARGS))
-   ARG3                             =  $(word 3,$(ARGS))
-   ARG4                             =  $(word 4,$(ARGS))
-   ARG5                             =  $(word 5,$(ARGS))
-   ARG6                             =  $(word 6,$(ARGS))
-   ARG7                             =  $(word 7,$(ARGS))
-   ARG8                             =  $(word 8,$(ARGS))
-   ARG9                             =  $(word 9,$(ARGS))
-   ARGS                             =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
-  common
-   STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                       ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS             ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                       ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                      ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
-   CHECK_TARGETS                   ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-   FIX_TARGETS                     ?=                                                   (this project's own targets, run by fix)
-   GROUP_TARGETS                   ?=                                                   (this project's own targets, run by group)
-   TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
-   FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                           ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
-  semver
-   constants
-    SEMVER_NUMBER                  ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-    SEMVER_PRERELEASE_PART         ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-    SEMVER_PRERELEASE              ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-    SEMVER_PRERELEASE_STRICT       ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-    SEMVER_BUILD                   ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-    SEMVER_REGEX                   ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-  php
-   PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
-  composer
-   COMPOSER                        ?=  $(RUN) composer                                  (command that runs composer)
-   COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
-   COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
-  phpunit
-   PEST                            ?=  $(RUN) $(_PEST_BINARY)                           (command that runs pest)
-   PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
-   PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
-   PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
-   PHP_UNIT_EXCLUDED_GROUPS        ?=                                                   (test groups the runner leaves out)
-   PHP_UNIT_SNAPSHOT_FLAGS         ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
-   PHP_UNIT_COVERAGE_DIR           ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
-   PHP_UNIT_COVERAGE_FILE          ?=  $(PHP_UNIT_COVERAGE_DIR)/coverage.txt            (report the minimum is read from, where the runner has none)
-   PHP_UNIT_MIN_COVERAGE           ?=  100                                              (percentage every metric must reach, 0 for no floor)
-   PHP_UNIT_MIN_COVERAGE_CLASSES   ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the class metric must reach, unread by Pest)
-   PHP_UNIT_MIN_COVERAGE_METHODS   ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the method metric must reach, unread by Pest)
-   PHP_UNIT_MIN_COVERAGE_LINES     ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)
-   PHP_UNIT_COVERAGE_FLAGS         ?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)
-  phpstan
-   PHP_STAN                        ?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to phpstan binary)
-   PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to phpstan config)
-   PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to phpstan)
-  php-cs-fixer
-   PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to php-cs-fixer binary)
-   PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to php-cs-fixer config)
-   PHP_CS_FIXER_FLAGS              ?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to php-cs-fixer)
-  rector
-   RECTOR                          ?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to rector binary)
-   RECTOR_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to rector config)
-   RECTOR_FLAGS                    ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to rector)
-  twig-cs-fixer
-   TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to twig-cs-fixer binary)
-   TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to twig-cs-fixer config)
-   TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_O… (additional flags passed to twig-cs-fixer)
-   TWIG_CS_FIXER_EXTENSIONS        ?=  twig                                             (extensions twig-cs-fixer reads)
-  bun
-   BUN                             ?=  $(RUN) bun                                       (command that runs bun)
-   BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
-   BUN_AUDIT_FLAGS                 ?=                                                   (additional flags passed to bun audit)
-   NODE_MODULES_INSPECTOR          ?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs node-modules-inspector)
-   NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
-  commitlint
-   COMMITLINT                      ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
-   COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
-   COMMITLINT_RANGE                ?=                                                   (commit range to lint, as <from>..<to>, not one message)
-   COMMITLINT_SOURCE               ?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages commitlint reads)
-   COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
-   GIT_HOOKS                       +=  commit-msg=$(call _target,commitlint)
-  eslint
-   ESLINT                          ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
-   ESLINT_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_… (path to eslint config)
-   ESLINT_CACHE                    ?=  $(APP_DIR)/.cache/eslint.cache.json              (path to the eslint cache)
-   ESLINT_FLAGS                    ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
-   ESLINT_EXTENSIONS               ?=  $(_ESLINT_EXTENSIONS)                            (extensions eslint lints, set by its config's modules)
-   ESLINT_CONFIG_INSPECTOR         ?=  $(BUN) x eslint-config-inspector                 (command that runs eslint-config-inspector)
-   ESLINT_CONFIG_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to eslint-config-inspector)
-  markdownlint
-   MARKDOWNLINT                    ?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs markdownlint-cli2)
-   MARKDOWNLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/markdownlint.mjs… (path to markdownlint config)
-   MARKDOWNLINT_GLOB               ?=  $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))   (files markdownlint looks at)
-   MARKDOWNLINT_FLAGS              ?=                                                   (additional flags passed to markdownlint-cli2)
-   MARKDOWNLINT_EXTENSIONS         ?=  md markdown                                      (extensions markdownlint reads)
-  stylelint
-   STYLELINT                       ?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs stylelint)
-   STYLELINT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to stylelint config)
-   STYLELINT_GLOB                  ?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files stylelint looks at)
-   STYLELINT_CACHE                 ?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the stylelint cache)
-   STYLELINT_FLAGS                 ?=  --allow-empty-input --max-warnings 0 $(if $(_IS… (additional flags passed to stylelint)
-   STYLELINT_EXTENSIONS            ?=  $(_STYLELINT_EXTENSIONS)                         (extensions stylelint parses, set by its config's syntaxes)
-  typescript
-   TYPESCRIPT                      ?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs tsc)
-   TYPESCRIPT_CONFIG               ?=  $(APP_DIR)/tsconfig.json                         (path to the tsc project)
-   TYPESCRIPT_FLAGS                ?=  --noEmit $(if $(_IS_DEBUG),--extendedDiagnostic… (additional flags passed to tsc)
-   TYPESCRIPT_EXTENSIONS           ?=  ts tsx cts mts                                   (extensions tsc type checks)
-  vitest
-   VITEST                          ?=  $(BUN) $(BUN_FLAGS) x vitest                     (command that runs vitest)
-   VITEST_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_… (path to vitest config)
-   VITEST_EXTENSIONS               ?=  ts tsx js jsx mts cts mjs cjs                    (extensions vitest runs tests from)
-   VITEST_FLAGS                    ?=  --run --passWithNoTests $(if $(_IS_DEBUG),--rep… (additional flags passed to vitest)
-   VITEST_COVERAGE_DIR             ?=  $(APP_DIR)/.cache/vitest.cache/coverage          (directory the HTML coverage report is written to)
-   VITEST_MIN_COVERAGE             ?=  100                                              (percentage every metric must reach, 0 for no floor)
-   VITEST_MIN_COVERAGE_BRANCHES    ?=  $(VITEST_MIN_COVERAGE)                           (percentage the branch metric must reach)
-   VITEST_MIN_COVERAGE_FUNCTIONS   ?=  $(VITEST_MIN_COVERAGE)                           (percentage the function metric must reach)
-   VITEST_MIN_COVERAGE_LINES       ?=  $(VITEST_MIN_COVERAGE)                           (percentage the line metric must reach)
-   VITEST_MIN_COVERAGE_STATEMENTS  ?=  $(VITEST_MIN_COVERAGE)                           (percentage the statement metric must reach)
-   VITEST_COVERAGE_FLAGS           ?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)
-  hadolint
-   HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
-   HADOLINT                        ?=  $(RUN) hadolint                                  (command that runs hadolint)
-   HADOLINT_FILES                  ?=  $(_HADOLINT_FILES)                               (dockerfiles hadolint reads)
-   HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
-  actionlint
-   ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
-   ACTIONLINT                      ?=  $(RUN) actionlint                                (command that runs actionlint)
-   ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
-   ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
-  semgrep
-   SEMGREP                         ?=  $(RUN) semgrep                                   (command that runs semgrep)
-   SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
-   SEMGREP_RULESETS                ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
-   SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-   SEMGREP_CACHE                   ?=  $(APP_DIR)/.cache/semgrep                        (path to the semgrep ruleset cache)
-   SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
-   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
-   SEMGREP_PYTHON                  ?=  $(RUN) python3                                   (command that runs python3, merging semgrep rulesets)
-  changelog
-   CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR                   ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE                 ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS       ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES                 ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
-
-Functions:
- brnshkr
-  helpers
-   text
-    Wraps a string in ANSI color and modifier escapes, resetting after it.
-    The color and the modifiers may be given together or apart.
-
-    parameters:
-      text: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-
-    returns: string
-
-   log
-    Prints a message behind the <VENDOR>/<PACKAGE> label.
-    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
-    A backticked span that names a target or an existing path links to it, which no-autolink turns
-    off where the sentence is about neither.
-
-    parameters:
-      message: string
-      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
-      arguments?: list<string>
-      autolink?: OneOf<autolink | no-autolink> = autolink
-
-    returns: void
-
-   run_in
-    The command a tool named for a compose service runs through, empty on this machine.
-    The service is started first, once per run, unless a throwaway container is what runs it.
-    A key the .env files declare passes by name, so its value never reaches a command line.
-
-    parameters:
-      service: string
-
-    returns: string
-
-   confirm
-    Asks a yes/no question before something destructive happens.
-    It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
-    It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-
-    parameters:
-      question: string
-      default?: OneOf<yes | no> = no
-
-    returns: void
-
-Available commands:
- app
-  commands
-   app-command            a command of the project's own
- local
-  local-command           a command only this machine runs
- brnshkr
-  common
-   help, h                shows this help, narrowed by scope, widened by v to vvv
-   startup                brings a fresh checkout to a workable state
-   install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes missing files, tools configs, local private ones
-   cc                     removes the caches named, or all of them when given none
-   fresh                  removes ignored files but private ones, reruns startup
-   fresh-dry-run          lists what fresh would remove and keep
-   check, c               runs the fixers without writing, and every analyzer
-   ci                     runs CI_TARGETS one after the other
-   coverage               runs the tests and fails below the minimum coverage
-   fix, f                 runs every fixer this project has, writing its fixes
-   group, g               counts every tool's findings by identifier
-   pack                   packs every stack's package to ./.local
-   test, t                runs the tests of every stack this project has
-   test-update            runs those tests and updates their snapshots
-   fixtures               builds the fixtures this project's tests read
-  composer
-   composer               runs composer
-   composer-list          lists the files the composer package would ship
-   composer-pack          packs the composer package to ./.local/<VENDOR>/<PACKAGE>
-   composer-print         prints the resolved composer configuration
-  phpunit
-   pest                   runs the PHP tests through pest in particular
-   pest-coverage          runs them through pest and reports its coverage
-   pest-debug             runs them through pest with debugging information
-   pest-list              lists the tests pest collects
-   pest-update            runs them through pest and updates their snapshots
-   phpunit                runs the PHP tests
-   phpunit-coverage       runs the PHP tests and reports how much source they reach
-   phpunit-debug          runs the PHP tests with debugging information, not progress
-   phpunit-list           lists the tests the runner collects
-   phpunit-update         runs the PHP tests and updates their snapshots
-  phpstan
-   phpstan                runs phpstan analyze
-   phpstan-debug          runs phpstan analyze in debug mode
-   phpstan-group          counts the phpstan findings by identifier
-   phpstan-list           lists all files that are processed by phpstan
-   phpstan-print          prints the resolved phpstan configuration
-   phpstan-raw            runs phpstan analyze with raw output
-  php-cs-fixer
-   php-cs-fixer           runs php-cs-fixer fix
-   php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
-   php-cs-fixer-group     counts the php-cs-fixer findings by fixer
-   php-cs-fixer-list      lists all files that are processed by php-cs-fixer
-   php-cs-fixer-print     prints the php-cs-fixer rules in use
-  rector
-   rector                 runs rector process
-   rector-debug           runs rector process in debug mode
-   rector-dry-run         runs rector process in dry run mode
-   rector-group           counts the rector findings by rule
-   rector-list            lists all files that are processed by rector
-   rector-print           prints the rector rules in use
-  twig-cs-fixer
-   twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
-   twig-cs-fixer-debug    runs twig-cs-fixer in debug mode
-   twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
-   twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
-   twig-cs-fixer-print    prints the twig-cs-fixer rules in use
-  bun
-   bun                    runs bun
-   bun-list               lists the files the bun package would ship
-   bun-pack               packs the bun package to ./.local/<VENDOR>/<PACKAGE>
-   bun-inspect            runs node-modules-inspector
-  commitlint
-   commitlint             lints a commit message
-   commitlint-print       prints the resolved commitlint configuration
-  eslint
-   eslint                 runs eslint, writing fixes unless --dry-run
-   eslint-dry-run         runs eslint without writing fixes
-   eslint-group           counts the eslint findings by rule
-   eslint-print           prints the resolved eslint config for a file
-   eslint-inspect         runs eslint-config-inspector
-   eslint-inspect-stats   runs eslint-config-inspector with a timed full lint
-  markdownlint
-   markdownlint           runs markdownlint-cli2, writing fixes unless --dry-run
-   markdownlint-dry-run   runs markdownlint-cli2 without writing fixes
-   markdownlint-group     counts the markdownlint findings by rule
-  stylelint
-   stylelint              runs stylelint, writing fixes unless --dry-run
-   stylelint-dry-run      runs stylelint without writing fixes
-   stylelint-group        counts the stylelint findings by rule
-   stylelint-print        prints the resolved stylelint config for a file
-  typescript
-   typescript             runs the tsc type check
-   typescript-group       counts the tsc errors by code
-   typescript-list        lists the files the tsc project includes
-   typescript-print       prints the resolved tsc project
-  vitest
-   vitest                 runs vitest
-   vitest-coverage        runs vitest and reports how much of the source it reaches
-   vitest-list            lists the tests vitest collects
-   vitest-update          runs vitest and updates its snapshots
-  hadolint
-   hadolint               runs hadolint over this project's dockerfiles
-   hadolint-group         counts the hadolint findings by rule
-   hadolint-list          lists the dockerfiles hadolint reads
-   hadolint-print         prints the resolved hadolint configuration
-  actionlint
-   actionlint             runs actionlint over this project's workflows
-   actionlint-group       counts the actionlint findings by rule
-   actionlint-list        lists the workflows actionlint reads
-  semgrep
-   semgrep                runs semgrep over this project's sources
-   semgrep-group          counts the semgrep findings by rule
-   semgrep-list           lists the rulesets semgrep runs
-   semgrep-validate       checks that the semgrep rules load
-  changelog
-   changelog              prints the changelog, or writes it to CHANGELOG_DIR
+=== diff: verbosity-vvv from verbosity-vv ===
+@@ @@
+   variables
+    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
+  brnshkr
++  tools
++   runtimes
++    SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
++    PHP                            ?=  $(RUN) php                                       (command that runs php)
++    DOCKER                         ?=  docker                                           (command that runs docker)
++    DOCKER_COMPOSE                 ?=  $(DOCKER) compose                                (command that runs compose)
++   utilities
++    AWK                            ?=  awk                                              (path to awk binary)
++    CAT                            ?=  cat                                              (path to cat binary)
++    CHMOD                          ?=  chmod                                            (path to chmod binary)
++    CMP                            ?=  cmp                                              (path to cmp binary)
++    CP                             ?=  cp                                               (path to cp binary)
++    CURL                           ?=  curl                                             (path to curl binary)
++    GIT                            ?=  git                                              (path to git binary)
++    LN                             ?=  ln                                               (path to ln binary)
++    MKDIR                          ?=  mkdir                                            (path to mkdir binary)
++    MKTEMP                         ?=  mktemp                                           (path to mktemp binary)
++    MV                             ?=  mv                                               (path to mv binary)
++    PRINTF                         ?=  printf                                           (path to printf binary)
++    PS                             ?=  ps                                               (path to ps binary)
++    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
++    SCRIPT                         ?=  script                                           (path to script binary)
++    TAR                            ?=  tar                                              (path to tar binary)
++    TR                             ?=  tr                                               (path to tr binary)
+   settings
+    COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of this project's)
+    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
+@@ @@
+    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
+    VERSION                         ?=  0.0.0-dev                                        (package version)
+    DEBUG                           ?=                                                   (whether each command is echoed)
++   DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
+    TRACE                           ?=                                                   (whether every recipe line is echoed)
++   TRACE_PREFIX                    ?=  $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)       (prefix for a line only TRACE echoes)
+    ANNOUNCEMENT                    ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
++   BRNSHKR_CONFIG_ERROR_CODE       ?=  69                                               (the error code for custom errors thrown by this Makefile)
+   dotenv
+    DOTENV                          ?=  1                                                (base path of the environment files, 1 for .env, 0 none)
+    DOTENV_ENV_KEY                  ?=  APP_ENV                                          (variable naming the current environment)
+@@ @@
+     COLOR_DESCRIPTION              ?=  $(COLOR_TERTIARY)
+     COLOR_INLINE_CODE              ?=  $(COLOR_SECONDARY)
+     COLOR_HIGHLIGHT                ?=  $(COLOR_YELLOW)
++   modifiers
++    MODIFIER_NORMAL                :=  normal
++    MODIFIER_UNDERLINE             :=  underline
++    MODIFIER_BRIGHT                :=  bright
++    MODIFIER_BOLD                  :=  bold
++    MODIFIER_REVERSE               :=  reverse
+   arguments
+    TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
+    TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
+@@ @@
+    TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
+    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
+    PHONY                           ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
++  semver
++   constants
++    SEMVER_NUMBER                  ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
++    SEMVER_PRERELEASE_PART         ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
++    SEMVER_PRERELEASE              ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
++    SEMVER_PRERELEASE_STRICT       ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
++    SEMVER_BUILD                   ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
++    SEMVER_REGEX                   ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
+   php
+    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
+   composer
+@@ @@
+    COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
+    COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
+   phpunit
++   PEST                            ?=  $(RUN) $(_PEST_BINARY)                           (command that runs pest)
+    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
+    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
+    PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
+@@ @@
+    SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
+    SEMGREP_CACHE                   ?=  $(APP_DIR)/.cache/semgrep                        (path to the semgrep ruleset cache)
+    SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
++   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
++   SEMGREP_PYTHON                  ?=  $(RUN) python3                                   (command that runs python3, merging semgrep rulesets)
+   changelog
+    CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
+    CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
+@@ @@
+     Wraps a string in ANSI color and modifier escapes, resetting after it.
+     The color and the modifiers may be given together or apart.
+ 
++    parameters:
++      text: string
++      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
++
++    returns: string
++
+    log
+     Prints a message behind the <VENDOR>/<PACKAGE> label.
+     Anything in backticks renders as inline code. The message is a printf format, so a value goes
+@@ @@
+     A backticked span that names a target or an existing path links to it, which no-autolink turns
+     off where the sentence is about neither.
+ 
++    parameters:
++      message: string
++      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
++      arguments?: list<string>
++      autolink?: OneOf<autolink | no-autolink> = autolink
++
++    returns: void
++
+    run_in
+     The command a tool named for a compose service runs through, empty on this machine.
+     The service is started first, once per run, unless a throwaway container is what runs it.
+     A key the .env files declare passes by name, so its value never reaches a command line.
+ 
++    parameters:
++      service: string
++
++    returns: string
++
+    confirm
+     Asks a yes/no question before something destructive happens.
+     It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
+     It succeeds on yes, so the caller reads it as a condition and says what it skipped.
++
++    parameters:
++      question: string
++      default?: OneOf<yes | no> = no
+ 
++    returns: void
++
+ Available commands:
+  app
+   commands
+@@ @@
+    coverage               runs the tests and fails below the minimum coverage
+    fix, f                 runs every fixer this project has, writing its fixes
+    group, g               counts every tool's findings by identifier
++   pack                   packs every stack's package to ./.local
+    test, t                runs the tests of every stack this project has
+    test-update            runs those tests and updates their snapshots
+    fixtures               builds the fixtures this project's tests read
+@@ @@
+   composer
+    composer               runs composer
+    composer-list          lists the files the composer package would ship
++   composer-pack          packs the composer package to ./.local/<VENDOR>/<PACKAGE>
+    composer-print         prints the resolved composer configuration
+   phpunit
++   pest                   runs the PHP tests through pest in particular
++   pest-coverage          runs them through pest and reports its coverage
++   pest-debug             runs them through pest with debugging information
++   pest-list              lists the tests pest collects
++   pest-update            runs them through pest and updates their snapshots
+    phpunit                runs the PHP tests
+    phpunit-coverage       runs the PHP tests and reports how much source they reach
++   phpunit-debug          runs the PHP tests with debugging information, not progress
+    phpunit-list           lists the tests the runner collects
+    phpunit-update         runs the PHP tests and updates their snapshots
+   phpstan
+    phpstan                runs phpstan analyze
++   phpstan-debug          runs phpstan analyze in debug mode
+    phpstan-group          counts the phpstan findings by identifier
+    phpstan-list           lists all files that are processed by phpstan
+    phpstan-print          prints the resolved phpstan configuration
++   phpstan-raw            runs phpstan analyze with raw output
+   php-cs-fixer
+    php-cs-fixer           runs php-cs-fixer fix
+    php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+@@ @@
+    php-cs-fixer-print     prints the php-cs-fixer rules in use
+   rector
+    rector                 runs rector process
++   rector-debug           runs rector process in debug mode
+    rector-dry-run         runs rector process in dry run mode
+    rector-group           counts the rector findings by rule
+    rector-list            lists all files that are processed by rector
+@@ @@
+    rector-print           prints the rector rules in use
+   twig-cs-fixer
+    twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
++   twig-cs-fixer-debug    runs twig-cs-fixer in debug mode
+    twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+    twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
+    twig-cs-fixer-print    prints the twig-cs-fixer rules in use
+@@ @@
+   bun
+    bun                    runs bun
+    bun-list               lists the files the bun package would ship
++   bun-pack               packs the bun package to ./.local/<VENDOR>/<PACKAGE>
+    bun-inspect            runs node-modules-inspector
+   commitlint
+    commitlint             lints a commit message
 
 === full: list-scopes ===
 app
@@ -1201,7 +964,7 @@ brnshkr.typescript
 brnshkr.vitest
 local
 
-=== diff: resolve ===
+=== diff: resolve from default ===
 @@ @@
     DEBUG         ?=        (whether each command is echoed)
     TRACE         ?=        (whether every recipe line is echoed)
@@ -1266,87 +1029,59 @@ Available commands:
   commands
    app-command  a command of the project's own
 
-=== full: scope-filter-group ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
+=== diff: scope-filter-group from scope-filter-single ===
+@@ @@
+ Usage:
+   make <command> [--] [arguments]
+ 
++Description:
++ app
++  Makefile of a project with every tool installed and a file for each to read
++
++Variables:
++ app
++  variables
++   APP_VARIABLE  ?=  value (a variable of the project's own)
++
+ Available commands:
+  app
+   commands
 
-Tools (0.0.0-dev)
+=== diff: scope-filter-multiple from scope-filter-single ===
+@@ @@
+ Available commands:
+  app
+   commands
+-   app-command  a command of the project's own
++   app-command   a command of the project's own
++ local
++  local-command  a command only this machine runs
 
-Usage:
-  make <command> [--] [arguments]
+=== diff: scope-filter-union from scope-filter-group ===
+@@ @@
+ Usage:
+   make <command> [--] [arguments]
+ 
+-Description:
+- app
+-  Makefile of a project with every tool installed and a file for each to read
+-
+ Variables:
+  app
+   variables
 
-Description:
- app
-  Makefile of a project with every tool installed and a file for each to read
+=== diff: scope-filter-verbosity from scope-filter-union ===
+@@ @@
+  app
+   variables
+    APP_VARIABLE  ?=  value (a variable of the project's own)
+-
+-Available commands:
+- app
+-  commands
+-   app-command  a command of the project's own
 
-Variables:
- app
-  variables
-   APP_VARIABLE  ?=  value (a variable of the project's own)
-
-Available commands:
- app
-  commands
-   app-command  a command of the project's own
-
-=== full: scope-filter-multiple ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Tools (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Available commands:
- app
-  commands
-   app-command   a command of the project's own
- local
-  local-command  a command only this machine runs
-
-=== full: scope-filter-union ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Tools (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Variables:
- app
-  variables
-   APP_VARIABLE  ?=  value (a variable of the project's own)
-
-Available commands:
- app
-  commands
-   app-command  a command of the project's own
-
-=== full: scope-filter-verbosity ===
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \(_--/ _ \/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\_\/_/
-
-Tools (0.0.0-dev)
-
-Usage:
-  make <command> [--] [arguments]
-
-Variables:
- app
-  variables
-   APP_VARIABLE  ?=  value (a variable of the project's own)
-
-=== diff: override-logo ===
+=== diff: override-logo from default ===
 @@ @@
 -   ___               __   __
 -  / _ )_______  ____/ /  / /__ ____
@@ -1359,7 +1094,7 @@ Variables:
  
  Usage:
 
-=== diff: override-package ===
+=== diff: override-package from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -1370,7 +1105,7 @@ Variables:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: override-version ===
+=== diff: override-version from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -1381,18 +1116,15 @@ Variables:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-logo ===
+=== diff: no-logo from override-logo ===
 @@ @@
--   ___               __   __
--  / _ )_______  ____/ /  / /__ ____
-- / _  / __/ _ \(_--/ _ \/  ´_// __/
--/____/_/ /_//_/___/_//_/_/\_\/_/
--
+-CUSTOM LOGO LINE 1
+-CUSTOM LOGO LINE 2
  Tools (0.0.0-dev)
  
  Usage:
 
-=== diff: no-package ===
+=== diff: no-package from default ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
@@ -1403,24 +1135,19 @@ Variables:
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-version ===
+=== diff: no-version from no-package ===
 @@ @@
   / _  / __/ _ \(_--/ _ \/  ´_// __/
  /____/_/ /_//_/___/_//_/_/\_\/_/
  
--Tools (0.0.0-dev)
+-(0.0.0-dev)
 +Tools
  
  Usage:
    make <command> [--] [arguments]
 
-=== diff: no-header ===
+=== diff: no-header from no-logo ===
 @@ @@
--   ___               __   __
--  / _ )_______  ____/ /  / /__ ____
-- / _  / __/ _ \(_--/ _ \/  ´_// __/
--/____/_/ /_//_/___/_//_/_/\_\/_/
--
 -Tools (0.0.0-dev)
 -
  Usage:

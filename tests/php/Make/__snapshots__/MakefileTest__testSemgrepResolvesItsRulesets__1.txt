@@ -30,7 +30,7 @@ security-audit
 sql-injection
 typescript
 
-=== diff: overridden ===
+=== diff: overridden from detected ===
 @@ @@
  owasp-top-ten
  php

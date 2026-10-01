@@ -60,7 +60,7 @@ DOTENV_FIXTURE_UNBRACED=$DOTENV_FIXTURE_PLAIN stays literal
 DOTENV_FIXTURE_UNCLOSED=${DOTENV_FIXTURE_PLAIN
 DOTENV_FIXTURE_UNSEEN=seen after the reference above
 
-=== diff: test-environment ===
+=== diff: test-environment from default ===
 @@ @@
 -APP_ENV=dev
 +APP_ENV=test
@@ -86,7 +86,7 @@ DOTENV_FIXTURE_UNSEEN=seen after the reference above
  DOTENV_FIXTURE_PLAIN=one
  DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
 
-=== diff: local-environment ===
+=== diff: local-environment from default ===
 @@ @@
 -APP_ENV=dev
 +APP_ENV=local
@@ -111,7 +111,7 @@ DOTENV_FIXTURE_UNSEEN=seen after the reference above
  DOTENV_FIXTURE_PLAIN=one
  DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
 
-=== diff: environment-wins ===
+=== diff: environment-wins from default ===
 @@ @@
  DOTENV_FIXTURE_INDENTED=  indented
  DOTENV_FIXTURE_INTERPOLATED=one-tail
@@ -128,7 +128,7 @@ DOTENV_FIXTURE_UNSEEN=seen after the reference above
 APP_ENV=dev
 DOTENV_FIXTURE_DIST=from-dist
 
-=== diff: unknown-key ===
+=== diff: unknown-key from default ===
 @@ @@
 -APP_ENV=dev
  DOTENV_FIXTURE_ADJACENT=onelater
@@ -140,7 +140,7 @@ DOTENV_FIXTURE_DIST=from-dist
  DOTENV_FIXTURE_UNSEEN=seen after the reference above
 +FIXTURE_ENV=dev
 
-=== diff: ambient-value ===
+=== diff: ambient-value from default ===
 @@ @@
  APP_ENV=dev
  DOTENV_FIXTURE_ADJACENT=onelater
