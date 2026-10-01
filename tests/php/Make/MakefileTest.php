@@ -994,6 +994,7 @@ final class MakefileTest extends TestCase
 
         self::assertStringContainsString('Unknown command', $result);
         self::assertStringContainsString('no-such-command', $result);
+        self::assertStringContainsString('to see available commands', $result);
     }
 
     public function testCcRemovesTheCachesItIsGivenAndNothingElse(): void

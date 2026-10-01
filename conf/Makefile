@@ -1032,7 +1032,7 @@ ifneq ($(_DANGLING_ALIASES),) # dangling
 $(error [$(_LABEL)] `$(subst =,` aliases `,$(firstword $(_DANGLING_ALIASES)))`, which is not a target)
 endif # /dangling
 
-_IS_JUST_PRINT = $(findstring n,$(firstword $(MAKEFLAGS)))
+_IS_JUST_PRINT = $(findstring n,$(firstword -$(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
 _UNKNOWN_ARGS  = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
 _SUGGESTED_FOR = $@
