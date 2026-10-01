@@ -132,34 +132,28 @@ final class MakefileTest extends TestCase
 
     public function testHelpOutput(): void
     {
-        $scenarios = [];
-
-        foreach (self::SNAPSHOT_SCENARIOS as $name => $scenario) {
-            $scenarios[$name] = $this->runMakeHelp(
-                $scenario['args'] ?? [],
-                $scenario['env'] ?? [],
-            );
-        }
-
-        $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+        $this->assertMatchesSnapshot($this->renderScenarios($this->runMakeConcurrently(array_map(
+            static fn (array $scenario): array => [
+                'args' => ['help', ...$scenario['args'] ?? []],
+                'env'  => $scenario['env'] ?? [],
+            ],
+            self::SNAPSHOT_SCENARIOS,
+        ))));
     }
 
     public function testHelpOutputWithEveryTool(): void
     {
-        $scenarios = [];
-
-        foreach (self::SNAPSHOT_SCENARIOS as $name => $scenario) {
-            $scenarios[$name] = $this->runMake(
-                ['help', ...$scenario['args'] ?? []],
-                [
+        $this->assertMatchesSnapshot($this->renderScenarios($this->runMakeConcurrently(array_map(
+            static fn (array $scenario): array => [
+                'args' => ['help', ...$scenario['args'] ?? []],
+                'env'  => [
                     ...$scenario['env'] ?? [],
                     'PATH' => self::TOOLS_DIRECTORY . '/bin:' . (getenv('PATH') ?: ''),
                 ],
-                self::TOOLS_DIRECTORY,
-            );
-        }
-
-        $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+                'directory' => self::TOOLS_DIRECTORY,
+            ],
+            self::SNAPSHOT_SCENARIOS,
+        ))));
     }
 
     public function testUnknownScopeReportsError(): void
@@ -368,17 +362,14 @@ final class MakefileTest extends TestCase
 
     public function testDotenvResolution(): void
     {
-        $scenarios = [];
-
-        foreach (self::DOTENV_SCENARIOS as $name => $environment) {
-            $scenarios[$name] = $this->runMake(
-                ['dotenv-show'],
-                env: $environment,
-                directory: self::DOTENV_DIRECTORY,
-            );
-        }
-
-        $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
+        $this->assertMatchesSnapshot($this->renderScenarios($this->runMakeConcurrently(array_map(
+            static fn (array $environment): array => [
+                'args'      => ['dotenv-show'],
+                'env'       => $environment,
+                'directory' => self::DOTENV_DIRECTORY,
+            ],
+            self::DOTENV_SCENARIOS,
+        ))));
     }
 
     public function testDotenvRefusesCommandSubstitution(): void

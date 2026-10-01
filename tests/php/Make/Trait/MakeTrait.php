@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
+use function array_chunk;
 use function array_diff;
 use function array_map;
 use function dirname;
@@ -61,6 +62,8 @@ trait MakeTrait
         self::STARTUP_DIRECTORY,
         self::TSCONFIG_DIRECTORY,
     ];
+
+    private const int CONCURRENT_RUNS = 4;
 
     private const array BASELINE_ENV = [
         'MAKEFLAGS'         => '',
@@ -192,7 +195,58 @@ trait MakeTrait
         ?string $directory = null,
         bool $doExpectFailure = false,
     ): string {
-        $process = new Process([
+        $process = self::createMakeProcess($args, $env, $directory);
+
+        $process->run();
+
+        return $this->readMakeOutput($process, $doExpectFailure);
+    }
+
+    /**
+     * @template TName of string
+     *
+     * @param non-empty-array<TName, array{
+     *     args?: list<string>,
+     *     env?: array<string, string>,
+     *     directory?: string,
+     * }> $runs
+     *
+     * @return non-empty-array<TName, string>
+     */
+    private function runMakeConcurrently(array $runs): array
+    {
+        $processes = array_map(
+            static fn (array $run): Process => self::createMakeProcess(
+                $run['args'] ?? [],
+                $run['env'] ?? [],
+                $run['directory'] ?? null,
+            ),
+            $runs,
+        );
+
+        foreach (array_chunk($processes, self::CONCURRENT_RUNS) as $batch) {
+            foreach ($batch as $process) {
+                $process->start();
+            }
+
+            foreach ($batch as $process) {
+                $process->wait();
+            }
+        }
+
+        return array_map(
+            fn (Process $process): string => $this->readMakeOutput($process, false),
+            $processes,
+        );
+    }
+
+    /**
+     * @param list<string> $args
+     * @param array<string, string> $env
+     */
+    private static function createMakeProcess(array $args, array $env, ?string $directory): Process
+    {
+        return new Process([
             'make',
             '--no-print-directory',
             ...($directory === null ? ['-f', self::MAKEFILE_PATH] : []),
@@ -203,9 +257,10 @@ trait MakeTrait
             ...self::getBaselineEnvironment(),
             ...$env,
         ]);
+    }
 
-        $process->run();
-
+    private function readMakeOutput(Process $process, bool $doExpectFailure): string
+    {
         if (!$doExpectFailure && !$process->isSuccessful()) {
             throw new RuntimeException(sprintf(
                 "make help failed:\n%s\n%s",
