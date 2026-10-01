@@ -3342,14 +3342,14 @@ if [ -z "$$has_spinner" ]; then \
 	spin_command; \
 else \
 	export _SPIN_STATUS=$$($(MKTEMP)); \
-	script_command='($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
+	script_command='trap "$(PRINTF) $(_INTERRUPT_EXIT_CODE) > \"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
 		set -- -qfc "$$script_command" /dev/null; \
 	else \
 		set -- -q /dev/null $(SHELL) -c "$$script_command"; \
 	fi; \
 	$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
-	trap '$(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
+	trap 'kill $$spinner 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 	$(call __spinner); \
 	SHELL='$(SHELL)' $(SCRIPT) "$$@" | { \
 		IFS= read -r line; has_line=$$?; \

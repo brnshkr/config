@@ -15,6 +15,7 @@ use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
 use function array_diff;
@@ -821,6 +822,30 @@ final class MakefileTest extends TestCase
         $output = $this->runMakeOnATty(['spin'], self::SPINNER_DIRECTORY);
 
         self::assertSame(1, mb_substr_count($output, 'ran'));
+    }
+
+    #[Group('tty')]
+    public function testAnInterruptStopsTheCommandBehindTheSpinnerWithoutRerunningIt(): void
+    {
+        $inputStream = new InputStream();
+
+        $process = new Process([
+            'script',
+            '-qfc',
+            sprintf('make --no-print-directory -C %s spin-until-interrupted', self::SPINNER_DIRECTORY),
+            '/dev/null',
+        ], env: [
+            ...self::getBaselineEnvironment(),
+            'NO_COLOR' => '',
+        ], input: $inputStream, timeout: 20);
+
+        $process->start();
+        $process->waitUntil(static fn (string $type, string $output): bool => Str::contains($output, 'started'));
+        $inputStream->write("\x03");
+        $inputStream->close();
+        $process->wait();
+
+        self::assertSame(1, mb_substr_count($process->getOutput(), 'started'));
     }
 
     public function testAManifestOpeningOnTheNameLineStillNamesThePackage(): void
