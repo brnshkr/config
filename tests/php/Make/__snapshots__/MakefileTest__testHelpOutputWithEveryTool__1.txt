@@ -16,13 +16,15 @@
     "verbosity-vvv": [
         "verbosity-vvv",
         "verbosity-vvv-alias",
-        "verbosity-vvvv",
         "verbosity-V-env-3",
-        "verbosity-V-env-10",
         "ifdef-defined",
         "else-ifeq-de",
         "else-ifeq-fr",
         "editor-empty"
+    ],
+    "verbosity-vvvv": [
+        "verbosity-vvvv",
+        "verbosity-V-env-10"
     ],
     "list-scopes": [
         "list-scopes",
@@ -938,6 +940,219 @@ Available commands:
     bun-inspect            runs node-modules-inspector
    commitlint
     commitlint             lints a commit message
+
+=== diff: verbosity-vvvv from verbosity-vvv ===
+@@ @@
+ Available commands:
+  app
+   commands
+-   app-command            a command of the project's own
++   app-command                              a command of the project's own
+  local
+-  local-command           a command only this machine runs
++  local-command                             a command only this machine runs
+  brnshkr
+   common
+-   help, h                shows this help, narrowed by scope, widened by v to vvv
+-   startup                brings a fresh checkout to a workable state
+-   install-hooks          installs this project's git hooks, replacing any that exist
+-   configs                writes missing files, tools configs, local private ones
+-   cc                     removes the caches named, or all of them when given none
+-   fresh                  removes ignored files but private ones, reruns startup
+-   fresh-dry-run          lists what fresh would remove and keep
+-   check, c               runs the fixers without writing, and every analyzer
+-   ci                     runs CI_TARGETS one after the other
+-   coverage               runs the tests and fails below the minimum coverage
+-   fix, f                 runs every fixer this project has, writing its fixes
+-   group, g               counts every tool's findings by identifier
+-   pack                   packs every stack's package to ./.local
+-   test, t                runs the tests of every stack this project has
+-   test-update            runs those tests and updates their snapshots
+-   fixtures               builds the fixtures this project's tests read
++   help, h                                  shows this help, narrowed by scope, widened by v to vvv
++   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
++   startup                                  brings a fresh checkout to a workable state
++   install-hooks                            installs this project's git hooks, replacing any that exist
++   configs                                  writes missing files, tools configs, local private ones
++   cc                                       removes the caches named, or all of them when given none
++   fresh                                    removes ignored files but private ones, reruns startup
++   fresh-dry-run                            lists what fresh would remove and keep
++   check, c                                 runs the fixers without writing, and every analyzer
++   ci                                       runs CI_TARGETS one after the other
++   coverage                                 runs the tests and fails below the minimum coverage
++   fix, f                                   runs every fixer this project has, writing its fixes
++   group, g                                 counts every tool's findings by identifier
++   pack                                     packs every stack's package to ./.local
++   test, t                                  runs the tests of every stack this project has
++   test-update                              runs those tests and updates their snapshots
++   fixtures                                 builds the fixtures this project's tests read
+   composer
+-   composer               runs composer
+-   composer-list          lists the files the composer package would ship
+-   composer-pack          packs the composer package to ./.local/<VENDOR>/<PACKAGE>
+-   composer-print         prints the resolved composer configuration
++   composer                                 runs composer
++   composer-list                            lists the files the composer package would ship
++   composer-pack                            packs the composer package to ./.local/<VENDOR>/<PACKAGE>
++   composer-print                           prints the resolved composer configuration
+   phpunit
+-   pest                   runs the PHP tests through pest in particular
+-   pest-coverage          runs them through pest and reports its coverage
+-   pest-debug             runs them through pest with debugging information
+-   pest-list              lists the tests pest collects
+-   pest-update            runs them through pest and updates their snapshots
+-   phpunit                runs the PHP tests
+-   phpunit-coverage       runs the PHP tests and reports how much source they reach
+-   phpunit-debug          runs the PHP tests with debugging information, not progress
+-   phpunit-list           lists the tests the runner collects
+-   phpunit-update         runs the PHP tests and updates their snapshots
++   pest                                     runs the PHP tests through pest in particular
++   pest-coverage                            runs them through pest and reports its coverage
++   pest-debug                               runs them through pest with debugging information
++   pest-list                                lists the tests pest collects
++   pest-update                              runs them through pest and updates their snapshots
++   phpunit                                  runs the PHP tests
++   phpunit-coverage                         runs the PHP tests and reports how much source they reach
++   phpunit-debug                            runs the PHP tests with debugging information, not progress
++   phpunit-list                             lists the tests the runner collects
++   phpunit-update                           runs the PHP tests and updates their snapshots
+   phpstan
+-   phpstan                runs phpstan analyze
+-   phpstan-debug          runs phpstan analyze in debug mode
+-   phpstan-group          counts the phpstan findings by identifier
+-   phpstan-list           lists all files that are processed by phpstan
+-   phpstan-print          prints the resolved phpstan configuration
+-   phpstan-raw            runs phpstan analyze with raw output
++   phpstan                                  runs phpstan analyze
++   phpstan-debug                            runs phpstan analyze in debug mode
++   phpstan-group                            counts the phpstan findings by identifier
++   phpstan-list                             lists all files that are processed by phpstan
++   phpstan-print                            prints the resolved phpstan configuration
++   phpstan-raw                              runs phpstan analyze with raw output
+   php-cs-fixer
+-   php-cs-fixer           runs php-cs-fixer fix
+-   php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+-   php-cs-fixer-group     counts the php-cs-fixer findings by fixer
+-   php-cs-fixer-list      lists all files that are processed by php-cs-fixer
+-   php-cs-fixer-print     prints the php-cs-fixer rules in use
++   php-cs-fixer                             runs php-cs-fixer fix
++   php-cs-fixer-dry-run                     runs php-cs-fixer fix in dry run mode
++   php-cs-fixer-group                       counts the php-cs-fixer findings by fixer
++   php-cs-fixer-list                        lists all files that are processed by php-cs-fixer
++   php-cs-fixer-print                       prints the php-cs-fixer rules in use
+   rector
+-   rector                 runs rector process
+-   rector-debug           runs rector process in debug mode
+-   rector-dry-run         runs rector process in dry run mode
+-   rector-group           counts the rector findings by rule
+-   rector-list            lists all files that are processed by rector
+-   rector-print           prints the rector rules in use
++   rector                                   runs rector process
++   rector-debug                             runs rector process in debug mode
++   rector-dry-run                           runs rector process in dry run mode
++   rector-group                             counts the rector findings by rule
++   rector-list                              lists all files that are processed by rector
++   rector-print                             prints the rector rules in use
+   twig-cs-fixer
+-   twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
+-   twig-cs-fixer-debug    runs twig-cs-fixer in debug mode
+-   twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+-   twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
+-   twig-cs-fixer-print    prints the twig-cs-fixer rules in use
++   twig-cs-fixer                            runs twig-cs-fixer fix, or lint under --dry-run
++   twig-cs-fixer-debug                      runs twig-cs-fixer in debug mode
++   twig-cs-fixer-dry-run                    runs twig-cs-fixer in dry run mode
++   twig-cs-fixer-group                      counts the twig-cs-fixer findings by rule
++   twig-cs-fixer-print                      prints the twig-cs-fixer rules in use
+   bun
+-   bun                    runs bun
+-   bun-list               lists the files the bun package would ship
+-   bun-pack               packs the bun package to ./.local/<VENDOR>/<PACKAGE>
+-   bun-inspect            runs node-modules-inspector
++   bun                                      runs bun
++   bun-list                                 lists the files the bun package would ship
++   bun-pack                                 packs the bun package to ./.local/<VENDOR>/<PACKAGE>
++   bun-inspect                              runs node-modules-inspector
+   commitlint
+-   commitlint             lints a commit message
+-   commitlint-print       prints the resolved commitlint configuration
++   commitlint                               lints a commit message
++   commitlint-print                         prints the resolved commitlint configuration
+   eslint
+-   eslint                 runs eslint, writing fixes unless --dry-run
+-   eslint-dry-run         runs eslint without writing fixes
+-   eslint-group           counts the eslint findings by rule
+-   eslint-print           prints the resolved eslint config for a file
+-   eslint-inspect         runs eslint-config-inspector
+-   eslint-inspect-stats   runs eslint-config-inspector with a timed full lint
++   eslint                                   runs eslint, writing fixes unless --dry-run
++   eslint-dry-run                           runs eslint without writing fixes
++   eslint-group                             counts the eslint findings by rule
++   eslint-print                             prints the resolved eslint config for a file
++   eslint-inspect                           runs eslint-config-inspector
++   eslint-inspect-stats                     runs eslint-config-inspector with a timed full lint
+   markdownlint
+-   markdownlint           runs markdownlint-cli2, writing fixes unless --dry-run
+-   markdownlint-dry-run   runs markdownlint-cli2 without writing fixes
+-   markdownlint-group     counts the markdownlint findings by rule
++   markdownlint                             runs markdownlint-cli2, writing fixes unless --dry-run
++   markdownlint-dry-run                     runs markdownlint-cli2 without writing fixes
++   markdownlint-group                       counts the markdownlint findings by rule
+   stylelint
+-   stylelint              runs stylelint, writing fixes unless --dry-run
+-   stylelint-dry-run      runs stylelint without writing fixes
+-   stylelint-group        counts the stylelint findings by rule
+-   stylelint-print        prints the resolved stylelint config for a file
++   stylelint                                runs stylelint, writing fixes unless --dry-run
++   stylelint-dry-run                        runs stylelint without writing fixes
++   stylelint-group                          counts the stylelint findings by rule
++   stylelint-print                          prints the resolved stylelint config for a file
+   typescript
+-   typescript             runs the tsc type check
+-   typescript-group       counts the tsc errors by code
+-   typescript-list        lists the files the tsc project includes
+-   typescript-print       prints the resolved tsc project
++   typescript                               runs the tsc type check
++   typescript-group                         counts the tsc errors by code
++   typescript-list                          lists the files the tsc project includes
++   typescript-print                         prints the resolved tsc project
+   vitest
+-   vitest                 runs vitest
+-   vitest-coverage        runs vitest and reports how much of the source it reaches
+-   vitest-list            lists the tests vitest collects
+-   vitest-update          runs vitest and updates its snapshots
++   vitest                                   runs vitest
++   vitest-coverage                          runs vitest and reports how much of the source it reaches
++   vitest-list                              lists the tests vitest collects
++   vitest-update                            runs vitest and updates its snapshots
+   hadolint
+-   hadolint               runs hadolint over this project's dockerfiles
+-   hadolint-group         counts the hadolint findings by rule
+-   hadolint-list          lists the dockerfiles hadolint reads
+-   hadolint-print         prints the resolved hadolint configuration
++   hadolint                                 runs hadolint over this project's dockerfiles
++   hadolint-group                           counts the hadolint findings by rule
++   hadolint-list                            lists the dockerfiles hadolint reads
++   hadolint-print                           prints the resolved hadolint configuration
+   actionlint
+-   actionlint             runs actionlint over this project's workflows
+-   actionlint-group       counts the actionlint findings by rule
+-   actionlint-list        lists the workflows actionlint reads
++   actionlint                               runs actionlint over this project's workflows
++   actionlint-group                         counts the actionlint findings by rule
++   actionlint-list                          lists the workflows actionlint reads
+   semgrep
+-   semgrep                runs semgrep over this project's sources
+-   semgrep-group          counts the semgrep findings by rule
+-   semgrep-list           lists the rulesets semgrep runs
+-   semgrep-validate       checks that the semgrep rules load
++   semgrep                                  runs semgrep over this project's sources
++   semgrep-group                            counts the semgrep findings by rule
++   semgrep-list                             lists the rulesets semgrep runs
++   semgrep-validate                         checks that the semgrep rules load
+   changelog
+-   changelog              prints the changelog, or writes it to CHANGELOG_DIR
++   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
 
 === full: list-scopes ===
 app

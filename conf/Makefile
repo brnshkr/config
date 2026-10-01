@@ -128,11 +128,12 @@
 _BRNSHKR_CONFIG_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 _BRNSHKR_CONFIG_DIR      := $(patsubst %/,%,$(dir $(_BRNSHKR_CONFIG_MAKEFILE)))
 
-_ARG_WORDS = $(patsubst -%,%,$(patsubst --%,%,$(_ARGS)))
+_ARG_WORDS = $(_HELP_WORD) $(patsubst -%,%,$(patsubst --%,%,$(_ARGS)))
 
 _HELP_VERBOSITY_ARGS       = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
 _HELP_VERBOSITY            = $(words $(subst v,v ,$(lastword $(sort $(_HELP_VERBOSITY_ARGS)))))
 _HELP_WORDS               := list-scopes ls resolve r env e
+_HELP_WORD_TARGETS        := $(_HELP_WORDS) v vv vvv
 _HELP_RESERVED_ARGS        = $(_HELP_WORDS) $(_HELP_VERBOSITY_ARGS)
 _HELP_SCOPES               = $(strip $(filter-out $(_HELP_RESERVED_ARGS),$(_ARG_WORDS)))
 _HAS_LIST_SCOPES_ARGUMENT  = $(if $(filter list-scopes ls,$(_ARG_WORDS)),1)
@@ -969,7 +970,7 @@ TARGET_ALIASES ?= h=help \
 	$(if $(_HAS_GROUP),g=group)#~~ short names for targets, as `<alias>=<target>` pairs
 
 _FIRST_GOAL        := $(firstword $(foreach GOAL,$(MAKECMDGOALS),$(if $(filter $(_ALL_TARGETS),$(GOAL))$(call _get_alias_target,$(GOAL)),$(GOAL))))
-_NAMING_GOAL       := $(filter $(foreach NAME,help configs cc,$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
+_NAMING_GOAL       := $(filter $(foreach NAME,help configs cc $(_HELP_WORD_TARGETS),$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
 _NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)))
 _NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subst =, ,$(PAIR)))),$(_NAME_GOALS))
 _NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
@@ -1205,6 +1206,10 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		LC_ALL=C \
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
+
+$(call _target,list-scopes) $(call _target,ls) $(call _target,resolve) $(call _target,r) $(call _target,env) $(call _target,e) $(call _target,v) $(call _target,vv) $(call _target,vvv): $(call _target,help) #~~ runs `help` with its own name as the argument #vvvv
+
+$(foreach WORD,$(_HELP_WORD_TARGETS),$(eval $(call _target,$(WORD)): _HELP_WORD := $(WORD)))
 
 STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after installs
 

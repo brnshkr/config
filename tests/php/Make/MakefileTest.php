@@ -570,6 +570,13 @@ final class MakefileTest extends TestCase
         self::assertMatchesRegularExpression('/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
+    public function testAHelpArgumentIsATargetOfItsOwn(): void
+    {
+        self::assertSame($this->runMakeHelp(['list-scopes']), $this->runMake(['list-scopes']));
+        self::assertSame($this->runMakeHelp(['vvv', 'app.commands']), $this->runMake(['vvv', 'app.commands']));
+        self::assertMatchesRegularExpression('/ARGS +=  \'vv\' /', $this->runMake(['r', 'vv']));
+    }
+
     public function testTheScopeListNamesOnlyScopesWithSomethingToShow(): void
     {
         $plain   = $this->runMakeHelp(['ls']);

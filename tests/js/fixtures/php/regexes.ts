@@ -278,5 +278,10 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/m`,
     regex: /^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/mv,
   },
+  {
+    file: 'tests/php/Make/MakefileTest.php',
+    php: String.raw`/ARGS +=  'vv' /`,
+    regex: /ARGS +=  'vv' /v,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

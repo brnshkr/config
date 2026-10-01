@@ -631,14 +631,87 @@ Available commands:
 
 === diff: verbosity-vvvv from verbosity-vvv ===
 @@ @@
-       depth-four-command       depth-4 subsection (arbitrary nesting depth)
+    verbose_described_fn         described function shown at verbosity >= 1 (via scope)
+ 
+ Available commands:
+-  root-mk-command              command from root test.mk auto-include
+-  conf-makefile-command        command from conf/Makefile auto-include
+-  conf-mk-command              command from conf/test.mk auto-include
+-  conf-make-makefile-command   command from conf/make/Makefile auto-include
+-  conf-make-mk-command         command from conf/make/test.mk auto-include
+-  local-makefile-command       command from .local/Makefile auto-include
+-  local-make-makefile-command  command from .local/make/Makefile auto-include
+-  local-make-mk-command        command from .local/make/test.mk auto-include
++  root-mk-command                           command from root test.mk auto-include
++  conf-makefile-command                     command from conf/Makefile auto-include
++  conf-mk-command                           command from conf/test.mk auto-include
++  conf-make-makefile-command                command from conf/make/Makefile auto-include
++  conf-make-mk-command                      command from conf/make/test.mk auto-include
++  local-makefile-command                    command from .local/Makefile auto-include
++  local-make-makefile-command               command from .local/make/Makefile auto-include
++  local-make-mk-command                     command from .local/make/test.mk auto-include
+  brnshkr
+   common
+-   help, h                     shows this help, narrowed by scope, widened by v to vvv
+-   startup                     brings a fresh checkout to a workable state
+-   install-hooks               installs this project's git hooks, replacing any that exist
+-   configs                     writes missing files, tools configs, local private ones
+-   cc                          removes the caches named, or all of them when given none
+-   fresh                       removes ignored files but private ones, reruns startup
+-   fresh-dry-run               lists what fresh would remove and keep
+-   pack                        packs every stack's package to ./.local
+-   fixtures                    builds the fixtures this project's tests read
++   help, h                                  shows this help, narrowed by scope, widened by v to vvv
++   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
++   startup                                  brings a fresh checkout to a workable state
++   install-hooks                            installs this project's git hooks, replacing any that exist
++   configs                                  writes missing files, tools configs, local private ones
++   cc                                       removes the caches named, or all of them when given none
++   fresh                                    removes ignored files but private ones, reruns startup
++   fresh-dry-run                            lists what fresh would remove and keep
++   pack                                     packs every stack's package to ./.local
++   fixtures                                 builds the fixtures this project's tests read
+   changelog
+-   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
++   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
+  app
+   commands
+-   root-makefile-command       command from root Makefile auto-include
+-   hidden-command              shown at verbosity >= 1
+-   multi-a/multi-b             multi-target command (appears joined with /)
+-   no-desc-command             
++   root-makefile-command                    command from root Makefile auto-include
++   hidden-command                           shown at verbosity >= 1
++   multi-a/multi-b                          multi-target command (appears joined with /)
++   no-desc-command                          
+   verbose-group
+-   verbose-command             shown at verbosity >= 1
+-   verbose-hidden-command      shown at verbosity >= 2
++   verbose-command                          shown at verbosity >= 1
++   verbose-hidden-command                   shown at verbosity >= 2
+   very-verbose-group
+-   very-verbose-command        shown at verbosity >= 2
+-   very-hidden-command         shown at verbosity >= 3 (scope v2 + entry v3 marker)
++   very-verbose-command                     shown at verbosity >= 2
++   very-hidden-command                      shown at verbosity >= 3 (scope v2 + entry v3 marker)
+    very-verbose-sub
+-    deep-command               depth-2 subsection (inherits vv verbosity from parent scope)
++    deep-command                            depth-2 subsection (inherits vv verbosity from parent scope)
+     depth-three
+-     depth-three-command       depth-3 subsection
++     depth-three-command                    depth-3 subsection
+      depth-four
+-      depth-four-command       depth-4 subsection (arbitrary nesting depth)
++      depth-four-command                    depth-4 subsection (arbitrary nesting depth)
    ultra-verbose-group
-    ultra-verbose-command       shown at verbosity >= 3
-+   ultra-hidden-command        shown at verbosity >= 4 (scope v3 + entry v4 marker)
+-   ultra-verbose-command       shown at verbosity >= 3
++   ultra-verbose-command                    shown at verbosity >= 3
++   ultra-hidden-command                     shown at verbosity >= 4 (scope v3 + entry v4 marker)
 +  hyper-verbose-group
-+   hyper-verbose-command       shown at verbosity >= 4 (arbitrary depth)
++   hyper-verbose-command                    shown at verbosity >= 4 (arbitrary depth)
   local
-   local-mk-command             command from .local/test.mk auto-include
+-  local-mk-command             command from .local/test.mk auto-include
++  local-mk-command                          command from .local/test.mk auto-include
 
 === full: list-scopes ===
 app

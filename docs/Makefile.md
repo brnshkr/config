@@ -28,6 +28,7 @@ Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help phpsta
 `make help ls` lists the scopes with something to show at that verbosity,
 `make help resolve` prints what each variable expands to,
 and `make help env` what the Makefiles export, then what each environment file set and what replaced it.
+Every `help` argument also runs as a target of its own, so `make ls` is `make help ls`.
 Across both stacks:
 
 | Target | Description |
