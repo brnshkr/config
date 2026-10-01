@@ -1149,13 +1149,20 @@ _HELP_READ_VARIABLES := INDENT \
 	_TARGET_ALIAS_MAP \
 	_TARGET_NAMES
 
-_HELP_VARIABLES = $(if $(_HAS_RESOLVE_ARGUMENT),$(_RESOLVED_VARIABLES),$(sort $(_HELP_READ_VARIABLES) $(_CONDITION_VARIABLES)))
+_HELP_VARIABLES = $(sort $(_HELP_READ_VARIABLES) $(_CONDITION_VARIABLES) $(if $(_HAS_RESOLVE_ARGUMENT),$(_RESOLVED_VARIABLES)))
 
 define _VARIABLE_NAMES_AWK
 BEGIN { \
 	count = split(_VAR_NAMES, names, " "); \
 	for (idx = 1; idx <= count; idx++) if (names[idx] ~ /^_?[A-Z][A-Z0-9_]*$$/) print names[idx] \
 }
+endef
+
+define _ASSIGNED_VARIABLES_AWK
+/^(export[[:space:]]+|override[[:space:]]+)*[A-Z][A-Z0-9_]*[[:space:]]*(:|::|:::|[?+!])?=/ { \
+	sub(/^(export[[:space:]]+|override[[:space:]]+)*/, ""); sub(/[[:space:]]*(:|::|:::|[?+!])?=.*/, ""); print \
+}
+/^define[[:space:]]+[A-Z][A-Z0-9_]*([[:space:]]|$$)/ { print $$2 }
 endef
 
 define _CONDITION_VARIABLES_AWK
@@ -1174,7 +1181,8 @@ _HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
 	_COMMAND_LINE_NAMES="$(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
 	_DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
 
-_RESOLVED_VARIABLES  = $(filter-out %_AWK %_SOURCE _CHANGELOG_% _SUGGESTED_% _TRACKED_FILES,$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
+_RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_FILE_KEYS),$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
+_ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LIST))
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
 $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`

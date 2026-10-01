@@ -35,7 +35,6 @@ use function readlink;
 use function scandir;
 use function shell_exec;
 use function sprintf;
-use function Symfony\Component\String\b;
 use function Symfony\Component\String\s;
 use function time;
 use function touch;
@@ -1178,9 +1177,14 @@ final class MakefileTest extends TestCase
         self::assertStringContainsString('_METRIC=\'Lines\' -v _MINIMUM=\'44\'', $run);
     }
 
-    public function testHelpFitsInOneShellArgument(): void
+    public function testHelpResolvesAnEnvironmentLargerThanOneShellArgument(): void
     {
-        self::assertLessThan(self::SHELL_ARGUMENT_LIMIT, b($this->runMake(['-n', 'help', 'resolve'], directory: self::PROJECT_DIRECTORY))->length());
+        $padding = [
+            'PADDING_1' => Str::repeat('x', self::SHELL_ARGUMENT_LIMIT / 2),
+            'PADDING_2' => Str::repeat('x', self::SHELL_ARGUMENT_LIMIT / 2),
+        ];
+
+        self::assertStringContainsString('Available commands:', $this->runMake(['help', 'resolve'], $padding, self::PROJECT_DIRECTORY));
     }
 
     public function testResolveListsAValueOnlyADotenvFileProvides(): void
