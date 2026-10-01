@@ -1417,25 +1417,40 @@ $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
 ifneq ($(_HAS_CONTAINER),) # container
 
+COMPOSE_UP_FLAGS    ?= --wait#v #~~ additional flags passed to `compose up`
+COMPOSE_DOWN_FLAGS  ?= --remove-orphans#v #~~ additional flags passed to `compose down`
+COMPOSE_BUILD_FLAGS ?= --pull#v #~~ additional flags passed to `compose build`
+COMPOSE_LOGS_FLAGS  ?= --follow#v #~~ additional flags passed to `compose logs`
+SERVICE_SHELL       ?= sh#v #~~ program a service's shell starts
+
 $(call _target,up): #~~ starts the services the tools need
-	$(DEBUG_PREFIX)$(_COMPOSE) up --detach --wait $(ARGS)
+	$(DEBUG_PREFIX)$(_COMPOSE) up $(COMPOSE_UP_FLAGS) $(ARGS)
 
 $(call _target,down): #~~ stops them again
-	$(DEBUG_PREFIX)$(_COMPOSE) down $(ARGS)
+	$(DEBUG_PREFIX)$(_COMPOSE) down $(COMPOSE_DOWN_FLAGS) $(ARGS)
 
 $(call _target,ps): #~~ lists what is running #v
 	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
 
+$(call _target,shell): $(_TARGET_PREFIX)$(APP_SERVICE)-shell #~~ opens a shell in `APP_SERVICE`
+$(call _target,shell): _GOAL := $(call _target,shell)
+
+$(call _target,exec): $(_TARGET_PREFIX)$(APP_SERVICE)-exec #~~ runs a command in `APP_SERVICE`
+$(call _target,exec): _GOAL := $(call _target,exec)
+
 _SERVICE_ARGS = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
 
 $(_TARGET_PREFIX)%-shell:
-	$(DEBUG_PREFIX)$(_COMPOSE) exec $* $(or $(_SERVICE_ARGS),sh)
+	$(DEBUG_PREFIX)$(call _enter_service,$*) $(or $(_SERVICE_ARGS),$(SERVICE_SHELL))
 
 $(_TARGET_PREFIX)%-logs:
-	$(DEBUG_PREFIX)$(_COMPOSE) logs --follow $* $(_SERVICE_ARGS)
+	$(DEBUG_PREFIX)$(_COMPOSE) logs $(COMPOSE_LOGS_FLAGS) $* $(_SERVICE_ARGS)
 
 $(_TARGET_PREFIX)%-exec:
 	$(DEBUG_PREFIX)$(call run_in,$*) $(_SERVICE_ARGS)
+
+$(_TARGET_PREFIX)%-build:
+	$(DEBUG_PREFIX)$(_COMPOSE) build $(COMPOSE_BUILD_FLAGS) $(_SERVICE_ARGS) $*
 
 endif # /container
 
@@ -2658,7 +2673,7 @@ endef
 #* returns: string
 #*
 define run_in
-$(if $(_HAS_CONTAINER),$(if $(_IS_SERVICE_RUN),$(_COMPOSE) --progress quiet run --rm --no-deps -T,$(call _start_service,$1)$(_COMPOSE) exec -T) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment))
+$(call _enter_service,$1,-T)
 endef
 
 #**
@@ -2734,6 +2749,24 @@ endef
 #*
 define _forwarded_value
 $(if $(filter EDITOR_URL,$1),$(_EDITOR_URL),$($1))
+endef
+
+#**
+#* Enters a compose service, starting it when it is not running.
+#*
+#* parameters:
+#*   service: string
+#*   flags?: string
+#*
+#* returns: string
+#*
+define _enter_service
+$(if $(_HAS_CONTAINER) \
+	,$(if $(_IS_SERVICE_RUN) \
+		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
+		$(call _start_service,$1)$(_COMPOSE) exec $2 \
+	) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment) \
+)
 endef
 
 #**

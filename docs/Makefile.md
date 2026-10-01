@@ -172,7 +172,11 @@ Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
 | Target | Does |
 | --- | --- |
 | `up`, `down`, `ps` | starts, stops and lists the services |
-| `<service>-shell`, `-logs`, `-exec` | a shell, the log, a command in that service |
+| `shell`, `exec` | a shell, a command in `APP_SERVICE` |
+| `<service>-shell`, `-logs`, `-exec`, `-build` | a shell, the log, a command in that service, its image |
+
+`up`, `down`, `-build` and `-logs` take their flags from `COMPOSE_UP_FLAGS` and its siblings,
+`SERVICE_SHELL` names the shell.
 
 ## Environment files
 

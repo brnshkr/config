@@ -234,16 +234,6 @@ final class ContainerTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{self::MODE_*}>
-     */
-    public static function provideHostModeCases(): iterable
-    {
-        foreach ([self::MODE_EXEC, self::MODE_RUN] as $mode) {
-            yield $mode => [$mode];
-        }
-    }
-
-    /**
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideTheEditorUrlIsResolvedWhereTheToolItselfCanCases')]
@@ -302,6 +292,29 @@ final class ContainerTest extends TestCase
 
         self::assertStringContainsString(self::getContainerPath(), $service);
         self::assertStringContainsString(self::getContainerPath(), $other);
+    }
+
+    /**
+     * @param self::MODE_* $mode
+     */
+    #[DataProvider('provideHostModeCases')]
+    public function testTheAppServiceTargetsEnterItTheWayTheModeSays(string $mode): void
+    {
+        $shell = $this->runMakeIn($mode, ['shell', '--', 'printenv', 'COLUMNS'], ['COLUMNS' => '123']);
+        $exec  = $this->runMakeIn($mode, ['exec', '--', 'pwd']);
+
+        self::assertStringContainsString('123', $shell);
+        self::assertStringContainsString(self::getContainerPath(), $exec);
+    }
+
+    /**
+     * @return iterable<string, array{self::MODE_*}>
+     */
+    public static function provideHostModeCases(): iterable
+    {
+        foreach ([self::MODE_EXEC, self::MODE_RUN] as $mode) {
+            yield $mode => [$mode];
+        }
     }
 
     /**
