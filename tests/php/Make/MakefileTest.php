@@ -571,6 +571,12 @@ final class MakefileTest extends TestCase
         self::assertMatchesRegularExpression('/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
+    public function testATargetLineWrappedBetweenItsNamesKeepsEveryName(): void
+    {
+        self::assertStringContainsString('wrapped-a/wrapped-b', $this->runMakeHelp());
+        self::assertStringContainsString('args=\'foo\'', $this->runMake(['wrapped-a', 'foo']));
+    }
+
     public function testAHelpArgumentIsATargetOfItsOwn(): void
     {
         self::assertSame($this->runMakeHelp(['list-scopes']), $this->runMake(['list-scopes']));

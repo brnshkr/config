@@ -856,13 +856,17 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 	/^ifdef|^ifndef|^ifeq|^ifneq/ { depth += 1; next } \
 	/^endif/ { if (skip == depth) skip = 0; depth -= 1; next } \
 	skip { next } \
+	{ start_line = FNR } \
+	/^[^#\t=]*\\$$/ { while ($$0 ~ /\\$$/ && (getline continuation) > 0) { \
+		sub(/[[:space:]]*\\$$/, " "); sub(/^[[:space:]]+/, "", continuation); $$0 = $$0 continuation \
+	} } \
 	{ while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) \
 		$$0 = substr($$0, 1, RSTART - 1) "@" substr($$0, RSTART + 15, RLENGTH - 16) substr($$0, RSTART + RLENGTH) } \
 	{ gsub(/\$$\(_TARGET_PREFIX\)/, _PREFIX) } \
 	/^@?[a-zA-Z0-9_.-]+([[:space:]]+@?[a-zA-Z0-9_.-]+)*:([^=]|$$)/ { \
 		count = split(substr($$0, 1, index($$0, ":") - 1), ns, /[[:space:]]+/); \
 		for (i = 1; i <= count; i += 1) \
-			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s:%d ", ns[i], FILENAME, FNR \
+			if (ns[i] != "" && ns[i] !~ /^[.]/) printf "%s|%s:%d ", ns[i], FILENAME, start_line \
 	}' \
 	$(MAKEFILE_LIST) \
 )
@@ -1207,7 +1211,15 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
 
-$(call _target,list-scopes) $(call _target,ls) $(call _target,resolve) $(call _target,r) $(call _target,env) $(call _target,e) $(call _target,v) $(call _target,vv) $(call _target,vvv): $(call _target,help) #~~ runs `help` with its own name as the argument #vvvv
+$(call _target,list-scopes) \
+	$(call _target,ls) \
+	$(call _target,resolve) \
+	$(call _target,r) \
+	$(call _target,env) \
+	$(call _target,e) \
+	$(call _target,v) \
+	$(call _target,vv) \
+	$(call _target,vvv): $(call _target,help) #~~ runs `help` with its own name as the argument #vvvv
 
 $(foreach WORD,$(_HELP_WORD_TARGETS),$(eval $(call _target,$(WORD)): _HELP_WORD := $(WORD)))
 
@@ -5236,6 +5248,11 @@ is_in_documentation {
 	}
 	next
 }
+{ continued_line = 0 }
+/^[^#\t=]*\\$$/ {
+	continued_line = FNR
+	while ($$0 ~ /\\$$/ && (getline continuation) > 0) { sub(/[[:space:]]*\\$$/, " "); sub(/^[[:space:]]+/, "", continuation); $$0 = $$0 continuation }
+}
 function target_name(name) { return (name in resolved_name) ? resolved_name[name] : ENVIRON["_TARGET_PREFIX"] name }
 { while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) $$0 = substr($$0, 1, RSTART - 1) target_name(substr($$0, RSTART + 15, RLENGTH - 16)) substr($$0, RSTART + RLENGTH) }
 { gsub(/\$$\(_TARGET_PREFIX\)/, ENVIRON["_TARGET_PREFIX"]) }
@@ -5252,7 +5269,7 @@ function target_name(name) { return (name in resolved_name) ? resolved_name[name
 		command_seen[name] = 1
 		joined_commands = (joined_commands == "" ? name : joined_commands "/" name)
 	}
-	if (joined_commands != "") add("commands", joined_commands, description, "", "", FNR)
+	if (joined_commands != "") add("commands", joined_commands, description, "", "", continued_line ? continued_line : FNR)
 	next
 }
 END {

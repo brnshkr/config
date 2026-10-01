@@ -152,6 +152,7 @@ Available commands:
   commands
    root-makefile-command       command from root Makefile auto-include
    multi-a/multi-b             multi-target command (appears joined with /)
+   wrapped-a/wrapped-b         multi-target command wrapped over two lines
    no-desc-command             
  local
   local-mk-command             command from .local/test.mk auto-include
@@ -279,6 +280,7 @@ Available commands:
    root-makefile-command       command from root Makefile auto-include
    hidden-command              shown at verbosity >= 1
    multi-a/multi-b             multi-target command (appears joined with /)
+   wrapped-a/wrapped-b         multi-target command wrapped over two lines
    no-desc-command             
   verbose-group
    verbose-command             shown at verbosity >= 1
@@ -679,10 +681,12 @@ Available commands:
 -   root-makefile-command       command from root Makefile auto-include
 -   hidden-command              shown at verbosity >= 1
 -   multi-a/multi-b             multi-target command (appears joined with /)
+-   wrapped-a/wrapped-b         multi-target command wrapped over two lines
 -   no-desc-command             
 +   root-makefile-command                    command from root Makefile auto-include
 +   hidden-command                           shown at verbosity >= 1
 +   multi-a/multi-b                          multi-target command (appears joined with /)
++   wrapped-a/wrapped-b                      multi-target command wrapped over two lines
 +   no-desc-command                          
    verbose-group
 -   verbose-command             shown at verbosity >= 1
@@ -781,6 +785,7 @@ Available commands:
   commands
    root-makefile-command  command from root Makefile auto-include
    multi-a/multi-b        multi-target command (appears joined with /)
+   wrapped-a/wrapped-b    multi-target command wrapped over two lines
    no-desc-command        
 
 === diff: scope-filter-group from scope-filter-single ===
@@ -830,8 +835,8 @@ Available commands:
   app
    commands
 @@ @@
-    root-makefile-command  command from root Makefile auto-include
     multi-a/multi-b        multi-target command (appears joined with /)
+    wrapped-a/wrapped-b    multi-target command wrapped over two lines
     no-desc-command        
 + local
 +  local-mk-command        command from .local/test.mk auto-include
@@ -872,6 +877,7 @@ Available commands:
 -  commands
 -   root-makefile-command  command from root Makefile auto-include
 -   multi-a/multi-b        multi-target command (appears joined with /)
+-   wrapped-a/wrapped-b    multi-target command wrapped over two lines
 -   no-desc-command        
 
 === diff: ifdef-defined from verbosity-vvv ===
@@ -1287,6 +1293,7 @@ Available commands:
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
    [36mhidden-command            [0m  [90mshown at verbosity >= 1[0m
    [36mmulti-a/multi-b           [0m  [90mmulti-target command (appears joined with /)[0m
+   [36mwrapped-a/wrapped-b       [0m  [90mmulti-target command wrapped over two lines[0m
    [36mno-desc-command           [0m  [90m[0m
   [35mverbose-group[0m
    [36mverbose-command           [0m  [90mshown at verbosity >= 1[0m
@@ -1592,6 +1599,7 @@ Available commands:
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m
    [32mhidden-command            [0m  [0mshown at verbosity >= 1[0m
    [32mmulti-a/multi-b           [0m  [0mmulti-target command (appears joined with /)[0m
+   [32mwrapped-a/wrapped-b       [0m  [0mmulti-target command wrapped over two lines[0m
    [32mno-desc-command           [0m  [0m[0m
   [33mverbose-group[0m
    [32mverbose-command           [0m  [0mshown at verbosity >= 1[0m

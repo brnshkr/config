@@ -12,6 +12,10 @@ hidden-command: #~~ shown at verbosity >= 1 #v
 
 multi-a multi-b: #~~ multi-target command (appears joined with /)
 
+wrapped-a \
+wrapped-b: #~~ multi-target command wrapped over two lines
+	@printf 'args=%s\n' "$(ARGS)"
+
 no-desc-command:
 
 .dot-command: #~~ dot-prefixed commands are skipped by the parser
