@@ -43,6 +43,7 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Functions.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/NonBoolean.php',
             __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Types.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Callables.php',
         );
     }
 
@@ -69,7 +70,7 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
                     );
                 }
 
-                $prefixes = in_array($kind, ['Method', 'Function'], true)
+                $prefixes = $type === 'missing-predicate' || in_array($kind, ['Method', 'Function'], true)
                     ? BoolishPrefixRule::PREDICATE_PREFIXES
                     : BoolishPrefixRule::FLAG_PREFIXES;
 
@@ -86,6 +87,6 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
     #[Override]
     protected function getRule(): Rule
     {
-        return new BoolishPrefixRule();
+        return new BoolishPrefixRule(self::createReflectionProvider());
     }
 }

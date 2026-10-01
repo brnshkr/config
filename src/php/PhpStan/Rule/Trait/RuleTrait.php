@@ -197,15 +197,15 @@ trait RuleTrait
     }
 
     /**
-     * @param callable(?Doc $doc): bool $declaresStance
+     * @param callable(?Doc $doc): bool $hasStance
      */
-    private static function hasUngovernedMethod(ClassLike $classLike, callable $declaresStance): bool
+    private static function hasUngovernedMethod(ClassLike $classLike, callable $hasStance): bool
     {
         return array_any(
             $classLike->getMethods(),
             static fn (ClassMethod $classMethod): bool => !$classMethod->isPrivate()
                 && $classMethod->getParams() !== []
-                && !$declaresStance($classMethod->getDocComment()),
+                && !$hasStance($classMethod->getDocComment()),
         );
     }
 

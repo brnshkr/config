@@ -124,7 +124,7 @@ final class BoolishPrefixFixtureClass
 
     public function withClosures(): void
     {
-        $checker = static fn (bool $force): bool => $force; // ERROR missing|Parameter|force
-        $runner  = static function (bool $isForced): void {};
+        $matchesForce = static fn (bool $force): bool => $force; // ERROR missing|Parameter|force
+        $runner       = static function (bool $isForced): void {};
     }
 }

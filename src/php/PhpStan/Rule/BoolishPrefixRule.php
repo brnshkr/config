@@ -10,32 +10,35 @@ use Brnshkr\Config\Tests\PhpStan\Rule\BoolishPrefixRuleTest;
 use Override;
 use PhpParser\Node;
 use PhpParser\Node\Const_;
-use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Closure;
-use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
-use PhpParser\Node\Identifier;
-use PhpParser\Node\NullableType;
+use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use PhpParser\Node\PropertyItem;
-use PhpParser\Node\Scalar;
 use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Const_ as ConstStmt;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Property;
-use PhpParser\Node\UnionType;
 use PhpParser\NodeAbstract;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ParameterReflection;
+use PHPStan\Reflection\ParametersAcceptor;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
+use PHPStan\Type\MixedType;
+use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
+use function array_all;
 use function array_any;
 use function array_filter;
+use function array_first;
 use function array_map;
 use function array_values;
 use function implode;
@@ -204,9 +207,19 @@ final readonly class BoolishPrefixRule implements Rule
         'do',
     ];
 
-    private const string TYPE_BOOL     = 'bool';
-    private const string TYPE_NON_BOOL = 'non-bool';
-    private const string TYPE_UNKNOWN  = 'unknown';
+    private const string TYPE_BOOL      = 'bool';
+    private const string TYPE_NON_BOOL  = 'non-bool';
+    private const string TYPE_PREDICATE = 'predicate';
+    private const string TYPE_UNKNOWN   = 'unknown';
+
+    /**
+     * @internal invoked by PHPStan
+     *
+     * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
+     */
+    public function __construct(
+        private ReflectionProvider $reflectionProvider,
+    ) {}
 
     /**
      * @internal
@@ -225,12 +238,11 @@ final readonly class BoolishPrefixRule implements Rule
     {
         return array_values(array_filter(
             match (true) {
-                $node instanceof Function_                                 => self::processFunctionOrClassMethod($node, self::KIND_FUNCTION, $scope),
-                $node instanceof ClassMethod                               => self::processFunctionOrClassMethod($node, self::KIND_METHOD, $scope),
-                $node instanceof Closure || $node instanceof ArrowFunction => self::processParams($node),
-                $node instanceof ClassConst                                => self::processConsts($node),
-                $node instanceof ConstStmt                                 => self::processConsts($node),
-                $node instanceof Property                                  => self::processProperty($node),
+                $node instanceof Function_                                 => $this->processFunction($node, $scope),
+                $node instanceof ClassMethod                               => self::processClassMethod($node, $scope),
+                $node instanceof Closure || $node instanceof ArrowFunction => self::processClosure($node, $scope),
+                $node instanceof ClassConst || $node instanceof ConstStmt  => $this->processConsts($node, $scope),
+                $node instanceof Property                                  => self::processProperty($node, $scope),
                 $node instanceof Assign                                    => [self::processAssign($node, $scope)],
                 default                                                    => [],
             },
@@ -239,85 +251,204 @@ final readonly class BoolishPrefixRule implements Rule
     }
 
     /**
+     * @return list<?IdentifierRuleError>
+     */
+    private function processFunction(Function_ $function, Scope $scope): array
+    {
+        $name = new Name($function->namespacedName?->toString() ?? $function->name->toString());
+
+        if (!$this->reflectionProvider->hasFunction($name, $scope)) {
+            return [];
+        }
+
+        return self::processFunctionLike(
+            $function,
+            self::KIND_FUNCTION,
+            array_first($this->reflectionProvider->getFunction($name, $scope)->getVariants()),
+            $scope,
+        );
+    }
+
+    /**
+     * @return list<?IdentifierRuleError>
+     */
+    private static function processClassMethod(ClassMethod $classMethod, Scope $scope): array
+    {
+        $classReflection = $scope->getClassReflection();
+        $methodName      = $classMethod->name->toString();
+
+        if (!$classReflection instanceof ClassReflection
+            || !$classReflection->hasNativeMethod($methodName)
+            || self::isMethodLocked($classMethod, $scope)) {
+            return [];
+        }
+
+        return self::processFunctionLike(
+            $classMethod,
+            self::KIND_METHOD,
+            array_first($classReflection->getNativeMethod($methodName)->getVariants()),
+            $scope,
+        );
+    }
+
+    /**
+     * @return list<?IdentifierRuleError>
+     */
+    private static function processClosure(Closure|ArrowFunction $closure, Scope $scope): array
+    {
+        $acceptor = array_first($scope->getType($closure)->getCallableParametersAcceptors($scope));
+
+        return $acceptor instanceof ParametersAcceptor ? self::processParams($closure, $acceptor, $scope) : [];
+    }
+
+    /**
      * @param self::KIND_FUNCTION|self::KIND_METHOD $kind
      *
      * @return list<?IdentifierRuleError>
      */
-    private static function processFunctionOrClassMethod(Function_|ClassMethod $functionOrMethod, string $kind, Scope $scope): array
-    {
-        if ($functionOrMethod instanceof ClassMethod && self::isMethodLocked($functionOrMethod, $scope)) {
+    private static function processFunctionLike(
+        Function_|ClassMethod $functionOrMethod,
+        string $kind,
+        ?ParametersAcceptor $parametersAcceptor,
+        Scope $scope,
+    ): array {
+        if (!$parametersAcceptor instanceof ParametersAcceptor) {
             return [];
         }
+
+        $returnType = self::classifyType($parametersAcceptor->getReturnType(), $scope);
 
         return [
             self::checkSymbol(
                 $kind,
                 $functionOrMethod->name->toString(),
-                self::classifyTypeNode($functionOrMethod->returnType),
+                $returnType === self::TYPE_PREDICATE ? self::TYPE_NON_BOOL : $returnType,
                 $functionOrMethod->getStartLine(),
             ),
-            ...self::processParams($functionOrMethod),
+            ...self::processParams($functionOrMethod, $parametersAcceptor, $scope),
         ];
     }
 
     /**
      * @return list<?IdentifierRuleError>
      */
-    private static function processParams(FunctionLike $functionLike): array
-    {
-        return array_values(array_map(self::processParam(...), $functionLike->getParams()));
+    private static function processParams(
+        FunctionLike $functionLike,
+        ParametersAcceptor $parametersAcceptor,
+        Scope $scope,
+    ): array {
+        $parameterReflections = $parametersAcceptor->getParameters();
+        $errors               = [];
+
+        foreach ($functionLike->getParams() as $index => $param) {
+            $parameterReflection = $parameterReflections[$index] ?? null;
+
+            if (!$param->var instanceof Variable
+                || !is_string($param->var->name)
+                || !$parameterReflection instanceof ParameterReflection) {
+                continue;
+            }
+
+            $errors = [...$errors, ...self::checkValue(
+                $param,
+                $param->var->name,
+                $parameterReflection->getType(),
+                $scope,
+            )];
+        }
+
+        return $errors;
     }
 
     /**
      * @return list<?IdentifierRuleError>
      */
-    private static function processConsts(ClassConst|ConstStmt $node): array
+    private static function processProperty(Property $property, Scope $scope): array
     {
-        $type = $node instanceof ClassConst ? $node->type : null;
+        $classReflection = $scope->getClassReflection();
+        $errors          = [];
 
+        foreach ($property->props as $propertyItem) {
+            $name = $propertyItem->name->toString();
+
+            if (!$classReflection instanceof ClassReflection || !$classReflection->hasNativeProperty($name)) {
+                continue;
+            }
+
+            $errors = [...$errors, ...self::checkValue(
+                $propertyItem,
+                $name,
+                $classReflection->getNativeProperty($name)->getReadableType(),
+                $scope,
+            )];
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<?IdentifierRuleError>
+     */
+    private static function checkValue(Param|PropertyItem $node, string $name, Type $type, Scope $scope): array
+    {
+        $kind   = $node instanceof Param && $node->flags === 0 ? self::KIND_PARAMETER : self::KIND_PROPERTY;
+        $errors = [self::checkSymbol($kind, $name, self::classifyType($type, $scope), $node->getStartLine())];
+
+        if (!$type->isCallable()->yes()) {
+            return $errors;
+        }
+
+        foreach ($type->getCallableParametersAcceptors($scope) as $callableParametersAcceptor) {
+            foreach ($callableParametersAcceptor->getParameters() as $callableParameter) {
+                if (Str::isEmpty($callableParameter->getName())) {
+                    continue;
+                }
+
+                $errors[] = self::checkSymbol(
+                    self::KIND_PARAMETER,
+                    $callableParameter->getName(),
+                    self::classifyType($callableParameter->getType(), $scope),
+                    $node->getStartLine(),
+                );
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<?IdentifierRuleError>
+     */
+    private function processConsts(ClassConst|ConstStmt $node, Scope $scope): array
+    {
         return array_values(array_map(
-            static fn (Const_ $const): ?IdentifierRuleError => self::checkSymbol(
+            fn (Const_ $const): ?IdentifierRuleError => self::checkSymbol(
                 self::KIND_CONSTANT,
                 $const->name->toString(),
-                $type instanceof Node
-                    ? self::classifyTypeNode($type)
-                    : self::classifyConstValue($const),
+                self::classifyType($this->getConstantType($node, $const, $scope), $scope),
                 $const->getStartLine(),
             ),
             $node->consts,
         ));
     }
 
-    /**
-     * @return list<?IdentifierRuleError>
-     */
-    private static function processProperty(Property $property): array
+    private function getConstantType(ClassConst|ConstStmt $node, Const_ $const, Scope $scope): Type
     {
-        $type = self::classifyTypeNode($property->type);
+        $name = $const->name->toString();
 
-        return array_values(array_map(
-            static fn (PropertyItem $propertyItem): ?IdentifierRuleError => self::checkSymbol(
-                self::KIND_PROPERTY,
-                $propertyItem->name->toString(),
-                $type,
-                $propertyItem->getStartLine(),
-            ),
-            $property->props,
-        ));
-    }
+        if ($node instanceof ClassConst) {
+            $classReflection = $scope->getClassReflection();
 
-    private static function processParam(Param $param): ?IdentifierRuleError
-    {
-        if (!$param->var instanceof Variable || !is_string($param->var->name)) {
-            return null;
+            return $classReflection instanceof ClassReflection && $classReflection->hasConstant($name)
+                ? $classReflection->getConstant($name)->getValueType()
+                : new MixedType();
         }
 
-        return self::checkSymbol(
-            $param->flags === 0 ? self::KIND_PARAMETER : self::KIND_PROPERTY,
-            $param->var->name,
-            self::classifyTypeNode($param->type),
-            $param->getStartLine(),
-        );
+        $constantName = new Name($const->namespacedName?->toString() ?? $name);
+
+        return $this->reflectionProvider->hasConstant($constantName, $scope)
+            ? $this->reflectionProvider->getConstant($constantName, $scope)->getValueType()
+            : new MixedType();
     }
 
     private static function processAssign(Assign $assign, Scope $scope): ?IdentifierRuleError
@@ -328,15 +459,12 @@ final readonly class BoolishPrefixRule implements Rule
             return null;
         }
 
-        $trinaryLogic = $scope->getType($assign->expr)->isBoolean();
-
-        $type = match (true) {
-            $trinaryLogic->yes() => self::TYPE_BOOL,
-            $trinaryLogic->no()  => self::TYPE_NON_BOOL,
-            default              => self::TYPE_UNKNOWN,
-        };
-
-        return self::checkSymbol(self::KIND_VARIABLE, $assign->var->name, $type, $assign->getStartLine());
+        return self::checkSymbol(
+            self::KIND_VARIABLE,
+            $assign->var->name,
+            self::classifyType($scope->getType($assign->expr), $scope),
+            $assign->getStartLine(),
+        );
     }
 
     /**
@@ -345,10 +473,16 @@ final readonly class BoolishPrefixRule implements Rule
      */
     private static function checkSymbol(string $kind, string $name, string $type, int $line): ?IdentifierRuleError
     {
+        if ($type === self::TYPE_PREDICATE) {
+            return in_array(self::getFirstWord($name), self::PREDICATE_PREFIXES, true)
+                ? null
+                : self::buildMissingPrefixError($kind, $name, self::PREDICATE_PREFIXES, $line);
+        }
+
         if ($type === self::TYPE_BOOL) {
             return self::isBoolishName($name, $kind)
                 ? null
-                : self::buildMissingPrefixError($kind, $name, $line);
+                : self::buildMissingPrefixError($kind, $name, self::getPrefixesForKind($kind), $line);
         }
 
         if ($type === self::TYPE_NON_BOOL) {
@@ -459,58 +593,29 @@ final readonly class BoolishPrefixRule implements Rule
     /**
      * @return self::TYPE_*
      */
-    private static function classifyTypeNode(?Node $node): string
+    private static function classifyType(Type $type, Scope $scope): string
     {
-        return match (true) {
-            !$node instanceof Node        => self::TYPE_UNKNOWN,
-            $node instanceof NullableType => self::classifyTypeNode($node->type),
-            $node instanceof Identifier   => self::isBoolName($node) ? self::TYPE_BOOL : self::TYPE_NON_BOOL,
-            $node instanceof UnionType    => self::classifyUnionType($node),
-            default                       => self::TYPE_NON_BOOL,
-        };
-    }
+        $type = TypeCombinator::removeNull($type);
 
-    /**
-     * @return self::TYPE_*
-     */
-    private static function classifyUnionType(UnionType $unionType): string
-    {
-        $hasBool  = array_any($unionType->types, static fn (Node $member): bool => self::isBoolName($member));
-        $hasOther = array_any(
-            $unionType->types,
-            static fn (Node $member): bool => !self::isBoolName($member) && !self::isNullName($member),
-        );
+        if ($type->isCallable()->yes()) {
+            $isPredicate = array_all(
+                $type->getCallableParametersAcceptors($scope),
+                static fn (ParametersAcceptor $parametersAcceptor): bool => $parametersAcceptor
+                    ->getReturnType()
+                    ->isBoolean()
+                    ->yes(),
+            );
+
+            return $isPredicate ? self::TYPE_PREDICATE : self::TYPE_NON_BOOL;
+        }
+
+        $trinaryLogic = $type->isBoolean();
 
         return match (true) {
-            $hasBool && !$hasOther => self::TYPE_BOOL,
-            $hasBool               => self::TYPE_UNKNOWN,
-            default                => self::TYPE_NON_BOOL,
+            $trinaryLogic->yes() => self::TYPE_BOOL,
+            $trinaryLogic->no()  => self::TYPE_NON_BOOL,
+            default              => self::TYPE_UNKNOWN,
         };
-    }
-
-    /**
-     * @return self::TYPE_*
-     */
-    private static function classifyConstValue(Const_ $const): string
-    {
-        return match (true) {
-            $const->value instanceof ConstFetch
-                && in_array(Str::toLowerCase($const->value->name->toString()), ['true', 'false'], true) => self::TYPE_BOOL,
-            $const->value instanceof Scalar || $const->value instanceof Array_                          => self::TYPE_NON_BOOL,
-            default                                                                                     => self::TYPE_UNKNOWN,
-        };
-    }
-
-    private static function isBoolName(Node $node): bool
-    {
-        return $node instanceof Identifier
-            && in_array(Str::toLowerCase($node->name), ['bool', 'true', 'false'], true);
-    }
-
-    private static function isNullName(Node $node): bool
-    {
-        return $node instanceof Identifier
-            && Str::toLowerCase($node->name) === 'null';
     }
 
     private static function isMethodLocked(ClassMethod $classMethod, Scope $scope): bool
@@ -570,14 +675,15 @@ final readonly class BoolishPrefixRule implements Rule
 
     /**
      * @param self::KIND_* $kind
+     * @param non-empty-list<non-empty-string> $prefixes
      */
-    private static function buildMissingPrefixError(string $kind, string $name, int $line): IdentifierRuleError
+    private static function buildMissingPrefixError(string $kind, string $name, array $prefixes, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
             '%s name `%s` must have one of the following prefixes: %s.',
             $kind,
             $name,
-            implode(', ', self::getPrefixesForKind($kind)),
+            implode(', ', $prefixes),
         ), $line);
     }
 
