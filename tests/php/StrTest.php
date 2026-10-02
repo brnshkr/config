@@ -38,4 +38,31 @@ final class StrTest extends TestCase
             yield sprintf('"%s"', $candidate) => [$candidate];
         }
     }
+
+    /**
+     * @param non-empty-string $path
+     */
+    #[DataProvider('provideAPathIsResolvedAgainstTheWorkingDirectoryUnlessAbsoluteCases')]
+    public function testAPathIsResolvedAgainstTheWorkingDirectoryUnlessAbsolute(string $expected, string $path): void
+    {
+        self::assertSame($expected, Str::toAbsolutePath('/acme/', $path));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, non-empty-string}>
+     */
+    public static function provideAPathIsResolvedAgainstTheWorkingDirectoryUnlessAbsoluteCases(): iterable
+    {
+        yield 'absolute' => ['/etc/acme', '/etc/acme'];
+
+        yield 'relative' => ['/acme/src', 'src'];
+
+        yield 'dot-prefixed' => ['/acme/src', './src'];
+
+        yield 'dot-prefixed dotfile' => ['/acme/.env', './.env'];
+
+        yield 'dot-prefixed dot directory' => ['/acme/.cache/acme.json', './.cache/acme.json'];
+
+        yield 'parent' => ['/acme/../user', '../user'];
+    }
 }

@@ -222,9 +222,7 @@ final readonly class Str
             return $path;
         }
 
-        return $cwd . (self::startsWith($path, './')
-            ? self::trim($path, './', 'start')
-            : $path);
+        return $cwd . (self::startsWith($path, './') ? self::slice($path, 2) : $path);
     }
 
     /**
