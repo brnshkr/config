@@ -601,6 +601,7 @@ final class Spelling
             2 => STDERR,
         ];
 
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
         $process = proc_open($command, $descriptors, $processPipes, $workingDirectory);
 
         if ($process === false) {
@@ -608,6 +609,7 @@ final class Spelling
         }
 
         if (!isset($processPipes[0], $processPipes[1])) {
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
             proc_close($process);
 
             throw new RuntimeException(sprintf('"%s" opened no pipes.', implode(' ', $command)));
@@ -615,7 +617,9 @@ final class Spelling
 
         fclose($processPipes[0]);
 
-        $output   = self::readUntilEndOfFile($process, $processPipes[1], $command);
+        $output = self::readUntilEndOfFile($process, $processPipes[1], $command);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
         $exitCode = proc_close($process);
 
         if ($exitCode !== 0) {
@@ -648,8 +652,10 @@ final class Spelling
             $remainingSeconds = $deadline - microtime(true);
 
             if ($remainingSeconds <= 0) {
+                // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
                 proc_terminate($process);
                 fclose($pipe);
+                // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
                 proc_close($process);
 
                 throw new RuntimeException(sprintf(

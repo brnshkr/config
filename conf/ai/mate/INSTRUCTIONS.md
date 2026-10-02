@@ -43,7 +43,8 @@ follow them, don't restate them. Beyond what tooling catches:
 - Else-if chains or lookup maps over `switch` (not lint-enforced — apply it).
 - A statement spanning lines gets a blank line before and after it and never joins an aligned group
   (not lint-enforced — TS has `padding-line-between-statements`, PHP nothing).
-- Many native functions are banned for wrappers (`Str`, `Json`, `Filesystem`, Symfony `s()`) — see `conf/ai/docs/php.md`.
+- Many native functions are banned for wrappers (`Str`, `Json`, Symfony `s()`, Filesystem, Finder, Process)
+  — see `conf/ai/docs/php.md`.
 - Sample code calling `@no-named-arguments` classes (the builders + rule classes) uses positional args only.
 
 ### TS

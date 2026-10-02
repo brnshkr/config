@@ -12,17 +12,18 @@ use Override;
 use Phar;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Finder\Finder;
+use UnexpectedValueException;
 
 use function array_filter;
+use function array_first;
 use function count;
 use function explode;
-use function glob;
 use function is_dir;
-use function is_file;
 use function is_readable;
-use function mkdir;
 use function sprintf;
 use function Symfony\Component\String\s;
 
@@ -84,7 +85,7 @@ final class ExtractPharCommand extends AbstractCommand
             s($this->filesystem->makePathRelative($targetDirectory, $cwd))->trimEnd('/'),
         ));
 
-        self::extractPhar($pharPath, $targetDirectory);
+        $this->extractPhar($pharPath, $targetDirectory);
 
         return self::SUCCESS;
     }
@@ -120,26 +121,33 @@ final class ExtractPharCommand extends AbstractCommand
             throw new InvalidArgumentException(sprintf('Package directory "%s" does not exist.', $vendorDirectory));
         }
 
-        $phars = glob($vendorDirectory . '/*.phar');
+        $finder = new Finder()
+            ->files()
+            ->in($vendorDirectory)
+            ->depth(0)
+            ->name('*.phar')
+            ->sortByName()
+        ;
 
-        if ($phars === false || $phars === [] || Str::isEmpty($phars[0]) || !is_file($phars[0]) || !is_readable($phars[0])) {
+        $pharPath = array_first([...$finder])?->getPathname() ?? '';
+
+        if (Str::isEmpty($pharPath) || !is_readable($pharPath)) {
             throw new RuntimeException(sprintf('No .phar binary found in "%s".', $vendorDirectory));
         }
 
-        return $phars[0];
+        return $pharPath;
     }
 
     /**
      * @param non-empty-string $pharPath
      * @param non-empty-string $targetDirectory
      *
-     * @throws RuntimeException
+     * @throws IOException
+     * @throws UnexpectedValueException
      */
-    private static function extractPhar(string $pharPath, string $targetDirectory): void
+    private function extractPhar(string $pharPath, string $targetDirectory): void
     {
-        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, recursive: true) && !is_dir($targetDirectory)) {
-            throw new RuntimeException(sprintf('Failed to create directory "%s".', $targetDirectory));
-        }
+        $this->filesystem->mkdir($targetDirectory);
 
         try {
             new Phar($pharPath)->extractTo($targetDirectory, overwrite: true);

@@ -80,6 +80,13 @@
         "strictRules": {
             "allRules": true
         },
+        "type_coverage": {
+            "constant_type": 100,
+            "declare": 100,
+            "param_type": 100,
+            "property_type": 100,
+            "return_type": 100
+        },
         "type_perfect": {
             "narrow_return": true,
             "no_empty_on_object": true,
@@ -87,13 +94,6 @@
             "no_mixed": true,
             "no_param_type_removal": true,
             "null_over_false": true
-        },
-        "type_coverage": {
-            "constant_type": 100,
-            "declare": 100,
-            "param_type": 100,
-            "property_type": 100,
-            "return_type": 100
         },
         "symplify": {
             "ctor": true,
@@ -215,7 +215,8 @@
                     "PhpParser\\Node\\Expr\\PreInc",
                     "PhpParser\\Node\\InterpolatedStringPart",
                     "PhpParser\\Node\\Scalar\\InterpolatedString",
-                    "PhpParser\\Node\\Stmt\\Switch_"
+                    "PhpParser\\Node\\Stmt\\Switch_",
+                    "PhpParser\\Node\\Expr\\ShellExec"
                 ]
             }
         },
@@ -244,18 +245,12 @@
                     "extract": "Explicitly define variables for the entries of the array.",
                     "method_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
                     "property_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
-                    "class_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
-                    "interface_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
-                    "trait_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
-                    "enum_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
                     "spl_autoload": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
                     "spl_autoload_*": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
                     "var_dump": "Please remove all debug functions. Use a logger if needed.",
                     "dd": "Please remove all debug functions. Use a logger if needed.",
                     "dump": "Please remove all debug functions. Use a logger if needed.",
                     "debug": "Please remove all debug functions. Use a logger if needed.",
-                    "file_get_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::readFile()\" instead.",
-                    "file_put_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::dumpFile()\" or \"Symfony\\Component\\Filesystem\\Filesystem::appendToFile()\" instead.",
                     "ucfirst": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
                     "mb_ucfirst": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
                     "ucwords": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
@@ -308,6 +303,30 @@
                     "preg_match": "Use \"Symfony\\Component\\String\\s::match()\" instead.",
                     "preg_replace_callback": "Use \"Symfony\\Component\\String\\s::replaceMatches()\" instead.",
                     "preg_replace": "Use \"Symfony\\Component\\String\\s::replaceMatches()\" instead.",
+                    "chgrp": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chgrp()\" instead.",
+                    "chmod": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chmod()\" instead.",
+                    "chown": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chown()\" instead.",
+                    "copy": "Use \"Symfony\\Component\\Filesystem\\Filesystem::copy()\" instead.",
+                    "file_get_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::readFile()\" instead.",
+                    "file_put_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::dumpFile()\" or \"Symfony\\Component\\Filesystem\\Filesystem::appendToFile()\" instead.",
+                    "link": "Use \"Symfony\\Component\\Filesystem\\Filesystem::hardlink()\" instead.",
+                    "mkdir": "Use \"Symfony\\Component\\Filesystem\\Filesystem::mkdir()\" instead.",
+                    "readlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::readlink()\" instead.",
+                    "rename": "Use \"Symfony\\Component\\Filesystem\\Filesystem::rename()\" instead.",
+                    "rmdir": "Use \"Symfony\\Component\\Filesystem\\Filesystem::remove()\" instead.",
+                    "symlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::symlink()\" instead.",
+                    "tempnam": "Use \"Symfony\\Component\\Filesystem\\Filesystem::tempnam()\" instead.",
+                    "touch": "Use \"Symfony\\Component\\Filesystem\\Filesystem::touch()\" instead.",
+                    "unlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::remove()\" instead.",
+                    "glob": "Use \"Symfony\\Component\\Finder\\Finder::name()\" instead.",
+                    "opendir": "Use \"Symfony\\Component\\Finder\\Finder::in()\" with \"Symfony\\Component\\Finder\\Finder::depth()\" instead.",
+                    "scandir": "Use \"Symfony\\Component\\Finder\\Finder::in()\" with \"Symfony\\Component\\Finder\\Finder::depth()\" instead.",
+                    "exec": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" instead.",
+                    "passthru": "Use \"Symfony\\Component\\Process\\Process::run()\" with an output callback instead.",
+                    "popen": "Use \"Symfony\\Component\\Process\\Process::start()\" instead.",
+                    "proc_*": "Use \"Symfony\\Component\\Process\\Process::start()\" instead.",
+                    "shell_exec": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" with \"Symfony\\Component\\Process\\Process::getOutput()\" instead.",
+                    "system": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" instead.",
                     "json_decode": "Use \"Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::decode()\" instead.",
                     "json_encode": "Use \"Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::encode()\" instead."
                 }

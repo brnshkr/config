@@ -39,6 +39,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo as SymfonySplFileInfo;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\String\AbstractString;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -59,7 +60,6 @@ use function array_unique;
 use function array_values;
 use function class_exists;
 use function explode;
-use function function_exists;
 use function get_debug_type;
 use function getcwd;
 use function implode;
@@ -73,13 +73,11 @@ use function iterator_to_array;
 use function ksort;
 use function serialize;
 use function sprintf;
-use function Symfony\Component\String\s;
 
 // @codeCoverageIgnoreStart
 // NOTICE: Ignored so a random test is not charged with this file-level statement
 Module::PhpStan->warnMissingPackages();
 
-// @phpstan-ignore symplify.forbiddenFuncCall (Guards the class declaration so this self-returning config can be safely required more than once, e.g. via PHPStan's 'includes')
 if (class_exists(PhpStan::class)) {
     return PhpStan::getConfig();
 }
@@ -1586,14 +1584,13 @@ final class PhpStan
         ];
 
         /** @disregard P1009 nesbot/carbon is not a dependency of brnshkr/config */
-        // @phpstan-ignore symplify.forbiddenFuncCall (nesbot/carbon is not a dependency of brnshkr/config)
         if (class_exists(Carbon::class)) {
             /** @disregard P1009 nesbot/carbon is not a dependency of brnshkr/config */
             // @phpstan-ignore class.notFound (nesbot/carbon is not a dependency of brnshkr/config)
             $preferredClassesMap[Carbon::class] = CarbonImmutable::class;
         }
 
-        // @phpstan-ignore symplify.preferredClass (See ->), symplify.forbiddenFuncCall (We need to disable both these rules here of course)
+        // @phpstan-ignore symplify.preferredClass (We need to disable this rule here of course)
         if (class_exists(PhpCsFixerFinder::class)) {
             // @phpstan-ignore symplify.preferredClass (We need to disable this rules here of course)
             $preferredClassesMap[PhpCsFixerFinder::class] = Finder::class;
@@ -1854,7 +1851,7 @@ final class PhpStan
      */
     private static function getForbiddenNodes(): array
     {
-        return [
+        $forbiddenNodes = [
             Node\Expr\Empty_::class,
             Node\Expr\ErrorSuppress::class,
             Node\Expr\PostDec::class,
@@ -1865,6 +1862,12 @@ final class PhpStan
             Node\Scalar\InterpolatedString::class,
             Node\Stmt\Switch_::class,
         ];
+
+        if (class_exists(Process::class)) {
+            $forbiddenNodes[] = Node\Expr\ShellExec::class;
+        }
+
+        return $forbiddenNodes;
     }
 
     /**
@@ -1873,31 +1876,21 @@ final class PhpStan
     private static function getForbiddenFunctions(): array
     {
         $forbiddenFunctions = [
-            'eval'              => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'compact'           => 'Explicitly assign to keys in the array.',
-            'extract'           => 'Explicitly define variables for the entries of the array.',
-            'method_exists'     => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'property_exists'   => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'class_exists'      => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'interface_exists'  => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'trait_exists'      => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'enum_exists'       => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload'      => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload_*'    => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'var_dump'          => 'Please remove all debug functions. Use a logger if needed.',
-            'dd'                => 'Please remove all debug functions. Use a logger if needed.',
-            'dump'              => 'Please remove all debug functions. Use a logger if needed.',
-            'debug'             => 'Please remove all debug functions. Use a logger if needed.',
-            'file_get_contents' => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
-            'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
+            'eval'            => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'compact'         => 'Explicitly assign to keys in the array.',
+            'extract'         => 'Explicitly define variables for the entries of the array.',
+            'method_exists'   => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'property_exists' => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload'    => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload_*'  => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'var_dump'        => 'Please remove all debug functions. Use a logger if needed.',
+            'dd'              => 'Please remove all debug functions. Use a logger if needed.',
+            'dump'            => 'Please remove all debug functions. Use a logger if needed.',
+            'debug'           => 'Please remove all debug functions. Use a logger if needed.',
         ];
 
-        if (function_exists('Symfony\Component\String\s')) {
-            $stringFunction = s(AbstractString::class)
-                ->beforeLast('\\')
-                ->append('\s')
-                ->toString()
-            ;
+        if (class_exists(AbstractString::class)) {
+            $stringFunction = Str::beforeLast(AbstractString::class, '\\') . '\s';
 
             $forbiddenFunctions = [
                 ...$forbiddenFunctions,
@@ -1956,14 +1949,54 @@ final class PhpStan
             ];
         }
 
+        if (class_exists(Filesystem::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'chgrp'             => sprintf('Use "%s::chgrp()" instead.', Filesystem::class),
+                'chmod'             => sprintf('Use "%s::chmod()" instead.', Filesystem::class),
+                'chown'             => sprintf('Use "%s::chown()" instead.', Filesystem::class),
+                'copy'              => sprintf('Use "%s::copy()" instead.', Filesystem::class),
+                'file_get_contents' => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
+                'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
+                'link'              => sprintf('Use "%s::hardlink()" instead.', Filesystem::class),
+                'mkdir'             => sprintf('Use "%s::mkdir()" instead.', Filesystem::class),
+                'readlink'          => sprintf('Use "%s::readlink()" instead.', Filesystem::class),
+                'rename'            => sprintf('Use "%s::rename()" instead.', Filesystem::class),
+                'rmdir'             => sprintf('Use "%s::remove()" instead.', Filesystem::class),
+                'symlink'           => sprintf('Use "%s::symlink()" instead.', Filesystem::class),
+                'tempnam'           => sprintf('Use "%s::tempnam()" instead.', Filesystem::class),
+                'touch'             => sprintf('Use "%s::touch()" instead.', Filesystem::class),
+                'unlink'            => sprintf('Use "%s::remove()" instead.', Filesystem::class),
+            ];
+        }
+
+        if (class_exists(Finder::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'glob'    => sprintf('Use "%s::name()" instead.', Finder::class),
+                'opendir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
+                'scandir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
+            ];
+        }
+
+        if (class_exists(Process::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'exec'       => sprintf('Use "%s::mustRun()" instead.', Process::class),
+                'passthru'   => sprintf('Use "%s::run()" with an output callback instead.', Process::class),
+                'popen'      => sprintf('Use "%s::start()" instead.', Process::class),
+                'proc_*'     => sprintf('Use "%s::start()" instead.', Process::class),
+                'shell_exec' => sprintf('Use "%1$s::mustRun()" with "%1$s::getOutput()" instead.', Process::class),
+                'system'     => sprintf('Use "%s::mustRun()" instead.', Process::class),
+            ];
+        }
+
         /** @disregard P1009 symfony/http-client-contracts is not a dependency of brnshkr/config */
-        // @phpstan-ignore symplify.forbiddenFuncCall (symfony/http-client-contracts is not a dependency of brnshkr/config)
         if (interface_exists(HttpClientInterface::class)) {
-            $forbiddenFunctions['curl_*'] = sprintf('Use an implementation of "%s" or any alternative HTTP client instead.', HttpClientInterface::class);
+            $forbiddenFunctions['curl_*'] = sprintf('Use "%s::request()" or any alternative HTTP client instead.', HttpClientInterface::class);
         }
 
         /** @disregard P1009 symfony/serializer is not a dependency of brnshkr/config */
-        // @phpstan-ignore symplify.forbiddenFuncCall (symfony/serializer is not a dependency of brnshkr/config)
         if (class_exists(JsonEncoder::class)) {
             $forbiddenFunctions['json_decode'] = sprintf('Use "%s::decode()" instead.', JsonEncoder::class);
             $forbiddenFunctions['json_encode'] = sprintf('Use "%s::encode()" instead.', JsonEncoder::class);

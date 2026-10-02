@@ -32,7 +32,6 @@ namespace {
 namespace Symfony\Component\Dotenv {
     use Brnshkr\Config\Exception\UnreachableException;
 
-    // @phpstan-ignore symplify.forbiddenFuncCall (A stub may only be declared when the real class is absent, which is the one thing this can ask)
     if (!\class_exists(Dotenv::class)) {
         /**
          * @no-named-arguments
@@ -53,7 +52,6 @@ namespace Symfony\Component\Dotenv {
 namespace Symfony\Bundle\FrameworkBundle\Console {
     use Brnshkr\Config\Exception\UnreachableException;
 
-    // @phpstan-ignore symplify.forbiddenFuncCall (A stub may only be declared when the real class is absent, which is the one thing this can ask)
     if (!\class_exists(Application::class)) {
         /**
          * @no-named-arguments

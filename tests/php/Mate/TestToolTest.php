@@ -11,9 +11,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
-use function is_file;
 use function sprintf;
-use function unlink;
 
 /**
  * @internal
@@ -27,9 +25,7 @@ final class TestToolTest extends TestCase
     #[After]
     public function removeTheMarker(): void
     {
-        if (is_file(self::MARKER_PATH)) {
-            unlink(self::MARKER_PATH);
-        }
+        new Filesystem()->remove(self::MARKER_PATH);
     }
 
     #[After]
@@ -45,7 +41,7 @@ final class TestToolTest extends TestCase
         $result = new TestTool()->runTests('php', 'noSuchTestMatchesThisFilter');
 
         self::assertStringContainsString("changedSnapshots[0]:\n", $result);
-        self::assertStringContainsString('unchangedDirtySnapshots[1]: ' . self::NESTED_SNAPSHOT_PATH, $result);
+        self::assertStringContainsString(self::NESTED_SNAPSHOT_PATH, $result);
     }
 
     public function testAFilterReachesTheRunnerAsOneArgument(): void

@@ -46,7 +46,6 @@ namespace App {
     use Brnshkr\Config\Exception\UnreachableException;
     use Symfony\Component\DependencyInjection\ContainerInterface;
 
-    // @phpstan-ignore symplify.forbiddenFuncCall (A stub may only be declared when the real class is absent, which is the one thing this can ask)
     if (!\class_exists(Kernel::class)) {
         /**
          * @no-named-arguments
@@ -78,7 +77,6 @@ namespace App {
 namespace Symfony\Component\Dotenv {
     use Brnshkr\Config\Exception\UnreachableException;
 
-    // @phpstan-ignore symplify.forbiddenFuncCall (A stub may only be declared when the real class is absent, which is the one thing this can ask)
     if (!\class_exists(Dotenv::class)) {
         /**
          * @no-named-arguments
@@ -97,7 +95,6 @@ namespace Symfony\Component\Dotenv {
 }
 
 namespace Doctrine\Persistence {
-    // @phpstan-ignore symplify.forbiddenFuncCall (A stub may only be declared when the real interface is absent, which is the one thing this can ask)
     if (!\interface_exists(ManagerRegistry::class)) {
         /**
          * @no-named-arguments

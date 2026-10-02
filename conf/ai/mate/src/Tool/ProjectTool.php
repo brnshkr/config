@@ -11,13 +11,11 @@ use RuntimeException;
 use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 use function array_diff;
 use function array_filter;
-use function array_map;
 use function array_values;
-use function basename;
-use function glob;
 use function in_array;
 use function is_string;
 use function sort;
@@ -79,10 +77,10 @@ final class ProjectTool
     public function auditRuleDocs(): string
     {
         $rootDirectory = Project::getRootDirectory();
-        $phpRules      = $this->getRuleNames(sprintf('%s/src/php/PhpStan/Rule/*Rule.php', $rootDirectory), '.php');
-        $phpDocs       = $this->getRuleNames(sprintf('%s/docs/php/phpstan/rules/*Rule.md', $rootDirectory), '.md');
-        $jsRules       = $this->getRuleNames(sprintf('%s/src/js/eslint/configs/builtin/*.ts', $rootDirectory), '.ts');
-        $jsDocs        = $this->getRuleNames(sprintf('%s/docs/js/eslint/rules/*.md', $rootDirectory), '.md');
+        $phpRules      = $this->getRuleNames($rootDirectory . '/src/php/PhpStan/Rule', '*Rule.php', '.php');
+        $phpDocs       = $this->getRuleNames($rootDirectory . '/docs/php/phpstan/rules', '*Rule.md', '.md');
+        $jsRules       = $this->getRuleNames($rootDirectory . '/src/js/eslint/configs/builtin', '*.ts', '.ts');
+        $jsDocs        = $this->getRuleNames($rootDirectory . '/docs/js/eslint/rules', '*.md', '.md');
 
         return Project::encode([
             'php'    => $this->buildDocsReport($phpRules, $phpDocs),
@@ -161,15 +159,16 @@ final class ProjectTool
     }
 
     /**
-     * @param non-empty-string $pattern
+     * @param non-empty-string $directory
+     * @param non-empty-string $namePattern
      * @param non-empty-string $extension
      *
      * @return list<non-empty-string>
      */
-    private function getRuleNames(string $pattern, string $extension): array
+    private function getRuleNames(string $directory, string $namePattern, string $extension): array
     {
         return array_values(array_filter(
-            $this->getBasenamesByGlob($pattern, $extension),
+            $this->getBasenames($directory, $namePattern, $extension),
             static fn (string $name): bool => $name !== '' && $name !== 'index',
         ));
     }
@@ -197,17 +196,26 @@ final class ProjectTool
     }
 
     /**
-     * @param non-empty-string $pattern
+     * @param non-empty-string $directory
+     * @param non-empty-string $namePattern
      * @param non-empty-string $extension
      *
      * @return list<string>
      */
-    private function getBasenamesByGlob(string $pattern, string $extension): array
+    private function getBasenames(string $directory, string $namePattern, string $extension): array
     {
-        $names = array_map(
-            static fn (string $path): string => basename($path, $extension),
-            glob($pattern) ?: [],
-        );
+        $names = [];
+
+        $finder = new Finder()
+            ->files()
+            ->in($directory)
+            ->depth(0)
+            ->name($namePattern)
+        ;
+
+        foreach ($finder as $file) {
+            $names[] = $file->getBasename($extension);
+        }
 
         sort($names);
 

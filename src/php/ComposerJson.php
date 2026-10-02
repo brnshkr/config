@@ -563,7 +563,7 @@ final class ComposerJson
             ->toString()
         ;
 
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/finder since this class is shared by all modules and not all of them rely on it)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem since this class is shared by all modules and not all of them rely on it)
         if (file_put_contents($this->path, $data) === false) {
             $this->data = $previousData;
 
@@ -952,7 +952,7 @@ final class ComposerJson
             return [];
         }
 
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/finder since this class is shared by all modules and not all of them rely on it)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem since this class is shared by all modules and not all of them rely on it)
         return $this->decodeJson(file_get_contents($path) ?: '[]', $path);
     }
 

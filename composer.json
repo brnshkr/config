@@ -66,6 +66,7 @@
     "sebastian/diff": "9.0.1",
     "spatie/phpunit-snapshot-assertions": "5.4.0",
     "symfony/ai-mate": "0.13.0",
+    "symfony/filesystem": "8.1.6",
     "symfony/finder": "8.1.7",
     "symfony/process": "8.1.7",
     "symplify/phpstan-rules": "14.15.0",

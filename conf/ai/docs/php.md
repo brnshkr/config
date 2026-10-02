@@ -3,8 +3,11 @@
 ## Writing code
 
 - `conf/*.php` are gitignored private halves that `make configs local` writes as an `include` of the tracked `*.dist.php`.
-- Native functions such as `trim` or `json_decode` are forbidden. PHPStan names the replacement, usually in `Str`, `Json`
-  or Symfony String.
+- Native functions such as `trim`, `json_decode`, `mkdir` or `shell_exec` are forbidden wherever the component
+  replacing them is installed. PHPStan names the replacement, usually in `Str`, `Json`, Symfony String,
+  Filesystem, Finder or Process.
+  A scope every module shares (`Str`, `ComposerJson`, `Spelling`) keeps the native call behind
+  `@phpstan-ignore symplify.forbiddenFuncCall (…)`
 - Checked exceptions are declared with `@throws`, except in the `autoload-dev` directories.
 - An `@internal` symbol is usable at or below its own namespace, or below the namespace its tag names.
 - Write `#[\Override]` up front; Rector adds it otherwise.
