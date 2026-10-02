@@ -283,5 +283,30 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/ARGS +=  'vv' /`,
     regex: /ARGS +=  'vv' /v,
   },
+  {
+    file: 'tests/php/StrTest.php',
+    php: String.raw`/./`,
+    regex: /./v,
+  },
+  {
+    file: 'tests/php/StrTest.php',
+    php: String.raw`/^./`,
+    regex: /^./v,
+  },
+  {
+    file: 'tests/php/StrTest.php',
+    php: String.raw`/(?<year>\d{4})-(?<month>\d{2})(?:-(?<day>\d{2}))?/`,
+    regex: /(?<year>\d{4})-(?<month>\d{2})(?:-(?<day>\d{2}))?/v,
+  },
+  {
+    file: 'tests/php/StrTest.php',
+    php: String.raw`/\d/`,
+    regex: /\d/v,
+  },
+  {
+    file: 'tests/php/StrTest.php',
+    php: String.raw`/(?<letter>[a-z])(?<digit>\d)/`,
+    regex: /(?<letter>[a-z])(?<digit>\d)/v,
+  },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */
