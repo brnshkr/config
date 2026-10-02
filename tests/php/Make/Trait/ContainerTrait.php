@@ -6,6 +6,7 @@ namespace Brnshkr\Config\Tests\Make\Trait;
 
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\AfterClass;
+use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -13,8 +14,15 @@ use Symfony\Component\Process\Process;
 use function array_unique;
 use function basename;
 use function is_readable;
+use function pcntl_async_signals;
+use function pcntl_signal;
 use function posix_getgid;
 use function posix_getuid;
+
+use const SIG_IGN;
+use const SIGHUP;
+use const SIGINT;
+use const SIGTERM;
 
 /**
  * @internal
@@ -40,10 +48,34 @@ trait ContainerTrait
         self::MODE_INSIDE,
     ];
 
+    private const array STOP_SIGNALS = [
+        SIGHUP,
+        SIGINT,
+        SIGTERM,
+    ];
+
     /**
      * @var list<string>
      */
     private static array $startedFixtureDirectories = [];
+
+    #[BeforeClass]
+    public static function stopTheContainerFixturesOnInterrupt(): void
+    {
+        pcntl_async_signals(true);
+
+        foreach (self::STOP_SIGNALS as $stopSignal) {
+            pcntl_signal($stopSignal, static function (int $signal): never {
+                foreach (self::STOP_SIGNALS as $ignoredSignal) {
+                    pcntl_signal($ignoredSignal, SIG_IGN);
+                }
+
+                self::removeWhatTheContainerFixturesStarted();
+
+                exit(128 + $signal);
+            });
+        }
+    }
 
     #[AfterClass]
     public static function removeWhatTheContainerFixturesStarted(): void

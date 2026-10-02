@@ -4,7 +4,7 @@ services:
     user: ${HOST_UID:?HOST_UID is required}:${HOST_GID:?HOST_GID is required}
     working_dir: /app/tests/php/Fixtures/Make/Container
     init: true
-    command: sleep infinity
+    command: sleep 300
     volumes:
       - ../../../../..:/app
 
@@ -13,6 +13,6 @@ services:
     user: ${HOST_UID:?HOST_UID is required}:${HOST_GID:?HOST_GID is required}
     working_dir: /app/tests/php/Fixtures/Make/Container
     init: true
-    command: sleep infinity
+    command: sleep 300
     volumes:
       - ../../../../..:/app
