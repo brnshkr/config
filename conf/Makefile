@@ -1633,6 +1633,8 @@ $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
+$(call _target,phpunit-update): export UPDATE_SNAPSHOTS = true
+$(call _target,phpunit-update): _FORWARDED_KEYS += UPDATE_SNAPSHOTS
 
 endif # /phpunit
 

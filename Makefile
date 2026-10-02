@@ -62,6 +62,8 @@ PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
 	$(if $(_HAS_FORGE_IMAGE),,container) \
 	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
 
+PHP_UNIT_FLAGS += --parallel --processes=2
+
 export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
 
 #---vv tools
