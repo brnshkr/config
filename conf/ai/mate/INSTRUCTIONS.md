@@ -41,6 +41,8 @@ follow them, don't restate them. Beyond what tooling catches:
 - Naming that drives generation: boolean symbols need a boolish prefix (`is`/`has`/`can`; `as` for flag params/props),
   single-`*Interface` implementers take the matching suffix, traits suffix `Trait`, `@api` classes also carry `@no-named-arguments`.
 - Else-if chains or lookup maps over `switch` (not lint-enforced — apply it).
+- A statement spanning lines gets a blank line before and after it and never joins an aligned group
+  (not lint-enforced — TS has `padding-line-between-statements`, PHP nothing).
 - Many native functions are banned for wrappers (`Str`, `Json`, `Filesystem`, Symfony `s()`) — see `conf/ai/docs/php.md`.
 - Sample code calling `@no-named-arguments` classes (the builders + rule classes) uses positional args only.
 

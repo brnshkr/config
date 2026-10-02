@@ -4,34 +4,31 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\Make\Trait;
 
+use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\After;
-use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SebastianBergmann\Diff\Differ;
+use SebastianBergmann\Diff\Output\StrictUnifiedDiffOutputBuilder;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Process;
 
 use function array_chunk;
-use function array_diff;
+use function array_first;
+use function array_key_first;
 use function array_map;
-use function dirname;
-use function fclose;
-use function flock;
-use function fopen;
+use function bin2hex;
 use function getenv;
-use function is_dir;
-use function is_file;
-use function is_link;
-use function mkdir;
+use function implode;
+use function md5;
+use function random_bytes;
 use function realpath;
-use function rmdir;
-use function scandir;
 use function sprintf;
 use function Symfony\Component\String\s;
-use function unlink;
-
-use const LOCK_EX;
-use const LOCK_UN;
+use function sys_get_temp_dir;
+use function uasort;
 
 /**
  * @internal
@@ -40,30 +37,26 @@ use const LOCK_UN;
  */
 trait MakeTrait
 {
-    private const string MAKEFILE_PATH         = __DIR__ . '/../../../../conf/Makefile';
-    private const string FIXTURES_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/Help';
-    private const string CONFIGS_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Configs';
-    private const string TSCONFIG_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/Typescript';
-    private const string CACHES_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/Caches';
-    private const string FALLBACK_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/ConfigFallback';
-    private const string VENDOR_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/ConfigVendor';
-    private const string STARTUP_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Startup';
-    private const string LINTERS_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Linters';
-    private const string DOTENV_DIRECTORY      = __DIR__ . '/../../Fixtures/Make/Dotenv';
-    private const string REFUSED_STAGE_PATH    = self::DOTENV_DIRECTORY . '/.env.stage:;false;#';
-    private const string UNQUOTABLE_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/it\'s';
-    private const string PARENT_NAME_DIRECTORY = __DIR__ . '/../../Fixtures/Make/ParentName';
-    private const string FIXTURE_LOCK_PATH     = __DIR__ . '/../../../../.cache/make-fixtures.lock';
-
-    private const array CONFIG_DIRECTORIES = [
-        self::CONFIGS_DIRECTORY,
-        self::FALLBACK_DIRECTORY,
-        self::VENDOR_DIRECTORY,
-        self::STARTUP_DIRECTORY,
-        self::TSCONFIG_DIRECTORY,
+    protected const array COLORED_ENV = [
+        'NO_COLOR'    => '',
+        'FORCE_COLOR' => '1',
     ];
 
-    private const int CONCURRENT_RUNS = 4;
+    protected const string PROJECT_DIRECTORY  = __DIR__ . '/../../../..';
+    protected const string CONSUMER_DIRECTORY = __DIR__ . '/../../Fixtures/Make/Consumer';
+    protected const string TOOLS_DIRECTORY    = __DIR__ . '/../../Fixtures/Make/Tools';
+
+    private const string MAKEFILE_PATH       = self::PROJECT_DIRECTORY . '/conf/Makefile';
+    private const string FIXTURES_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Help';
+    private const string FIXTURE_ROOT_PREFIX = 'brnshkr-make-fixture-';
+    private const int CONCURRENT_RUNS        = 2;
+
+    private const array UNLINKED_PROJECT_ENTRIES = [
+        '.cache',
+        '.git',
+        '.local',
+        'tests',
+    ];
 
     private const array BASELINE_ENV = [
         'MAKEFLAGS'         => '',
@@ -76,113 +69,68 @@ trait MakeTrait
     ];
 
     /**
-     * @var ?resource
+     * @var array<array-key, string>
      */
-    private $fixtureLockHandle;
+    private array $fixtureCopies = [];
 
-    #[Before]
-    public function claimTheFixturesForThisTest(): void
-    {
-        $fixtureLockDirectory = dirname(self::FIXTURE_LOCK_PATH);
-
-        if (!is_dir($fixtureLockDirectory)) {
-            mkdir($fixtureLockDirectory, recursive: true);
-        }
-
-        $fixtureLockHandle = fopen(self::FIXTURE_LOCK_PATH, 'c');
-
-        if ($fixtureLockHandle === false) {
-            /** @disregard P1013 \@phpstan-require-extends is not recognized by intelephense (See: https://github.com/bmewburn/vscode-intelephense/issues/3256) */
-            self::fail('The fixture lock could not be opened.');
-        }
-
-        $this->fixtureLockHandle = $fixtureLockHandle;
-
-        flock($fixtureLockHandle, LOCK_EX);
-        $this->removeWhatTheFixturesWrote();
-    }
+    /**
+     * @var list<string>
+     */
+    private array $fixtureRoots = [];
 
     #[After]
-    public function releaseTheFixturesAfterThisTest(): void
+    public function removeTheFixtureRoots(): void
     {
-        $this->removeWhatTheFixturesWrote();
-
-        if ($this->fixtureLockHandle === null) {
-            return;
-        }
-
-        flock($this->fixtureLockHandle, LOCK_UN);
-        fclose($this->fixtureLockHandle);
-
-        $this->fixtureLockHandle = null;
-    }
-
-    private function removeWhatTheFixturesWrote(): void
-    {
-        $writtenPaths = [
-            self::CONFIGS_DIRECTORY . '/.gitignore',
-            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/php-cs-fixer.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpstan.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpstan.php',
-            self::CONFIGS_DIRECTORY . '/conf/phpunit.dist.xml',
-            self::CONFIGS_DIRECTORY . '/conf/phpunit.xml',
-            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.dist.php',
-            self::CONFIGS_DIRECTORY . '/conf/twig-cs-fixer.php',
-            self::FALLBACK_DIRECTORY . '/.gitignore',
-            self::FALLBACK_DIRECTORY . '/conf/phpstan.dist.php',
-            self::FALLBACK_DIRECTORY . '/conf/phpstan.php',
-            self::VENDOR_DIRECTORY . '/.gitignore',
-            self::VENDOR_DIRECTORY . '/conf/phpstan.dist.php',
-            self::VENDOR_DIRECTORY . '/conf/phpstan.php',
-            self::STARTUP_DIRECTORY . '/.gitignore',
-            self::TSCONFIG_DIRECTORY . '/.gitignore',
-            self::TSCONFIG_DIRECTORY . '/tsconfig.json',
-            self::TSCONFIG_DIRECTORY . '/conf/tsconfig.json',
-            self::REFUSED_STAGE_PATH,
-            self::CACHES_DIRECTORY . '/hyperlink-ran',
-            self::LINTERS_DIRECTORY . '/positional-ran',
-        ];
-
-        foreach (self::CONFIG_DIRECTORIES as $fixtureDirectory) {
-            $writtenPaths = [
-                ...$writtenPaths,
-                $fixtureDirectory . '/.editorconfig',
-                $fixtureDirectory . '/.gitattributes',
-                $fixtureDirectory . '/bunfig.toml',
-            ];
-        }
-
-        foreach ($writtenPaths as $writtenPath) {
-            if (is_file($writtenPath) || is_link($writtenPath)) {
-                unlink($writtenPath);
+        foreach ($this->fixtureRoots as $fixtureRoot) {
+            if (!Str::startsWith($fixtureRoot, sys_get_temp_dir() . '/' . self::FIXTURE_ROOT_PREFIX)) {
+                throw new RuntimeException(sprintf('`%s` is no fixture root, so it is not removed.', $fixtureRoot));
             }
         }
 
-        foreach (self::CONFIG_DIRECTORIES as $fixtureDirectory) {
-            self::removeDirectory($fixtureDirectory . '/.vscode');
-        }
-
-        self::removeDirectory(self::TSCONFIG_DIRECTORY . '/conf');
-        self::removeDirectory(self::UNQUOTABLE_DIRECTORY);
-        self::removeDirectory(self::PARENT_NAME_DIRECTORY);
-        self::removeDirectory(self::CACHES_DIRECTORY . '/.cache');
-        self::removeDirectory(self::LINTERS_DIRECTORY . '/.cache');
+        new Filesystem()->remove($this->fixtureRoots);
     }
 
-    private static function removeDirectory(string $path): void
+    private function getFixtureCopy(string $fixtureDirectory): string
     {
-        if (!is_dir($path)) {
-            return;
+        return $this->fixtureCopies[$fixtureDirectory] ??= $this->createFixtureCopy($fixtureDirectory);
+    }
+
+    private function createFixtureCopy(string $fixtureDirectory): string
+    {
+        $fixtureCopy = $this->createFixtureRoot() . '/' . self::getProjectRelativePath($fixtureDirectory);
+
+        new Filesystem()->mirror($fixtureDirectory, $fixtureCopy);
+        new Process(['git', 'init', '--quiet'], $fixtureCopy)->mustRun();
+        new Process(['git', 'add', '--all'], $fixtureCopy)->mustRun();
+
+        return $fixtureCopy;
+    }
+
+    private function createFixtureRoot(): string
+    {
+        $fixtureRoot = sys_get_temp_dir() . '/' . self::FIXTURE_ROOT_PREFIX . bin2hex(random_bytes(6));
+        $filesystem  = new Filesystem();
+
+        $this->fixtureRoots[] = $fixtureRoot;
+
+        $finder = new Finder()
+            ->in(self::getRealPath(self::PROJECT_DIRECTORY))
+            ->depth(0)
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->notName(self::UNLINKED_PROJECT_ENTRIES)
+        ;
+
+        foreach ($finder as $projectEntry) {
+            $filesystem->symlink($projectEntry->getPathname(), $fixtureRoot . '/' . $projectEntry->getFilename());
         }
 
-        foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $entryName) {
-            $childPath = $path . '/' . $entryName;
+        return $fixtureRoot;
+    }
 
-            is_dir($childPath) ? self::removeDirectory($childPath) : unlink($childPath);
-        }
-
-        rmdir($path);
+    private static function getProjectRelativePath(string $path): string
+    {
+        return s(self::getRealPath($path))->after(self::getRealPath(self::PROJECT_DIRECTORY) . '/')->toString();
     }
 
     /**
@@ -263,7 +211,8 @@ trait MakeTrait
     {
         if (!$doExpectFailure && !$process->isSuccessful()) {
             throw new RuntimeException(sprintf(
-                "make help failed:\n%s\n%s",
+                "`%s` failed:\n%s\n%s",
+                $process->getCommandLine(),
                 $process->getOutput(),
                 $process->getErrorOutput(),
             ));
@@ -275,7 +224,7 @@ trait MakeTrait
     private function normalizeOutput(string $output): string
     {
         return s($output)
-            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(dirname(self::MAKEFILE_PATH, 2))), '.')
+            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(self::PROJECT_DIRECTORY)), '.')
             ->toString()
         ;
     }
@@ -287,8 +236,8 @@ trait MakeTrait
     {
         return [
             ...array_map(static fn (): false => false, getenv()),
-            'HOME' => getenv('HOME'),
-            'PATH' => getenv('PATH') ?: throw new RuntimeException('`PATH` is not set.'),
+            'HOME' => Str::fromEnvironment('HOME'),
+            'PATH' => Str::fromEnvironment('PATH') ?: throw new RuntimeException('`PATH` is not set.'),
             ...self::BASELINE_ENV,
         ];
     }
@@ -296,5 +245,136 @@ trait MakeTrait
     private static function getRealPath(string $path): string
     {
         return realpath($path) ?: throw new RuntimeException(sprintf('`%s` does not exist.', $path));
+    }
+
+    private static function assertContainsSymbol(string $symbol, string $output): void
+    {
+        /** @disregard P1013 \@phpstan-require-extends is not recognized by intelephense (See: https://github.com/bmewburn/vscode-intelephense/issues/3256) */
+        self::assertMatchesRegularExpression(
+            sprintf('/(?<![\w.-])%s(?![\w.-])/', Str::quoteRegex($symbol)),
+            $output,
+            sprintf('expected %s in output', $symbol),
+        );
+    }
+
+    private static function assertDoesNotContainSymbol(string $symbol, string $output): void
+    {
+        /** @disregard P1013 \@phpstan-require-extends is not recognized by intelephense (See: https://github.com/bmewburn/vscode-intelephense/issues/3256) */
+        self::assertDoesNotMatchRegularExpression(
+            sprintf('/(?<![\w.-])%s(?![\w.-])/', Str::quoteRegex($symbol)),
+            $output,
+            sprintf('unexpected %s in output', $symbol),
+        );
+    }
+
+    /**
+     * @param non-empty-array<string, string> $scenarios
+     */
+    private function renderScenarios(array $scenarios): string
+    {
+        $outputGroups = [];
+
+        foreach ($scenarios as $name => $output) {
+            $outputHash = md5($output);
+
+            $outputGroups[$outputHash] ??= [
+                'output'         => $output,
+                'representative' => $name,
+                'scenarios'      => [],
+            ];
+
+            $outputGroups[$outputHash]['scenarios'][] = $name;
+        }
+
+        $baseGroup    = array_first($outputGroups);
+        $baseScenario = $baseGroup['representative'];
+        $baseOutput   = $baseGroup['output'];
+        $manifest     = [];
+
+        foreach ($outputGroups as $group) {
+            $manifest[$group['representative']] = $group['scenarios'];
+        }
+
+        $rendered = sprintf(
+            "=== groups ===\n%s\n\n=== base: %s ===\n%s\n",
+            Json::encode($manifest),
+            $baseScenario,
+            $baseOutput,
+        );
+
+        $differ = new Differ(new StrictUnifiedDiffOutputBuilder([
+            'addLineNumbers' => false,
+            'header'         => '',
+        ]));
+
+        $renderedOutputs = [$baseScenario => $baseOutput];
+
+        foreach ($outputGroups as $outputGroup) {
+            $name   = $outputGroup['representative'];
+            $output = $outputGroup['output'];
+
+            if ($name === $baseScenario) {
+                continue;
+            }
+
+            $diffs = array_map(
+                static fn (string $reference): string => $differ->diff($reference, $output),
+                $renderedOutputs,
+            );
+
+            uasort(
+                $diffs,
+                static fn (string $first, string $second): int => Str::length($first) <=> Str::length($second),
+            );
+
+            $closest = array_key_first($diffs);
+
+            $rendered .= Str::length($diffs[$closest]) < Str::length($output)
+                ? sprintf("=== diff: %s from %s ===\n%s\n", $name, $closest, $diffs[$closest])
+                : sprintf("=== full: %s ===\n%s\n", $name, $output);
+
+            $renderedOutputs[$name] = $output;
+        }
+
+        return $rendered;
+    }
+
+    /**
+     * @param list<string> $args
+     * @param array<string, string> $env
+     */
+    private function runMakeHelp(array $args = [], array $env = [], bool $doExpectFailure = false): string
+    {
+        return $this->runMake(['help', ...$args], $env, doExpectFailure: $doExpectFailure);
+    }
+
+    /**
+     * @param list<string> $args
+     * @param array<string, false|string> $env
+     */
+    private function runMakeOnATty(
+        array $args,
+        string $directory,
+        ?string $input = null,
+        array $env = [],
+    ): string {
+        $process = new Process([
+            'script',
+            '-qfc',
+            sprintf('make --no-print-directory -C %s %s', $directory, implode(' ', $args)),
+            '/dev/null',
+        ], env: [
+            ...self::getBaselineEnvironment(),
+            'NO_COLOR' => '',
+            ...$env,
+        ]);
+
+        if ($input !== null) {
+            $process->setInput($input);
+        }
+
+        $process->mustRun();
+
+        return $process->getOutput();
     }
 }

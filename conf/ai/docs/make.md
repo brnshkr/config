@@ -20,6 +20,6 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
 
 ## Testing it
 
-- `make phpunit -- --filter MakefileTest`; `phpunit-update` regenerates the help snapshot.
+- `make phpunit -- tests/php/Make`; `phpunit-update` regenerates the help snapshot.
 - A help feature gets an entry in `Fixtures/Make/Help/`.
 - Clear `MAKEFLAGS` when a test runs make.
