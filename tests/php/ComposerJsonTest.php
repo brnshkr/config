@@ -11,6 +11,7 @@ use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function chdir;
@@ -126,6 +127,83 @@ final class ComposerJsonTest extends TestCase
         } finally {
             $filesystem->remove(dirname($manifest));
         }
+    }
+
+    public function testThePackageNameSplitsIntoItsOrganizationAndItsName(): void
+    {
+        $composerJson = self::fixture('transitive');
+
+        self::assertSame('acme/root', $composerJson->getPackageFullName());
+        self::assertSame('acme', $composerJson->getPackageOrganization());
+        self::assertSame('root', $composerJson->getPackageName());
+    }
+
+    public function testAManifestWithoutANameHasNoPackageName(): void
+    {
+        $composerJson = ComposerJson::forPath(__DIR__ . '/Fixtures/ComposerJson/renamed/acme.json');
+
+        self::assertNull($composerJson->getPackageFullName());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Failed to read package name from composer.json file.');
+
+        $composerJson->getPackageName();
+    }
+
+    public function testTheTypeAndVersionAreReadWhenTheManifestDeclaresThem(): void
+    {
+        self::assertSame('library', self::fixture('described')->getPackageType());
+        self::assertSame('1.0.0', self::fixture('described')->getPackageVersion());
+        self::assertNull(self::fixture('plain')->getPackageType());
+    }
+
+    public function testAManifestWithoutAVersionRefusesToNameOne(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Failed to read package version from composer.json file.');
+
+        self::fixture('plain')->getPackageVersion();
+    }
+
+    public function testEachRequirementListReadsItsOwnSection(): void
+    {
+        $composerJson = self::fixture('transitive');
+
+        self::assertSame(['php' => '>=8.5', 'acme/shipped' => '^1.0'], $composerJson->getRequires());
+        self::assertSame(['acme/direct-dev' => '^1.0', 'acme/suggested' => '^1.0'], $composerJson->getDevRequires());
+        self::assertSame([], self::fixture('described')->getRequires());
+    }
+
+    public function testTheDeclaredPackagesJoinBothRequirementLists(): void
+    {
+        self::assertSame(
+            ['php', 'acme/shipped', 'acme/direct-dev', 'acme/suggested'],
+            self::fixture('transitive')->getDeclaredPackages(),
+        );
+    }
+
+    public function testTheNamespacePrefixesAreTheKeysOfTheMap(): void
+    {
+        self::assertSame(['Acme\\', 'Acme\Tests\\'], self::fixture('transitive')->getNamespacePrefixes());
+    }
+
+    public function testTheNamespaceMapJoinsBothAutoloadSections(): void
+    {
+        self::assertSame(
+            ['Acme\\' => 'src/', 'Acme\Tests\\' => 'tests/'],
+            self::fixture('transitive')->getNamespaceMap(),
+        );
+    }
+
+    public function testTheFirstAutoloadDirectoryIsTheFirstPsr4Path(): void
+    {
+        self::assertSame('src/', self::fixture('transitive')->getFirstAutoloadDirectory());
+        self::assertNull(self::fixture('plain')->getFirstAutoloadDirectory());
+    }
+
+    public function testTheDirectoryIsTheOneHoldingTheManifest(): void
+    {
+        self::assertSame(__DIR__ . '/Fixtures/ComposerJson/plain', self::fixture('plain')->getDirectory());
     }
 
     /**
