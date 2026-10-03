@@ -804,13 +804,12 @@ Available commands:
     FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
     PHONY                           ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
 +  semver
-+   constants
-+    SEMVER_NUMBER                  ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-+    SEMVER_PRERELEASE_PART         ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-+    SEMVER_PRERELEASE              ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-+    SEMVER_PRERELEASE_STRICT       ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-+    SEMVER_BUILD                   ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-+    SEMVER_REGEX                   ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
++   SEMVER_NUMBER                   ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
++   SEMVER_PRERELEASE_PART          ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
++   SEMVER_PRERELEASE               ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
++   SEMVER_PRERELEASE_STRICT        ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
++   SEMVER_BUILD                    ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
++   SEMVER_REGEX                    ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
    php
     PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
    composer
@@ -1214,7 +1213,6 @@ brnshkr.phpunit
 brnshkr.rector
 brnshkr.semgrep
 brnshkr.semver
-brnshkr.semver.constants
 brnshkr.settings
 brnshkr.stylelint
 brnshkr.theming
@@ -1514,13 +1512,12 @@ Available commands:
    [36mFIXTURE_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
    [36mPHONY                         [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msemver[0m
-   [35mconstants[0m
-    [36mSEMVER_NUMBER                [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [36mSEMVER_PRERELEASE_PART       [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
-    [36mSEMVER_PRERELEASE            [0m  [90m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
-    [36mSEMVER_PRERELEASE_STRICT     [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
-    [36mSEMVER_BUILD                 [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
-    [36mSEMVER_REGEX                 [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+   [36mSEMVER_NUMBER                 [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+   [36mSEMVER_PRERELEASE_PART        [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
+   [36mSEMVER_PRERELEASE             [0m  [90m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+   [36mSEMVER_PRERELEASE_STRICT      [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
+   [36mSEMVER_BUILD                  [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
+   [36mSEMVER_REGEX                  [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [35mphp[0m
    [36mPHP_EXTENSIONS                [0m  [90m?=  php                                              (extensions the PHP tools read)[0m
   [35mcomposer[0m
@@ -1950,13 +1947,12 @@ Available commands:
    [32mFIXTURE_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
    [32mPHONY                         [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msemver[0m
-   [33mconstants[0m
-    [32mSEMVER_NUMBER                [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [32mSEMVER_PRERELEASE_PART       [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
-    [32mSEMVER_PRERELEASE            [0m  [0m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
-    [32mSEMVER_PRERELEASE_STRICT     [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
-    [32mSEMVER_BUILD                 [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
-    [32mSEMVER_REGEX                 [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+   [32mSEMVER_NUMBER                 [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+   [32mSEMVER_PRERELEASE_PART        [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
+   [32mSEMVER_PRERELEASE             [0m  [0m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+   [32mSEMVER_PRERELEASE_STRICT      [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
+   [32mSEMVER_BUILD                  [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
+   [32mSEMVER_REGEX                  [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [33mphp[0m
    [32mPHP_EXTENSIONS                [0m  [0m?=  php                                              (extensions the PHP tools read)[0m
   [33mcomposer[0m

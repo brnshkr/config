@@ -27,6 +27,8 @@ final class HelpTest extends TestCase
     use MatchesSnapshots;
 
     private const string RESERVED_DIRECTORY = __DIR__ . '/../Fixtures/Make/ReservedScope';
+    private const string SKIPPED_DIRECTORY  = __DIR__ . '/../Fixtures/Make/SkippedScope';
+    private const string EMPTY_DIRECTORY    = __DIR__ . '/../Fixtures/Make/EmptyScope';
     private const int SHELL_ARGUMENT_LIMIT  = 131_072;
 
     private const array SNAPSHOT_SCENARIOS = [
@@ -327,6 +329,22 @@ final class HelpTest extends TestCase
 
         self::assertStringContainsString('takes a name that help reserves', $result);
         self::assertStringContainsString('ls', $result);
+    }
+
+    public function testAScopeSkippingADepthFailsHelpNamingItsLine(): void
+    {
+        $result = $this->runMake(['help'], directory: self::SKIPPED_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('Scope "nested" at ./Makefile:3 is depth 1, but no scope above it is open.', $result);
+        self::assertStringContainsString('Write "#-- nested", or put a depth-0 scope above it.', $result);
+    }
+
+    public function testAScopeHoldingNothingFailsHelpNamingItsLine(): void
+    {
+        $result = $this->runMake(['help'], directory: self::EMPTY_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('Scope "empty" at ./Makefile:7 holds nothing.', $result);
+        self::assertStringContainsString('Add a command, variable, function or description, or remove it.', $result);
     }
 
     public function testHelpResolvesAnEnvironmentLargerThanOneShellArgument(): void

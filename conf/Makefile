@@ -1494,8 +1494,6 @@ endif # /container
 
 #---vvv semver
 
-#---- constants
-
 SEMVER_NUMBER            ?= (0|[1-9][0-9]*)#~~ a numeric identifier, which carries no leading zero
 SEMVER_PRERELEASE_PART   ?= (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)#~~ one prerelease identifier, no leading zero when numeric
 SEMVER_PRERELEASE        ?= $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE_PART))*#~~ the prerelease grammar semver itself permits
@@ -4869,7 +4867,33 @@ function scope_has_visible_entries(scope_path, section,    idx) {
 		if (is_entry_visible(scope_path, section, idx)) return 1
 	return 0
 }
+function record_scope_error(level, name,    location, above) {
+	if (scope_error != "") return
+	location = get_source_location()
+	if (name == "") scope_error = sprintf("Scope header at %s has no name.", location)
+	else if (level < 0) scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s is depth %d; scopes start at \"$(call text,#--,$(MODIFIER_UNDERLINE))\".", \
+		name, location, level)
+	else {
+		if (scope_depth >= 0) { above = scope_at[scope_depth]; gsub(/\//, ".", above) }
+		scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s is depth %d, but %s.", name, location, level, \
+			scope_depth < 0 ? "no scope above it is open" : sprintf("\"$(call text,%s,$(COLOR_WARNING))\" above it is depth %d", above, scope_depth))
+		scope_notice = sprintf("Write \"$(call text,#%s %s,$(MODIFIER_UNDERLINE))\", or put a depth-%d scope %s.", \
+			repeat("-", scope_depth + 3), name, scope_depth + 1, scope_depth < 0 ? "above it" : "between them")
+	}
+}
+function close_empty_scope() {
+	if (scope_error == "") {
+		scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s holds nothing.", open_scope_name, open_scope_location)
+		scope_notice = "Add a command, variable, function or description, or remove it."
+	}
+	open_scope_name = ""
+}
 function push_scope(level, name, verbosity,    current, parent_verbosity, parent) {
+	if (name == "" || level < 0 || level > scope_depth + 1) { record_scope_error(level, name); return }
+	if (open_scope_name != "" && level <= open_scope_level) close_empty_scope()
+	open_scope_name = name
+	open_scope_level = level
+	open_scope_location = get_source_location()
 	scope_at[level] = (level > 0 && scope_at[level - 1] != "" ? scope_at[level - 1] "/" name : name)
 	scope_depth = level
 	current = scope_at[level]
@@ -4891,7 +4915,12 @@ function push_scope(level, name, verbosity,    current, parent_verbosity, parent
 		children[parent, child_count[parent]] = current
 	}
 }
-function record_override(kind, marker, depth,    count, shown_path) {
+function get_source_location(    shown_path) {
+	shown_path = named_path(FILENAME)
+	if (shown_path !~ /^\.?\//) shown_path = "./" shown_path
+	return render_link(shown_path ":" FNR, FILENAME, FNR)
+}
+function record_override(kind, marker, depth,    count) {
 	count = ++override_count
 	match(marker, /^v*/)
 	override_level[count] = RLENGTH
@@ -4902,9 +4931,7 @@ function record_override(kind, marker, depth,    count, shown_path) {
 	override_kind[count] = kind
 	override_depth[count] = depth
 	override_file[count] = FILENAME
-	shown_path = named_path(FILENAME)
-	if (shown_path !~ /^\.?\//) shown_path = "./" shown_path
-	override_location[count] = render_link(shown_path ":" FNR, FILENAME, FNR)
+	override_location[count] = get_source_location()
 }
 function fail_override(message, notice) {
 	printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", message
@@ -5213,7 +5240,8 @@ function print_section(has_previous, section, label, column,    top_idx, top_pat
 	return found + 0
 }
 BEGIN { SQ = sprintf("%c", 39); verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
-current_file != FILENAME { current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = 0; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
+current_file != FILENAME { if (open_scope_name != "") close_empty_scope(); current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = -1; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
+NF && !/^#-/ && !/^#([[:space:]]|$$)/ { open_scope_name = "" }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
 is_in_define { next }
 /^(ifeq|ifneq|ifdef|ifndef)[[:space:]]/ { begin_condition($$0); next }
@@ -5318,6 +5346,12 @@ END {
 			editor_choices = editor_choices (editor_idx == 1 ? "" : "|") editor_names[editor_idx]
 		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown editor \"$(call text,%s,$(COLOR_WARNING))\".\n", ENVIRON["_EDITOR_UNKNOWN"]
 		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run with \"$(call text,EDITOR=<%s>,$(MODIFIER_UNDERLINE))\" or \"$(call text,EDITOR=,$(MODIFIER_UNDERLINE))\" to disable.\n", editor_choices
+		exit $(BRNSHKR_CONFIG_ERROR_CODE)
+	}
+	if (open_scope_name != "") close_empty_scope()
+	if (scope_error != "") {
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", scope_error
+		if (scope_notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", scope_notice
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	for (scope_path in seen_scope)

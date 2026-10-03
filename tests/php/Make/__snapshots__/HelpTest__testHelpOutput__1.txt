@@ -531,13 +531,12 @@ Available commands:
     FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
     PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
 +  semver
-+   constants
-+    SEMVER_NUMBER              ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
-+    SEMVER_PRERELEASE_PART     ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
-+    SEMVER_PRERELEASE          ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
-+    SEMVER_PRERELEASE_STRICT   ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
-+    SEMVER_BUILD               ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
-+    SEMVER_REGEX               ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
++   SEMVER_NUMBER               ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
++   SEMVER_PRERELEASE_PART      ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
++   SEMVER_PRERELEASE           ?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)
++   SEMVER_PRERELEASE_STRICT    ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
++   SEMVER_BUILD                ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
++   SEMVER_REGEX                ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
    hadolint
     HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
    actionlint
@@ -550,23 +549,21 @@ Available commands:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
- 
-+    returns: string
 +
++    returns: string
+ 
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
-     Anything in backticks renders as inline code. The message is a printf format, so a value goes
 @@ @@
-     in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
-+
+ 
 +    parameters:
 +      message: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      arguments?: list<string>
 +      autolink?: OneOf<autolink | no-autolink> = autolink
- 
++
 +    returns: void
 +
     run_in
@@ -759,7 +756,6 @@ brnshkr.dotenv
 brnshkr.hadolint
 brnshkr.helpers
 brnshkr.semver
-brnshkr.semver.constants
 brnshkr.settings
 brnshkr.theming
 brnshkr.theming.colors
@@ -1151,13 +1147,12 @@ Available commands:
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
    [36mPHONY                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msemver[0m
-   [35mconstants[0m
-    [36mSEMVER_NUMBER            [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [36mSEMVER_PRERELEASE_PART   [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
-    [36mSEMVER_PRERELEASE        [0m  [90m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
-    [36mSEMVER_PRERELEASE_STRICT [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
-    [36mSEMVER_BUILD             [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
-    [36mSEMVER_REGEX             [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+   [36mSEMVER_NUMBER             [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+   [36mSEMVER_PRERELEASE_PART    [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
+   [36mSEMVER_PRERELEASE         [0m  [90m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+   [36mSEMVER_PRERELEASE_STRICT  [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
+   [36mSEMVER_BUILD              [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
+   [36mSEMVER_REGEX              [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [35mhadolint[0m
    [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [35mhadolint[0m[90m config)[0m
   [35mactionlint[0m
@@ -1457,13 +1452,12 @@ Available commands:
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
    [32mPHONY                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msemver[0m
-   [33mconstants[0m
-    [32mSEMVER_NUMBER            [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
-    [32mSEMVER_PRERELEASE_PART   [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
-    [32mSEMVER_PRERELEASE        [0m  [0m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
-    [32mSEMVER_PRERELEASE_STRICT [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
-    [32mSEMVER_BUILD             [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
-    [32mSEMVER_REGEX             [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+   [32mSEMVER_NUMBER             [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
+   [32mSEMVER_PRERELEASE_PART    [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
+   [32mSEMVER_PRERELEASE         [0m  [0m?=  $(SEMVER_PRERELEASE_PART)(\.$(SEMVER_PRERELEASE… (the prerelease grammar semver itself permits)[0m
+   [32mSEMVER_PRERELEASE_STRICT  [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
+   [32mSEMVER_BUILD              [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
+   [32mSEMVER_REGEX              [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [33mhadolint[0m
    [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [33mhadolint[0m[0m config)[0m
   [33mactionlint[0m
