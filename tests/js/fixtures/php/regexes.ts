@@ -29,6 +29,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /\s+/v,
   },
   {
+    file: 'src/php/Composer/Command/PrintModuleConfigCommand.php',
+    php: String.raw`/^ +/m`,
+    regex: /^ +/mv,
+  },
+  {
     file: 'src/php/ComposerJson.php',
     php: String.raw`/<|>=/`,
     regex: /<|>=/v,
@@ -37,11 +42,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'src/php/ComposerJson.php',
     php: String.raw`/^ {4,}/m`,
     regex: /^ {4,}/mv,
-  },
-  {
-    file: 'src/php/Composer/Command/PrintModuleConfigCommand.php',
-    php: String.raw`/^ +/m`,
-    regex: /^ +/mv,
   },
   {
     file: 'src/php/PhpStan/Rule/BoolishPrefixRule.php',
@@ -89,11 +89,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /\*\s+@inheritDoc\b/iv,
   },
   {
-    file: 'src/php/PhpStan/Rule/TagDescriptionRule.php',
-    php: String.raw`/^\p{Lu}[\p{Ll}\s]/`,
-    regex: /^\p{Lu}[\p{Ll}\s]/v,
-  },
-  {
     file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',
     php: String.raw`/(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s}]+)/`,
     regex: /(?<opening>\{@|\*\s+@)(?<tag>link|see)\s+(?<target>[^\s\}]+)/v,
@@ -102,6 +97,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'src/php/PhpStan/Rule/ResolvableDocReferenceRule.php',
     php: String.raw`/^\p{Lu}/`,
     regex: /^\p{Uppercase_Letter}/v,
+  },
+  {
+    file: 'src/php/PhpStan/Rule/TagDescriptionRule.php',
+    php: String.raw`/^\p{Lu}[\p{Ll}\s]/`,
+    regex: /^\p{Lu}[\p{Ll}\s]/v,
   },
   {
     file: 'src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php',
@@ -149,36 +149,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^Running.+\n/v,
   },
   {
-    file: 'tests/php/Make/Trait/MakeTrait.php',
-    php: String.raw`/(?<![\w.-])%s(?![\w.-])/`,
-    regex: /(?<![\w.\-])%s(?![\w.\-])/v,
-  },
-  {
-    file: 'tests/php/Make/HelpTest.php',
-    php: String.raw`/^%s$/`,
-    regex: /^%s$/v,
-  },
-  {
-    file: 'tests/php/Make/ConfigsTest.php',
-    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/`,
-    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/v,
-  },
-  {
-    file: 'tests/php/Make/ConfigsTest.php',
-    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/`,
-    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/v,
-  },
-  {
-    file: 'tests/php/Make/ConfigsTest.php',
-    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/`,
-    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/v,
-  },
-  {
-    file: 'tests/php/Make/HelpTest.php',
-    php: String.raw`/SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/`,
-    regex: /SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/v,
-  },
-  {
     file: 'tests/php/Make/ArgumentsTest.php',
     php: String.raw`/^\.PHONY:(?!.* consumer-command ).* help /m`,
     regex: /^\.PHONY:(?!.* consumer-command ).* help /mv,
@@ -199,49 +169,19 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^collision$/mv,
   },
   {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/--dry-run\n.*phpstan analyze.*\n.*phpunit/s`,
-    regex: /--dry-run\n.*phpstan analyze.*\n.*phpunit/sv,
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/v,
   },
   {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s`,
-    regex: /php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/sv,
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/v,
   },
   {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/rector done\n(?:.*\n)*php-cs-fixer fix/`,
-    regex: /rector done\n(?:.*\n)*php-cs-fixer fix/v,
-  },
-  {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
-    regex: /Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
-  },
-  {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/`,
-    regex: /Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/v,
-  },
-  {
-    file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/`,
-    regex: /Running phpstan\nphpstan analyze [^\n]*\nphpstan done/v,
-  },
-  {
-    file: 'tests/php/Make/PackTest.php',
-    php: String.raw`/PACKAGE\s+\?=\s+one-line-manifest/`,
-    regex: /PACKAGE\s+\?=\s+one-line-manifest/v,
-  },
-  {
-    file: 'tests/php/Make/PackTest.php',
-    php: String.raw`/VENDOR\s+\?=\s+@acme/`,
-    regex: /VENDOR\s+\?=\s+@acme/v,
-  },
-  {
-    file: 'tests/php/Make/ToolsTest.php',
-    php: String.raw`/\nLoaded \d+ rules\n$/`,
-    regex: /\nLoaded \d+ rules\n$/v,
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/v,
   },
   {
     file: 'tests/php/Make/ConfigsTest.php',
@@ -279,9 +219,89 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/mv,
   },
   {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/`,
+    regex: /DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/`,
+    regex: /DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/`,
+    regex: /DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/`,
+    regex: /DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/v,
+  },
+  {
+    file: 'tests/php/Make/HelpTest.php',
+    php: String.raw`/^%s$/`,
+    regex: /^%s$/v,
+  },
+  {
+    file: 'tests/php/Make/HelpTest.php',
+    php: String.raw`/SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/`,
+    regex: /SEMVER_REGEX\s+\?=\s+(?<grammar>\S+)/v,
+  },
+  {
     file: 'tests/php/Make/HelpTest.php',
     php: String.raw`/ARGS +=  +'vv' /`,
     regex: /ARGS +=  +'vv' /v,
+  },
+  {
+    file: 'tests/php/Make/PackTest.php',
+    php: String.raw`/PACKAGE\s+\?=\s+one-line-manifest/`,
+    regex: /PACKAGE\s+\?=\s+one-line-manifest/v,
+  },
+  {
+    file: 'tests/php/Make/PackTest.php',
+    php: String.raw`/VENDOR\s+\?=\s+@acme/`,
+    regex: /VENDOR\s+\?=\s+@acme/v,
+  },
+  {
+    file: 'tests/php/Make/ToolsTest.php',
+    php: String.raw`/\nLoaded \d+ rules\n$/`,
+    regex: /\nLoaded \d+ rules\n$/v,
+  },
+  {
+    file: 'tests/php/Make/Trait/MakeTrait.php',
+    php: String.raw`/(?<![\w.-])%s(?![\w.-])/`,
+    regex: /(?<![\w.\-])%s(?![\w.\-])/v,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/--dry-run\n.*phpstan analyze.*\n.*phpunit/s`,
+    regex: /--dry-run\n.*phpstan analyze.*\n.*phpunit/sv,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s`,
+    regex: /php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/sv,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/rector done\n(?:.*\n)*php-cs-fixer fix/`,
+    regex: /rector done\n(?:.*\n)*php-cs-fixer fix/v,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
+    regex: /Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/`,
+    regex: /Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/v,
+  },
+  {
+    file: 'tests/php/Make/VerbsTest.php',
+    php: String.raw`/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/`,
+    regex: /Running phpstan\nphpstan analyze [^\n]*\nphpstan done/v,
   },
   {
     file: 'tests/php/StrTest.php',
@@ -307,26 +327,6 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'tests/php/StrTest.php',
     php: String.raw`/(?<letter>[a-z])(?<digit>\d)/`,
     regex: /(?<letter>[a-z])(?<digit>\d)/v,
-  },
-  {
-    file: 'tests/php/Make/DotenvTest.php',
-    php: String.raw`/DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/`,
-    regex: /DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/v,
-  },
-  {
-    file: 'tests/php/Make/DotenvTest.php',
-    php: String.raw`/DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/`,
-    regex: /DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/v,
-  },
-  {
-    file: 'tests/php/Make/DotenvTest.php',
-    php: String.raw`/DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/`,
-    regex: /DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/v,
-  },
-  {
-    file: 'tests/php/Make/DotenvTest.php',
-    php: String.raw`/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/`,
-    regex: /DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/v,
   },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */
