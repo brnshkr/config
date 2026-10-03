@@ -12,6 +12,7 @@ use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Process\Process;
 
 use function array_map;
 use function array_values;
@@ -135,6 +136,30 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString('`v1;false` does not name a tag', $result);
     }
 
+    public function testChangelogReportsWhetherItCreatedUpdatedOrLeftTheFile(): void
+    {
+        $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
+        $write             = ['changelog', 'write', 'VERSION=1.0.0'];
+
+        self::commitInto($consumerDirectory, 'feat(user): import users');
+
+        $created   = $this->runMake($write, directory: $consumerDirectory);
+        $unchanged = $this->runMake($write, directory: $consumerDirectory);
+
+        self::commitInto($consumerDirectory, 'fix(email): keep address casing');
+
+        $updated = $this->runMake($write, directory: $consumerDirectory);
+
+        self::assertStringContainsString('Created ./changelog/1.x.md.', $created);
+        self::assertStringContainsString('Nothing written.', $unchanged);
+        self::assertStringContainsString('Updated ./changelog/1.x.md.', $updated);
+
+        self::assertStringContainsString(
+            'keep address casing',
+            new Filesystem()->readFile($consumerDirectory . '/changelog/1.x.md'),
+        );
+    }
+
     public function testAnArgumentIsWeighedWithoutRunningIt(): void
     {
         $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);
@@ -200,5 +225,24 @@ final class ToolsTest extends TestCase
             $lintersDirectory,
             $doExpectFailure,
         );
+    }
+
+    private static function commitInto(string $directory, string $message): void
+    {
+        new Process([
+            'git',
+            '-c',
+            'user.name=Acme',
+            '-c',
+            'user.email=dev@acme.test',
+            '-c',
+            'commit.gpgsign=false',
+            'commit',
+            '--quiet',
+            '--allow-empty',
+            '--no-verify',
+            '--message',
+            $message,
+        ], $directory)->mustRun();
     }
 }
