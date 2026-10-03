@@ -7,16 +7,23 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Spelling;
 use Brnshkr\Config\Str;
+use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 use function array_column;
+use function array_unique;
+use function array_values;
+use function bin2hex;
 use function dirname;
+use function random_bytes;
 use function sprintf;
+use function sys_get_temp_dir;
 
 /**
  * @internal
@@ -34,6 +41,25 @@ final class SpellingTest extends TestCase
         'tests/php/Fixtures/Spelling/prose.md',
         'tests/php/Fixtures/Spelling/identifiers.php',
     ];
+
+    private const string TEMPORARY_ROOT_PREFIX = 'brnshkr-spelling-';
+
+    /**
+     * @var list<non-empty-string>
+     */
+    private array $temporaryRoots = [];
+
+    #[After]
+    public function removeTheTemporaryRoots(): void
+    {
+        foreach ($this->temporaryRoots as $temporaryRoot) {
+            if (!Str::startsWith($temporaryRoot, sys_get_temp_dir() . '/' . self::TEMPORARY_ROOT_PREFIX)) {
+                throw new RuntimeException(sprintf('`%s` is no temporary root, so it is not removed.', $temporaryRoot));
+            }
+        }
+
+        new Filesystem()->remove($this->temporaryRoots);
+    }
 
     public function testReportsBritishSpellingsWithTheirCorrection(): void
     {
@@ -109,6 +135,48 @@ final class SpellingTest extends TestCase
         self::assertContains('normalises', $words, 'A declared suffix must not replace the shipped ones');
     }
 
+    public function testScansOnlyTheTrackedFilesTheSettingsName(): void
+    {
+        $repositoryRoot = $this->createTemporaryRoot();
+        $filesystem     = new Filesystem();
+
+        foreach (['notes.md', 'Makefile', 'notes.txt', 'tests/fixtures/notes.md', 'gone.md', 'untracked.md'] as $filePath) {
+            $filesystem->dumpFile($repositoryRoot . '/' . $filePath, "colour\n");
+        }
+
+        new Process(['git', 'init', '--quiet'], $repositoryRoot)->mustRun();
+        new Process(['git', 'add', '--', 'notes.md', 'Makefile', 'notes.txt', 'tests/fixtures/notes.md', 'gone.md'], $repositoryRoot)->mustRun();
+        $filesystem->remove($repositoryRoot . '/gone.md');
+
+        $paths = array_column(Spelling::scan($repositoryRoot), 'path')
+            |> array_unique(...)
+            |> array_values(...);
+
+        self::assertSame(['Makefile', 'notes.md'], $paths);
+    }
+
+    public function testFailsNamingTheDirectoryGitCannotList(): void
+    {
+        $directory = $this->createTemporaryRoot();
+
+        new Filesystem()->mkdir($directory);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains(sprintf('"git ls-files -z" failed in "%s" with exit code 128.', $directory));
+
+        Spelling::scan($directory);
+    }
+
+    #[TestWith(['tests/php/Fixtures/Spelling/stem-suffix-not-string.json', 'Setting "stemSuffixes" takes strings only.'])]
+    #[TestWith(['tests/php/Fixtures/Spelling/stem-suffix-not-list.json', 'Setting "stemSuffixes" must name at least one suffix.'])]
+    public function testRejectsAMalformedStemSuffixSetting(string $configPath, string $message): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains($message);
+
+        $this->scanCorpus($configPath);
+    }
+
     #[TestWith([self::CORPUS_CONFIG])]
     #[TestWith([self::EXTRA_SUFFIX_CONFIG])]
     public function testTheJavaScriptScannerReportsTheSameFindings(string $configPath): void
@@ -142,6 +210,18 @@ final class SpellingTest extends TestCase
     private function scanCorpus(string $configPath = self::CORPUS_CONFIG): array
     {
         return Spelling::scan($this->getRepositoryRoot(), $configPath, self::CORPUS_PATHS);
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private function createTemporaryRoot(): string
+    {
+        $temporaryRoot = sys_get_temp_dir() . '/' . self::TEMPORARY_ROOT_PREFIX . bin2hex(random_bytes(6));
+
+        $this->temporaryRoots[] = $temporaryRoot;
+
+        return $temporaryRoot;
     }
 
     /**

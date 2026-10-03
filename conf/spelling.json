@@ -35,7 +35,8 @@
       "\"analyse",
       "phpstan-analyse",
       "'behaviour'",
-      "'normalises'"
+      "'normalises'",
+      "\"colour\\n\":144"
     ]
   }
 }

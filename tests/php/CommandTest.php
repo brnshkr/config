@@ -15,9 +15,11 @@ use Brnshkr\Config\Composer\Console;
 use Brnshkr\Config\Composer\Installer;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
+use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\Str;
 use Composer\Console\Application;
+use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -25,6 +27,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
+use function fopen;
+use function fwrite;
+use function rewind;
 use function Symfony\Component\String\s;
 
 /**
@@ -37,6 +42,7 @@ use function Symfony\Component\String\s;
 #[UsesClass(Console::class)]
 #[UsesClass(Installer::class)]
 #[UsesClass(Json::class)]
+#[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
 #[UsesClass(Str::class)]
 #[CoversClass(CommandProvider::class)]
@@ -45,6 +51,8 @@ use function Symfony\Component\String\s;
 #[CoversClass(UpdatePhpExtensionsCommand::class)]
 final class CommandTest extends TestCase
 {
+    private const string INTERACTION_VARIABLE_NAME = 'COMPOSER_TESTS_ARE_RUNNING';
+
     private Application $application;
 
     public function testMainCommand(): void
@@ -142,6 +150,47 @@ EOF;
         self::assertStringContainsString('All packages are already installed.', $outputString);
     }
 
+    public function testSetupCommandInstallsNothingForAnInstalledModule(): void
+    {
+        $result = $this->runSetupCommand(['modules' => ['rector']]);
+
+        self::assertSame(0, $result['exitCode']);
+        self::assertStringContainsString('All packages are already installed.', $result['output']);
+    }
+
+    public function testSetupCommandRejectsAnUnknownModule(): void
+    {
+        $result = $this->runSetupCommand(['modules' => ['acme']]);
+
+        self::assertSame(1, $result['exitCode']);
+
+        self::assertStringContainsString(
+            'Unknown module "acme". Allowed modules are: "phpcsfixer", "phpstan", "rector" and "twigcsfixer".',
+            $result['output'],
+        );
+    }
+
+    public function testSetupCommandRejectsAllBesideNamedModules(): void
+    {
+        $result = $this->runSetupCommand([
+            'modules' => ['rector'],
+            '--all'   => true,
+        ]);
+
+        self::assertSame(1, $result['exitCode']);
+        self::assertStringContainsString('The --all option is not allowed when specifying modules via the arguments.', $result['output']);
+        self::assertStringNotContainsString('All packages are already installed.', $result['output']);
+    }
+
+    public function testSetupCommandAsksAgainUntilTheModuleAnswerIsValid(): void
+    {
+        $result = $this->runSetupCommand([], "all,none\nrector\n");
+
+        self::assertSame(0, $result['exitCode']);
+        self::assertStringContainsString('The options "all" and "none" cannot be combined with each other or any other ones.', $result['output']);
+        self::assertStringContainsString('All packages are already installed.', $result['output']);
+    }
+
     public function testUpdatePhpExtensionsCommand(): void
     {
         $arrayInput = new ArrayInput([
@@ -170,5 +219,48 @@ EOF;
         $application->addCommands(new CommandProvider()->getCommands());
 
         $this->application = $application;
+    }
+
+    #[After]
+    public function removeTheInteractionVariable(): void
+    {
+        unset($_SERVER[self::INTERACTION_VARIABLE_NAME]);
+    }
+
+    /**
+     * @param array<string, bool|list<string>> $arguments
+     *
+     * @return array{
+     *     exitCode: int,
+     *     output: string,
+     * }
+     */
+    private function runSetupCommand(array $arguments, ?string $answers = null): array
+    {
+        $arrayInput = new ArrayInput([
+            'command' => new SetupCommand()->getName(),
+            ...$arguments,
+        ]);
+
+        if ($answers !== null) {
+            $_SERVER[self::INTERACTION_VARIABLE_NAME] = '1';
+
+            $stream = fopen('php://memory', 'r+');
+
+            self::assertNotFalse($stream);
+
+            fwrite($stream, $answers);
+            rewind($stream);
+
+            $arrayInput->setStream($stream);
+        }
+
+        $bufferedOutput = new BufferedOutput();
+        $exitCode       = $this->application->run($arrayInput, $bufferedOutput);
+
+        return [
+            'exitCode' => $exitCode,
+            'output'   => $bufferedOutput->fetch(),
+        ];
     }
 }
