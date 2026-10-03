@@ -18,6 +18,8 @@ final class ArgumentsTest extends TestCase
 {
     use MakeTrait;
 
+    private const string SUGGESTIONS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Suggestions';
+
     public function testAProjectNameTheRecipesCannotQuoteIsRefused(): void
     {
         $result = $this->runMake(['help'], directory: $this->writeProject('it\'s'), doExpectFailure: true);
@@ -162,6 +164,15 @@ final class ArgumentsTest extends TestCase
         self::assertStringContainsString('Unknown command', $result);
         self::assertStringContainsString('no-such-command', $result);
         self::assertStringContainsString('to see available commands', $result);
+    }
+
+    public function testAStageTypoIsOfferedItsStageGoalOverANearerLookingTarget(): void
+    {
+        $stageTypo  = $this->runMake(['de-ps'], directory: self::SUGGESTIONS_DIRECTORY, doExpectFailure: true);
+        $targetTypo = $this->runMake(['dumsp'], directory: self::SUGGESTIONS_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('Did you mean dev-ps?', $stageTypo);
+        self::assertStringContainsString('Did you mean dumps?', $targetTypo);
     }
 
     public function testAProjectTargetAfterANamingVerbIsRefusedBeforeAnythingRuns(): void

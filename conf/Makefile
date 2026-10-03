@@ -1083,8 +1083,12 @@ $(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) \
 	| $(AWK) 'NR == 1 { nearest = $$1 } $$1 == nearest && NR <= 3 { print $$2 }')
 endef
 
+_IS_NEAR_A_STAGE = $(if $(findstring -,$(_SUGGESTED_FOR)),$(call _suggestions,$(_DOTENV_STAGES),$(firstword $(subst -, ,$(_SUGGESTED_FOR)))))
+
 _SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \
-	$(call _suggestions,$(_TARGET_GOALS)),$(call _suggestions,$(_STAGE_GOALS))))
+	$(and $(_IS_NEAR_A_STAGE),$(call _suggestions,$(_TARGET_GOALS) $(_STAGE_GOALS))), \
+	$(call _suggestions,$(_TARGET_GOALS)), \
+	$(call _suggestions,$(_STAGE_GOALS))))
 
 _ARG_VALUES       =
 _ARG_FILES        =
