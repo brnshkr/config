@@ -75,7 +75,7 @@ final class ToolsTest extends TestCase
         self::assertStringNotContainsString('coverage is below', $reached);
         self::assertStringContainsString('coverage is below', $missed);
         self::assertStringContainsString('100%', $missed);
-        self::assertStringContainsString('none.txt is missing', $absent);
+        self::assertStringContainsString('`none.txt` is missing', $absent);
         self::assertStringNotContainsString('coverage is below', $absent);
         self::assertStringContainsString('Methods', $metric);
         self::assertStringContainsString('95%', $metric);
@@ -111,7 +111,7 @@ final class ToolsTest extends TestCase
                 doExpectFailure: true,
             );
 
-            self::assertStringContainsString('pest is not installed', $result, $target);
+            self::assertStringContainsString('`pest` is not installed', $result, $target);
         }
     }
 
@@ -150,9 +150,9 @@ final class ToolsTest extends TestCase
 
         $updated = $this->runMake($write, directory: $consumerDirectory);
 
-        self::assertStringContainsString('Created ./changelog/1.x.md.', $created);
+        self::assertStringContainsString('Created `./changelog/1.x.md`.', $created);
         self::assertStringContainsString('Nothing written.', $unchanged);
-        self::assertStringContainsString('Updated ./changelog/1.x.md.', $updated);
+        self::assertStringContainsString('Updated `./changelog/1.x.md`.', $updated);
 
         self::assertStringContainsString(
             'keep address casing',
@@ -201,7 +201,7 @@ final class ToolsTest extends TestCase
             ->sortByName()
         ;
 
-        self::assertStringContainsString('The default ruleset changed since it was last fetched.', $output);
+        self::assertStringContainsString('The `default` ruleset changed since it was last fetched.', $output);
 
         self::assertSame(
             ['default.json', 'rules.json'],

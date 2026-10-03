@@ -65,7 +65,7 @@ final class ConfigsTest extends TestCase
     {
         $result = $this->runMake(['phpstan'], directory: self::GUARD_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('conf/phpstan.dist.php is missing', $result);
+        self::assertStringContainsString('`./conf/phpstan.dist.php` is missing', $result);
         self::assertStringContainsString('PHP_STAN_CONFIG', $result);
     }
 
@@ -77,7 +77,7 @@ final class ConfigsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('./conf/phpstan.php, which PHP_STAN_CONFIG names, is missing', $result);
+        self::assertStringContainsString('`./conf/phpstan.php`, which `PHP_STAN_CONFIG` names, is missing', $result);
         self::assertStringNotContainsString('/app/conf/phpstan.php', $result);
     }
 
@@ -101,9 +101,9 @@ final class ConfigsTest extends TestCase
         $created             = $this->runMake(['configs'], directory: $typescriptDirectory);
         $kept                = $this->runMake(['configs'], directory: $typescriptDirectory);
 
-        self::assertStringContainsString('Created ./conf/tsconfig.json.', $created);
-        self::assertStringContainsString('Linked ./tsconfig.json to ./conf/tsconfig.json.', $created);
-        self::assertStringContainsString('./tsconfig.json already exists.', $kept);
+        self::assertStringContainsString('Created `./conf/tsconfig.json`.', $created);
+        self::assertStringContainsString('Linked `./tsconfig.json` to `./conf/tsconfig.json`.', $created);
+        self::assertStringContainsString('`./tsconfig.json` already exists.', $kept);
         self::assertSame('conf/tsconfig.json', new Filesystem()->readlink($typescriptDirectory . '/tsconfig.json'));
     }
 
@@ -268,7 +268,7 @@ final class ConfigsTest extends TestCase
         );
 
         self::assertStringContainsString('Error 69', $result);
-        self::assertStringNotContainsString('Created /proc', $result);
+        self::assertStringNotContainsString('Created `/proc', $result);
     }
 
     public function testAMistypedConfigNameIsScoredTheSameWay(): void
@@ -276,8 +276,8 @@ final class ConfigsTest extends TestCase
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
         $result           = $this->runMake(['configs', 'phpstna'], directory: $configsDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No config named phpstna', $result);
-        self::assertStringContainsString('Did you mean phpstan', $result);
+        self::assertStringContainsString('No config named `phpstna`', $result);
+        self::assertStringContainsString('Did you mean `phpstan', $result);
     }
 
     public function testAPrintTargetThatNeedsAFileSaysSoItself(): void
@@ -285,8 +285,8 @@ final class ConfigsTest extends TestCase
         $eslint    = $this->runMake(['eslint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
         $stylelint = $this->runMake(['stylelint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('eslint-print needs a file, pass one as an argument.', $eslint);
-        self::assertStringContainsString('stylelint-print needs a file, pass one as an argument.', $stylelint);
+        self::assertStringContainsString('`eslint-print` needs a file, pass one as an argument.', $eslint);
+        self::assertStringContainsString('`stylelint-print` needs a file, pass one as an argument.', $stylelint);
     }
 
     public function testALoggedPathLinksRelativeToTheProject(): void

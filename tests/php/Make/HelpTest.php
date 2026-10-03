@@ -277,8 +277,8 @@ final class HelpTest extends TestCase
         $hiddenScope   = $this->runMakeHelp(['app.very-verbose-group'], doExpectFailure: true);
         $visible       = $this->runMakeHelp(['app.hidden-group', 'app.very-verbose-group', 'vv']);
 
-        self::assertStringContainsString('Scope "app.hidden-group" shows nothing below vv.', $hiddenEntries);
-        self::assertStringContainsString('Scope "app.very-verbose-group" shows nothing below vv.', $hiddenScope);
+        self::assertStringContainsString('Scope `app.hidden-group` shows nothing below vv.', $hiddenEntries);
+        self::assertStringContainsString('Scope `app.very-verbose-group` shows nothing below vv.', $hiddenScope);
         self::assertStringContainsString('HIDDEN_GROUP_VARIABLE', $visible);
         self::assertStringContainsString('very-verbose-command', $visible);
     }
@@ -335,15 +335,15 @@ final class HelpTest extends TestCase
     {
         $result = $this->runMake(['help'], directory: self::SKIPPED_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('Scope "nested" at ./Makefile:3 is depth 1, but no scope above it is open.', $result);
-        self::assertStringContainsString('Write "#-- nested", or put a depth-0 scope above it.', $result);
+        self::assertStringContainsString('Scope `nested` at ./Makefile:3 is depth 1, but no scope above it is open.', $result);
+        self::assertStringContainsString('Write `#-- nested`, or put a depth-0 scope above it.', $result);
     }
 
     public function testAScopeHoldingNothingFailsHelpNamingItsLine(): void
     {
         $result = $this->runMake(['help'], directory: self::EMPTY_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('Scope "empty" at ./Makefile:7 holds nothing.', $result);
+        self::assertStringContainsString('Scope `empty` at ./Makefile:7 holds nothing.', $result);
         self::assertStringContainsString('Add a command, variable, function or description, or remove it.', $result);
     }
 

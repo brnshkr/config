@@ -30,7 +30,7 @@ final class StartupTest extends TestCase
 
         self::assertStringContainsString('composer install', $result);
         self::assertStringContainsString('bun install', $result);
-        self::assertStringContainsString("Running startup-own\nstartup-own\n", $result);
+        self::assertStringContainsString("Running `startup-own`\nstartup-own\n", $result);
     }
 
     public function testStartupSkipsTheInstallsTheCallerAlreadyRan(): void
@@ -45,6 +45,6 @@ final class StartupTest extends TestCase
 
         self::assertStringNotContainsString('composer install', $result);
         self::assertStringNotContainsString('bun install', $result);
-        self::assertStringContainsString("Running startup-own\nstartup-own\n", $result);
+        self::assertStringContainsString("Running `startup-own`\nstartup-own\n", $result);
     }
 }

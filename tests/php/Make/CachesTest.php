@@ -30,7 +30,7 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', '--', '--first=x'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named first=x', $result);
+        self::assertStringContainsString('No cache named `first=x`', $result);
         self::assertDirectoryExists($cachesDirectory . '/.cache/first');
     }
 
@@ -42,7 +42,7 @@ final class CachesTest extends TestCase
 
         $removed = $this->runMake(['cc', 'first'], directory: $cachesDirectory);
 
-        self::assertStringContainsString('Removed ./.cache/first', $removed);
+        self::assertStringContainsString('Removed `./.cache/first`', $removed);
         self::assertDirectoryDoesNotExist($cachesDirectory . '/.cache/first');
         self::assertDirectoryExists($cachesDirectory . '/.cache/second');
     }
@@ -55,7 +55,7 @@ final class CachesTest extends TestCase
 
         $removed = $this->runMake(['cc', 'help'], directory: $cachesDirectory);
 
-        self::assertStringContainsString('Removed ./.cache/help.cache', $removed);
+        self::assertStringContainsString('Removed `./.cache/help.cache`', $removed);
         self::assertStringNotContainsString('Usage:', $removed);
         self::assertDirectoryExists($cachesDirectory . '/.cache/other');
     }
@@ -68,8 +68,8 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', 'nope'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named nope', $result);
-        self::assertStringContainsString('Try first', $result);
+        self::assertStringContainsString('No cache named `nope`', $result);
+        self::assertStringContainsString('Try `first`', $result);
         self::assertDirectoryExists($cachesDirectory . '/.cache/first');
     }
 
@@ -81,8 +81,8 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', 'phpstna.cache'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named phpstna.cache', $result);
-        self::assertStringContainsString('Did you mean phpstan.cache', $result);
+        self::assertStringContainsString('No cache named `phpstna.cache`', $result);
+        self::assertStringContainsString('Did you mean `phpstan.cache`', $result);
         self::assertStringNotContainsString('Try ', $result);
         self::assertStringNotContainsString('Removed', $result);
         self::assertDirectoryExists($cachesDirectory . '/.cache/phpstan.cache');
@@ -96,7 +96,7 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', 'eslin'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('Did you mean eslint?', $result);
+        self::assertStringContainsString('Did you mean `eslint`?', $result);
         self::assertStringNotContainsString('eslint-group', $result);
         self::assertStringNotContainsString('eslint-print', $result);
     }
@@ -114,8 +114,8 @@ final class CachesTest extends TestCase
         $listed  = $this->runMake(['cc'], directory: $cachesDirectory);
         $refused = $this->runMake(['cc', 'nope'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('$(id), it\'s or x?]0;title?y', $listed);
-        self::assertStringContainsString('Try $(id), it\'s or x?]0;title?y', $refused);
+        self::assertStringContainsString('`$(id)`, `it\'s` or `x?]0;title?y`', $listed);
+        self::assertStringContainsString('Try `$(id)`, `it\'s` or `x?]0;title?y`', $refused);
     }
 
     public function testALinkedPathIsCheckedWithoutRunningIt(): void

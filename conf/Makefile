@@ -2687,8 +2687,9 @@ endef
 
 #**
 #* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
-#* Anything in backticks renders as inline code. The message is a `printf` format, so a value goes
-#* in as an argument rather than being pasted in. A literal comma has to be written as `$(_COMMA)`.
+#* Anything in backticks renders as inline code, and keeps its backticks where color is off.
+#* The message is a `printf` format, so a value goes in as an argument rather than being pasted in.
+#* A literal comma has to be written as `$(_COMMA)`.
 #* A backticked span that names a target or an existing path links to it, which `no-autolink` turns
 #* off where the sentence is about neither.
 #*
@@ -3517,8 +3518,8 @@ endef
 #* returns: void
 #*
 define _render_inline_code
-$(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
-	-v _CLOSE='$(_ANSI_RESET)' \
+$(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
+	-v _CLOSE='$(if $(_IS_NO_COLOR),`,$(_ANSI_RESET))' \
 	-v _URL='$(if $(filter yes,$2),$(_INLINE_CODE_URL))' \
 	-v _CWD='$(CURDIR)' \
 	-v _APP_DIR='$(APP_DIR)' \
@@ -3573,6 +3574,7 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 		return "\033]8;;" render_url(_URL, path, line) "\033\\" \
 	} \
 	{ \
+		rendered = ""; \
 		while (match($$0, /`[^`]*`/)) { \
 			code_start = RSTART; \
 			code_length = RLENGTH; \
@@ -3580,8 +3582,10 @@ $(AWK) -v _OPEN='$(call _ansi,$(COLOR_HIGHLIGHT))' \
 			gsub(/[[:cntrl:]]/, "?", inline_code); \
 			hyperlink = render_hyperlink(inline_code); \
 			hyperlink_end = hyperlink == "" ? "" : "\033]8;;\033\\"; \
-			$$0 = substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end substr($$0, code_start + code_length) \
+			rendered = rendered substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end; \
+			$$0 = substr($$0, code_start + code_length) \
 		} \
+		$$0 = rendered $$0; \
 		$1 \
 	}'
 endef
@@ -4729,6 +4733,14 @@ function named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? ".
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
 function line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
+function render_message(text,    out) {
+	out = ""
+	while (match(text, /`[^`]+`/)) {
+		out = out substr(text, 1, RSTART - 1) "$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))" substr(text, RSTART + 1, RLENGTH - 2) "$(if $(_IS_NO_COLOR),`,$(_ANSI_RESET))"
+		text = substr(text, RSTART + RLENGTH)
+	}
+	return out text
+}
 function render_inline_code(text,    out, ansi_open, ansi_close) {
 	ansi_open = ENVIRON["_INLINE_CODE_OPEN"]
 	ansi_close = ENVIRON["_INLINE_CODE_CLOSE"]
@@ -4871,19 +4883,19 @@ function record_scope_error(level, name,    location, above) {
 	if (scope_error != "") return
 	location = get_source_location()
 	if (name == "") scope_error = sprintf("Scope header at %s has no name.", location)
-	else if (level < 0) scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s is depth %d; scopes start at \"$(call text,#--,$(MODIFIER_UNDERLINE))\".", \
+	else if (level < 0) scope_error = sprintf("Scope `%s` at %s is depth %d; scopes start at `#--`.", \
 		name, location, level)
 	else {
 		if (scope_depth >= 0) { above = scope_at[scope_depth]; gsub(/\//, ".", above) }
-		scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s is depth %d, but %s.", name, location, level, \
-			scope_depth < 0 ? "no scope above it is open" : sprintf("\"$(call text,%s,$(COLOR_WARNING))\" above it is depth %d", above, scope_depth))
-		scope_notice = sprintf("Write \"$(call text,#%s %s,$(MODIFIER_UNDERLINE))\", or put a depth-%d scope %s.", \
+		scope_error = sprintf("Scope `%s` at %s is depth %d, but %s.", name, location, level, \
+			scope_depth < 0 ? "no scope above it is open" : sprintf("`%s` above it is depth %d", above, scope_depth))
+		scope_notice = sprintf("Write `#%s %s`, or put a depth-%d scope %s.", \
 			repeat("-", scope_depth + 3), name, scope_depth + 1, scope_depth < 0 ? "above it" : "between them")
 	}
 }
 function close_empty_scope() {
 	if (scope_error == "") {
-		scope_error = sprintf("Scope \"$(call text,%s,$(COLOR_WARNING))\" at %s holds nothing.", open_scope_name, open_scope_location)
+		scope_error = sprintf("Scope `%s` at %s holds nothing.", open_scope_name, open_scope_location)
 		scope_notice = "Add a command, variable, function or description, or remove it."
 	}
 	open_scope_name = ""
@@ -4934,12 +4946,12 @@ function record_override(kind, marker, depth,    count) {
 	override_location[count] = get_source_location()
 }
 function fail_override(message, notice) {
-	printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", message
-	if (notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", notice
+	printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(message)
+	if (notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", render_message(notice)
 	exit $(BRNSHKR_CONFIG_ERROR_CODE)
 }
 function fail_unknown_override(count, notice) {
-	fail_override(sprintf("Unknown %s \"$(call text,%s,$(COLOR_WARNING))\" at %s.", \
+	fail_override(sprintf("Unknown %s `%s` at %s.", \
 		override_kind[count], override_name[count], override_location[count]), notice)
 }
 function is_symbol_named(entry, name) { sub(/, .*/, "", entry); return index("/" entry "/", "/" name "/") > 0 }
@@ -4964,16 +4976,16 @@ function apply_overrides(    count, key, segment_count, segments, first) {
 		if (override_kind[count] == "scope") {
 			segment_count = split(key, segments, ".")
 			if (segment_count != override_depth[count] + 1)
-				fail_override(sprintf("\"$(call text,%s,$(COLOR_WARNING))\" at %s is a depth-%d scope, not depth %d.", \
+				fail_override(sprintf("`%s` at %s is a depth-%d scope, not depth %d.", \
 					key, override_location[count], segment_count - 1, override_depth[count]), \
-					sprintf("Write \"$(call text,#%s!,$(MODIFIER_UNDERLINE))\" for it.", repeat("-", segment_count + 1)))
+					sprintf("Write `#%s!` for it.", repeat("-", segment_count + 1)))
 			gsub(/\./, "/", key)
 			if (scope_declaration_count[key] + 0 <= ((key, override_file[count]) in scope_declared_in))
-				fail_unknown_override(count, "Run \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.")
+				fail_unknown_override(count, "Run `make help ls` to see available scopes.")
 		}
 		if ((override_kind[count], key) in override_index) {
 			first = override_index[override_kind[count], key]
-			fail_override(sprintf("Duplicate override of \"$(call text,%s,$(COLOR_WARNING))\" at %s and %s.", \
+			fail_override(sprintf("Duplicate override of `%s` at %s and %s.", \
 				override_name[count], override_location[first], override_location[count]), "")
 		}
 		override_index[override_kind[count], key] = count
@@ -5344,20 +5356,20 @@ END {
 		editor_choices = ""
 		for (editor_idx = 1; editor_idx <= editor_count; editor_idx += 1)
 			editor_choices = editor_choices (editor_idx == 1 ? "" : "|") editor_names[editor_idx]
-		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown editor \"$(call text,%s,$(COLOR_WARNING))\".\n", ENVIRON["_EDITOR_UNKNOWN"]
-		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run with \"$(call text,EDITOR=<%s>,$(MODIFIER_UNDERLINE))\" or \"$(call text,EDITOR=,$(MODIFIER_UNDERLINE))\" to disable.\n", editor_choices
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(sprintf("Unknown editor `%s`.", ENVIRON["_EDITOR_UNKNOWN"]))
+		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", render_message(sprintf("Run with `EDITOR=<%s>` or `EDITOR=` to disable.", editor_choices))
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	if (open_scope_name != "") close_empty_scope()
 	if (scope_error != "") {
-		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", scope_error
-		if (scope_notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", scope_notice
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(scope_error)
+		if (scope_notice != "") printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", render_message(scope_notice)
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	for (scope_path in seen_scope)
 		if (!index(scope_path, "/") && (scope_path ~ /^v+$$/ || index(" " ENVIRON["_HELP_WORDS"] " ", " " scope_path " "))) {
-			printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" takes a name that help reserves.\n", scope_path
-			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Rename it; help reads \"$(call text,%s,$(MODIFIER_UNDERLINE))\" as a word of its own.\n", scope_path
+			printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(sprintf("Scope `%s` takes a name that help reserves.", scope_path))
+			printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", render_message(sprintf("Rename it; help reads `%s` as a word of its own.", scope_path))
 			exit $(BRNSHKR_CONFIG_ERROR_CODE)
 		}
 	apply_overrides()
@@ -5379,18 +5391,18 @@ END {
 		if (filter_verbosity >= 0 && filter_verbosity <= verbosity) continue
 		filter_display = filter; gsub(/\//, ".", filter_display)
 		if (filter_verbosity < 0) unknown_filters[++unknown_filter_count] = filter_display
-		else { printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Scope \"$(call text,%s,$(COLOR_WARNING))\" shows nothing below %s.\n", filter_display, repeat("v", filter_verbosity); is_hidden = 1 }
+		else { printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(sprintf("Scope `%s` shows nothing below %s.", filter_display, repeat("v", filter_verbosity))); is_hidden = 1 }
 	}
 	if (is_hidden && !unknown_filter_count) exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	if (unknown_filter_count > 0) {
 		unknown_message = ""
 		for (filter_idx = 1; filter_idx <= unknown_filter_count; filter_idx += 1) {
 			separator = (filter_idx == 1 ? "" : (filter_idx == unknown_filter_count ? " and " : ", "))
-			unknown_message = unknown_message separator sprintf("\"$(call text,%s,$(COLOR_WARNING))\"", unknown_filters[filter_idx])
+			unknown_message = unknown_message separator sprintf("`%s`", unknown_filters[filter_idx])
 		}
 		unknown_label = (unknown_filter_count == 1 ? "scope" : "scopes")
-		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) Unknown %s %s.\n", unknown_label, unknown_message
-		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) Run \"$(call text,make help list-scopes,$(MODIFIER_UNDERLINE))\" or \"$(call text,make help ls,$(MODIFIER_UNDERLINE))\" to see available scopes.\n"
+		printf "$(call text,[$(_LABEL)],$(COLOR_ERROR)) %s\n", render_message(sprintf("Unknown %s %s.", unknown_label, unknown_message))
+		printf "$(call text,[$(_LABEL)],$(COLOR_NOTICE)) %s\n", render_message("Run `make help list-scopes` or `make help ls` to see available scopes.")
 		exit $(BRNSHKR_CONFIG_ERROR_CODE)
 	}
 	if (ENVIRON["_HAS_LIST_SCOPES_ARGUMENT"]) {

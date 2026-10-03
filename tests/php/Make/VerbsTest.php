@@ -88,13 +88,13 @@ final class VerbsTest extends TestCase
         $ci        = $this->runMake(['ci'], directory: $directory);
         $single    = $this->runMake(['rector-dry-run'], directory: $directory);
 
-        self::assertStringContainsString("[acme/verbs] Running rector-dry-run\nrector process", $check);
-        self::assertStringContainsString("[acme/verbs] Running phpstan\nphpstan analyze", $check);
-        self::assertStringNotContainsString("Running rector\n", $check);
-        self::assertStringContainsString("[acme/verbs] Running rector\nrector process", $fix);
-        self::assertStringNotContainsString('Running _', $fix);
-        self::assertStringContainsString("[acme/verbs] Running check\n", $ci);
-        self::assertStringContainsString("[acme/verbs] Running test\n", $ci);
+        self::assertStringContainsString("[acme/verbs] Running `rector-dry-run`\nrector process", $check);
+        self::assertStringContainsString("[acme/verbs] Running `phpstan`\nphpstan analyze", $check);
+        self::assertStringNotContainsString("Running `rector`\n", $check);
+        self::assertStringContainsString("[acme/verbs] Running `rector`\nrector process", $fix);
+        self::assertStringNotContainsString('Running `_', $fix);
+        self::assertStringContainsString("[acme/verbs] Running `check`\n", $ci);
+        self::assertStringContainsString("[acme/verbs] Running `test`\n", $ci);
         self::assertStringNotContainsString('Running', $single);
     }
 
@@ -117,7 +117,7 @@ final class VerbsTest extends TestCase
 
         self::assertStringContainsString('phpstan done', $check);
         self::assertStringContainsString('phpstan done', $ci);
-        self::assertStringNotContainsString('Running test', $ci);
+        self::assertStringNotContainsString('Running `test`', $ci);
         self::assertStringNotContainsString('php-cs-fixer fix', $fix);
     }
 
@@ -126,16 +126,16 @@ final class VerbsTest extends TestCase
         $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/../Fixtures/Make/Verbs');
 
         self::assertMatchesRegularExpression(
-            '/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/',
+            '/Running `php-cs-fixer-dry-run`\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/',
             $check,
         );
 
         self::assertMatchesRegularExpression(
-            '/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/',
+            '/Running `rector-dry-run`\nrector process [^\n]*--dry-run\nrector done/',
             $check,
         );
 
-        self::assertMatchesRegularExpression('/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/', $check);
+        self::assertMatchesRegularExpression('/Running `phpstan`\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
     public function testFindingsAreCountedByTheIdentifierTheyCarry(): void
@@ -196,7 +196,7 @@ final class VerbsTest extends TestCase
         $verb      = $this->runMake(['groups'], directory: $directory);
         $silenced  = $this->runMake(['groups'], ['ANNOUNCEMENT' => ''], $directory);
 
-        self::assertStringContainsString("[Group] Running group-pairs\n  2  acme.first", $verb);
+        self::assertStringContainsString("[Group] Running `group-pairs`\n  2  acme.first", $verb);
         self::assertStringNotContainsString('Running…', $verb);
         self::assertStringNotContainsString('[Group]', $silenced);
     }
@@ -206,14 +206,14 @@ final class VerbsTest extends TestCase
         $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/../Fixtures/Make/Group');
 
         self::assertStringContainsString(
-            "[Group] Running group-single\n  1  acme.only  Only finding.\n  ✘ 1 finding\n",
+            "[Group] Running `group-single`\n  1  acme.only  Only finding.\n  ✘ 1 finding\n",
             $output,
         );
 
         self::assertStringNotContainsString('Running…', $output);
 
         self::assertStringContainsString(
-            "[Group] Running group-pairs\n  2  acme.first   First finding.\n"
+            "[Group] Running `group-pairs`\n  2  acme.first   First finding.\n"
             . "  1  acme.second  Second finding.\n  ✘ 3 findings\n",
             $output,
         );

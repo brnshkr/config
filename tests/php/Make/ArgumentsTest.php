@@ -54,7 +54,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('shared-fixtures is defined in', $result);
+        self::assertStringContainsString('`shared-fixtures` is defined in', $result);
         self::assertStringContainsString('TARGET_PREFIX', $result);
     }
 
@@ -171,8 +171,8 @@ final class ArgumentsTest extends TestCase
         $stageTypo  = $this->runMake(['de-ps'], directory: self::SUGGESTIONS_DIRECTORY, doExpectFailure: true);
         $targetTypo = $this->runMake(['dumsp'], directory: self::SUGGESTIONS_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('Did you mean dev-ps?', $stageTypo);
-        self::assertStringContainsString('Did you mean dumps?', $targetTypo);
+        self::assertStringContainsString('Did you mean `dev-ps`?', $stageTypo);
+        self::assertStringContainsString('Did you mean `dumps`?', $targetTypo);
     }
 
     public function testAProjectTargetAfterANamingVerbIsRefusedBeforeAnythingRuns(): void
@@ -183,7 +183,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('fixtures is a target of this project, so it cannot follow cc', $result);
+        self::assertStringContainsString('`fixtures` is a target of this project, so it cannot follow `cc`', $result);
         self::assertDoesNotMatchRegularExpression('/^collision$/m', $result);
     }
 
@@ -195,7 +195,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('twice is defined in', $result);
+        self::assertStringContainsString('`twice` is defined in', $result);
         self::assertStringContainsString('again.mk', $result);
         self::assertStringContainsString('defines the same name twice', $result);
     }

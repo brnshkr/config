@@ -29,8 +29,7 @@ final class OutputTest extends TestCase
     {
         $result = $this->runMake(['help', 'EDITOR=nano'], doExpectFailure: true);
 
-        self::assertStringContainsString('Unknown editor', $result);
-        self::assertStringContainsString('"nano"', $result);
+        self::assertStringContainsString('Unknown editor `nano`.', $result);
     }
 
     public function testUnsupportedEditorFromTheEnvironmentIsIgnored(): void

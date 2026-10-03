@@ -290,18 +290,18 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/`,
-    regex: /Running php-cs-fixer-dry-run\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
+    php: '/Running `php-cs-fixer-dry-run`\\nphp-cs-fixer fix [^\\n]*--dry-run\\nphp-cs-fixer done/',
+    regex: /Running `php-cs-fixer-dry-run`\nphp-cs-fixer fix [^\n]*--dry-run\nphp-cs-fixer done/v,
   },
   {
     file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/`,
-    regex: /Running rector-dry-run\nrector process [^\n]*--dry-run\nrector done/v,
+    php: '/Running `rector-dry-run`\\nrector process [^\\n]*--dry-run\\nrector done/',
+    regex: /Running `rector-dry-run`\nrector process [^\n]*--dry-run\nrector done/v,
   },
   {
     file: 'tests/php/Make/VerbsTest.php',
-    php: String.raw`/Running phpstan\nphpstan analyze [^\n]*\nphpstan done/`,
-    regex: /Running phpstan\nphpstan analyze [^\n]*\nphpstan done/v,
+    php: '/Running `phpstan`\\nphpstan analyze [^\\n]*\\nphpstan done/',
+    regex: /Running `phpstan`\nphpstan analyze [^\n]*\nphpstan done/v,
   },
   {
     file: 'tests/php/StrTest.php',

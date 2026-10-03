@@ -416,8 +416,9 @@ Available commands:
 +
 +   log
 +    Prints a message behind the <VENDOR>/<PACKAGE> label.
-+    Anything in backticks renders as inline code. The message is a printf format, so a value goes
-+    in as an argument rather than being pasted in. A literal comma has to be written as $(_COMMA).
++    Anything in backticks renders as inline code, and keeps its backticks where color is off.
++    The message is a printf format, so a value goes in as an argument rather than being pasted in.
++    A literal comma has to be written as $(_COMMA).
 +    A backticked span that names a target or an existing path links to it, which no-autolink turns
 +    off where the sentence is about neither.
 +
@@ -1208,8 +1209,9 @@ Available commands:
 
    [36mlog[0m
     [90mPrints a message behind the [35m<VENDOR>/<PACKAGE>[0m[90m label.[0m
-    [90mAnything in backticks renders as inline code. The message is a [35mprintf[0m[90m format, so a value goes[0m
-    [90min as an argument rather than being pasted in. A literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
+    [90mAnything in backticks renders as inline code, and keeps its backticks where color is off.[0m
+    [90mThe message is a [35mprintf[0m[90m format, so a value goes in as an argument rather than being pasted in.[0m
+    [90mA literal comma has to be written as [35m$(_COMMA)[0m[90m.[0m
     [90mA backticked span that names a target or an existing path links to it, which [35mno-autolink[0m[90m turns[0m
     [90moff where the sentence is about neither.[0m
 
@@ -1513,8 +1515,9 @@ Available commands:
 
    [32mlog[0m
     [0mPrints a message behind the [33m<VENDOR>/<PACKAGE>[0m[0m label.[0m
-    [0mAnything in backticks renders as inline code. The message is a [33mprintf[0m[0m format, so a value goes[0m
-    [0min as an argument rather than being pasted in. A literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
+    [0mAnything in backticks renders as inline code, and keeps its backticks where color is off.[0m
+    [0mThe message is a [33mprintf[0m[0m format, so a value goes in as an argument rather than being pasted in.[0m
+    [0mA literal comma has to be written as [33m$(_COMMA)[0m[0m.[0m
     [0mA backticked span that names a target or an existing path links to it, which [33mno-autolink[0m[0m turns[0m
     [0moff where the sentence is about neither.[0m
 
