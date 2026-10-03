@@ -272,7 +272,7 @@ Variables:
    STYLELINT                      ?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs stylelint)
    STYLELINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to stylelint config)
    STYLELINT_CACHE                ?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the stylelint cache)
-   STYLELINT_FLAGS                ?=  --allow-empty-input --max-warnings 0 $(if $(_IS… (additional flags passed to stylelint)
+   STYLELINT_FLAGS                ?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to stylelint)
   typescript
    TYPESCRIPT                     ?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs tsc)
    TYPESCRIPT_CONFIG              ?=  $(APP_DIR)/tsconfig.json                         (path to the tsc project)
@@ -568,7 +568,7 @@ Variables:
    STYLELINT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to stylelint config)
    STYLELINT_GLOB                  ?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files stylelint looks at)
    STYLELINT_CACHE                 ?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the stylelint cache)
-   STYLELINT_FLAGS                 ?=  --allow-empty-input --max-warnings 0 $(if $(_IS… (additional flags passed to stylelint)
+   STYLELINT_FLAGS                 ?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to stylelint)
    STYLELINT_EXTENSIONS            ?=  $(_STYLELINT_EXTENSIONS)                         (extensions stylelint parses, set by its config's syntaxes)
   typescript
    TYPESCRIPT                      ?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs tsc)
@@ -1590,7 +1590,7 @@ Available commands:
    [36mSTYLELINT_CONFIG              [0m  [90m?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to [35mstylelint[0m[90m config)[0m
    [36mSTYLELINT_GLOB                [0m  [90m?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files [35mstylelint[0m[90m looks at)[0m
    [36mSTYLELINT_CACHE               [0m  [90m?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the [35mstylelint[0m[90m cache)[0m
-   [36mSTYLELINT_FLAGS               [0m  [90m?=  --allow-empty-input --max-warnings 0 $(if $(_IS… (additional flags passed to [35mstylelint[0m[90m)[0m
+   [36mSTYLELINT_FLAGS               [0m  [90m?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to [35mstylelint[0m[90m)[0m
    [36mSTYLELINT_EXTENSIONS          [0m  [90m?=  $(_STYLELINT_EXTENSIONS)                         (extensions [35mstylelint[0m[90m parses, set by its config's syntaxes)[0m
   [35mtypescript[0m
    [36mTYPESCRIPT                    [0m  [90m?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs [35mtsc[0m[90m)[0m
@@ -2026,7 +2026,7 @@ Available commands:
    [32mSTYLELINT_CONFIG              [0m  [0m?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to [33mstylelint[0m[0m config)[0m
    [32mSTYLELINT_GLOB                [0m  [0m?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files [33mstylelint[0m[0m looks at)[0m
    [32mSTYLELINT_CACHE               [0m  [0m?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the [33mstylelint[0m[0m cache)[0m
-   [32mSTYLELINT_FLAGS               [0m  [0m?=  --allow-empty-input --max-warnings 0 $(if $(_IS… (additional flags passed to [33mstylelint[0m[0m)[0m
+   [32mSTYLELINT_FLAGS               [0m  [0m?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to [33mstylelint[0m[0m)[0m
    [32mSTYLELINT_EXTENSIONS          [0m  [0m?=  $(_STYLELINT_EXTENSIONS)                         (extensions [33mstylelint[0m[0m parses, set by its config's syntaxes)[0m
   [33mtypescript[0m
    [32mTYPESCRIPT                    [0m  [0m?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs [33mtsc[0m[0m)[0m

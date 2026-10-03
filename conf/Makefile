@@ -1955,7 +1955,7 @@ STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `sty
 STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/stylelint.mjs $(APP_DIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
 STYLELINT_CACHE  ?= $(APP_DIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
-STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `stylelint`
+STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 --ignore-path $(APP_DIR)/.gitignore --ignore-path $(APP_DIR)/.stylelintignore $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
 	--cache-strategy \
