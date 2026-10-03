@@ -6,6 +6,7 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
+use Brnshkr\Config\PhpStan\Rule\ConstantDocCache;
 use Brnshkr\Config\PhpStan\Rule\FileLevelDocCache;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\Str;
@@ -24,6 +25,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
  * @extends AbstractRuleTestCase<InternalUsageRule>
  */
 #[CoversClass(InternalUsageRule::class)]
+#[CoversClass(ConstantDocCache::class)]
 #[UsesClass(ComposerJson::class)]
 #[UsesClass(FileLevelDocCache::class)]
 #[UsesClass(Json::class)]
@@ -57,6 +59,14 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         $this->assertIssuesReported(
             self::FIXTURE_DIRECTORY . '/Internal/InternalFunctions.php',
             self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalFunction.php',
+        );
+    }
+
+    public function testRuleReportsGlobalConstants(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalConstants.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeInternalConstant.php',
         );
     }
 

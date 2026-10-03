@@ -115,6 +115,7 @@ src/php/PhpStan/Rule/Architecture/Tempest/ModuleIsolatedTest.php
 src/php/PhpStan/Rule/Architecture/Tempest/RoleFoldersExhaustiveTest.php
 src/php/PhpStan/Rule/Architecture/Tempest/RouteNoDatabaseTest.php
 src/php/PhpStan/Rule/BoolishPrefixRule.php
+src/php/PhpStan/Rule/ConstantDocCache.php
 src/php/PhpStan/Rule/FileLevelDocCache.php
 src/php/PhpStan/Rule/InterfaceSuffixRule.php
 src/php/PhpStan/Rule/InternalExposureRule.php

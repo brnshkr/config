@@ -27,7 +27,6 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
@@ -248,19 +247,15 @@ final readonly class InternalUsageRule implements Rule
         }
 
         $constantReflection = $this->reflectionProvider->getConstant($constFetch->name, $scope);
-
-        if (!$constantReflection instanceof ClassMemberReflection) {
-            return null;
-        }
-
-        $internalTarget = self::resolveInternalTarget($constantReflection->getDocComment());
+        $constantName       = $constantReflection->getName();
+        $fileName           = $constantReflection->getFileName();
 
         return $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $constantReflection->getDeclaringClass()->getNativeReflection()->getNamespaceName(),
+            self::resolveInternalTarget($fileName === null ? null : ConstantDocCache::get($fileName, $constantName)),
+            Str::beforeLast($constantName, '\\'),
             $callerNamespace,
             self::KIND_CONSTANT,
-            $constFetch->name->toString(),
+            $constantName,
             $line,
         );
     }
