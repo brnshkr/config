@@ -102,7 +102,7 @@
 #     make help ls brnshkr
 #     make help ls brnshkr.theming app
 #
-#   Printing what each variable expands to instead of its source text:
+#   Printing what each variable expands to, and where a value from outside the Makefiles came from:
 #     make help resolve
 #     make help r
 #
@@ -1188,16 +1188,20 @@ endef
 
 _HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
 	_HIDDEN_NAMES="_HELP_AWK _DOTENV_REPORT_AWK OLDPWD PWD SHLVL $(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter environment,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
-	_COMMAND_LINE_NAMES="$(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
-	_DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
+	_COMMAND_LINE_NAMES="$(_COMMAND_LINE_KEYS)"
 
-_RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_FILE_KEYS),$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
+_HELP_RESOLVE_INPUTS = _VARIABLE_SOURCES="$(foreach VARIABLE_NAME,$(sort $(_RESOLVED_VARIABLES)),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=cli,$(if $(filter environment%,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=env)))"
+_HELP_DOTENV_INPUTS  = _DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
+
+_RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS)),$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
 _ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LIST))
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
 $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
 	$(TRACE_PREFIX)$(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
+		$(if $(_HAS_RESOLVE_ARGUMENT),$(_HELP_RESOLVE_INPUTS)) \
+		$(if $(or $(_HAS_ENV_ARGUMENT),$(_HAS_RESOLVE_ARGUMENT)),$(_HELP_DOTENV_INPUTS)) \
 		_CURDIR="$(abspath $(CURDIR))" \
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
@@ -4966,8 +4970,23 @@ function alias_of(name,    map, position, remainder) {
 	remainder = substr(map, position + length(name) + 2)
 	return ", " substr(remainder, 1, index(remainder, " ") - 1)
 }
-function add_dotenv_variables(    keys, key_count, key_idx, name) {
+function add_resolved_variables(    keys, key_count, key_idx, name, pair_count, pairs, record_count, records, record_fields, record_idx) {
+	record_count = split(ENVIRON["_DOTENV_REPORT"], records, "\n")
+	for (record_idx = 1; record_idx <= record_count; record_idx += 1) {
+		if (split(records[record_idx], record_fields, "\037") < 5 || record_fields[4] != "") continue
+		variable_source[record_fields[2]] = named_path(record_fields[1])
+		variable_source_file[record_fields[2]] = record_fields[1]
+		variable_source_line[record_fields[2]] = record_fields[5]
+	}
 	key_count = split(ENVIRON["_DOTENV_FILE_KEYS"], keys, /[[:space:]]+/)
+	pair_count = split(ENVIRON["_VARIABLE_SOURCES"], pairs, /[[:space:]]+/)
+	for (key_idx = 1; key_idx <= pair_count; key_idx += 1) {
+		if (!index(pairs[key_idx], "=")) continue
+		name = substr(pairs[key_idx], 1, index(pairs[key_idx], "=") - 1)
+		variable_source[name] = substr(pairs[key_idx], index(pairs[key_idx], "=") + 1)
+		variable_source_file[name] = ""
+		keys[++key_count] = name
+	}
 	scope_depth = 0
 	scope_at[0] = "main"
 	for (key_idx = 1; key_idx <= key_count; key_idx += 1) {
@@ -5031,7 +5050,7 @@ function tree_max(scope_path, depth, section, mode,    best, idx, width, child_w
 			if (mode == "value" && section_description[scope_path, section, idx] == "") continue
 			value = section_text[scope_path, section, idx]
 			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]])
-			width = (mode == "value") ? length(value) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx])
+			width = (mode == "value") ? length(value) : (mode == "source") ? length(variable_source[section_name[scope_path, section, idx]]) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx])
 			if (width > best) best = width
 		}
 	}
@@ -5058,11 +5077,14 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			extra = section_extra[scope_path, section, idx]
 			description = section_description[scope_path, section, idx]
 			if (section == "variables" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && entry in ENVIRON) text = trim(ENVIRON[entry])
+			if (section == "variables" && source_width) extra = extra "  " variable_source[entry] repeat(" ", source_width - length(variable_source[entry]))
 			if (section == "variables") description = render_inline_code(description)
 			else if (section == "commands") text = render_inline_code(text)
 			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text) }
 			else if (section == "description") text = render_inline_code(text)
-			entry_linked = render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
+			entry_linked = (section == "variables" && variable_source_file[entry] != "") \
+				? render_link(entry, variable_source_file[entry], variable_source_line[entry]) \
+				: render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
 			entry_pad = width - length(entry)
 			if (entry_pad < 0) entry_pad = 0
 			entry_padded = entry_linked repeat(" ", entry_pad)
@@ -5354,12 +5376,13 @@ END {
 		exit 0
 	}
 	if (ENVIRON["_HAS_ENV_ARGUMENT"] != "") { print_header(); print_environment(); exit 0 }
-	if (ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "") add_dotenv_variables()
+	if (ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "") add_resolved_variables()
 	print_header()
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx]
 		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
 		column = tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column
+		column = tree_max(top_path, 0, "variables", "source"); if (column > source_width) source_width = column
 		if (description_column > ENVIRON["VALUE_WIDTH"] + 0) description_column = ENVIRON["VALUE_WIDTH"] + 0
 		column = tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column
 		column = tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column

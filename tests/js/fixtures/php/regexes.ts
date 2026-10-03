@@ -280,8 +280,8 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/HelpTest.php',
-    php: String.raw`/ARGS +=  'vv' /`,
-    regex: /ARGS +=  'vv' /v,
+    php: String.raw`/ARGS +=  +'vv' /`,
+    regex: /ARGS +=  +'vv' /v,
   },
   {
     file: 'tests/php/StrTest.php',
@@ -307,6 +307,26 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'tests/php/StrTest.php',
     php: String.raw`/(?<letter>[a-z])(?<digit>\d)/`,
     regex: /(?<letter>[a-z])(?<digit>\d)/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/`,
+    regex: /DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/`,
+    regex: /DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/`,
+    regex: /DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/v,
+  },
+  {
+    file: 'tests/php/Make/DotenvTest.php',
+    php: String.raw`/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/`,
+    regex: /DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/v,
   },
 ];
 /* eslint-enable regexp/prefer-set-operation -- Restore rule */

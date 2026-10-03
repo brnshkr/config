@@ -192,9 +192,33 @@ final class DotenvTest extends TestCase
         $resolved = $this->runMake(['help', 'resolve'], directory: self::DOTENV_DIRECTORY);
         $plain    = $this->runMake(['help'], directory: self::DOTENV_DIRECTORY);
 
-        self::assertStringContainsString('DOTENV_FIXTURE_LAYER', $resolved);
-        self::assertStringContainsString('dev-local', $resolved);
+        $linked = $this->runMake(
+            ['help', 'resolve'],
+            ['EDITOR' => 'vscode', 'EDITOR_URL' => 'acme://open/{file}#{line}', ...self::COLORED_ENV],
+            self::DOTENV_DIRECTORY,
+        );
+
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/', $resolved);
+        self::assertStringContainsString("acme://open/.env.dev.local#1\e\\DOTENV_FIXTURE_LAYER", $linked);
         self::assertStringNotContainsString('DOTENV_FIXTURE_LAYER', $plain);
+    }
+
+    public function testResolveNamesTheEnvironmentOrCommandLineThatReplacedAValue(): void
+    {
+        $resolved = $this->runMake(
+            [
+                'help',
+                'resolve',
+                'DOTENV_FIXTURE_PLAIN=from-the-command-line',
+                'DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE=given',
+            ],
+            ['DOTENV_FIXTURE_LATER' => 'from-the-environment'],
+            self::DOTENV_DIRECTORY,
+        );
+
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/', $resolved);
     }
 
     public function testAStageGoalReadsItsOwnStageWhileTheEnvironmentStillWins(): void

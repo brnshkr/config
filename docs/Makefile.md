@@ -26,7 +26,7 @@ After that, `make` on its own prints the help.
 a `package.json`, and each tool's own appear once that tool is installed and the repository has files it reads.
 Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help phpstan` or `make help brnshkr.phpstan`.
 `make help ls` lists the scopes with something to show at that verbosity,
-`make help resolve` prints what each variable expands to,
+`make help resolve` prints what each variable expands to, beside the environment file, `env` or `cli` that gave it,
 and `make help env` what the Makefiles export, then what each environment file set and what replaced it.
 Every `help` argument also runs as a target of its own, so `make ls` is `make help ls`.
 Across both stacks:
