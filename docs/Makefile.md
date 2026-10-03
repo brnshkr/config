@@ -169,6 +169,8 @@ Declared `.env` keys travel with each command by name, so their values stay out 
 command-line variables travel with their value.
 The compose file itself may interpolate any key the environment files set, `.env.local` and stage files included.
 Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
+The semgrep targets appear once the service's image lists `semgrep` in its `dev.brnshkr.tools` label,
+as `forge`'s `semgrep` variant does.
 
 | Target | Does |
 | --- | --- |

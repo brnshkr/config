@@ -245,16 +245,16 @@ _HAS_DOCKER     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE
 _HAS_CONTAINER   = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
 _IS_SERVICE_RUN  = $(filter run,$(APP_SERVICE_MODE))
 
-define _SERVICE_DIRECTORY_AWK
+define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
 /^[^[:space:]]/ { in_services = 0 }
 in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service) }
-in_services && service == _SERVICE && /^    working_dir:/ { \
-	directory = $$2; \
-	gsub(/["'"'"']/, "", directory); \
-	print directory; \
-	exit \
+in_services && service == _SERVICE && /^    (working_dir|image):/ { \
+	value = $$2; \
+	gsub(/["'"'"']/, "", value); \
+	if ($$1 == "image:") image = value; else directory = value \
 }
+END { if (directory != "") print directory, image }
 endef
 
 
@@ -489,8 +489,13 @@ export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
 
-_SERVICE_DIRECTORY := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
-	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_DIRECTORY_AWK)'))
+_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
+	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))
+
+_SERVICE_DIRECTORY := $(word 1,$(_SERVICE_CONFIG))
+
+_SERVICE_TOOLS := $(if $(word 2,$(_SERVICE_CONFIG)),$(shell $(DOCKER) image inspect \
+	--format '{{index .Config.Labels "dev.brnshkr.tools"}}' '$(word 2,$(_SERVICE_CONFIG))' </dev/null 2>/dev/null))
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null \
@@ -688,7 +693,7 @@ _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 ))
 
 _HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_HAS_CONTAINER), \
-	$(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) run --rm --no-deps --entrypoint sh $(APP_SERVICE) -c 'command -v semgrep' </dev/null >/dev/null 2>&1 && $(PRINTF) 1), \
+	$(filter semgrep,$(_SERVICE_TOOLS)), \
 	$(call _is_on_path,semgrep))))
 
 _TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
