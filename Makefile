@@ -70,6 +70,7 @@ export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
 
 COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php
 MV       := mv#vvv #~~ path to `mv` binary
+XARGS    := xargs#vvv #~~ path to `xargs` binary
 
 #--- build
 
@@ -109,7 +110,7 @@ discover: #~~ runs mate discover
 
 # NOTICE: `./scripts/mate.php` feeds its arguments here separated by NUL, so none of their quoting is lost on the way
 _mate-from-stdin:
-	$(DEBUG_PREFIX)$(RUN) xargs -0 $(_MATE_BINARY)
+	$(DEBUG_PREFIX)$(RUN) $(XARGS) -0 $(_MATE_BINARY)
 
 #---vvv debug
 
