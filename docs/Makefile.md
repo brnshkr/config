@@ -49,7 +49,7 @@ Across both stacks:
 | `fresh` | Removes every ignored file but `FRESH_KEEP` and the private half of each tracked `.dist` file, then reinstalls and runs `startup`, asking first. Untracked files and nested repositories stay too; `--all` removes everything. `--force` skips the question. Needs a commit to reset to. |
 | `fresh-dry-run` | Lists what `fresh` would remove and keep. |
 
-`make -j` runs tools in parallel, keeping fixers that write the same files in order.
+`make -j` runs tools in parallel, keeping fixers that write the same files in order and every tool in color.
 A verb names each target before running it and carries on past a failing one.
 `ci` stops at its first failed step.
 

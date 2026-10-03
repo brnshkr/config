@@ -234,7 +234,7 @@ Variables:
   phpstan
    PHP_STAN                       ?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to phpstan binary)
    PHP_STAN_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to phpstan config)
-   PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to phpstan)
+   PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
    PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to php-cs-fixer binary)
    PHP_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to php-cs-fixer config)
@@ -242,11 +242,11 @@ Variables:
   rector
    RECTOR                         ?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to rector binary)
    RECTOR_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to rector config)
-   RECTOR_FLAGS                   ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to rector)
+   RECTOR_FLAGS                   ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
    TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to twig-cs-fixer binary)
    TWIG_CS_FIXER_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to twig-cs-fixer config)
-   TWIG_CS_FIXER_FLAGS            ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_O… (additional flags passed to twig-cs-fixer)
+   TWIG_CS_FIXER_FLAGS            ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
   bun
    BUN                            ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                      ?=  --bun                                            (flags passed to bun before the command)
@@ -522,7 +522,7 @@ Variables:
   phpstan
    PHP_STAN                        ?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to phpstan binary)
    PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to phpstan config)
-   PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to phpstan)
+   PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
    PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to php-cs-fixer binary)
    PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to php-cs-fixer config)
@@ -530,11 +530,11 @@ Variables:
   rector
    RECTOR                          ?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to rector binary)
    RECTOR_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to rector config)
-   RECTOR_FLAGS                    ?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to rector)
+   RECTOR_FLAGS                    ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
    TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to twig-cs-fixer binary)
    TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to twig-cs-fixer config)
-   TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_O… (additional flags passed to twig-cs-fixer)
+   TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
    TWIG_CS_FIXER_EXTENSIONS        ?=  twig                                             (extensions twig-cs-fixer reads)
   bun
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
@@ -1544,7 +1544,7 @@ Available commands:
   [35mphpstan[0m
    [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to [35mphpstan[0m[90m binary)[0m
    [36mPHP_STAN_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to [35mphpstan[0m[90m config)[0m
-   [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to [35mphpstan[0m[90m)[0m
+   [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mphpstan[0m[90m)[0m
   [35mphp-cs-fixer[0m
    [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to [35mphp-cs-fixer[0m[90m binary)[0m
    [36mPHP_CS_FIXER_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to [35mphp-cs-fixer[0m[90m config)[0m
@@ -1552,11 +1552,11 @@ Available commands:
   [35mrector[0m
    [36mRECTOR                        [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to [35mrector[0m[90m binary)[0m
    [36mRECTOR_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to [35mrector[0m[90m config)[0m
-   [36mRECTOR_FLAGS                  [0m  [90m?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to [35mrector[0m[90m)[0m
+   [36mRECTOR_FLAGS                  [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mrector[0m[90m)[0m
   [35mtwig-cs-fixer[0m
    [36mTWIG_CS_FIXER                 [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to [35mtwig-cs-fixer[0m[90m binary)[0m
    [36mTWIG_CS_FIXER_CONFIG          [0m  [90m?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to [35mtwig-cs-fixer[0m[90m config)[0m
-   [36mTWIG_CS_FIXER_FLAGS           [0m  [90m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_O… (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
+   [36mTWIG_CS_FIXER_FLAGS           [0m  [90m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
    [36mTWIG_CS_FIXER_EXTENSIONS      [0m  [90m?=  twig                                             (extensions [35mtwig-cs-fixer[0m[90m reads)[0m
   [35mbun[0m
    [36mBUN                           [0m  [90m?=  $(RUN) bun                                       (command that runs [35mbun[0m[90m)[0m
@@ -1980,7 +1980,7 @@ Available commands:
   [33mphpstan[0m
    [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to [33mphpstan[0m[0m binary)[0m
    [32mPHP_STAN_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to [33mphpstan[0m[0m config)[0m
-   [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to [33mphpstan[0m[0m)[0m
+   [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mphpstan[0m[0m)[0m
   [33mphp-cs-fixer[0m
    [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to [33mphp-cs-fixer[0m[0m binary)[0m
    [32mPHP_CS_FIXER_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to [33mphp-cs-fixer[0m[0m config)[0m
@@ -1988,11 +1988,11 @@ Available commands:
   [33mrector[0m
    [32mRECTOR                        [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to [33mrector[0m[0m binary)[0m
    [32mRECTOR_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to [33mrector[0m[0m config)[0m
-   [32mRECTOR_FLAGS                  [0m  [0m?=  --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS… (additional flags passed to [33mrector[0m[0m)[0m
+   [32mRECTOR_FLAGS                  [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mrector[0m[0m)[0m
   [33mtwig-cs-fixer[0m
    [32mTWIG_CS_FIXER                 [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to [33mtwig-cs-fixer[0m[0m binary)[0m
    [32mTWIG_CS_FIXER_CONFIG          [0m  [0m?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to [33mtwig-cs-fixer[0m[0m config)[0m
-   [32mTWIG_CS_FIXER_FLAGS           [0m  [0m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_O… (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
+   [32mTWIG_CS_FIXER_FLAGS           [0m  [0m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
    [32mTWIG_CS_FIXER_EXTENSIONS      [0m  [0m?=  twig                                             (extensions [33mtwig-cs-fixer[0m[0m reads)[0m
   [33mbun[0m
    [32mBUN                           [0m  [0m?=  $(RUN) bun                                       (command that runs [33mbun[0m[0m)[0m

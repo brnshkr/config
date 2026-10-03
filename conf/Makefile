@@ -343,7 +343,7 @@ _TRUE  := 1 true on yes
 _IS_CI  = $(filter-out $(_FALSE),$(CI))
 
 _MAKE_FLAGS  = $(if $(or $(_IS_DEBUG),$(_IS_TRACE)),--no-print-directory,-s) _IS_ANNOUNCING=
-_VERB_FLAGS  = $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse) --keep-going _IS_ANNOUNCING=1
+_VERB_FLAGS  = $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse $(if $(_IS_NO_COLOR),,FORCE_COLOR=1)) --keep-going _IS_ANNOUNCING=1
 _IS_PARALLEL = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
 
 _UNEXPORTED_VARIABLES = COMPOSER DEBUG ESLINT_FLAGS VITEST
@@ -513,7 +513,7 @@ VALUE_WIDTH ?= 48#~~ widest value column in `make help`, truncated past it
 NO_COLOR            ?= #~~ whether color is off, on for any value per no-color.org
 _IS_COLOR_FORCED     = $(or $(filter-out $(_FALSE),$(FORCE_COLOR)),$(filter-out $(_FALSE),$(CLICOLOR_FORCE)))
 _CAN_SHOW_COLOR      = $(or $(_IS_CI),$(MAKE_TERMOUT),$(filter 3.% 4.0%,$(MAKE_VERSION)))
-_NO_ANSI_OPTION      = $(if $(_IS_NO_COLOR),--no-ansi)
+_ANSI_OPTION         = $(if $(_IS_NO_COLOR),--no-ansi,$(if $(_IS_PARALLEL),--ansi))
 _IS_PROGRESS_HIDDEN  = $(or $(_IS_CI),$(_IS_NO_COLOR))
 
 _IS_NO_COLOR = $(or \
@@ -776,12 +776,12 @@ _ACTIONLINT_NAME    := $(if $(_HAS_ACTIONLINT),actionlint)
 _SEMGREP_NAME       := $(if $(_HAS_SEMGREP),semgrep)
 
 _FIXER_NAMES := $(strip \
-	$(_PHP_CS_FIXER_NAME) \
 	$(_RECTOR_NAME) \
+	$(_PHP_CS_FIXER_NAME) \
 	$(_TWIG_CS_FIXER_NAME) \
 	$(_ESLINT_NAME) \
-	$(_MARKDOWNLINT_NAME) \
 	$(_STYLELINT_NAME) \
+	$(_MARKDOWNLINT_NAME) \
 )
 
 _ANALYZER_NAMES := $(strip \
@@ -1570,7 +1570,7 @@ ifneq ($(_HAS_PHPUNIT),) # phpunit
 PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
 PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, Pest when installed
 PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/conf/phpunit.xml $(APP_DIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
-PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--colors=never)#v #~~ additional flags passed to the test runner
+PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--colors=never,$(if $(_IS_PARALLEL),--colors=always))#v #~~ additional flags passed to the test runner
 PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
 PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
@@ -1653,7 +1653,7 @@ ifneq ($(_HAS_PHPSTAN),) # phpstan
 
 PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
-PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
+PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
@@ -1678,7 +1678,7 @@ $(call _target,phpstan-list): #~~ lists all files that are processed by `phpstan
 
 $(call _target,phpstan-print): #~~ prints the resolved `phpstan` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_STAN) dump-parameters --configuration $(PHP_STAN_CONFIG) $(_NO_ANSI_OPTION) $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_STAN) dump-parameters --configuration $(PHP_STAN_CONFIG) $(_ANSI_OPTION) $(ARGS)
 
 $(call _target,phpstan-raw): #~~ runs `phpstan analyze` with raw output #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -1692,7 +1692,7 @@ ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
 
 PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
-PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_NO_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
+PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
@@ -1709,12 +1709,12 @@ $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fi
 
 $(call _target,php-cs-fixer-list): #~~ lists all files that are processed by `php-cs-fixer` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) 2>&1) \
+	$(TRACE_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) 2>&1) \
 		| $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }'
 
 $(call _target,php-cs-fixer-print): #~~ prints the `php-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_CS_FIXER) describe --config $(PHP_CS_FIXER_CONFIG) $(_NO_ANSI_OPTION) -n @ $(ARGS)
+	$(DEBUG_PREFIX)$(PHP_CS_FIXER) describe --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) -n @ $(ARGS)
 
 endif # /php-cs-fixer
 
@@ -1724,7 +1724,7 @@ ifneq ($(_HAS_RECTOR),) # rector
 
 RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` binary
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
-RECTOR_FLAGS  ?= --memory-limit=-1 $(_NO_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
+RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
@@ -1762,7 +1762,7 @@ ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 
 TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
 TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
-TWIG_CS_FIXER_FLAGS  ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_NO_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
+TWIG_CS_FIXER_FLAGS  ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig-cs-fixer` reads
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
@@ -2517,21 +2517,26 @@ _FIX_ORDER := rector+php-cs-fixer \
 	twig-cs-fixer \
 	eslint+stylelint+markdownlint
 
-_FIX_CHAINS := $(strip $(foreach CHAIN,$(_FIX_ORDER) $(filter-out $(subst +, ,$(_FIX_ORDER)),$(_FIXER_NAMES)), \
-	$(if $(filter $(_FIXER_NAMES),$(subst +, ,$(CHAIN))),_$(_TARGET_PREFIX)fix-$(CHAIN)) \
-))
-
 FIX_TARGETS ?= #v #~~ this project's own targets, run by `fix`
 
 ifneq ($(_HAS_FIX),)
 $(call _target,fix): #~~ runs every fixer this project has, writing its fixes
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_FIX_CHAINS) $(FIX_TARGETS)
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_FIXERS) $(FIX_TARGETS)
 endif
 
-_$(_TARGET_PREFIX)fix-%:
-	$(DEBUG_PREFIX)$(foreach NAME,$(filter $(_FIXER_NAMES),$(subst +, ,$*)), \
-		$(MAKE) $(_VERB_FLAGS) $(call _target,$(NAME)) && \
-	):
+#**
+#* Makes each goal of a fixer chain wait for the ones before it, so `-j` keeps the order.
+#*
+#* parameters:
+#*   goals: list<string>
+#*
+#* returns: string
+#*
+define _order_fixers
+$(if $(word 2,$1),$(lastword $1): | $(filter-out $(lastword $1),$1)$(_NEWLINE)$(call _order_fixers,$(filter-out $(lastword $1),$1)))
+endef
+
+$(foreach CHAIN,$(_FIX_ORDER),$(eval $(call _order_fixers,$(filter $(MAKECMDGOALS),$(foreach NAME,$(subst +, ,$(CHAIN)),$(call _target,$(NAME)))))))
 
 GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
 
