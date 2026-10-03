@@ -1,8 +1,15 @@
 import { isModuleEnabledByDefault } from '../shared/utils/module';
+import { packageOrganization } from '../shared/utils/package-json';
 
 import { configs } from './configs';
 import { getUserConfigs, includeConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
+
+import {
+  BUILTIN_MODULE,
+  isModuleEnabled,
+  MODULES,
+  setModuleEnabled,
+} from './utils/module';
 
 import type { Config } from './types/config';
 import type { ResolvedOptions, UserOptions } from './types/options';
@@ -21,7 +28,7 @@ import type { ResolvedOptions, UserOptions } from './types/options';
  *
  * @returns final config ready to be consumed by markdownlint-cli2
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/js/markdownlint.md
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/index.md
  *
  * @example
  * ```js
@@ -43,6 +50,7 @@ export const getConfig = (
   ...additionalConfigs: Config[]
 ): Config => {
   const resolvedOptions = <const>{
+    [packageOrganization]: isModuleEnabledByDefault(BUILTIN_MODULE),
     github: isModuleEnabledByDefault(MODULES.github),
     links: isModuleEnabledByDefault(MODULES.links),
     search: isModuleEnabledByDefault(MODULES.search),
@@ -51,6 +59,8 @@ export const getConfig = (
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
+  // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+  setModuleEnabled(BUILTIN_MODULE, resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.github, resolvedOptions.github);
   setModuleEnabled(MODULES.links, resolvedOptions.links);
   setModuleEnabled(MODULES.search, resolvedOptions.search);
@@ -60,6 +70,11 @@ export const getConfig = (
   const config: Config = {};
 
   includeConfigs(config, configs.ignores());
+
+  if (isModuleEnabled(BUILTIN_MODULE)) {
+    // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+    includeConfigs(config, configs[packageOrganization]());
+  }
 
   if (isModuleEnabled(MODULES.github)) {
     includeConfigs(config, configs.github());

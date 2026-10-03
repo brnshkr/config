@@ -4,7 +4,7 @@ The JavaScript half of **@brnshkr/config**. Per-tool pages below; the [README](.
 
 - [commitlint](./commitlint.md) — commit-message rules, checked on the `commit-msg` hook
 - [ESLint](./eslint/index.md) — lint configuration plus the custom `brnshkr` rules
-- [markdownlint](./markdownlint.md) — Markdown rules, in the shape `markdownlint-cli2` reads
+- [markdownlint](./markdownlint/index.md) — Markdown rules, in the shape `markdownlint-cli2` reads
 - [Stylelint](./stylelint.md) — stylesheet rules, for every dialect the project has installed
 - [TypeScript](./typescript.md) — the strict, bundler-first compiler baseline
 - [Vitest](./vitest.md) — test collection, including the spelling test this package ships

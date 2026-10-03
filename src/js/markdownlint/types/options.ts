@@ -4,9 +4,17 @@
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 
+import type { packageOrganization } from '../../shared/utils/package-json';
 import type { Config } from './config';
 
 export interface ConfigOptions {
+  /**
+   * Enables builtin rules.
+   *
+   * @default true
+   */
+  [packageOrganization]: boolean;
+
   /**
    * Enables `@github/markdownlint-github`.
    *

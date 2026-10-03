@@ -3,6 +3,7 @@
 exports[`expected markdownlint config 1`] = `
 {
   "config": {
+    "brnshkr/no-warning-comments": true,
     "code-block-style": {
       "style": "fenced",
     },
@@ -113,12 +114,6 @@ exports[`expected markdownlint config 1`] = `
           "searchScope": "all",
         },
         {
-          "message": "Open work belongs in a backlog, not in a comment.",
-          "name": "no-todo-comments",
-          "searchPattern": "/\\b(?:TODO|FIXME|XXX|HACK)\\b/gu",
-          "searchScope": "text",
-        },
-        {
           "message": "Remove the zero-width character.",
           "name": "no-zero-width-characters",
           "replace": "",
@@ -211,6 +206,17 @@ exports[`expected markdownlint config 1`] = `
     },
   },
   "customRules": [
+    {
+      "description": "Open work belongs in a backlog, not in a comment.",
+      "information": "https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-warning-comments.md",
+      "names": [
+        "brnshkr/no-warning-comments",
+      ],
+      "parser": "micromark",
+      "tags": [
+        "comments",
+      ],
+    },
     "<root>/node_modules/@github/markdownlint-github/index.js",
     "<root>/node_modules/markdownlint-rule-relative-links/src/index.js",
     "<root>/node_modules/markdownlint-rule-no-trailing-slash-in-links/src/no-trailing-slash-in-links.js",

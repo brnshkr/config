@@ -40,12 +40,6 @@ const RULES = <const>[
     searchScope: 'all',
   },
   {
-    name: 'no-todo-comments',
-    message: 'Open work belongs in a backlog, not in a comment.',
-    searchPattern: String.raw`/\b(?:TODO|FIXME|XXX|HACK)\b/gu`,
-    searchScope: 'text',
-  },
-  {
     name: 'no-zero-width-characters',
     message: 'Remove the zero-width character.',
     searchPattern: String.raw`/[\u200B-\u200D\uFEFF]/gu`,
