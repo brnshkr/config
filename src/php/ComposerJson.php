@@ -440,6 +440,31 @@ final class ComposerJson
     }
 
     /**
+     * Resolve where each package production installs without lies, keyed by its name.
+     *
+     * @return array<non-empty-string, non-empty-string> the directory of each development-only package
+     *
+     * @throws RuntimeException when the manifest or the installed data cannot be read
+     */
+    public function getDevelopmentOnlyPackageDirectories(): array
+    {
+        $vendorDirectory = $this->getVendorDirectory();
+        $directories     = [];
+
+        foreach ($this->getDevelopmentOnlyPackages() as $package) {
+            if (!Str::contains($package, '/') || !Str::isNonDecimalIntString($package)) {
+                continue;
+            }
+
+            $directory = $vendorDirectory . '/' . $package;
+
+            $directories[$package] = realpath($directory) ?: $directory;
+        }
+
+        return $directories;
+    }
+
+    /**
      * @return array<non-empty-string, non-empty-string>
      *
      * @throws RuntimeException

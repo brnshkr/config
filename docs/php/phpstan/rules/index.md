@@ -13,6 +13,8 @@ to a specific framework or architecture style — they are opt-in and configured
 
 ## Encapsulation
 
+- [`DevFunctionUsageRule`](./DevFunctionUsageRule.md)
+  — production code must not call a function only a development-only package declares
 - [`InternalUsageRule`](./InternalUsageRule.md)
   — `@internal` symbols may only be used from their own declaring namespace or below
 - [`InternalExposureRule`](./InternalExposureRule.md)

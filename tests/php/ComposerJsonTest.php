@@ -95,6 +95,16 @@ final class ComposerJsonTest extends TestCase
         self::assertNotContains('Stringy', self::fixture('transitive')->getDevelopmentOnlyPackageNamespaces());
     }
 
+    public function testADevelopmentOnlyPackageIsFoundInTheVendorDirectory(): void
+    {
+        $vendorDirectory = realpath(__DIR__ . '/Fixtures/ComposerJson/transitive') . '/vendor';
+
+        self::assertSame([
+            'acme/direct-dev'     => $vendorDirectory . '/acme/direct-dev',
+            'acme/transitive-dev' => $vendorDirectory . '/acme/transitive-dev',
+        ], self::fixture('transitive')->getDevelopmentOnlyPackageDirectories());
+    }
+
     public function testTheRootNamespaceComesFromAutoload(): void
     {
         self::assertSame('Acme', self::fixture('transitive')->getRootNamespace());

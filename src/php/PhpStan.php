@@ -12,6 +12,7 @@ use Brnshkr\Config\PhpStan\ProjectKernel;
 use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
+use Brnshkr\Config\PhpStan\Rule\DevFunctionUsageRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalExposureRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
@@ -312,7 +313,18 @@ final class PhpStan
             ])
         ;
 
-        $developmentDirectories = ComposerJson::forProjectUsingThisLibrary()->getDevelopmentDirectories();
+        $composerJson                  = ComposerJson::forProjectUsingThisLibrary();
+        $developmentDirectories        = $composerJson->getDevelopmentDirectories();
+        $developmentPackageDirectories = $composerJson->getDevelopmentOnlyPackageDirectories();
+
+        if ($developmentPackageDirectories !== []) {
+            $phpStanConfig->addRules([
+                self::configureRule(DevFunctionUsageRule::class, [
+                    'developmentPackageDirectories' => $developmentPackageDirectories,
+                    'developmentDirectories'        => $developmentDirectories,
+                ]),
+            ]);
+        }
 
         if ($developmentDirectories !== []) {
             $phpStanConfig->addIgnoredErrors([

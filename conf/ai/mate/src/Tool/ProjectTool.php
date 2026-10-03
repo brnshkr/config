@@ -35,6 +35,7 @@ final class ProjectTool
      * @phpstan-var non-empty-list<non-empty-string>
      */
     private const array PHP_ONLY_RULES = [
+        'DevFunctionUsageRule',
         'NamedArgumentsTagRule',
         'TagDescriptionRule',
     ];
