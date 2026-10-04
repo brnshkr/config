@@ -26,11 +26,12 @@ final class HelpTest extends TestCase
     use MakeTrait;
     use MatchesSnapshots;
 
-    private const string RESERVED_DIRECTORY  = __DIR__ . '/../Fixtures/Make/ReservedScope';
-    private const string SKIPPED_DIRECTORY   = __DIR__ . '/../Fixtures/Make/SkippedScope';
-    private const string EMPTY_DIRECTORY     = __DIR__ . '/../Fixtures/Make/EmptyScope';
-    private const string SEPARATOR_DIRECTORY = __DIR__ . '/../Fixtures/Make/SeparatorScope';
-    private const int SHELL_ARGUMENT_LIMIT   = 131_072;
+    private const string RESERVED_DIRECTORY    = __DIR__ . '/../Fixtures/Make/ReservedScope';
+    private const string SKIPPED_DIRECTORY     = __DIR__ . '/../Fixtures/Make/SkippedScope';
+    private const string EMPTY_DIRECTORY       = __DIR__ . '/../Fixtures/Make/EmptyScope';
+    private const string SEPARATOR_DIRECTORY   = __DIR__ . '/../Fixtures/Make/SeparatorScope';
+    private const string ENVIRONMENT_DIRECTORY = __DIR__ . '/../Fixtures/Make/Environment';
+    private const int SHELL_ARGUMENT_LIMIT     = 131_072;
 
     private const array SNAPSHOT_SCENARIOS = [
         'default'                => [],
@@ -346,6 +347,32 @@ final class HelpTest extends TestCase
 
         self::assertStringContainsString('Scope `acme.user` at ./Makefile:3 has a `.` in its name.', $result);
         self::assertStringContainsString('Rename it without `.` or `/`.', $result);
+    }
+
+    public function testAnEnvironmentMarkerHidesWhatBelongsElsewhere(): void
+    {
+        $development = $this->runMake(['help', 'v'], directory: self::ENVIRONMENT_DIRECTORY);
+        $production  = $this->runMake(['help', 'v'], ['APP_ENV' => 'prod'], self::ENVIRONMENT_DIRECTORY);
+
+        self::assertStringContainsString('seed', $development);
+        self::assertStringNotContainsString('deploy', $development);
+        self::assertStringNotContainsString('migrate', $development);
+        self::assertStringNotContainsString('seed', $production);
+        self::assertStringContainsString('deploy', $production);
+        self::assertStringContainsString('migrate', $production);
+    }
+
+    public function testAnEnvironmentMarkerRefusesTheTargetElsewhere(): void
+    {
+        $seeded    = $this->runMake(['seed'], directory: self::ENVIRONMENT_DIRECTORY);
+        $refused   = $this->runMake(['seed'], ['APP_ENV' => 'prod'], self::ENVIRONMENT_DIRECTORY, doExpectFailure: true);
+        $inherited = $this->runMake(['migrate'], directory: self::ENVIRONMENT_DIRECTORY, doExpectFailure: true);
+
+        self::assertSame('seeded', Str::trim($seeded));
+        self::assertStringContainsString('`seed` is not available in `prod`.', $refused);
+        self::assertStringContainsString('Run it with `APP_ENV=dev` or `APP_ENV=test`.', $refused);
+        self::assertStringContainsString('`migrate` is not available in `dev`.', $inherited);
+        self::assertStringContainsString('Run it with `APP_ENV=prod`.', $inherited);
     }
 
     public function testAScopeHoldingNothingFailsHelpNamingItsLine(): void

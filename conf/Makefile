@@ -59,6 +59,10 @@
 #       #---vvv name  —  contents hidden unless verbosity >= 3
 #       (and so on)
 #
+#     Add '&env=' and the environments after the 'v' characters, or 'env=' alone, to tie the scope to them:
+#       #---env=prod name        —  hidden, and every command in it refused, unless the environment is prod
+#       #---v&env=dev|test name  —  the same for dev or test, from verbosity 1
+#
 #   Overrides (a scope or symbol another file declares; the dashes match the scope's depth):
 #     #---! brnshkr.theming    —  show the scope at verbosity 0
 #     #---vv! brnshkr.theming  —  show it from verbosity 2
@@ -70,9 +74,11 @@
 #     command: #~~ description          —  annotate a command with a description
 #
 #     Append 'v' characters after '#' to make the line itself require higher verbosity (also arbitrary depth):
-#       command: #~~ description #v  —  hide the command entry unless verbosity >= 1
-#       VARIABLE ?= value#vv #~~ …   —  hide the variable entry unless verbosity >= 2
-#       VARIABLE ?= value#~~ … #vvv  —  hide the variable entry unless verbosity >= 3
+#       command: #~~ description #v           —  hide the command entry unless verbosity >= 1
+#       VARIABLE ?= value#vv #~~ …            —  hide the variable entry unless verbosity >= 2
+#       VARIABLE ?= value#~~ … #vvv           —  hide the variable entry unless verbosity >= 3
+#       command: #~~ description #env=dev     —  hide and refuse the command outside dev
+#       command: #~~ description #v&env=prod  —  the same outside prod, and hidden below verbosity 1
 #
 #   Description block (shown at the top of the help output under "Description:"):
 #     #!! text  —  emit a free-form description line; multiple lines are supported
@@ -369,6 +375,7 @@ DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, `
 DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
 DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
 DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.env.local` file
+_CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
@@ -906,6 +913,58 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 )
 
 _TARGET_FILES := $(foreach SOURCE,$(_TARGET_SOURCES),$(firstword $(subst :, ,$(SOURCE))))
+
+define _ENVIRONMENT_TARGETS_AWK
+function get_environments(text) { \
+	if (!match(text, /\043(v+&)?env=[A-Za-z0-9_.|-]+/)) return ""; \
+	text = substr(text, RSTART, RLENGTH); \
+	sub(/^[^=]*=/, "", text); \
+	return text \
+} \
+FNR == 1 { scope_depth = -1 } \
+/^define[[:space:]]/ { is_in_define = 1; next } \
+/^endef([[:space:]]|$$)/ { is_in_define = 0; next } \
+is_in_define { next } \
+/^\043--+v*!/ { next } \
+/^\043--+/ { \
+	match($$0, /^\043-+/); \
+	scope_depth = RLENGTH - 3; \
+	scope_environments[scope_depth] = substr($$0, RLENGTH + 1) ~ /^(v+&)?env=/ ? get_environments("\043" substr($$0, RLENGTH + 1)) : ""; \
+	if (scope_environments[scope_depth] == "" && scope_depth > 0) scope_environments[scope_depth] = scope_environments[scope_depth - 1]; \
+	next \
+} \
+/^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ { \
+	environments = get_environments($$0); \
+	if (environments == "" && scope_depth >= 0) environments = scope_environments[scope_depth]; \
+	if (environments == "") next; \
+	count = split(substr($$0, 1, index($$0, ":") - 1), names, /[ \t]+/); \
+	for (i = 1; i <= count; i += 1) \
+		if (names[i] != "" && names[i] !~ /^[._]/ && !(names[i] in seen_names)) { seen_names[names[i]] = 1; printf "%s=%s ", names[i], environments } \
+}
+endef
+
+_ENVIRONMENT_TARGETS := $(shell $(AWK) '$(_ENVIRONMENT_TARGETS_AWK)' $(MAKEFILE_LIST))
+
+#**
+#* Refuses a target outside the environments its help marker names.
+#*
+#* parameters:
+#*   target: string
+#*   environments: string
+#*
+#* returns: void
+#*
+define _environment_gate
+$1: | _$(_TARGET_PREFIX)environment-gate-$1
+.PHONY: _$(_TARGET_PREFIX)environment-gate-$1
+_$(_TARGET_PREFIX)environment-gate-$1:
+	@case '|$2|' in *'|$$(_CURRENT_ENV)|'*) ;; *) \
+		$$(call log,`%s` is not available in `%s`.,$$(COLOR_ERROR),'$1' '$$(_CURRENT_ENV)') >&2; \
+		$$(call log,Run it with %s.,$$(COLOR_NOTICE),$$(call _quoted,$$(call _join_as_quoted_list,$$(addprefix $$(DOTENV_ENV_KEY)=,$(subst |, ,$2)),disjunction))) >&2; \
+		exit $$(BRNSHKR_CONFIG_ERROR_CODE);; esac
+endef
+
+$(foreach ENVIRONMENT_TARGET,$(_ENVIRONMENT_TARGETS),$(eval $(call _environment_gate,$(firstword $(subst =, ,$(ENVIRONMENT_TARGET))),$(lastword $(subst =, ,$(ENVIRONMENT_TARGET))))))
 _TARGET_LINKS := $(subst |,=,$(patsubst @%,%,$(_TARGET_SOURCES)))
 
 ifeq ($(_TARGET_SOURCES),) # awk
@@ -1253,6 +1312,7 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
 		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
+		_CURRENT_ENV="$(_CURRENT_ENV)" \
 		LC_ALL=C \
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
@@ -4851,8 +4911,10 @@ function render_link(text, path, line_number,    url) {
 	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
 }
 function get_named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }
-function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
-function get_line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
+function strip_verbosity(text) { sub("[ \t]*" marker_pattern "([ \t]|$$)", "", text); return text }
+function get_line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, marker_pattern "([[:space:]]|$$)")) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); sub(/&?env=.*/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
+function get_line_environments(line,    marker) { if (line == "") line = $$0; if (!match(line, marker_pattern "([[:space:]]|$$)")) return ""; marker = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", marker); return sub(/^v*&?env=/, "", marker) ? marker : "" }
+function is_in_current_environment(environments) { return environments == "" || index("|" environments "|", "|" ENVIRON["_CURRENT_ENV"] "|") > 0 }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
 function render_message(text,    out) {
 	out = ""
@@ -4985,8 +5047,10 @@ function is_scope_named(path,    i, f) {
 	return 0
 }
 function is_scope_hidden(path) { return hidden_scopes[path] && !is_listing_hidden && !is_scope_named(path) }
-function is_scope_visible(path) { return !is_scope_hidden(path) && scope_verbosity[path] + 0 <= verbosity }
+function is_scope_visible(path) { return is_in_current_environment(scope_environments[path]) && !is_scope_hidden(path) && scope_verbosity[path] + 0 <= verbosity }
 function is_entry_visible(scope_path, section, idx) {
+	if (!is_in_current_environment(scope_environments[scope_path])) return 0
+	if (!is_in_current_environment(section_environments[scope_path, section, idx])) return 0
 	if ((scope_path, section, idx) in entry_override_level)
 		return !hidden_entry_overrides[scope_path, section, idx] && entry_override_level[scope_path, section, idx] <= verbosity
 	if (section_verbosity[scope_path, section, idx] + 0 > verbosity) return 0
@@ -5024,7 +5088,7 @@ function close_empty_scope() {
 	}
 	open_scope_name = ""
 }
-function push_scope(level, name, verbosity,    current, parent_verbosity, parent) {
+function push_scope(level, name, verbosity, environments,    current, parent_verbosity, parent) {
 	if (name == "" || index(name, "/") || index(name, ".") || level < 0 || level > scope_depth + 1) {
 		record_scope_error(level, name)
 		return
@@ -5037,6 +5101,8 @@ function push_scope(level, name, verbosity,    current, parent_verbosity, parent
 	scope_depth = level
 	current = scope_at[level]
 	scope_marker_verbosity[current] = verbosity
+	if (environments != "") scope_environments[current] = environments
+	else if (level > 0 && !(current in scope_environments)) scope_environments[current] = scope_environments[scope_at[level - 1]]
 	if (!((current, FILENAME) in scope_declared_in)) scope_declaration_count[current] += 1
 	scope_declared_in[current, FILENAME] = 1
 	scope_parent[current] = (level > 0 ? scope_at[level - 1] : "")
@@ -5188,6 +5254,7 @@ function add(section, name, text, extra, description, line, entry_verbosity,    
 	section_file[current, section, idx] = FILENAME
 	section_line[current, section, idx] = line
 	section_verbosity[current, section, idx] = (entry_verbosity != "" ? entry_verbosity : get_line_verbosity())
+	section_environments[current, section, idx] = get_line_environments()
 }
 function handle_define(documentation,    description) {
 	if ($$2 ~ /^_/) return
@@ -5378,7 +5445,7 @@ function print_section(has_previous, section, label, column,    top_idx, top_pat
 	}
 	return found + 0
 }
-BEGIN { SQ = sprintf("%c", 39); verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
+BEGIN { SQ = sprintf("%c", 39); marker_pattern = "#(v+(&env=[A-Za-z0-9_.|-]+)?|env=[A-Za-z0-9_.|-]+)"; verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
 current_file != FILENAME { if (open_scope_name != "") close_empty_scope(); current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in is_condition_active) delete is_condition_active[i]; for (i in has_condition_matched) delete has_condition_matched[i]; scope_depth = -1; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
 NF && !/^#-/ && !/^#([[:space:]]|$$)/ { open_scope_name = "" }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
@@ -5389,7 +5456,19 @@ is_in_define { next }
 condition_depth > 0 && !is_condition_active[condition_depth] { next }
 /^#-+v*!/ { match($$0, /^#-+/); record_override("scope", substr($$0, RLENGTH + 1), RLENGTH - 3); next }
 /^#~~v*!/ { record_override("symbol", substr($$0, 4), -1); next }
-/^#-+/ { match($$0, /^#-+/); scope_dash_count = RLENGTH - 1; scope_suffix = substr($$0, RLENGTH + 1); match(scope_suffix, /^v*/); scope_verbosity_count = RLENGTH; push_scope(scope_dash_count - 2, trim(substr(scope_suffix, scope_verbosity_count + 1)), scope_verbosity_count); next }
+/^#-+/ {
+	match($$0, /^#-+/)
+	scope_dash_count = RLENGTH - 1
+	scope_suffix = substr($$0, RLENGTH + 1)
+	match(scope_suffix, /^(v+&env=[A-Za-z0-9_.|-]+|env=[A-Za-z0-9_.|-]+|v*)/)
+	scope_marker = substr(scope_suffix, 1, RLENGTH)
+	scope_name = trim(substr(scope_suffix, RLENGTH + 1))
+	scope_marker_environments = scope_marker
+	if (!sub(/^v*&?env=/, "", scope_marker_environments)) scope_marker_environments = ""
+	sub(/&?env=.*/, "", scope_marker)
+	push_scope(scope_dash_count - 2, scope_name, length(scope_marker), scope_marker_environments)
+	next
+}
 /^#\*\*/ { is_in_documentation = 1; documentation_text = ""; next }
 is_in_documentation {
 	if (/^#\*/) { sub(/^#\*[ ]?/, ""); documentation_text = documentation_text $$0 "\n"; next }

@@ -214,3 +214,6 @@ Your own Makefile can reshape the shared help: `#---! brnshkr.theming` shows tha
 `#---vv! brnshkr.theming` from `vv`, `#---!! brnshkr.theming` only when named.
 `#~~! phpstan-debug` does the same for a target, variable or function.
 The most specific line wins; unknown names, wrong depths and duplicates fail `make help`.
+
+`seed: #~~ fills the database #env=dev|test` ties a target to environments, and `#---env=prod deployment` a whole scope;
+`#v&env=prod` adds a verbosity. Elsewhere `make help` hides them and running such a target fails.
