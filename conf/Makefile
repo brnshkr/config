@@ -4883,7 +4883,10 @@ function record_scope_error(level, name,    location, above) {
 	if (scope_error != "") return
 	location = get_source_location()
 	if (name == "") scope_error = sprintf("Scope header at %s has no name.", location)
-	else if (level < 0) scope_error = sprintf("Scope `%s` at %s is depth %d; scopes start at `#--`.", \
+	else if (index(name, "/") || index(name, ".")) {
+		scope_error = sprintf("Scope `%s` at %s has a `%s` in its name.", name, location, index(name, "/") ? "/" : ".")
+		scope_notice = "Rename it without `.` or `/`."
+	} else if (level < 0) scope_error = sprintf("Scope `%s` at %s is depth %d; scopes start at `#--`.", \
 		name, location, level)
 	else {
 		if (scope_depth >= 0) { above = scope_at[scope_depth]; gsub(/\//, ".", above) }
@@ -4901,7 +4904,10 @@ function close_empty_scope() {
 	open_scope_name = ""
 }
 function push_scope(level, name, verbosity,    current, parent_verbosity, parent) {
-	if (name == "" || level < 0 || level > scope_depth + 1) { record_scope_error(level, name); return }
+	if (name == "" || index(name, "/") || index(name, ".") || level < 0 || level > scope_depth + 1) {
+		record_scope_error(level, name)
+		return
+	}
 	if (open_scope_name != "" && level <= open_scope_level) close_empty_scope()
 	open_scope_name = name
 	open_scope_level = level

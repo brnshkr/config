@@ -26,10 +26,11 @@ final class HelpTest extends TestCase
     use MakeTrait;
     use MatchesSnapshots;
 
-    private const string RESERVED_DIRECTORY = __DIR__ . '/../Fixtures/Make/ReservedScope';
-    private const string SKIPPED_DIRECTORY  = __DIR__ . '/../Fixtures/Make/SkippedScope';
-    private const string EMPTY_DIRECTORY    = __DIR__ . '/../Fixtures/Make/EmptyScope';
-    private const int SHELL_ARGUMENT_LIMIT  = 131_072;
+    private const string RESERVED_DIRECTORY  = __DIR__ . '/../Fixtures/Make/ReservedScope';
+    private const string SKIPPED_DIRECTORY   = __DIR__ . '/../Fixtures/Make/SkippedScope';
+    private const string EMPTY_DIRECTORY     = __DIR__ . '/../Fixtures/Make/EmptyScope';
+    private const string SEPARATOR_DIRECTORY = __DIR__ . '/../Fixtures/Make/SeparatorScope';
+    private const int SHELL_ARGUMENT_LIMIT   = 131_072;
 
     private const array SNAPSHOT_SCENARIOS = [
         'default'                => [],
@@ -337,6 +338,14 @@ final class HelpTest extends TestCase
 
         self::assertStringContainsString('Scope `nested` at ./Makefile:3 is depth 1, but no scope above it is open.', $result);
         self::assertStringContainsString('Write `#-- nested`, or put a depth-0 scope above it.', $result);
+    }
+
+    public function testAScopeNameHoldingASeparatorFailsHelpNamingItsLine(): void
+    {
+        $result = $this->runMake(['help'], directory: self::SEPARATOR_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('Scope `acme.user` at ./Makefile:3 has a `.` in its name.', $result);
+        self::assertStringContainsString('Rename it without `.` or `/`.', $result);
     }
 
     public function testAScopeHoldingNothingFailsHelpNamingItsLine(): void
