@@ -100,7 +100,7 @@ Every tool is three variables
 | `VENDOR`, `PACKAGE` | What the header and log lines say. Read from the manifest when unset. |
 | `VERSION` | What the header shows. `0.0.0-dev` until the repository sets it. |
 | `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
-| `CACHE_DIR` | Where the tools keep their caches, and what `cc` clears. |
+| `CONFIG_DIR`, `CACHE_DIR`, `LOCAL_DIR` | Where the project keeps its tool configs, caches and private files: `./conf`, `./.cache` and `./.local` by default; `cc` clears the caches. Set them above the include. |
 | `FRESH_KEEP` | What `fresh` leaves alone: `./.local`, `*.local` and `*.local.*` files, editor and agent directories. Add a pattern with `+=` below the include, drop one with `FRESH_KEEP := $(filter-out /.idea/,$(FRESH_KEEP))`. |
 | `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
 | `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
@@ -128,7 +128,7 @@ refreshed on every run. Everything outside them stays the repository's own and c
 | --- | --- |
 | `.gitignore` | caches, dependencies and private configs of what is installed |
 | `.gitattributes` | line endings and binaries, plus export rules from the autoload roots and `ARCHIVE_EXTRA_PATHS` |
-| `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, `css.customData` lists every tracked `.vscode/*.css-data.json` |
+| `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, binary paths and excludes the configured directories, `css.customData` lists every tracked `.vscode/*.css-data.json` |
 | `bunfig.toml` | Bun's defaults, ending in `[install]`: install keys and other tables go below it, top-level keys above |
 | `.vscode/tailwind.css-data.json` | the whole file, while Tailwind is installed |
 | `./Makefile` copied from `./conf/Makefile.dist` | its two marked parts, around the repository's own targets |

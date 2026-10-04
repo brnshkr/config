@@ -120,7 +120,7 @@ final readonly class TwigCsFixer
     {
         $config = new TwigCsFixerConfig()
             ->allowNonFixableRules()
-            ->setCacheFile('.cache/twig-cs-fixer.cache.json')
+            ->setCacheFile(ProjectDirectory::getCache() . '/twig-cs-fixer.cache.json')
             ->setFinder(FileFinder::get($finder, FileFinder::EXTENSION_TWIG)->notPath(sprintf(
                 '/^%s\/[^\/]+\/[^\/]+\//',
                 preg_quote(self::BUNDLES_DIRECTORY, '/'),

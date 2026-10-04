@@ -10,6 +10,7 @@ use Brnshkr\Config\Json;
 use Brnshkr\Config\Logger;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\TwigCsFixer;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -44,6 +45,7 @@ use function usort;
 #[UsesClass(Logger::class)]
 #[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Str::class)]
 final class TwigCsFixerTest extends TestCase
 {

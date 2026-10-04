@@ -187,6 +187,9 @@ Variables:
   variables
    APP_VARIABLE                   ?=  value                                            (a variable of the project's own)
  brnshkr
+  includes
+   CONFIG_DIR                     ?=  ./conf                                           (directory holding the project's own tool configs)
+   LOCAL_DIR                      ?=  ./.local                                         (directory holding a developer's private files)
   settings
    COMPOSE_FILE                   ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                    ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -211,8 +214,8 @@ Variables:
    GIT_HOOKS                      ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                         ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS            ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                      ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                     ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
+   CACHE_DIR                      ?=  ./.cache                                         (directory the tools keep their caches in)
+   FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS                  ?=                                                   (this project's own targets, run by check)
    FIX_TARGETS                    ?=                                                   (this project's own targets, run by fix)
    GROUP_TARGETS                  ?=                                                   (this project's own targets, run by group)
@@ -223,29 +226,29 @@ Variables:
    COMPOSER                       ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                 ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
   phpunit
-   PHP_UNIT                       ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
-   PHP_UNIT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
+   PHP_UNIT                       ?=  $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/… (command that runs the tests, Pest when installed)
+   PHP_UNIT_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpuni… (path to the test runner config)
    PHP_UNIT_FLAGS                 ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
    PHP_UNIT_EXCLUDED_GROUPS       ?=                                                   (test groups the runner leaves out)
    PHP_UNIT_SNAPSHOT_FLAGS        ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
-   PHP_UNIT_COVERAGE_DIR          ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
+   PHP_UNIT_COVERAGE_DIR          ?=  $(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/coverage  (directory the HTML coverage report is written to)
    PHP_UNIT_MIN_COVERAGE          ?=  100                                              (percentage every metric must reach, 0 for no floor)
    PHP_UNIT_COVERAGE_FLAGS        ?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)
   phpstan
-   PHP_STAN                       ?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to phpstan binary)
-   PHP_STAN_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to phpstan config)
+   PHP_STAN                       ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to phpstan binary)
+   PHP_STAN_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
    PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
-   PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to php-cs-fixer binary)
-   PHP_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to php-cs-fixer config)
+   PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to php-cs-fixer binary)
+   PHP_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
    PHP_CS_FIXER_FLAGS             ?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to php-cs-fixer)
   rector
-   RECTOR                         ?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to rector binary)
-   RECTOR_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to rector config)
+   RECTOR                         ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to rector binary)
+   RECTOR_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to rector config)
    RECTOR_FLAGS                   ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
-   TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to twig-cs-fixer binary)
-   TWIG_CS_FIXER_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to twig-cs-fixer config)
+   TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to twig-cs-fixer binary)
+   TWIG_CS_FIXER_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS            ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
   bun
    BUN                            ?=  $(RUN) bun                                       (command that runs bun)
@@ -254,24 +257,24 @@ Variables:
    NODE_MODULES_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
    COMMITLINT                     ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
-   COMMITLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
+   COMMITLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to commitlint config)
    COMMITLINT_FLAGS               ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
    GIT_HOOKS                      +=  commit-msg=$(call _target,commitlint)
   eslint
    ESLINT                         ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
-   ESLINT_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_… (path to eslint config)
-   ESLINT_CACHE                   ?=  $(APP_DIR)/.cache/eslint.cache.json              (path to the eslint cache)
+   ESLINT_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to eslint config)
+   ESLINT_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                   ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
    ESLINT_CONFIG_INSPECTOR        ?=  $(BUN) x eslint-config-inspector                 (command that runs eslint-config-inspector)
    ESLINT_CONFIG_INSPECTOR_FLAGS  ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
    MARKDOWNLINT                   ?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs markdownlint-cli2)
-   MARKDOWNLINT_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/markdownlint.mjs… (path to markdownlint config)
+   MARKDOWNLINT_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/markdo… (path to markdownlint config)
    MARKDOWNLINT_FLAGS             ?=                                                   (additional flags passed to markdownlint-cli2)
   stylelint
    STYLELINT                      ?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs stylelint)
-   STYLELINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to stylelint config)
-   STYLELINT_CACHE                ?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the stylelint cache)
+   STYLELINT_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/stylel… (path to stylelint config)
+   STYLELINT_CACHE                ?=  $(APP_DIR)/$(_CACHE_DIR)/stylelint.cache.json    (path to the stylelint cache)
    STYLELINT_FLAGS                ?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to stylelint)
   typescript
    TYPESCRIPT                     ?=  $(BUN) $(BUN_FLAGS) x tsc                        (command that runs tsc)
@@ -279,22 +282,22 @@ Variables:
    TYPESCRIPT_FLAGS               ?=  --noEmit $(if $(_IS_DEBUG),--extendedDiagnostic… (additional flags passed to tsc)
   vitest
    VITEST                         ?=  $(BUN) $(BUN_FLAGS) x vitest                     (command that runs vitest)
-   VITEST_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_… (path to vitest config)
+   VITEST_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/vitest… (path to vitest config)
    VITEST_FLAGS                   ?=  --run --passWithNoTests $(if $(_IS_DEBUG),--rep… (additional flags passed to vitest)
-   VITEST_COVERAGE_DIR            ?=  $(APP_DIR)/.cache/vitest.cache/coverage          (directory the HTML coverage report is written to)
+   VITEST_COVERAGE_DIR            ?=  $(APP_DIR)/$(_CACHE_DIR)/vitest.cache/coverage   (directory the HTML coverage report is written to)
    VITEST_MIN_COVERAGE            ?=  100                                              (percentage every metric must reach, 0 for no floor)
    VITEST_COVERAGE_FLAGS          ?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)
   hadolint
-   HADOLINT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+   HADOLINT_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
    HADOLINT                       ?=  $(RUN) hadolint                                  (command that runs hadolint)
    HADOLINT_FLAGS                 ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
   actionlint
-   ACTIONLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
+   ACTIONLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
    ACTIONLINT                     ?=  $(RUN) actionlint                                (command that runs actionlint)
    ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
    SEMGREP                        ?=  $(RUN) semgrep                                   (command that runs semgrep)
-   SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
+   SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS               ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                  ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
   changelog
@@ -412,6 +415,9 @@ Variables:
   variables
    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
  brnshkr
+  includes
+   CONFIG_DIR                      ?=  ./conf                                           (directory holding the project's own tool configs)
+   LOCAL_DIR                       ?=  ./.local                                         (directory holding a developer's private files)
   settings
    COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -491,8 +497,8 @@ Variables:
    GIT_HOOKS                       ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS             ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                       ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                      ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
+   CACHE_DIR                       ?=  ./.cache                                         (directory the tools keep their caches in)
+   FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS                   ?=                                                   (this project's own targets, run by check)
    CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                     ?=                                                   (this project's own targets, run by fix)
@@ -507,12 +513,12 @@ Variables:
    COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
    COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
   phpunit
-   PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
-   PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
+   PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/… (command that runs the tests, Pest when installed)
+   PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpuni… (path to the test runner config)
    PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
    PHP_UNIT_EXCLUDED_GROUPS        ?=                                                   (test groups the runner leaves out)
    PHP_UNIT_SNAPSHOT_FLAGS         ?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)
-   PHP_UNIT_COVERAGE_DIR           ?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)
+   PHP_UNIT_COVERAGE_DIR           ?=  $(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/coverage  (directory the HTML coverage report is written to)
    PHP_UNIT_COVERAGE_FILE          ?=  $(PHP_UNIT_COVERAGE_DIR)/coverage.txt            (report the minimum is read from, where the runner has none)
    PHP_UNIT_MIN_COVERAGE           ?=  100                                              (percentage every metric must reach, 0 for no floor)
    PHP_UNIT_MIN_COVERAGE_CLASSES   ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the class metric must reach, unread by Pest)
@@ -520,20 +526,20 @@ Variables:
    PHP_UNIT_MIN_COVERAGE_LINES     ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)
    PHP_UNIT_COVERAGE_FLAGS         ?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)
   phpstan
-   PHP_STAN                        ?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to phpstan binary)
-   PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to phpstan config)
+   PHP_STAN                        ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to phpstan binary)
+   PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
    PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
-   PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to php-cs-fixer binary)
-   PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to php-cs-fixer config)
+   PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to php-cs-fixer binary)
+   PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
    PHP_CS_FIXER_FLAGS              ?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to php-cs-fixer)
   rector
-   RECTOR                          ?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to rector binary)
-   RECTOR_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to rector config)
+   RECTOR                          ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to rector binary)
+   RECTOR_CONFIG                   ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to rector config)
    RECTOR_FLAGS                    ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
-   TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to twig-cs-fixer binary)
-   TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to twig-cs-fixer config)
+   TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to twig-cs-fixer binary)
+   TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
    TWIG_CS_FIXER_EXTENSIONS        ?=  twig                                             (extensions twig-cs-fixer reads)
   bun
@@ -544,30 +550,30 @@ Variables:
    NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
    COMMITLINT                      ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
-   COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to commitlint config)
+   COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to commitlint config)
    COMMITLINT_RANGE                ?=                                                   (commit range to lint, as <from>..<to>, not one message)
    COMMITLINT_SOURCE               ?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages commitlint reads)
    COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
    GIT_HOOKS                       +=  commit-msg=$(call _target,commitlint)
   eslint
    ESLINT                          ?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs eslint)
-   ESLINT_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_… (path to eslint config)
-   ESLINT_CACHE                    ?=  $(APP_DIR)/.cache/eslint.cache.json              (path to the eslint cache)
+   ESLINT_CONFIG                   ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to eslint config)
+   ESLINT_CACHE                    ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                    ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
    ESLINT_EXTENSIONS               ?=  $(_ESLINT_EXTENSIONS)                            (extensions eslint lints, set by its config's modules)
    ESLINT_CONFIG_INSPECTOR         ?=  $(BUN) x eslint-config-inspector                 (command that runs eslint-config-inspector)
    ESLINT_CONFIG_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
    MARKDOWNLINT                    ?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs markdownlint-cli2)
-   MARKDOWNLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/markdownlint.mjs… (path to markdownlint config)
+   MARKDOWNLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/markdo… (path to markdownlint config)
    MARKDOWNLINT_GLOB               ?=  $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))   (files markdownlint looks at)
    MARKDOWNLINT_FLAGS              ?=                                                   (additional flags passed to markdownlint-cli2)
    MARKDOWNLINT_EXTENSIONS         ?=  md markdown                                      (extensions markdownlint reads)
   stylelint
    STYLELINT                       ?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs stylelint)
-   STYLELINT_CONFIG                ?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to stylelint config)
+   STYLELINT_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/stylel… (path to stylelint config)
    STYLELINT_GLOB                  ?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files stylelint looks at)
-   STYLELINT_CACHE                 ?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the stylelint cache)
+   STYLELINT_CACHE                 ?=  $(APP_DIR)/$(_CACHE_DIR)/stylelint.cache.json    (path to the stylelint cache)
    STYLELINT_FLAGS                 ?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to stylelint)
    STYLELINT_EXTENSIONS            ?=  $(_STYLELINT_EXTENSIONS)                         (extensions stylelint parses, set by its config's syntaxes)
   typescript
@@ -577,10 +583,10 @@ Variables:
    TYPESCRIPT_EXTENSIONS           ?=  ts tsx cts mts                                   (extensions tsc type checks)
   vitest
    VITEST                          ?=  $(BUN) $(BUN_FLAGS) x vitest                     (command that runs vitest)
-   VITEST_CONFIG                   ?=  $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_… (path to vitest config)
+   VITEST_CONFIG                   ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/vitest… (path to vitest config)
    VITEST_EXTENSIONS               ?=  ts tsx js jsx mts cts mjs cjs                    (extensions vitest runs tests from)
    VITEST_FLAGS                    ?=  --run --passWithNoTests $(if $(_IS_DEBUG),--rep… (additional flags passed to vitest)
-   VITEST_COVERAGE_DIR             ?=  $(APP_DIR)/.cache/vitest.cache/coverage          (directory the HTML coverage report is written to)
+   VITEST_COVERAGE_DIR             ?=  $(APP_DIR)/$(_CACHE_DIR)/vitest.cache/coverage   (directory the HTML coverage report is written to)
    VITEST_MIN_COVERAGE             ?=  100                                              (percentage every metric must reach, 0 for no floor)
    VITEST_MIN_COVERAGE_BRANCHES    ?=  $(VITEST_MIN_COVERAGE)                           (percentage the branch metric must reach)
    VITEST_MIN_COVERAGE_FUNCTIONS   ?=  $(VITEST_MIN_COVERAGE)                           (percentage the function metric must reach)
@@ -588,21 +594,21 @@ Variables:
    VITEST_MIN_COVERAGE_STATEMENTS  ?=  $(VITEST_MIN_COVERAGE)                           (percentage the statement metric must reach)
    VITEST_COVERAGE_FLAGS           ?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)
   hadolint
-   HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+   HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
    HADOLINT                        ?=  $(RUN) hadolint                                  (command that runs hadolint)
    HADOLINT_FILES                  ?=  $(_HADOLINT_FILES)                               (dockerfiles hadolint reads)
    HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
   actionlint
-   ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
+   ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
    ACTIONLINT                      ?=  $(RUN) actionlint                                (command that runs actionlint)
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
    ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
    SEMGREP                         ?=  $(RUN) semgrep                                   (command that runs semgrep)
-   SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to semgrep config)
+   SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS                ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-   SEMGREP_CACHE                   ?=  $(APP_DIR)/.cache/semgrep                        (path to the semgrep ruleset cache)
+   SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
    SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
   changelog
    CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
@@ -745,9 +751,9 @@ Available commands:
 
 === diff: verbosity-vvv from verbosity-vv ===
 @@ @@
-   variables
-    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
-  brnshkr
+   includes
+    CONFIG_DIR                      ?=  ./conf                                           (directory holding the project's own tool configs)
+    LOCAL_DIR                       ?=  ./.local                                         (directory holding a developer's private files)
 +  tools
 +   runtimes
 +    SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
@@ -819,12 +825,12 @@ Available commands:
     COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
    phpunit
 +   PEST                            ?=  $(RUN) $(_PEST_BINARY)                           (command that runs pest)
-    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)
-    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)
+    PHP_UNIT                        ?=  $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/… (command that runs the tests, Pest when installed)
+    PHP_UNIT_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpuni… (path to the test runner config)
     PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
 @@ @@
     SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-    SEMGREP_CACHE                   ?=  $(APP_DIR)/.cache/semgrep                        (path to the semgrep ruleset cache)
+    SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
     SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
 +   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
 +   SEMGREP_PYTHON                  ?=  $(RUN) python3                                   (command that runs python3, merging semgrep rulesets)
@@ -1206,6 +1212,7 @@ brnshkr.dotenv
 brnshkr.eslint
 brnshkr.hadolint
 brnshkr.helpers
+brnshkr.includes
 brnshkr.markdownlint
 brnshkr.php
 brnshkr.php-cs-fixer
@@ -1391,6 +1398,9 @@ Available commands:
   [35mvariables[0m
    [36mAPP_VARIABLE                  [0m  [90m?=  value                                            (a variable of the project's own)[0m
  [35mbrnshkr[0m
+  [35mincludes[0m
+   [36mCONFIG_DIR                    [0m  [90m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+   [36mLOCAL_DIR                     [0m  [90m?=  ./.local                                         (directory holding a developer's private files)[0m
   [35mtools[0m
    [35mruntimes[0m
     [36mSHELL                        [0m  [90m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1503,8 +1513,8 @@ Available commands:
    [36mGIT_HOOKS                     [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
    [36mCONFIG                        [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
    [36mARCHIVE_EXTRA_PATHS           [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
-   [36mCACHE_DIR                     [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36mFRESH_KEEP                    [0m  [90m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
+   [36mCACHE_DIR                     [0m  [90m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
    [36mCHECK_TARGETS                 [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
    [36mCI_TARGETS                    [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIX_TARGETS                   [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
@@ -1527,12 +1537,12 @@ Available commands:
    [36mCOMPOSER_AUDIT_FLAGS          [0m  [90m?=  --locked                                         (additional flags passed to [35mcomposer audit[0m[90m)[0m
   [35mphpunit[0m
    [36mPEST                          [0m  [90m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [35mpest[0m[90m)[0m
-   [36mPHP_UNIT                      [0m  [90m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)[0m
-   [36mPHP_UNIT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)[0m
+   [36mPHP_UNIT                      [0m  [90m?=  $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/… (command that runs the tests, Pest when installed)[0m
+   [36mPHP_UNIT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpuni… (path to the test runner config)[0m
    [36mPHP_UNIT_FLAGS                [0m  [90m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)[0m
    [36mPHP_UNIT_EXCLUDED_GROUPS      [0m  [90m?=                                                   (test groups the runner leaves out)[0m
    [36mPHP_UNIT_SNAPSHOT_FLAGS       [0m  [90m?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)[0m
-   [36mPHP_UNIT_COVERAGE_DIR         [0m  [90m?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)[0m
+   [36mPHP_UNIT_COVERAGE_DIR         [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/coverage  (directory the HTML coverage report is written to)[0m
    [36mPHP_UNIT_COVERAGE_FILE        [0m  [90m?=  $(PHP_UNIT_COVERAGE_DIR)/coverage.txt            (report the minimum is read from, where the runner has none)[0m
    [36mPHP_UNIT_MIN_COVERAGE         [0m  [90m?=  100                                              (percentage every metric must reach, [35m0[0m[90m for no floor)[0m
    [36mPHP_UNIT_MIN_COVERAGE_CLASSES [0m  [90m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the class metric must reach, unread by Pest)[0m
@@ -1540,20 +1550,20 @@ Available commands:
    [36mPHP_UNIT_MIN_COVERAGE_LINES   [0m  [90m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)[0m
    [36mPHP_UNIT_COVERAGE_FLAGS       [0m  [90m?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)[0m
   [35mphpstan[0m
-   [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to [35mphpstan[0m[90m binary)[0m
-   [36mPHP_STAN_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to [35mphpstan[0m[90m config)[0m
+   [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to [35mphpstan[0m[90m binary)[0m
+   [36mPHP_STAN_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [35mphpstan[0m[90m config)[0m
    [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mphpstan[0m[90m)[0m
   [35mphp-cs-fixer[0m
-   [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to [35mphp-cs-fixer[0m[90m binary)[0m
-   [36mPHP_CS_FIXER_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to [35mphp-cs-fixer[0m[90m config)[0m
+   [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to [35mphp-cs-fixer[0m[90m binary)[0m
+   [36mPHP_CS_FIXER_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [35mphp-cs-fixer[0m[90m config)[0m
    [36mPHP_CS_FIXER_FLAGS            [0m  [90m?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to [35mphp-cs-fixer[0m[90m)[0m
   [35mrector[0m
-   [36mRECTOR                        [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to [35mrector[0m[90m binary)[0m
-   [36mRECTOR_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to [35mrector[0m[90m config)[0m
+   [36mRECTOR                        [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to [35mrector[0m[90m binary)[0m
+   [36mRECTOR_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to [35mrector[0m[90m config)[0m
    [36mRECTOR_FLAGS                  [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mrector[0m[90m)[0m
   [35mtwig-cs-fixer[0m
-   [36mTWIG_CS_FIXER                 [0m  [90m?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to [35mtwig-cs-fixer[0m[90m binary)[0m
-   [36mTWIG_CS_FIXER_CONFIG          [0m  [90m?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to [35mtwig-cs-fixer[0m[90m config)[0m
+   [36mTWIG_CS_FIXER                 [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to [35mtwig-cs-fixer[0m[90m binary)[0m
+   [36mTWIG_CS_FIXER_CONFIG          [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [35mtwig-cs-fixer[0m[90m config)[0m
    [36mTWIG_CS_FIXER_FLAGS           [0m  [90m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
    [36mTWIG_CS_FIXER_EXTENSIONS      [0m  [90m?=  twig                                             (extensions [35mtwig-cs-fixer[0m[90m reads)[0m
   [35mbun[0m
@@ -1564,30 +1574,30 @@ Available commands:
    [36mNODE_MODULES_INSPECTOR_FLAGS  [0m  [90m?=                                                   (additional flags passed to [35mnode-modules-inspector[0m[90m)[0m
   [35mcommitlint[0m
    [36mCOMMITLINT                    [0m  [90m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [35mcommitlint[0m[90m)[0m
-   [36mCOMMITLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to [35mcommitlint[0m[90m config)[0m
+   [36mCOMMITLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to [35mcommitlint[0m[90m config)[0m
    [36mCOMMITLINT_RANGE              [0m  [90m?=                                                   (commit range to lint, as [35m<from>..<to>[0m[90m, not one message)[0m
    [36mCOMMITLINT_SOURCE             [0m  [90m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [35mcommitlint[0m[90m reads)[0m
    [36mCOMMITLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [35mcommitlint[0m[90m)[0m
    [36mGIT_HOOKS                     [0m  [90m+=  commit-msg=$(call _target,commitlint)[0m
   [35meslint[0m
    [36mESLINT                        [0m  [90m?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs [35meslint[0m[90m)[0m
-   [36mESLINT_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_… (path to [35meslint[0m[90m config)[0m
-   [36mESLINT_CACHE                  [0m  [90m?=  $(APP_DIR)/.cache/eslint.cache.json              (path to the [35meslint[0m[90m cache)[0m
+   [36mESLINT_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to [35meslint[0m[90m config)[0m
+   [36mESLINT_CACHE                  [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [35meslint[0m[90m cache)[0m
    [36mESLINT_FLAGS                  [0m  [90m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [35meslint[0m[90m)[0m
    [36mESLINT_EXTENSIONS             [0m  [90m?=  $(_ESLINT_EXTENSIONS)                            (extensions [35meslint[0m[90m lints, set by its config's modules)[0m
    [36mESLINT_CONFIG_INSPECTOR       [0m  [90m?=  $(BUN) x eslint-config-inspector                 (command that runs [35meslint-config-inspector[0m[90m)[0m
    [36mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [90m?=                                                   (additional flags passed to [35meslint-config-inspector[0m[90m)[0m
   [35mmarkdownlint[0m
    [36mMARKDOWNLINT                  [0m  [90m?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs [35mmarkdownlint-cli2[0m[90m)[0m
-   [36mMARKDOWNLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/markdownlint.mjs… (path to [35mmarkdownlint[0m[90m config)[0m
+   [36mMARKDOWNLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/markdo… (path to [35mmarkdownlint[0m[90m config)[0m
    [36mMARKDOWNLINT_GLOB             [0m  [90m?=  $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))   (files [35mmarkdownlint[0m[90m looks at)[0m
    [36mMARKDOWNLINT_FLAGS            [0m  [90m?=                                                   (additional flags passed to [35mmarkdownlint-cli2[0m[90m)[0m
    [36mMARKDOWNLINT_EXTENSIONS       [0m  [90m?=  md markdown                                      (extensions [35mmarkdownlint[0m[90m reads)[0m
   [35mstylelint[0m
    [36mSTYLELINT                     [0m  [90m?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs [35mstylelint[0m[90m)[0m
-   [36mSTYLELINT_CONFIG              [0m  [90m?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to [35mstylelint[0m[90m config)[0m
+   [36mSTYLELINT_CONFIG              [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/stylel… (path to [35mstylelint[0m[90m config)[0m
    [36mSTYLELINT_GLOB                [0m  [90m?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files [35mstylelint[0m[90m looks at)[0m
-   [36mSTYLELINT_CACHE               [0m  [90m?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the [35mstylelint[0m[90m cache)[0m
+   [36mSTYLELINT_CACHE               [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/stylelint.cache.json    (path to the [35mstylelint[0m[90m cache)[0m
    [36mSTYLELINT_FLAGS               [0m  [90m?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to [35mstylelint[0m[90m)[0m
    [36mSTYLELINT_EXTENSIONS          [0m  [90m?=  $(_STYLELINT_EXTENSIONS)                         (extensions [35mstylelint[0m[90m parses, set by its config's syntaxes)[0m
   [35mtypescript[0m
@@ -1597,10 +1607,10 @@ Available commands:
    [36mTYPESCRIPT_EXTENSIONS         [0m  [90m?=  ts tsx cts mts                                   (extensions [35mtsc[0m[90m type checks)[0m
   [35mvitest[0m
    [36mVITEST                        [0m  [90m?=  $(BUN) $(BUN_FLAGS) x vitest                     (command that runs [35mvitest[0m[90m)[0m
-   [36mVITEST_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_… (path to [35mvitest[0m[90m config)[0m
+   [36mVITEST_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/vitest… (path to [35mvitest[0m[90m config)[0m
    [36mVITEST_EXTENSIONS             [0m  [90m?=  ts tsx js jsx mts cts mjs cjs                    (extensions [35mvitest[0m[90m runs tests from)[0m
    [36mVITEST_FLAGS                  [0m  [90m?=  --run --passWithNoTests $(if $(_IS_DEBUG),--rep… (additional flags passed to [35mvitest[0m[90m)[0m
-   [36mVITEST_COVERAGE_DIR           [0m  [90m?=  $(APP_DIR)/.cache/vitest.cache/coverage          (directory the HTML coverage report is written to)[0m
+   [36mVITEST_COVERAGE_DIR           [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/vitest.cache/coverage   (directory the HTML coverage report is written to)[0m
    [36mVITEST_MIN_COVERAGE           [0m  [90m?=  100                                              (percentage every metric must reach, [35m0[0m[90m for no floor)[0m
    [36mVITEST_MIN_COVERAGE_BRANCHES  [0m  [90m?=  $(VITEST_MIN_COVERAGE)                           (percentage the branch metric must reach)[0m
    [36mVITEST_MIN_COVERAGE_FUNCTIONS [0m  [90m?=  $(VITEST_MIN_COVERAGE)                           (percentage the function metric must reach)[0m
@@ -1608,21 +1618,21 @@ Available commands:
    [36mVITEST_MIN_COVERAGE_STATEMENTS[0m  [90m?=  $(VITEST_MIN_COVERAGE)                           (percentage the statement metric must reach)[0m
    [36mVITEST_COVERAGE_FLAGS         [0m  [90m?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)[0m
   [35mhadolint[0m
-   [36mHADOLINT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [35mhadolint[0m[90m config)[0m
+   [36mHADOLINT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
    [36mHADOLINT                      [0m  [90m?=  $(RUN) hadolint                                  (command that runs [35mhadolint[0m[90m)[0m
    [36mHADOLINT_FILES                [0m  [90m?=  $(_HADOLINT_FILES)                               (dockerfiles [35mhadolint[0m[90m reads)[0m
    [36mHADOLINT_FLAGS                [0m  [90m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [35mhadolint[0m[90m)[0m
   [35mactionlint[0m
-   [36mACTIONLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [35mactionlint[0m[90m config)[0m
+   [36mACTIONLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [35mactionlint[0m[90m config)[0m
    [36mACTIONLINT                    [0m  [90m?=  $(RUN) actionlint                                (command that runs [35mactionlint[0m[90m)[0m
    [36mACTIONLINT_FILES              [0m  [90m?=  $(_ACTIONLINT_FILES)                             (workflows [35mactionlint[0m[90m reads)[0m
    [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [35mactionlint[0m[90m)[0m
   [35msemgrep[0m
    [36mSEMGREP                       [0m  [90m?=  $(RUN) semgrep                                   (command that runs [35msemgrep[0m[90m)[0m
-   [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to [35msemgrep[0m[90m config)[0m
+   [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [35msemgrep[0m[90m config)[0m
    [36mSEMGREP_RULESETS              [0m  [90m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [35mx-brnshkr[0m[90m sets them)[0m
    [36mSEMGREP_FLAGS                 [0m  [90m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [35msemgrep[0m[90m)[0m
-   [36mSEMGREP_CACHE                 [0m  [90m?=  $(APP_DIR)/.cache/semgrep                        (path to the [35msemgrep[0m[90m ruleset cache)[0m
+   [36mSEMGREP_CACHE                 [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [35msemgrep[0m[90m ruleset cache)[0m
    [36mSEMGREP_MAX_AGE               [0m  [90m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [36mSEMGREP_REGISTRY              [0m  [90m?=  https://semgrep.dev/c/p                          (address [35msemgrep[0m[90m fetches its rulesets from)[0m
    [36mSEMGREP_PYTHON                [0m  [90m?=  $(RUN) python3                                   (command that runs [35mpython3[0m[90m, merging [35msemgrep[0m[90m rulesets)[0m
@@ -1827,6 +1837,9 @@ Available commands:
   [33mvariables[0m
    [32mAPP_VARIABLE                  [0m  [0m?=  value                                            (a variable of the project's own)[0m
  [33mbrnshkr[0m
+  [33mincludes[0m
+   [32mCONFIG_DIR                    [0m  [0m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+   [32mLOCAL_DIR                     [0m  [0m?=  ./.local                                         (directory holding a developer's private files)[0m
   [33mtools[0m
    [33mruntimes[0m
     [32mSHELL                        [0m  [0m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1939,8 +1952,8 @@ Available commands:
    [32mGIT_HOOKS                     [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
    [32mCONFIG                        [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
    [32mARCHIVE_EXTRA_PATHS           [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
-   [32mCACHE_DIR                     [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32mFRESH_KEEP                    [0m  [0m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
+   [32mCACHE_DIR                     [0m  [0m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
    [32mCHECK_TARGETS                 [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
    [32mCI_TARGETS                    [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIX_TARGETS                   [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
@@ -1963,12 +1976,12 @@ Available commands:
    [32mCOMPOSER_AUDIT_FLAGS          [0m  [0m?=  --locked                                         (additional flags passed to [33mcomposer audit[0m[0m)[0m
   [33mphpunit[0m
    [32mPEST                          [0m  [0m?=  $(RUN) $(_PEST_BINARY)                           (command that runs [33mpest[0m[0m)[0m
-   [32mPHP_UNIT                      [0m  [0m?=  $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PE… (command that runs the tests, Pest when installed)[0m
-   [32mPHP_UNIT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/phpunit.xml $(AP… (path to the test runner config)[0m
+   [32mPHP_UNIT                      [0m  [0m?=  $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/… (command that runs the tests, Pest when installed)[0m
+   [32mPHP_UNIT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpuni… (path to the test runner config)[0m
    [32mPHP_UNIT_FLAGS                [0m  [0m?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)[0m
    [32mPHP_UNIT_EXCLUDED_GROUPS      [0m  [0m?=                                                   (test groups the runner leaves out)[0m
    [32mPHP_UNIT_SNAPSHOT_FLAGS       [0m  [0m?=  $(if $(_IS_PEST),--update-snapshots) --do-not-f… (flags that make the runner rewrite its snapshots)[0m
-   [32mPHP_UNIT_COVERAGE_DIR         [0m  [0m?=  $(APP_DIR)/.cache/phpunit.cache/coverage         (directory the HTML coverage report is written to)[0m
+   [32mPHP_UNIT_COVERAGE_DIR         [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/coverage  (directory the HTML coverage report is written to)[0m
    [32mPHP_UNIT_COVERAGE_FILE        [0m  [0m?=  $(PHP_UNIT_COVERAGE_DIR)/coverage.txt            (report the minimum is read from, where the runner has none)[0m
    [32mPHP_UNIT_MIN_COVERAGE         [0m  [0m?=  100                                              (percentage every metric must reach, [33m0[0m[0m for no floor)[0m
    [32mPHP_UNIT_MIN_COVERAGE_CLASSES [0m  [0m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the class metric must reach, unread by Pest)[0m
@@ -1976,20 +1989,20 @@ Available commands:
    [32mPHP_UNIT_MIN_COVERAGE_LINES   [0m  [0m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)[0m
    [32mPHP_UNIT_COVERAGE_FLAGS       [0m  [0m?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)[0m
   [33mphpstan[0m
-   [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/phpstan             (path to [33mphpstan[0m[0m binary)[0m
-   [32mPHP_STAN_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/phpstan.php $(AP… (path to [33mphpstan[0m[0m config)[0m
+   [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to [33mphpstan[0m[0m binary)[0m
+   [32mPHP_STAN_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [33mphpstan[0m[0m config)[0m
    [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mphpstan[0m[0m)[0m
   [33mphp-cs-fixer[0m
-   [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer        (path to [33mphp-cs-fixer[0m[0m binary)[0m
-   [32mPHP_CS_FIXER_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/php-cs-fixer.php… (path to [33mphp-cs-fixer[0m[0m config)[0m
+   [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to [33mphp-cs-fixer[0m[0m binary)[0m
+   [32mPHP_CS_FIXER_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [33mphp-cs-fixer[0m[0m config)[0m
    [32mPHP_CS_FIXER_FLAGS            [0m  [0m?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to [33mphp-cs-fixer[0m[0m)[0m
   [33mrector[0m
-   [32mRECTOR                        [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/rector              (path to [33mrector[0m[0m binary)[0m
-   [32mRECTOR_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/conf/rector.php $(APP… (path to [33mrector[0m[0m config)[0m
+   [32mRECTOR                        [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to [33mrector[0m[0m binary)[0m
+   [32mRECTOR_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to [33mrector[0m[0m config)[0m
    [32mRECTOR_FLAGS                  [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mrector[0m[0m)[0m
   [33mtwig-cs-fixer[0m
-   [32mTWIG_CS_FIXER                 [0m  [0m?=  $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer       (path to [33mtwig-cs-fixer[0m[0m binary)[0m
-   [32mTWIG_CS_FIXER_CONFIG          [0m  [0m?=  $(call _config,$(APP_DIR)/conf/twig-cs-fixer.ph… (path to [33mtwig-cs-fixer[0m[0m config)[0m
+   [32mTWIG_CS_FIXER                 [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to [33mtwig-cs-fixer[0m[0m binary)[0m
+   [32mTWIG_CS_FIXER_CONFIG          [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [33mtwig-cs-fixer[0m[0m config)[0m
    [32mTWIG_CS_FIXER_FLAGS           [0m  [0m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
    [32mTWIG_CS_FIXER_EXTENSIONS      [0m  [0m?=  twig                                             (extensions [33mtwig-cs-fixer[0m[0m reads)[0m
   [33mbun[0m
@@ -2000,30 +2013,30 @@ Available commands:
    [32mNODE_MODULES_INSPECTOR_FLAGS  [0m  [0m?=                                                   (additional flags passed to [33mnode-modules-inspector[0m[0m)[0m
   [33mcommitlint[0m
    [32mCOMMITLINT                    [0m  [0m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [33mcommitlint[0m[0m)[0m
-   [32mCOMMITLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/conf/commitlint.mjs $… (path to [33mcommitlint[0m[0m config)[0m
+   [32mCOMMITLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to [33mcommitlint[0m[0m config)[0m
    [32mCOMMITLINT_RANGE              [0m  [0m?=                                                   (commit range to lint, as [33m<from>..<to>[0m[0m, not one message)[0m
    [32mCOMMITLINT_SOURCE             [0m  [0m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [33mcommitlint[0m[0m reads)[0m
    [32mCOMMITLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [33mcommitlint[0m[0m)[0m
    [32mGIT_HOOKS                     [0m  [0m+=  commit-msg=$(call _target,commitlint)[0m
   [33meslint[0m
    [32mESLINT                        [0m  [0m?=  $(BUN) $(BUN_FLAGS) x eslint                     (command that runs [33meslint[0m[0m)[0m
-   [32mESLINT_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_… (path to [33meslint[0m[0m config)[0m
-   [32mESLINT_CACHE                  [0m  [0m?=  $(APP_DIR)/.cache/eslint.cache.json              (path to the [33meslint[0m[0m cache)[0m
+   [32mESLINT_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to [33meslint[0m[0m config)[0m
+   [32mESLINT_CACHE                  [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [33meslint[0m[0m cache)[0m
    [32mESLINT_FLAGS                  [0m  [0m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [33meslint[0m[0m)[0m
    [32mESLINT_EXTENSIONS             [0m  [0m?=  $(_ESLINT_EXTENSIONS)                            (extensions [33meslint[0m[0m lints, set by its config's modules)[0m
    [32mESLINT_CONFIG_INSPECTOR       [0m  [0m?=  $(BUN) x eslint-config-inspector                 (command that runs [33meslint-config-inspector[0m[0m)[0m
    [32mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [0m?=                                                   (additional flags passed to [33meslint-config-inspector[0m[0m)[0m
   [33mmarkdownlint[0m
    [32mMARKDOWNLINT                  [0m  [0m?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs [33mmarkdownlint-cli2[0m[0m)[0m
-   [32mMARKDOWNLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/markdownlint.mjs… (path to [33mmarkdownlint[0m[0m config)[0m
+   [32mMARKDOWNLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/markdo… (path to [33mmarkdownlint[0m[0m config)[0m
    [32mMARKDOWNLINT_GLOB             [0m  [0m?=  $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))   (files [33mmarkdownlint[0m[0m looks at)[0m
    [32mMARKDOWNLINT_FLAGS            [0m  [0m?=                                                   (additional flags passed to [33mmarkdownlint-cli2[0m[0m)[0m
    [32mMARKDOWNLINT_EXTENSIONS       [0m  [0m?=  md markdown                                      (extensions [33mmarkdownlint[0m[0m reads)[0m
   [33mstylelint[0m
    [32mSTYLELINT                     [0m  [0m?=  $(BUN) $(BUN_FLAGS) x stylelint                  (command that runs [33mstylelint[0m[0m)[0m
-   [32mSTYLELINT_CONFIG              [0m  [0m?=  $(call _config,$(APP_DIR)/conf/stylelint.mjs $(… (path to [33mstylelint[0m[0m config)[0m
+   [32mSTYLELINT_CONFIG              [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/stylel… (path to [33mstylelint[0m[0m config)[0m
    [32mSTYLELINT_GLOB                [0m  [0m?=  $(call _brace_glob,$(STYLELINT_EXTENSIONS))      (files [33mstylelint[0m[0m looks at)[0m
-   [32mSTYLELINT_CACHE               [0m  [0m?=  $(APP_DIR)/.cache/stylelint.cache.json           (path to the [33mstylelint[0m[0m cache)[0m
+   [32mSTYLELINT_CACHE               [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/stylelint.cache.json    (path to the [33mstylelint[0m[0m cache)[0m
    [32mSTYLELINT_FLAGS               [0m  [0m?=  --allow-empty-input --max-warnings 0 --ignore-p… (additional flags passed to [33mstylelint[0m[0m)[0m
    [32mSTYLELINT_EXTENSIONS          [0m  [0m?=  $(_STYLELINT_EXTENSIONS)                         (extensions [33mstylelint[0m[0m parses, set by its config's syntaxes)[0m
   [33mtypescript[0m
@@ -2033,10 +2046,10 @@ Available commands:
    [32mTYPESCRIPT_EXTENSIONS         [0m  [0m?=  ts tsx cts mts                                   (extensions [33mtsc[0m[0m type checks)[0m
   [33mvitest[0m
    [32mVITEST                        [0m  [0m?=  $(BUN) $(BUN_FLAGS) x vitest                     (command that runs [33mvitest[0m[0m)[0m
-   [32mVITEST_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_… (path to [33mvitest[0m[0m config)[0m
+   [32mVITEST_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/vitest… (path to [33mvitest[0m[0m config)[0m
    [32mVITEST_EXTENSIONS             [0m  [0m?=  ts tsx js jsx mts cts mjs cjs                    (extensions [33mvitest[0m[0m runs tests from)[0m
    [32mVITEST_FLAGS                  [0m  [0m?=  --run --passWithNoTests $(if $(_IS_DEBUG),--rep… (additional flags passed to [33mvitest[0m[0m)[0m
-   [32mVITEST_COVERAGE_DIR           [0m  [0m?=  $(APP_DIR)/.cache/vitest.cache/coverage          (directory the HTML coverage report is written to)[0m
+   [32mVITEST_COVERAGE_DIR           [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/vitest.cache/coverage   (directory the HTML coverage report is written to)[0m
    [32mVITEST_MIN_COVERAGE           [0m  [0m?=  100                                              (percentage every metric must reach, [33m0[0m[0m for no floor)[0m
    [32mVITEST_MIN_COVERAGE_BRANCHES  [0m  [0m?=  $(VITEST_MIN_COVERAGE)                           (percentage the branch metric must reach)[0m
    [32mVITEST_MIN_COVERAGE_FUNCTIONS [0m  [0m?=  $(VITEST_MIN_COVERAGE)                           (percentage the function metric must reach)[0m
@@ -2044,21 +2057,21 @@ Available commands:
    [32mVITEST_MIN_COVERAGE_STATEMENTS[0m  [0m?=  $(VITEST_MIN_COVERAGE)                           (percentage the statement metric must reach)[0m
    [32mVITEST_COVERAGE_FLAGS         [0m  [0m?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)[0m
   [33mhadolint[0m
-   [32mHADOLINT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [33mhadolint[0m[0m config)[0m
+   [32mHADOLINT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
    [32mHADOLINT                      [0m  [0m?=  $(RUN) hadolint                                  (command that runs [33mhadolint[0m[0m)[0m
    [32mHADOLINT_FILES                [0m  [0m?=  $(_HADOLINT_FILES)                               (dockerfiles [33mhadolint[0m[0m reads)[0m
    [32mHADOLINT_FLAGS                [0m  [0m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [33mhadolint[0m[0m)[0m
   [33mactionlint[0m
-   [32mACTIONLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [33mactionlint[0m[0m config)[0m
+   [32mACTIONLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [33mactionlint[0m[0m config)[0m
    [32mACTIONLINT                    [0m  [0m?=  $(RUN) actionlint                                (command that runs [33mactionlint[0m[0m)[0m
    [32mACTIONLINT_FILES              [0m  [0m?=  $(_ACTIONLINT_FILES)                             (workflows [33mactionlint[0m[0m reads)[0m
    [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [33mactionlint[0m[0m)[0m
   [33msemgrep[0m
    [32mSEMGREP                       [0m  [0m?=  $(RUN) semgrep                                   (command that runs [33msemgrep[0m[0m)[0m
-   [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/conf/semgrep.yaml $(A… (path to [33msemgrep[0m[0m config)[0m
+   [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [33msemgrep[0m[0m config)[0m
    [32mSEMGREP_RULESETS              [0m  [0m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [33mx-brnshkr[0m[0m sets them)[0m
    [32mSEMGREP_FLAGS                 [0m  [0m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [33msemgrep[0m[0m)[0m
-   [32mSEMGREP_CACHE                 [0m  [0m?=  $(APP_DIR)/.cache/semgrep                        (path to the [33msemgrep[0m[0m ruleset cache)[0m
+   [32mSEMGREP_CACHE                 [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [33msemgrep[0m[0m ruleset cache)[0m
    [32mSEMGREP_MAX_AGE               [0m  [0m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [32mSEMGREP_REGISTRY              [0m  [0m?=  https://semgrep.dev/c/p                          (address [33msemgrep[0m[0m fetches its rulesets from)[0m
    [32mSEMGREP_PYTHON                [0m  [0m?=  $(RUN) python3                                   (command that runs [33mpython3[0m[0m, merging [33msemgrep[0m[0m rulesets)[0m

@@ -10,6 +10,7 @@ use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Rector;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,6 +31,7 @@ use Symfony\Component\Finder\Finder;
 #[UsesClass(Json::class)]
 #[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Str::class)]
 final class RectorTest extends TestCase
 {

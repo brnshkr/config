@@ -20,6 +20,7 @@ use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpCsFixer;
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Rector;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Testing\JsonSnapshotDriver;
@@ -51,6 +52,7 @@ use function Symfony\Component\String\s;
  */
 #[CoversClass(PrintModuleConfigCommand::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(BrnshkrConfigCommand::class)]
 #[UsesClass(CommandProvider::class)]
 #[UsesClass(ExtractPharCommand::class)]

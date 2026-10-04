@@ -34,6 +34,7 @@ final class ConfigsTest extends TestCase
     private const string VENDOR_DIRECTORY   = __DIR__ . '/../Fixtures/Make/ConfigVendor';
     private const string SEARCH_DIRECTORY   = __DIR__ . '/../Fixtures/Make/ConfigSearch';
     private const string GUARD_DIRECTORY    = __DIR__ . '/../Fixtures/Make/Guard';
+    private const string COMPOSER_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
 
     #[Before]
     #[After]
@@ -334,6 +335,44 @@ final class ConfigsTest extends TestCase
                 $variable,
             );
         }
+    }
+
+    public function testTheSearchFollowsTheConfiguredDirectories(): void
+    {
+        $directories = [
+            'CACHE_DIR'  => 'acme-cache',
+            'CONFIG_DIR' => 'tools',
+            'LOCAL_DIR'  => './private',
+        ];
+
+        $resolved = $this->runMake(
+            ['help', 'resolve', 'vv'],
+            [...$directories, 'VALUE_WIDTH' => '200'],
+            self::SEARCH_DIRECTORY,
+        );
+
+        $exported = $this->runMake(['help', 'env'], $directories, self::SEARCH_DIRECTORY);
+
+        self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S*(?<!\.local)\/tools\/phpstan\.php/', $resolved);
+        self::assertMatchesRegularExpression('/RECTOR_CONFIG\s+\?=\s+\S*\/private\/rector\.php/', $resolved);
+        self::assertMatchesRegularExpression('/^\s+BRNSHKR_CONFIG_DIR\s+tools$/m', $exported);
+        self::assertMatchesRegularExpression('/^\s+BRNSHKR_CACHE_DIR\s+acme-cache$/m', $exported);
+        self::assertMatchesRegularExpression('/^\s+BRNSHKR_LOCAL_DIR\s+private$/m', $exported);
+    }
+
+    public function testTheEditorSettingsFollowTheConfiguredDirectories(): void
+    {
+        $composerDirectory = $this->getFixtureCopy(self::COMPOSER_DIRECTORY);
+
+        $this->runMake(['configs', 'vscode-settings'], ['CACHE_DIR' => 'acme-cache'], $composerDirectory);
+
+        $settings = new Filesystem()->readFile($composerDirectory . '/.vscode/settings.json');
+
+        self::assertStringContainsString('"phpstan.binPath": "./tools/bin/phpstan"', $settings);
+        self::assertStringContainsString('"**/acme-cache/**": true,', $settings);
+        self::assertStringContainsString('"**/lib/**": true,', $settings);
+        self::assertStringNotContainsString('"**/.cache/**"', $settings);
+        self::assertStringNotContainsString('"**/vendor/**"', $settings);
     }
 
     public function testAnExampleComesFromTheOtherInstallationWhenThisOneHasNone(): void

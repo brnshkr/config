@@ -179,6 +179,9 @@ Description:
 
 Variables:
  brnshkr
+  includes
+   CONFIG_DIR                  ?=  ./conf                                           (directory holding the project's own tool configs)
+   LOCAL_DIR                   ?=  ./.local                                         (directory holding a developer's private files)
   settings
    COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -203,8 +206,8 @@ Variables:
    GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-   FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
+   CACHE_DIR                   ?=  ./.cache                                         (directory the tools keep their caches in)
+   FRESH_KEEP                  ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
    CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
    GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
@@ -212,9 +215,9 @@ Variables:
    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
    PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
   hadolint
-   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+   HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
   actionlint
-   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to actionlint config)
+   ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
   changelog
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -370,8 +373,8 @@ Available commands:
     STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
     GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
 @@ @@
-    CACHE_DIR                   ?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)
-    FRESH_KEEP                  ?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns fresh keeps, unless --all is passed)
+    CACHE_DIR                   ?=  ./.cache                                         (directory the tools keep their caches in)
+    FRESH_KEEP                  ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
     CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
 +   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
     FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
@@ -472,9 +475,9 @@ Available commands:
 
 === diff: verbosity-vvv from verbosity-vv ===
 @@ @@
- 
- Variables:
-  brnshkr
+   includes
+    CONFIG_DIR                  ?=  ./conf                                           (directory holding the project's own tool configs)
+    LOCAL_DIR                   ?=  ./.local                                         (directory holding a developer's private files)
 +  tools
 +   runtimes
 +    SHELL                      :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
@@ -539,7 +542,7 @@ Available commands:
 +   SEMVER_BUILD                ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
 +   SEMVER_REGEX                ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
    hadolint
-    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to hadolint config)
+    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
    actionlint
 @@ @@
     text
@@ -756,6 +759,7 @@ brnshkr.common
 brnshkr.dotenv
 brnshkr.hadolint
 brnshkr.helpers
+brnshkr.includes
 brnshkr.semver
 brnshkr.settings
 brnshkr.theming
@@ -1026,6 +1030,9 @@ Available commands:
 
 [35mVariables:[0m
  [35mbrnshkr[0m
+  [35mincludes[0m
+   [36mCONFIG_DIR                [0m  [90m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+   [36mLOCAL_DIR                 [0m  [90m?=  ./.local                                         (directory holding a developer's private files)[0m
   [35mtools[0m
    [35mruntimes[0m
     [36mSHELL                    [0m  [90m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1138,8 +1145,8 @@ Available commands:
    [36mGIT_HOOKS                 [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
    [36mCONFIG                    [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
    [36mARCHIVE_EXTRA_PATHS       [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
-   [36mCACHE_DIR                 [0m  [90m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [36mFRESH_KEEP                [0m  [90m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
+   [36mCACHE_DIR                 [0m  [90m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [36mFRESH_KEEP                [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
    [36mCHECK_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIX_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
@@ -1155,9 +1162,9 @@ Available commands:
    [36mSEMVER_BUILD              [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [36mSEMVER_REGEX              [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [35mhadolint[0m
-   [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [35mhadolint[0m[90m config)[0m
+   [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
   [35mactionlint[0m
-   [36mACTIONLINT_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [35mactionlint[0m[90m config)[0m
+   [36mACTIONLINT_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [35mactionlint[0m[90m config)[0m
   [35mchangelog[0m
    [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
    [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
@@ -1332,6 +1339,9 @@ Available commands:
 
 [33mVariables:[0m
  [33mbrnshkr[0m
+  [33mincludes[0m
+   [32mCONFIG_DIR                [0m  [0m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+   [32mLOCAL_DIR                 [0m  [0m?=  ./.local                                         (directory holding a developer's private files)[0m
   [33mtools[0m
    [33mruntimes[0m
     [32mSHELL                    [0m  [0m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1444,8 +1454,8 @@ Available commands:
    [32mGIT_HOOKS                 [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
    [32mCONFIG                    [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
    [32mARCHIVE_EXTRA_PATHS       [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
-   [32mCACHE_DIR                 [0m  [0m?=  $(CURDIR)/.cache                                 (directory the tools keep their caches in)[0m
-   [32mFRESH_KEEP                [0m  [0m?=  /.local/ *.local *.local.* /.idea/ /.vscode/ /.… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
+   [32mCACHE_DIR                 [0m  [0m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [32mFRESH_KEEP                [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
    [32mCHECK_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIX_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
@@ -1461,9 +1471,9 @@ Available commands:
    [32mSEMVER_BUILD              [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [32mSEMVER_REGEX              [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
   [33mhadolint[0m
-   [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/conf/hadolint.yaml $(… (path to [33mhadolint[0m[0m config)[0m
+   [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
   [33mactionlint[0m
-   [32mACTIONLINT_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/conf/actionlint.yaml … (path to [33mactionlint[0m[0m config)[0m
+   [32mACTIONLINT_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [33mactionlint[0m[0m config)[0m
   [33mchangelog[0m
    [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
    [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m

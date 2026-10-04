@@ -604,6 +604,26 @@ final class ComposerJson
     }
 
     /**
+     * @return non-empty-string
+     *
+     * @throws RuntimeException
+     */
+    public function getVendorDirectory(): string
+    {
+        $data                      = $this->read();
+        $composerConfig            = (isset($data['config']) && is_array($data['config'])) ? $data['config'] : [];
+        $configuredVendorDirectory = $composerConfig['vendor-dir'] ?? null;
+
+        $vendorDirectory = is_string($configuredVendorDirectory) && !Str::isEmpty($configuredVendorDirectory)
+            ? $configuredVendorDirectory
+            : 'vendor';
+
+        return Str::startsWith($vendorDirectory, '/')
+            ? $vendorDirectory
+            : $this->getDirectory() . '/' . $vendorDirectory;
+    }
+
+    /**
      * @return list<non-empty-string>|null
      *
      * @throws RuntimeException
@@ -838,23 +858,6 @@ final class ComposerJson
         }
 
         return $namespaces;
-    }
-
-    /**
-     * @return non-empty-string
-     *
-     * @throws RuntimeException
-     */
-    private function getVendorDirectory(): string
-    {
-        $data       = $this->read();
-        $config     = (isset($data['config']) && is_array($data['config'])) ? $data['config'] : [];
-        $configured = $config['vendor-dir'] ?? null;
-        $directory  = is_string($configured) && !Str::isEmpty($configured) ? $configured : 'vendor';
-
-        return Str::startsWith($directory, '/')
-            ? $directory
-            : $this->getDirectory() . '/' . $directory;
     }
 
     /**

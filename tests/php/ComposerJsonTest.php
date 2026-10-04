@@ -134,6 +134,7 @@ final class ComposerJsonTest extends TestCase
 
         try {
             self::assertContains('Acme\DirectDev', ComposerJson::forPath($manifest)->getDevelopmentOnlyPackageNamespaces());
+            self::assertSame(__DIR__ . '/Fixtures/ComposerJson/transitive/vendor', ComposerJson::forPath($manifest)->getVendorDirectory());
         } finally {
             $filesystem->remove(dirname($manifest));
         }
@@ -214,6 +215,7 @@ final class ComposerJsonTest extends TestCase
     public function testTheDirectoryIsTheOneHoldingTheManifest(): void
     {
         self::assertSame(__DIR__ . '/Fixtures/ComposerJson/plain', self::fixture('plain')->getDirectory());
+        self::assertSame(__DIR__ . '/Fixtures/ComposerJson/plain/vendor', self::fixture('plain')->getVendorDirectory());
     }
 
     /**

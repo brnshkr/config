@@ -6,6 +6,7 @@ namespace Brnshkr\Config\Composer\Command;
 
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use InvalidArgumentException;
 use JsonException;
@@ -65,7 +66,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
     {
         $this
             ->addArgument('module', InputArgument::OPTIONAL, 'The module to print the config of <fg=yellow>(' . Str::joinAsQuotedList(Module::values(), 'disjunction') . ')</fg=yellow>. May be omitted when --path is given, in which case the module is auto-detected from the value returned by the config file.')
-            ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to the config file to load. Defaults to <fg=yellow>./conf/{module}.dist.php</fg=yellow> when omitted; required when no module is given.')
+            ->addOption('path', 'p', InputOption::VALUE_REQUIRED, sprintf('Path to the config file to load. Defaults to <fg=yellow>./%s/{module}.dist.php</fg=yellow> when omitted; required when no module is given.', ProjectDirectory::getConfig()))
             ->addOption('output-file', 'o', InputOption::VALUE_REQUIRED, 'Write the JSON to this file instead of stdout. When the target file exists, --force overwrites without prompting.')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'When used with --output-file, overwrite an existing target without asking for confirmation.')
         ;
@@ -150,11 +151,11 @@ final class PrintModuleConfigCommand extends AbstractCommand
      */
     private static function getDefaultConfigFile(Module $module): string
     {
-        return match ($module) {
-            Module::PhpCsFixer  => 'conf/php-cs-fixer.dist.php',
-            Module::PhpStan     => 'conf/phpstan.dist.php',
-            Module::Rector      => 'conf/rector.dist.php',
-            Module::TwigCsFixer => 'conf/twig-cs-fixer.dist.php',
+        return ProjectDirectory::getConfig() . '/' . match ($module) {
+            Module::PhpCsFixer  => 'php-cs-fixer.dist.php',
+            Module::PhpStan     => 'phpstan.dist.php',
+            Module::Rector      => 'rector.dist.php',
+            Module::TwigCsFixer => 'twig-cs-fixer.dist.php',
         };
     }
 

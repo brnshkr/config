@@ -144,14 +144,21 @@ _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
 #--- includes
 
+CONFIG_DIR                ?= ./conf#v #~~ directory holding the project's own tool configs
+LOCAL_DIR                 ?= ./.local#v #~~ directory holding a developer's private files
+_CONFIG_DIR                = $(patsubst ./%,%,$(CONFIG_DIR))
+_LOCAL_DIR                 = $(patsubst ./%,%,$(LOCAL_DIR))
+export BRNSHKR_CONFIG_DIR  = $(_CONFIG_DIR)
+export BRNSHKR_LOCAL_DIR   = $(_LOCAL_DIR)
+
 define _include_makefiles_in_directory
 $(eval include $(filter-out $(abspath $(MAKEFILE_LIST)),$(wildcard $1/Makefile $1/*.mk)))
 endef
 
 _SEARCH_BASES := \
-	conf \
-	.local \
-	.local/conf
+	$(_CONFIG_DIR) \
+	$(_LOCAL_DIR) \
+	$(_LOCAL_DIR)/$(_CONFIG_DIR)
 
 _INCLUDE_DIRECTORIES := $(CURDIR) \
 	$(foreach BASE,$(_SEARCH_BASES), \
@@ -236,7 +243,7 @@ _COMPOSE_FILES = $(or \
 	$(subst :, ,$(COMPOSE_FILE)), \
 	$(firstword $(wildcard \
 		$(addprefix $(CURDIR)/,$(_COMPOSE_CANDIDATES)) \
-		$(addprefix $(CURDIR)/conf/,$(_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/$(_CONFIG_DIR)/,$(_COMPOSE_CANDIDATES)) \
 	)) \
 )
 
@@ -267,7 +274,10 @@ _CONTAINER_KEYS := APP_DIR \
 	IS_IN_CONTAINER \
 	RUN
 
-_TERMINAL_KEYS := BRNSHKR_DEBUG \
+_TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
+	BRNSHKR_CONFIG_DIR \
+	BRNSHKR_DEBUG \
+	BRNSHKR_LOCAL_DIR \
 	CI \
 	CLICOLOR \
 	CLICOLOR_FORCE \
@@ -666,12 +676,31 @@ define _is_tool_available
 $(if $(_HAS_CONTAINER),1,$(call _is_on_path,$1))
 endef
 
+define _COMPOSER_DIRECTORIES_AWK
+match($$0, /"vendor-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) { \
+	vendor_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", vendor_directory); sub(/"$$/, "", vendor_directory) \
+} \
+match($$0, /"bin-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) { \
+	bin_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", bin_directory); sub(/"$$/, "", bin_directory) \
+} \
+END { \
+	if (vendor_directory == "") vendor_directory = "vendor"; \
+	if (bin_directory == "") bin_directory = vendor_directory "/bin"; \
+	sub(/\{\$$vendor-dir\}/, vendor_directory, bin_directory); \
+	print vendor_directory, bin_directory \
+}
+endef
+
+_COMPOSER_DIRECTORIES := $(if $(wildcard $(CURDIR)/composer.json),$(shell $(AWK) '$(_COMPOSER_DIRECTORIES_AWK)' $(CURDIR)/composer.json),vendor vendor/bin)
+_COMPOSER_VENDOR_DIR  := $(word 1,$(_COMPOSER_DIRECTORIES))
+_COMPOSER_BIN_DIR     := $(word 2,$(_COMPOSER_DIRECTORIES))
+
 _HAS_PHP             = $(wildcard $(CURDIR)/composer.json)
-_HAS_PHPUNIT         = $(wildcard $(CURDIR)/vendor/bin/pest $(CURDIR)/vendor/bin/phpunit)
-_HAS_PHPSTAN         = $(wildcard $(CURDIR)/vendor/bin/phpstan)
-_HAS_PHP_CS_FIXER    = $(wildcard $(CURDIR)/vendor/bin/php-cs-fixer)
-_HAS_RECTOR          = $(wildcard $(CURDIR)/vendor/bin/rector)
-_HAS_TWIG_CS_FIXER   = $(wildcard $(CURDIR)/vendor/bin/twig-cs-fixer)
+_HAS_PHPUNIT         = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/pest $(CURDIR)/$(_COMPOSER_BIN_DIR)/phpunit)
+_HAS_PHPSTAN         = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/phpstan)
+_HAS_PHP_CS_FIXER    = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer)
+_HAS_RECTOR          = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/rector)
+_HAS_TWIG_CS_FIXER   = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/twig-cs-fixer)
 _HAS_JS              = $(wildcard $(CURDIR)/package.json)
 _HAS_BUN_INSPECT     = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
 _HAS_COMMITLINT      = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
@@ -1107,10 +1136,10 @@ define _NEWLINE
 
 endef
 
-_PACKAGE_CONF_DIRS = $(APP_DIR)/vendor/brnshkr/config/conf \
+_PACKAGE_CONF_DIRS = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
-_AUTOLOADER       = $(APP_DIR)/vendor/autoload.php
+_AUTOLOADER       = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/autoload.php
 _PACK_NAMES      :=
 _PLAIN_CONFIGS    =
 _LAYERED_CONFIGS  =
@@ -1130,11 +1159,15 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
 	$(_CSS_DATA_CONFIGS) \
-	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/conf/bunfig.toml.example),$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml)) \
+	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml)) \
 	$(CURDIR)/Makefile|$(_BRNSHKR_CONFIG_DIR)/Makefile.dist
 
 _STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
 	$(if $(wildcard $(CURDIR)/composer.json),php)
+
+_EDITOR_BINARY_SETTINGS = $(if $(_PHP_CS_FIXER_NAME),'  "php-cs-fixer.executablePath": "$${workspaceFolder}/$(_COMPOSER_BIN_DIR)/php-cs-fixer"' \
+	'  "php-cs-fixer.executablePathWindows": "$${workspaceFolder}\\$(subst /,\\,$(_COMPOSER_BIN_DIR))\\php-cs-fixer.bat"') \
+	$(if $(_PHPSTAN_NAME),'  "phpstan.binPath": "./$(_COMPOSER_BIN_DIR)/phpstan"')
 
 _EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(foreach FILE,$(_CSS_DATA_FILES),'    "./.vscode/'$(call _shell_quoted,$(FILE))'",') '  ]') \
 	$(call _get_editor_setting,$(_STYLELINT_NAME),stylelint.configFile,$(STYLELINT_CONFIG)) \
@@ -1144,10 +1177,10 @@ _EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(fore
 	$(call _get_editor_setting,$(_PHPSTAN_NAME),phpstan.configFile,$(PHP_STAN_CONFIG))
 
 _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
-	/.cache/ \
-	/.local/ \
+	/$(_CACHE_DIR)/ \
+	/$(_LOCAL_DIR)/ \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
-	$(if $(wildcard $(CURDIR)/composer.json),/vendor/) \
+	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
 	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(subst .dist.,.,$(_LAYERED_CONFIGS))))), \
 	$(if $(filter $(patsubst /%,%,$(IGNORED_PATH)),$(_TRACKED_FILES)),,$(IGNORED_PATH)))
@@ -1262,7 +1295,7 @@ CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first f
 ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
-_TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/vendor/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
+_TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
 
 _NAMED_CONFIGS        = $(filter-out tools t local l force f,$(_ARG_WORDS))
 _IS_FORCED_CONFIG     = $(filter force f,$(_ARG_WORDS))
@@ -1346,10 +1379,12 @@ $(call _target,configs): #~~ writes missing files, `tools` configs, `local` priv
 		fi; \
 	done
 
-CACHE_DIR     ?= $(CURDIR)/.cache#v #~~ directory the tools keep their caches in
-_CACHES        = $(strip $(if $(CACHE_DIR),$(foreach CACHE,$(notdir $(wildcard $(CACHE_DIR)/*)),$(if $(findstring %,$(CACHE)),,$(CACHE)))))
-_CACHE_NAMES   = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
-_NAMED_CACHES  = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
+CACHE_DIR                ?= ./.cache#v #~~ directory the tools keep their caches in
+_CACHE_DIR                = $(patsubst ./%,%,$(CACHE_DIR))
+export BRNSHKR_CACHE_DIR  = $(_CACHE_DIR)
+_CACHES                   = $(strip $(if $(_CACHE_DIR),$(foreach CACHE,$(notdir $(wildcard $(CURDIR)/$(_CACHE_DIR)/*)),$(if $(findstring %,$(CACHE)),,$(CACHE)))))
+_CACHE_NAMES              = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
+_NAMED_CACHES             = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
 $(call _target,cc): #~~ removes the caches named, or all of them when given none
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
@@ -1357,21 +1392,21 @@ $(call _target,cc): #~~ removes the caches named, or all of them when given none
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
 	elif [ -n '$(if $(_NAMED_CACHES),1)' ]; then \
 		for name in $(call _shell_quoted,$(_NAMED_CACHES)); do \
-			$(RM) -rf "$(CACHE_DIR)/$$name" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Removed `%s/%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))' "$$name"); \
+			$(RM) -rf "$(CURDIR)/$(_CACHE_DIR)/$$name" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Removed `%s/%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))' "$$name"); \
 		done; \
 	else \
-		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CACHE_DIR))'); \
+		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))'); \
 		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_CACHE_NAMES),disjunction)),no-autolink); \
 		if $(call confirm,Continue?); then \
-			$(RM) -rf "$(CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CACHE_DIR))'); \
+			$(RM) -rf "$(CURDIR)/$(_CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))'); \
 		else \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 		fi; \
 	fi
 
-FRESH_KEEP ?= /.local/ \
+FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
 	*.local \
 	*.local.* \
 	/.idea/ \
@@ -1536,7 +1571,7 @@ COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
 COMPOSER_AUDIT_FLAGS  ?= --locked#vv #~~ additional flags passed to `composer audit`
-_COMPOSER_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
+_COMPOSER_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
 
 _PACK_NAMES += composer-pack
@@ -1570,12 +1605,12 @@ _$(_TARGET_PREFIX)composer-install:
 ifneq ($(_HAS_PHPUNIT),) # phpunit
 
 PEST                          ?= $(RUN) $(_PEST_BINARY)#vvv #~~ command that runs `pest`
-PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/vendor/bin/pest),$(PEST),$(RUN) $(APP_DIR)/vendor/bin/phpunit)#v #~~ command that runs the tests, Pest when installed
-PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/conf/phpunit.xml $(APP_DIR)/conf/phpunit.dist.xml,php)#v #~~ path to the test runner config
+PHP_UNIT                      ?= $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/pest),$(PEST),$(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpunit)#v #~~ command that runs the tests, Pest when installed
+PHP_UNIT_CONFIG               ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpunit.xml $(APP_DIR)/$(_CONFIG_DIR)/phpunit.dist.xml,php)#v #~~ path to the test runner config
 PHP_UNIT_FLAGS                ?= $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--colors=never,$(if $(_IS_PARALLEL),--colors=always))#v #~~ additional flags passed to the test runner
 PHP_UNIT_EXCLUDED_GROUPS      ?= #v #~~ test groups the runner leaves out
 PHP_UNIT_SNAPSHOT_FLAGS       ?= $(if $(_IS_PEST),--update-snapshots) --do-not-fail-on-incomplete#v #~~ flags that make the runner rewrite its snapshots
-PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/.cache/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
+PHP_UNIT_COVERAGE_DIR         ?= $(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/coverage#v #~~ directory the HTML coverage report is written to
 PHP_UNIT_COVERAGE_FILE        ?= $(PHP_UNIT_COVERAGE_DIR)/coverage.txt#vv #~~ report the minimum is read from, where the runner has none
 PHP_UNIT_MIN_COVERAGE         ?= 100#v #~~ percentage every metric must reach, `0` for no floor
 PHP_UNIT_MIN_COVERAGE_CLASSES ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the class metric must reach, unread by Pest
@@ -1583,9 +1618,9 @@ PHP_UNIT_MIN_COVERAGE_METHODS ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the 
 PHP_UNIT_MIN_COVERAGE_LINES   ?= $(PHP_UNIT_MIN_COVERAGE)#vv #~~ percentage the line metric must reach
 PHP_UNIT_COVERAGE_FLAGS       ?= $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FLOOR),--min=$(_PHP_UNIT_FLOOR)),$(if $(_PHP_UNIT_FLOORS),--coverage-text=$(PHP_UNIT_COVERAGE_FILE))) --coverage-html $(PHP_UNIT_COVERAGE_DIR)#v #~~ additional flags passed when collecting coverage
 
-_PEST_BINARY     := $(APP_DIR)/vendor/bin/pest
+_PEST_BINARY     := $(APP_DIR)/$(_COMPOSER_BIN_DIR)/pest
 _IS_PEST          = $(findstring pest,$(PHP_UNIT))
-_PHP_UNIT_UPDATE  = $(if $(wildcard $(CURDIR)/vendor/bin/update-snapshots),$(subst /vendor/bin/phpunit,/vendor/bin/update-snapshots,$(PHP_UNIT)),$(PHP_UNIT))
+_PHP_UNIT_UPDATE  = $(if $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/update-snapshots),$(subst /$(_COMPOSER_BIN_DIR)/phpunit,/$(_COMPOSER_BIN_DIR)/update-snapshots,$(PHP_UNIT)),$(PHP_UNIT))
 _PHP_UNIT_FLOOR   = $(filter-out 0,$(strip $(PHP_UNIT_MIN_COVERAGE_LINES)))
 
 _PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
@@ -1653,8 +1688,8 @@ endif # /phpunit
 
 ifneq ($(_HAS_PHPSTAN),) # phpstan
 
-PHP_STAN        ?= $(RUN) $(APP_DIR)/vendor/bin/phpstan#v #~~ path to `phpstan` binary
-PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/conf/phpstan.php $(APP_DIR)/conf/phpstan.dist.php,php)#v #~~ path to `phpstan` config
+PHP_STAN        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan#v #~~ path to `phpstan` binary
+PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpstan.php $(APP_DIR)/$(_CONFIG_DIR)/phpstan.dist.php,php)#v #~~ path to `phpstan` config
 PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
@@ -1692,8 +1727,8 @@ endif # /phpstan
 
 ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
 
-PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
-PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/php-cs-fixer.php $(APP_DIR)/conf/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
+PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
+PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.php $(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
 PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
@@ -1724,8 +1759,8 @@ endif # /php-cs-fixer
 
 ifneq ($(_HAS_RECTOR),) # rector
 
-RECTOR        ?= $(RUN) $(APP_DIR)/vendor/bin/rector#v #~~ path to `rector` binary
-RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/conf/rector.php $(APP_DIR)/conf/rector.dist.php,php)#v #~~ path to `rector` config
+RECTOR        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector#v #~~ path to `rector` binary
+RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector.php $(APP_DIR)/$(_CONFIG_DIR)/rector.dist.php,php)#v #~~ path to `rector` config
 RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
@@ -1762,9 +1797,9 @@ endif # /rector
 
 ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 
-TWIG_CS_FIXER        ?= $(RUN) $(APP_DIR)/vendor/bin/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
-TWIG_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/conf/twig-cs-fixer.php $(APP_DIR)/conf/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
-TWIG_CS_FIXER_FLAGS  ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
+TWIG_CS_FIXER            ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
+TWIG_CS_FIXER_CONFIG     ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-cs-fixer.php $(APP_DIR)/$(_CONFIG_DIR)/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
+TWIG_CS_FIXER_FLAGS      ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig-cs-fixer` reads
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
@@ -1801,7 +1836,7 @@ BUN             ?= $(RUN) bun#v #~~ command that runs `bun`
 BUN_FLAGS       ?= --bun#v #~~ flags passed to `bun` before the command
 BUN_AUDIT_FLAGS ?= #vv #~~ additional flags passed to `bun audit`
 
-_BUN_PACKAGE_DIR := $(CURDIR)/.local/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
+_BUN_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
 _BUN_INSTALL      = $(BUN) install$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
 
 _PACK_NAMES += bun-pack
@@ -1841,7 +1876,7 @@ _$(_TARGET_PREFIX)bun-install:
 ifneq ($(_HAS_COMMITLINT),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
-COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/commitlint.mjs $(APP_DIR)/conf/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
+COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commitlint.mjs $(APP_DIR)/$(_CONFIG_DIR)/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
 COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, not one message
 COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLOR),--color false)#v #~~ additional flags passed to `commitlint`
@@ -1867,12 +1902,12 @@ endif # /commitlint
 ifneq ($(_HAS_ESLINT),) # eslint
 
 ESLINT                ?= $(BUN) $(BUN_FLAGS) x eslint#v #~~ command that runs `eslint`
-ESLINT_CONFIG         ?= $(call _config,$(APP_DIR)/conf/eslint.ts $(APP_DIR)/conf/eslint.mjs $(APP_DIR)/conf/eslint.dist.mjs,js)#v #~~ path to `eslint` config
-ESLINT_CACHE          ?= $(APP_DIR)/.cache/eslint.cache.json#v #~~ path to the `eslint` cache
+ESLINT_CONFIG         ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint.ts $(APP_DIR)/$(_CONFIG_DIR)/eslint.mjs $(APP_DIR)/$(_CONFIG_DIR)/eslint.dist.mjs,js)#v #~~ path to `eslint` config
+ESLINT_CACHE          ?= $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json#v #~~ path to the `eslint` cache
 ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `eslint`
 unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
-_ESLINT_OUTPUT := $(APP_DIR)/.cache/eslint.output
+_ESLINT_OUTPUT := $(APP_DIR)/$(_CACHE_DIR)/eslint.output
 
 ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, set by its config's modules
 
@@ -1922,7 +1957,7 @@ endif # /eslint
 ifneq ($(_HAS_MARKDOWNLINT),) # markdownlint
 
 MARKDOWNLINT            ?= $(BUN) $(BUN_FLAGS) x markdownlint-cli2#v #~~ command that runs `markdownlint-cli2`
-MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/conf/markdownlint.mjs $(APP_DIR)/conf/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
+MARKDOWNLINT_CONFIG     ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/markdownlint.mjs $(APP_DIR)/$(_CONFIG_DIR)/markdownlint.dist.mjs,js)#v #~~ path to `markdownlint` config
 MARKDOWNLINT_GLOB       ?= $(call _brace_glob,$(MARKDOWNLINT_EXTENSIONS))#vv #~~ files `markdownlint` looks at
 MARKDOWNLINT_FLAGS      ?= #v #~~ additional flags passed to `markdownlint-cli2`
 MARKDOWNLINT_EXTENSIONS ?= $(_MARKDOWNLINT_EXTENSIONS)#vv #~~ extensions `markdownlint` reads
@@ -1954,9 +1989,9 @@ endif # /markdownlint
 ifneq ($(_HAS_STYLELINT),) # stylelint
 
 STYLELINT        ?= $(BUN) $(BUN_FLAGS) x stylelint#v #~~ command that runs `stylelint`
-STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/stylelint.mjs $(APP_DIR)/conf/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
+STYLELINT_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/stylelint.mjs $(APP_DIR)/$(_CONFIG_DIR)/stylelint.dist.mjs,js)#v #~~ path to `stylelint` config
 STYLELINT_GLOB   ?= $(call _brace_glob,$(STYLELINT_EXTENSIONS))#vv #~~ files `stylelint` looks at
-STYLELINT_CACHE  ?= $(APP_DIR)/.cache/stylelint.cache.json#v #~~ path to the `stylelint` cache
+STYLELINT_CACHE  ?= $(APP_DIR)/$(_CACHE_DIR)/stylelint.cache.json#v #~~ path to the `stylelint` cache
 STYLELINT_FLAGS  ?= --allow-empty-input --max-warnings 0 --ignore-path $(APP_DIR)/.gitignore --ignore-path $(APP_DIR)/.stylelintignore $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `stylelint`
 
 _STYLELINT_VALUE_FLAGS := --cache-location \
@@ -2016,7 +2051,7 @@ TYPESCRIPT_CONFIG     ?= $(APP_DIR)/tsconfig.json#v #~~ path to the `tsc` projec
 TYPESCRIPT_FLAGS      ?= --noEmit $(if $(_IS_DEBUG),--extendedDiagnostics)#v #~~ additional flags passed to `tsc`
 TYPESCRIPT_EXTENSIONS ?= $(_TYPESCRIPT_EXTENSIONS)#vv #~~ extensions `tsc` type checks
 
-_TYPESCRIPT_PROJECT := $(APP_DIR)/conf/tsconfig.json
+_TYPESCRIPT_PROJECT := $(APP_DIR)/$(_CONFIG_DIR)/tsconfig.json
 
 _PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
 _LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
@@ -2045,11 +2080,11 @@ ifneq ($(_HAS_VITEST),) # vitest
 
 VITEST            ?= $(BUN) $(BUN_FLAGS) x vitest#v #~~ command that runs `vitest`
 unexport VITEST    # NOTICE: Vitest sets this to mark its own runs
-VITEST_CONFIG     ?= $(call _config,$(APP_DIR)/conf/vitest.ts $(APP_DIR)/conf/vitest.mjs $(APP_DIR)/conf/vitest.dist.mjs,js)#v #~~ path to `vitest` config
+VITEST_CONFIG     ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/vitest.ts $(APP_DIR)/$(_CONFIG_DIR)/vitest.mjs $(APP_DIR)/$(_CONFIG_DIR)/vitest.dist.mjs,js)#v #~~ path to `vitest` config
 VITEST_EXTENSIONS ?= $(_VITEST_EXTENSIONS)#vv #~~ extensions `vitest` runs tests from
 VITEST_FLAGS      ?= --run --passWithNoTests $(if $(_IS_DEBUG),--reporter=verbose)#v #~~ additional flags passed to `vitest`
 
-VITEST_COVERAGE_DIR            ?= $(APP_DIR)/.cache/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
+VITEST_COVERAGE_DIR            ?= $(APP_DIR)/$(_CACHE_DIR)/vitest.cache/coverage#v #~~ directory the HTML coverage report is written to
 VITEST_MIN_COVERAGE            ?= 100#v #~~ percentage every metric must reach, `0` for no floor
 VITEST_MIN_COVERAGE_BRANCHES   ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the branch metric must reach
 VITEST_MIN_COVERAGE_FUNCTIONS  ?= $(VITEST_MIN_COVERAGE)#vv #~~ percentage the function metric must reach
@@ -2093,7 +2128,7 @@ endif # /js
 
 #--- hadolint
 
-HADOLINT_CONFIG  ?= $(call _config,$(APP_DIR)/conf/hadolint.yaml $(APP_DIR)/conf/hadolint.dist.yaml,)#v #~~ path to `hadolint` config
+HADOLINT_CONFIG  ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadolint.yaml $(APP_DIR)/$(_CONFIG_DIR)/hadolint.dist.yaml,)#v #~~ path to `hadolint` config
 _LAYERED_CONFIGS += $(if $(_HADOLINT_FILES),$(call _layered,$(HADOLINT_CONFIG),yaml))
 
 ifneq ($(_HAS_HADOLINT),) # hadolint
@@ -2132,7 +2167,7 @@ endif # /hadolint
 
 #--- actionlint
 
-ACTIONLINT_CONFIG ?= $(call _config,$(APP_DIR)/conf/actionlint.yaml $(APP_DIR)/conf/actionlint.dist.yaml,)#v #~~ path to `actionlint` config
+ACTIONLINT_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/actionlint.yaml $(APP_DIR)/$(_CONFIG_DIR)/actionlint.dist.yaml,)#v #~~ path to `actionlint` config
 _LAYERED_CONFIGS  += $(if $(_ACTIONLINT_FILES),$(call _layered,$(ACTIONLINT_CONFIG),yaml))
 
 ifneq ($(_HAS_ACTIONLINT),) # actionlint
@@ -2169,19 +2204,19 @@ endif # /actionlint
 ifneq ($(_HAS_SEMGREP),) # semgrep
 
 SEMGREP          ?= $(RUN) semgrep#v #~~ command that runs `semgrep`
-SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/conf/semgrep.yaml $(APP_DIR)/conf/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
+SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgrep.yaml $(APP_DIR)/$(_CONFIG_DIR)/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
 SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets, detected unless `x-brnshkr` sets them
 SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `semgrep`
-SEMGREP_CACHE    ?= $(APP_DIR)/.cache/semgrep#vv #~~ path to the `semgrep` ruleset cache
+SEMGREP_CACHE    ?= $(APP_DIR)/$(_CACHE_DIR)/semgrep#vv #~~ path to the `semgrep` ruleset cache
 SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
 SEMGREP_PYTHON   ?= $(RUN) python3#vvv #~~ command that runs `python3`, merging `semgrep` rulesets
 
 _LAYERED_CONFIGS += $(call _layered,$(SEMGREP_CONFIG),yaml)
 
-_SEMGREP_DATABASE_PACKAGES := vendor/doctrine/dbal \
-	vendor/doctrine/orm \
-	vendor/illuminate/database \
+_SEMGREP_DATABASE_PACKAGES := $(_COMPOSER_VENDOR_DIR)/doctrine/dbal \
+	$(_COMPOSER_VENDOR_DIR)/doctrine/orm \
+	$(_COMPOSER_VENDOR_DIR)/illuminate/database \
 	node_modules/@prisma/client \
 	node_modules/better-sqlite3 \
 	node_modules/drizzle-orm \
@@ -2205,8 +2240,8 @@ _SEMGREP_DETECTED_RULESETS = default \
 	$(if $(_HAS_JS),typescript javascript nodejs nodejsscan mcp ai-best-practices) \
 	$(call _when_installed,sql-injection,$(_SEMGREP_DATABASE_PACKAGES)) \
 	$(call _when_installed,clientside-js,$(_SEMGREP_CLIENT_PACKAGES)) \
-	$(call _when_installed,php-laravel,vendor/laravel/framework) \
-	$(call _when_installed,wordpress,vendor/johnpbloch/wordpress-core vendor/roots/wordpress) \
+	$(call _when_installed,php-laravel,$(_COMPOSER_VENDOR_DIR)/laravel/framework) \
+	$(call _when_installed,wordpress,$(_COMPOSER_VENDOR_DIR)/johnpbloch/wordpress-core $(_COMPOSER_VENDOR_DIR)/roots/wordpress) \
 	$(call _when_installed,react,node_modules/react) \
 	$(call _when_installed,nextjs,node_modules/next) \
 	$(call _when_installed,nestjs,node_modules/@nestjs/core) \
@@ -3004,6 +3039,8 @@ case "$$config_path" in \
 	} >> "$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" > "$$body_path"; deduplication_mode=sections;; \
 	*/settings.json) $(call _append_stack_entries,1); \
+		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" > "$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
+		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),$(PRINTF) '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >> "$$body_path";) \
 		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),$(PRINTF) '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
 		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication_mode=keys; \
 		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || $(PRINTF) '%s\n' '{' '}' > "$$config_path";; \
@@ -3088,7 +3125,7 @@ endef
 #* returns: list<string>
 #*
 define _in_project
-$(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG)),$(APP_DIR)/conf/$(notdir $(CONFIG)),$(CONFIG)))
+$(foreach CONFIG,$1,$(if $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(CONFIG)),$(APP_DIR)/$(_CONFIG_DIR)/$(notdir $(CONFIG)),$(CONFIG)))
 endef
 
 #**
@@ -3398,7 +3435,7 @@ fi
 endef
 
 #**
-#* Runs a command in a fresh `$$scratch_directory` under `.cache`, removed afterwards.
+#* Runs a command in a fresh `$$scratch_directory` under `CACHE_DIR`, removed afterwards.
 #* `$$app_scratch_directory` names the same directory where the tools see it.
 #*
 #* parameters:
@@ -3407,8 +3444,8 @@ endef
 #* returns: void
 #*
 define _in_scratch_directory
-$(MKDIR) -p '$(CURDIR)/.cache' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/.cache/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-app_scratch_directory='$(APP_DIR)/.cache/'"$${scratch_directory##*/}"; \
+$(MKDIR) -p '$(CURDIR)/$(_CACHE_DIR)' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/$(_CACHE_DIR)/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+app_scratch_directory='$(APP_DIR)/$(_CACHE_DIR)/'"$${scratch_directory##*/}"; \
 { $1; }; status=$$?; $(RM) -rf "$$scratch_directory"; exit $$status
 endef
 

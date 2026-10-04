@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests;
 
 use Brnshkr\Config\Json;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Spelling;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\After;
@@ -29,6 +30,7 @@ use function sys_get_temp_dir;
  * @internal
  */
 #[CoversClass(Spelling::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class SpellingTest extends TestCase

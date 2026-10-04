@@ -167,6 +167,14 @@ final class StrTest extends TestCase
         self::assertSame('äb', Str::afterLast('x→äb', '→'));
     }
 
+    public function testAPrefixIsTrimmedOnlyWhenItIsThere(): void
+    {
+        self::assertSame('conf', Str::trimPrefix('./conf', './'));
+        self::assertSame('conf', Str::trimPrefix('conf', './'));
+        self::assertSame('./conf', Str::trimPrefix('./conf', ''));
+        self::assertSame('', Str::trimPrefix('./', './'));
+    }
+
     public function testASuffixIsTrimmedOnlyWhenItIsThere(): void
     {
         self::assertSame('composer', Str::trimSuffix('composer.json', '.json'));

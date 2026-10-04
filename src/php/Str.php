@@ -194,6 +194,13 @@ final readonly class Str
         return mb_substr($string, $offset, $length);
     }
 
+    public static function trimPrefix(string $haystack, string $prefix): string
+    {
+        return self::isEmpty($prefix) || !self::startsWith($haystack, $prefix)
+            ? $haystack
+            : self::slice($haystack, self::length($prefix));
+    }
+
     public static function trimSuffix(string $haystack, string $suffix): string
     {
         return self::isEmpty($suffix) || !self::endsWith($haystack, $suffix)
@@ -222,7 +229,7 @@ final readonly class Str
             return $path;
         }
 
-        return $cwd . (self::startsWith($path, './') ? self::slice($path, 2) : $path);
+        return $cwd . self::trimPrefix($path, './');
     }
 
     /**

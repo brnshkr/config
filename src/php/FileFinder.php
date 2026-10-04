@@ -112,8 +112,8 @@ final readonly class FileFinder
                 '/^tests(?:\/.+)?\/[Ff]ixtures?/',
             ])
             ->exclude([
-                '.cache',
-                '.local',
+                ProjectDirectory::getCache(),
+                ProjectDirectory::getLocal(),
                 'node_modules',
                 'var',
                 'vendor',

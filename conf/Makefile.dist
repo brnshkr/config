@@ -3,8 +3,7 @@ STARTUP_TARGETS :=
 APP_SERVICE ?= app
 
 ###> brnshkr/config ###
-_BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile \
-	$(CURDIR)/vendor/brnshkr/config/conf/Makefile
+_BRNSHKR_CONFIG_PATHS := $(CURDIR)/node_modules/@brnshkr/config/conf/Makefile $(CURDIR)/$(or $(if $(wildcard $(CURDIR)/composer.json),$(shell awk 'match($$0, /"vendor-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) { vendor_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", vendor_directory); sub(/"$$/, "", vendor_directory); print vendor_directory; exit }' $(CURDIR)/composer.json)), vendor)/brnshkr/config/conf/Makefile
 
 ifeq ($(wildcard $(_BRNSHKR_CONFIG_PATHS)),)
 bootstrap:
@@ -32,7 +31,7 @@ _BRNSHKR_COMPOSE_FILES = $(or \
 	$(subst :, ,$(COMPOSE_FILE)), \
 	$(firstword $(wildcard \
 		$(addprefix $(CURDIR)/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
-		$(addprefix $(CURDIR)/conf/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/$(or $(CONFIG_DIR),conf)/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
 	)) \
 )
 

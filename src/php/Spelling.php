@@ -69,7 +69,7 @@ final class Spelling
      * Scan a repository and return every finding, sorted by path, line and word.
      *
      * @param non-empty-string $rootDirectory - repository root the scan runs against
-     * @param string $configPath - repository config path, relative to the root
+     * @param ?string $configPath - config path relative to the root, the config directory's `spelling.json` when null
      * @param ?list<string> $paths - files to scan, derived from the tracked files when null
      *
      * @return list<array{
@@ -89,10 +89,10 @@ final class Spelling
      */
     public static function scan(
         string $rootDirectory,
-        string $configPath = self::DEFAULT_CONFIG_PATH,
+        ?string $configPath = null,
         ?array $paths = null,
     ): array {
-        $settings  = self::readSettings($rootDirectory . '/' . $configPath);
+        $settings  = self::readSettings($rootDirectory . '/' . ($configPath ?? ProjectDirectory::getConfig() . '/spelling.json'));
         $patterns  = self::buildPatterns($settings);
         $allowlist = self::readAllowlist($settings);
         $filePaths = $paths ?? self::collectFilePaths($rootDirectory, $settings);

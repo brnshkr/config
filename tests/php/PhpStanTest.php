@@ -17,9 +17,11 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +37,7 @@ use function count;
  */
 #[CoversClass(PhpStan::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(EditorUrl::class)]
 #[UsesClass(FileFinder::class)]
 #[UsesClass(Json::class)]
@@ -44,6 +47,12 @@ use function count;
 #[UsesClass(Str::class)]
 final class PhpStanTest extends TestCase
 {
+    #[After]
+    public function removeTheDirectoryVariables(): void
+    {
+        unset($_SERVER['BRNSHKR_CACHE_DIR'], $_SERVER['BRNSHKR_CONFIG_DIR']);
+    }
+
     public function testAnOptionMapKeepsTheKeysTheCallDoesNotName(): void
     {
         $exceptions = PhpStan::getBuilder()
@@ -94,17 +103,26 @@ final class PhpStanTest extends TestCase
 
     public function testAPackageDeclaresItsOwnUncheckedExceptions(): void
     {
-        $exceptions = PhpStan::getBuilder()
-            ->addUncheckedExceptionsFrom('brnshkr/config')
-            ->build()['parameters']['exceptions'] ?? null
-        ;
+        self::assertContains(UnreachableException::class, self::getUncheckedExceptionClassesOfThisPackage());
+    }
 
-        self::assertIsArray($exceptions);
+    public function testUncheckedExceptionsAreReadFromTheConfigDirectoryBeforeConf(): void
+    {
+        $_SERVER['BRNSHKR_CONFIG_DIR'] = 'tests/php/Fixtures/PhpStan/ConfigDirectory';
+        $fromConfigDirectory           = self::getUncheckedExceptionClassesOfThisPackage();
+        $_SERVER['BRNSHKR_CONFIG_DIR'] = 'acme-missing';
+        $fromConf                      = self::getUncheckedExceptionClassesOfThisPackage();
 
-        $classes = $exceptions['uncheckedExceptionClasses'] ?? null;
+        self::assertContains('Acme\User\Exception\UserNotFoundException', $fromConfigDirectory);
+        self::assertNotContains(UnreachableException::class, $fromConfigDirectory);
+        self::assertContains(UnreachableException::class, $fromConf);
+    }
 
-        self::assertIsArray($classes);
-        self::assertContains(UnreachableException::class, $classes);
+    public function testTheResultCacheFollowsTheCacheDirectory(): void
+    {
+        $_SERVER['BRNSHKR_CACHE_DIR'] = 'acme-cache';
+
+        self::assertSame('acme-cache/phpstan.cache', PhpStan::getConfig()['parameters']['tmpDir'] ?? null);
     }
 
     public function testAPackageThatDeclaresNoneIsAnError(): void
@@ -654,5 +672,24 @@ final class PhpStanTest extends TestCase
 
         self::assertSame([], $phpAtTests);
         self::assertNotSame([], $services);
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private static function getUncheckedExceptionClassesOfThisPackage(): array
+    {
+        $exceptions = PhpStan::getBuilder()
+            ->addUncheckedExceptionsFrom('brnshkr/config')
+            ->build()['parameters']['exceptions'] ?? null
+        ;
+
+        self::assertIsArray($exceptions);
+
+        $classes = $exceptions['uncheckedExceptionClasses'] ?? null;
+
+        self::assertIsArray($classes);
+
+        return $classes;
     }
 }

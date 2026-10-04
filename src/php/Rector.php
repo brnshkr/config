@@ -134,7 +134,7 @@ final class Rector
     public static function getBuilder(?Finder $finder = null): self
     {
         $rectorConfigBuilder = RectorConfig::configure()
-            ->withCache('.cache/rector.cache')
+            ->withCache(ProjectDirectory::getCache() . '/rector.cache')
             ->withRootFiles()
             ->withPhpSets()
             ->withAttributesSets()

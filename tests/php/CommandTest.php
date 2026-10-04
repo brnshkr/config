@@ -17,6 +17,7 @@ use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\After;
@@ -37,6 +38,7 @@ use function Symfony\Component\String\s;
  */
 #[CoversClass(BrnshkrConfigCommand::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(PrintModuleConfigCommand::class)]
 #[UsesClass(ComposerJsonManipulator::class)]
 #[UsesClass(Console::class)]

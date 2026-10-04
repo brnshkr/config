@@ -10,6 +10,7 @@ use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -28,6 +29,7 @@ use function count;
 #[UsesClass(Json::class)]
 #[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Str::class)]
 final class PhpCsFixerTest extends TestCase
 {

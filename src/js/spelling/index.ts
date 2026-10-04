@@ -1,5 +1,6 @@
 import path from 'node:path';
 
+import { getEnvironmentValue } from '../shared/utils/environment';
 import { readTextFile } from '../shared/utils/filesystem';
 import { readOwnValue } from '../shared/utils/object';
 import { createPattern } from '../shared/utils/pattern';
@@ -17,7 +18,7 @@ import type {
 } from './types/options';
 
 const EVERY_PATH = '*';
-const DEFAULT_CONFIG_PATH = 'conf/spelling.json';
+const DEFAULT_CONFIG_DIRECTORY = 'conf';
 
 const maskAllowedLiterals = (
   line: string,
@@ -104,9 +105,11 @@ const findInFile = (
  * ```
  */
 export const scan = (options?: Partial<SpellingOptions>): SpellingFinding[] => {
+  const configDirectory = getEnvironmentValue('BRNSHKR_CONFIG_DIR') ?? '';
+
   const {
     rootDirectory = process.cwd(),
-    configPath = DEFAULT_CONFIG_PATH,
+    configPath = `${configDirectory === '' ? DEFAULT_CONFIG_DIRECTORY : configDirectory}/spelling.json`,
     paths,
   } = options ?? {};
 

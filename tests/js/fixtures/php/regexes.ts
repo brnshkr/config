@@ -189,6 +189,31 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^\/composer\.json\s+-export-ignore$/mv,
   },
   {
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S*(?<!\.local)\/tools\/phpstan\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S*(?<!\.local)\/tools\/phpstan\.php/v,
+  },
+  {
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/^\s+BRNSHKR_CONFIG_DIR\s+tools$/m`,
+    regex: /^\s+BRNSHKR_CONFIG_DIR\s+tools$/mv,
+  },
+  {
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/RECTOR_CONFIG\s+\?=\s+\S*\/private\/rector\.php/`,
+    regex: /RECTOR_CONFIG\s+\?=\s+\S*\/private\/rector\.php/v,
+  },
+  {
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/^\s+BRNSHKR_CACHE_DIR\s+acme-cache$/m`,
+    regex: /^\s+BRNSHKR_CACHE_DIR\s+acme-cache$/mv,
+  },
+  {
+    file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/^\s+BRNSHKR_LOCAL_DIR\s+private$/m`,
+    regex: /^\s+BRNSHKR_LOCAL_DIR\s+private$/mv,
+  },
+  {
     file: 'tests/php/Make/DotenvTest.php',
     php: String.raw`/^Exported:$/m`,
     regex: /^Exported:$/mv,
@@ -267,6 +292,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     file: 'tests/php/Make/ToolsTest.php',
     php: String.raw`/\nLoaded \d+ rules\n$/`,
     regex: /\nLoaded \d+ rules\n$/v,
+  },
+  {
+    file: 'tests/php/Make/ToolsTest.php',
+    php: String.raw`/PHP_STAN\s+\?=\s+\S*\/tools\/bin\/phpstan\s/`,
+    regex: /PHP_STAN\s+\?=\s+\S*\/tools\/bin\/phpstan\s/v,
   },
   {
     file: 'tests/php/Make/Trait/MakeTrait.php',

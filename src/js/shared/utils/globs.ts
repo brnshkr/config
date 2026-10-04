@@ -2,6 +2,16 @@
  * @internal @brnshkr/config
  */
 
+import path from 'node:path';
+
+import { getEnvironmentValue } from './environment';
+
+const getDirectoryGlob = (variableName: string, defaultDirectory: string): string => {
+  const configuredDirectory = getEnvironmentValue(variableName) ?? '';
+
+  return `**/${path.normalize(configuredDirectory === '' ? defaultDirectory : configuredDirectory)}/**`;
+};
+
 export const GLOB_TEST_FILES = <const>[
   '**/__tests__/**/*.?(c|m)[jt]s?(x)',
   '**/*.spec.?(c|m)[jt]s?(x)',
@@ -14,14 +24,14 @@ export const GLOB_BENCHMARK_FILES = <const>[
 ] satisfies string[];
 
 export const GLOB_IGNORES = <const>[
-  '**/.cache/**',
+  getDirectoryGlob('BRNSHKR_CACHE_DIR', '.cache'),
   '**/.changeset/**',
   '**/.git/objects/**',
   '**/.git/subtree-cache/**',
   '**/.hg/store/**',
   '**/.history/**',
   '**/.idea/**',
-  '**/.local/**',
+  getDirectoryGlob('BRNSHKR_LOCAL_DIR', '.local'),
   '**/.next/**',
   '**/.nuxt/**',
   '**/.output/**',

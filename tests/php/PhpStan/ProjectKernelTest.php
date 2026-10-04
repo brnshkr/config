@@ -8,6 +8,7 @@ use App\Kernel;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -23,6 +24,7 @@ use function sprintf;
  */
 #[CoversClass(ProjectKernel::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class ProjectKernelTest extends TestCase
@@ -65,10 +67,26 @@ final class ProjectKernelTest extends TestCase
         self::assertNull(ProjectKernel::locateContainerXml());
     }
 
+    public function testAProjectLoaderIsFoundInTheConfigDirectory(): void
+    {
+        $_SERVER['BRNSHKR_CONFIG_DIR'] = 'tests/php/Fixtures/PhpStan/ConfigDirectory';
+
+        self::assertStringEndsWith(
+            '/tests/php/Fixtures/PhpStan/ConfigDirectory/phpstan/console-application.php',
+            ProjectKernel::getLoaderPath('console-application'),
+        );
+    }
+
     public function testTheShippedLoadersExist(): void
     {
         self::assertFileExists(ProjectKernel::getLoaderPath('console-application'));
         self::assertFileExists(ProjectKernel::getLoaderPath('object-manager'));
+    }
+
+    #[After]
+    public function removeTheConfigDirectoryVariable(): void
+    {
+        unset($_SERVER['BRNSHKR_CONFIG_DIR']);
     }
 
     #[After]

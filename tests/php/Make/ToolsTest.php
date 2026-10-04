@@ -31,6 +31,14 @@ final class ToolsTest extends TestCase
     private const string LINTERS_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Linters';
     private const string COVERAGE_DIRECTORY = __DIR__ . '/../Fixtures/Make/Coverage';
     private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
+    private const string COMPOSER_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
+
+    public function testAComposerToolIsFoundInTheBinDirectoryComposerJsonNames(): void
+    {
+        $resolved = $this->runMake(['help', 'resolve', 'vv'], ['VALUE_WIDTH' => '200'], self::COMPOSER_DIRECTORY);
+
+        self::assertMatchesRegularExpression('/PHP_STAN\s+\?=\s+\S*\/tools\/bin\/phpstan\s/', $resolved);
+    }
 
     public function testEveryBunToolRunsItsBinaryRatherThanAScriptOfTheSameName(): void
     {

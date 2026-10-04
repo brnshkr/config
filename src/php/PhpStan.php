@@ -134,12 +134,12 @@ if (class_exists(PhpStan::class)) {
  */
 final class PhpStan
 {
-    private const string UNCHECKED_EXCEPTIONS_PATH = 'conf/phpstan/unchecked-exceptions.php';
+    private const string UNCHECKED_EXCEPTIONS_PATH = 'phpstan/unchecked-exceptions.php';
 
     private const string TYPE_SYMFONY_BUNDLE = 'symfony-bundle';
 
     private const string CONFIG_REFERENCE_PATH       = 'config/reference.php';
-    private const string CONTAINER_CONFIGURATOR_PATH = 'vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php';
+    private const string CONTAINER_CONFIGURATOR_PATH = 'symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php';
 
     private const string LOADER_CONSOLE_APPLICATION = 'console-application';
     private const string LOADER_OBJECT_MANAGER      = 'object-manager';
@@ -252,7 +252,7 @@ final class PhpStan
         $phpStanConfig = new self()
             ->setLevel('max')
             ->setPaths($analysisPaths['paths'], $analysisPaths['excludedPaths'])
-            ->setTemporaryDirectory('.cache/phpstan.cache')
+            ->setTemporaryDirectory(ProjectDirectory::getCache() . '/phpstan.cache')
             ->setParameters([
                 'editorUrl'                                          => EditorUrl::forPhpStan(),
                 'editorUrlTitle'                                     => '%%relFile%%:%%line%%',
@@ -2270,17 +2270,15 @@ final class PhpStan
      */
     private static function getSymfonyScanFiles(): array
     {
-        $rootDirectory = ProjectKernel::getRootDirectory();
-        $scanFiles     = [];
+        $vendorDirectory = ComposerJson::forProjectUsingThisLibrary()->getVendorDirectory();
+        $scanFiles       = [];
 
         $generatingPackages = [
-            self::CONFIG_REFERENCE_PATH       => Package::FrameworkBundle,
-            self::CONTAINER_CONFIGURATOR_PATH => Package::DependencyInjection,
+            ProjectKernel::getRootDirectory() . '/' . self::CONFIG_REFERENCE_PATH => Package::FrameworkBundle,
+            $vendorDirectory . '/' . self::CONTAINER_CONFIGURATOR_PATH            => Package::DependencyInjection,
         ];
 
-        foreach ($generatingPackages as $relativePath => $generatingPackage) {
-            $scanFilePath = $rootDirectory . '/' . $relativePath;
-
+        foreach ($generatingPackages as $scanFilePath => $generatingPackage) {
             if ($generatingPackage->isInstalled() && is_file($scanFilePath) && is_readable($scanFilePath)) {
                 $scanFiles[] = $scanFilePath;
             }
@@ -2351,17 +2349,44 @@ final class PhpStan
             throw new RuntimeException(sprintf('Package "%s" is not installed.', $package), 0, $outOfBoundsException);
         }
 
-        $path = ($installPath ?? '') . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
+        $path = $installPath === null ? null : self::findUncheckedExceptionsPath($installPath);
 
-        if ($installPath === null || !is_file($path) || !is_readable($path)) {
+        if ($path === null) {
             throw new RuntimeException(sprintf(
-                'Package "%s" declares no unchecked exceptions, expected them in "%s".',
+                'Package "%s" declares no unchecked exceptions, expected them in %s.',
                 $package,
-                self::UNCHECKED_EXCEPTIONS_PATH,
+                Str::joinAsQuotedList(self::getUncheckedExceptionsPaths(), 'disjunction'),
             ));
         }
 
         return self::readDeclaredExceptions($path);
+    }
+
+    /**
+     * @return ?non-empty-string
+     */
+    private static function findUncheckedExceptionsPath(string $packageDirectory): ?string
+    {
+        foreach (self::getUncheckedExceptionsPaths() as $relativePath) {
+            $path = $packageDirectory . '/' . $relativePath;
+
+            if (is_file($path) && is_readable($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<non-empty-string>
+     */
+    private static function getUncheckedExceptionsPaths(): array
+    {
+        return self::appendUnique([], [
+            ProjectDirectory::getConfig() . '/' . self::UNCHECKED_EXCEPTIONS_PATH,
+            ProjectDirectory::DEFAULT_CONFIG_DIRECTORY . '/' . self::UNCHECKED_EXCEPTIONS_PATH,
+        ]);
     }
 
     /**
@@ -2408,13 +2433,9 @@ final class PhpStan
      */
     private static function getRootUncheckedExceptions(): array
     {
-        $path = ComposerJson::forProjectUsingThisLibrary()->getDirectory() . '/' . self::UNCHECKED_EXCEPTIONS_PATH;
+        $path = self::findUncheckedExceptionsPath(ComposerJson::forProjectUsingThisLibrary()->getDirectory());
 
-        if (!is_file($path) || !is_readable($path)) {
-            return [];
-        }
-
-        return self::readDeclaredExceptions($path);
+        return $path === null ? [] : self::readDeclaredExceptions($path);
     }
 
     /**

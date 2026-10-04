@@ -6,6 +6,7 @@ namespace Brnshkr\Config\PhpStan;
 
 use App\Kernel;
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\PhpStan\ProjectKernelTest;
 use RuntimeException;
@@ -41,7 +42,7 @@ final readonly class ProjectKernel
 
     private const string CONTAINER_FILE_PATTERN = '*Container.xml';
 
-    private const string LOADER_DIRECTORY = 'conf/phpstan';
+    private const string LOADER_DIRECTORY = 'phpstan';
 
     private function __construct() {}
 
@@ -151,8 +152,9 @@ final readonly class ProjectKernel
     public static function getLoaderPath(string $name): string
     {
         $projectPath = sprintf(
-            '%s/%s/%s.php',
+            '%s/%s/%s/%s.php',
             ComposerJson::forProjectUsingThisLibrary()->getDirectory(),
+            ProjectDirectory::getConfig(),
             self::LOADER_DIRECTORY,
             $name,
         );
@@ -161,7 +163,7 @@ final readonly class ProjectKernel
             return $projectPath;
         }
 
-        $path = sprintf('%s/../../../%s/%s.php', __DIR__, self::LOADER_DIRECTORY, $name);
+        $path = sprintf('%s/../../../%s/%s/%s.php', __DIR__, ProjectDirectory::DEFAULT_CONFIG_DIRECTORY, self::LOADER_DIRECTORY, $name);
 
         return realpath($path) ?: $path;
     }
