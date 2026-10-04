@@ -247,12 +247,38 @@ final class PhpStanTest extends TestCase
             ->setScanFiles(['first.php'])
             ->addScanFiles(['second.php'])
             ->removeScanFiles(['first.php'])
-            ->addScanDirectories(['stubs'])
+            ->setScanDirectories(['first'])
+            ->addScanDirectories(['second', 'third'])
+            ->removeScanDirectories(['second'])
             ->build()['parameters']
         ;
 
         self::assertSame(['second.php'], $parameters['scanFiles'] ?? null);
-        self::assertSame(['stubs'], $parameters['scanDirectories'] ?? null);
+        self::assertSame(['first', 'third'], $parameters['scanDirectories'] ?? null);
+    }
+
+    public function testStubFilesAreAppendedReplacedAndDropped(): void
+    {
+        $stubFiles = PhpStan::getBuilder()
+            ->setStubFiles(['first.stub'])
+            ->addStubFiles(['second.stub', 'first.stub', 'third.stub'])
+            ->removeStubFiles(['second.stub'])
+            ->build()['parameters']['stubFiles'] ?? null
+        ;
+
+        self::assertSame(['first.stub', 'third.stub'], $stubFiles);
+    }
+
+    public function testFileExtensionsAreAppendedReplacedAndDropped(): void
+    {
+        $fileExtensions = PhpStan::getBuilder()
+            ->setFileExtensions(['phtml'])
+            ->addFileExtensions(['inc', 'phtml', 'module'])
+            ->removeFileExtensions(['inc'])
+            ->build()['parameters']['fileExtensions'] ?? null
+        ;
+
+        self::assertSame(['phtml', 'module'], $fileExtensions);
     }
 
     public function testTheSamePhpAtTestRegisteredTwiceIdenticallyIsOneService(): void
@@ -599,6 +625,14 @@ final class PhpStanTest extends TestCase
 
         // @phpstan-ignore argument.type (the guard exists for a caller who ignores the signature, so the test has to)
         PhpStan::getBuilder()->setPaths(['src', '']);
+    }
+
+    public function testAFileExtensionWithItsLeadingDotIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('without its leading dot, got ".phtml"');
+
+        PhpStan::getBuilder()->addFileExtensions(['inc', '.phtml']);
     }
 
     public function testSetArchitectureDropsThePhpAtTestsAlreadyRegistered(): void

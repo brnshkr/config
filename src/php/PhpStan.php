@@ -662,12 +662,12 @@ final class PhpStan
     }
 
     /**
-     * Set the paths PHPStan analyzes, optionally with exclusions.
+     * Replace the analyzed paths outright, optionally with exclusions.
      *
      * Exclusions accept either a flat list (treated as `analyseAndScan`) or the structured
      * `{analyse, analyseAndScan}` shape PHPStan understands.
      *
-     * @param list<non-empty-string> $paths - paths to analyze
+     * @param list<non-empty-string> $paths - paths PHPStan analyzes
      * @param list<non-empty-string>|array{
      *     analyse?: list<non-empty-string>,
      *     analyseAndScan?: list<non-empty-string>,
@@ -685,7 +685,7 @@ final class PhpStan
     {
         self::assertPathList($paths);
 
-        $this->setParameter('paths', $paths);
+        $this->replaceListParameter('paths', $paths);
 
         if ($excludedPaths !== []) {
             $this->setExcludedPaths($excludedPaths);
@@ -697,7 +697,7 @@ final class PhpStan
     /**
      * Add paths to analyze, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $paths - absolute or relative paths to append
+     * @param list<non-empty-string> $paths - paths to analyze
      *
      * @throws InvalidArgumentException when a path is not a non-empty string
      */
@@ -705,16 +705,11 @@ final class PhpStan
     {
         self::assertPathList($paths);
 
-        $existingPaths = $this->config['parameters']['paths'] ?? [];
-
-        return $this->setParameter('paths', self::appendUnique(
-            is_array($existingPaths) ? $existingPaths : [],
-            $paths,
-        ));
+        return $this->appendToListParameter('paths', $paths);
     }
 
     /**
-     * Drop paths from the analyzed set.
+     * Drop analyzed paths, leaving the rest analyzed.
      *
      * @param list<non-empty-string> $paths - paths to stop analyzing
      *
@@ -724,16 +719,7 @@ final class PhpStan
     {
         self::assertPathList($paths);
 
-        $existingPaths = $this->config['parameters']['paths'] ?? [];
-
-        if (!is_array($existingPaths)) {
-            return $this;
-        }
-
-        return $this->setParameter('paths', array_values(array_filter(
-            $existingPaths,
-            static fn (mixed $path): bool => !in_array($path, $paths, true),
-        )));
+        return $this->removeFromListParameter('paths', $paths);
     }
 
     /**
@@ -829,28 +815,23 @@ final class PhpStan
     }
 
     /**
-     * Add bootstrap files PHPStan requires before analysis, keeping the ones already configured.
+     * Add bootstrap files PHPStan loads before analysis, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $bootstrapFiles - paths to bootstrap PHP files
+     * @param list<non-empty-string> $bootstrapFiles - paths to load before analysis
      */
     public function addBootstrapFiles(array $bootstrapFiles): self
     {
-        $existingBootstrapFiles = $this->config['parameters']['bootstrapFiles'] ?? [];
-
-        return $this->setParameter('bootstrapFiles', self::appendUnique(
-            is_array($existingBootstrapFiles) ? $existingBootstrapFiles : [],
-            $bootstrapFiles,
-        ));
+        return $this->appendToListParameter('bootstrapFiles', $bootstrapFiles);
     }
 
     /**
      * Replace the bootstrap files outright.
      *
-     * @param list<non-empty-string> $bootstrapFiles - paths to the files PHPStan loads before analysis
+     * @param list<non-empty-string> $bootstrapFiles - paths PHPStan loads before analysis
      */
     public function setBootstrapFiles(array $bootstrapFiles): self
     {
-        return $this->removeParameter('bootstrapFiles')->addBootstrapFiles($bootstrapFiles);
+        return $this->replaceListParameter('bootstrapFiles', $bootstrapFiles);
     }
 
     /**
@@ -860,41 +841,27 @@ final class PhpStan
      */
     public function removeBootstrapFiles(array $bootstrapFiles): self
     {
-        $existingBootstrapFiles = $this->config['parameters']['bootstrapFiles'] ?? [];
-
-        if (!is_array($existingBootstrapFiles)) {
-            return $this;
-        }
-
-        return $this->setParameter('bootstrapFiles', array_values(array_filter(
-            $existingBootstrapFiles,
-            static fn (mixed $file): bool => !in_array($file, $bootstrapFiles, true),
-        )));
+        return $this->removeFromListParameter('bootstrapFiles', $bootstrapFiles);
     }
 
     /**
      * Add files PHPStan reads the symbols of without analyzing them, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $scanFiles - paths to scan for symbols
+     * @param list<non-empty-string> $scanFiles - paths to scan
      */
     public function addScanFiles(array $scanFiles): self
     {
-        $existingScanFiles = $this->config['parameters']['scanFiles'] ?? [];
-
-        return $this->setParameter('scanFiles', self::appendUnique(
-            is_array($existingScanFiles) ? $existingScanFiles : [],
-            $scanFiles,
-        ));
+        return $this->appendToListParameter('scanFiles', $scanFiles);
     }
 
     /**
      * Replace the scanned files outright.
      *
-     * @param list<non-empty-string> $scanFiles - paths PHPStan reads the symbols of
+     * @param list<non-empty-string> $scanFiles - paths PHPStan scans
      */
     public function setScanFiles(array $scanFiles): self
     {
-        return $this->removeParameter('scanFiles')->addScanFiles($scanFiles);
+        return $this->replaceListParameter('scanFiles', $scanFiles);
     }
 
     /**
@@ -904,31 +871,109 @@ final class PhpStan
      */
     public function removeScanFiles(array $scanFiles): self
     {
-        $existingScanFiles = $this->config['parameters']['scanFiles'] ?? [];
-
-        if (!is_array($existingScanFiles)) {
-            return $this;
-        }
-
-        return $this->setParameter('scanFiles', array_values(array_filter(
-            $existingScanFiles,
-            static fn (mixed $scanFile): bool => !in_array($scanFile, $scanFiles, true),
-        )));
+        return $this->removeFromListParameter('scanFiles', $scanFiles);
     }
 
     /**
-     * Add directories PHPStan scans the way {@see self::addScanFiles()} scans a file.
+     * Add directories PHPStan reads the symbols of without analyzing them, keeping the ones already configured.
      *
-     * @param list<non-empty-string> $scanDirectories - directories to scan for symbols
+     * @param list<non-empty-string> $scanDirectories - directories to scan
      */
     public function addScanDirectories(array $scanDirectories): self
     {
-        $existingScanDirectories = $this->config['parameters']['scanDirectories'] ?? [];
+        return $this->appendToListParameter('scanDirectories', $scanDirectories);
+    }
 
-        return $this->setParameter('scanDirectories', self::appendUnique(
-            is_array($existingScanDirectories) ? $existingScanDirectories : [],
-            $scanDirectories,
-        ));
+    /**
+     * Replace the scanned directories outright.
+     *
+     * @param list<non-empty-string> $scanDirectories - directories PHPStan scans
+     */
+    public function setScanDirectories(array $scanDirectories): self
+    {
+        return $this->replaceListParameter('scanDirectories', $scanDirectories);
+    }
+
+    /**
+     * Drop scanned directories, leaving the rest scanned.
+     *
+     * @param list<non-empty-string> $scanDirectories - directories to stop scanning
+     */
+    public function removeScanDirectories(array $scanDirectories): self
+    {
+        return $this->removeFromListParameter('scanDirectories', $scanDirectories);
+    }
+
+    /**
+     * Add stub files PHPStan reads declarations from instead of the real ones, keeping the ones already configured.
+     *
+     * @param list<non-empty-string> $stubFiles - paths to read
+     */
+    public function addStubFiles(array $stubFiles): self
+    {
+        return $this->appendToListParameter('stubFiles', $stubFiles);
+    }
+
+    /**
+     * Replace the stub files outright.
+     *
+     * @param list<non-empty-string> $stubFiles - paths PHPStan reads
+     */
+    public function setStubFiles(array $stubFiles): self
+    {
+        return $this->replaceListParameter('stubFiles', $stubFiles);
+    }
+
+    /**
+     * Drop stub files, leaving the rest read.
+     *
+     * @param list<non-empty-string> $stubFiles - paths to stop reading
+     */
+    public function removeStubFiles(array $stubFiles): self
+    {
+        return $this->removeFromListParameter('stubFiles', $stubFiles);
+    }
+
+    /**
+     * Add file extensions PHPStan analyzes beside `php`, keeping the ones already configured.
+     *
+     * @param list<non-empty-string> $fileExtensions - extensions to analyze, without their leading dot
+     *
+     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     */
+    public function addFileExtensions(array $fileExtensions): self
+    {
+        self::assertFileExtensionList($fileExtensions);
+
+        return $this->appendToListParameter('fileExtensions', $fileExtensions);
+    }
+
+    /**
+     * Replace the file extensions outright.
+     *
+     * @param list<non-empty-string> $fileExtensions - extensions PHPStan analyzes, without their leading dot
+     *
+     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     */
+    public function setFileExtensions(array $fileExtensions): self
+    {
+        self::assertFileExtensionList($fileExtensions);
+
+        return $this->replaceListParameter('fileExtensions', $fileExtensions);
+    }
+
+    /**
+     * Drop file extensions, leaving the rest analyzed.
+     *
+     * @param list<non-empty-string> $fileExtensions - extensions to stop analyzing, without their leading dot
+     *
+     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     */
+    public function removeFileExtensions(array $fileExtensions): self
+    {
+        self::assertFileExtensionList($fileExtensions);
+
+        return $this->removeFromListParameter('fileExtensions', $fileExtensions);
     }
 
     /**
@@ -1631,6 +1676,23 @@ final class PhpStan
     }
 
     /**
+     * @param array<array-key, mixed> $fileExtensions
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertFileExtensionList(array $fileExtensions): void
+    {
+        foreach ($fileExtensions as $fileExtension) {
+            if (!is_string($fileExtension) || Str::isEmpty($fileExtension) || Str::startsWith($fileExtension, '.')) {
+                throw new InvalidArgumentException(sprintf(
+                    'Every file extension must be a non-empty string without its leading dot, got "%s".',
+                    is_string($fileExtension) ? $fileExtension : get_debug_type($fileExtension),
+                ));
+            }
+        }
+    }
+
+    /**
      * Reject a path entry in either shape the exclusion setters accept.
      *
      * @param array<array-key, mixed> $excludedPaths
@@ -1682,6 +1744,47 @@ final class PhpStan
         $key = $entry['identifier'] ?? $entry['message'] ?? null;
 
         return is_string($key) ? $key : null;
+    }
+
+    /**
+     * @param non-empty-string&non-decimal-int-string $parameter
+     * @param list<non-empty-string> $entries
+     */
+    private function appendToListParameter(string $parameter, array $entries): self
+    {
+        $existingEntries = $this->config['parameters'][$parameter] ?? [];
+
+        return $this->setParameter($parameter, self::appendUnique(
+            is_array($existingEntries) ? $existingEntries : [],
+            $entries,
+        ));
+    }
+
+    /**
+     * @param non-empty-string&non-decimal-int-string $parameter
+     * @param list<non-empty-string> $entries
+     */
+    private function replaceListParameter(string $parameter, array $entries): self
+    {
+        return $this->setParameter($parameter, self::appendUnique([], $entries));
+    }
+
+    /**
+     * @param non-empty-string&non-decimal-int-string $parameter
+     * @param list<non-empty-string> $entries
+     */
+    private function removeFromListParameter(string $parameter, array $entries): self
+    {
+        $existingEntries = $this->config['parameters'][$parameter] ?? [];
+
+        if (!is_array($existingEntries)) {
+            return $this;
+        }
+
+        return $this->setParameter($parameter, array_values(array_filter(
+            $existingEntries,
+            static fn (mixed $entry): bool => !in_array($entry, $entries, true),
+        )));
     }
 
     /**
