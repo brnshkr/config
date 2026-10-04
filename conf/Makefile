@@ -375,10 +375,10 @@ _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FIL
 
 define _DOTENV_AWK
 function fail(message) { if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
-function shell_quoted(text,    quoted, position) {
-	quoted = ""
-	while ((position = index(text, SQ))) { quoted = quoted substr(text, 1, position - 1) SQ "\\" SQ SQ; text = substr(text, position + 1) }
-	return SQ quoted text SQ
+function quote_for_shell(text,    quoted_text, position) {
+	quoted_text = ""
+	while ((position = index(text, SQ))) { quoted_text = quoted_text substr(text, 1, position - 1) SQ "\\" SQ SQ; text = substr(text, position + 1) }
+	return SQ quoted_text text SQ
 }
 function unquote(value,    quote) {
 	quote = substr(value, 1, 1)
@@ -396,7 +396,7 @@ function interpolate(value,    out, name, start, stop) {
 	}
 	return out value
 }
-function load(path,    line, key, value, quote, continued, line_number, key_line_number) {
+function load(path,    line, key, value, quote, continued_line, line_number, key_line_number) {
 	if ((getline line < path) < 0) return 0
 	do {
 		key_line_number = ++line_number
@@ -411,10 +411,10 @@ function load(path,    line, key, value, quote, continued, line_number, key_line
 		quote = substr(value, 1, 1)
 		if (quote == "\"" || quote == SQ) {
 			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
-				if ((getline continued < path) <= 0) fail("unterminated quote in `" path "`")
+				if ((getline continued_line < path) <= 0) fail("unterminated quote in `" path "`")
 				line_number += 1
-				sub(/\r$$/, "", continued)
-				value = value "\n" continued
+				sub(/\r$$/, "", continued_line)
+				value = value "\n" continued_line
 			}
 		} else {
 			sub(/[ \t]+#.*$$/, "", value)
@@ -430,14 +430,14 @@ function load(path,    line, key, value, quote, continued, line_number, key_line
 	close(path)
 	return 1
 }
-function environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
+function get_environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
 BEGIN {
 	SQ = sprintf("%c", 39)
 	if (!load(_BASE)) load(_BASE ".dist")
-	env = environment(_DEFAULT_ENV)
+	env = get_environment(_DEFAULT_ENV)
 	split(_TEST_ENVS, tests, /[ \t]+/)
 	for (i in tests) if (tests[i] == env) is_test = 1
-	if (!is_test) { load(_BASE ".local"); env = environment(env) }
+	if (!is_test) { load(_BASE ".local"); env = get_environment(env) }
 	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
@@ -451,7 +451,7 @@ BEGIN {
 	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
 	values[_ENV_KEY] = env
 	if (_ENVIRONMENT) {
-		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], shell_quoted(values[order[i]])
+		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], quote_for_shell(values[order[i]])
 		exit
 	}
 	for (i = 1; i <= count; i += 1) {
@@ -1078,7 +1078,7 @@ $(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) \
 		} \
 		return previous[right_length] \
 	} \
-	{ measured = levenshtein(_UNKNOWN, $$0); if (measured <= (length(_UNKNOWN) > 4 ? 2 : 1) || (length(_UNKNOWN) >= 3 && index($$0, _UNKNOWN))) printf "%d %s\n", measured, $$0 }' \
+	{ measured_distance = levenshtein(_UNKNOWN, $$0); if (measured_distance <= (length(_UNKNOWN) > 4 ? 2 : 1) || (length(_UNKNOWN) >= 3 && index($$0, _UNKNOWN))) printf "%d %s\n", measured_distance, $$0 }' \
 	| sort -n \
 	| $(AWK) 'NR == 1 { nearest = $$1 } $$1 == nearest && NR <= 3 { print $$2 }')
 endef
@@ -1278,71 +1278,71 @@ _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACK
 
 $(call _target,configs): #~~ writes missing files, `tools` configs, `local` private ones
 	$(TRACE_PREFIX)$(call _require_known_value,config)
-	$(TRACE_PREFIX)for target in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
-		$(call _refuse_links,"$$target" "$${target%/*}" "$${target}.example"); \
-		if [ -f "$$target" ]; then \
-			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${target#$(CURDIR)/}")); \
+	$(TRACE_PREFIX)for config_path in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
+		$(call _refuse_links,"$$config_path" "$${config_path%/*}" "$${config_path}.example"); \
+		if [ -f "$$config_path" ]; then \
+			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${config_path#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
-		name="$${target##*/}"; \
-		source="$${target}.example"; \
-		case "$$name" in \
-			*.dist.*) shipped="$$name"; tracked="";; \
-			*.mjs|*.php) shipped=""; tracked="";; \
-			?*.?*) shipped=""; tracked="$${name%.*}.dist.$${name##*.}";; \
-			*) shipped=""; tracked="$${name}.dist";; \
+		config_name="$${config_path##*/}"; \
+		template_path="$${config_path}.example"; \
+		case "$$config_name" in \
+			*.dist.*) shipped_template_name="$$config_name"; tracked_template_name="";; \
+			*.mjs|*.php) shipped_template_name=""; tracked_template_name="";; \
+			?*.?*) shipped_template_name=""; tracked_template_name="$${config_name%.*}.dist.$${config_name##*.}";; \
+			*) shipped_template_name=""; tracked_template_name="$${config_name}.dist";; \
 		esac; \
 		for directory in $(_TEMPLATE_DIRS); do \
-			[ -r "$$source" ] && break; \
-			for candidate in "$$shipped" "$$name.example" "$$tracked"; do \
-				[ -n "$$candidate" ] || continue; \
-				source="$$directory/$$candidate"; \
-				[ -r "$$source" ] && break; \
+			[ -r "$$template_path" ] && break; \
+			for template_name in "$$shipped_template_name" "$$config_name.example" "$$tracked_template_name"; do \
+				[ -n "$$template_name" ] || continue; \
+				template_path="$$directory/$$template_name"; \
+				[ -r "$$template_path" ] && break; \
 			done; \
 		done; \
-		case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
-		if [ -r "$$source" ]; then \
-			$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
+		if [ -r "$$template_path" ]; then \
+			$(CP) "$$template_path" "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		else \
-			extended="$${target%/*}/$${name%.*}.dist.$${name##*.}"; \
-			case "$$name" in \
-				*.mjs) $(PRINTF) '%s\n' "export { default } from './$${extended##*/}';" > "$$target" \
+			included_config_path="$${config_path%/*}/$${config_name%.*}.dist.$${config_name##*.}"; \
+			case "$$config_name" in \
+				*.mjs) $(PRINTF) '%s\n' "export { default } from './$${included_config_path##*/}';" > "$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 				*.php) $(PRINTF) '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
-					"\$$config = include __DIR__ . '/$${extended##*/}';" '' 'return $$config;' > "$$target" \
+					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' 'return $$config;' > "$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-				*) extended=""; continue;; \
+				*) included_config_path=""; continue;; \
 			esac; \
 		fi; \
-		case "$$target" in $(CURDIR)/*.php) $(call _name_internal_tag,$${target#$(CURDIR)/});; esac; \
-		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${target#$(CURDIR)/}"); \
-		if [ -n "$$extended" ]; then \
-			$(call log,Built on `%s` — keep that include.,$(COLOR_NOTICE),"./$${extended#$(CURDIR)/}"); \
-			extended=""; \
+		case "$$config_path" in $(CURDIR)/*.php) $(call _name_internal_tag,$${config_path#$(CURDIR)/});; esac; \
+		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${config_path#$(CURDIR)/}"); \
+		if [ -n "$$included_config_path" ]; then \
+			$(call log,Built on `%s` — keep that include.,$(COLOR_NOTICE),"./$${included_config_path#$(CURDIR)/}"); \
+			included_config_path=""; \
 		fi; \
 	done
 	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	trap '$(RM) -f "$$body_path"' EXIT; \
-	for entry in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(_MANAGED_CONFIGS)),'$(MANAGED_CONFIG)'); do \
-		target="$${entry%%|*}"; \
-		source="$${entry#*|}"; \
+	for managed_config_pair in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(_MANAGED_CONFIGS)),'$(MANAGED_CONFIG)'); do \
+		config_path="$${managed_config_pair%%|*}"; \
+		template_path="$${managed_config_pair#*|}"; \
 		$(call _write_managed_config); \
 	done
-	$(TRACE_PREFIX)for entry in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
-		link="$${entry%%|*}"; \
-		source="$${entry#*|}"; \
-		relative="$${source#$(CURDIR)/}"; \
-		if [ -e "$$link" ]; then \
-			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link#$(CURDIR)/}")); \
+	$(TRACE_PREFIX)for linked_config_pair in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
+		link_path="$${linked_config_pair%%|*}"; \
+		linked_path="$${linked_config_pair#*|}"; \
+		relative_linked_path="$${linked_path#$(CURDIR)/}"; \
+		if [ -e "$$link_path" ]; then \
+			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link_path#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
-		[ -r "$$source" ] || continue; \
-		if $(LN) -sfn "$$relative" "$$link" 2>/dev/null; then \
-			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}" "./$$relative"); \
+		[ -r "$$linked_path" ] || continue; \
+		if $(LN) -sfn "$$relative_linked_path" "$$link_path" 2>/dev/null; then \
+			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}" "./$$relative_linked_path"); \
 		else \
-			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative\"" '}' > "$$link" \
+			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' > "$$link_path" \
 				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link#$(CURDIR)/}"); \
+			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}"); \
 		fi; \
 	done
 
@@ -1401,10 +1401,10 @@ _FRESH_EXCLUDES = $(if $(_IS_FRESH_ALL),,$(foreach \
 
 _FRESH_OPTIONS = set -f; \
 	set -- -xdf$(if $(_IS_FRESH_ALL),f) $(_FRESH_EXCLUDES); \
-	$(if $(_IS_FRESH_ALL),:,untracked=$$($(_FRESH_UNTRACKED)) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	$(if $(_IS_FRESH_ALL),:,untracked_paths=$$($(_FRESH_UNTRACKED)) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	newline=$$($(PRINTF) '\n_'); \
 	IFS=$${newline%_}; \
-	for path in $$untracked; do \
+	for path in $$untracked_paths; do \
 		set -- "$$@" --exclude="/$$($(PRINTF) '%s' "$$path" | $(AWK) "$$_FRESH_ESCAPE_AWK")"; \
 	done; \
 	unset IFS)
@@ -1440,8 +1440,8 @@ $(call _target,fresh): #~~ removes ignored files but private ones, reruns `start
 		}); \
 		$(_FRESH_OPTIONS); $(GIT) clean "$$@")
 	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,$(_FRESH_OPTIONS); \
-		remaining=$$(LC_ALL=C $(GIT) clean -n "$$@") || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		[ "$${remaining#*Would remove }" != "$$remaining" ] || { \
+		remaining_report=$$(LC_ALL=C $(GIT) clean -n "$$@") || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		[ "$${remaining_report#*Would remove }" != "$$remaining_report" ] || { \
 			{ [ -r $(_BRNSHKR_CONFIG_MAKEFILE) ] || { \
 				$(if $(_COMPOSER_INSTALL),$(_COMPOSER_INSTALL) &&) $(if $(_BUN_INSTALL),$(_BUN_INSTALL) &&) \
 				is_installing=_IS_INSTALLING=1; \
@@ -1550,14 +1550,14 @@ $(call _target,composer-audit): #~~ runs `composer audit` over the locked depend
 endif
 
 $(call _target,composer-list): #~~ lists the files the composer package would ship #vv
-	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
-		&& $(TAR) -tf "$$scratch/package.tar")
+	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$app_scratch_directory" --file=package \
+		&& $(TAR) -tf "$$scratch_directory/package.tar")
 
 $(call _target,composer-pack): #~~ packs the composer package to `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_COMPOSER_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_COMPOSER_PACKAGE_DIR)' \
-		&& $(COMPOSER) archive --quiet --format=tar --dir="$$scratch_in_app" --file=package \
-		&& $(TAR) -xf "$$scratch/package.tar" -C '$(_COMPOSER_PACKAGE_DIR)')
+		&& $(COMPOSER) archive --quiet --format=tar --dir="$$app_scratch_directory" --file=package \
+		&& $(TAR) -xf "$$scratch_directory/package.tar" -C '$(_COMPOSER_PACKAGE_DIR)')
 
 $(call _target,composer-print): #~~ prints the resolved `composer` configuration #vv
 	$(DEBUG_PREFIX)$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS)
@@ -1820,8 +1820,8 @@ $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
 $(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_BUN_PACKAGE_DIR)' \
-		&& $(BUN) pm pack --quiet --filename "$$scratch_in_app/package.tgz" >/dev/null \
-		&& $(TAR) -xzf "$$scratch/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1)
+		&& $(BUN) pm pack --quiet --filename "$$app_scratch_directory/package.tgz" >/dev/null \
+		&& $(TAR) -xzf "$$scratch_directory/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1)
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
@@ -2930,7 +2930,7 @@ endef
 #* returns: void
 #*
 define _append_stack_entries
-for shipped_part in "$$source" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$${source%.dist.*}.$(SUFFIX).dist.$${source##*.}"); do \
+for shipped_part in "$$template_path" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$${template_path%.dist.*}.$(SUFFIX).dist.$${template_path##*.}"); do \
 	[ -r "$$shipped_part" ] || continue; \
 	[ ! -s "$$body_path" ] || $(PRINTF) '\n' >> "$$body_path"; \
 	$(AWK) -v outer_line_count=$1 '{ part_lines[NR] = $$0 } \
@@ -2990,50 +2990,50 @@ endef
 #* returns: void
 #*
 define _write_managed_config
-case "$$target" in */Makefile) $(AWK) '/^###> brnshkr\/config ###$$/ { is_marked = 1 } END { exit !is_marked }' "$$target" 2>/dev/null || continue;; esac; \
-[ -z "$$source" ] || [ -r "$$source" ] || continue; \
-$(call _refuse_links,"$$target" "$${target%/*}" "$$source"); \
+case "$$config_path" in */Makefile) $(AWK) '/^###> brnshkr\/config ###$$/ { is_marked = 1 } END { exit !is_marked }' "$$config_path" 2>/dev/null || continue;; esac; \
+[ -z "$$template_path" ] || [ -r "$$template_path" ] || continue; \
+$(call _refuse_links,"$$config_path" "$${config_path%/*}" "$$template_path"); \
 : > "$$body_path"; \
-block_anchor=; block_indent=; comment_prefix=; deduplication=lines; is_whole_file=; written_verb=Updated; \
-[ -f "$$target" ] || written_verb=Created; \
-case "$$target" in */*) $(MKDIR) -p "$${target%/*}";; esac; \
-case "$$target" in \
+block_anchor=; block_indent=; comment_prefix=; deduplication_mode=lines; is_whole_file=; written_verb=Updated; \
+[ -f "$$config_path" ] || written_verb=Created; \
+case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
+case "$$config_path" in \
 	*/.gitignore) $(PRINTF) '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) > "$$body_path";; \
-	*/.gitattributes) $(CAT) "$$source" > "$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
+	*/.gitattributes) $(CAT) "$$template_path" > "$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
 		$(PRINTF) '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
 	} >> "$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-	*/.editorconfig|*/bunfig.toml) $(CAT) "$$source" > "$$body_path"; deduplication=sections;; \
+	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" > "$$body_path"; deduplication_mode=sections;; \
 	*/settings.json) $(call _append_stack_entries,1); \
 		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),$(PRINTF) '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
-		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication=keys; \
-		[ -f "$$target" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$target")" ] || $(PRINTF) '%s\n' '{' '}' > "$$target";; \
+		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication_mode=keys; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || $(PRINTF) '%s\n' '{' '}' > "$$config_path";; \
 	*/extensions.json) $(call _append_stack_entries,2); \
 		block_anchor='"recommendations"'; block_indent='    '; comment_prefix='// '; \
-		[ -f "$$target" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$target")" ] || $(PRINTF) '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$target";; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || $(PRINTF) '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$config_path";; \
 	*/Makefile) $(AWK) '/^###< brnshkr\/config ###$$/ { is_inside = 0; print } is_inside { print } /^###> brnshkr\/config ###$$/ { is_inside = 1 }' \
-		"$$source" > "$$body_path"; deduplication=;; \
+		"$$template_path" > "$$body_path"; deduplication_mode=;; \
 	*) is_whole_file=1;; \
 esac; \
 if [ -n "$$is_whole_file" ]; then \
-	$(CMP) -s "$$source" "$$target" 2>/dev/null || { \
-		$(CP) "$$source" "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${target#$(CURDIR)/}"); \
+	$(CMP) -s "$$template_path" "$$config_path" 2>/dev/null || { \
+		$(CP) "$$template_path" "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
 	}; \
 else \
-	[ -f "$$target" ] || : > "$$target"; \
+	[ -f "$$config_path" ] || : > "$$config_path"; \
 	updated_contents="$$(_MANAGED_BLOCK_OPEN="$${comment_prefix}###> brnshkr/config ###" \
 		_MANAGED_BLOCK_CLOSE="$${comment_prefix}###< brnshkr/config ###" \
 		_MANAGED_BLOCK_ANCHOR="$$block_anchor" \
 		_MANAGED_BLOCK_INDENT="$$block_indent" \
-		_MANAGED_BLOCK_DEDUPLICATION="$$deduplication" \
+		_MANAGED_BLOCK_DEDUPLICATION="$$deduplication_mode" \
 		_MANAGED_BLOCK_BODY="$$body_path" \
-		$(AWK) "$$_MANAGED_BLOCK_AWK" "$$target")" || { \
-		$(call log,`%s` has unpaired or extra markers$(_COMMA) or no place for the block.,$(COLOR_ERROR),"./$${target#$(CURDIR)/}") >&2; \
+		$(AWK) "$$_MANAGED_BLOCK_AWK" "$$config_path")" || { \
+		$(call log,`%s` has unpaired or extra markers$(_COMMA) or no place for the block.,$(COLOR_ERROR),"./$${config_path#$(CURDIR)/}") >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
-	[ "$$updated_contents" = "$$($(CAT) "$$target")" ] || { \
-		$(PRINTF) '%s\n' "$$updated_contents" > "$$target" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${target#$(CURDIR)/}"); \
+	[ "$$updated_contents" = "$$($(CAT) "$$config_path")" ] || { \
+		$(PRINTF) '%s\n' "$$updated_contents" > "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
 	}; \
 fi
 endef
@@ -3252,13 +3252,13 @@ endef
 #*
 define _install_git_hooks
 $(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0; \
-directory="$$($(GIT) rev-parse --git-path hooks)"; \
-$(MKDIR) -p "$$directory"; \
-for pair in $(GIT_HOOKS); do \
-	hook="$${pair%%=*}"; \
-	$(if $(filter yes,$1),,[ ! -f "$$directory/$$hook" ] || continue;) \
-	$(PRINTF) '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${pair#*=}" > "$$directory/$$hook"; \
-	$(CHMOD) +x "$$directory/$$hook"; \
+hooks_directory="$$($(GIT) rev-parse --git-path hooks)"; \
+$(MKDIR) -p "$$hooks_directory"; \
+for hook_pair in $(GIT_HOOKS); do \
+	hook="$${hook_pair%%=*}"; \
+	$(if $(filter yes,$1),,[ ! -f "$$hooks_directory/$$hook" ] || continue;) \
+	$(PRINTF) '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${hook_pair#*=}" > "$$hooks_directory/$$hook"; \
+	$(CHMOD) +x "$$hooks_directory/$$hook"; \
 	$(call log,Installed `%s`.,$(COLOR_SUCCESS),"$$hook"); \
 done
 endef
@@ -3320,7 +3320,7 @@ define __spinner
 while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
 	$(PRINTF) '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
 	sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
-done; done & spinner=$$!
+done; done & spinner_pid=$$!
 endef
 
 #**
@@ -3339,7 +3339,7 @@ has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
 		$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
-		trap 'kill $$spinner 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
+		trap 'kill $$spinner_pid 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 		$(call __spinner,$(if $(_HAS_GROUP_LABEL),  )); \
 	};) \
 output=$$($1 2>&1); status=$$?; \
@@ -3347,8 +3347,8 @@ report=$$($(PRINTF) '%s\n' "$$output" \
 	| $(AWK) -v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _STATUS="$$status" "$$_GROUP_AWK"); code=$$?; \
 $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
 	[ -z "$$has_spinner" ] || { \
-		kill $$spinner 2>/dev/null; \
-		wait $$spinner 2>/dev/null; \
+		kill $$spinner_pid 2>/dev/null; \
+		wait $$spinner_pid 2>/dev/null; \
 		$(_CLEAR_SPINNER); \
 	}; \
 	[ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
@@ -3380,12 +3380,12 @@ else \
 		set -- -q /dev/null $(SHELL) -c "$$script_command"; \
 	fi; \
 	$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
-	trap 'kill $$spinner 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
+	trap 'kill $$spinner_pid 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 	$(call __spinner); \
 	SHELL='$(SHELL)' $(SCRIPT) "$$@" | { \
 		IFS= read -r line; has_line=$$?; \
-		kill $$spinner 2>/dev/null; \
-		wait $$spinner 2>/dev/null; \
+		kill $$spinner_pid 2>/dev/null; \
+		wait $$spinner_pid 2>/dev/null; \
 		$(_CLEAR_SPINNER); \
 		[ $$has_line -ne 0 ] || $(PRINTF) '%s\n' "$$line"; \
 		$(CAT); \
@@ -3398,8 +3398,8 @@ fi
 endef
 
 #**
-#* Runs a command with `$$scratch` naming a fresh directory under `.cache`, and `$$scratch_in_app` naming it
-#* where the tools see it, then removes the directory whatever the command did.
+#* Runs a command in a fresh `$$scratch_directory` under `.cache`, removed afterwards.
+#* `$$app_scratch_directory` names the same directory where the tools see it.
 #*
 #* parameters:
 #*   command: string
@@ -3407,9 +3407,9 @@ endef
 #* returns: void
 #*
 define _in_scratch_directory
-$(MKDIR) -p '$(CURDIR)/.cache' && scratch="$$($(MKTEMP) -d '$(CURDIR)/.cache/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-scratch_in_app='$(APP_DIR)/.cache/'"$${scratch##*/}"; \
-{ $1; }; status=$$?; $(RM) -rf "$$scratch"; exit $$status
+$(MKDIR) -p '$(CURDIR)/.cache' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/.cache/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+app_scratch_directory='$(APP_DIR)/.cache/'"$${scratch_directory##*/}"; \
+{ $1; }; status=$$?; $(RM) -rf "$$scratch_directory"; exit $$status
 endef
 
 #**
@@ -3437,7 +3437,7 @@ endef
 #*
 define _require_coverage
 $(TRACE_PREFIX)$(call _require_file,$1,$4)
-$(TRACE_PREFIX)$(AWK) -v _METRIC='$2' -v _MINIMUM='$3' '$$0 ~ _METRIC && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached < _MINIMUM + 0 }' '$1' || { \
+$(TRACE_PREFIX)$(AWK) -v _METRIC='$2' -v _MINIMUM='$3' '$$0 ~ _METRIC && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached_percentage = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached_percentage < _MINIMUM + 0 }' '$1' || { \
 	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
@@ -3535,7 +3535,7 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 		if (placeholder_position) url = substr(url, 1, placeholder_position - 1) line substr(url, placeholder_position + 6); \
 		return url \
 	} \
-	function target_definition(name,    key, position, definition, dash) { \
+	function get_target_definition(name,    key, position, definition, dash) { \
 		key = name; \
 		position = index(_TARGETS, " " key "="); \
 		if (!position && _PREFIX != "" && index(key, _PREFIX) == 1) { \
@@ -3551,14 +3551,14 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 		definition = substr(_TARGETS, position + length(key) + 2); \
 		return substr(definition, 1, index(definition, " ") - 1) \
 	} \
-	function shell_quoted(text,    quoted, position) { \
-		quoted = ""; \
-		while ((position = index(text, "\047"))) { quoted = quoted substr(text, 1, position - 1) "\047\\\047\047"; text = substr(text, position + 1) } \
-		return "\047" quoted text "\047" \
+	function quote_for_shell(text,    quoted_text, position) { \
+		quoted_text = ""; \
+		while ((position = index(text, "\047"))) { quoted_text = quoted_text substr(text, 1, position - 1) "\047\\\047\047"; text = substr(text, position + 1) } \
+		return "\047" quoted_text text "\047" \
 	} \
 	function render_hyperlink(path,    line, absolute_path, definition) { \
 		if (_URL == "") return ""; \
-		definition = target_definition(path); \
+		definition = get_target_definition(path); \
 		if (definition != "") path = definition; \
 		else if (path !~ /[\/.]/ || path ~ /[[:space:]]/) return ""; \
 		line = 1; \
@@ -3570,11 +3570,11 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 		if (index(path, _APP_DIR "/") == 1) path = substr(path, length(_APP_DIR) + 2); \
 		else if (index(path, _CWD "/") == 1) path = substr(path, length(_CWD) + 2); \
 		absolute_path = substr(path, 1, 1) == "/" ? path : _CWD "/" path; \
-		if (system("test -r " shell_quoted(absolute_path)) != 0) return ""; \
+		if (system("test -r " quote_for_shell(absolute_path)) != 0) return ""; \
 		return "\033]8;;" render_url(_URL, path, line) "\033\\" \
 	} \
 	{ \
-		rendered = ""; \
+		rendered_line = ""; \
 		while (match($$0, /`[^`]*`/)) { \
 			code_start = RSTART; \
 			code_length = RLENGTH; \
@@ -3582,10 +3582,10 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 			gsub(/[[:cntrl:]]/, "?", inline_code); \
 			hyperlink = render_hyperlink(inline_code); \
 			hyperlink_end = hyperlink == "" ? "" : "\033]8;;\033\\"; \
-			rendered = rendered substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end; \
+			rendered_line = rendered_line substr($$0, 1, code_start - 1) hyperlink _OPEN inline_code _CLOSE hyperlink_end; \
 			$$0 = substr($$0, code_start + code_length) \
 		} \
-		$$0 = rendered $$0; \
+		$$0 = rendered_line $$0; \
 		$1 \
 	}'
 endef
@@ -3708,18 +3708,18 @@ endef
 #* returns: void
 #*
 define _semgrep_rules
-cache='$(call _host_path,$(SEMGREP_CACHE))'; \
-$(MKDIR) -p "$$cache" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+cache_directory='$(call _host_path,$(SEMGREP_CACHE))'; \
+$(MKDIR) -p "$$cache_directory" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 for ruleset in $(SEMGREP_RULESETS); do \
-	cached="$$cache/$$ruleset.json"; \
-	[ -r "$$cached" ] && [ -z "$$(find "$$cached" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
-	part="$$($(MKTEMP) "$$cached.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	cached_ruleset_path="$$cache_directory/$$ruleset.json"; \
+	[ -r "$$cached_ruleset_path" ] && [ -z "$$(find "$$cached_ruleset_path" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
+	partial_ruleset_path="$$($(MKTEMP) "$$cached_ruleset_path.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	$(RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
-		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${part##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
-		|| { $(RM) -f "$$part"; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; \
-	[ ! -r "$$cached" ] || $(CMP) -s "$$part" "$$cached" \
+		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${partial_ruleset_path##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
+		|| { $(RM) -f "$$partial_ruleset_path"; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; \
+	[ ! -r "$$cached_ruleset_path" ] || $(CMP) -s "$$partial_ruleset_path" "$$cached_ruleset_path" \
 		|| $(call log,The `%s` ruleset changed since it was last fetched.,$(COLOR_NOTICE),"$$ruleset"); \
-	$(MV) "$$part" "$$cached" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	$(MV) "$$partial_ruleset_path" "$$cached_ruleset_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 done; \
 $(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
 	$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
@@ -3729,12 +3729,12 @@ endef
 #---vvv programs
 
 define _MANAGED_BLOCK_AWK_SOURCE
-function trimmed(untrimmed_text) {
+function trim(untrimmed_text) {
 	sub(/^[[:space:]]+/, "", untrimmed_text)
 	sub(/[[:space:]]+$$/, "", untrimmed_text)
 	return untrimmed_text
 }
-function without_comma(line_text) {
+function strip_comma(line_text) {
 	sub(/,[[:space:]]*$$/, "", line_text)
 	return line_text
 }
@@ -3765,7 +3765,7 @@ function scan(line_text,    character_index, character, is_in_string, is_escaped
 		if (character !~ /[[:space:]]/) scanned_end = character_index
 	}
 }
-function depth_change(code_text,    character_index, character, depth_delta, is_in_string, is_escaped) {
+function get_depth_change(code_text,    character_index, character, depth_delta, is_in_string, is_escaped) {
 	for (character_index = 1; character_index <= length(code_text); character_index += 1) {
 		character = substr(code_text, character_index, 1)
 		if (is_in_string) {
@@ -3778,8 +3778,8 @@ function depth_change(code_text,    character_index, character, depth_delta, is_
 	}
 	return depth_delta
 }
-function entry_key(code_text) {
-	return match(code_text, /^[[:space:]]*"[^"]+"[[:space:]]*:/) ? trimmed(substr(code_text, RSTART, RLENGTH)) : ""
+function get_entry_key(code_text) {
+	return match(code_text, /^[[:space:]]*"[^"]+"[[:space:]]*:/) ? trim(substr(code_text, RSTART, RLENGTH)) : ""
 }
 function keep(line_text, code_text, code_end) {
 	kept_lines[++kept_count] = line_text
@@ -3797,16 +3797,16 @@ function append_block(block_indent, is_spaced, segment_index,    body_index) {
 	is_after_block = 1
 	section = block_last_section
 }
-function next_text(lines, line_count, from_index,    line_index) {
+function get_next_text(lines, line_count, from_index,    line_index) {
 	for (line_index = from_index; line_index <= line_count; line_index += 1)
-		if (trimmed(lines[line_index]) != "") return trimmed(lines[line_index])
+		if (trim(lines[line_index]) != "") return trim(lines[line_index])
 	return ""
 }
 BEGIN {
 	open_marker = ENVIRON["_MANAGED_BLOCK_OPEN"]
 	close_marker = ENVIRON["_MANAGED_BLOCK_CLOSE"]
 	anchor = ENVIRON["_MANAGED_BLOCK_ANCHOR"]
-	deduplication = ENVIRON["_MANAGED_BLOCK_DEDUPLICATION"]
+	deduplication_mode = ENVIRON["_MANAGED_BLOCK_DEDUPLICATION"]
 	is_jsonc = open_marker ~ /^\/\//
 	segment_count = 1
 	while ((getline body_line < ENVIRON["_MANAGED_BLOCK_BODY"]) > 0) {
@@ -3819,11 +3819,11 @@ BEGIN {
 		segment_lines[segment_count, body_index] = body_line
 		segment_codes[segment_count, body_index] = scanned_code
 		segment_ends[segment_count, body_index] = scanned_end
-		line_text = trimmed(body_line)
-		if (deduplication == "sections" && line_text ~ /^\[/) block_last_section = line_text
-		body_texts[block_last_section SUBSEP without_comma(line_text)] = 1
-		if (!depth && entry_key(scanned_code) != "") body_keys[entry_key(scanned_code)] = 1
-		depth += depth_change(scanned_code)
+		line_text = trim(body_line)
+		if (deduplication_mode == "sections" && line_text ~ /^\[/) block_last_section = line_text
+		body_texts[block_last_section SUBSEP strip_comma(line_text)] = 1
+		if (!depth && get_entry_key(scanned_code) != "") body_keys[get_entry_key(scanned_code)] = 1
+		depth += get_depth_change(scanned_code)
 	}
 	if (segment_count > 1 && !segment_sizes[segment_count]) segment_count -= 1
 	is_in_block_comment = 0
@@ -3835,8 +3835,8 @@ END {
 		scan(target_lines[line_index])
 		target_codes[line_index] = scanned_code
 		target_ends[line_index] = scanned_end
-		line_text = trimmed(target_lines[line_index])
-		if (!first_header_index && deduplication == "sections" && line_text ~ /^\[/) first_header_index = line_index
+		line_text = trim(target_lines[line_index])
+		if (!first_header_index && deduplication_mode == "sections" && line_text ~ /^\[/) first_header_index = line_index
 		if (!is_in_region && line_text == open_marker) {
 			region_starts[++region_count] = line_index
 			is_in_region = 1
@@ -3846,7 +3846,7 @@ END {
 		}
 	}
 	if (is_in_region || (region_count && region_count != segment_count) || (!region_count && segment_count != 1)) exit 1
-	insert_index = deduplication == "sections" ? first_header_index : 1
+	insert_index = deduplication_mode == "sections" ? first_header_index : 1
 	region_index = 1
 	for (line_index = 1; line_index <= target_count; line_index += 1) {
 		if (region_index <= region_count && line_index == region_starts[region_index]) {
@@ -3858,39 +3858,39 @@ END {
 			continue
 		}
 		if (!region_count && !is_block_written && anchor == "" && line_index == insert_index) append_block("", 1, 1)
-		line_text = trimmed(target_lines[line_index])
+		line_text = trim(target_lines[line_index])
 		code_text = target_codes[line_index]
-		if (deduplication == "sections" && line_text ~ /^\[/) {
+		if (deduplication_mode == "sections" && line_text ~ /^\[/) {
 			is_duplicate = is_after_block && line_text == block_last_section
 			is_after_block = 0
 			section = line_text
-		} else is_duplicate = deduplication != "" && line_text != "" && (section SUBSEP without_comma(line_text)) in body_texts
-		if (deduplication == "keys") {
-			if (depth == 1 && entry_key(code_text) in body_keys) is_dropping_entry = 1
+		} else is_duplicate = deduplication_mode != "" && line_text != "" && (section SUBSEP strip_comma(line_text)) in body_texts
+		if (deduplication_mode == "keys") {
+			if (depth == 1 && get_entry_key(code_text) in body_keys) is_dropping_entry = 1
 			is_duplicate = is_dropping_entry || (is_duplicate && line_text ~ /^\/\//)
-			depth += depth_change(code_text)
+			depth += get_depth_change(code_text)
 			if (depth == 1) is_dropping_entry = 0
 		}
 		if (!is_duplicate) keep(target_lines[line_index], code_text, target_ends[line_index])
-		if (!region_count && !is_block_written && anchor != "" && target_lines[line_index] ~ anchor && depth_change(code_text) == 1)
+		if (!region_count && !is_block_written && anchor != "" && target_lines[line_index] ~ anchor && get_depth_change(code_text) == 1)
 			append_block(ENVIRON["_MANAGED_BLOCK_INDENT"], 0, 1)
 	}
 	if (!is_block_written && anchor != "") exit 1
 	if (!is_block_written) append_block("", 1, 1)
 	for (line_index = 1; line_index <= kept_count; line_index += 1) {
-		line_text = trimmed(kept_lines[line_index])
-		if (deduplication == "sections" && line_text ~ /^\[/ && next_text(kept_lines, kept_count, line_index + 1) ~ /^(\[|$$)/) continue
-		if (deduplication == "" || line_text != "" || (printed_count && trimmed(printed_lines[printed_count]) != "")) {
+		line_text = trim(kept_lines[line_index])
+		if (deduplication_mode == "sections" && line_text ~ /^\[/ && get_next_text(kept_lines, kept_count, line_index + 1) ~ /^(\[|$$)/) continue
+		if (deduplication_mode == "" || line_text != "" || (printed_count && trim(printed_lines[printed_count]) != "")) {
 			printed_lines[++printed_count] = kept_lines[line_index]
 			printed_codes[printed_count] = kept_codes[line_index]
 			printed_ends[printed_count] = kept_ends[line_index]
 		}
 	}
-	while (printed_count && trimmed(printed_lines[printed_count]) == "") printed_count -= 1
+	while (printed_count && trim(printed_lines[printed_count]) == "") printed_count -= 1
 	for (line_index = 1; line_index <= printed_count; line_index += 1) {
 		code_end = printed_ends[line_index]
 		if (code_end) {
-			following_code = next_text(printed_codes, printed_count, line_index + 1)
+			following_code = get_next_text(printed_codes, printed_count, line_index + 1)
 			last_character = substr(printed_lines[line_index], code_end, 1)
 			if (following_code ~ /^[]}]/ && last_character == ",")
 				printed_lines[line_index] = substr(printed_lines[line_index], 1, code_end - 1) substr(printed_lines[line_index], code_end + 1)
@@ -3908,17 +3908,17 @@ arguments = sys.argv[1:]
 separator = arguments.index('--')
 target, sources, ignores = arguments[0], arguments[1:separator], arguments[separator + 1:]
 everywhere = {ignore[1:] for ignore in ignores if ignore.startswith('=')}
-scoped = {}
+globs_by_rule = {}
 for ignore in ignores:
     if ignore.startswith('~'):
         rule, glob = ignore[1:].split('@', 1)
-        scoped.setdefault(rule, []).append(glob)
+        globs_by_rule.setdefault(rule, []).append(glob)
 rules = {}
 for source in sources:
     with open(source) as handle:
         for rule in json.load(handle).get('rules', []):
             rules.setdefault(rule['id'], rule)
-for rule_id, globs in scoped.items():
+for rule_id, globs in globs_by_rule.items():
     if rule_id in rules:
         rules[rule_id].setdefault('paths', {}).setdefault('exclude', []).extend(globs)
 descriptor, part = tempfile.mkstemp(dir=os.path.dirname(target))
@@ -3928,7 +3928,7 @@ os.replace(part, target)
 endef
 
 define _SEMGREP_OVERRIDES_AWK
-function close_entry() { if (rule != "" && !has_files) { print "!" rule_line; failed = 1; exit } rule = ""; has_files = 0; in_files = 0 }
+function close_entry() { if (rule != "" && !has_files) { print "!" rule_line; has_failed = 1; exit } rule = ""; has_files = 0; in_files = 0 }
 /^x-brnshkr:[[:space:]]*\{\}[[:space:]]*$$/ { next }
 /^x-brnshkr:[[:space:]]*$$/ { in_block = 1; next }
 !in_block { next }
@@ -3947,8 +3947,8 @@ in_ignores && /^    - [a-z0-9._-]+[[:space:]]*$$/ { close_entry(); print "=" $$2
 in_ignores && /^    - rule:[[:space:]]+[a-z0-9._-]+[[:space:]]*$$/ { close_entry(); rule = $$3; rule_line = NR; next }
 in_ignores && rule != "" && /^      files:[[:space:]]*$$/ { in_files = 1; next }
 in_ignores && in_files && /^        - [^[:space:]"'"'"']+[[:space:]]*$$/ { print "~" rule "@" $$2; has_files = 1; next }
-{ print "!" NR; failed = 1; exit }
-END { if (!failed) close_entry() }
+{ print "!" NR; has_failed = 1; exit }
+END { if (!has_failed) close_entry() }
 endef
 
 define _GITATTRIBUTES_PROGRAM_SOURCE
@@ -3981,7 +3981,7 @@ if ($$shippedPaths === [] && $$declaredPaths === []) {
 }
 
 $$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirectory): array {
-    $$expanded = [];
+    $$expandedPaths = [];
 
     foreach ($$paths as $$path) {
         $$path = (string) preg_replace('#^(?:\./)+#', '', $$path);
@@ -3989,14 +3989,14 @@ $$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirec
             ? is_dir($$projectDirectory . '/' . mb_trim($$path, '/'))
             : str_ends_with($$path, '/');
         $$path = '/' . mb_trim($$path, '/');
-        $$expanded[] = $$path;
+        $$expandedPaths[] = $$path;
 
         if ($$isWholeTree) {
-            $$expanded[] = $$path . '/**';
+            $$expandedPaths[] = $$path . '/**';
         }
     }
 
-    return $$expanded;
+    return $$expandedPaths;
 };
 
 $$shippedPaths = [...$$expand($$shippedPaths, true), ...$$expand($$declaredPaths, false)];
@@ -4041,11 +4041,11 @@ endef
 #* returns: void
 #*
 define _changelog_notes
-section=$$([ ! -r '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELOG_VERSION)' \
+section_text=$$([ ! -r '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELOG_VERSION)' \
 	$(AWK) "$$_CHANGELOG_SECTION_AWK" '$(_CHANGELOG_FILE)'); \
-if [ -n "$$section" ]; then \
+if [ -n "$$section_text" ]; then \
 	$(CAT) >/dev/null; \
-	$(PRINTF) '%s\n' "$$section"; \
+	$(PRINTF) '%s\n' "$$section_text"; \
 else \
 	$(AWK) 'NR == 1 && /^## / { next } { body = body $$0 "\n" } \
 		END { sub(/^\n+/, "", body); printf "%s", body }'; \
@@ -4164,15 +4164,15 @@ printf('Loaded %d rules%s', count($$ruleNames), PHP_EOL);
 endef
 
 define _CHANGELOG_SECTION_AWK_SOURCE
-function version_of(line,    value) {
+function get_version(line,    value) {
 	value = line
 	sub(/^## \[?/, "", value)
 	sub(/[]( ].*$$/, "", value)
 	return value
 }
-BEGIN { wanted = ENVIRON["_CHANGELOG_VERSION"] }
+BEGIN { wanted_version = ENVIRON["_CHANGELOG_VERSION"] }
 /^## / {
-	inside = (version_of($$0) == wanted)
+	inside = (get_version($$0) == wanted_version)
 	next
 }
 inside { body = body $$0 "\n" }
@@ -4184,17 +4184,17 @@ END {
 endef
 
 define _CHANGELOG_MERGE_AWK_SOURCE
-function pad(value,    padded) {
-	padded = "0000000000" value
-	return substr(padded, length(padded) - 9)
+function pad(value,    padded_value) {
+	padded_value = "0000000000" value
+	return substr(padded_value, length(padded_value) - 9)
 }
-function version_of(line,    value) {
+function get_version(line,    value) {
 	value = line
 	sub(/^## \[?/, "", value)
 	sub(/[]( ].*$$/, "", value)
 	return value
 }
-function semver_key(version,    value, prerelease, parts, count, position, key, tokens, token_count, token) {
+function get_semver_key(version,    value, prerelease, parts, count, position, key, tokens, token_count, token) {
 	value = version
 	sub(/^v/, "", value)
 	sub(/\+.*$$/, "", value)
@@ -4215,27 +4215,27 @@ function semver_key(version,    value, prerelease, parts, count, position, key, 
 	}
 	return key
 }
-function hash_of(line,    value) {
+function get_hash(line,    value) {
 	if (!match(line, /\(\[?[0-9a-f]{7}\]?[)(]/)) return ""
 	value = substr(line, RSTART, RLENGTH)
 	gsub(/[^0-9a-f]/, "", value)
 	return value
 }
 function is_entry(line) {
-	return (line ~ /^- /) && hash_of(line) != ""
+	return (line ~ /^- /) && get_hash(line) != ""
 }
 function is_heading(line) {
 	return line ~ /^#{3,4} /
 }
 
-function section_text(index_,    position, out) {
+function get_section_text(index_,    position, out) {
 	out = ""
 	for (position = 1; position <= added_lines[index_]; position += 1) out = out added_line[index_, position] "\n"
 	sub(/\n+$$/, "", out)
 	return out "\n"
 }
 
-function merged_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry, regenerated) {
+function merge_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry, regenerated_entry) {
 	pending = 0
 	for (position = 1; position <= added_entries[added_index]; position += 1) {
 		if ((existing_index, added_entry_hash[added_index, position]) in existing_hash) continue
@@ -4261,8 +4261,8 @@ function merged_text(existing_index, added_index,    position, entry, group, pen
 		}
 		if (is_entry(line)) {
 			seen_entry = 1
-			regenerated = ENVIRON["_CHANGELOG_FORCE"] == "" ? "" : added_by_hash[added_index, group, hash_of(line)]
-			held = held tail (regenerated == "" ? line : regenerated) "\n"
+			regenerated_entry = ENVIRON["_CHANGELOG_FORCE"] == "" ? "" : added_by_hash[added_index, group, get_hash(line)]
+			held = held tail (regenerated_entry == "" ? line : regenerated_entry) "\n"
 			tail = ""
 		} else if (seen_entry) {
 			tail = tail line "\n"
@@ -4272,10 +4272,10 @@ function merged_text(existing_index, added_index,    position, entry, group, pen
 	}
 	out = out flush_group(group, held, tail, seen_entry, pending)
 	for (position = 1; position <= pending; position += 1) {
-		if (pending_used[position]) continue
+		if (used_pending_positions[position]) continue
 		out = out "\n" (pending_group[position] == "" ? "" : pending_group[position] "\n\n") pending_entry[position] "\n"
 	}
-	split("", pending_used)
+	split("", used_pending_positions)
 	sub(/\n+$$/, "", out)
 	return out "\n"
 }
@@ -4283,9 +4283,9 @@ function merged_text(existing_index, added_index,    position, entry, group, pen
 function flush_group(group, held, tail, seen_entry, pending,    position, out) {
 	out = held
 	for (position = 1; position <= pending; position += 1) {
-		if (pending_used[position] || pending_group[position] != group) continue
+		if (used_pending_positions[position] || pending_group[position] != group) continue
 		out = out pending_entry[position] "\n"
-		pending_used[position] = 1
+		used_pending_positions[position] = 1
 	}
 	return out tail
 }
@@ -4295,7 +4295,7 @@ BEGIN { _added = ENVIRON["_CHANGELOG_ADDED"] }
 FILENAME == _added {
 	if ($$0 ~ /^## /) {
 		added_count += 1
-		added_version[added_count] = version_of($$0)
+		added_version[added_count] = get_version($$0)
 		group = ""
 	} else if (is_heading($$0)) {
 		group = $$0
@@ -4307,8 +4307,8 @@ FILENAME == _added {
 		added_entries[added_count] += 1
 		added_entry[added_count, added_entries[added_count]] = $$0
 		added_entry_group[added_count, added_entries[added_count]] = group
-		added_entry_hash[added_count, added_entries[added_count]] = hash_of($$0)
-		added_by_hash[added_count, group, hash_of($$0)] = $$0
+		added_entry_hash[added_count, added_entries[added_count]] = get_hash($$0)
+		added_by_hash[added_count, group, get_hash($$0)] = $$0
 	}
 	next
 }
@@ -4317,7 +4317,7 @@ FILENAME == _added {
 {
 	if ($$0 ~ /^## /) {
 		existing_count += 1
-		existing_version[existing_count] = version_of($$0)
+		existing_version[existing_count] = get_version($$0)
 	}
 	if (existing_count == 0) {
 		preamble = preamble $$0 "\n"
@@ -4325,7 +4325,7 @@ FILENAME == _added {
 	}
 	existing_lines[existing_count] += 1
 	existing_line[existing_count, existing_lines[existing_count]] = $$0
-	if (is_entry($$0)) existing_hash[existing_count, hash_of($$0)] = 1
+	if (is_entry($$0)) existing_hash[existing_count, get_hash($$0)] = 1
 }
 
 # An existing section, with any entry it is missing placed after the last entry of its own group.
@@ -4333,41 +4333,41 @@ END {
 	document = preamble
 
 	for (existing_index = 1; existing_index <= existing_count; existing_index += 1) {
-		matched[existing_version[existing_index]] = existing_index
+		existing_index_by_version[existing_version[existing_index]] = existing_index
 	}
 	for (added_index = 1; added_index <= added_count; added_index += 1) {
-		matched_added[added_version[added_index]] = added_index
+		added_index_by_version[added_version[added_index]] = added_index
 	}
 
 	# Sections the file does not carry yet, newest first, placed among the ones it does.
 	for (added_index = 1; added_index <= added_count; added_index += 1) {
-		if (added_version[added_index] in matched) continue
+		if (added_version[added_index] in existing_index_by_version) continue
 		insert_count += 1
-		insert_key[insert_count] = semver_key(added_version[added_index])
+		insert_key[insert_count] = get_semver_key(added_version[added_index])
 		insert_index[insert_count] = added_index
 	}
 	for (position = 2; position <= insert_count; position += 1) {
 		key_held = insert_key[position]
 		value_held = insert_index[position]
-		sorted = position - 1
-		while (sorted >= 1 && insert_key[sorted] < key_held) {
-			insert_key[sorted + 1] = insert_key[sorted]
-			insert_index[sorted + 1] = insert_index[sorted]
-			sorted -= 1
+		sorted_position = position - 1
+		while (sorted_position >= 1 && insert_key[sorted_position] < key_held) {
+			insert_key[sorted_position + 1] = insert_key[sorted_position]
+			insert_index[sorted_position + 1] = insert_index[sorted_position]
+			sorted_position -= 1
 		}
-		insert_key[sorted + 1] = key_held
-		insert_index[sorted + 1] = value_held
+		insert_key[sorted_position + 1] = key_held
+		insert_index[sorted_position + 1] = value_held
 	}
 
 	pending_insert = 1
 	for (existing_index = 1; existing_index <= existing_count; existing_index += 1) {
 		while (pending_insert <= insert_count \
-			&& insert_key[pending_insert] > semver_key(existing_version[existing_index])) {
-			document = document section_text(insert_index[pending_insert]) "\n"
+			&& insert_key[pending_insert] > get_semver_key(existing_version[existing_index])) {
+			document = document get_section_text(insert_index[pending_insert]) "\n"
 			pending_insert += 1
 		}
-		replacement = ((existing_version[existing_index] in matched_added) \
-			? merged_text(existing_index, matched_added[existing_version[existing_index]]) : "")
+		replacement = ((existing_version[existing_index] in added_index_by_version) \
+			? merge_text(existing_index, added_index_by_version[existing_version[existing_index]]) : "")
 		if (replacement == "") {
 			for (position = 1; position <= existing_lines[existing_index]; position += 1) {
 				document = document existing_line[existing_index, position] "\n"
@@ -4379,7 +4379,7 @@ END {
 		document = document "\n\n"
 	}
 	while (pending_insert <= insert_count) {
-		document = document section_text(insert_index[pending_insert]) "\n"
+		document = document get_section_text(insert_index[pending_insert]) "\n"
 		pending_insert += 1
 	}
 
@@ -4389,21 +4389,21 @@ END {
 endef
 
 define _CHANGELOG_AWK_SOURCE
-function sort_pair(keys, values, count,    position, sorted, key_held, value_held) {
+function sort_pair(keys, values, count,    position, sorted_position, key_held, value_held) {
 	for (position = 2; position <= count; position += 1) {
 		key_held = keys[position]
 		value_held = values[position]
-		sorted = position - 1
-		while (sorted >= 1 && keys[sorted] > key_held) {
-			keys[sorted + 1] = keys[sorted]
-			values[sorted + 1] = values[sorted]
-			sorted -= 1
+		sorted_position = position - 1
+		while (sorted_position >= 1 && keys[sorted_position] > key_held) {
+			keys[sorted_position + 1] = keys[sorted_position]
+			values[sorted_position + 1] = values[sorted_position]
+			sorted_position -= 1
 		}
-		keys[sorted + 1] = key_held
-		values[sorted + 1] = value_held
+		keys[sorted_position + 1] = key_held
+		values[sorted_position + 1] = value_held
 	}
 }
-function readable_scope(scope,    parts, count, index_, word, out) {
+function to_readable_scope(scope,    parts, count, index_, word, out) {
 	if (scope in names) return names[scope]
 	count = split(scope, parts, /-/)
 	out = ""
@@ -4413,17 +4413,17 @@ function readable_scope(scope,    parts, count, index_, word, out) {
 	}
 	return out
 }
-function render(section, label,    position, inner, seconds, mirrored, keys, entries, second, out) {
-	out = unscoped[section, label]
+function render(section, label,    position, inner, seconds, second_names, keys, entries, second, out) {
+	out = unscoped_entries[section, label]
 	for (position = 1; position <= second_count[section, label]; position += 1) {
 		seconds[position] = second_name[section, label, position]
-		mirrored[position] = second_name[section, label, position]
+		second_names[position] = second_name[section, label, position]
 	}
-	sort_pair(seconds, mirrored, second_count[section, label])
+	sort_pair(seconds, second_names, second_count[section, label])
 	for (position = 1; position <= second_count[section, label]; position += 1) {
 		second = seconds[position]
 		if (out != "") out = out "\n"
-		out = out "#### " readable_scope(second) "\n\n" sub_unscoped[section, label, second]
+		out = out "#### " to_readable_scope(second) "\n\n" unscoped_second_entries[section, label, second]
 		split("", keys)
 		split("", entries)
 		for (inner = 1; inner <= sub_count[section, label, second]; inner += 1) {
@@ -4435,26 +4435,26 @@ function render(section, label,    position, inner, seconds, mirrored, keys, ent
 	}
 	return out
 }
-function major_of(version,    value) {
+function get_major(version,    value) {
 	value = version
 	sub(/^v/, "", value)
 	sub(/\..*$$/, "", value)
 	return value
 }
-function flush(section, version, compare,    position, label, printed, out) {
+function flush(section, version, compare,    position, label, printed_labels, out) {
 	if (_all != "" && !(section in section_commit_count)) return ""
-	if (_major != "" && major_of(version) != _major) return ""
+	if (_major != "" && get_major(version) != _major) return ""
 	out = (version == "") ? "" : "## " ((compare != "") ? "[" version "](" compare ")" : version) "\n"
 	if (!(section in has_content)) return out ((out == "") ? "" : "\n") "_No changes_\n"
 	if ((section in breaking)) out = out "\n### " breaking_label "\n\n" breaking[section]
 	for (position = 1; position <= rank; position += 1) {
-		label = ordered[position]
-		if (((section, label) in seen) && !(label in printed)) {
+		label = label_by_rank[position]
+		if (((section, label) in seen_labels) && !(label in printed_labels)) {
 			out = out "\n### " label "\n\n" render(section, label)
-			printed[label] = 1
+			printed_labels[label] = 1
 		}
 	}
-	if (((section, other) in seen)) out = out "\n### " other "\n\n" render(section, other)
+	if (((section, other) in seen_labels)) out = out "\n### " other "\n\n" render(section, other)
 	return out
 }
 BEGIN {
@@ -4480,7 +4480,7 @@ BEGIN {
 		sub(/^[^=]*=/, "", label)
 		gsub(/_/, " ", label)
 		groups[root] = label
-		if (!(label in ranked)) { ranked[label] = ++rank; ordered[rank] = label }
+		if (!(label in rank_by_label)) { rank_by_label[label] = ++rank; label_by_rank[rank] = label }
 	}
 	name_count = split(ENVIRON["_CHANGELOG_NAMES"], pairs, " ")
 	for (index_ = 1; index_ <= name_count; index_ += 1) {
@@ -4531,11 +4531,11 @@ BEGIN {
 
 	is_grouped = (root in groups)
 	label = is_grouped ? groups[root] : other
-	nested = scope
-	if (is_grouped) sub(/^[^\/]+\/?/, "", nested)
-	second = nested
+	nested_scope = scope
+	if (is_grouped) sub(/^[^\/]+\/?/, "", nested_scope)
+	second = nested_scope
 	sub(/\/.*$$/, "", second)
-	rest = nested
+	rest = nested_scope
 	sub(/^[^\/]+\/?/, "", rest)
 	short = substr(hash, 1, 7)
 	reference = (_URL != "") ? " ([" short "](" _URL "/commit/" hash "))" : " (" short ")"
@@ -4551,16 +4551,16 @@ BEGIN {
 			" — **breaking**" reference "\n"
 	}
 
-	if (nested == "") {
-		unscoped[section, label] = unscoped[section, label] entry "\n"
+	if (nested_scope == "") {
+		unscoped_entries[section, label] = unscoped_entries[section, label] entry "\n"
 	} else {
-		if (!((section, label, second) in second_seen)) {
-			second_seen[section, label, second] = 1
+		if (!((section, label, second) in seen_seconds)) {
+			seen_seconds[section, label, second] = 1
 			second_count[section, label] += 1
 			second_name[section, label, second_count[section, label]] = second
 		}
 		if (rest == "") {
-			sub_unscoped[section, label, second] = sub_unscoped[section, label, second] entry "\n"
+			unscoped_second_entries[section, label, second] = unscoped_second_entries[section, label, second] entry "\n"
 		} else {
 			sub_count[section, label, second] += 1
 			sub_key[section, label, second, sub_count[section, label, second]] = rest
@@ -4568,14 +4568,14 @@ BEGIN {
 		}
 	}
 
-	seen[section, label] = 1
+	seen_labels[section, label] = 1
 	has_content[section] = 1
 }
 END {
 	for (index_ = 0; index_ <= section; index_ += 1) {
-		rendered = flush(index_, section_version[index_], (_all != "") ? section_compare[index_] : _compare)
-		if (rendered == "") continue
-		document = (document == "") ? rendered : document "\n" rendered
+		rendered_section = flush(index_, section_version[index_], (_all != "") ? section_compare[index_] : _compare)
+		if (rendered_section == "") continue
+		document = (document == "") ? rendered_section : document "\n" rendered_section
 	}
 	if (document == "") exit
 	sub(/\n+$$/, "", document)
@@ -4585,12 +4585,12 @@ endef
 
 define _FRESH_ESCAPE_AWK_SOURCE
 {
-	escaped = ""
+	escaped_line = ""
 	while (match($$0, /[][*?\\]/)) {
-		escaped = escaped substr($$0, 1, RSTART - 1) "\\" substr($$0, RSTART, 1)
+		escaped_line = escaped_line substr($$0, 1, RSTART - 1) "\\" substr($$0, RSTART, 1)
 		$$0 = substr($$0, RSTART + 1)
 	}
-	print escaped $$0
+	print escaped_line $$0
 }
 endef
 
@@ -4602,7 +4602,7 @@ endef
 
 define _GROUP_AWK_SOURCE
 function repeat(text, times,    out) { out = ""; while (times-- > 0) out = out text; return out }
-function value(record, key,    pattern) {
+function get_value(record, key,    pattern) {
 	pattern = "\"" key "\"[ \t]*:[ \t]*\""
 	if (!match(record, pattern)) return ""
 	record = substr(record, RSTART + RLENGTH)
@@ -4619,7 +4619,7 @@ function add(identifier, message) {
 	if (identifier == "" || identifier == "null") return
 	identifier = unescape(identifier)
 	message = unescape(message)
-	if (!(identifier in seen)) { seen[identifier] = 1; order[++total] = identifier }
+	if (!(identifier in seen_identifiers)) { seen_identifiers[identifier] = 1; order[++total] = identifier }
 	count[identifier] += 1
 	if (example[identifier] == "") example[identifier] = message
 }
@@ -4632,7 +4632,7 @@ _IDENTIFIER != "" && _MESSAGE != "" {
 	gsub(/\\./, "", quotes)
 	if (gsub(/"/, "", quotes) % 2) { pending = pending "}"; next }
 	if (index(pending, "\"suppressedMessages\"")) is_in_suppressed_messages = 1
-	if (!is_in_suppressed_messages) add(value(pending, _IDENTIFIER), value(pending, _MESSAGE))
+	if (!is_in_suppressed_messages) add(get_value(pending, _IDENTIFIER), get_value(pending, _MESSAGE))
 	if (index(pending, "\"errorCount\"")) is_in_suppressed_messages = 0
 	pending = ""
 }
@@ -4682,34 +4682,34 @@ endef
 
 define _HELP_AWK_SOURCE
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
-function leaf(path) { sub(/.*\//, "", path); return path }
+function get_leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
-function character_bytes(leading_byte) {
+function get_character_bytes(leading_byte) {
 	return (leading_byte < "\200") ? 1 : ((leading_byte < "\340") ? 2 : ((leading_byte < "\360") ? 3 : 4))
 }
-function character_width(character) {
+function get_character_width(character) {
 	if (character < "\340") return 1
 	if (character < "\360") return (character >= "\342\230\200" && character <= "\342\237\277") ? 2 : 1
 	return 2
 }
-function display_width(text,    position, byte_count, total_width) {
+function get_display_width(text,    position, byte_count, total_width) {
 	total_width = 0
 	for (position = 1; position <= length(text); position += byte_count) {
-		byte_count = character_bytes(substr(text, position, 1))
-		total_width += character_width(substr(text, position, byte_count))
+		byte_count = get_character_bytes(substr(text, position, 1))
+		total_width += get_character_width(substr(text, position, byte_count))
 	}
 	return total_width
 }
 function truncate(text, width_limit,    position, byte_count, character, taken_width, truncated_text) {
-	if (display_width(text) <= width_limit) return text
+	if (get_display_width(text) <= width_limit) return text
 	taken_width = 0
 	truncated_text = ""
 	for (position = 1; position <= length(text); position += byte_count) {
-		byte_count = character_bytes(substr(text, position, 1))
+		byte_count = get_character_bytes(substr(text, position, 1))
 		character = substr(text, position, byte_count)
-		if (taken_width + character_width(character) > width_limit - 1) break
+		if (taken_width + get_character_width(character) > width_limit - 1) break
 		truncated_text = truncated_text character
-		taken_width += character_width(character)
+		taken_width += get_character_width(character)
 	}
 	return truncated_text "…"
 }
@@ -4729,9 +4729,9 @@ function render_link(text, path, line_number,    url) {
 	if (url == "" || ENVIRON["_IS_NO_COLOR"]) return text
 	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
 }
-function named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }
+function get_named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }
 function strip_verbosity(text) { sub(/[ \t]*#v+([ \t]|$$)/, "", text); return text }
-function line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
+function get_line_verbosity(line,    verbosity_match) { if (line == "") line = $$0; if (!match(line, /#v+([[:space:]]|$$)/)) return 0; verbosity_match = substr(line, RSTART + 1, RLENGTH - 1); sub(/[[:space:]]$$/, "", verbosity_match); if (length(verbosity_match) > max_verbosity) max_verbosity = length(verbosity_match); return length(verbosity_match) }
 function get_description() { if (!match($$0, /#~~[ ]*/)) return ""; return trim(strip_verbosity(substr($$0, RSTART + RLENGTH))) }
 function render_message(text,    out) {
 	out = ""
@@ -4818,23 +4818,23 @@ function eval_ifeq(line,    op_eq, rest, depth, comma, i, c, arg1, arg2, quote) 
 function begin_condition(line) {
 	condition_depth++
 	if (line ~ /^ifndef[ \t]/) is_in_ifndef = 1
-	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1])
-	condition_is_active[condition_depth]      = is_parent_active ? eval_condition(line) : 0
-	condition_branch_matched[condition_depth] = condition_is_active[condition_depth]
+	is_parent_active = (condition_depth == 1 || is_condition_active[condition_depth - 1])
+	is_condition_active[condition_depth]      = is_parent_active ? eval_condition(line) : 0
+	has_condition_matched[condition_depth] = is_condition_active[condition_depth]
 }
 function else_condition(line,    else_rest) {
 	if (condition_depth == 0) return
-	is_parent_active = (condition_depth == 1 || condition_is_active[condition_depth - 1])
+	is_parent_active = (condition_depth == 1 || is_condition_active[condition_depth - 1])
 	else_rest = line; sub(/^else[ \t]*/, "", else_rest)
 	if (is_parent_active && else_rest ~ /^(ifeq|ifneq|ifdef|ifndef)[ \t]/) {
-		if (condition_branch_matched[condition_depth]) condition_is_active[condition_depth] = 0
+		if (has_condition_matched[condition_depth]) is_condition_active[condition_depth] = 0
 		else {
-			condition_is_active[condition_depth] = eval_condition(else_rest)
-			if (condition_is_active[condition_depth]) condition_branch_matched[condition_depth] = 1
+			is_condition_active[condition_depth] = eval_condition(else_rest)
+			if (is_condition_active[condition_depth]) has_condition_matched[condition_depth] = 1
 		}
-	} else if (is_parent_active) condition_is_active[condition_depth] = !condition_branch_matched[condition_depth]
+	} else if (is_parent_active) is_condition_active[condition_depth] = !has_condition_matched[condition_depth]
 }
-function matches_scope(path,    i, f) {
+function does_match_scope(path,    i, f) {
 	if (scope_filter_count == 0) return 1
 	if (path == "main") return 1
 	for (i = 1; i <= scope_filter_count; i += 1) {
@@ -4863,17 +4863,17 @@ function is_scope_named(path,    i, f) {
 	}
 	return 0
 }
-function is_scope_hidden(path) { return scope_is_hidden[path] && !is_listing_hidden && !is_scope_named(path) }
+function is_scope_hidden(path) { return hidden_scopes[path] && !is_listing_hidden && !is_scope_named(path) }
 function is_scope_visible(path) { return !is_scope_hidden(path) && scope_verbosity[path] + 0 <= verbosity }
 function is_entry_visible(scope_path, section, idx) {
 	if ((scope_path, section, idx) in entry_override_level)
-		return !entry_override_is_hidden[scope_path, section, idx] && entry_override_level[scope_path, section, idx] <= verbosity
+		return !hidden_entry_overrides[scope_path, section, idx] && entry_override_level[scope_path, section, idx] <= verbosity
 	if (section_verbosity[scope_path, section, idx] + 0 > verbosity) return 0
 	if (section_file[scope_path, section, idx] == scope_override_file[scope_path]) return scope_base_verbosity[scope_path] <= verbosity
 	return is_scope_visible(scope_path)
 }
-function scope_has_visible_entries(scope_path, section,    idx) {
-	if (!matches_scope(scope_path)) return 0
+function has_visible_entries(scope_path, section,    idx) {
+	if (!does_match_scope(scope_path)) return 0
 	if (!is_scope_target(scope_path)) return 0
 	for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1)
 		if (is_entry_visible(scope_path, section, idx)) return 1
@@ -4928,7 +4928,7 @@ function push_scope(level, name, verbosity,    current, parent_verbosity, parent
 	}
 }
 function get_source_location(    shown_path) {
-	shown_path = named_path(FILENAME)
+	shown_path = get_named_path(FILENAME)
 	if (shown_path !~ /^\.?\//) shown_path = "./" shown_path
 	return render_link(shown_path ":" FNR, FILENAME, FNR)
 }
@@ -4938,8 +4938,8 @@ function record_override(kind, marker, depth,    count) {
 	override_level[count] = RLENGTH
 	if (RLENGTH > max_verbosity) max_verbosity = RLENGTH
 	marker = substr(marker, RLENGTH + 1)
-	override_is_hidden[count] = (substr(marker, 1, 2) == "!!")
-	override_name[count] = trim(substr(marker, override_is_hidden[count] ? 3 : 2))
+	hidden_overrides[count] = (substr(marker, 1, 2) == "!!")
+	override_name[count] = trim(substr(marker, hidden_overrides[count] ? 3 : 2))
 	override_kind[count] = kind
 	override_depth[count] = depth
 	override_file[count] = FILENAME
@@ -4965,7 +4965,7 @@ function apply_symbol_override(count,    sections, section_index, section, scope
 				if (!is_symbol_named(section_name[scope_path, section, idx], override_name[count])) continue
 				is_matched = 1
 				entry_override_level[scope_path, section, idx] = override_level[count]
-				entry_override_is_hidden[scope_path, section, idx] = override_is_hidden[count]
+				hidden_entry_overrides[scope_path, section, idx] = hidden_overrides[count]
 			}
 		}
 	if (!is_matched) fail_unknown_override(count, "")
@@ -5002,16 +5002,16 @@ function resolve_scope_level(path,    parent, count) {
 		scope_base_verbosity[path] = scope_base_verbosity[parent]
 	scope_verbosity[path] = scope_marker_verbosity[path] + 0
 	if (parent != "" && scope_verbosity[parent] > scope_verbosity[path]) scope_verbosity[path] = scope_verbosity[parent]
-	scope_is_hidden[path] = (parent != "" ? scope_is_hidden[parent] : 0)
+	hidden_scopes[path] = (parent != "" ? hidden_scopes[parent] : 0)
 	scope_override_file[path] = (parent != "" ? scope_override_file[parent] : "")
 	if (("scope", path) in override_index) {
 		count = override_index["scope", path]
 		scope_verbosity[path] = override_level[count]
-		scope_is_hidden[path] = override_is_hidden[count]
+		hidden_scopes[path] = hidden_overrides[count]
 		scope_override_file[path] = override_file[count]
 	}
 }
-function alias_of(name,    map, position, remainder) {
+function get_alias(name,    map, position, remainder) {
 	map = " " ENVIRON["_TARGET_ALIAS_MAP"] " "
 	position = index(map, " " name "=")
 	if (!position) return ""
@@ -5022,7 +5022,7 @@ function add_resolved_variables(    keys, key_count, key_idx, name, pair_count, 
 	record_count = split(ENVIRON["_DOTENV_REPORT"], records, "\n")
 	for (record_idx = 1; record_idx <= record_count; record_idx += 1) {
 		if (split(records[record_idx], record_fields, "\037") < 5 || record_fields[4] != "") continue
-		variable_source[record_fields[2]] = named_path(record_fields[1])
+		variable_source[record_fields[2]] = get_named_path(record_fields[1])
 		variable_source_file[record_fields[2]] = record_fields[1]
 		variable_source_line[record_fields[2]] = record_fields[5]
 	}
@@ -5054,13 +5054,13 @@ function add(section, name, text, extra, description, line, entry_verbosity,    
 	if (!current) return
 	if (name != "" && seen_symbol[current, section, name]++) return
 	idx = ++section_count[current, section]
-	section_name[current, section, idx] = name (section == "commands" ? alias_of(name) : "")
+	section_name[current, section, idx] = name (section == "commands" ? get_alias(name) : "")
 	section_text[current, section, idx] = text
 	section_extra[current, section, idx] = extra
 	section_description[current, section, idx] = description
 	section_file[current, section, idx] = FILENAME
 	section_line[current, section, idx] = line
-	section_verbosity[current, section, idx] = (entry_verbosity != "" ? entry_verbosity : line_verbosity())
+	section_verbosity[current, section, idx] = (entry_verbosity != "" ? entry_verbosity : get_line_verbosity())
 }
 function handle_define(documentation,    description) {
 	if ($$2 ~ /^_/) return
@@ -5074,8 +5074,8 @@ function handle_define(documentation,    description) {
 	}
 }
 function has_content(scope_path, section,    idx) {
-	if (!matches_scope(scope_path)) return 0
-	if (scope_has_visible_entries(scope_path, section)) return 1
+	if (!does_match_scope(scope_path)) return 0
+	if (has_visible_entries(scope_path, section)) return 1
 	for (idx = 1; idx <= child_count[scope_path]; idx += 1)
 		if (has_content(children[scope_path, idx], section)) return 1
 	return 0
@@ -5084,14 +5084,14 @@ function has_any_content(scope_path) {
 	return has_content(scope_path, "description") || has_content(scope_path, "variables") \
 		|| has_content(scope_path, "functions") || has_content(scope_path, "commands")
 }
-function lowest_verbosity(scope_path,    shown, level) {
+function get_lowest_verbosity(scope_path,    shown, level) {
 	shown = verbosity
 	for (level = 0; level <= max_verbosity; level += 1) { verbosity = level; if (has_any_content(scope_path)) break }
 	verbosity = shown
 	return (level <= max_verbosity ? level : -1)
 }
-function tree_max(scope_path, depth, section, mode,    best, idx, width, child_width, value) {
-	if (!matches_scope(scope_path)) return 0
+function get_tree_max(scope_path, depth, section, mode,    best, idx, width, child_width, value) {
+	if (!does_match_scope(scope_path)) return 0
 	if (is_scope_target(scope_path)) {
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
 			if (!is_entry_visible(scope_path, section, idx)) continue
@@ -5103,18 +5103,18 @@ function tree_max(scope_path, depth, section, mode,    best, idx, width, child_w
 		}
 	}
 	for (idx = 1; idx <= child_count[scope_path]; idx += 1) {
-		child_width = tree_max(children[scope_path, idx], depth + 1, section, mode)
+		child_width = get_tree_max(children[scope_path, idx], depth + 1, section, mode)
 		if (child_width > best) best = child_width
 	}
 	return best
 }
 function walk(scope_path, depth, section, column,    render_scope, padding, width, format, idx, entry, text, extra, description, count, lines, line_idx, has_pending_blank, was_function_printed) {
-	if (!matches_scope(scope_path)) return
+	if (!does_match_scope(scope_path)) return
 	if (!has_content(scope_path, section)) return
 	if (scope_path != "main") {
-		printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", (depth + 1) * ENVIRON["INDENT"]), leaf(scope_path)
+		printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", (depth + 1) * ENVIRON["INDENT"]), get_leaf(scope_path)
 	}
-	render_scope = scope_has_visible_entries(scope_path, section)
+	render_scope = has_visible_entries(scope_path, section)
 	if (render_scope) {
 		padding = repeat(" ", (depth + 2) * ENVIRON["INDENT"])
 		width = column - (depth + 2) * ENVIRON["INDENT"]
@@ -5130,29 +5130,29 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			else if (section == "commands") text = render_inline_code(text)
 			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text) }
 			else if (section == "description") text = render_inline_code(text)
-			entry_linked = (section == "variables" && variable_source_file[entry] != "") \
+			linked_entry = (section == "variables" && variable_source_file[entry] != "") \
 				? render_link(entry, variable_source_file[entry], variable_source_line[entry]) \
 				: render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
 			entry_pad = width - length(entry)
 			if (entry_pad < 0) entry_pad = 0
-			entry_padded = entry_linked repeat(" ", entry_pad)
+			padded_entry = linked_entry repeat(" ", entry_pad)
 			if (section == "variables") {
 				if (description != "") {
 					text = truncate(text, description_column)
-					format = sprintf("%2s  %s%s", extra, text, repeat(" ", description_column - display_width(text)))
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, entry_padded, format, description
+					format = sprintf("%2s  %s%s", extra, text, repeat(" ", description_column - get_display_width(text)))
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, padded_entry, format, description
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra, text
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra, text
 				}
 			} else if (section == "commands") {
-				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, text
+				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, text
 			} else if (section == "functions") {
 				if (was_function_printed && verbosity >= 2 && text != "") printf "\n"
 				was_function_printed = (text != "" && verbosity >= 2)
 				if (extra != "" && (verbosity < 2 || text == "")) {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, entry_padded, extra
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))\n", padding, entry_linked
+					printf "%s$(call text,%s,$(COLOR_ENTRY))\n", padding, linked_entry
 				}
 				if (verbosity >= 2 && text != "") {
 					count = split(text, lines, "\n")
@@ -5195,7 +5195,7 @@ function print_environment_row(name, path, line_number, value, replacement_note,
 	indentation = repeat(" ", 2 * ENVIRON["INDENT"])
 	linked_name = render_link(name, path, line_number) repeat(" ", environment_name_width - length(name))
 	if (replacement_note == "") printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", indentation, linked_name, value
-	else printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s  (%s),$(COLOR_DESCRIPTION))\n", indentation, linked_name, value repeat(" ", environment_value_width - display_width(value)), render_inline_code(replacement_note)
+	else printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s  (%s),$(COLOR_DESCRIPTION))\n", indentation, linked_name, value repeat(" ", environment_value_width - get_display_width(value)), render_inline_code(replacement_note)
 }
 function print_environment(    listed_names, name_index, exported_name, exported_names, exported_name_count, sort_index, compare_index, held_name, record_fields, record_index, record_path, previous_record_path, replacement_note) {
 	split(ENVIRON["_HIDDEN_NAMES"], listed_names, /[[:space:]]+/)
@@ -5207,7 +5207,7 @@ function print_environment(    listed_names, name_index, exported_name, exported
 		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
 		is_dotenv_name[record_fields[2]] = 1
 		if (length(record_fields[2]) > environment_name_width) environment_name_width = length(record_fields[2])
-		if (display_width(render_environment_value(record_fields[3])) > environment_value_width) environment_value_width = display_width(render_environment_value(record_fields[3]))
+		if (get_display_width(render_environment_value(record_fields[3])) > environment_value_width) environment_value_width = get_display_width(render_environment_value(record_fields[3]))
 	}
 	split(ENVIRON["_EXPORTED_NAMES"], listed_names, /[[:space:]]+/)
 	for (name_index in listed_names) {
@@ -5229,14 +5229,14 @@ function print_environment(    listed_names, name_index, exported_name, exported
 	}
 	for (record_index = 1; record_index <= dotenv_record_count; record_index += 1) {
 		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
-		record_path = named_path(record_fields[1])
+		record_path = get_named_path(record_fields[1])
 		if (previous_record_path == "") printf "\n$(call text,Environment files:,$(COLOR_SECTION_LABEL))\n"
 		if (record_path != previous_record_path) printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", ENVIRON["INDENT"]), record_path
 		previous_record_path = record_path
 		replacement_note = ""
 		if (record_fields[2] in is_command_line_name) replacement_note = "replaced by the command line"
 		else if (record_fields[4] == "environment") replacement_note = "replaced by the environment"
-		else if (record_fields[4] != "") replacement_note = "replaced by `" named_path(record_fields[4]) "`"
+		else if (record_fields[4] != "") replacement_note = "replaced by `" get_named_path(record_fields[4]) "`"
 		print_environment_row(record_fields[2], record_fields[1], record_fields[5], render_environment_value(record_fields[3]), replacement_note)
 	}
 }
@@ -5252,14 +5252,14 @@ function print_section(has_previous, section, label, column,    top_idx, top_pat
 	return found + 0
 }
 BEGIN { SQ = sprintf("%c", 39); verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
-current_file != FILENAME { if (open_scope_name != "") close_empty_scope(); current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in condition_is_active) delete condition_is_active[i]; for (i in condition_branch_matched) delete condition_branch_matched[i]; scope_depth = -1; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
+current_file != FILENAME { if (open_scope_name != "") close_empty_scope(); current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in is_condition_active) delete is_condition_active[i]; for (i in has_condition_matched) delete has_condition_matched[i]; scope_depth = -1; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
 NF && !/^#-/ && !/^#([[:space:]]|$$)/ { open_scope_name = "" }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
 is_in_define { next }
 /^(ifeq|ifneq|ifdef|ifndef)[[:space:]]/ { begin_condition($$0); next }
 /^else([[:space:]]|$$)/ { else_condition($$0); next }
 /^endif([[:space:]]|$$)/ { if (condition_depth > 0) { condition_depth--; is_in_ifndef = 0 } next }
-condition_depth > 0 && !condition_is_active[condition_depth] { next }
+condition_depth > 0 && !is_condition_active[condition_depth] { next }
 /^#-+v*!/ { match($$0, /^#-+/); record_override("scope", substr($$0, RLENGTH + 1), RLENGTH - 3); next }
 /^#~~v*!/ { record_override("symbol", substr($$0, 4), -1); next }
 /^#-+/ { match($$0, /^#-+/); scope_dash_count = RLENGTH - 1; scope_suffix = substr($$0, RLENGTH + 1); match(scope_suffix, /^v*/); scope_verbosity_count = RLENGTH; push_scope(scope_dash_count - 2, trim(substr(scope_suffix, scope_verbosity_count + 1)), scope_verbosity_count); next }
@@ -5301,7 +5301,7 @@ is_in_documentation {
 			if ((getline continuation) <= 0) break
 			sub(/^[ \t]+/, "", continuation)
 			if (var_verbosity == "") {
-				continuation_verbosity = line_verbosity(continuation)
+				continuation_verbosity = get_line_verbosity(continuation)
 				if (continuation_verbosity) var_verbosity = continuation_verbosity
 			}
 			if (match(continuation, /#~~[ ]*/)) {
@@ -5331,8 +5331,8 @@ is_in_documentation {
 	continued_line = FNR
 	while ($$0 ~ /\\$$/ && (getline continuation) > 0) { sub(/[[:space:]]*\\$$/, " "); sub(/^[[:space:]]+/, "", continuation); $$0 = $$0 continuation }
 }
-function target_name(name) { return (name in resolved_name) ? resolved_name[name] : ENVIRON["_TARGET_PREFIX"] name }
-{ while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) $$0 = substr($$0, 1, RSTART - 1) target_name(substr($$0, RSTART + 15, RLENGTH - 16)) substr($$0, RSTART + RLENGTH) }
+function get_target_name(name) { return (name in resolved_name) ? resolved_name[name] : ENVIRON["_TARGET_PREFIX"] name }
+{ while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) $$0 = substr($$0, 1, RSTART - 1) get_target_name(substr($$0, RSTART + 15, RLENGTH - 16)) substr($$0, RSTART + RLENGTH) }
 { gsub(/\$$\(_TARGET_PREFIX\)/, ENVIRON["_TARGET_PREFIX"]) }
 
 /^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ {
@@ -5343,8 +5343,8 @@ function target_name(name) { return (name in resolved_name) ? resolved_name[name
 	for (i = 1; i <= count; i += 1) {
 		name = names[i]
 		if (name == "" || name ~ /^[_\.]/) continue
-		if (name in command_seen) continue
-		command_seen[name] = 1
+		if (name in seen_command_names) continue
+		seen_command_names[name] = 1
 		joined_commands = (joined_commands == "" ? name : joined_commands "/" name)
 	}
 	if (joined_commands != "") add("commands", joined_commands, description, "", "", continued_line ? continued_line : FNR)
@@ -5387,7 +5387,7 @@ END {
 	for (filter_idx = 1; filter_idx <= scope_filter_count; filter_idx += 1) {
 		filter = scope_filter[filter_idx]
 		if (filter == "") continue
-		filter_verbosity = lowest_verbosity(filter)
+		filter_verbosity = get_lowest_verbosity(filter)
 		if (filter_verbosity >= 0 && filter_verbosity <= verbosity) continue
 		filter_display = filter; gsub(/\//, ".", filter_display)
 		if (filter_verbosity < 0) unknown_filters[++unknown_filter_count] = filter_display
@@ -5410,7 +5410,7 @@ END {
 		listed_count = 0
 		for (scope_path in seen_scope) {
 			if (scope_path == "main") continue
-			if (!matches_scope(scope_path)) continue
+			if (!does_match_scope(scope_path)) continue
 			if (!is_scope_target(scope_path) && scope_filter_count > 0) continue
 			if (!has_any_content(scope_path)) continue
 			listed_paths[++listed_count] = scope_path
@@ -5424,7 +5424,7 @@ END {
 			listed_paths[compare_idx + 1] = current_path
 		}
 		for (listed_idx = 1; listed_idx <= listed_count; listed_idx += 1) {
-			listed_suffix = (scope_is_hidden[listed_paths[listed_idx]] ? " (hidden)" : "")
+			listed_suffix = (hidden_scopes[listed_paths[listed_idx]] ? " (hidden)" : "")
 			gsub(/\//, ".", listed_paths[listed_idx])
 			print listed_paths[listed_idx] listed_suffix
 		}
@@ -5435,12 +5435,12 @@ END {
 	print_header()
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx]
-		column = tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
-		column = tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column
-		column = tree_max(top_path, 0, "variables", "source"); if (column > source_width) source_width = column
+		column = get_tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
+		column = get_tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column
+		column = get_tree_max(top_path, 0, "variables", "source"); if (column > source_width) source_width = column
 		if (description_column > ENVIRON["VALUE_WIDTH"] + 0) description_column = ENVIRON["VALUE_WIDTH"] + 0
-		column = tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column
-		column = tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column
+		column = get_tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column
+		column = get_tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column
 	}
 	has_printed = 1
 	has_printed += print_section(has_printed, "description", "Description:", 0)
