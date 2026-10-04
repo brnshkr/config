@@ -343,7 +343,7 @@ _TRUE  := 1 true on yes
 _IS_CI  = $(filter-out $(_FALSE),$(CI))
 
 _MAKE_FLAGS  = $(if $(or $(_IS_DEBUG),$(_IS_TRACE)),--no-print-directory,-s) _IS_ANNOUNCING=
-_VERB_FLAGS  = $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(if $(_IS_PARALLEL),--output-sync=recurse $(if $(_IS_NO_COLOR),,FORCE_COLOR=1)) --keep-going _IS_ANNOUNCING=1
+_VERB_FLAGS  = $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(if $(_IS_PARALLEL),$(if $(filter 3.%,$(MAKE_VERSION)),,--output-sync=recurse) $(if $(_IS_NO_COLOR),,FORCE_COLOR=1)) --keep-going _IS_ANNOUNCING=1
 _IS_PARALLEL = $(filter-out -j1,$(filter -j%,$(MAKEFLAGS)))
 
 _UNEXPORTED_VARIABLES = COMPOSER DEBUG ESLINT_FLAGS VITEST
@@ -862,7 +862,7 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 	/^endif/ { if (skip == depth) skip = 0; depth -= 1; next } \
 	skip { next } \
 	{ start_line = FNR } \
-	/^[^#\t=]*\\$$/ { while ($$0 ~ /\\$$/ && (getline continuation) > 0) { \
+	/^[^\043\t=]*\\$$/ { while ($$0 ~ /\\$$/ && (getline continuation) > 0) { \
 		sub(/[[:space:]]*\\$$/, " "); sub(/^[[:space:]]+/, "", continuation); $$0 = $$0 continuation \
 	} } \
 	{ while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) \
