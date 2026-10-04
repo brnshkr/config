@@ -10,22 +10,22 @@ groups: #~~ runs two groups the way a verb does
 	@$(MAKE) $(_VERB_FLAGS) group-pairs group-single
 
 group-pairs: #~~ groups findings that carry a message
-	@$(call _group,cat findings.json,identifier,message)
+	@$(call _group,cat findings.json,identifier,message,@)
 
 group-lists: #~~ groups findings that are named in a list
-	@$(call _group,cat applied.json,appliedFixers)
+	@$(call _group,cat applied.json,appliedFixers,,name)
 
 group-text: #~~ groups findings a compiler reported as text
 	@$(call _group,cat errors.txt)
 
 group-eslint: #~~ groups findings from a report that also lists suppressed ones
-	@$(call _group,cat eslint.json,ruleId,message)
+	@$(call _group,cat eslint.json,ruleId,message,filePath)
 
 group-single: #~~ groups a report with exactly one finding
 	@$(call _group,cat single.json,identifier,message)
 
 group-wide: #~~ groups findings whose total is wider than any count
-	@$(call _group,cat wide.json,identifier,message)
+	@$(call _group,cat wide.json,identifier,message,@)
 
 group-braces: #~~ groups findings whose messages contain braces
 	@$(call _group,cat braces.json,identifier,message)

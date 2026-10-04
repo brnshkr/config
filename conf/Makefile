@@ -1707,7 +1707,7 @@ $(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --no-progress --error-format=json $(ARGS),identifier,message)
+	$(TRACE_PREFIX)$(call _group,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --no-progress --error-format=json $(ARGS),identifier,message,@)
 
 $(call _target,phpstan-list): #~~ lists all files that are processed by `phpstan` #vv
 	$(TRACE_PREFIX)$(call _capture,$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan-raw) -- --debug 2>&1) \
@@ -1742,7 +1742,7 @@ $(call _target,php-cs-fixer-dry-run): _GOAL := $(call _target,php-cs-fixer-dry-r
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers)
+	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers,,name)
 
 $(call _target,php-cs-fixer-list): #~~ lists all files that are processed by `php-cs-fixer` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -1779,7 +1779,7 @@ $(call _target,rector-dry-run): _GOAL := $(call _target,rector-dry-run)
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors)
+	$(TRACE_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors,,file)
 
 $(call _target,rector-list): #~~ lists all files that are processed by `rector` #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -1816,7 +1816,7 @@ $(call _target,twig-cs-fixer-dry-run): _GOAL := $(call _target,twig-cs-fixer-dry
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description)
+	$(TRACE_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description,path)
 
 $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
@@ -1928,7 +1928,7 @@ $(call _target,eslint-dry-run): _GOAL := $(call _target,eslint-dry-run)
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json --output-file /dev/stdout $(ARGS),ruleId,message)
+	$(TRACE_PREFIX)$(call _group,$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --format json --output-file /dev/stdout $(ARGS),ruleId,message,filePath)
 
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -2033,7 +2033,7 @@ $(call _target,stylelint-dry-run): _GOAL := $(call _target,stylelint-dry-run)
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text)
+	$(TRACE_PREFIX)$(call _group,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) --formatter json $(if $(call _has_positional_arg,$(ARGS),$(_STYLELINT_VALUE_FLAGS)),$(ARGS),$(ARGS) '$(STYLELINT_GLOB)'),rule,text,source)
 
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -2154,7 +2154,7 @@ $(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
 $(call _target,hadolint-group): #~~ counts the `hadolint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) --format json \
-		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)),code,message)
+		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)),code,message,file)
 
 $(call _target,hadolint-list): #~~ lists the dockerfiles `hadolint` reads #vv
 	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
@@ -2192,7 +2192,7 @@ $(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
 $(call _target,actionlint-group): #~~ counts the `actionlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) -format '{{json .}}' \
-		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)),kind,message)
+		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)),kind,message,filepath)
 
 $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
 	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
@@ -2286,7 +2286,7 @@ $(call _target,semgrep): #~~ runs `semgrep` over this project's sources
 $(call _target,semgrep-group): #~~ counts the `semgrep` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
 	$(TRACE_PREFIX)$(call _semgrep_rules)
-	$(TRACE_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message)
+	$(TRACE_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message,path)
 
 $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
 	$(TRACE_PREFIX)$(PRINTF) '%s\n' $(SEMGREP_RULESETS)
@@ -3362,11 +3362,13 @@ endef
 
 #**
 #* Runs a tool and prints its findings grouped by identifier, failing only when it reported nothing.
+#* The file key names each finding's file, `@` the object key its messages sit under.
 #*
 #* parameters:
 #*   command: string
 #*   identifier: string
 #*   message?: string
+#*   file_key?: string
 #*
 #* returns: void
 #*
@@ -3381,7 +3383,9 @@ $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
 	};) \
 output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
-	| $(AWK) -v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _STATUS="$$status" "$$_GROUP_AWK"); code=$$?; \
+	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' $(AWK) \
+		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' \
+		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" "$$_GROUP_AWK"); code=$$?; \
 $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
 	[ -z "$$has_spinner" ] || { \
 		kill $$spinner_pid 2>/dev/null; \
@@ -4652,24 +4656,100 @@ function unescape(text) {
 	gsub(/\\\\/, "\\", text)
 	return text
 }
-function add(identifier, message) {
+function get_number(record, key) {
+	if (!match(record, "\"" key "\"[ \t]*:[ \t]*[0-9]+")) return ""
+	record = substr(record, RSTART, RLENGTH)
+	sub(/.*:[ \t]*/, "", record)
+	return record
+}
+function get_line(record) {
+	if (match(record, /"start"[ \t]*:[ \t]*\{/)) record = substr(record, RSTART + RLENGTH)
+	return get_number(record, "line") != "" ? get_number(record, "line") : get_number(record, "begin")
+}
+function get_file(record,    key) {
+	if (_FILE_KEY == "") return ""
+	if (_FILE_KEY != "@") return unescape(get_value(record, _FILE_KEY))
+	if (!match(record, /"([^"\\]|\\.)*"[ \t\n]*:[ \t\n]*\{[ \t\n]*"(errors|messages)"/)) return ""
+	key = substr(record, RSTART + 1, RLENGTH - 1)
+	sub(/"[ \t\n]*:[ \t\n]*\{.*/, "", key)
+	return unescape(key)
+}
+function get_last_file(text, fallback) {
+	while (_FILE_KEY != "" && match(text, "\"" _FILE_KEY "\"[ \t]*:[ \t]*\"")) {
+		text = substr(text, RSTART + RLENGTH)
+		if (match(text, /^([^"\\]|\\.)*/)) fallback = unescape(substr(text, RSTART, RLENGTH))
+	}
+	return fallback
+}
+function get_location_text(file, line) {
+	if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
+	else if (index(file, ENVIRON["_CURDIR"] "/") == 1) file = substr(file, length(ENVIRON["_CURDIR"]) + 2)
+	return (file ~ /^\// ? file : "./" file) (line != "" ? ":" line : "")
+}
+function render_link(text, file, line,    url, position) {
+	url = ENVIRON["_EDITOR_URL_TEMPLATE"]
+	if (url == "" || file == "" || _IS_NO_COLOR != "") return text
+	if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
+	if (index(url, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); file = substr(file, 2) }
+	else gsub(/\{cwd\}/, ENVIRON["_CURDIR"], url)
+	position = index(url, "{file}")
+	if (position) url = substr(url, 1, position - 1) file substr(url, position + 6)
+	position = index(url, "{line}")
+	if (position) url = substr(url, 1, position - 1) (line == "" ? 1 : line) substr(url, position + 6)
+	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
+}
+function add(identifier, message, file, line) {
 	if (identifier == "" || identifier == "null") return
 	identifier = unescape(identifier)
 	message = unescape(message)
 	if (!(identifier in seen_identifiers)) { seen_identifiers[identifier] = 1; order[++total] = identifier }
 	count[identifier] += 1
 	if (example[identifier] == "") example[identifier] = message
+	location_file[identifier, count[identifier]] = file
+	location_line[identifier, count[identifier]] = line
+	open_identifier = identifier
+}
+function update_open_location(file, line, is_start_line,    position) {
+	position = count[open_identifier]
+	if (file != "" && is_location_file_carried) { location_file[open_identifier, position] = file; is_location_file_carried = 0 }
+	if (line != "" && (is_start_line || location_line[open_identifier, position] == "")) location_line[open_identifier, position] = line
+}
+function print_locations(identifier, indentation,    position, shown_count) {
+	shown_count = (_VERBOSITY >= 2 || count[identifier] <= 10) ? count[identifier] : 10
+	for (position = 1; position <= shown_count; position += 1) {
+		if (location_file[identifier, position] == "") continue
+		printf "%s$(call text,%s,$(COLOR_DESCRIPTION))\n", indentation, render_link(get_location_text(location_file[identifier, position], \
+			location_line[identifier, position]), location_file[identifier, position], location_line[identifier, position])
+	}
+	if (shown_count < count[identifier]) printf "%s$(call text,… and %d more,$(COLOR_DESCRIPTION))\n", indentation, count[identifier] - shown_count
 }
 BEGIN { if (_IDENTIFIER != "" && _MESSAGE != "") RS = "}" }
 { raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) has_structured_output = 1 }
-_IDENTIFIER == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) { token = substr($$0, RSTART, RLENGTH); sub(/^[^ ]* error /, "", token); sub(/:? $$/, "", token); add(token, substr($$0, RSTART + RLENGTH)) }
+_IDENTIFIER == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) {
+	reported_file = substr($$0, 1, RSTART - 1)
+	token = substr($$0, RSTART, RLENGTH)
+	reported_message = substr($$0, RSTART + RLENGTH)
+	match(token, /[0-9]+/)
+	reported_line = substr(token, RSTART, RLENGTH)
+	sub(/^[^ ]* error /, "", token)
+	sub(/:? $$/, "", token)
+	add(token, reported_message, reported_file, reported_line)
+}
 _IDENTIFIER != "" && _MESSAGE != "" {
 	pending = pending $$0
 	quotes = pending
 	gsub(/\\./, "", quotes)
 	if (gsub(/"/, "", quotes) % 2) { pending = pending "}"; next }
 	if (index(pending, "\"suppressedMessages\"")) is_in_suppressed_messages = 1
-	if (!is_in_suppressed_messages) add(get_value(pending, _IDENTIFIER), get_value(pending, _MESSAGE))
+	record_file = get_file(pending)
+	if (record_file != "") current_file = record_file
+	record_identifier = get_value(pending, _IDENTIFIER)
+	if (!is_in_suppressed_messages && record_identifier != "" && record_identifier != "null") {
+		add(record_identifier, get_value(pending, _MESSAGE), current_file, get_line(pending))
+		is_location_file_carried = (record_file == "")
+	} else if (!is_in_suppressed_messages && open_identifier != "") {
+		update_open_location(record_file, get_line(pending), index(pending, "\"start\"") > 0)
+	}
 	if (index(pending, "\"errorCount\"")) is_in_suppressed_messages = 0
 	pending = ""
 }
@@ -4678,13 +4758,15 @@ END {
 	pattern = "\"" _IDENTIFIER "\":[ \t]*\\["
 	rest = buffer
 	while (_IDENTIFIER != "" && _MESSAGE == "" && match(rest, pattern)) {
-		items = substr(rest, RSTART + RLENGTH)
+		list_start = RSTART + RLENGTH
+		listed_file = get_last_file(substr(rest, 1, RSTART - 1), listed_file)
+		items = substr(rest, list_start)
 		rest = items
 		sub(/\].*/, "", items)
 		size = split(items, parts, ",")
 		for (item = 1; item <= size; item += 1) {
 			gsub(/^[ \t]*"|"[ \t]*$$/, "", parts[item])
-			add(parts[item], "")
+			add(parts[item], "", listed_file, "")
 		}
 	}
 	for (outer = 1; outer < total; outer += 1)
@@ -4709,9 +4791,11 @@ END {
 		identifier = order[position]
 		message = example[identifier]
 		printf "%s%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_ERROR))%s", \
-			padding, repeat(" ", number_width - length(count[identifier])), count[identifier], identifier, \
+			padding, repeat(" ", number_width - length(count[identifier])), count[identifier], \
+			render_link(identifier, location_file[identifier, 1], location_line[identifier, 1]), \
 			(message == "" ? "\n" : repeat(" ", width - length(identifier)) "  ")
 		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", message
+		if (_VERBOSITY >= 1) print_locations(identifier, padding repeat(" ", number_width + 2))
 	}
 	printf "%s$(call text,✘,$(COLOR_ERROR)) $(call text,%s %s,$(COLOR_DESCRIPTION))\n", padding, findings, (findings == 1 ? "finding" : "findings")
 }

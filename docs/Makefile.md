@@ -44,7 +44,7 @@ Across both stacks:
 | `pack` | Packs every stack's package into `./.local`. |
 | `changelog` | Prints the changelog for `CHANGELOG_RANGE`, or writes it into `CHANGELOG_DIR`. |
 | `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
-| `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. |
+| `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. Each identifier links its first finding; `V=1` lists ten locations under it, `V=2` all. |
 | `cc` | Removes the caches of the tools or files named, or all of them after asking. |
 | `fresh` | Removes every ignored file but `FRESH_KEEP` and the private half of each tracked `.dist` file, then reinstalls and runs `startup`, asking first. Untracked files and nested repositories stay too; `--all` removes everything. `--force` skips the question. Needs a commit to reset to. |
 | `fresh-dry-run` | Lists what `fresh` would remove and keep. |

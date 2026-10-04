@@ -160,6 +160,33 @@ final class VerbsTest extends TestCase
         self::assertStringContainsString('Argument of type \'string\'', $text);
     }
 
+    public function testVerbosityListsWhereEachFindingOccurs(): void
+    {
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
+        $text      = $this->runMake(['group-text'], ['V' => '1'], $directory);
+        $pairs     = $this->runMake(['group-pairs'], ['V' => '1'], $directory);
+        $lists     = $this->runMake(['group-lists'], ['V' => '1'], $directory);
+
+        self::assertStringContainsString("'number'.\n   ./src/a.ts:3\n   ./src/b.ts:9\n", $text);
+        self::assertStringContainsString("First finding.\n   ./a.php\n   ./b.php\n", $pairs);
+        self::assertStringContainsString("acme_second\n   ./a.php\n   ./b.php\n", $lists);
+    }
+
+    public function testAFindingLinksItsFirstOccurrence(): void
+    {
+        $text = $this->runMake(
+            ['group-text'],
+            [
+                'EDITOR_URL'  => 'editor://{file}:{line}',
+                'FORCE_COLOR' => '1',
+                'NO_COLOR'    => '',
+            ],
+            __DIR__ . '/../Fixtures/Make/Group',
+        );
+
+        self::assertStringContainsString("\033]8;;editor://src/a.ts:3\033\\TS2345", $text);
+    }
+
     public function testSuppressedFindingsAreNotCounted(): void
     {
         $eslint = $this->runMake(['group-eslint'], directory: __DIR__ . '/../Fixtures/Make/Group');
