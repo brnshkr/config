@@ -11,7 +11,6 @@ use PHPat\Test\Builder\BuildStep;
 use PHPat\Test\PHPat;
 
 use function array_map;
-use function implode;
 use function sprintf;
 
 /**
@@ -190,7 +189,7 @@ trait ArchitectureRuleTrait
      */
     private static function buildRoleFoldersExhaustiveRule(string $root, array $allowedFolders, string $presetLabel): BuildStep
     {
-        $foldersAlternation = implode('|', array_map(Str::quoteRegex(...), $allowedFolders));
+        $foldersAlternation = Str::join(array_map(Str::quoteRegex(...), $allowedFolders), '|');
 
         return PHPat::rule()
             ->classes(Selector::inNamespace($root))

@@ -41,7 +41,6 @@ use function array_filter;
 use function array_first;
 use function array_map;
 use function array_values;
-use function implode;
 use function in_array;
 use function is_string;
 use function sprintf;
@@ -683,7 +682,7 @@ final readonly class BoolishPrefixRule implements Rule
             '%s name `%s` must have one of the following prefixes: %s.',
             $kind,
             $name,
-            implode(', ', $prefixes),
+            Str::join($prefixes, ', '),
         ), $line);
     }
 

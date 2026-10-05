@@ -21,7 +21,6 @@ use PHPStan\Rules\Rule;
 use function array_filter;
 use function array_map;
 use function array_values;
-use function implode;
 use function sprintf;
 
 /**
@@ -117,7 +116,7 @@ final readonly class TagDescriptionRule implements Rule
         $problem = match (true) {
             $isDashed !== self::DESCRIPTION_DASHES[$tag['kind']] => $isDashed ? 'takes no leading dash' : 'needs a leading dash',
             Str::isEmpty($prose)                                 => null,
-            $isWordMissing                                       => sprintf('starts with `%s`', implode('` or `', self::THROWS_DESCRIPTION_WORDS)),
+            $isWordMissing                                       => sprintf('starts with %s', Str::joinAsQuotedList(self::THROWS_DESCRIPTION_WORDS, 'disjunction', '`')),
             $isSentence                                          => 'starts lowercase and ends without a period',
             default                                              => null,
         };

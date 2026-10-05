@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Testing;
 
 use Brnshkr\Config\Spelling;
+use Brnshkr\Config\Str;
 use JsonException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
@@ -12,7 +13,6 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 use function getcwd;
-use function implode;
 use function sprintf;
 
 /**
@@ -48,6 +48,6 @@ final class SpellingTest extends TestCase
             );
         }
 
-        self::assertSame([], $findings, "British spellings found:\n" . implode("\n", $findings));
+        self::assertSame([], $findings, "British spellings found:\n" . Str::join($findings, "\n"));
     }
 }

@@ -455,6 +455,8 @@
                     "mb_str_split": "Use \"Symfony\\Component\\String\\s::chunk()\" instead.",
                     "mb_split": "Use \"Symfony\\Component\\String\\s::split()\" instead.",
                     "explode": "Use \"Symfony\\Component\\String\\s::split()\" instead.",
+                    "implode": "Use \"Symfony\\Component\\String\\s::join()\" instead.",
+                    "join": "Use \"Symfony\\Component\\String\\s::join()\" instead.",
                     "preg_split": "Use \"Symfony\\Component\\String\\s::split()\" with a \"PREG_SPLIT_*\" flag instead.",
                     "strlen": "Use \"Symfony\\Component\\String\\s::length()\" instead.",
                     "mb_strlen": "Use \"Symfony\\Component\\String\\s::length()\" instead.",

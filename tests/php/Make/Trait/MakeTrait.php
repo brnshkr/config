@@ -21,7 +21,6 @@ use function array_key_first;
 use function array_map;
 use function bin2hex;
 use function getenv;
-use function implode;
 use function md5;
 use function random_bytes;
 use function realpath;
@@ -361,7 +360,7 @@ trait MakeTrait
         $process = new Process([
             'script',
             '-qfc',
-            sprintf('make --no-print-directory -C %s %s', $directory, implode(' ', $args)),
+            sprintf('make --no-print-directory -C %s %s', $directory, Str::join($args, ' ')),
             '/dev/null',
         ], env: [
             ...self::getBaselineEnvironment(),

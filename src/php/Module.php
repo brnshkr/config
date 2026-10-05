@@ -10,7 +10,6 @@ use function array_column;
 use function array_filter;
 use function array_map;
 use function array_values;
-use function implode;
 use function in_array;
 use function sprintf;
 
@@ -153,7 +152,7 @@ enum Module: string
         Logger::log('notice', sprintf(
             'Run `%scomposer r --dev %s%s` to install.',
             Logger::ANSI_WHITE_UNDERLINED,
-            implode(' ', $packageNames),
+            Str::join($packageNames, ' '),
             Logger::ANSI_RESET,
         ));
     }

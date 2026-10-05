@@ -184,6 +184,15 @@ final readonly class Str
         return explode($delimiter, $string, $limit);
     }
 
+    /**
+     * @param array<array-key, int|string> $strings
+     */
+    public static function join(array $strings, string $glue): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return implode($glue, $strings);
+    }
+
     public static function beforeLast(string $haystack, string $needle): string
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
@@ -271,18 +280,18 @@ final readonly class Str
     public static function joinAsQuotedList(
         array $strings,
         string $type = 'conjunction',
+        string $quote = '"',
     ): string {
-        return count($strings) > 1
+        $quotedStrings = array_map(static fn (string $string): string => $quote . $string . $quote, $strings);
+
+        return count($quotedStrings) > 1
             ? sprintf(
-                '"%s" %s "%s"',
-                implode('", "', array_slice($strings, 0, -1)),
+                '%s %s %s',
+                self::join(array_slice($quotedStrings, 0, -1), ', '),
                 $type === 'conjunction' ? 'and' : 'or',
-                array_last($strings),
+                array_last($quotedStrings),
             )
-            : [
-                0 => '',
-                1 => isset($strings[0]) ? sprintf('"%s"', $strings[0]) : '',
-            ][count($strings)];
+            : $quotedStrings[0] ?? '';
     }
 
     public static function fromEnvironment(string $name): string

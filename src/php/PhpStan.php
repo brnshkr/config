@@ -76,7 +76,6 @@ use function array_values;
 use function class_exists;
 use function get_debug_type;
 use function getcwd;
-use function implode;
 use function in_array;
 use function interface_exists;
 use function is_array;
@@ -2194,6 +2193,8 @@ final class PhpStan
                 'mb_str_split'          => sprintf('Use "%s::chunk()" instead.', $stringFunction),
                 'mb_split'              => sprintf('Use "%s::split()" instead.', $stringFunction),
                 'explode'               => sprintf('Use "%s::split()" instead.', $stringFunction),
+                'implode'               => sprintf('Use "%s::join()" instead.', $stringFunction),
+                'join'                  => sprintf('Use "%s::join()" instead.', $stringFunction),
                 'preg_split'            => sprintf('Use "%s::split()" with a "PREG_SPLIT_*" flag instead.', $stringFunction),
                 'strlen'                => sprintf('Use "%s::length()" instead.', $stringFunction),
                 'mb_strlen'             => sprintf('Use "%s::length()" instead.', $stringFunction),
@@ -2305,7 +2306,7 @@ final class PhpStan
 
                 array_pop($segments);
 
-                return implode('/', $segments);
+                return Str::join($segments, '/');
             },
             $files,
         )

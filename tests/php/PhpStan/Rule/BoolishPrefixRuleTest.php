@@ -15,7 +15,6 @@ use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 
-use function implode;
 use function in_array;
 use function sprintf;
 
@@ -77,7 +76,7 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
                     '%s name `%s` must have one of the following prefixes: %s.',
                     $kind,
                     $name,
-                    implode(', ', $prefixes),
+                    Str::join($prefixes, ', '),
                 );
             }
         };

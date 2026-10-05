@@ -18,7 +18,6 @@ use function feof;
 use function file_get_contents;
 use function fread;
 use function function_exists;
-use function implode;
 use function in_array;
 use function is_array;
 use function is_file;
@@ -363,7 +362,7 @@ final class Spelling
     {
         return $allowedLiteral['lineNumbers'] === null
             ? $allowedLiteral['text']
-            : $allowedLiteral['text'] . ':' . implode(',', $allowedLiteral['lineNumbers']);
+            : $allowedLiteral['text'] . ':' . Str::join($allowedLiteral['lineNumbers'], ',');
     }
 
     private static function compareCaseInsensitively(string $firstValue, string $secondValue): int
@@ -445,7 +444,7 @@ final class Spelling
             throw new RuntimeException('Setting "stemSuffixes" must name at least one suffix.');
         }
 
-        return '(?:' . implode('|', $stemSuffixes) . ')';
+        return '(?:' . Str::join($stemSuffixes, '|') . ')';
     }
 
     /**
@@ -590,7 +589,7 @@ final class Spelling
     {
         if (!function_exists('proc_open')) {
             throw new RuntimeException(
-                sprintf('Running "%s" needs proc_open(), which this PHP installation disabled.', implode(' ', $command)),
+                sprintf('Running "%s" needs proc_open(), which this PHP installation disabled.', Str::join($command, ' ')),
             );
         }
 
@@ -604,14 +603,14 @@ final class Spelling
         $process = proc_open($command, $descriptors, $processPipes, $workingDirectory);
 
         if ($process === false) {
-            throw new RuntimeException(sprintf('Unable to run "%s".', implode(' ', $command)));
+            throw new RuntimeException(sprintf('Unable to run "%s".', Str::join($command, ' ')));
         }
 
         if (!isset($processPipes[0], $processPipes[1])) {
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
             proc_close($process);
 
-            throw new RuntimeException(sprintf('"%s" opened no pipes.', implode(' ', $command)));
+            throw new RuntimeException(sprintf('"%s" opened no pipes.', Str::join($command, ' ')));
         }
 
         fclose($processPipes[0]);
@@ -624,7 +623,7 @@ final class Spelling
         if ($exitCode !== 0) {
             throw new RuntimeException(sprintf(
                 '"%s" failed in "%s" with exit code %d.',
-                implode(' ', $command),
+                Str::join($command, ' '),
                 $workingDirectory,
                 $exitCode,
             ));
@@ -659,7 +658,7 @@ final class Spelling
 
                 throw new RuntimeException(sprintf(
                     '"%s" did not finish within %d seconds.',
-                    implode(' ', $command),
+                    Str::join($command, ' '),
                     self::COMMAND_TIMEOUT_SECONDS,
                 ));
             }

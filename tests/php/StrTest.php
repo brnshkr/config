@@ -165,6 +165,12 @@ final class StrTest extends TestCase
         self::assertSame([''], Str::split('', '/'));
     }
 
+    public function testAJoinGluesEveryPieceInOrder(): void
+    {
+        self::assertSame('Acme/User/1', Str::join(['Acme', 'User', 1], '/'));
+        self::assertSame('', Str::join([], '/'));
+    }
+
     public function testTheLastSeparatorSplitsTheString(): void
     {
         self::assertSame('Acme\User', Str::beforeLast('Acme\User\Email', '\\'));
@@ -261,23 +267,25 @@ final class StrTest extends TestCase
      * @param 'conjunction'|'disjunction' $type
      */
     #[DataProvider('provideAQuotedListReadsAsProseCases')]
-    public function testAQuotedListReadsAsProse(string $expected, array $strings, string $type): void
+    public function testAQuotedListReadsAsProse(string $expected, array $strings, string $type, string $quote): void
     {
-        self::assertSame($expected, Str::joinAsQuotedList($strings, $type));
+        self::assertSame($expected, Str::joinAsQuotedList($strings, $type, $quote));
     }
 
     /**
-     * @return iterable<string, array{string, list<string>, 'conjunction'|'disjunction'}>
+     * @return iterable<string, array{string, list<string>, 'conjunction'|'disjunction', string}>
      */
     public static function provideAQuotedListReadsAsProseCases(): iterable
     {
-        yield 'none' => ['', [], 'conjunction'];
+        yield 'none' => ['', [], 'conjunction', '"'];
 
-        yield 'one' => ['"acme"', ['acme'], 'conjunction'];
+        yield 'one' => ['"acme"', ['acme'], 'conjunction', '"'];
 
-        yield 'two' => ['"user" and "email"', ['user', 'email'], 'conjunction'];
+        yield 'two' => ['"user" and "email"', ['user', 'email'], 'conjunction', '"'];
 
-        yield 'three as alternatives' => ['"user", "email" or "acme"', ['user', 'email', 'acme'], 'disjunction'];
+        yield 'three as alternatives' => ['"user", "email" or "acme"', ['user', 'email', 'acme'], 'disjunction', '"'];
+
+        yield 'backticks' => ['`when` or `unless`', ['when', 'unless'], 'disjunction', '`'];
     }
 
     public function testTheServerArrayWinsOverTheEnvironmentArrayAndTheProcess(): void

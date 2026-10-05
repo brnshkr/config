@@ -21,7 +21,6 @@ use Throwable;
 use function array_map;
 use function get_debug_type;
 use function getcwd;
-use function implode;
 use function is_array;
 use function is_string;
 use function sprintf;
@@ -70,10 +69,10 @@ abstract class AbstractCommand extends BaseCommand
         $packageOrganization       = $this->libraryComposerJson->getPackageOrganization();
         $packageName               = $this->libraryComposerJson->getPackageName();
 
-        $commandNamePrefix = implode(':', array_map(
+        $commandNamePrefix = Str::join(array_map(
             static fn (string $string): string => s($string)->slice(length: 1)->toString(),
             [$packageOrganization, $packageName],
-        ));
+        ), ':');
 
         $kebabName = s($this->getName() ?: Str::getClassShortName($this))
             ->beforeLast('Command')
@@ -86,10 +85,10 @@ abstract class AbstractCommand extends BaseCommand
 
         $alias = $isMainCommand
             ? $commandNamePrefix
-            : $commandNamePrefix . ':' . implode('', array_map(
+            : $commandNamePrefix . ':' . Str::join(array_map(
                 static fn (AbstractString $string): string => $string->slice(length: 1)->toString(),
                 $kebabName->split('-'),
-            ));
+            ), '');
 
         try {
             $this

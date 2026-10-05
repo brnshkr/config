@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Str;
 use Composer\IO\IOInterface;
 use InvalidArgumentException;
 use LogicException;
@@ -17,7 +18,6 @@ use function array_any;
 use function array_filter;
 use function array_map;
 use function array_merge;
-use function implode;
 use function is_array;
 use function is_bool;
 use function is_string;
@@ -139,7 +139,7 @@ final readonly class Console
                 '  <info>%s</info>%s%s%s',
                 $name,
                 s(' ')->repeat($spacingWidth)->toString(),
-                $aliases !== [] ? '[' . implode('|', $aliases) . '] ' : '',
+                $aliases !== [] ? '[' . Str::join($aliases, '|') . '] ' : '',
                 $command->getDescription(),
             ));
         }
@@ -186,7 +186,7 @@ final readonly class Console
         bool $isMultiselect = false,
     ): int|string|array {
         $default = is_array($default)
-            ? implode(',', array_map(strval(...), $default))
+            ? Str::join(array_map(strval(...), $default), ',')
             : (string) $default;
 
         $question = $this->getFormattedMessage(

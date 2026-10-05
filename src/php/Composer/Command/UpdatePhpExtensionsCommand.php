@@ -24,7 +24,6 @@ use function array_find;
 use function array_keys;
 use function array_values;
 use function count;
-use function implode;
 use function in_array;
 use function sprintf;
 use function Symfony\Component\String\s;
@@ -199,7 +198,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
 
             foreach (array_keys($package->getRequires()) as $childPackageName) {
                 if (self::isPhpExtension($childPackageName) && !isset($relevantRequires[$childPackageName])) {
-                    $this->console->writeDebug(implode(' —> ', [...$packageNameTrail, '<fg=cyan>' . $childPackageName . '</>']));
+                    $this->console->writeDebug(Str::join([...$packageNameTrail, '<fg=cyan>' . $childPackageName . '</>'], ' —> '));
 
                     $relevantRequires[$childPackageName] = true;
                 }

@@ -42,7 +42,7 @@ if (!$hasFormat && \in_array($arguments[0], $toonCommands, true)) {
 $process = new Process(
     command: ['make', '--no-print-directory', '--silent', '_mate-from-stdin'],
     cwd: Path::getDirectory(__DIR__),
-    input: \implode("\0", $arguments) . "\0",
+    input: Str::join($arguments, "\0") . "\0",
     timeout: null,
 );
 

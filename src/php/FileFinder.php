@@ -12,7 +12,6 @@ use Symfony\Component\Finder\Finder;
 use function array_diff;
 use function array_keys;
 use function array_map;
-use function implode;
 use function in_array;
 use function is_array;
 use function iterator_to_array;
@@ -83,7 +82,7 @@ final readonly class FileFinder
         $extensions = is_array($extensions) ? $extensions : [$extensions];
 
         foreach (array_diff($extensions, self::EXTENSIONS) as $extension) {
-            throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, implode(', ', self::EXTENSIONS)));
+            throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, Str::join(self::EXTENSIONS, ', ')));
         }
 
         $namePatterns = array_map(
