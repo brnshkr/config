@@ -1,5 +1,8 @@
 {
   "name": "@acme/user",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "imports": {
+    "#user/*": "./src/*"
+  }
 }

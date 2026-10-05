@@ -8,7 +8,7 @@ apart from the check for a docblock declaring two visibilities at once, which ap
 ## Import hygiene
 
 - [`brnshkr/require-import-alias`](./require-import-alias.md)
-  — imports that resolve into a TypeScript `paths` alias must use the alias form with the fewest path segments
+  — imports that resolve into an import alias must use the alias form with the fewest path segments
 - [`brnshkr/require-import-attributes`](./require-import-attributes.md)
   — imports of non-JavaScript files must declare a matching `with { type: '...' }` attribute
 

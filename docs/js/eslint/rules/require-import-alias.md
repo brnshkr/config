@@ -1,8 +1,9 @@
 # `brnshkr/require-import-alias` [🔍](../../../../src/js/eslint/configs/builtin/require-import-alias.ts 'Go to source')
 
-Relative imports that resolve into a TypeScript `paths` alias must use the alias form instead. Shorter import paths,
-stable across file moves, consistent across the codebase. Aliases are read from the nearest `tsconfig.json` by default;
-the autofix rewrites the specifier to the matching alias.
+A relative import that resolves into an alias must use the alias, which stays short and survives file moves;
+the autofix rewrites it. Aliases come from `compilerOptions.paths` in the `tsconfig.json` and from the `imports`
+of the `package.json` nearest the linted file. A conditional `imports` entry resolves the way TypeScript's bundler
+mode does, through `types`, `import`, `default` and the tsconfig's `customConditions`.
 
 ```jsonc
 // ./tsconfig.json
@@ -60,9 +61,7 @@ import { UserService } from '$user/UserService';
 
 ## Options
 
-- `aliases` — explicit alias map in the same shape as `tsconfig#compilerOptions.paths`. Bypasses `tsconfig.json`
-  discovery entirely; useful when aliases live outside TypeScript or need to differ from the project's TS config
-- `tsConfigPath` — path to the `tsconfig.json` to load when `aliases` is not given. Defaults to the auto-resolved
-  project config
+- `aliases` — an explicit map in the shape of `compilerOptions.paths`, used instead of both sources
+- `tsConfigPath` — the `tsconfig.json` read for `paths` and `customConditions`; defaults to the project's own
 - `ignoredPaths` — glob patterns matched against the linted file's absolute and cwd-relative paths. Files matching any
   pattern are skipped — useful for generated code or fixtures

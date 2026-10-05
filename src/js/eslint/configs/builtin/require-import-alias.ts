@@ -6,7 +6,8 @@ import path from 'node:path';
 
 import { toPosix } from '../../../shared/utils/filesystem';
 import { objectEntries } from '../../../shared/utils/object';
-import { loadTsConfigPaths, resolveTsConfigPath } from '../../utils/tsconfig';
+import { loadPackageImports } from '../../utils/package-imports';
+import { loadTsConfigCustomConditions, loadTsConfigPaths, resolveTsConfigPath } from '../../utils/tsconfig';
 
 import type { TSESTree } from '@typescript-eslint/utils';
 import type { Maybe } from '../../../shared/types/core';
@@ -31,13 +32,28 @@ interface RequireImportAliasOptions {
   ignoredPaths?: string[];
 }
 
-const resolveAliases = (options: RequireImportAliasOptions): TsConfigPaths => options.aliases
-  ?? loadTsConfigPaths(options.tsConfigPath ?? resolveTsConfigPath())
-  ?? {};
+const resolveAliases = (options: RequireImportAliasOptions, filePath: string): TsConfigPaths => {
+  if (options.aliases !== undefined) {
+    return options.aliases;
+  }
+
+  const tsConfigPath = options.tsConfigPath ?? resolveTsConfigPath();
+
+  return {
+    ...loadPackageImports(path.dirname(filePath), loadTsConfigCustomConditions(tsConfigPath)),
+    ...loadTsConfigPaths(tsConfigPath),
+  };
+};
 
 const buildAliasMappings = (aliases: Record<string, string[]>): AliasMapping[] => objectEntries(aliases)
-  .filter(([pattern]) => pattern.endsWith(WILDCARD_SUFFIX))
   .flatMap(([pattern, targets]): AliasMapping[] => {
+    if (!pattern.endsWith(WILDCARD_SUFFIX)) {
+      return targets.map((target) => ({
+        prefix: pattern,
+        baseDirectory: toPosix(target),
+      }));
+    }
+
     const prefix = pattern.slice(0, -WILDCARD_SUFFIX_LENGTH);
 
     return targets
@@ -119,7 +135,7 @@ export const requireImportAliasRule = <const>{
     type: 'suggestion',
     fixable: 'code',
     docs: {
-      description: 'Require imports to use the TypeScript path alias with the fewest path segments when the target file is reachable through one.',
+      description: 'Require imports to use the import alias with the fewest path segments when the target file is reachable through one.',
       url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md',
     },
     schema: [
@@ -150,13 +166,13 @@ export const requireImportAliasRule = <const>{
     ],
     messages: {
       [MESSAGE_ID_EXPECTED_ALIAS]: 'Import path \'{{ source }}\' must use the configured alias \'{{ alias }}\'.',
-      [MESSAGE_ID_MISSING_ALIAS]: 'Import path \'{{ source }}\' resolves outside any configured TypeScript path alias. Add an alias for this location, remove all other aliases, or disable this rule.',
+      [MESSAGE_ID_MISSING_ALIAS]: 'Import path \'{{ source }}\' resolves outside any configured import alias. Add an alias for this location, remove all other aliases, or disable this rule.',
     },
   },
   create: (context) => {
     const options = <RequireImportAliasOptions>(context.options[0] ?? {});
     const ignoredPaths = options.ignoredPaths ?? [];
-    const mappings = buildAliasMappings(resolveAliases(options));
+    const mappings = buildAliasMappings(resolveAliases(options, context.filename));
 
     if (mappings.length === 0 || isFileIgnored(context.filename, ignoredPaths)) {
       return {};

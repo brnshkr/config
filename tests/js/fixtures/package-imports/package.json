@@ -1,0 +1,14 @@
+{
+  "name": "@acme/user",
+  "imports": {
+    "#lib/*": "./src/lib/*",
+    "#conditional/*": {
+      "node": "./src/lib/*",
+      "import": "./src/imported/*"
+    },
+    "#custom/*": {
+      "acme": "./src/custom/*"
+    },
+    "#manifest.json": "./package.json"
+  }
+}

@@ -497,6 +497,11 @@ test('internalUsageRule degrades to lexical resolution without type information'
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
         { options: [{ tsConfigPath: FIXTURE_TSCONFIG }] },
       ),
+      buildInvalidCase(
+        'usage of an internal import through a package.json import',
+        'import { hashPassword } from \'#user/internal/hasher.ts\';\n\nhashPassword(\'a\');\n',
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
+      ),
       {
         name: 'a declared function carries parentheses without type information',
         code: 'import { hashLegacy } from \'../internal/hasher\';\n\nhashLegacy(\'a\');\n',

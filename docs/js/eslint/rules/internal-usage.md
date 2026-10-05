@@ -40,11 +40,10 @@ the shipped config stops applying `jsdoc/empty-tags` to `@internal` whenever the
 
 ## Path aliases
 
-A module reachable through a `compilerOptions.paths` alias also answers to the namespace that alias spells,
-so a target may be written in either form. With `"@user/*": ["./src/*"]`, `./src/internal/hasher.ts`
-declares into both `@acme/user/internal` and `@user/internal`. The shipped config passes the tsconfig it already
-resolves for type-aware linting; point `tsConfigPath` elsewhere to read a different one, and leave it unset to switch
-alias namespaces off. A name in `allowedInternals` always spells the `package.json` form.
+A module reachable through an alias also answers to the namespace the alias spells: with `"#user/*": "./src/*"`,
+`./src/internal/hasher.ts` declares into both `@acme/user/internal` and `#user/internal`. Aliases come from the
+`imports` of the `package.json` nearest the linted file and from the `compilerOptions.paths` of `tsConfigPath`,
+which the shipped config sets. A name in `allowedInternals` always spells the package name form, `@acme/user/…`.
 
 ## File-level docblock
 
@@ -120,6 +119,6 @@ const allowedCallers = [
 - a method or function carries `()` in its symbol name,
   matching how [`ResolvableDocReferenceRule`](../../../php/phpstan/rules/ResolvableDocReferenceRule.md)
   tells a method from a constant. An `allowedInternals` entry has to spell it the same way
-- without type information the rule reads the imported module from disk. Relative specifiers and the `paths`
-  aliases of `tsConfigPath` resolve that way, with or without an extension; a package import does not,
-  a property reached through a value is not checked, and a symbol name omits the `()` a declared function would carry
+- without type information the rule reads the imported module from disk through a relative or aliased specifier,
+  extension or not. A package import is not followed, a property reached through a value is not checked,
+  and a symbol name omits the `()` a declared function would carry

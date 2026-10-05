@@ -18,6 +18,7 @@ interface ParsedTsConfig {
   extends?: string | string[];
   compilerOptions?: {
     baseUrl?: string;
+    customConditions?: string[];
     paths?: Record<string, string[]>;
   };
 }
@@ -94,6 +95,7 @@ const loadInternal = (filePath: string, visitedPaths: Set<string>): Maybe<Parsed
 };
 
 const cache = new Map<string, Maybe<TsConfigPaths>>();
+const customConditionsCache = new Map<string, string[]>();
 const toPosix = (filePath: string): string => filePath.replaceAll('\\', '/');
 
 export const loadTsConfigPaths = (tsConfigPath: string): Maybe<TsConfigPaths> => {
@@ -124,8 +126,24 @@ export const loadTsConfigPaths = (tsConfigPath: string): Maybe<TsConfigPaths> =>
   return result;
 };
 
+export const loadTsConfigCustomConditions = (tsConfigPath: string): string[] => {
+  const absolutePath = path.resolve(tsConfigPath);
+  const cachedConditions = customConditionsCache.get(absolutePath);
+
+  if (cachedConditions !== undefined) {
+    return cachedConditions;
+  }
+
+  const customConditions = loadInternal(absolutePath, new Set())?.compilerOptions?.customConditions ?? [];
+
+  customConditionsCache.set(absolutePath, customConditions);
+
+  return customConditions;
+};
+
 export const clearTsConfigPathsCache = (): void => {
   cache.clear();
+  customConditionsCache.clear();
 };
 
 export const doesTsConfigExist = (tsConfigPath: string): boolean => {

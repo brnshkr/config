@@ -23,7 +23,8 @@ import {
   TAG_INTERNAL,
 } from '../../utils/jsdoc';
 
-import { loadTsConfigPaths } from '../../utils/tsconfig';
+import { loadPackageImports } from '../../utils/package-imports';
+import { loadTsConfigCustomConditions, loadTsConfigPaths } from '../../utils/tsconfig';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
@@ -690,7 +691,15 @@ export const internalUsageRule = <const>{
     const services = <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices;
     const program = <Maybe<ts.Program>>services?.program;
     const typeChecker = program?.getTypeChecker();
-    const aliasPaths = options.tsConfigPath === undefined ? undefined : loadTsConfigPaths(options.tsConfigPath);
+
+    const aliasPaths = {
+      ...loadPackageImports(
+        path.dirname(context.filename),
+        options.tsConfigPath === undefined ? [] : loadTsConfigCustomConditions(options.tsConfigPath),
+      ),
+      ...options.tsConfigPath === undefined ? {} : loadTsConfigPaths(options.tsConfigPath),
+    };
+
     const resolveIdentity = (filePath: string): Maybe<ModuleIdentity> => buildModuleIdentity(filePath, aliasPaths);
     const callerIdentity = resolveIdentity(context.filename);
 
