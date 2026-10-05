@@ -205,7 +205,9 @@ PRINTF ?= printf#~~ path to `printf` binary
 PS     ?= ps#~~ path to `ps` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 SCRIPT ?= script#~~ path to `script` binary
+STTY   ?= stty#~~ path to `stty` binary
 TAR    ?= tar#~~ path to `tar` binary
+TPUT   ?= tput#~~ path to `tput` binary
 TR     ?= tr#~~ path to `tr` binary
 
 #--- settings
@@ -3485,7 +3487,8 @@ output=$$($1 2>&1); status=$$?; \
 report=$$($(PRINTF) '%s\n' "$$output" \
 	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' $(AWK) \
 		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' \
-		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" "$$_GROUP_AWK"); code=$$?; \
+		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" \
+		-v _COLUMNS="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}" "$$_GROUP_AWK"); code=$$?; \
 $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
 	[ -z "$$has_spinner" ] || { \
 		kill $$spinner_pid 2>/dev/null; \
@@ -4756,7 +4759,40 @@ previous != "" && !(previous ~ /\/$$/ && index($$0, previous) == 1) { print prev
 END { if (previous != "") print previous }
 endef
 
+define _TEXT_AWK_SOURCE
+function get_character_bytes(leading_byte) {
+	return (leading_byte < "\200") ? 1 : ((leading_byte < "\340") ? 2 : ((leading_byte < "\360") ? 3 : 4))
+}
+function get_character_width(character) {
+	if (character < "\340") return 1
+	if (character < "\360") return (character >= "\342\230\200" && character <= "\342\237\277") ? 2 : 1
+	return 2
+}
+function get_display_width(text,    position, byte_count, total_width) {
+	total_width = 0
+	for (position = 1; position <= length(text); position += byte_count) {
+		byte_count = get_character_bytes(substr(text, position, 1))
+		total_width += get_character_width(substr(text, position, byte_count))
+	}
+	return total_width
+}
+function truncate(text, width_limit,    position, byte_count, character, taken_width, truncated_text) {
+	if (get_display_width(text) <= width_limit) return text
+	taken_width = 0
+	truncated_text = ""
+	for (position = 1; position <= length(text); position += byte_count) {
+		byte_count = get_character_bytes(substr(text, position, 1))
+		character = substr(text, position, byte_count)
+		if (taken_width + get_character_width(character) > width_limit - 1) break
+		truncated_text = truncated_text character
+		taken_width += get_character_width(character)
+	}
+	return truncated_text "…"
+}
+endef
+
 define _GROUP_AWK_SOURCE
+$(_TEXT_AWK_SOURCE)
 function repeat(text, times,    out) { out = ""; while (times-- > 0) out = out text; return out }
 function get_value(record, key,    pattern) {
 	pattern = "\"" key "\"[ \t]*:[ \t]*\""
@@ -4829,6 +4865,10 @@ function update_open_location(file, line, is_start_line,    position) {
 	if (file != "" && is_location_file_carried) { location_file[open_identifier, position] = file; is_location_file_carried = 0 }
 	if (line != "" && (is_start_line || location_line[open_identifier, position] == "")) location_line[open_identifier, position] = line
 }
+function get_single_line(text, width_limit) {
+	sub(/(\\n|\n).*/, "", text)
+	return width_limit < 1 ? text : truncate(text, width_limit)
+}
 function print_locations(identifier, indentation,    position, shown_count) {
 	shown_count = (_VERBOSITY >= 2 || count[identifier] <= 10) ? count[identifier] : 10
 	for (position = 1; position <= shown_count; position += 1) {
@@ -4838,7 +4878,11 @@ function print_locations(identifier, indentation,    position, shown_count) {
 	}
 	if (shown_count < count[identifier]) printf "%s$(call text,… and %d more,$(COLOR_DESCRIPTION))\n", indentation, count[identifier] - shown_count
 }
-BEGIN { if (_IDENTIFIER != "" && _MESSAGE != "") RS = "}" }
+BEGIN { if (_IDENTIFIER != "" && _MESSAGE != "") RS = "}"; sub(/.* /, "", _COLUMNS); if (_COLUMNS !~ /^[0-9]+$$/) _COLUMNS = 120 }
+{
+	sub(/^.*\033\[[0-9]*D\033\[0?K/, "")
+	gsub(/\033\][^\007\033]*(\007|\033\\)|\033\[[0-9;?]*[A-Za-z]/, "")
+}
 { raw = raw (NR > 1 ? RS : "") $$0; if ($$0 ~ /(^|\n)[ \t]*[[{]/) has_structured_output = 1 }
 _IDENTIFIER == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A-Za-z0-9_.\/-]+:? /) {
 	reported_file = substr($$0, 1, RSTART - 1)
@@ -4848,6 +4892,7 @@ _IDENTIFIER == "" && match($$0, /(\([0-9]+,[0-9]+\):|:[0-9]+(:[0-9]+)?) error [A
 	reported_line = substr(token, RSTART, RLENGTH)
 	sub(/^[^ ]* error /, "", token)
 	sub(/:? $$/, "", token)
+	if (token ~ /^MD[0-9]+\//) { sub(/^MD[0-9]+\//, "", token); sub(/\/.*/, "", token) }
 	add(token, reported_message, reported_file, reported_line)
 }
 _IDENTIFIER != "" && _MESSAGE != "" {
@@ -4909,7 +4954,8 @@ END {
 			padding, repeat(" ", number_width - length(count[identifier])), count[identifier], \
 			render_link(identifier, location_file[identifier, 1], location_line[identifier, 1]), \
 			(message == "" ? "\n" : repeat(" ", width - length(identifier)) "  ")
-		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", message
+		if (message != "") printf "$(call text,%s,$(COLOR_DESCRIPTION))\n", \
+			(_VERBOSITY >= 1 ? message : get_single_line(message, _COLUMNS - length(padding) - number_width - width - 4))
 		if (_VERBOSITY >= 1) print_locations(identifier, padding repeat(" ", number_width + 2))
 	}
 	printf "%s$(call text,✘,$(COLOR_ERROR)) $(call text,%s %s,$(COLOR_DESCRIPTION))\n", padding, findings, (findings == 1 ? "finding" : "findings")
@@ -4917,38 +4963,10 @@ END {
 endef
 
 define _HELP_AWK_SOURCE
+$(_TEXT_AWK_SOURCE)
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function get_leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
-function get_character_bytes(leading_byte) {
-	return (leading_byte < "\200") ? 1 : ((leading_byte < "\340") ? 2 : ((leading_byte < "\360") ? 3 : 4))
-}
-function get_character_width(character) {
-	if (character < "\340") return 1
-	if (character < "\360") return (character >= "\342\230\200" && character <= "\342\237\277") ? 2 : 1
-	return 2
-}
-function get_display_width(text,    position, byte_count, total_width) {
-	total_width = 0
-	for (position = 1; position <= length(text); position += byte_count) {
-		byte_count = get_character_bytes(substr(text, position, 1))
-		total_width += get_character_width(substr(text, position, byte_count))
-	}
-	return total_width
-}
-function truncate(text, width_limit,    position, byte_count, character, taken_width, truncated_text) {
-	if (get_display_width(text) <= width_limit) return text
-	taken_width = 0
-	truncated_text = ""
-	for (position = 1; position <= length(text); position += byte_count) {
-		byte_count = get_character_bytes(substr(text, position, 1))
-		character = substr(text, position, byte_count)
-		if (taken_width + get_character_width(character) > width_limit - 1) break
-		truncated_text = truncated_text character
-		taken_width += get_character_width(character)
-	}
-	return truncated_text "…"
-}
 function render_url(template, file, line) {
 	if (template == "") return ""
 	if (index(template, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", template); file = substr(file, 2) }

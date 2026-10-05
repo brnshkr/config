@@ -158,7 +158,7 @@ final class VerbsTest extends TestCase
 
         self::assertStringContainsString('2  TS2345 ', $text);
         self::assertStringContainsString('1  TS2571 ', $text);
-        self::assertStringContainsString('1  MD013/line-length  Line length', $text);
+        self::assertStringContainsString('1  line-length  Line length', $text);
         self::assertStringContainsString('Argument of type \'string\'', $text);
     }
 
@@ -187,6 +187,15 @@ final class VerbsTest extends TestCase
         );
 
         self::assertStringContainsString("\033]8;;editor://src/a.ts:3\033\\TS2345", $text);
+    }
+
+    public function testAMessageIsCutToTheTerminalWidthUnlessVerbose(): void
+    {
+        $cut     = $this->runMake(['group-text', 'COLUMNS=60'], directory: __DIR__ . '/../Fixtures/Make/Group');
+        $verbose = $this->runMake(['group-text', 'COLUMNS=60', 'V=1'], directory: __DIR__ . '/../Fixtures/Make/Group');
+
+        self::assertStringContainsString("2  TS2345       Argument of type 'string' is not assignable…\n", $cut);
+        self::assertStringContainsString("Argument of type 'string' is not assignable to parameter of type 'number'.\n", $verbose);
     }
 
     public function testSuppressedFindingsAreNotCounted(): void

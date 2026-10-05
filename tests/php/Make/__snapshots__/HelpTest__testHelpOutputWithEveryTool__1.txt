@@ -777,7 +777,9 @@ Available commands:
 +    PS                             ?=  ps                                               (path to ps binary)
 +    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
 +    SCRIPT                         ?=  script                                           (path to script binary)
++    STTY                           ?=  stty                                             (path to stty binary)
 +    TAR                            ?=  tar                                              (path to tar binary)
++    TPUT                           ?=  tput                                             (path to tput binary)
 +    TR                             ?=  tr                                               (path to tr binary)
    settings
     COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of this project's)
@@ -868,10 +870,10 @@ Available commands:
      The command a tool named for a compose service runs through, empty on this machine.
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
- 
++
 +    parameters:
 +      service: string
-+
+ 
 +    returns: string
 +
     confirm
@@ -1425,7 +1427,9 @@ Available commands:
     [36mPS                           [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
     [36mRM                           [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                       [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
+    [36mSTTY                         [0m  [90m?=  stty                                             (path to [35mstty[0m[90m binary)[0m
     [36mTAR                          [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
+    [36mTPUT                         [0m  [90m?=  tput                                             (path to [35mtput[0m[90m binary)[0m
     [36mTR                           [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
   [35msettings[0m
    [36mCOMPOSE_FILE                  [0m  [90m?=                                                   (compose files, colon-separated, instead of this project's)[0m
@@ -1865,7 +1869,9 @@ Available commands:
     [32mPS                           [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
     [32mRM                           [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                       [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
+    [32mSTTY                         [0m  [0m?=  stty                                             (path to [33mstty[0m[0m binary)[0m
     [32mTAR                          [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
+    [32mTPUT                         [0m  [0m?=  tput                                             (path to [33mtput[0m[0m binary)[0m
     [32mTR                           [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
   [33msettings[0m
    [32mCOMPOSE_FILE                  [0m  [0m?=                                                   (compose files, colon-separated, instead of this project's)[0m
