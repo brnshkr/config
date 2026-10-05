@@ -60,6 +60,7 @@ _HAS_SCRIPT      := $(call _is_on_path,$(SCRIPT))
 
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
 	$(if $(_HAS_FORGE_IMAGE),,container) \
+	$(if $(filter 3.%,$(MAKE_VERSION)),make4) \
 	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
 
 PHP_UNIT_FLAGS += --parallel --processes=2

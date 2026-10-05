@@ -6,6 +6,7 @@ namespace Brnshkr\Config\Tests\Make;
 
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -121,6 +122,7 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString('php-cs-fixer fix', $fix);
     }
 
+    #[Group('make4')]
     public function testAParallelCheckPrintsEachToolWhole(): void
     {
         $check = $this->runMake(['-j4', 'check'], directory: __DIR__ . '/../Fixtures/Make/Verbs');
@@ -228,6 +230,7 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString('[Group]', $silenced);
     }
 
+    #[Group('make4')]
     public function testParallelGroupsPrintEachReportWhole(): void
     {
         $output = $this->runMake(['-j2', 'groups'], directory: __DIR__ . '/../Fixtures/Make/Group');
