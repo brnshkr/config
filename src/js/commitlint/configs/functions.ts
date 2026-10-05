@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/commitlint
  */
 
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { MODULES, PACKAGES, resolvePackages } from '#commitlint/utils/module.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#commitlint/types/config.ts';
 
 export const functions = (): Config[] => {
   const {

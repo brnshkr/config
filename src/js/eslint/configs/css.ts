@@ -2,22 +2,23 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { doAllPackagesExist } from '../../shared/utils/module';
-import { objectFromEntries, objectKeys } from '../../shared/utils/object';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_CSS } from '../utils/globs';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_CSS } from '#eslint/utils/globs.ts';
 
 import {
   isModuleEnabled,
   MODULES,
   PACKAGES,
   resolvePackages,
-} from '../utils/module';
+} from '#eslint/utils/module.ts';
+
+import { doAllPackagesExist } from '#shared/utils/module.ts';
+import { objectFromEntries, objectKeys } from '#shared/utils/object.ts';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
-import type { Config } from '../types/config';
-import type { CssOptions } from '../types/options';
+import type { Config } from '#eslint/types/config.ts';
+import type { CssOptions } from '#eslint/types/options.ts';
 
 type CustomSyntax = NonNullable<CSSLanguageOptions['customSyntax']>;
 type SyntaxDefinition = Exclude<CustomSyntax, SyntaxExtensionCallback>;

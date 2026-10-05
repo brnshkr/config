@@ -4,7 +4,15 @@
 
 import path from 'node:path';
 
-import { compileConfiguredPattern } from '../../../shared/utils/configured-pattern';
+import {
+  hasTag,
+  TAG_API,
+  TAG_INTERNAL,
+} from '#eslint/utils/jsdoc.ts';
+
+import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { loadTsConfigCustomConditions, loadTsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import { compileConfiguredPattern } from '#shared/utils/configured-pattern.ts';
 
 import {
   doesFileExist,
@@ -13,24 +21,15 @@ import {
   readJsonObjectFile,
   readTextFile,
   toPosix,
-} from '../../../shared/utils/filesystem';
+} from '#shared/utils/filesystem.ts';
 
-import { objectEntries, objectFromEntries } from '../../../shared/utils/object';
-
-import {
-  hasTag,
-  TAG_API,
-  TAG_INTERNAL,
-} from '../../utils/jsdoc';
-
-import { loadPackageImports } from '../../utils/package-imports';
-import { loadTsConfigCustomConditions, loadTsConfigPaths } from '../../utils/tsconfig';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { Maybe } from '../../../shared/types/core';
-import type { TsConfigPaths } from '../../utils/tsconfig';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE = 'unexpectedInternalUsage';
 export const MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE = 'unexpectedTargetedInternalUsage';

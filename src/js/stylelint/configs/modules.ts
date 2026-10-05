@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#stylelint/types/config.ts';
 
 export const modules = (): Config[] => {
   const {

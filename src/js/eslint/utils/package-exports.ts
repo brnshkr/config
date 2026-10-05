@@ -9,11 +9,11 @@ import {
   readJsonObjectFile,
   readTextFile,
   toPosix,
-} from '../../shared/utils/filesystem';
+} from '#shared/utils/filesystem.ts';
 
-import { isPlainObject, objectValues } from '../../shared/utils/object';
+import { isPlainObject, objectValues } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export interface PackageExportsResolverOptions {
   packageJsonPath: string;

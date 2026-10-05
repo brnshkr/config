@@ -4,15 +4,15 @@
 
 import path from 'node:path';
 
-import { toPosix } from '../../../shared/utils/filesystem';
-import { objectEntries } from '../../../shared/utils/object';
-import { loadPackageImports } from '../../utils/package-imports';
-import { loadTsConfigCustomConditions, loadTsConfigPaths, resolveTsConfigPath } from '../../utils/tsconfig';
+import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { loadTsConfigCustomConditions, loadTsConfigPaths, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { toPosix } from '#shared/utils/filesystem.ts';
+import { objectEntries } from '#shared/utils/object.ts';
 
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../../shared/types/core';
-import type { TsConfigPaths } from '../../utils/tsconfig';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_EXPECTED_ALIAS = 'expectedAlias';
 export const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';

@@ -1,5 +1,5 @@
-import { getConfig } from '../src/js/markdownlint';
-import { packageOrganization } from '../src/js/shared/utils/package-json';
+import { getConfig } from '#markdownlint/index.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 export default getConfig(undefined, {
   overrides: [

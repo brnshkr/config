@@ -2,8 +2,8 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { packageOrganization } from '../../../shared/utils/package-json';
-import { createPattern } from '../../../shared/utils/pattern';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { createPattern } from '#shared/utils/pattern.ts';
 
 import type { MicromarkToken, Rule, RuleOnError } from 'markdownlint';
 

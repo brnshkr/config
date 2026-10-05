@@ -1,11 +1,10 @@
-import { isModuleEnabledByDefault } from '../shared/utils/module';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { configs } from '#stylelint/configs/index.ts';
+import { getUserConfigs, includeConfigs } from '#stylelint/utils/config.ts';
+import { isModuleEnabled, MODULES, setModuleEnabled } from '#stylelint/utils/module.ts';
 
-import { configs } from './configs';
-import { getUserConfigs, includeConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
-
-import type { Config } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import type { Config } from '#stylelint/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#stylelint/types/options.ts';
 
 /**
  * Build the `@brnshkr` Stylelint config object.

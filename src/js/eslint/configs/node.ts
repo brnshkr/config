@@ -2,20 +2,21 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { doAllPackagesExist } from '../../shared/utils/module';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_SCRIPT_FILES } from '../utils/globs';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
 
 import {
   isModuleEnabled,
   MODULES,
   PACKAGES,
   resolvePackages,
-} from '../utils/module';
+} from '#eslint/utils/module.ts';
 
-import type { Config } from '../types/config';
-import type { NodeOptions } from '../types/options';
+import { doAllPackagesExist } from '#shared/utils/module.ts';
+
+import type { Config } from '#eslint/types/config.ts';
+import type { NodeOptions } from '#eslint/types/options.ts';
 
 export const node = async (options?: Partial<NodeOptions>): Promise<Config[]> => {
   const {

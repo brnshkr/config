@@ -4,11 +4,11 @@
 
 import { mergeConfig } from 'vitest/config';
 
-import { objectAssign, pickKeys } from '../../shared/utils/object';
+import { objectAssign, pickKeys } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../../shared/types/core';
-import type { Config } from '../types/config';
-import type { ResolvedOptions } from '../types/options';
+import type { Maybe } from '#shared/types/core.ts';
+import type { Config } from '#vitest/types/config.ts';
+import type { ResolvedOptions } from '#vitest/types/options.ts';
 
 const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'appType',

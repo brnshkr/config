@@ -5,9 +5,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { isPlainObject } from './object';
+import { isPlainObject } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const toPosix = (value: string): string => value.replaceAll('\\', '/');
 

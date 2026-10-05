@@ -4,11 +4,11 @@ import { builtinRules } from 'eslint/use-at-your-own-risk';
 import { flatConfigsToRulesDTS } from 'eslint-typegen/core';
 import { compile } from 'json-schema-to-typescript';
 
-import { getConfig } from '../src/js/eslint';
-import { objectEntries, objectFromEntries } from '../src/js/shared/utils/object';
+import { getConfig } from '#eslint/index.ts';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
 import type { JSONSchema } from 'json-schema-to-typescript';
-import type { Config } from '../src/js/eslint/types/config';
+import type { Config } from '#eslint/types/config.ts';
 
 const RULES_SCHEMA_REF = 'https://raw.githubusercontent.com/DavidAnson/markdownlint';
 const COMBINE_STRATEGIES = <const>['merge', 'replace'];

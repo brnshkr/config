@@ -2,20 +2,21 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+
 import {
   objectEntries,
   objectFromEntries,
   objectKeys,
   pickKeys,
-} from '../../shared/utils/object';
+} from '#shared/utils/object.ts';
 
-import { packageOrganization } from '../../shared/utils/package-json';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
-import type { Awaitable, Maybe } from '../../shared/types/core';
-import type { Config, ResolvableConfig } from '../types/config';
-import type { ResolvedOptions } from '../types/options';
-import type { MainScope, SubScope } from '../types/scopes';
+import type { Config, ResolvableConfig } from '#eslint/types/config.ts';
+import type { ResolvedOptions } from '#eslint/types/options.ts';
+import type { MainScope, SubScope } from '#eslint/types/scopes.ts';
+import type { Awaitable, Maybe } from '#shared/types/core.ts';
 
 export const buildConfigName = (
   mainScope: MainScope,

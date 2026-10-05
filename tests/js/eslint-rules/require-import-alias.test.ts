@@ -6,9 +6,9 @@ import {
   MESSAGE_ID_EXPECTED_ALIAS,
   MESSAGE_ID_MISSING_ALIAS,
   requireImportAliasRule,
-} from '../../../src/js/eslint/configs/builtin/require-import-alias';
+} from '#eslint/configs/builtin/require-import-alias.ts';
 
-import { createRuleCaseBuilders, runJsRuleTests } from '../utils/rule-tester';
+import { createRuleCaseBuilders, runJsRuleTests } from '#tests/utils/rule-tester.ts';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_CONSUMER = path.join(FIXTURE_ROOT, 'src/consumer.ts');

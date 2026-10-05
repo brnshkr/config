@@ -2,8 +2,10 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
+import { getTypeAwareIgnores } from '#eslint/configs/typescript.ts';
+import { FILE_NAMES_TO_IGNORE } from '#eslint/configs/unicorn.ts';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
 
 import {
   GLOB_CJS,
@@ -20,16 +22,13 @@ import {
   GLOB_TS,
   GLOB_YAML,
   GLOB_YAML_FIXED_EXTENSION_FILES,
-} from '../utils/globs';
+} from '#eslint/utils/globs.ts';
 
-import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '../utils/module';
-import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
+import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '#eslint/utils/module.ts';
+import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 
-import { getTypeAwareIgnores } from './typescript';
-import { FILE_NAMES_TO_IGNORE } from './unicorn';
-
-import type { Config } from '../types/config';
-import type { TypescriptOptions } from '../types/options';
+import type { Config } from '#eslint/types/config.ts';
+import type { TypescriptOptions } from '#eslint/types/options.ts';
 
 const jsOverrides: Config[] = [
   {

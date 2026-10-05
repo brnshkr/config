@@ -1,4 +1,4 @@
-import { objectEntries, readOwnValue, writeOwnValue } from '../../../src/js/shared/utils/object';
+import { objectEntries, readOwnValue, writeOwnValue } from '#shared/utils/object.ts';
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 

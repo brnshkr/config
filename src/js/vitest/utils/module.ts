@@ -2,14 +2,14 @@
  * @internal @brnshkr/config/vitest
  */
 
-import { createModuleState, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
-import { VITEST_PACKAGES } from '../../shared/utils/package-resolvers';
+import { createModuleState, resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
+import { VITEST_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
-import type { VitestPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import type { ModuleInfo, PackageResolver } from '#shared/utils/module.ts';
+import type { VitestPackage } from '#shared/utils/package-resolvers.ts';
+import type { configs } from '#vitest/configs/index.ts';
 
-export { VITEST_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+export { VITEST_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   environment: {

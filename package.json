@@ -14,6 +14,17 @@
     "url": "https://github.com/brnshkr/config/issues"
   },
   "type": "module",
+  "imports": {
+    "#commitlint/*": "./src/js/commitlint/*",
+    "#eslint/*": "./src/js/eslint/*",
+    "#markdownlint/*": "./src/js/markdownlint/*",
+    "#shared/*": "./src/js/shared/*",
+    "#spelling/*": "./src/js/spelling/*",
+    "#stylelint/*": "./src/js/stylelint/*",
+    "#vitest/*": "./src/js/vitest/*",
+    "#tests/*": "./tests/js/*",
+    "#package.json": "./package.json"
+  },
   "exports": {
     "./commitlint": "./dist/commitlint/index.mjs",
     "./conf/Makefile": "./conf/Makefile",

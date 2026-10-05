@@ -2,10 +2,10 @@
  * @internal @brnshkr/config/vitest
  */
 
-import { GLOB_IGNORES, GLOB_TEST_FILES } from '../../shared/utils/globs';
-import { packageOrganization } from '../../shared/utils/package-json';
+import { GLOB_IGNORES, GLOB_TEST_FILES } from '#shared/utils/globs.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#vitest/types/config.ts';
 
 const NARROWED_IGNORES = new Map([
   ['**/dist/**', [

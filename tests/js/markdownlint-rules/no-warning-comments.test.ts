@@ -1,8 +1,8 @@
 import { lint } from 'markdownlint/sync';
 import { expect, test } from 'vitest';
 
-import { noWarningCommentsRule } from '../../../src/js/markdownlint/configs/builtin/no-warning-comments';
-import { packageOrganization } from '../../../src/js/shared/utils/package-json';
+import { noWarningCommentsRule } from '#markdownlint/configs/builtin/no-warning-comments.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 const PAGE = [
   '# Page',

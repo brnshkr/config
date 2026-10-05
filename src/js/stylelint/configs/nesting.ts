@@ -7,9 +7,9 @@ import {
   MODULES,
   PACKAGES,
   resolvePackages,
-} from '../utils/module';
+} from '#stylelint/utils/module.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#stylelint/types/config.ts';
 
 export const nesting = (): Config[] => {
   const {

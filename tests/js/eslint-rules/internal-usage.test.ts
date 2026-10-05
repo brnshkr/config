@@ -6,16 +6,16 @@ import {
   internalUsageRule,
   MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE,
   MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE,
-} from '../../../src/js/eslint/configs/builtin/internal-usage';
+} from '#eslint/configs/builtin/internal-usage.ts';
 
-import { readPhpRuleSource } from '../utils/php-rule';
+import { readPhpRuleSource } from '#tests/utils/php-rule.ts';
 
 import {
   createRuleCaseBuilders,
   createTypeAwareRuleTester,
   runRuleTests,
   runTsRuleTests,
-} from '../utils/rule-tester';
+} from '#tests/utils/rule-tester.ts';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/internal-usage');
 const CALLER_INSIDE = path.join(FIXTURE_ROOT, 'src/internal/consumer.ts');

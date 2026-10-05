@@ -2,29 +2,28 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { packageOrganization } from '../../shared/utils/package-json';
-
-import { builtin } from './builtin';
-import { comments } from './comments';
-import { css } from './css';
-import { ignores } from './ignores';
-import { imports } from './import';
-import { javascript } from './javascript';
-import { jsdoc } from './jsdoc';
-import { json } from './json';
-import { markdown } from './markdown';
-import { node } from './node';
-import { overrides } from './overrides';
-import { perfectionist } from './perfectionist';
-import { regexp } from './regexp';
-import { security } from './security';
-import { style } from './style';
-import { svelte } from './svelte';
-import { test } from './test';
-import { toml } from './toml';
-import { typescript } from './typescript';
-import { unicorn } from './unicorn';
-import { yaml } from './yaml';
+import { builtin } from '#eslint/configs/builtin/index.ts';
+import { comments } from '#eslint/configs/comments.ts';
+import { css } from '#eslint/configs/css.ts';
+import { ignores } from '#eslint/configs/ignores.ts';
+import { imports } from '#eslint/configs/import.ts';
+import { javascript } from '#eslint/configs/javascript.ts';
+import { jsdoc } from '#eslint/configs/jsdoc.ts';
+import { json } from '#eslint/configs/json.ts';
+import { markdown } from '#eslint/configs/markdown.ts';
+import { node } from '#eslint/configs/node.ts';
+import { overrides } from '#eslint/configs/overrides.ts';
+import { perfectionist } from '#eslint/configs/perfectionist.ts';
+import { regexp } from '#eslint/configs/regexp.ts';
+import { security } from '#eslint/configs/security.ts';
+import { style } from '#eslint/configs/style.ts';
+import { svelte } from '#eslint/configs/svelte.ts';
+import { test } from '#eslint/configs/test.ts';
+import { toml } from '#eslint/configs/toml.ts';
+import { typescript } from '#eslint/configs/typescript.ts';
+import { unicorn } from '#eslint/configs/unicorn.ts';
+import { yaml } from '#eslint/configs/yaml.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 export const configs = <const>{
   [packageOrganization]: builtin,

@@ -7,10 +7,10 @@ import {
   pickKeys,
   readOwnValue,
   writeOwnValue,
-} from './object';
+} from '#shared/utils/object.ts';
 
-import type { Maybe } from '../types/core';
-import type { AnyRecord } from './object';
+import type { Maybe } from '#shared/types/core.ts';
+import type { AnyRecord } from '#shared/utils/object.ts';
 
 type MergeFunction<TValue> = (currentValue: Maybe<TValue>, valueToInclude: TValue) => TValue;
 

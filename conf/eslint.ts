@@ -1,6 +1,6 @@
-import { getConfig } from '../src/js/eslint';
-import { log } from '../src/js/shared/utils/log';
-import { packageOrganization } from '../src/js/shared/utils/package-json';
+import { getConfig } from '#eslint/index.ts';
+import { log } from '#shared/utils/log.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 /* eslint-disable ts/no-unnecessary-condition -- Optional chaining is required here since some IDE runtimes _might_ still not define import.meta.env */
 const isInEditor = Boolean(import.meta.env?.['VSCODE_PID']
@@ -23,6 +23,13 @@ export default getConfig({
   rules: {
     // NOTICE: This rule has quite a significant performance impact so we turn it off in the editor
     'import/no-cycle': isInEditor ? 'off' : 'error',
+    'import/no-useless-path-segments': ['error', {
+      noUselessIndex: false,
+    }],
+    'import/extensions': ['error', 'always', {
+      checkTypeImports: true,
+      ignorePackages: true,
+    }],
     'test/expect-expect': ['error', {
       assertFunctionNames: [
         'expect',
@@ -123,6 +130,7 @@ export default getConfig({
   rules: {
     [<const>`${packageOrganization}/boolish-prefix`]: 'off',
     [<const>`${packageOrganization}/interface-suffix`]: 'off',
+    [<const>`${packageOrganization}/require-import-alias`]: 'off',
     [<const>`${packageOrganization}/require-import-attributes`]: 'off',
     [<const>`${packageOrganization}/resolvable-doc-reference`]: 'off',
     [<const>`${packageOrganization}/type-assertion-style`]: 'off',

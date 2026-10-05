@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 
-import { DESCRIPTION_DASHES, TAG_SEQUENCE, THROWS_DESCRIPTION_WORDS } from '../../src/js/eslint/configs/jsdoc';
-import { objectEntries } from '../../src/js/shared/utils/object';
+import { DESCRIPTION_DASHES, TAG_SEQUENCE, THROWS_DESCRIPTION_WORDS } from '#eslint/configs/jsdoc.ts';
+import { objectEntries } from '#shared/utils/object.ts';
 
 import {
   extractPhpConstantFlags,
@@ -9,7 +9,7 @@ import {
   extractPhpRuleOptionGroups,
   extractPhpRuleOptionValues,
   readPhpSource,
-} from './utils/php-source';
+} from '#tests/utils/php-source.ts';
 
 const FALSE_FRIENDS = new Set(['type']);
 const MINIMUM_SHARED_TAGS = 20;

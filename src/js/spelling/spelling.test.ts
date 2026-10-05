@@ -4,7 +4,7 @@
 
 import { expect, test } from 'vitest';
 
-import { scan } from '.';
+import { scan } from '#spelling/index.ts';
 
 test('every tracked file is written in american english', () => {
   const findings = scan().map(({

@@ -3,13 +3,12 @@ import path from 'node:path';
 import { ESLint } from 'eslint';
 import { test } from 'vitest';
 
-import { getConfig } from '../../src/js/eslint';
-import { packageOrganization } from '../../src/js/shared/utils/package-json';
-import { createPattern } from '../../src/js/shared/utils/pattern';
+import { getConfig } from '#eslint/index.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { createPattern } from '#shared/utils/pattern.ts';
+import { snapshotConfigs } from '#tests/utils/config-snapshot.ts';
 
-import { snapshotConfigs } from './utils/config-snapshot';
-
-import type { JsonObject } from './utils/json-diff';
+import type { JsonObject } from '#tests/utils/json-diff.ts';
 
 const FIXTURES_DIRECTORY = path.join(process.cwd(), 'tests/js/fixtures/eslint');
 const TIMEOUT = 30_000;

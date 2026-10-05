@@ -3,7 +3,7 @@
  */
 
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export type FunctionLikeNode = TSESTree.ArrowFunctionExpression
   | TSESTree.FunctionDeclaration

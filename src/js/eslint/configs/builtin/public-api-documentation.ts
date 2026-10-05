@@ -11,9 +11,9 @@ import {
   isFluentReturn,
   isVoidLikeReturn,
   resolveFunctionShape,
-} from '../../utils/ast';
+} from '#eslint/utils/ast.ts';
 
-import { buildExportVisitors } from '../../utils/exports';
+import { buildExportVisitors } from '#eslint/utils/exports.ts';
 
 import {
   extractBlockComment,
@@ -26,16 +26,16 @@ import {
   hasTag,
   TAG_API,
   TAG_INTERNAL,
-} from '../../utils/jsdoc';
+} from '#eslint/utils/jsdoc.ts';
 
-import { isPublicApiFile } from '../../utils/public-api';
+import { isPublicApiFile } from '#eslint/utils/public-api.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { Maybe } from '../../../shared/types/core';
-import type { ExportedSymbol } from '../../utils/exports';
-import type { PackageExportsResolverOptions } from '../../utils/package-exports';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { ExportedSymbol } from '#eslint/utils/exports.ts';
+import type { PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
 export const MESSAGE_ID_MISSING_PARAM = 'missingParam';

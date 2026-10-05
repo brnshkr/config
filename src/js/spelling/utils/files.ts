@@ -5,9 +5,9 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
-import { doesFileExist } from '../../shared/utils/filesystem';
+import { doesFileExist } from '#shared/utils/filesystem.ts';
 
-import type { SpellingSettings } from '../types/options';
+import type { SpellingSettings } from '#spelling/types/options.ts';
 
 const COMMAND_TIMEOUT_MILLISECONDS = 60_000;
 

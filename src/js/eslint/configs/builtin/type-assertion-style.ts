@@ -3,8 +3,8 @@
  */
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../../shared/types/core';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_EXPECTED_PARENTHESES = 'expectedParentheses';
 export const MESSAGE_ID_UNEXPECTED_PARENTHESES = 'unexpectedParentheses';

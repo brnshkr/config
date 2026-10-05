@@ -2,11 +2,11 @@
  * @internal @brnshkr/config
  */
 
-import { resolvePackagesSharedSynchronously } from './module';
-import { PATTERN_PACKAGES } from './package-resolvers';
+import { resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
+import { PATTERN_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { Maybe } from '../types/core';
-import type { PatternFlags } from './pattern';
+import type { Maybe } from '#shared/types/core.ts';
+import type { PatternFlags } from '#shared/utils/pattern.ts';
 
 interface PatternParts {
   source: string;

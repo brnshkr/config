@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { resolveParameterIdentifier } from '../../utils/ast';
+import { resolveParameterIdentifier } from '#eslint/utils/ast.ts';
 
 import {
   classifyExpression,
@@ -12,7 +12,7 @@ import {
   hasExternalUpstreamMember,
   resolveReturnType,
   TYPE_CLASSIFICATIONS,
-} from '../../utils/boolish-classification';
+} from '#eslint/utils/boolish-classification.ts';
 
 import {
   getPrefixesForKind,
@@ -24,13 +24,13 @@ import {
   KIND_PARAMETER,
   KIND_PROPERTY,
   KIND_VARIABLE,
-} from '../../utils/boolish-prefixes';
+} from '#eslint/utils/boolish-prefixes.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { Maybe } from '../../../shared/types/core';
-import type { TypeClassification } from '../../utils/boolish-classification';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { TypeClassification } from '#eslint/utils/boolish-classification.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_PREFIX = 'missingPrefix';
 export const MESSAGE_ID_UNEXPECTED_PREFIX = 'unexpectedPrefix';

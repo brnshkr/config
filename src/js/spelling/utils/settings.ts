@@ -4,8 +4,8 @@
 
 import path from 'node:path';
 
-import { compileConfiguredPattern } from '../../shared/utils/configured-pattern';
-import { doesFileExist, findNearestPackageJson, readJsonObjectFile } from '../../shared/utils/filesystem';
+import { compileConfiguredPattern } from '#shared/utils/configured-pattern.ts';
+import { doesFileExist, findNearestPackageJson, readJsonObjectFile } from '#shared/utils/filesystem.ts';
 
 import {
   isPlainObject,
@@ -13,12 +13,12 @@ import {
   objectKeys,
   readOwnValue,
   writeOwnValue,
-} from '../../shared/utils/object';
+} from '#shared/utils/object.ts';
 
-import { packageFullName } from '../../shared/utils/package-json';
+import { packageFullName } from '#shared/utils/package-json.ts';
 
-import type { Maybe } from '../../shared/types/core';
-import type { AllowedLiteral, Allowlist, SpellingSettings } from '../types/options';
+import type { Maybe } from '#shared/types/core.ts';
+import type { AllowedLiteral, Allowlist, SpellingSettings } from '#spelling/types/options.ts';
 
 const EVERY_PATH = '*';
 const DEFAULTS_FILE = 'defaults.json';

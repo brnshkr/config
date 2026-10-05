@@ -3,11 +3,10 @@ import path from 'node:path';
 import stylelint from 'stylelint';
 import { test } from 'vitest';
 
-import { getConfig } from '../../src/js/stylelint';
+import { getConfig } from '#stylelint/index.ts';
+import { snapshotConfigs } from '#tests/utils/config-snapshot.ts';
 
-import { snapshotConfigs } from './utils/config-snapshot';
-
-import type { JsonObject } from './utils/json-diff';
+import type { JsonObject } from '#tests/utils/json-diff.ts';
 
 test('expected stylelint config', async () => {
   const config = getConfig();

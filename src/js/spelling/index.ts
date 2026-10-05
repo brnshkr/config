@@ -1,13 +1,12 @@
 import path from 'node:path';
 
-import { getEnvironmentValue } from '../shared/utils/environment';
-import { readTextFile } from '../shared/utils/filesystem';
-import { readOwnValue } from '../shared/utils/object';
-import { createPattern } from '../shared/utils/pattern';
-
-import { collectFilePaths } from './utils/files';
-import { buildPatterns } from './utils/patterns';
-import { readAllowlist, readSettings } from './utils/settings';
+import { getEnvironmentValue } from '#shared/utils/environment.ts';
+import { readTextFile } from '#shared/utils/filesystem.ts';
+import { readOwnValue } from '#shared/utils/object.ts';
+import { createPattern } from '#shared/utils/pattern.ts';
+import { collectFilePaths } from '#spelling/utils/files.ts';
+import { buildPatterns } from '#spelling/utils/patterns.ts';
+import { readAllowlist, readSettings } from '#spelling/utils/settings.ts';
 
 import type {
   AllowedLiteral,
@@ -15,7 +14,7 @@ import type {
   SpellingFinding,
   SpellingOptions,
   SpellingPattern,
-} from './types/options';
+} from '#spelling/types/options.ts';
 
 const EVERY_PATH = '*';
 const DEFAULT_CONFIG_DIRECTORY = 'conf';

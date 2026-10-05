@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/vitest
  */
 
-import { packageFullName } from '../../shared/utils/package-json';
+import { packageFullName } from '#shared/utils/package-json.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#vitest/types/config.ts';
 
 export const spelling = (): Config[] => [
   {

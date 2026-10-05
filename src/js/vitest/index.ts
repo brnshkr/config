@@ -1,11 +1,10 @@
-import { isModuleEnabledByDefault } from '../shared/utils/module';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { configs } from '#vitest/configs/index.ts';
+import { getUserConfigs, includeConfigs } from '#vitest/utils/config.ts';
+import { isModuleEnabled, MODULES, setModuleEnabled } from '#vitest/utils/module.ts';
 
-import { configs } from './configs';
-import { getUserConfigs, includeConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
-
-import type { Config } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import type { Config } from '#vitest/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#vitest/types/options.ts';
 
 /**
  * Build the `@brnshkr` Vitest config object.

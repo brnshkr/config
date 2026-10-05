@@ -2,8 +2,8 @@
  * @internal @brnshkr/config
  */
 
-import { log } from './log';
-import { objectEntries, objectFromEntries, readOwnValue } from './object';
+import { log } from '#shared/utils/log.ts';
+import { objectEntries, objectFromEntries, readOwnValue } from '#shared/utils/object.ts';
 
 import {
   COMMITLINT_PACKAGE_RESOLVERS,
@@ -12,12 +12,12 @@ import {
   PATTERN_PACKAGE_RESOLVERS,
   STYLELINT_PACKAGE_RESOLVERS,
   VITEST_PACKAGE_RESOLVERS,
-} from './package-resolvers';
+} from '#shared/utils/package-resolvers.ts';
 
-import { isPackageInstalled } from './resolve';
-import { joinAsQuotedList } from './string';
+import { isPackageInstalled } from '#shared/utils/resolve.ts';
+import { joinAsQuotedList } from '#shared/utils/string.ts';
 
-import type { Maybe, Simplify } from '../types/core';
+import type { Maybe, Simplify } from '#shared/types/core.ts';
 
 const PACKAGE_RESOLVERS = <const>{
   ...COMMITLINT_PACKAGE_RESOLVERS,

@@ -2,7 +2,7 @@
  * @internal @brnshkr/config
  */
 
-import type { Awaitable } from '../types/core';
+import type { Awaitable } from '#shared/types/core.ts';
 
 export const interopImport = async <TModule>(
   thePackage: Awaitable<TModule>,

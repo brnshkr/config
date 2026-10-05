@@ -4,16 +4,16 @@ import {
   boolishPrefixRule,
   MESSAGE_ID_MISSING_PREFIX,
   MESSAGE_ID_UNEXPECTED_PREFIX,
-} from '../../../src/js/eslint/configs/builtin/boolish-prefix';
+} from '#eslint/configs/builtin/boolish-prefix.ts';
 
 import {
   FLAG_PREFIXES,
   PREDICATE_PREFIXES,
   RESERVED_METHOD_PREFIXES,
   RESERVED_VALUE_PREFIXES,
-} from '../../../src/js/eslint/utils/boolish-prefixes';
+} from '#eslint/utils/boolish-prefixes.ts';
 
-import { extractPhpListConstant, readPhpRuleSource } from '../utils/php-rule';
+import { extractPhpListConstant, readPhpRuleSource } from '#tests/utils/php-rule.ts';
 
 import {
 
@@ -21,7 +21,7 @@ import {
   runJsRuleTests,
   runTypeAwareRuleTests,
   TYPE_AWARE_FIXTURE_FILE,
-} from '../utils/rule-tester';
+} from '#tests/utils/rule-tester.ts';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders({
   filename: TYPE_AWARE_FIXTURE_FILE,

@@ -2,11 +2,11 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { isFunctionInitializer } from './ast';
-import { extractBlockComment } from './jsdoc';
+import { isFunctionInitializer } from '#eslint/utils/ast.ts';
+import { extractBlockComment } from '#eslint/utils/jsdoc.ts';
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export type ExportedSymbolKind = 'Class'
   | 'Interface'

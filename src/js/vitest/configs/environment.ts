@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/vitest
  */
 
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { MODULES, PACKAGES, resolvePackages } from '#vitest/utils/module.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#vitest/types/config.ts';
 
 export const environment = (): Config[] => {
   const {

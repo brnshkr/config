@@ -2,14 +2,14 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { createModuleState, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
-import { STYLELINT_PACKAGES } from '../../shared/utils/package-resolvers';
+import { createModuleState, resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
+import { STYLELINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
-import type { StylelintPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import type { ModuleInfo, PackageResolver } from '#shared/utils/module.ts';
+import type { StylelintPackage } from '#shared/utils/package-resolvers.ts';
+import type { configs } from '#stylelint/configs/index.ts';
 
-export { STYLELINT_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+export { STYLELINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   baseline: {

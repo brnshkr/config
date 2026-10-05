@@ -7,13 +7,13 @@ import {
   merge,
   replace,
   union,
-} from '../../shared/utils/config-merger';
+} from '#shared/utils/config-merger.ts';
 
-import { packageOrganization } from '../../shared/utils/package-json';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
-import type { MergeStrategies } from '../../shared/utils/config-merger';
-import type { Config } from '../types/config';
-import type { Override } from '../types/overrides';
+import type { MergeStrategies } from '#shared/utils/config-merger.ts';
+import type { Config } from '#stylelint/types/config.ts';
+import type { Override } from '#stylelint/types/overrides.ts';
 
 type MergedConfig = Omit<Config, 'computeEditInfo' | 'ignorePatterns' | `_${string}`>;
 

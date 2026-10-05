@@ -9,12 +9,12 @@ import {
   getMtime,
   readJsonObjectFile,
   toPosix,
-} from '../../shared/utils/filesystem';
+} from '#shared/utils/filesystem.ts';
 
-import { isPlainObject, objectEntries, objectFromEntries } from '../../shared/utils/object';
+import { isPlainObject, objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../../shared/types/core';
-import type { TsConfigPaths } from './tsconfig';
+import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 interface CachedManifest {
   mtime: Maybe<number>;

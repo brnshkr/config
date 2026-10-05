@@ -2,10 +2,10 @@
  * @internal @brnshkr/config/spelling
  */
 
-import { objectEntries } from '../../shared/utils/object';
-import { createPattern } from '../../shared/utils/pattern';
+import { objectEntries } from '#shared/utils/object.ts';
+import { createPattern } from '#shared/utils/pattern.ts';
 
-import type { SpellingPattern, SpellingSettings } from '../types/options';
+import type { SpellingPattern, SpellingSettings } from '#spelling/types/options.ts';
 
 export const buildPatterns = (settings: SpellingSettings): SpellingPattern[] => [
   ...objectEntries(settings.britishSpellings).map(([britishSpelling, americanSpelling]) => (<const>{

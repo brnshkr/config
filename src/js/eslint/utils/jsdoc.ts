@@ -2,10 +2,10 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { createPattern } from '../../shared/utils/pattern';
+import { createPattern } from '#shared/utils/pattern.ts';
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const TAG_API = 'api';
 export const TAG_INTERNAL = 'internal';

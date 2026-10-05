@@ -67,8 +67,6 @@ PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
 
 PHP_UNIT_FLAGS += --parallel --processes=2
 
-export VITE_CONFIG_NATIVE_IGNORE_WARNING := true
-
 #---vv tools
 
 COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php

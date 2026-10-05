@@ -2,15 +2,15 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { createModuleState, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
-import { packageOrganization } from '../../shared/utils/package-json';
-import { MARKDOWNLINT_PACKAGES } from '../../shared/utils/package-resolvers';
+import { createModuleState, resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { MARKDOWNLINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
-import type { MarkdownlintPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import type { configs } from '#markdownlint/configs/index.ts';
+import type { ModuleInfo, PackageResolver } from '#shared/utils/module.ts';
+import type { MarkdownlintPackage } from '#shared/utils/package-resolvers.ts';
 
-export { MARKDOWNLINT_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+export { MARKDOWNLINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   [packageOrganization]: {

@@ -2,11 +2,11 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { toPosix } from '../../shared/utils/filesystem';
+import { toPosix } from '#shared/utils/filesystem.ts';
 
 import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const TYPE_CLASSIFICATIONS = <const>{
   BOOL: 'bool',

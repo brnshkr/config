@@ -3,7 +3,7 @@
  */
 
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 
 export const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
 export const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';

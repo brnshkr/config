@@ -9,9 +9,9 @@ import {
   MESSAGE_ID_MISSING_RETURNS,
   MESSAGE_ID_MISSING_TAG_DESCRIPTION,
   publicApiDocumentationRule,
-} from '../../../src/js/eslint/configs/builtin/public-api-documentation';
+} from '#eslint/configs/builtin/public-api-documentation.ts';
 
-import { clearPublicApiResolutionCache } from '../../../src/js/eslint/utils/public-api';
+import { clearPublicApiResolutionCache } from '#eslint/utils/public-api.ts';
 
 import {
   createRuleCaseBuilders,
@@ -19,7 +19,7 @@ import {
   runJsRuleTests,
   runRuleTests,
   runTsRuleTests,
-} from '../utils/rule-tester';
+} from '#tests/utils/rule-tester.ts';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_INDEX = path.join(FIXTURE_ROOT, 'src/index.ts');

@@ -7,12 +7,12 @@ import {
   merge,
   replace,
   union,
-} from '../../shared/utils/config-merger';
+} from '#shared/utils/config-merger.ts';
 
-import { objectEntries, objectFromEntries } from '../../shared/utils/object';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
-import type { MergeStrategies } from '../../shared/utils/config-merger';
-import type { Config } from '../types/config';
+import type { Config } from '#commitlint/types/config.ts';
+import type { MergeStrategies } from '#shared/utils/config-merger.ts';
 
 const mergeInlinePlugins = (pluginsToMerge: NonNullable<Config['plugins']>): NonNullable<Config['plugins']> => {
   const namedPlugins = pluginsToMerge.filter((pluginToMerge) => typeof pluginToMerge === 'string');

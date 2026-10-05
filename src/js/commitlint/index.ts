@@ -1,11 +1,10 @@
-import { isModuleEnabledByDefault } from '../shared/utils/module';
+import { configs } from '#commitlint/configs/index.ts';
+import { getUserConfigs, includeConfigs } from '#commitlint/utils/config.ts';
+import { isModuleEnabled, MODULES, setModuleEnabled } from '#commitlint/utils/module.ts';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
 
-import { configs } from './configs';
-import { getUserConfigs, includeConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
-
-import type { Config } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import type { Config } from '#commitlint/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#commitlint/types/options.ts';
 
 /**
  * Build the `@brnshkr` commitlint config object.

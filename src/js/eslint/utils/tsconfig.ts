@@ -5,11 +5,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { readTextFile } from '../../shared/utils/filesystem';
-import { objectEntries, objectFromEntries } from '../../shared/utils/object';
+import { readTextFile } from '#shared/utils/filesystem.ts';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../../shared/types/core';
-import type { TypescriptOptions } from '../types/options';
+import type { TypescriptOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export type TsConfigPaths = Record<string, string[]>;
 

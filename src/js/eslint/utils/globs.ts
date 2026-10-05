@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { GLOB_BENCHMARK_FILES, GLOB_TEST_FILES as GLOB_TEST_FILES_SHARED } from '../../shared/utils/globs';
+import { GLOB_BENCHMARK_FILES, GLOB_TEST_FILES as GLOB_TEST_FILES_SHARED } from '#shared/utils/globs.ts';
 
 export const GLOB_CJS = '**/*.cjs';
 export const GLOB_TS = '**/*.?(c|m)ts?(x)';

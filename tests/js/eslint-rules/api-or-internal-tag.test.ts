@@ -7,12 +7,12 @@ import {
   MESSAGE_ID_MISSING_TAG,
   MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT,
   MESSAGE_ID_UNEXPECTED_TAG_CONFLICT,
-} from '../../../src/js/eslint/configs/builtin/api-or-internal-tag';
+} from '#eslint/configs/builtin/api-or-internal-tag.ts';
 
-import { TAG_API, TAG_INTERNAL } from '../../../src/js/eslint/utils/jsdoc';
-import { clearPublicApiResolutionCache } from '../../../src/js/eslint/utils/public-api';
-import { extractPhpStringConstants, readPhpRuleSource } from '../utils/php-rule';
-import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '../utils/rule-tester';
+import { TAG_API, TAG_INTERNAL } from '#eslint/utils/jsdoc.ts';
+import { clearPublicApiResolutionCache } from '#eslint/utils/public-api.ts';
+import { extractPhpStringConstants, readPhpRuleSource } from '#tests/utils/php-rule.ts';
+import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '#tests/utils/rule-tester.ts';
 
 const FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/eslint-rules');
 const FIXTURE_INDEX = path.join(FIXTURE_ROOT, 'src/index.ts');

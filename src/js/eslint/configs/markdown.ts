@@ -2,14 +2,14 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { readOwnValue } from '../../shared/utils/object';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_MD } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_MD } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { readOwnValue } from '#shared/utils/object.ts';
 
-import type { Config } from '../types/config';
-import type { MarkdownOptions } from '../types/options';
+import type { Config } from '#eslint/types/config.ts';
+import type { MarkdownOptions } from '#eslint/types/options.ts';
 
 /**
  * @throws {Error}

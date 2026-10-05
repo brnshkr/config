@@ -2,15 +2,15 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { createModuleState, resolvePackagesSharedAsynchronously } from '../../shared/utils/module';
-import { packageOrganization } from '../../shared/utils/package-json';
-import { ESLINT_PACKAGES } from '../../shared/utils/package-resolvers';
+import { createModuleState, resolvePackagesSharedAsynchronously } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { ESLINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { AsyncPackageResolver, ModuleInfo } from '../../shared/utils/module';
-import type { EslintPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import type { configs } from '#eslint/configs/index.ts';
+import type { AsyncPackageResolver, ModuleInfo } from '#shared/utils/module.ts';
+import type { EslintPackage } from '#shared/utils/package-resolvers.ts';
 
-export { ESLINT_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+export { ESLINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   [packageOrganization]: {

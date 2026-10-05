@@ -2,19 +2,19 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { buildExportVisitors } from '../../utils/exports';
+import { buildExportVisitors } from '#eslint/utils/exports.ts';
 
 import {
   findFileLevelComment,
   getEffectiveVisibilityTag,
   hasConflictingVisibilityTags,
-} from '../../utils/jsdoc';
+} from '#eslint/utils/jsdoc.ts';
 
-import { isPublicApiFile } from '../../utils/public-api';
+import { isPublicApiFile } from '#eslint/utils/public-api.ts';
 
 import type { TSESLint } from '@typescript-eslint/utils';
-import type { PackageExportsResolverOptions } from '../../utils/package-exports';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
 
 export const MESSAGE_ID_MISSING_TAG = 'missingTag';
 export const MESSAGE_ID_UNEXPECTED_TAG_CONFLICT = 'unexpectedTagConflict';

@@ -2,13 +2,13 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { INDENT, QUOTES } from '../../shared/utils/constants';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_YAML } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_YAML } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { INDENT, QUOTES } from '#shared/utils/constants.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#eslint/types/config.ts';
 
 export const yaml = async (): Promise<Config[]> => {
   const {

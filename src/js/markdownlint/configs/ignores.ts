@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { GLOB_IGNORES } from '../../shared/utils/globs';
+import { GLOB_IGNORES } from '#shared/utils/globs.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#markdownlint/types/config.ts';
 
 // eslint-disable-next-line brnshkr/boolish-prefix -- Config builders are named after the config section they build
 export const ignores = (): Config[] => [

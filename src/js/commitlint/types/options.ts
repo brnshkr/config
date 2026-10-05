@@ -5,7 +5,7 @@
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 
 import type { TenseOptions } from 'commitlint-plugin-tense/dist/library/ensure-tense';
-import type { Config } from './config';
+import type { Config } from '#commitlint/types/config.ts';
 
 export interface ConfigOptions {
   /**

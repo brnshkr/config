@@ -2,12 +2,12 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { isBlockComment } from '../../utils/jsdoc';
+import { isBlockComment } from '#eslint/utils/jsdoc.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { Maybe } from '../../../shared/types/core';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_REFERENCE = 'missingReference';
 

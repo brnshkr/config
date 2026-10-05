@@ -1,3 +1,3 @@
-import { getConfig } from '../src/js/stylelint';
+import { getConfig } from '#stylelint/index.ts';
 
 export default getConfig();

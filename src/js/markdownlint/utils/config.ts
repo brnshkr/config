@@ -7,12 +7,12 @@ import {
   merge,
   replace,
   union,
-} from '../../shared/utils/config-merger';
+} from '#shared/utils/config-merger.ts';
 
-import { resolveModulePath } from '../../shared/utils/resolve';
+import { resolveModulePath } from '#shared/utils/resolve.ts';
 
-import type { MergeStrategies } from '../../shared/utils/config-merger';
-import type { Config } from '../types/config';
+import type { Config } from '#markdownlint/types/config.ts';
+import type { MergeStrategies } from '#shared/utils/config-merger.ts';
 
 // NOTICE: markdownlint would load a rule's CommonJS build, and ESM nests that inside an extra `default` it cannot see
 export const resolveCustomRule = (id: string): string => resolveModulePath(id) ?? id;

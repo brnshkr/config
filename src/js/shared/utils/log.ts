@@ -2,7 +2,7 @@
  * @internal @brnshkr/config
  */
 
-import { packageFullName } from './package-json';
+import { packageFullName } from '#shared/utils/package-json.ts';
 
 export const log = (message: string): void => {
   // eslint-disable-next-line no-console -- This is the only place in the application that is allowed to use the console directly

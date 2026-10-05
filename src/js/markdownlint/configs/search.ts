@@ -2,13 +2,13 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { packageOrganization } from '../../shared/utils/package-json';
-import { createPattern } from '../../shared/utils/pattern';
-import { resolveCustomRule } from '../utils/config';
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { resolveCustomRule } from '#markdownlint/utils/config.ts';
+import { MODULES, PACKAGES, resolvePackages } from '#markdownlint/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { createPattern } from '#shared/utils/pattern.ts';
 
-import type { Config } from '../types/config';
-import type { SearchReplaceRule } from '../types/rules';
+import type { Config } from '#markdownlint/types/config.ts';
+import type { SearchReplaceRule } from '#markdownlint/types/rules.ts';
 
 const RULES = <const>[
   {

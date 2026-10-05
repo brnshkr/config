@@ -2,26 +2,24 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { packageOrganization, packageOrganizationUpper, packageVersion } from '../../../shared/utils/package-json';
-import { MAIN_SCOPES, SUB_SCOPES } from '../../types/scopes';
-import { buildConfigName } from '../../utils/config';
-import { GLOB_SCRIPT_FILES } from '../../utils/globs';
-import { resolveTsConfigPath } from '../../utils/tsconfig';
-
-import { apiOrInternalTagRule } from './api-or-internal-tag';
-import { boolishPrefixRule } from './boolish-prefix';
-import { interfaceSuffixRule } from './interface-suffix';
-import { internalUsageRule } from './internal-usage';
-import { publicApiDocumentationRule } from './public-api-documentation';
-import { requireImportAliasRule } from './require-import-alias';
-import { requireImportAttributesRule } from './require-import-attributes';
-// eslint-disable-next-line unicorn/name-replacements -- Mirrors the rule id, which pairs with the PHP `ResolvableDocReferenceRule`
-import { resolvableDocReferenceRule } from './resolvable-doc-reference';
-import { typeAssertionStyleRule } from './type-assertion-style';
+import { apiOrInternalTagRule } from '#eslint/configs/builtin/api-or-internal-tag.ts';
+import { boolishPrefixRule } from '#eslint/configs/builtin/boolish-prefix.ts';
+import { interfaceSuffixRule } from '#eslint/configs/builtin/interface-suffix.ts';
+import { internalUsageRule } from '#eslint/configs/builtin/internal-usage.ts';
+import { publicApiDocumentationRule } from '#eslint/configs/builtin/public-api-documentation.ts';
+import { requireImportAliasRule } from '#eslint/configs/builtin/require-import-alias.ts';
+import { requireImportAttributesRule } from '#eslint/configs/builtin/require-import-attributes.ts';
+import { resolvableDocReferenceRule } from '#eslint/configs/builtin/resolvable-doc-reference.ts';
+import { typeAssertionStyleRule } from '#eslint/configs/builtin/type-assertion-style.ts';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { packageOrganization, packageOrganizationUpper, packageVersion } from '#shared/utils/package-json.ts';
 
 import type { ESLint } from 'eslint';
-import type { Config } from '../../types/config';
-import type { TypescriptOptions } from '../../types/options';
+import type { Config } from '#eslint/types/config.ts';
+import type { TypescriptOptions } from '#eslint/types/options.ts';
 
 type ExtractValueTypeFromRecord<TRecord> = TRecord extends Record<string, infer U> ? U : never;
 

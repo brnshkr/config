@@ -2,17 +2,17 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { objectEntries, objectFromEntries } from '../../shared/utils/object';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_MD, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
-import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_MD, GLOB_SCRIPT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
 import type { ESLint } from 'eslint';
-import type { Maybe } from '../../shared/types/core';
-import type { Config, TsEslintConfigArray, TsEslintParser } from '../types/config';
-import type { TypeAwareOptions, TypescriptOptions } from '../types/options';
+import type { Config, TsEslintConfigArray, TsEslintParser } from '#eslint/types/config.ts';
+import type { TypeAwareOptions, TypescriptOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,

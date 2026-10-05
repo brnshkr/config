@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 /**
  * Auxiliary, modal, and copula verbs.

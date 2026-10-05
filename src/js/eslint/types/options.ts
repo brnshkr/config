@@ -4,8 +4,8 @@
 
 import type { CSSLanguageOptions } from '@eslint/css';
 import type { Linter } from 'eslint';
-import type { packageOrganization } from '../../shared/utils/package-json';
-import type { Config, TsEslintParserOptions } from './config';
+import type { Config, TsEslintParserOptions } from '#eslint/types/config.ts';
+import type { packageOrganization } from '#shared/utils/package-json.ts';
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
 export interface CssOptions {

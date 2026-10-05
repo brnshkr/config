@@ -2,9 +2,9 @@
  * @internal @brnshkr/config/commitlint
  */
 
-import { ERROR } from '../utils/constants';
+import { ERROR } from '#commitlint/utils/constants.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#commitlint/types/config.ts';
 
 const SCOPE_MIN_LENGTH = 2;
 const SUBJECT_MIN_LENGTH = 5;

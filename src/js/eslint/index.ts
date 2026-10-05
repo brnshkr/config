@@ -1,21 +1,21 @@
 import { FlatConfigComposer } from 'eslint-flat-config-utils';
 
-import { isModuleEnabledByDefault } from '../shared/utils/module';
-import { packageOrganization } from '../shared/utils/package-json';
-
-import { configs } from './configs';
-import { getUserConfigs } from './utils/config';
+import { configs } from '#eslint/configs/index.ts';
+import { getUserConfigs } from '#eslint/utils/config.ts';
 
 import {
   BUILTIN_MODULE,
   isModuleEnabled,
   MODULES,
   setModuleEnabled,
-} from './utils/module';
+} from '#eslint/utils/module.ts';
 
-import type { Awaitable } from '../shared/types/core';
-import type { Config, ConfigNames, ResolvableConfig } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { Config, ConfigNames, ResolvableConfig } from '#eslint/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#eslint/types/options.ts';
+import type { Awaitable } from '#shared/types/core.ts';
 
 /**
  * Build the `@brnshkr` ESLint flat config composer.

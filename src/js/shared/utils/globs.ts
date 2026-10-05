@@ -4,7 +4,7 @@
 
 import path from 'node:path';
 
-import { getEnvironmentValue } from './environment';
+import { getEnvironmentValue } from '#shared/utils/environment.ts';
 
 const getDirectoryGlob = (variableName: string, defaultDirectory: string): string => {
   const configuredDirectory = getEnvironmentValue(variableName) ?? '';

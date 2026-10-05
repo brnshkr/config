@@ -1,18 +1,18 @@
-import { isModuleEnabledByDefault } from '../shared/utils/module';
-import { packageOrganization } from '../shared/utils/package-json';
-
-import { configs } from './configs';
-import { getUserConfigs, includeConfigs } from './utils/config';
+import { configs } from '#markdownlint/configs/index.ts';
+import { getUserConfigs, includeConfigs } from '#markdownlint/utils/config.ts';
 
 import {
   BUILTIN_MODULE,
   isModuleEnabled,
   MODULES,
   setModuleEnabled,
-} from './utils/module';
+} from '#markdownlint/utils/module.ts';
 
-import type { Config } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { Config } from '#markdownlint/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#markdownlint/types/options.ts';
 
 /**
  * Build the `@brnshkr` markdownlint config object.

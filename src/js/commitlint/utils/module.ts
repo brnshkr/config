@@ -2,14 +2,14 @@
  * @internal @brnshkr/config/commitlint
  */
 
-import { createModuleState, resolvePackagesSharedSynchronously } from '../../shared/utils/module';
-import { COMMITLINT_PACKAGES } from '../../shared/utils/package-resolvers';
+import { createModuleState, resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
+import { COMMITLINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-import type { ModuleInfo, PackageResolver } from '../../shared/utils/module';
-import type { CommitlintPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import type { configs } from '#commitlint/configs/index.ts';
+import type { ModuleInfo, PackageResolver } from '#shared/utils/module.ts';
+import type { CommitlintPackage } from '#shared/utils/package-resolvers.ts';
 
-export { COMMITLINT_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+export { COMMITLINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   conventional: {

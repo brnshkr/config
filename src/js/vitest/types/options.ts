@@ -4,7 +4,7 @@
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 
-import type { Config } from './config';
+import type { Config } from '#vitest/types/config.ts';
 
 export interface ConfigOptions {
   /**

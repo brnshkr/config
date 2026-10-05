@@ -4,10 +4,10 @@ import {
   INTERFACE_SUFFIX,
   interfaceSuffixRule,
   MESSAGE_ID_MISSING_SUFFIX,
-} from '../../../src/js/eslint/configs/builtin/interface-suffix';
+} from '#eslint/configs/builtin/interface-suffix.ts';
 
-import { extractPhpStringConstants, readPhpRuleSource } from '../utils/php-rule';
-import { createRuleCaseBuilders, runTsRuleTests } from '../utils/rule-tester';
+import { extractPhpStringConstants, readPhpRuleSource } from '#tests/utils/php-rule.ts';
+import { createRuleCaseBuilders, runTsRuleTests } from '#tests/utils/rule-tester.ts';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders();
 

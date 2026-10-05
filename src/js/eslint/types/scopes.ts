@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { packageOrganizationUpper } from '../../shared/utils/package-json';
+import { packageOrganizationUpper } from '#shared/utils/package-json.ts';
 
 export const MAIN_SCOPES = <const>{
   [packageOrganizationUpper]: 'builtin',

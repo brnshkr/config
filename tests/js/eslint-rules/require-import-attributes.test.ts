@@ -5,9 +5,9 @@ import {
   MESSAGE_ID_MISSING_WITH_KEYWORD,
   MESSAGE_ID_UNEXPECTED_TYPE_VALUE,
   requireImportAttributesRule,
-} from '../../../src/js/eslint/configs/builtin/require-import-attributes';
+} from '#eslint/configs/builtin/require-import-attributes.ts';
 
-import { createRuleCaseBuilders, runJsRuleTests } from '../utils/rule-tester';
+import { createRuleCaseBuilders, runJsRuleTests } from '#tests/utils/rule-tester.ts';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders();
 

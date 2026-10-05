@@ -1,3 +1,3 @@
-import { getConfig } from '../src/js/commitlint';
+import { getConfig } from '#commitlint/index.ts';
 
 export default getConfig();

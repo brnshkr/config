@@ -2,16 +2,15 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { packageOrganization } from '../../shared/utils/package-json';
-
-import { builtin } from './builtin';
-import { github } from './github';
-import { ignores } from './ignores';
-import { links } from './links';
-import { markdown } from './markdown';
-import { search } from './search';
-import { style } from './style';
-import { tables } from './tables';
+import { builtin } from '#markdownlint/configs/builtin/index.ts';
+import { github } from '#markdownlint/configs/github.ts';
+import { ignores } from '#markdownlint/configs/ignores.ts';
+import { links } from '#markdownlint/configs/links.ts';
+import { markdown } from '#markdownlint/configs/markdown.ts';
+import { search } from '#markdownlint/configs/search.ts';
+import { style } from '#markdownlint/configs/style.ts';
+import { tables } from '#markdownlint/configs/tables.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 export const configs = <const>{
   [packageOrganization]: builtin,

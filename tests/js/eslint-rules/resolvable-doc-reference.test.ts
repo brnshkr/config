@@ -3,14 +3,14 @@ import { test } from 'vitest';
 import {
   MESSAGE_ID_MISSING_REFERENCE,
   resolvableDocReferenceRule as resolvableDocumentReferenceRule,
-} from '../../../src/js/eslint/configs/builtin/resolvable-doc-reference';
+} from '#eslint/configs/builtin/resolvable-doc-reference.ts';
 
 import {
   createRuleCaseBuilders,
   runTsRuleTests,
   runTypeAwareRuleTests,
   TYPE_AWARE_FIXTURE_FILE,
-} from '../utils/rule-tester';
+} from '#tests/utils/rule-tester.ts';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders();
 

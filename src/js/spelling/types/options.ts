@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/spelling
  */
 
-import type { Maybe } from '../../shared/types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export interface SpellingSettings {
   fileExtensions: string[];

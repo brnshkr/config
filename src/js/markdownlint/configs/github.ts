@@ -2,10 +2,10 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { resolveCustomRule } from '../utils/config';
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+import { resolveCustomRule } from '#markdownlint/utils/config.ts';
+import { MODULES, PACKAGES, resolvePackages } from '#markdownlint/utils/module.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#markdownlint/types/config.ts';
 
 export const github = (): Config[] => {
   const {

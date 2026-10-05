@@ -6,9 +6,9 @@ import {
   MESSAGE_ID_UNEXPECTED_PARENTHESES,
   MESSAGE_ID_UNEXPECTED_SPACE,
   typeAssertionStyleRule,
-} from '../../../src/js/eslint/configs/builtin/type-assertion-style';
+} from '#eslint/configs/builtin/type-assertion-style.ts';
 
-import { createRuleCaseBuilders, runTsRuleTests } from '../utils/rule-tester';
+import { createRuleCaseBuilders, runTsRuleTests } from '#tests/utils/rule-tester.ts';
 
 const { buildInvalidCase, buildValidCase } = createRuleCaseBuilders();
 

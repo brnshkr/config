@@ -2,12 +2,12 @@
  * @internal @brnshkr/config/markdownlint
  */
 
-import { MAX_LEN } from '../../shared/utils/constants';
-import { getEnvironmentValue } from '../../shared/utils/environment';
-import { packageOrganizationUpper } from '../../shared/utils/package-json';
-import { TABLE_STYLE } from '../utils/constants';
+import { TABLE_STYLE } from '#markdownlint/utils/constants.ts';
+import { MAX_LEN } from '#shared/utils/constants.ts';
+import { getEnvironmentValue } from '#shared/utils/environment.ts';
+import { packageOrganizationUpper } from '#shared/utils/package-json.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#markdownlint/types/config.ts';
 
 /* eslint-disable ts/naming-convention -- Options need to be cased like this */
 export const markdown = (): Config[] => {

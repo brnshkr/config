@@ -4,7 +4,7 @@
 
 import { fileURLToPath } from 'node:url';
 
-import type { Maybe } from '../types/core';
+import type { Maybe } from '#shared/types/core.ts';
 
 export const resolveModulePath = (specifier: string): Maybe<string> => {
   try {

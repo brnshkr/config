@@ -2,7 +2,7 @@
  * @internal @brnshkr/config
  */
 
-import type { Maybe, Simplify, ValueOf } from '../types/core';
+import type { Maybe, Simplify, ValueOf } from '#shared/types/core.ts';
 
 export type AnyRecord = Record<PropertyKey, unknown>;
 export type AnyObject<TObject = AnyRecord> = Simplify<Partial<Record<keyof TObject, ValueOf<TObject>>>>;

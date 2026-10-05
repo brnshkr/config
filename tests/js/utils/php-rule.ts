@@ -1,8 +1,7 @@
 import path from 'node:path';
 
-import { createPattern } from '../../../src/js/shared/utils/pattern';
-
-import { readText } from './filesystem';
+import { createPattern } from '#shared/utils/pattern.ts';
+import { readText } from '#tests/utils/filesystem.ts';
 
 const PHP_RULE_ROOT = path.resolve(import.meta.dirname, '../../../src/php/PhpStan/Rule');
 

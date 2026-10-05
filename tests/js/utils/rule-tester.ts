@@ -3,11 +3,11 @@ import path from 'node:path';
 import { RuleTester } from 'eslint';
 import tseslint from 'typescript-eslint';
 
-import { RULE_DEFINITIONS } from '../../../src/js/eslint/configs/builtin';
-import { objectEntries } from '../../../src/js/shared/utils/object';
+import { RULE_DEFINITIONS } from '#eslint/configs/builtin/index.ts';
+import { objectEntries } from '#shared/utils/object.ts';
 
-import type { RuleDefinition } from '../../../src/js/eslint/configs/builtin';
-import type { Config } from '../../../src/js/eslint/types/config';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { Config } from '#eslint/types/config.ts';
 
 export const TYPE_AWARE_FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/type-aware');
 export const TYPE_AWARE_FIXTURE_FILE = path.join(TYPE_AWARE_FIXTURE_ROOT, 'file.ts');

@@ -6,12 +6,12 @@ import path from 'node:path';
 
 import { includeIgnoreFile } from 'eslint/config';
 
-import { doesFileExist } from '../../shared/utils/filesystem';
-import { GLOB_IGNORES } from '../../shared/utils/globs';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { doesFileExist } from '#shared/utils/filesystem.ts';
+import { GLOB_IGNORES } from '#shared/utils/globs.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#eslint/types/config.ts';
 
 const DEFAULT_IGNORE_FILE = '.gitignore';
 const isIgnoreFile = (customIgnore: string): boolean => /^\.[\w\-]+ignore$/v.test(path.basename(customIgnore));

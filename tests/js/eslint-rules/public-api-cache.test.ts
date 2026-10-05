@@ -4,9 +4,9 @@ import path from 'node:path';
 
 import { expect, test } from 'vitest';
 
-import { isPublicApiFile } from '../../../src/js/eslint/utils/public-api';
-import { packageOrganization } from '../../../src/js/shared/utils/package-json';
-import { makeDirectory, setModificationTime, writeText } from '../utils/filesystem';
+import { isPublicApiFile } from '#eslint/utils/public-api.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { makeDirectory, setModificationTime, writeText } from '#tests/utils/filesystem.ts';
 
 test('isPublicApiFile invalidates cache when package.json mtime advances', () => {
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), `${packageOrganization}-public-api-`));

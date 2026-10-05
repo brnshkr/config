@@ -2,21 +2,20 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
 import {
   objectEntries,
   objectFromEntries,
   objectKeys,
   readOwnValue,
-} from '../../shared/utils/object';
+} from '#shared/utils/object.ts';
 
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
-
-import { getTsEslintParserIfExists } from './typescript';
-
-import type { Config } from '../types/config';
+import type { Config } from '#eslint/types/config.ts';
 
 const TAGS_BY_MODULE = <const>{
   test: [

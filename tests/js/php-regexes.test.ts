@@ -2,8 +2,8 @@ import path from 'node:path';
 
 import { expect, test } from 'vitest';
 
-import { createPhpRegexes } from './fixtures/php/regexes';
-import { readText, traverseDirectory } from './utils/filesystem';
+import { createPhpRegexes } from '#tests/fixtures/php/regexes.ts';
+import { readText, traverseDirectory } from '#tests/utils/filesystem.ts';
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../..');
 

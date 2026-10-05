@@ -2,12 +2,12 @@
  * @internal @brnshkr/config/commitlint
  */
 
-import { ERROR } from '../utils/constants';
-import { MODULES, resolvePackages } from '../utils/module';
+import { ERROR } from '#commitlint/utils/constants.ts';
+import { MODULES, resolvePackages } from '#commitlint/utils/module.ts';
 
 import type { RuleOutcome } from '@commitlint/types';
 import type { TenseOptions } from 'commitlint-plugin-tense/dist/library/ensure-tense';
-import type { Config } from '../types/config';
+import type { Config } from '#commitlint/types/config.ts';
 
 const ALLOWLIST = <const>[
   'announce',

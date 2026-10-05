@@ -4,8 +4,8 @@
 
 import { createRequire } from 'node:module';
 
-import { interopImport } from './interop-import';
-import { isPackageInstalled } from './resolve';
+import { interopImport } from '#shared/utils/interop-import.ts';
+import { isPackageInstalled } from '#shared/utils/resolve.ts';
 
 import type { Plugin } from '@commitlint/types';
 import type { RegExpParser } from '@eslint-community/regexpp';

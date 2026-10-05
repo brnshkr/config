@@ -1,12 +1,11 @@
 import { Minimatch } from 'minimatch';
 import { expect } from 'vitest';
 
-import { objectFromEntries, objectKeys } from '../../../src/js/shared/utils/object';
+import { objectFromEntries, objectKeys } from '#shared/utils/object.ts';
+import { traverseDirectory } from '#tests/utils/filesystem.ts';
+import { computeConfigDiff } from '#tests/utils/json-diff.ts';
 
-import { traverseDirectory } from './filesystem';
-import { computeConfigDiff } from './json-diff';
-
-import type { JsonObject } from './json-diff';
+import type { JsonObject } from '#tests/utils/json-diff.ts';
 
 interface SnapshotConfigsOptions {
   fixturesDirectory: string;
