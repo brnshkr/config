@@ -769,6 +769,7 @@ Available commands:
 +    CURL                           ?=  curl                                             (path to curl binary)
 +    GIT                            ?=  git                                              (path to git binary)
 +    LN                             ?=  ln                                               (path to ln binary)
++    LS                             ?=  ls                                               (path to ls binary)
 +    MKDIR                          ?=  mkdir                                            (path to mkdir binary)
 +    MKTEMP                         ?=  mktemp                                           (path to mktemp binary)
 +    MV                             ?=  mv                                               (path to mv binary)
@@ -1416,6 +1417,7 @@ Available commands:
     [36mCURL                         [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
     [36mGIT                          [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
     [36mLN                           [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
+    [36mLS                           [0m  [90m?=  ls                                               (path to [35mls[0m[90m binary)[0m
     [36mMKDIR                        [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
     [36mMKTEMP                       [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
     [36mMV                           [0m  [90m?=  mv                                               (path to [35mmv[0m[90m binary)[0m
@@ -1855,6 +1857,7 @@ Available commands:
     [32mCURL                         [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
     [32mGIT                          [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
     [32mLN                           [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
+    [32mLS                           [0m  [0m?=  ls                                               (path to [33mls[0m[0m binary)[0m
     [32mMKDIR                        [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
     [32mMKTEMP                       [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
     [32mMV                           [0m  [0m?=  mv                                               (path to [33mmv[0m[0m binary)[0m

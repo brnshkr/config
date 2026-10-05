@@ -197,6 +197,7 @@ CP     ?= cp#~~ path to `cp` binary
 CURL   ?= curl#~~ path to `curl` binary
 GIT    ?= git#~~ path to `git` binary
 LN     ?= ln#~~ path to `ln` binary
+LS     ?= ls#~~ path to `ls` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
 MV     ?= mv#~~ path to `mv` binary
@@ -1442,7 +1443,7 @@ $(call _target,configs): #~~ writes missing files, `tools` configs, `local` priv
 CACHE_DIR                ?= ./.cache#v #~~ directory the tools keep their caches in
 _CACHE_DIR                = $(patsubst ./%,%,$(CACHE_DIR))
 export BRNSHKR_CACHE_DIR  = $(_CACHE_DIR)
-_CACHES                   = $(strip $(if $(_CACHE_DIR),$(foreach CACHE,$(notdir $(wildcard $(CURDIR)/$(_CACHE_DIR)/*)),$(if $(findstring %,$(CACHE)),,$(CACHE)))))
+_CACHES                   = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(foreach CACHE,$$(shell cd '$$(CURDIR)/$$(_CACHE_DIR)' 2>/dev/null && $$(LS)),$$(if $$(findstring %,$$(CACHE)),,$$(CACHE))))))$(_CACHES)
 _CACHE_NAMES              = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
 _NAMED_CACHES             = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
