@@ -380,6 +380,7 @@ _CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
+_CONFIG_STAGES      = $(sort $(_DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
 
 _DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
 	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
@@ -1242,7 +1243,7 @@ _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
-	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(subst .dist.,.,$(_LAYERED_CONFIGS))))), \
+	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(foreach CONFIG_PATH,$(call _unstaged,$(subst .dist.,.,$(_LAYERED_CONFIGS))),$(CONFIG_PATH) $(foreach STAGE,$(_CONFIG_STAGES),$(call _staged,$(CONFIG_PATH),$(STAGE))))))), \
 	$(if $(filter $(patsubst /%,%,$(IGNORED_PATH)),$(_TRACKED_FILES)),,$(IGNORED_PATH)))
 
 _HELP_READ_VARIABLES := INDENT \
@@ -3271,7 +3272,45 @@ $(foreach NAME,$2,$(if $(wildcard $(call _host_path,$1/$(NAME))),$1/$(NAME)))
 endef
 
 #**
-#* The first config in the list that is there.
+#* The same config paths, named for a stage.
+#* The stage goes before the extension, and before `.dist` in a tracked name: `eslint.dev.dist.mjs`.
+#*
+#* parameters:
+#*   paths: list<string>
+#*   stage: string
+#*
+#* returns: list<string>
+#*
+define _staged
+$(foreach CONFIG_PATH,$1,$(dir $(CONFIG_PATH))$(if $(findstring .dist.,$(notdir $(CONFIG_PATH))),$(subst .dist.,.$2.dist.,$(notdir $(CONFIG_PATH))),$(basename $(notdir $(CONFIG_PATH))).$2$(suffix $(CONFIG_PATH))))
+endef
+
+#**
+#* The same config paths without the current stage in their names.
+#*
+#* parameters:
+#*   paths: list<string>
+#*
+#* returns: list<string>
+#*
+define _unstaged
+$(foreach CONFIG_PATH,$1,$(dir $(CONFIG_PATH))$(subst .$(_CURRENT_ENV).,.,$(notdir $(CONFIG_PATH))))
+endef
+
+#**
+#* The path itself, or its current stage's twin where that one is there.
+#*
+#* parameters:
+#*   path: string
+#*
+#* returns: string
+#*
+define _pinned_config
+$(or $(call _configs_in,$(patsubst %/,%,$(dir $1)),$(notdir $(call _staged,$1,$(_CURRENT_ENV)))),$1)
+endef
+
+#**
+#* The first config in the list that is there, each candidate named for the current stage first.
 #* Then the tracked name under either installation of this package, so a project reads its own file,
 #* falls back to the tracked one, and may keep neither. The last candidate is what a project is told
 #* to create when it has none, and `CONFIG` pins the choice.
@@ -3283,8 +3322,8 @@ endef
 #* returns: string
 #*
 define _config
-$(if $(_PINNED_CONFIG),$(if $(filter local,$(_PINNED_CONFIG)),$(firstword $1),$(lastword $1)),$(or \
-	$(firstword $(foreach DIRECTORY,$(call _config_dirs,$2),$(call _configs_in,$(DIRECTORY),$(notdir $1))) \
+$(if $(_PINNED_CONFIG),$(call _pinned_config,$(if $(filter local,$(_PINNED_CONFIG)),$(firstword $1),$(lastword $1))),$(or \
+	$(firstword $(foreach DIRECTORY,$(call _config_dirs,$2),$(call _configs_in,$(DIRECTORY),$(notdir $(call _staged,$1,$(_CURRENT_ENV)) $1))) \
 	$(foreach DIRECTORY,$(_PACKAGE_CONF_DIRS),$(call _configs_in,$(DIRECTORY),$(call _shipped_names,$1)))),$(lastword $1)))
 endef
 

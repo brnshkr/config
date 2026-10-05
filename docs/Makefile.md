@@ -102,7 +102,7 @@ Every tool is three variables
 | `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
 | `CONFIG_DIR`, `CACHE_DIR`, `LOCAL_DIR` | Where the project keeps its tool configs, caches and private files: `./conf`, `./.cache` and `./.local` by default; `cc` clears the caches. Set them above the include. |
 | `FRESH_KEEP` | What `fresh` leaves alone: `./.local`, `*.local` and `*.local.*` files, editor and agent directories. Add a pattern with `+=` below the include, drop one with `FRESH_KEEP := $(filter-out /.idea/,$(FRESH_KEEP))`. |
-| `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there. |
+| `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there; the current stage's file of that half still wins. |
 | `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
 | `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |
 | `NO_COLOR`, `FORCE_COLOR`, `CLICOLOR`, `CLICOLOR_FORCE` | Colors, on a terminal or in CI by default. [`NO_COLOR`](https://no-color.org), `CLICOLOR=0` and `TERM=dumb` turn them off, [`FORCE_COLOR`](https://force-color.org) and `CLICOLOR_FORCE` on; off wins. |
@@ -114,6 +114,9 @@ Every tool reads the first config that is there, looking in `./.local/conf/<stac
 `./.local/<stack>`, `./.local`, `./conf/<stack>` and `./conf`, then either installation of the package.
 `<stack>` is `php` or `js`, and within a directory `<tool>.<extension>` comes before the tracked
 `<tool>.dist.<extension>`.
+Each name is tried for the current stage first, the value of `DOTENV_ENV_KEY`:
+`phpstan.prod.php` and `phpstan.prod.dist.php` come before both plain names when `APP_ENV` is `prod`,
+and a stage without either reads the plain config.
 So a repository tracks the `.dist` file and edits that,
 a developer who wants private settings adds the undotted one
 — which should delegate to the tracked file rather than restate it —
@@ -126,7 +129,7 @@ refreshed on every run. Everything outside them stays the repository's own and c
 
 | File | Package part |
 | --- | --- |
-| `.gitignore` | caches, dependencies and private configs of what is installed |
+| `.gitignore` | caches, dependencies and private configs of what is installed, for every stage |
 | `.gitattributes` | line endings and binaries, plus export rules from the autoload roots and `ARCHIVE_EXTRA_PATHS` |
 | `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, binary paths and excludes the configured directories, `css.customData` lists every tracked `.vscode/*.css-data.json` |
 | `bunfig.toml` | Bun's defaults, ending in `[install]`: install keys and other tables go below it, top-level keys above |

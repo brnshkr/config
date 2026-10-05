@@ -185,6 +185,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'tests/php/Make/ConfigsTest.php',
+    php: String.raw`/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.prod\.dist\.php/`,
+    regex: /PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.prod\.dist\.php/v,
+  },
+  {
+    file: 'tests/php/Make/ConfigsTest.php',
     php: String.raw`/^\/composer\.json\s+-export-ignore$/m`,
     regex: /^\/composer\.json\s+-export-ignore$/mv,
   },

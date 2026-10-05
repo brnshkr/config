@@ -245,6 +245,36 @@ final class ConfigsTest extends TestCase
         self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.dist\.php/', $pinned);
     }
 
+    public function testAStageReadsItsOwnConfigFirst(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $resolve          = ['help', 'resolve', 'vv', 'VALUE_WIDTH=200'];
+
+        new Filesystem()->touch([
+            $configsDirectory . '/.env.prod',
+            $configsDirectory . '/conf/phpstan.dist.php',
+            $configsDirectory . '/conf/phpstan.php',
+            $configsDirectory . '/conf/phpstan.prod.dist.php',
+        ]);
+
+        $development = $this->runMake($resolve, directory: $configsDirectory);
+        $production  = $this->runMake([...$resolve, 'APP_ENV=prod'], directory: $configsDirectory);
+        $local       = $this->runMake([...$resolve, 'APP_ENV=prod', 'CONFIG=local'], directory: $configsDirectory);
+        $dist        = $this->runMake([...$resolve, 'APP_ENV=prod', 'CONFIG=dist'], directory: $configsDirectory);
+
+        $this->runMake(['configs', 'gitignore'], directory: $configsDirectory);
+
+        self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/', $development);
+        self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.prod\.dist\.php/', $production);
+        self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.php/', $local);
+        self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S+conf\/phpstan\.prod\.dist\.php/', $dist);
+
+        self::assertStringContainsString(
+            "/conf/phpstan.dev.php\n/conf/phpstan.php\n/conf/phpstan.prod.php\n",
+            new Filesystem()->readFile($configsDirectory . '/.gitignore'),
+        );
+    }
+
     public function testConfigsWritesWhenThereIsNoRepositoryToAsk(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
