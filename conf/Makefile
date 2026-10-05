@@ -4366,7 +4366,7 @@ function is_entry(line) {
 	return (line ~ /^- /) && get_hash(line) != ""
 }
 function is_heading(line) {
-	return line ~ /^#{3,4} /
+	return line ~ /^####? /
 }
 
 function get_section_text(index_,    position, out) {
