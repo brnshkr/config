@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\Make;
 
 use Brnshkr\Config\Str;
-use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
+use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
+use PHPUnit\Framework\Attributes\After;
+use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
@@ -25,13 +28,20 @@ use function time;
 #[CoversNothing]
 final class ToolsTest extends TestCase
 {
-    use MakeTrait;
+    use ContainerTrait;
     use MatchesSnapshots;
 
     private const string LINTERS_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Linters';
     private const string COVERAGE_DIRECTORY = __DIR__ . '/../Fixtures/Make/Coverage';
     private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
     private const string COMPOSER_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
+
+    #[Before]
+    #[After]
+    public function removeWhatTheContainerRunsWrote(): void
+    {
+        new Filesystem()->remove(self::LINTERS_DIRECTORY . '/.cache');
+    }
 
     public function testAComposerToolIsFoundInTheBinDirectoryComposerJsonNames(): void
     {
@@ -192,15 +202,28 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
     }
 
+    #[Group('semgrep')]
     public function testSemgrepSaysWhenARefetchChangedARuleset(): void
     {
-        $cachedPath = $this->getFixtureCopy(self::LINTERS_DIRECTORY) . '/.cache/semgrep/default.json';
+        $cachedPath = self::LINTERS_DIRECTORY . '/.cache/semgrep/default.json';
         $filesystem = new Filesystem();
 
         $filesystem->dumpFile($cachedPath, '{"rules":[{"id":"old"}]}');
         $filesystem->touch($cachedPath, time() - 8 * 86_400);
 
-        $output = $this->runLinter(['semgrep', 'SEMGREP_RULESETS=default', 'SEMGREP_CONFIG=conf/shipped.yaml']);
+        $output = $this->runInContainer(
+            [
+                'make',
+                '--no-print-directory',
+                'semgrep',
+                'SEMGREP_RULESETS=default',
+                'SEMGREP_CONFIG=conf/shipped.yaml',
+                'CURL=bin/curl',
+                'SEMGREP=bin/semgrep',
+            ],
+            fixtureDirectory: self::LINTERS_DIRECTORY,
+            image: self::getImage() . '-semgrep',
+        );
 
         $finder = new Finder()
             ->in(dirname($cachedPath))

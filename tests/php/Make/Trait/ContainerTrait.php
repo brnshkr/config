@@ -33,6 +33,12 @@ trait ContainerTrait
 {
     use MakeTrait;
 
+    protected const array CONTAINER_MODES = [
+        self::MODE_EXEC,
+        self::MODE_RUN,
+        self::MODE_INSIDE,
+    ];
+
     private const string CONTAINER_DIRECTORY = __DIR__ . '/../../Fixtures/Make/Container';
     private const string PROJECT_NAME        = 'brnshkr-config-container-test';
     private const string MOUNT_ROOT          = '/app';
@@ -41,12 +47,6 @@ trait ContainerTrait
     private const string MODE_EXEC   = 'host, exec';
     private const string MODE_RUN    = 'host, run --rm';
     private const string MODE_INSIDE = 'inside the container';
-
-    private const array CONTAINER_MODES = [
-        self::MODE_EXEC,
-        self::MODE_RUN,
-        self::MODE_INSIDE,
-    ];
 
     private const array STOP_SIGNALS = [
         SIGHUP,
@@ -158,6 +158,7 @@ trait ContainerTrait
         array $environment = [],
         ?string $userAndGroup = null,
         string $fixtureDirectory = self::CONTAINER_DIRECTORY,
+        ?string $image = null,
     ): string {
         $environmentFlags = [];
 
@@ -176,7 +177,7 @@ trait ContainerTrait
             '-w',
             self::getContainerPath($fixtureDirectory),
             ...$environmentFlags,
-            self::getImage(),
+            $image ?? self::getImage(),
             ...$command,
         ], env: self::getBaselineEnvironment());
 

@@ -55,12 +55,14 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 94.46
 VITEST_MIN_COVERAGE_LINES      := 91.30
 VITEST_MIN_COVERAGE_STATEMENTS := 91.50
 
-_HAS_FORGE_IMAGE  = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_IMAGE)
-_HAS_SCRIPT      := $(call _is_on_path,$(SCRIPT))
+_HAS_FORGE_IMAGE          = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_IMAGE)
+_HAS_FORGE_SEMGREP_IMAGE  = $(eval _HAS_FORGE_SEMGREP_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE)-semgrep >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_SEMGREP_IMAGE)
+_HAS_SCRIPT              := $(call _is_on_path,$(SCRIPT))
 
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
 	$(if $(_HAS_FORGE_IMAGE),,container) \
 	$(if $(filter 3.%,$(MAKE_VERSION)),make4) \
+	$(if $(_HAS_FORGE_SEMGREP_IMAGE),,semgrep) \
 	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
 
 PHP_UNIT_FLAGS += --parallel --processes=2
