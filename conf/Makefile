@@ -4376,7 +4376,7 @@ function get_section_text(index_,    position, out) {
 	return out "\n"
 }
 
-function merge_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry, regenerated_entry) {
+function merge_text(existing_index, added_index,    position, entry, group, pending, line, out, held, tail, seen_entry) {
 	pending = 0
 	for (position = 1; position <= added_entries[added_index]; position += 1) {
 		if ((existing_index, added_entry_hash[added_index, position]) in existing_hash) continue
@@ -4402,8 +4402,7 @@ function merge_text(existing_index, added_index,    position, entry, group, pend
 		}
 		if (is_entry(line)) {
 			seen_entry = 1
-			regenerated_entry = ENVIRON["_CHANGELOG_FORCE"] == "" ? "" : added_by_hash[added_index, group, get_hash(line)]
-			held = held tail (regenerated_entry == "" ? line : regenerated_entry) "\n"
+			held = held tail line "\n"
 			tail = ""
 		} else if (seen_entry) {
 			tail = tail line "\n"
@@ -4431,6 +4430,19 @@ function flush_group(group, held, tail, seen_entry, pending,    position, out) {
 	return out tail
 }
 
+function rebuild_text(existing_index, added_index,    position, line, notes) {
+	notes = ""
+	for (position = 2; position <= existing_lines[existing_index]; position += 1) {
+		line = existing_line[existing_index, position]
+		if (is_heading(line) || ((added_index, get_hash(line)) in generated_hashes && is_entry(line))) continue
+		notes = notes line "\n"
+	}
+	gsub(/\n\n\n+/, "\n\n", notes)
+	sub(/^\n+/, "", notes)
+	sub(/\n+$$/, "", notes)
+	return get_section_text(added_index) (notes == "" ? "" : "\n" notes "\n")
+}
+
 # Every section the generator produced, with its entries and the group each sits under.
 BEGIN { _added = ENVIRON["_CHANGELOG_ADDED"] }
 FILENAME == _added {
@@ -4449,7 +4461,7 @@ FILENAME == _added {
 		added_entry[added_count, added_entries[added_count]] = $$0
 		added_entry_group[added_count, added_entries[added_count]] = group
 		added_entry_hash[added_count, added_entries[added_count]] = get_hash($$0)
-		added_by_hash[added_count, group, get_hash($$0)] = $$0
+		generated_hashes[added_count, get_hash($$0)] = 1
 	}
 	next
 }
@@ -4507,8 +4519,11 @@ END {
 			document = document get_section_text(insert_index[pending_insert]) "\n"
 			pending_insert += 1
 		}
-		replacement = ((existing_version[existing_index] in added_index_by_version) \
-			? merge_text(existing_index, added_index_by_version[existing_version[existing_index]]) : "")
+		replacement = ""
+		if (existing_version[existing_index] in added_index_by_version) {
+			added_index = added_index_by_version[existing_version[existing_index]]
+			replacement = ENVIRON["_CHANGELOG_FORCE"] == "" ? merge_text(existing_index, added_index) : rebuild_text(existing_index, added_index)
+		}
 		if (replacement == "") {
 			for (position = 1; position <= existing_lines[existing_index]; position += 1) {
 				document = document existing_line[existing_index, position] "\n"

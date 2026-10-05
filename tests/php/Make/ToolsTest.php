@@ -178,6 +178,38 @@ final class ToolsTest extends TestCase
         );
     }
 
+    public function testAForcedChangelogRebuildsItsSectionsAndKeepsTheNotes(): void
+    {
+        $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
+        $changelogPath     = $consumerDirectory . '/changelog/1.x.md';
+        $write             = ['changelog', 'write', 'VERSION=1.0.0'];
+        $filesystem        = new Filesystem();
+
+        self::commitInto($consumerDirectory, 'feat(user): import users');
+        self::commitInto($consumerDirectory, 'fix(email): keep address casing');
+        $this->runMake($write, directory: $consumerDirectory);
+
+        $generated  = $filesystem->readFile($changelogPath);
+        $movedEntry = Str::trim(Str::afterLast($generated, "#### User\n\n"));
+
+        $handMangling = [
+            "## 1.0.0\n"                      => "## 1.0.0 (hand-written date)\n",
+            "#### Email\n\n"                  => "#### Emial\n\nHand-written note.\n\n",
+            "\n\n#### User\n\n" . $movedEntry => "\n" . $movedEntry . "\n\n#### User",
+        ];
+
+        $mangled = $generated;
+
+        foreach ($handMangling as $needle => $replacement) {
+            $mangled = Str::replace($mangled, $needle, $replacement);
+        }
+
+        $filesystem->dumpFile($changelogPath, $mangled);
+        $this->runMake([...$write, 'force'], directory: $consumerDirectory);
+
+        self::assertSame($generated . "\nHand-written note.\n", $filesystem->readFile($changelogPath));
+    }
+
     public function testAnArgumentIsWeighedWithoutRunningIt(): void
     {
         $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);

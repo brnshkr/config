@@ -152,7 +152,7 @@ Every argument takes a short form and works without dashes: `--all`, `-a`, `all`
 | `--all` | every release, one section each |
 | `--write` | merges into `CHANGELOG_DIR` rather than printing |
 | `--notes` | a release body: no version heading, ending in the compare link |
-| `--force` | with `--write`, regenerates edited entries |
+| `--force` | with `--write`, rebuilds each section's version line, headings and entries from git; your notes follow its entries |
 
 `--write` merges into `changelog/<major>.x.md`:
 your notes stay, a missing commit lands after the last entry of its group, and a missing title is restored.
