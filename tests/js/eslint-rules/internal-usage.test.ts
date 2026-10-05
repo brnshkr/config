@@ -471,12 +471,31 @@ test('internalUsageRule degrades to lexical resolution without type information'
         '@api symbol escapes a file-level @internal module',
         'import { internalFileApiHelper } from \'../entry/internal-file\';\n\ninternalFileApiHelper(\'a\');\n',
       ),
+      buildValidCase(
+        'aliased usage inside the declaring namespace',
+        'import { hashPassword } from \'@user/internal/hasher.ts\';\n\nhashPassword(\'a\');\n',
+        {
+          filename: CALLER_INSIDE,
+          options: [{ tsConfigPath: FIXTURE_TSCONFIG }],
+        },
+      ),
     ],
     invalid: [
       buildInvalidCase(
         'usage of an internal import',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
+      ),
+      buildInvalidCase(
+        'usage of an internal import written with its extension',
+        'import { hashPassword } from \'../internal/hasher.ts\';\n\nhashPassword(\'a\');\n',
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
+      ),
+      buildInvalidCase(
+        'usage of an internal import through a path alias',
+        'import { hashPassword } from \'@user/internal/hasher\';\n\nhashPassword(\'a\');\n',
+        [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
+        { options: [{ tsConfigPath: FIXTURE_TSCONFIG }] },
       ),
       {
         name: 'a declared function carries parentheses without type information',

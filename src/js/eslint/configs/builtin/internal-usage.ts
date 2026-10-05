@@ -402,17 +402,41 @@ const loadModuleVisibility = (filePath: string): ModuleVisibility => {
   return visibility;
 };
 
-const resolveRelativeModulePath = (fromFilePath: string, specifier: string): Maybe<string> => {
-  if (!specifier.startsWith('.')) {
-    return undefined;
-  }
+const resolveModulePath = (
+  fromFilePath: string,
+  specifier: string,
+  aliasPaths: Maybe<TsConfigPaths>,
+): Maybe<string> => {
+  const basePaths = specifier.startsWith('.')
+    ? [path.resolve(path.dirname(fromFilePath), specifier)]
+    : objectEntries(aliasPaths ?? {}).flatMap(([pattern, targets]) => {
+      const wildcardIndex = pattern.indexOf('*');
 
-  const base = path.resolve(path.dirname(fromFilePath), specifier);
+      if (wildcardIndex === -1) {
+        return pattern === specifier ? targets : [];
+      }
 
-  return [
-    ...MODULE_EXTENSIONS.map((extension) => `${base}${extension}`),
-    ...MODULE_EXTENSIONS.map((extension) => path.join(base, `index${extension}`)),
-  ].find((candidate) => doesFileExist(candidate));
+      const patternPrefix = pattern.slice(0, wildcardIndex);
+      const patternSuffix = pattern.slice(wildcardIndex + 1);
+
+      if (!specifier.startsWith(patternPrefix)
+        || !specifier.endsWith(patternSuffix)
+        || specifier.length < patternPrefix.length + patternSuffix.length) {
+        return [];
+      }
+
+      const capturedPath = specifier.slice(patternPrefix.length, specifier.length - patternSuffix.length);
+
+      return targets.map((target) => target.replace('*', () => capturedPath));
+    });
+
+  return basePaths
+    .flatMap((basePath) => [
+      ...MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension)) ? [basePath] : [],
+      ...MODULE_EXTENSIONS.map((extension) => `${basePath}${extension}`),
+      ...MODULE_EXTENSIONS.map((extension) => path.join(basePath, `index${extension}`)),
+    ])
+    .find((candidate) => doesFileExist(candidate));
 };
 
 /**
@@ -795,7 +819,7 @@ export const internalUsageRule = <const>{
     };
 
     const resolveScannedSymbol = (specifier: string, importedName?: string): Maybe<InternalSymbol> => {
-      const modulePath = resolveRelativeModulePath(context.filename, specifier);
+      const modulePath = resolveModulePath(context.filename, specifier, aliasPaths);
       const identity = modulePath === undefined ? undefined : resolveIdentity(modulePath);
 
       if (modulePath === undefined || identity === undefined) {

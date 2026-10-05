@@ -120,5 +120,6 @@ const allowedCallers = [
 - a method or function carries `()` in its symbol name,
   matching how [`ResolvableDocReferenceRule`](../../../php/phpstan/rules/ResolvableDocReferenceRule.md)
   tells a method from a constant. An `allowedInternals` entry has to spell it the same way
-- without type information the rule reads the imported module from disk. Only relative specifiers resolve that way,
+- without type information the rule reads the imported module from disk. Relative specifiers and the `paths`
+  aliases of `tsConfigPath` resolve that way, with or without an extension; a package import does not,
   a property reached through a value is not checked, and a symbol name omits the `()` a declared function would carry
