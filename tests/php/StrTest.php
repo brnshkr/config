@@ -158,6 +158,13 @@ final class StrTest extends TestCase
         yield 'a backslash as delimiter' => [false, '\Acme\\'];
     }
 
+    public function testASplitKeepsEmptyPartsAndStopsAtTheLimit(): void
+    {
+        self::assertSame(['Acme', 'User', '', 'Email'], Str::split('Acme/User//Email', '/'));
+        self::assertSame(['Acme', 'User//Email'], Str::split('Acme/User//Email', '/', 2));
+        self::assertSame([''], Str::split('', '/'));
+    }
+
     public function testTheLastSeparatorSplitsTheString(): void
     {
         self::assertSame('Acme\User', Str::beforeLast('Acme\User\Email', '\\'));

@@ -15,7 +15,6 @@ use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 
-use function explode;
 use function implode;
 use function in_array;
 use function sprintf;
@@ -54,7 +53,7 @@ final class BoolishPrefixRuleTest extends AbstractRuleTestCase
             #[Override]
             public function getErrorMessage(string $errorContext): string
             {
-                $parts = explode('|', $errorContext);
+                $parts = Str::split($errorContext, '|');
 
                 $type   = $parts[0];
                 $kind   = $parts[1] ?? '';

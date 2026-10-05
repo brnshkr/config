@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\Make;
 
+use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
@@ -13,7 +14,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function array_map;
 use function array_unique;
-use function explode;
 
 /**
  * @internal
@@ -148,7 +148,7 @@ final class DotenvTest extends TestCase
             self::DOTENV_DIRECTORY,
         );
 
-        [$exportedSection, $environmentFileSection] = explode('Environment files:', $plainOutput, 2) + ['', ''];
+        [$exportedSection, $environmentFileSection] = Str::split($plainOutput, 'Environment files:', 2) + ['', ''];
 
         self::assertCount(1, array_unique($outputOfEachForm));
         self::assertMatchesRegularExpression('/^Exported:$/m', $exportedSection);

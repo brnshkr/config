@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use Brnshkr\Config\Str;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Process;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -40,11 +41,12 @@ if (!$hasFormat && \in_array($arguments[0], $toonCommands, true)) {
 
 $process = new Process(
     command: ['make', '--no-print-directory', '--silent', '_mate-from-stdin'],
-    cwd: \dirname(__DIR__),
+    cwd: Path::getDirectory(__DIR__),
     input: \implode("\0", $arguments) . "\0",
     timeout: null,
 );
 
+// @phpstan-ignore symplify.forbiddenNode (The exit code of mate is this script's exit code)
 exit($process->run(static function (string $type, string $buffer): void {
     \fwrite($type === Process::ERR ? \STDERR : \STDOUT, $buffer);
 }));

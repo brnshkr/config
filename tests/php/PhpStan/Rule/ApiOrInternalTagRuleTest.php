@@ -18,7 +18,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 
 use function count;
-use function explode;
 use function sprintf;
 
 /**
@@ -60,7 +59,7 @@ final class ApiOrInternalTagRuleTest extends AbstractRuleTestCase
             #[Override]
             public function getErrorMessage(string $errorContext): string
             {
-                $parts = explode('|', $errorContext);
+                $parts = Str::split($errorContext, '|');
 
                 if ($parts[0] === 'conflict') {
                     return sprintf(

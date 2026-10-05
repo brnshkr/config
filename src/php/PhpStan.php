@@ -34,15 +34,29 @@ use PhpCsFixer\Finder as PhpCsFixerFinder;
 use PhpParser\Node;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\DynamicStaticMethodThrowTypeExtension;
+use Psr\Log\LoggerInterface;
+use Random\Randomizer;
 use RuntimeException;
 use SplFileInfo;
+use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\Clock\DatePoint;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo as SymfonySplFileInfo;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\AbstractString;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\VarExporter\VarExporter;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symplify\PHPStanRules\Rules as SymplifyPhpStanRules;
 use Throwable;
@@ -60,7 +74,6 @@ use function array_pop;
 use function array_unique;
 use function array_values;
 use function class_exists;
-use function explode;
 use function get_debug_type;
 use function getcwd;
 use function implode;
@@ -330,6 +343,12 @@ final class PhpStan
             $phpStanConfig->addIgnoredErrors([
                 [
                     'identifier'      => 'missingType.checkedException',
+                    'paths'           => $developmentDirectories,
+                    'reportUnmatched' => false,
+                ],
+                [
+                    'message'         => '#^Function "(?:getenv|putenv)\(\)" cannot be used#',
+                    'identifier'      => 'symplify.forbiddenFuncCall',
                     'paths'           => $developmentDirectories,
                     'reportUnmatched' => false,
                 ],
@@ -1640,6 +1659,15 @@ final class PhpStan
             SplFileInfo::class => SymfonySplFileInfo::class,
         ];
 
+        /** @disregard P1009 symfony/clock is not a dependency of brnshkr/config */
+        if (class_exists(DatePoint::class)) {
+            $preferredClassesMap = [
+                ...$preferredClassesMap,
+                'DateTime'               => DatePoint::class,
+                DateTimeImmutable::class => DatePoint::class,
+            ];
+        }
+
         /** @disregard P1009 nesbot/carbon is not a dependency of brnshkr/config */
         if (class_exists(Carbon::class)) {
             /** @disregard P1009 nesbot/carbon is not a dependency of brnshkr/config */
@@ -1969,12 +1997,17 @@ final class PhpStan
         $forbiddenNodes = [
             Node\Expr\Empty_::class,
             Node\Expr\ErrorSuppress::class,
+            Node\Expr\Eval_::class,
+            Node\Expr\Exit_::class,
             Node\Expr\PostDec::class,
             Node\Expr\PostInc::class,
             Node\Expr\PreDec::class,
             Node\Expr\PreInc::class,
+            Node\Expr\Print_::class,
             Node\InterpolatedStringPart::class,
             Node\Scalar\InterpolatedString::class,
+            Node\Stmt\Global_::class,
+            Node\Stmt\Goto_::class,
             Node\Stmt\Switch_::class,
         ];
 
@@ -1991,18 +2024,155 @@ final class PhpStan
     private static function getForbiddenFunctions(): array
     {
         $forbiddenFunctions = [
-            'eval'            => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'compact'         => 'Explicitly assign to keys in the array.',
-            'extract'         => 'Explicitly define variables for the entries of the array.',
-            'method_exists'   => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'property_exists' => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload'    => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload_*'  => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'var_dump'        => 'Please remove all debug functions. Use a logger if needed.',
-            'dd'              => 'Please remove all debug functions. Use a logger if needed.',
-            'dump'            => 'Please remove all debug functions. Use a logger if needed.',
-            'debug'           => 'Please remove all debug functions. Use a logger if needed.',
+            'eval'                 => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'compact'              => 'Explicitly assign to keys in the array.',
+            'extract'              => 'Explicitly define variables for the entries of the array.',
+            'define'               => 'Declare the constant with "const" instead.',
+            'assert'               => 'Throw a "LogicException" or a domain exception instead.',
+            'method_exists'        => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'property_exists'      => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload'         => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload_*'       => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'call_user_func'       => 'Call the callable directly instead.',
+            'call_user_func_array' => 'Call the callable directly, spreading the arguments, instead.',
+            'func_get_args'        => 'Use a variadic parameter instead.',
+            'gettype'              => 'Use "get_debug_type()" instead.',
+            'settype'              => 'Use a cast instead.',
+            'getenv'               => 'Read the environment in one place and inject the value instead.',
+            'putenv'               => 'Pass the environment to the process that needs it instead.',
+            'ini_set'              => 'Configure the runtime in php.ini instead.',
+            'set_time_limit'       => 'Configure the runtime in php.ini instead.',
+            'error_reporting'      => 'Configure the runtime in php.ini instead.',
+            'rand'                 => 'Use "random_int()" instead.',
+            'mt_rand'              => 'Use "random_int()" instead.',
+            'lcg_value'            => sprintf('Use "%s::nextFloat()" instead.', Randomizer::class),
+            'array_rand'           => sprintf('Use "%s::pickArrayKeys()" instead.', Randomizer::class),
+            'shuffle'              => sprintf('Use "%s::shuffleArray()" instead.', Randomizer::class),
+            'str_shuffle'          => sprintf('Use "%s::shuffleBytes()" instead.', Randomizer::class),
+            'var_dump'             => 'Please remove all debug functions. Use a logger if needed.',
+            'print_r'              => 'Please remove all debug functions. Use a logger if needed.',
+            'dd'                   => 'Please remove all debug functions. Use a logger if needed.',
+            'dump'                 => 'Please remove all debug functions. Use a logger if needed.',
+            'debug'                => 'Please remove all debug functions. Use a logger if needed.',
         ];
+
+        /** @disregard P1009 psr/log is not a dependency of brnshkr/config */
+        if (interface_exists(LoggerInterface::class)) {
+            $forbiddenFunctions['error_log'] = sprintf('Use "%s" instead.', LoggerInterface::class);
+        }
+
+        /** @disregard P1009 symfony/clock is not a dependency of brnshkr/config */
+        if (interface_exists(ClockInterface::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'date'      => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'microtime' => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'sleep'     => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+                'time'      => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'usleep'    => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+            ];
+        }
+
+        /** @disregard P1009 symfony/clock is not a dependency of brnshkr/config */
+        if (class_exists(DatePoint::class)) {
+            $forbiddenFunctions['mktime']    = sprintf('Use "%s" instead.', DatePoint::class);
+            $forbiddenFunctions['strtotime'] = sprintf('Use "%s" instead.', DatePoint::class);
+        }
+
+        if (class_exists(Filesystem::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'chgrp'             => sprintf('Use "%s::chgrp()" instead.', Filesystem::class),
+                'chmod'             => sprintf('Use "%s::chmod()" instead.', Filesystem::class),
+                'chown'             => sprintf('Use "%s::chown()" instead.', Filesystem::class),
+                'copy'              => sprintf('Use "%s::copy()" instead.', Filesystem::class),
+                'file_get_contents' => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
+                'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
+                'link'              => sprintf('Use "%s::hardlink()" instead.', Filesystem::class),
+                'mkdir'             => sprintf('Use "%s::mkdir()" instead.', Filesystem::class),
+                'readlink'          => sprintf('Use "%s::readlink()" instead.', Filesystem::class),
+                'rename'            => sprintf('Use "%s::rename()" instead.', Filesystem::class),
+                'rmdir'             => sprintf('Use "%s::remove()" instead.', Filesystem::class),
+                'symlink'           => sprintf('Use "%s::symlink()" instead.', Filesystem::class),
+                'tempnam'           => sprintf('Use "%s::tempnam()" instead.', Filesystem::class),
+                'touch'             => sprintf('Use "%s::touch()" instead.', Filesystem::class),
+                'unlink'            => sprintf('Use "%s::remove()" instead.', Filesystem::class),
+            ];
+        }
+
+        if (class_exists(Path::class)) {
+            $forbiddenFunctions['dirname']  = sprintf('Use "%s::getDirectory()" instead.', Path::class);
+            $forbiddenFunctions['pathinfo'] = sprintf('Use "%1$s::getExtension()" or "%1$s::getFilenameWithoutExtension()" instead.', Path::class);
+        }
+
+        if (class_exists(Finder::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'glob'    => sprintf('Use "%s::name()" instead.', Finder::class),
+                'opendir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
+                'scandir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
+            ];
+        }
+
+        /** @disregard P1009 symfony/http-client-contracts is not a dependency of brnshkr/config */
+        if (interface_exists(HttpClientInterface::class)) {
+            $forbiddenFunctions['curl_*'] = sprintf('Use "%s::request()" or any alternative HTTP client instead.', HttpClientInterface::class);
+        }
+
+        /** @disregard P1009 symfony/http-foundation is not a dependency of brnshkr/config */
+        if (class_exists(Response::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'header'             => sprintf('Use "%s" instead.', Response::class),
+                'http_response_code' => sprintf('Use "%s::setStatusCode()" instead.', Response::class),
+                'setcookie'          => sprintf('Use "%s::headers->setCookie()" instead.', Response::class),
+            ];
+        }
+
+        /** @disregard P1009 symfony/http-foundation is not a dependency of brnshkr/config */
+        if (interface_exists(SessionInterface::class)) {
+            $forbiddenFunctions['session_*'] = sprintf('Use "%s" instead.', SessionInterface::class);
+        }
+
+        /** @disregard P1009 symfony/lock is not a dependency of brnshkr/config */
+        if (class_exists(LockFactory::class)) {
+            $forbiddenFunctions['flock'] = sprintf('Use "%s::createLock()" instead.', LockFactory::class);
+            $forbiddenFunctions['sem_*'] = sprintf('Use "%s::createLock()" instead.', LockFactory::class);
+        }
+
+        /** @disregard P1009 symfony/mailer is not a dependency of brnshkr/config */
+        if (interface_exists(MailerInterface::class)) {
+            $forbiddenFunctions['mail'] = sprintf('Use "%s::send()" instead.', MailerInterface::class);
+        }
+
+        /** @disregard P1009 symfony/mime is not a dependency of brnshkr/config */
+        if (class_exists(MimeTypes::class)) {
+            $forbiddenFunctions['finfo_*']           = sprintf('Use "%s::guessMimeType()" instead.', MimeTypes::class);
+            $forbiddenFunctions['mime_content_type'] = sprintf('Use "%s::guessMimeType()" instead.', MimeTypes::class);
+        }
+
+        if (class_exists(Process::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'exec'       => sprintf('Use "%s::mustRun()" instead.', Process::class),
+                'passthru'   => sprintf('Use "%s::run()" with an output callback instead.', Process::class),
+                'popen'      => sprintf('Use "%s::start()" instead.', Process::class),
+                'proc_*'     => sprintf('Use "%s::start()" instead.', Process::class),
+                'shell_exec' => sprintf('Use "%1$s::mustRun()" with "%1$s::getOutput()" instead.', Process::class),
+                'system'     => sprintf('Use "%s::mustRun()" instead.', Process::class),
+            ];
+        }
+
+        /** @disregard P1009 symfony/serializer is not a dependency of brnshkr/config */
+        if (class_exists(JsonEncoder::class)) {
+            $forbiddenFunctions['json_decode'] = sprintf('Use "%s::decode()" instead.', JsonEncoder::class);
+            $forbiddenFunctions['json_encode'] = sprintf('Use "%s::encode()" instead.', JsonEncoder::class);
+        }
+
+        /** @disregard P1009 symfony/serializer is not a dependency of brnshkr/config */
+        if (interface_exists(SerializerInterface::class)) {
+            $forbiddenFunctions['unserialize'] = sprintf('Use "%s::deserialize()" instead.', SerializerInterface::class);
+        }
 
         if (class_exists(AbstractString::class)) {
             $stringFunction = Str::beforeLast(AbstractString::class, '\\') . '\s';
@@ -2023,6 +2193,8 @@ final class PhpStan
                 'str_split'             => sprintf('Use "%s::chunk()" instead.', $stringFunction),
                 'mb_str_split'          => sprintf('Use "%s::chunk()" instead.', $stringFunction),
                 'mb_split'              => sprintf('Use "%s::split()" instead.', $stringFunction),
+                'explode'               => sprintf('Use "%s::split()" instead.', $stringFunction),
+                'preg_split'            => sprintf('Use "%s::split()" with a "PREG_SPLIT_*" flag instead.', $stringFunction),
                 'strlen'                => sprintf('Use "%s::length()" instead.', $stringFunction),
                 'mb_strlen'             => sprintf('Use "%s::length()" instead.', $stringFunction),
                 'strtolower'            => sprintf('Use "%s::lower()" instead.', $stringFunction),
@@ -2064,57 +2236,20 @@ final class PhpStan
             ];
         }
 
-        if (class_exists(Filesystem::class)) {
-            $forbiddenFunctions = [
-                ...$forbiddenFunctions,
-                'chgrp'             => sprintf('Use "%s::chgrp()" instead.', Filesystem::class),
-                'chmod'             => sprintf('Use "%s::chmod()" instead.', Filesystem::class),
-                'chown'             => sprintf('Use "%s::chown()" instead.', Filesystem::class),
-                'copy'              => sprintf('Use "%s::copy()" instead.', Filesystem::class),
-                'file_get_contents' => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
-                'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
-                'link'              => sprintf('Use "%s::hardlink()" instead.', Filesystem::class),
-                'mkdir'             => sprintf('Use "%s::mkdir()" instead.', Filesystem::class),
-                'readlink'          => sprintf('Use "%s::readlink()" instead.', Filesystem::class),
-                'rename'            => sprintf('Use "%s::rename()" instead.', Filesystem::class),
-                'rmdir'             => sprintf('Use "%s::remove()" instead.', Filesystem::class),
-                'symlink'           => sprintf('Use "%s::symlink()" instead.', Filesystem::class),
-                'tempnam'           => sprintf('Use "%s::tempnam()" instead.', Filesystem::class),
-                'touch'             => sprintf('Use "%s::touch()" instead.', Filesystem::class),
-                'unlink'            => sprintf('Use "%s::remove()" instead.', Filesystem::class),
-            ];
+        /** @disregard P1009 symfony/uid is not a dependency of brnshkr/config */
+        if (class_exists(Uuid::class)) {
+            $forbiddenFunctions['uniqid'] = sprintf('Use "%s::v7()" instead.', Uuid::class);
         }
 
-        if (class_exists(Finder::class)) {
-            $forbiddenFunctions = [
-                ...$forbiddenFunctions,
-                'glob'    => sprintf('Use "%s::name()" instead.', Finder::class),
-                'opendir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
-                'scandir' => sprintf('Use "%1$s::in()" with "%1$s::depth()" instead.', Finder::class),
-            ];
+        /** @disregard P1009 symfony/var-exporter is not a dependency of brnshkr/config */
+        if (class_exists(VarExporter::class)) {
+            $forbiddenFunctions['var_export'] = sprintf('Use "%s::export()" instead.', VarExporter::class);
         }
 
-        if (class_exists(Process::class)) {
-            $forbiddenFunctions = [
-                ...$forbiddenFunctions,
-                'exec'       => sprintf('Use "%s::mustRun()" instead.', Process::class),
-                'passthru'   => sprintf('Use "%s::run()" with an output callback instead.', Process::class),
-                'popen'      => sprintf('Use "%s::start()" instead.', Process::class),
-                'proc_*'     => sprintf('Use "%s::start()" instead.', Process::class),
-                'shell_exec' => sprintf('Use "%1$s::mustRun()" with "%1$s::getOutput()" instead.', Process::class),
-                'system'     => sprintf('Use "%s::mustRun()" instead.', Process::class),
-            ];
-        }
-
-        /** @disregard P1009 symfony/http-client-contracts is not a dependency of brnshkr/config */
-        if (interface_exists(HttpClientInterface::class)) {
-            $forbiddenFunctions['curl_*'] = sprintf('Use "%s::request()" or any alternative HTTP client instead.', HttpClientInterface::class);
-        }
-
-        /** @disregard P1009 symfony/serializer is not a dependency of brnshkr/config */
-        if (class_exists(JsonEncoder::class)) {
-            $forbiddenFunctions['json_decode'] = sprintf('Use "%s::decode()" instead.', JsonEncoder::class);
-            $forbiddenFunctions['json_encode'] = sprintf('Use "%s::encode()" instead.', JsonEncoder::class);
+        /** @disregard P1009 symfony/yaml is not a dependency of brnshkr/config */
+        if (class_exists(Yaml::class)) {
+            $forbiddenFunctions['yaml_emit*']  = sprintf('Use "%s::dump()" instead.', Yaml::class);
+            $forbiddenFunctions['yaml_parse*'] = sprintf('Use "%s::parse()" instead.', Yaml::class);
         }
 
         return $forbiddenFunctions;
@@ -2166,7 +2301,7 @@ final class PhpStan
     {
         return array_map(
             static function (string $file): string {
-                $segments = explode('/', $file);
+                $segments = Str::split($file, '/');
 
                 array_pop($segments);
 
@@ -2215,7 +2350,7 @@ final class PhpStan
      */
     private static function getAncestorDirectories(string $file): array
     {
-        $segments = explode('/', $file);
+        $segments = Str::split($file, '/');
 
         array_pop($segments);
 

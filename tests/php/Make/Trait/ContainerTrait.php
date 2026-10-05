@@ -72,6 +72,7 @@ trait ContainerTrait
 
                 self::removeWhatTheContainerFixturesStarted();
 
+                // @phpstan-ignore symplify.forbiddenNode (A signal handler ends the run with the signal's exit code)
                 exit(128 + $signal);
             });
         }

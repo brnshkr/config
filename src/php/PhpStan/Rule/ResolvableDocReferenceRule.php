@@ -24,7 +24,6 @@ use PHPStan\TrinaryLogic;
 use PHPStan\Type\FileTypeMapper;
 
 use function array_first;
-use function explode;
 use function in_array;
 use function sprintf;
 
@@ -83,7 +82,7 @@ final readonly class ResolvableDocReferenceRule implements Rule
         $className = self::resolveSurroundingClassName($node, $scope);
         $errors    = [];
 
-        foreach (explode("\n", $doc->getText()) as $offset => $line) {
+        foreach (Str::split($doc->getText(), "\n") as $offset => $line) {
             foreach (self::getReferenceTargets($line) as ['target' => $target, 'asLinkTag' => $asLinkTag]) {
                 $error = $asLinkTag || self::isUriTarget($target)
                     ? self::processUriTarget($target, $doc->getStartLine() + $offset)

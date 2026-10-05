@@ -16,10 +16,8 @@ use function array_key_exists;
 use function array_keys;
 use function array_values;
 use function escapeshellarg;
-use function explode;
 use function hash_file;
 use function is_file;
-use function preg_split;
 
 /**
  * Runs the test suites of this repository.
@@ -118,8 +116,8 @@ final class TestTool
         $status         = Project::run(['git', 'status', '--porcelain', '--untracked-files=all', '--', $snapshotPathspec]);
         $snapshotHashes = [];
 
-        foreach (explode("\n", $status['output']) as $statusLine) {
-            $dirtySnapshotPath = (preg_split('/\s+/', Str::trim($statusLine), 2) ?: [])[1] ?? '';
+        foreach (Str::split($status['output'], "\n") as $statusLine) {
+            $dirtySnapshotPath = Str::match(Str::trim($statusLine), '/^\S+\s+(?<path>.*)$/s')['path'] ?? '';
 
             if ($dirtySnapshotPath === '' || !Str::isNonDecimalIntString($dirtySnapshotPath)) {
                 continue;

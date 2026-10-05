@@ -33,12 +33,11 @@ use Spatie\Snapshots\MatchesSnapshots;
 use stdClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Process;
 
 use function array_unique;
 use function array_values;
-use function dirname;
-use function explode;
 use function get_object_vars;
 use function getcwd;
 use function in_array;
@@ -214,12 +213,12 @@ final class PrintModuleConfigCommandTest extends TestCase
 
         $unignoredPaths = [];
 
-        foreach (explode("\n", Str::trim($process->getOutput())) as $unignoredFile) {
-            $path = './' . $unignoredFile;
+        foreach (Str::split(Str::trim($process->getOutput()), "\n") as $unignoredFile) {
+            $path = $unignoredFile;
 
-            while ($path !== '.') {
-                $unignoredPaths[] = $path;
-                $path             = dirname($path);
+            while ($path !== '') {
+                $unignoredPaths[] = './' . $path;
+                $path             = Path::getDirectory($path);
             }
         }
 

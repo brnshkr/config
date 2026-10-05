@@ -21,7 +21,6 @@ use function array_merge;
 use function array_unique;
 use function array_values;
 use function dirname;
-use function explode;
 use function file_get_contents;
 use function file_put_contents;
 use function getcwd;
@@ -198,6 +197,7 @@ final class ComposerJson
 
     public function getDirectory(): string
     {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem here to keep package as lightweight as possible)
         return dirname($this->path);
     }
 
@@ -222,7 +222,7 @@ final class ComposerJson
      */
     public function getPackageName(): string
     {
-        return (explode('/', $this->getPackageFullName() ?? '')[1] ?? '')
+        return (Str::split($this->getPackageFullName() ?? '', '/')[1] ?? '')
             ?: throw new RuntimeException('Failed to read package name from composer.json file.');
     }
 
@@ -233,7 +233,7 @@ final class ComposerJson
      */
     public function getPackageOrganization(): string
     {
-        return explode('/', $this->getPackageFullName() ?? '')[0]
+        return Str::split($this->getPackageFullName() ?? '', '/')[0]
             ?: throw new RuntimeException('Failed to read package organization from composer.json file.');
     }
 
@@ -844,7 +844,7 @@ final class ComposerJson
                 continue;
             }
 
-            $segments = explode('/', s($path)->after($vendorDirectory . '/')->toString());
+            $segments = Str::split(s($path)->after($vendorDirectory . '/')->toString(), '/');
 
             if (!in_array($segments[0] . '/' . ($segments[1] ?? ''), $packages, true)) {
                 continue;

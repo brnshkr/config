@@ -8,7 +8,6 @@ use Brnshkr\Config\Tests\EditorUrlTest;
 
 use function array_any;
 use function array_merge;
-use function explode;
 use function getcwd;
 use function is_executable;
 use function is_string;
@@ -197,7 +196,7 @@ final readonly class EditorUrl
             }
         }
 
-        $paths = explode(PATH_SEPARATOR, is_string($environment['PATH'] ?? null) ? $environment['PATH'] : '');
+        $paths = Str::split(is_string($environment['PATH'] ?? null) ? $environment['PATH'] : '', PATH_SEPARATOR);
 
         foreach (self::EDITORS as $candidate => $config) {
             if (self::isCommandAvailable($config['command'], $paths)) {

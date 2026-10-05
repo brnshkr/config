@@ -13,13 +13,13 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Process\Process;
 
 use function array_map;
 use function array_values;
-use function dirname;
 use function time;
 
 /**
@@ -258,7 +258,7 @@ final class ToolsTest extends TestCase
         );
 
         $finder = new Finder()
-            ->in(dirname($cachedPath))
+            ->in(Path::getDirectory($cachedPath))
             ->depth(0)
             ->ignoreDotFiles(false)
             ->sortByName()

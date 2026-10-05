@@ -13,9 +13,9 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function chdir;
-use function dirname;
 use function getcwd;
 use function realpath;
 use function sys_get_temp_dir;
@@ -136,7 +136,7 @@ final class ComposerJsonTest extends TestCase
             self::assertContains('Acme\DirectDev', ComposerJson::forPath($manifest)->getDevelopmentOnlyPackageNamespaces());
             self::assertSame(__DIR__ . '/Fixtures/ComposerJson/transitive/vendor', ComposerJson::forPath($manifest)->getVendorDirectory());
         } finally {
-            $filesystem->remove(dirname($manifest));
+            $filesystem->remove(Path::getDirectory($manifest));
         }
     }
 

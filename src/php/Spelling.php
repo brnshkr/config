@@ -13,7 +13,6 @@ use function array_is_list;
 use function array_map;
 use function array_values;
 use function basename;
-use function explode;
 use function fclose;
 use function feof;
 use function file_get_contents;
@@ -165,7 +164,7 @@ final class Spelling
             ...$allowlist[$filePath] ?? [],
         ];
 
-        foreach (explode("\n", $fileContents) as $index => $line) {
+        foreach (Str::split($fileContents, "\n") as $index => $line) {
             $lineNumber = $index + 1;
             $maskedLine = self::maskAllowedLiterals($line, $allowedLiterals, $lineNumber);
 
@@ -258,7 +257,7 @@ final class Spelling
             $allowedLiterals[] = [
                 'text'        => $matchedGroups['text'] ?? $literalText,
                 'lineNumbers' => isset($matchedGroups['lineNumbers'])
-                    ? array_map(intval(...), explode(',', $matchedGroups['lineNumbers']))
+                    ? array_map(intval(...), Str::split($matchedGroups['lineNumbers'], ','))
                     : null,
             ];
         }
@@ -463,7 +462,7 @@ final class Spelling
         $ignorePatterns = array_values(is_array($settings['ignorePatterns'] ?? null) ? $settings['ignorePatterns'] : []);
         $filePaths      = [];
 
-        foreach (explode("\0", self::runCommand(['git', 'ls-files', '-z'], $rootDirectory)) as $filePath) {
+        foreach (Str::split(self::runCommand(['git', 'ls-files', '-z'], $rootDirectory), "\0") as $filePath) {
             if ($filePath === '') {
                 continue;
             }

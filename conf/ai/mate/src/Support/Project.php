@@ -6,11 +6,11 @@ namespace Brnshkr\Config\Mate\Support;
 
 use Brnshkr\Config\Str;
 use Symfony\AI\Mate\Encoding\ResponseEncoder;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
 
-use function dirname;
 use function sprintf;
 use function Symfony\Component\String\s;
 
@@ -36,7 +36,7 @@ final class Project
 
     public static function getRootDirectory(): string
     {
-        return dirname(__DIR__, 5);
+        return Path::canonicalize(__DIR__ . '/../../../../..');
     }
 
     /**

@@ -21,7 +21,6 @@ use function array_column;
 use function array_unique;
 use function array_values;
 use function bin2hex;
-use function dirname;
 use function random_bytes;
 use function sprintf;
 use function sys_get_temp_dir;
@@ -231,6 +230,6 @@ final class SpellingTest extends TestCase
      */
     private function getRepositoryRoot(): string
     {
-        return dirname(__DIR__, 2);
+        return __DIR__ . '/../..';
     }
 }

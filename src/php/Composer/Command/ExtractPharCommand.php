@@ -21,7 +21,6 @@ use UnexpectedValueException;
 use function array_filter;
 use function array_first;
 use function count;
-use function explode;
 use function is_dir;
 use function is_readable;
 use function sprintf;
@@ -98,7 +97,7 @@ final class ExtractPharCommand extends AbstractCommand
     private function getPackage(): string
     {
         $package      = $this->getStringArgument('package');
-        $packageParts = array_filter(explode('/', $package), boolval(...));
+        $packageParts = array_filter(Str::split($package, '/'), boolval(...));
 
         if (count($packageParts) !== 2) {
             throw new InvalidArgumentException('Argument "package" must be in the format "vendor/package".');

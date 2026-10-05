@@ -13,6 +13,7 @@ use function array_last;
 use function array_map;
 use function array_slice;
 use function count;
+use function explode;
 use function getenv;
 use function implode;
 use function is_string;
@@ -34,6 +35,7 @@ use function str_repeat;
 use function str_replace;
 use function str_starts_with;
 
+use const PHP_INT_MAX;
 use const PREG_SET_ORDER;
 use const PREG_UNMATCHED_AS_NULL;
 
@@ -170,6 +172,18 @@ final readonly class Str
         return str_replace($needle, $replacement, $haystack);
     }
 
+    /**
+     * @param non-empty-string $delimiter
+     * @param positive-int $limit
+     *
+     * @return non-empty-list<string>
+     */
+    public static function split(string $string, string $delimiter, int $limit = PHP_INT_MAX): array
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return explode($delimiter, $string, $limit);
+    }
+
     public static function beforeLast(string $haystack, string $needle): string
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
@@ -276,7 +290,8 @@ final readonly class Str
         return match (true) {
             is_string($_SERVER[$name] ?? null) => $_SERVER[$name],
             is_string($_ENV[$name] ?? null)    => $_ENV[$name],
-            default                            => (string) getenv($name),
+            // @phpstan-ignore symplify.forbiddenFuncCall (The one place this package reads the environment)
+            default => (string) getenv($name),
         };
     }
 }
