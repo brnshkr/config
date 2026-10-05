@@ -17,19 +17,9 @@
   "workbench.editorAssociations": {
     "*.svg": "default"
   },
-  "todo-tree.general.tags": [
-    "BUG",
-    "HACK",
-    "FIXME",
-    "NOTICE",
-    "TODO"
-  ],
 
   // Visual
   "diffEditor.ignoreTrimWhitespace": false,
-  "todo-tree.highlights.defaultHighlight": {
-    "background": "#0000"
-  },
 
   // Formatters
   "[css]": {
@@ -182,44 +172,6 @@
     "**/vite.config.*.timestamp-*": true,
     "**/yarn.lock": true
   },
-  "todo-tree.filtering.excludeGlobs": [
-    "**/__snapshots__/**",
-    "**/.cache/**",
-    "**/.changeset/**",
-    "**/.git/**",
-    "**/.hg/store/**",
-    "**/.history/**",
-    "**/.idea/**",
-    "**/.next/**",
-    "**/.nuxt/**",
-    "**/.output/**",
-    "**/.svelte-kit/**",
-    "**/.temp/**",
-    "**/.tmp/**",
-    "**/.vercel/**",
-    "**/.vite-inspect/**",
-    "**/.vitepress/cache/**",
-    "**/.vscode/**",
-    "**/.yarn/**",
-    "**/*.code-search",
-    "**/*.example",
-    "**/*.min.*",
-    "**/bower_components/**",
-    "**/bun.lock",
-    "**/composer.lock",
-    "**/coverage/**",
-    "**/dist/**",
-    "**/node_modules/**",
-    "**/output/**",
-    "**/package-lock.json",
-    "**/pnpm-lock.yaml",
-    "**/temp/**",
-    "**/tests/**/fixtures/**",
-    "**/tmp/**",
-    "**/vendor/**",
-    "**/vite.config.*.timestamp-*",
-    "**/yarn.lock"
-  ],
 
   /////////////////////////
   /// Language specific ///
@@ -311,11 +263,6 @@
   /// PHP ///
   ///////////
 
-  // Binaries
-  "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
-  "php-cs-fixer.executablePathWindows": "${workspaceFolder}\\vendor\\bin\\php-cs-fixer.bat",
-  "phpstan.binPath": "./vendor/bin/phpstan",
-
   // Formatters
   "[php]": {
     "editor.defaultFormatter": "junstyle.php-cs-fixer"
@@ -331,6 +278,11 @@
   "phpstan.enableStatusBar": false,
   "phpstan.showTypeOnHover": true,
   // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
+
+  // Binaries
+  "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
+  "php-cs-fixer.executablePathWindows": "${workspaceFolder}\\vendor\\bin\\php-cs-fixer.bat",
+  "phpstan.binPath": "./vendor/bin/phpstan",
 
   // Configs
   "css.customData": [
