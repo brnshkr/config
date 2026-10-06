@@ -132,6 +132,25 @@ trait MakeTrait
         return s(self::getRealPath($path))->after(self::getRealPath(self::PROJECT_DIRECTORY) . '/')->toString();
     }
 
+    private static function commitInto(string $directory, string $message): void
+    {
+        new Process([
+            'git',
+            '-c',
+            'user.name=Acme',
+            '-c',
+            'user.email=dev@acme.test',
+            '-c',
+            'commit.gpgsign=false',
+            'commit',
+            '--quiet',
+            '--allow-empty',
+            '--no-verify',
+            '--message',
+            $message,
+        ], $directory)->mustRun();
+    }
+
     /**
      * @param list<string> $args
      * @param array<string, string> $env
@@ -162,6 +181,25 @@ trait MakeTrait
      */
     private function runMakeConcurrently(array $runs): array
     {
+        return array_map(
+            fn (Process $process): string => $this->readMakeOutput($process, false),
+            self::runMakeAllowingRefusals($runs),
+        );
+    }
+
+    /**
+     * @template TName of string
+     *
+     * @param non-empty-array<TName, array{
+     *     args?: list<string>,
+     *     env?: array<string, string>,
+     *     directory?: string,
+     * }> $runs
+     *
+     * @return non-empty-array<TName, Process>
+     */
+    private static function runMakeAllowingRefusals(array $runs): array
+    {
         $processes = array_map(
             static fn (array $run): Process => self::createMakeProcess(
                 $run['args'] ?? [],
@@ -181,10 +219,7 @@ trait MakeTrait
             }
         }
 
-        return array_map(
-            fn (Process $process): string => $this->readMakeOutput($process, false),
-            $processes,
-        );
+        return $processes;
     }
 
     /**

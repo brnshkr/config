@@ -200,6 +200,7 @@
         "./tests/php/Make/ConfigsTest.php",
         "./tests/php/Make/ContainerTest.php",
         "./tests/php/Make/DotenvTest.php",
+        "./tests/php/Make/FuzzTest.php",
         "./tests/php/Make/HelpTest.php",
         "./tests/php/Make/OutputTest.php",
         "./tests/php/Make/PackTest.php",

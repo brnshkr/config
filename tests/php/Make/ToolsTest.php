@@ -16,7 +16,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\Process\Process;
 
 use function array_map;
 use function array_values;
@@ -288,24 +287,5 @@ final class ToolsTest extends TestCase
             $lintersDirectory,
             $doExpectFailure,
         );
-    }
-
-    private static function commitInto(string $directory, string $message): void
-    {
-        new Process([
-            'git',
-            '-c',
-            'user.name=Acme',
-            '-c',
-            'user.email=dev@acme.test',
-            '-c',
-            'commit.gpgsign=false',
-            'commit',
-            '--quiet',
-            '--allow-empty',
-            '--no-verify',
-            '--message',
-            $message,
-        ], $directory)->mustRun();
     }
 }

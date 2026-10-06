@@ -269,6 +269,16 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/v,
   },
   {
+    file: 'tests/php/Make/FuzzTest.php',
+    php: String.raw`/unterminated|missing separator|awk:|syntax error|bad substitution|not found|missing '}'/i`,
+    regex: /unterminated|missing separator|awk:|syntax error|bad substitution|not found|missing '\}'/iv,
+  },
+  {
+    file: 'tests/php/Make/FuzzTest.php',
+    php: String.raw`/^\[.+\] |\*\*\* \[.+\] .*  Stop\.$/m`,
+    regex: /^\[.+\] |\*\*\* \[.+\] .*  Stop\.$/mv,
+  },
+  {
     file: 'tests/php/Make/HelpTest.php',
     php: String.raw`/^%s$/`,
     regex: /^%s$/v,

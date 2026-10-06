@@ -25,3 +25,4 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
 - `make phpunit -- tests/php/Make`; `phpunit-update` regenerates the help snapshot.
 - A help feature gets an entry in `Fixtures/Make/Help/`.
 - Clear `MAKEFLAGS` when a test runs make.
+- A new way checkout data reaches make becomes a `FuzzTest` channel, with the targets that read it.
