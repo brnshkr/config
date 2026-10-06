@@ -17,6 +17,7 @@ use function is_readable;
 use function pcntl_async_signals;
 use function pcntl_signal;
 use function posix_getgid;
+use function posix_getpid;
 use function posix_getuid;
 
 use const SIG_IGN;
@@ -107,6 +108,23 @@ trait ContainerTrait
         }
 
         self::$startedFixtureDirectories = [];
+
+        $process = new Process([
+            'docker',
+            'ps',
+            '--all',
+            '--quiet',
+            '--filter',
+            'label=' . self::getContainerLabel(),
+        ]);
+
+        $process->run();
+
+        $labeledContainerIds = Str::trim($process->getOutput());
+
+        if ($labeledContainerIds !== '') {
+            new Process(['docker', 'rm', '--force', ...Str::split($labeledContainerIds, "\n")])->run();
+        }
     }
 
     /**
@@ -171,6 +189,8 @@ trait ContainerTrait
             'docker',
             'run',
             '--rm',
+            '--label',
+            self::getContainerLabel(),
             '-u',
             $userAndGroup ?? self::getHostUserAndGroup(),
             '-v',
@@ -185,6 +205,11 @@ trait ContainerTrait
         $process->run();
 
         return $this->normalizeOutput($process->getOutput() . $process->getErrorOutput());
+    }
+
+    private static function getContainerLabel(): string
+    {
+        return self::PROJECT_NAME . '=' . posix_getpid();
     }
 
     /**
