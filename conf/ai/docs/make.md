@@ -14,6 +14,8 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
 - A piped tool runs through `_capture`, so a crash fails the recipe.
 - A tool that can be slow runs through `_spinner`, which needs the whole command as one `$(call)` argument.
 - A `log` message is a `printf` format; pass values as arguments.
+- Checkout data reaches the terminal with its control characters as `?`: `gsub(/[[:cntrl:]]/, "?")` in awk,
+  `$(TR) '[:cntrl:]' '?'` in a shell, `_mask_control_characters` at parse time.
 - awk is POSIX only and must print the same under gawk, mawk and busybox awk.
 - Verbosity: 0 is the everyday targets, 1 their extras, 2 lists and prints, 3 internals.
   A variable sits with the target it configures, and a level every entry of a scope shares goes on the scope.

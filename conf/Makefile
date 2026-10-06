@@ -322,19 +322,39 @@ _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/compos
 _MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MANIFEST)))
 endif # /manifest
 
+_CONTROL_CHARACTERS := $(shell $(PRINTF) '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
+
+#**
+#* A text with newlines and each of the given characters replaced by `?`, so none of them can steer the terminal.
+#*
+#* parameters:
+#*   text: string
+#*   characters: list<string>
+#*
+#* returns: string
+#*
+define _mask_control_characters
+$(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
+endef
+
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(notdir $(CURDIR)))#v #~~ package name, from the manifest or directory when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
+define _NEWLINE
+
+
+endef
+
 _UNQUOTABLE_CHARACTERS := ' " $$ ` \ %
 
-_UNQUOTABLE_NAME := $(or $(if $(findstring $(subst ,, ),$(CURDIR)),$(CURDIR)),$(firstword $(foreach \
+_UNQUOTABLE_NAME := $(or $(if $(word 2,$(CURDIR))$(findstring $(_NEWLINE),$(CURDIR)),$(CURDIR)),$(firstword $(foreach \
 	NAME,$(CURDIR) $(VENDOR) $(PACKAGE),$(if $(strip $(foreach \
 	CHARACTER,$(_UNQUOTABLE_CHARACTERS),$(findstring $(CHARACTER),$(NAME)))),$(NAME)))))
 
 ifneq ($(_UNQUOTABLE_NAME),)
-$(error [$(_LABEL)] `$(_UNQUOTABLE_NAME)` holds a character the recipes cannot quote, so rename it)
+$(error [$(_LABEL)] `$(call _mask_control_characters,$(_UNQUOTABLE_NAME),$(_CONTROL_CHARACTERS))` holds a character the recipes cannot quote, so rename it)
 endif
 
 ifneq ($(filter . ..,$(VENDOR) $(PACKAGE)),)
@@ -385,7 +405,7 @@ _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$
 _CONFIG_STAGES      = $(sort $(_DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
 
 _DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
-	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s\n' "$$file";; esac; \
+	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
 done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
@@ -1194,11 +1214,6 @@ _COMMA := ,
 _QUOTE := '
 _SPACE := $(subst ,, )
 
-define _NEWLINE
-
-
-endef
-
 _PACKAGE_CONF_DIRS = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
@@ -1213,7 +1228,8 @@ _CSS_DATA_CONFIGS = $(call _when_installed,$(CURDIR)/.vscode/tailwind.css-data.j
 _CSS_DATA_FILES = $(sort \
 	$(foreach CONFIG,$(_CSS_DATA_CONFIGS),$(call _get_file_name,$(CONFIG))) \
 	$(foreach FILE,$(patsubst .vscode/%,%,$(filter .vscode/%.css-data.json,$(_TRACKED_FILES))),$(if \
-		$(findstring /,$(FILE))$(findstring ",$(FILE))$(findstring \,$(FILE)),,$(FILE))) \
+		$(findstring /,$(FILE))$(findstring ",$(FILE))$(findstring \,$(FILE)) \
+		$(findstring $(_MASKED_NEWLINE),$(FILE)),,$(FILE))) \
 )
 
 _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
@@ -4657,6 +4673,7 @@ BEGIN {
 	refs = $$2
 	subject = $$3
 	body = $$4
+	gsub(/[[:cntrl:]]/, "?", subject)
 	sub(/^\n+/, "", hash)
 
 	if (_all != "" && match(refs, /tag: [^,]+/)) {
@@ -5364,7 +5381,7 @@ function get_tree_max(scope_path, depth, section, mode,    best, idx, width, chi
 			if (!is_entry_visible(scope_path, section, idx)) continue
 			if (mode == "value" && section_description[scope_path, section, idx] == "") continue
 			value = section_text[scope_path, section, idx]
-			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = trim(ENVIRON[section_name[scope_path, section, idx]])
+			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = get_resolved_value(section_name[scope_path, section, idx])
 			width = (mode == "value") ? length(value) : (mode == "source") ? length(variable_source[section_name[scope_path, section, idx]]) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx])
 			if (width > best) best = width
 		}
@@ -5391,7 +5408,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			text = section_text[scope_path, section, idx]
 			extra = section_extra[scope_path, section, idx]
 			description = section_description[scope_path, section, idx]
-			if (section == "variables" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && entry in ENVIRON) text = trim(ENVIRON[entry])
+			if (section == "variables" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && entry in ENVIRON) text = get_resolved_value(entry)
 			if (section == "variables" && source_width) extra = extra "  " variable_source[entry] repeat(" ", source_width - length(variable_source[entry]))
 			if (section == "variables") description = render_inline_code(description)
 			else if (section == "commands") text = render_inline_code(text)
@@ -5457,7 +5474,8 @@ function print_header(    logo, logo_open, logo_reset, logo_lines, line_count, l
 	if (length(trim(header_title)) > 0) printf "%s\n\n", header_title
 	printf "%s\n", ENVIRON["_HEADER_USAGE"]
 }
-function render_environment_value(value) { gsub(/\n/, " ", value); return truncate(value, ENVIRON["VALUE_WIDTH"] + 0) }
+function render_environment_value(value) { gsub(/\n/, " ", value); gsub(/[[:cntrl:]]/, "?", value); return truncate(value, ENVIRON["VALUE_WIDTH"] + 0) }
+function get_resolved_value(name,    value) { value = trim(ENVIRON[name]); gsub(/[[:cntrl:]]/, "?", value); return value }
 function print_environment_row(name, path, line_number, value, replacement_note,    indentation, linked_name) {
 	indentation = repeat(" ", 2 * ENVIRON["INDENT"])
 	linked_name = render_link(name, path, line_number) repeat(" ", environment_name_width - length(name))
