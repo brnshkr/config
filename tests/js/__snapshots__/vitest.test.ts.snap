@@ -32,6 +32,7 @@ exports[`expected vitest config 1`] = `
       "**/*.example",
       "**/*.min.*",
       "**/bower_components/**",
+      "**/build/**",
       "**/bun.lock",
       "**/composer.lock",
       "**/coverage/**",

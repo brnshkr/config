@@ -24,6 +24,7 @@
     "${configDir}/**/__generated__/**",
     "${configDir}/**/__snapshots__/**",
     "${configDir}/**/bower_components/**",
+    "${configDir}/**/build/**",
     "${configDir}/**/coverage/**",
     "${configDir}/**/dist/**",
     "${configDir}/**/node_modules/**",
