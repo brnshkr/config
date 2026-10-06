@@ -120,6 +120,22 @@ final class ConfigsTest extends TestCase
         self::assertStringEndsWith("linguist-vendored\n###< brnshkr/config ###\n", $gitattributes);
     }
 
+    public function testTheSvelteExtensionIsRecommendedWhileSvelteIsInstalled(): void
+    {
+        $typescriptDirectory = $this->getFixtureCopy(self::TSCONFIG_DIRECTORY);
+        $extensionsPath      = $typescriptDirectory . '/.vscode/extensions.json';
+
+        $this->runMake(['configs', 'vscode-extensions'], directory: $typescriptDirectory);
+
+        $withoutSvelte = new Filesystem()->readFile($extensionsPath);
+
+        new Filesystem()->mkdir($typescriptDirectory . '/node_modules/svelte');
+        $this->runMake(['configs', 'vscode-extensions'], directory: $typescriptDirectory);
+
+        self::assertStringNotContainsString('svelte.svelte-vscode', $withoutSvelte);
+        self::assertStringContainsString("    // Frameworks\n    \"svelte.svelte-vscode\"\n", new Filesystem()->readFile($extensionsPath));
+    }
+
     public function testAComposerProjectWithoutMarkersGetsTheBlockAheadOfItsOwnLines(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
