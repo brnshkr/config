@@ -1263,6 +1263,7 @@ _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
+	$(call _when_installed,/build/,node_modules/svelte) \
 	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(foreach CONFIG_PATH,$(call _unstaged,$(subst .dist.,.,$(_LAYERED_CONFIGS))),$(CONFIG_PATH) $(foreach STAGE,$(_CONFIG_STAGES),$(call _staged,$(CONFIG_PATH),$(STAGE))))))), \
 	$(if $(filter $(patsubst /%,%,$(IGNORED_PATH)),$(_TRACKED_FILES)),,$(IGNORED_PATH)))
 

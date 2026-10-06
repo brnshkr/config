@@ -129,7 +129,7 @@ refreshed on every run. Everything outside them stays the repository's own and c
 
 | File | Package part |
 | --- | --- |
-| `.gitignore` | caches, dependencies and private configs of what is installed, for every stage |
+| `.gitignore` | caches, dependencies, build output and private configs of what is installed, for every stage |
 | `.gitattributes` | line endings and binaries, plus export rules from the autoload roots and `ARCHIVE_EXTRA_PATHS` |
 | `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, binary paths and excludes the configured directories, the Svelte extension while `svelte` is installed, `css.customData` lists every tracked `.vscode/*.css-data.json` |
 | `bunfig.toml` | Bun's defaults, ending in `[install]`: install keys and other tables go below it, top-level keys above |
