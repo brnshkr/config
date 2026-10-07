@@ -1,7 +1,3 @@
-/**
- * @internal @brnshkr/config/spelling
- */
-
 import { expect, test } from 'vitest';
 
 import { scan } from '#spelling/index.ts';

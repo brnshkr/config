@@ -4,6 +4,9 @@
     "paths": {
       "@brnshkr/config/*": [
         "./src/js/*/index.ts"
+      ],
+      "@brnshkr/config/spelling/test": [
+        "./src/js/spelling/spelling.test.ts"
       ]
     }
   }
