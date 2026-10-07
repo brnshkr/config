@@ -51,6 +51,7 @@ export const GLOB_YAML_FIXED_EXTENSION_FILES = <const>[
   '**/.gitlab-ci.yml',
   '**/.gitlab/**/*.yml',
   '**/.travis.yml',
+  '**/.yarnrc.yml',
   '**/appveyor.yml',
 ] satisfies string[];
 
