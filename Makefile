@@ -78,6 +78,10 @@ COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php
 MV       := mv#vvv #~~ path to `mv` binary
 XARGS    := xargs#vvv #~~ path to `xargs` binary
 
+# NOTICE: `braces` has no fixed release and upstream disputes the advisory:
+# https://github.com/advisories/GHSA-vfj7-8cjw-p6xm, https://github.com/micromatch/braces/issues/70
+BUN_AUDIT_FLAGS += --ignore GHSA-vfj7-8cjw-p6xm
+
 #--- build
 
 typegen: #~~ regenerates the rule types the configs are built from

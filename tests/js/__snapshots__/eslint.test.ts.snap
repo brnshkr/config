@@ -1283,7 +1283,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "when": false,
       "window": false,
     },
-    "parser": "typescript-eslint/parser@8.70.1",
+    "parser": "typescript-eslint/parser@8.71.0",
     "parserOptions": {
       "ecmaFeatures": {
         "jsx": true,
@@ -1304,19 +1304,19 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "@",
     "antfu:antfu@3.2.3",
     "unused:unused-imports",
-    "ts:@typescript-eslint/eslint-plugin@8.70.1",
+    "ts:@typescript-eslint/eslint-plugin@8.71.0",
     "test:vitest@1.6.27",
     "jsdoc",
-    "examples:eslint-plugin-jsdoc/processor@64.5.4",
-    "node:eslint-plugin-n@18.3.0",
+    "examples:eslint-plugin-jsdoc/processor@65.0.1",
+    "node:eslint-plugin-n@18.4.0",
     "brnshkr:brnshkr@<version>",
     "comments",
     "regexp:eslint-plugin-regexp@3.3.1",
-    "security:eslint-plugin-security@4.0.1",
+    "security:eslint-plugin-security@4.1.0",
     "unicorn:eslint-plugin-unicorn@76.0.0",
     "import:eslint-plugin-import-x@4.17.1",
     "style:@stylistic/eslint-plugin@5.10.0",
-    "perfectionist:eslint-plugin-perfectionist@5.11.1",
+    "perfectionist:eslint-plugin-perfectionist@5.12.1",
     "svelte:eslint-plugin-svelte@3.23.0",
     "json:@eslint/json@2.1.0",
     "jsonc:eslint-plugin-jsonc@3.4.2",
@@ -1325,7 +1325,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "css:@eslint/css@2.0.0",
     "markdown:@eslint/markdown@8.0.3",
   ],
-  "processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "rules": {
     "accessor-pairs": [
       2,
@@ -3468,6 +3468,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "security/detect-eval-with-expression": [
       2,
     ],
+    "security/detect-invisible-characters": [
+      2,
+    ],
     "security/detect-new-buffer": [
       2,
     ],
@@ -4661,6 +4664,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "ts/no-unsafe-declaration-merging": [
+      2,
+    ],
+    "ts/no-unsafe-enum-assignment": [
       2,
     ],
     "ts/no-unsafe-enum-comparison": [
@@ -6578,7 +6584,7 @@ exports[`expected eslint config > config-groups 1`] = `
 
 exports[`expected eslint config > diff: .circleci/config.yml 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "yaml/yaml",
   "languageOptions": {
     "addedValues": {},
@@ -6974,6 +6980,7 @@ exports[`expected eslint config > diff: .circleci/config.yml 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -7226,6 +7233,7 @@ exports[`expected eslint config > diff: .circleci/config.yml 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -7733,7 +7741,7 @@ exports[`expected eslint config > diff: .circleci/config.yml 1`] = `
 
 exports[`expected eslint config > diff: .vscode/settings.json 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/jsonc",
   "languageOptions": {
     "addedValues": {},
@@ -8170,6 +8178,7 @@ exports[`expected eslint config > diff: .vscode/settings.json 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -8422,6 +8431,7 @@ exports[`expected eslint config > diff: .vscode/settings.json 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -9747,7 +9757,7 @@ exports[`expected eslint config > diff: 12.svelte 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -10331,7 +10341,7 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -10852,7 +10862,7 @@ exports[`expected eslint config > diff: 14.svelte.ts 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -11259,7 +11269,7 @@ exports[`expected eslint config > diff: 14.svelte.ts 1`] = `
 
 exports[`expected eslint config > diff: 15.json 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/json",
   "languageOptions": {
     "addedValues": {},
@@ -11702,6 +11712,7 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -11954,6 +11965,7 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -12461,7 +12473,7 @@ exports[`expected eslint config > diff: 15.json 1`] = `
 
 exports[`expected eslint config > diff: 17.json5 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/json5",
   "languageOptions": {
     "addedValues": {},
@@ -12874,6 +12886,7 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -13126,6 +13139,7 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -13633,7 +13647,7 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
 
 exports[`expected eslint config > diff: 18.yml 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "yaml/yaml",
   "languageOptions": {
     "addedValues": {},
@@ -14029,6 +14043,7 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -14281,6 +14296,7 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -14788,7 +14804,7 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
 
 exports[`expected eslint config > diff: 20.toml 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "toml/toml",
   "languageOptions": {
     "addedValues": {},
@@ -15175,6 +15191,7 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -15427,6 +15444,7 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -15934,7 +15952,7 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
 
 exports[`expected eslint config > diff: 21.css 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "css/css",
   "languageOptions": {
     "addedValues": {
@@ -17826,6 +17844,7 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -18078,6 +18097,7 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -19010,6 +19030,7 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -19262,6 +19283,7 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -20890,6 +20912,7 @@ exports[`expected eslint config > diff: README.md/0_0.mjs 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -21268,6 +21291,7 @@ exports[`expected eslint config > diff: a.ts/0_a.md/*.js 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -21668,6 +21692,7 @@ exports[`expected eslint config > diff: a.ts/1_dummy.jsdoc-defaults.md/*.js 1`] 
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -21885,7 +21910,7 @@ exports[`expected eslint config > diff: classes/a.svelte 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -22544,7 +22569,7 @@ exports[`expected eslint config > diff: classes/a.svelte.ts 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -23177,7 +23202,7 @@ exports[`expected eslint config > diff: components/a.svelte 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.70.1",
+        "parser": "typescript-eslint/parser@8.71.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -23756,7 +23781,7 @@ exports[`expected eslint config > diff: components/a.svelte 1`] = `
 
 exports[`expected eslint config > diff: composer.json 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/json",
   "languageOptions": {
     "addedValues": {},
@@ -24337,6 +24362,7 @@ exports[`expected eslint config > diff: composer.json 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -24589,6 +24615,7 @@ exports[`expected eslint config > diff: composer.json 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -25096,7 +25123,7 @@ exports[`expected eslint config > diff: composer.json 1`] = `
 
 exports[`expected eslint config > diff: package.json 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/json",
   "languageOptions": {
     "addedValues": {},
@@ -25664,6 +25691,7 @@ exports[`expected eslint config > diff: package.json 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -25916,6 +25944,7 @@ exports[`expected eslint config > diff: package.json 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
@@ -26730,7 +26759,7 @@ exports[`expected eslint config > diff: stylelint.config.mjs 1`] = `
 
 exports[`expected eslint config > diff: tsconfig.build.json 1`] = `
 {
-  "-processor": "eslint-plugin-jsdoc/preprocessor@64.5.4",
+  "-processor": "eslint-plugin-jsdoc/preprocessor@65.0.1",
   "language": "json/jsonc",
   "languageOptions": {
     "addedValues": {},
@@ -27334,6 +27363,7 @@ exports[`expected eslint config > diff: tsconfig.build.json 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
       "ts/prefer-return-this-type",
@@ -27586,6 +27616,7 @@ exports[`expected eslint config > diff: tsconfig.build.json 1`] = `
       "security/detect-pseudoRandomBytes",
       "security/detect-unsafe-regex",
       "security/detect-bidi-characters",
+      "security/detect-invisible-characters",
       "no-process-exit",
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
