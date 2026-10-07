@@ -6,6 +6,7 @@ import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
 import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { objectFromEntries } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 
@@ -47,6 +48,7 @@ export const javascript = async (): Promise<Config[]> => {
               ...globals.browser,
               ...globals.es2025,
               ...globals.node,
+              ...objectFromEntries((confusingBrowserGlobals ?? []).map((name) => [name, <const>'off'])),
             },
           }
           : undefined),
