@@ -55,13 +55,13 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 94.46
 VITEST_MIN_COVERAGE_LINES      := 91.30
 VITEST_MIN_COVERAGE_STATEMENTS := 91.50
 
-_HAS_FORGE_IMAGE          = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_IMAGE)
-_HAS_FORGE_SEMGREP_IMAGE  = $(eval _HAS_FORGE_SEMGREP_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE)-semgrep >/dev/null 2>&1 && $$(PRINTF) 1))$(_HAS_FORGE_SEMGREP_IMAGE)
+_HAS_FORGE_IMAGE          = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && printf 1))$(_HAS_FORGE_IMAGE)
+_HAS_FORGE_SEMGREP_IMAGE  = $(eval _HAS_FORGE_SEMGREP_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE)-semgrep >/dev/null 2>&1 && printf 1))$(_HAS_FORGE_SEMGREP_IMAGE)
 _HAS_SCRIPT              := $(call _is_on_path,$(SCRIPT))
 
 ifneq ($(filter 3.%,$(MAKE_VERSION)),)
-_HAS_FORGE_IMAGE         = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && $(PRINTF) 1)
-_HAS_FORGE_SEMGREP_IMAGE = $(shell $(DOCKER) image inspect $(FORGE_IMAGE)-semgrep >/dev/null 2>&1 && $(PRINTF) 1)
+_HAS_FORGE_IMAGE         = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && printf 1)
+_HAS_FORGE_SEMGREP_IMAGE = $(shell $(DOCKER) image inspect $(FORGE_IMAGE)-semgrep >/dev/null 2>&1 && printf 1)
 endif
 
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
@@ -143,7 +143,7 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
-colors: _MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
+colors: _MODIFIER_COLUMN_WIDTH = $(shell printf '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
@@ -155,31 +155,31 @@ colors: _MODIFIER_COLUMN_WIDTH = $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AW
 
 _TABLE_COLORS := $(filter-out $(COLOR_NORMAL),$(_COLORS))
 
-colors: _COLOR_COLUMN_WIDTHS = $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
+colors: _COLOR_COLUMN_WIDTHS = $(foreach COLOR,$(_TABLE_COLORS),$(shell printf '$(COLOR)' | $(AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
-	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s'
+	$(DEBUG_PREFIX)printf '%-$(_MODIFIER_COLUMN_WIDTH)s'
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _COLOR := $(word $(INDEX),$(_TABLE_COLORS))) \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
-		$(PRINTF) ' %-$(_WIDTH)s' '$(_COLOR)'; \
+		printf ' %-$(_WIDTH)s' '$(_COLOR)'; \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n'
-	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' $(call _str_repeat,-,$(_MODIFIER_COLUMN_WIDTH))
+	$(DEBUG_PREFIX)printf '\n'
+	$(DEBUG_PREFIX)printf '%-$(_MODIFIER_COLUMN_WIDTH)s ' $(call _str_repeat,-,$(_MODIFIER_COLUMN_WIDTH))
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
-		$(PRINTF) '%-*s ' $(_WIDTH) $(call _str_repeat,-,$(_WIDTH)); \
+		printf '%-*s ' $(_WIDTH) $(call _str_repeat,-,$(_WIDTH)); \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n'
+	$(DEBUG_PREFIX)printf '\n'
 	$(DEBUG_PREFIX)$(foreach MODIFIER_COLUMN,$(_MODIFIER_COLUMNS), \
-		$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' '$(subst +, ,$(MODIFIER_COLUMN))'; \
+		printf '%-$(_MODIFIER_COLUMN_WIDTH)s ' '$(subst +, ,$(MODIFIER_COLUMN))'; \
 		$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 			$(eval _COLOR := $(word $(INDEX),$(_TABLE_COLORS))) \
 			$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
 			$(eval _TEXT := $(call text,$(_COLOR),$(_COLOR),$(subst +, ,$(MODIFIER_COLUMN)))) \
-			$(PRINTF) '%-*b ' $(_WIDTH) '$(_TEXT)'; \
+			printf '%-*b ' $(_WIDTH) '$(_TEXT)'; \
 		) \
-		$(PRINTF) '\n'; \
+		printf '\n'; \
 	)
 
 #--- helpers
@@ -194,7 +194,7 @@ colors: #~~ prints a table of all supported colors with combinations with all su
 #* returns: string
 #*
 define _str_repeat
-$(if $(filter 1,$2),$1,$1$(call _str_repeat,$1,$(shell $(PRINTF) $$(($2 - 1)))))
+$(if $(filter 1,$2),$1,$1$(call _str_repeat,$1,$(shell printf $$(($2 - 1)))))
 endef
 
 #**

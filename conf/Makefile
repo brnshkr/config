@@ -201,7 +201,6 @@ LS     ?= ls#~~ path to `ls` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
 MKTEMP ?= mktemp#~~ path to `mktemp` binary
 MV     ?= mv#~~ path to `mv` binary
-PRINTF ?= printf#~~ path to `printf` binary
 PS     ?= ps#~~ path to `ps` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 SCRIPT ?= script#~~ path to `script` binary
@@ -322,7 +321,7 @@ _MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/compos
 _MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MANIFEST)))
 endif # /manifest
 
-_CONTROL_CHARACTERS := $(shell $(PRINTF) '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
+_CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
 
 #**
 #* A text with newlines and each of the given characters replaced by `?`, so none of them can steer the terminal.
@@ -405,7 +404,7 @@ _DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$
 _CONFIG_STAGES      = $(sort $(_DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
 
 _DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
-	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || $(PRINTF) '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
+	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || printf '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
 done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
@@ -688,7 +687,7 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
-_MASKS_AND_TRACKED_FILES := $(shell $(PRINTF) '\037 \036 '; $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
+_MASKS_AND_TRACKED_FILES := $(shell printf '\037 \036 '; $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
 _MASKED_SPACE            := $(word 1,$(_MASKS_AND_TRACKED_FILES))
 _MASKED_NEWLINE          := $(word 2,$(_MASKS_AND_TRACKED_FILES))
 _TRACKED_FILES           := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(_MASKS_AND_TRACKED_FILES))
@@ -1171,7 +1170,7 @@ _STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARG
 #* returns: list<string>
 #*
 define _suggestions
-$(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) \
+$(shell printf '%s\n' $(call _shell_quoted,$1) \
 	| $(AWK) -v _UNKNOWN=$(call _quoted,$(or $2,$(_SUGGESTED_FOR))) ' \
 	function levenshtein(left, right,    left_length, right_length, left_index, right_index, cost, best, previous, current) { \
 		left_length = length(left); \
@@ -1324,16 +1323,16 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		_CURDIR="$(abspath $(CURDIR))" \
 		_APP_DIR="$(APP_DIR)" \
 		_TARGET_PREFIX="$(_TARGET_PREFIX)" \
-		_HEADER_LOGO="$(if $(LOGO),$$($(PRINTF) '%b' '$(call _color,$(COLOR_LOGO))$(subst $(_NEWLINE),\n,$(LOGO))$(_ANSI_RESET)__BRNSHKR_LOGO_END__'),)" \
-		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$($(PRINTF) '%b' '$(call text,$(if $(PACKAGE),@@brnshkr-package@@)$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
+		_HEADER_LOGO="$(if $(LOGO),$$(printf '%b' '$(call _color,$(COLOR_LOGO))$(subst $(_NEWLINE),\n,$(LOGO))$(_ANSI_RESET)__BRNSHKR_LOGO_END__'),)" \
+		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$(printf '%b' '$(call text,$(if $(PACKAGE),@@brnshkr-package@@)$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_PACKAGE="$(PACKAGE)" \
-		_HEADER_USAGE="$$($(PRINTF) '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
+		_HEADER_USAGE="$$(printf '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
 		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
 		_HAS_LIST_SCOPES_ARGUMENT="$(_HAS_LIST_SCOPES_ARGUMENT)" \
 		_HAS_RESOLVE_ARGUMENT="$(_HAS_RESOLVE_ARGUMENT)" \
 		_HAS_ENV_ARGUMENT="$(_HAS_ENV_ARGUMENT)" \
-		_INLINE_CODE_OPEN="$$($(PRINTF) '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
-		_INLINE_CODE_CLOSE="$$($(PRINTF) '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
+		_INLINE_CODE_OPEN="$$(printf '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
+		_INLINE_CODE_CLOSE="$$(printf '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
 		_CURRENT_ENV="$(_CURRENT_ENV)" \
 		LC_ALL=C \
@@ -1422,9 +1421,9 @@ $(call _target,configs): #~~ writes missing files, `tools` configs, `local` priv
 		else \
 			included_config_path="$${config_path%/*}/$${config_name%.*}.dist.$${config_name##*.}"; \
 			case "$$config_name" in \
-				*.mjs) $(PRINTF) '%s\n' "export { default } from './$${included_config_path##*/}';" > "$$config_path" \
+				*.mjs) printf '%s\n' "export { default } from './$${included_config_path##*/}';" > "$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-				*.php) $(PRINTF) '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
+				*.php) printf '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
 					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' 'return $$config;' > "$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 				*) included_config_path=""; continue;; \
@@ -1456,7 +1455,7 @@ $(call _target,configs): #~~ writes missing files, `tools` configs, `local` priv
 		if $(LN) -sfn "$$relative_linked_path" "$$link_path" 2>/dev/null; then \
 			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}" "./$$relative_linked_path"); \
 		else \
-			$(PRINTF) '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' > "$$link_path" \
+			printf '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' > "$$link_path" \
 				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}"); \
 		fi; \
@@ -1520,10 +1519,10 @@ _FRESH_EXCLUDES = $(if $(_IS_FRESH_ALL),,$(foreach \
 _FRESH_OPTIONS = set -f; \
 	set -- -xdf$(if $(_IS_FRESH_ALL),f) $(_FRESH_EXCLUDES); \
 	$(if $(_IS_FRESH_ALL),:,untracked_paths=$$($(_FRESH_UNTRACKED)) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-	newline=$$($(PRINTF) '\n_'); \
+	newline=$$(printf '\n_'); \
 	IFS=$${newline%_}; \
 	for path in $$untracked_paths; do \
-		set -- "$$@" --exclude="/$$($(PRINTF) '%s' "$$path" | $(AWK) "$$_FRESH_ESCAPE_AWK")"; \
+		set -- "$$@" --exclude="/$$(printf '%s' "$$path" | $(AWK) "$$_FRESH_ESCAPE_AWK")"; \
 	done; \
 	unset IFS)
 
@@ -2240,7 +2239,7 @@ $(call _target,hadolint-group): #~~ counts the `hadolint` findings by rule #v
 		$(if $(call _has_positional_arg,$(ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)),code,message,file)
 
 $(call _target,hadolint-list): #~~ lists the dockerfiles `hadolint` reads #vv
-	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(HADOLINT_FILES),printf '%s\n' $(_QUOTED_HADOLINT_FILES),$(call log,No dockerfile to lint.,$(COLOR_NOTICE)))
 
 $(call _target,hadolint-print): #~~ prints the resolved `hadolint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
@@ -2278,7 +2277,7 @@ $(call _target,actionlint-group): #~~ counts the `actionlint` findings by rule #
 		$(if $(call _has_positional_arg,$(ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)),kind,message,filepath)
 
 $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
-	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),$(PRINTF) '%s\n' $(_QUOTED_ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
+	$(TRACE_PREFIX)$(if $(ACTIONLINT_FILES),printf '%s\n' $(_QUOTED_ACTIONLINT_FILES),$(call log,No workflow to lint.,$(COLOR_NOTICE)))
 
 endif # /actionlint
 
@@ -2342,7 +2341,7 @@ _SEMGREP_DETECTED_RULESETS = default \
 	$(if $(_HAS_SEMGREP_RULES),semgrep-rule-lints)
 
 _HAS_SEMGREP_RULES = $(eval _HAS_SEMGREP_RULES := $$(shell $$(AWK) '/^  - id:/ { found = 1; exit } END { exit !found }' \
-	'$$(call _host_path,$$(SEMGREP_CONFIG))' 2>/dev/null && $$(PRINTF) 1))$(_HAS_SEMGREP_RULES)
+	'$$(call _host_path,$$(SEMGREP_CONFIG))' 2>/dev/null && printf 1))$(_HAS_SEMGREP_RULES)
 _SEMGREP_OVERRIDES = $(eval _SEMGREP_OVERRIDES := $$(call _semgrep_overrides,$$(call _host_path,$$(SEMGREP_CONFIG))))$(_SEMGREP_OVERRIDES)
 
 _SEMGREP_RULESETS = $(sort $(filter-out $(patsubst -%,%,$(filter -%,$(_SEMGREP_OVERRIDES))), \
@@ -2372,7 +2371,7 @@ $(call _target,semgrep-group): #~~ counts the `semgrep` findings by rule #v
 	$(TRACE_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message,path)
 
 $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
-	$(TRACE_PREFIX)$(PRINTF) '%s\n' $(SEMGREP_RULESETS)
+	$(TRACE_PREFIX)printf '%s\n' $(SEMGREP_RULESETS)
 
 $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
@@ -2570,7 +2569,7 @@ _CHANGELOG_RANGE    = $(if $(_IS_CHANGELOG_ALL),,$(or $(CHANGELOG_RANGE),$(if $(
 _CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
 _CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
 _CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
-_CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || $(PRINTF) '%s' '$(VERSION)')
+_CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || printf '%s' '$(VERSION)')
 _CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
 
 _CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
@@ -2820,7 +2819,7 @@ endef
 #* returns: void
 #*
 define log
-$(PRINTF) '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
+printf '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
 	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes)))
 endef
 
@@ -2854,9 +2853,9 @@ define confirm
 	if [ -n "$(_IS_CI)" ] || [ ! -t 0 ] || ! ( : < /dev/tty ) 2>/dev/null; then \
 		$(if $(filter yes,$2),true,false); \
 	else \
-		$(PRINTF) '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
+		printf '%s $(call text,[$(if $(filter yes,$2),Y/n,y/N)],$(COLOR_NOTICE)) ' '$1' \
 			| $(call _render_inline_code,printf "%s"$(_COMMA) $$0,yes) >&2 \
-			&& trap '$(PRINTF) "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
+			&& trap 'printf "\n" >&2; trap - $(_SIGNAL_INTERRUPT); kill -$(_SIGNAL_INTERRUPT) $$$$' $(_SIGNAL_INTERRUPT) \
 			&& read -r answer < /dev/tty \
 			&& trap - $(_SIGNAL_INTERRUPT) \
 			&& case "$$answer" in \
@@ -3007,7 +3006,7 @@ endef
 #* returns: string
 #*
 define _has_positional_arg
-$(strip $(shell $(PRINTF) '%s\n' $(call _shell_quoted,$1) | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
+$(strip $(shell printf '%s\n' $(call _shell_quoted,$1) | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
 	{ \
 		if (skip) { skip = 0; next } \
 		if (index(_VALUE_FLAGS, " " $$0 " ") > 0) { skip = 1; next } \
@@ -3050,7 +3049,7 @@ endef
 define _append_stack_entries
 for shipped_part in "$$template_path" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$${template_path%.dist.*}.$(SUFFIX).dist.$${template_path##*.}"); do \
 	[ -r "$$shipped_part" ] || continue; \
-	[ ! -s "$$body_path" ] || $(PRINTF) '\n' >> "$$body_path"; \
+	[ ! -s "$$body_path" ] || printf '\n' >> "$$body_path"; \
 	$(AWK) -v outer_line_count=$1 '{ part_lines[NR] = $$0 } \
 		END { for (line_index = outer_line_count + 1; line_index <= NR - outer_line_count; line_index += 1) print part_lines[line_index] }' \
 		"$$shipped_part" >> "$$body_path"; \
@@ -3116,21 +3115,21 @@ block_anchor=; block_indent=; comment_prefix=; deduplication_mode=lines; is_whol
 [ -f "$$config_path" ] || written_verb=Created; \
 case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
 case "$$config_path" in \
-	*/.gitignore) $(PRINTF) '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) > "$$body_path";; \
+	*/.gitignore) printf '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) > "$$body_path";; \
 	*/.gitattributes) $(CAT) "$$template_path" > "$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
-		$(PRINTF) '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
+		printf '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
 	} >> "$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" > "$$body_path"; deduplication_mode=sections;; \
 	*/settings.json) $(call _append_stack_entries,1); \
 		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" > "$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
-		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),$(PRINTF) '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >> "$$body_path";) \
-		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),$(PRINTF) '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
+		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),printf '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >> "$$body_path";) \
+		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),printf '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
 		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication_mode=keys; \
-		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || $(PRINTF) '%s\n' '{' '}' > "$$config_path";; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || printf '%s\n' '{' '}' > "$$config_path";; \
 	*/extensions.json) $(call _append_stack_entries,2); \
-		$(if $(strip $(_EDITOR_EXTENSIONS)),$(PRINTF) '%s\n' '' '    // Frameworks' $(_EDITOR_EXTENSIONS) >> "$$body_path";) \
+		$(if $(strip $(_EDITOR_EXTENSIONS)),printf '%s\n' '' '    // Frameworks' $(_EDITOR_EXTENSIONS) >> "$$body_path";) \
 		block_anchor='"recommendations"'; block_indent='    '; comment_prefix='// '; \
-		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || $(PRINTF) '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$config_path";; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || printf '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$config_path";; \
 	*/Makefile) $(AWK) '/^###< brnshkr\/config ###$$/ { is_inside = 0; print } is_inside { print } /^###> brnshkr\/config ###$$/ { is_inside = 1 }' \
 		"$$template_path" > "$$body_path"; deduplication_mode=;; \
 	*) is_whole_file=1;; \
@@ -3153,7 +3152,7 @@ else \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
 	[ "$$updated_contents" = "$$($(CAT) "$$config_path")" ] || { \
-		$(PRINTF) '%s\n' "$$updated_contents" > "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		printf '%s\n' "$$updated_contents" > "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
 	}; \
 fi
@@ -3416,7 +3415,7 @@ $(MKDIR) -p "$$hooks_directory"; \
 for hook_pair in $(GIT_HOOKS); do \
 	hook="$${hook_pair%%=*}"; \
 	$(if $(filter yes,$1),,[ ! -f "$$hooks_directory/$$hook" ] || continue;) \
-	$(PRINTF) '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${hook_pair#*=}" > "$$hooks_directory/$$hook"; \
+	printf '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${hook_pair#*=}" > "$$hooks_directory/$$hook"; \
 	$(CHMOD) +x "$$hooks_directory/$$hook"; \
 	$(call log,Installed `%s`.,$(COLOR_SUCCESS),"$$hook"); \
 done
@@ -3459,7 +3458,7 @@ endef
 
 _IS_GROUP_PARALLEL    = $(if $(filter -O%,$(MAKEFLAGS)),,$(_IS_PARALLEL))
 _HAS_GROUP_LABEL      = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT))
-_CLEAR_SPINNER        = $(PRINTF) "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"
+_CLEAR_SPINNER        = printf "\r$(_ANSI_CLEAR_LINE)$(_ANSI_SHOW_CURSOR)"
 _SPINNER_SECONDS     := 0.15
 _SIGNAL_INTERRUPT    := INT
 _SIGNAL_TERMINATE    := TERM
@@ -3477,7 +3476,7 @@ _SPINNER_SIGNALS     := $(_SIGNAL_INTERRUPT) $(_SIGNAL_TERMINATE) $(_SIGNAL_HANG
 #*
 define __spinner
 while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
-	$(PRINTF) '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
+	printf '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
 	sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
 done; done & spinner_pid=$$!
 endef
@@ -3497,25 +3496,25 @@ endef
 define _group
 $(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_spinner=1;) \
-$(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || $(PRINTF) '%s\n' "$$label"; \
+$(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
-		$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
+		printf '$(_ANSI_HIDE_CURSOR)'; \
 		trap 'kill $$spinner_pid 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 		$(call __spinner,$(if $(_HAS_GROUP_LABEL),  )); \
 	};) \
 output=$$($1 2>&1); status=$$?; \
-report=$$($(PRINTF) '%s\n' "$$output" \
+report=$$(printf '%s\n' "$$output" \
 	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' $(AWK) \
 		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' \
 		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" \
 		-v _COLUMNS="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}" "$$_GROUP_AWK"); code=$$?; \
-$(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || $(PRINTF) '%s\n' $${label:+"$$label"} "$$report";, \
+$(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || printf '%s\n' $${label:+"$$label"} "$$report";, \
 	[ -z "$$has_spinner" ] || { \
 		kill $$spinner_pid 2>/dev/null; \
 		wait $$spinner_pid 2>/dev/null; \
 		$(_CLEAR_SPINNER); \
 	}; \
-	[ -z "$$report" ] || $(PRINTF) '%s\n' "$$report";) \
+	[ -z "$$report" ] || printf '%s\n' "$$report";) \
 exit $$code
 endef
 
@@ -3537,13 +3536,13 @@ if [ -z "$$has_spinner" ]; then \
 	spin_command; \
 else \
 	export _SPIN_STATUS=$$($(MKTEMP)); \
-	script_command='trap "$(PRINTF) $(_INTERRUPT_EXIT_CODE) > \"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); $(PRINTF) "%s" $$? > "$$_SPIN_STATUS"'; \
+	script_command='trap "printf $(_INTERRUPT_EXIT_CODE) > \"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); printf "%s" $$? > "$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
 		set -- -qfc "$$script_command" /dev/null; \
 	else \
 		set -- -q /dev/null $(SHELL) -c "$$script_command"; \
 	fi; \
-	$(PRINTF) '$(_ANSI_HIDE_CURSOR)'; \
+	printf '$(_ANSI_HIDE_CURSOR)'; \
 	trap 'kill $$spinner_pid 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 	$(call __spinner); \
 	SHELL='$(SHELL)' $(SCRIPT) "$$@" | { \
@@ -3551,7 +3550,7 @@ else \
 		kill $$spinner_pid 2>/dev/null; \
 		wait $$spinner_pid 2>/dev/null; \
 		$(_CLEAR_SPINNER); \
-		[ $$has_line -ne 0 ] || $(PRINTF) '%s\n' "$$line"; \
+		[ $$has_line -ne 0 ] || printf '%s\n' "$$line"; \
 		$(CAT); \
 	}; \
 	code=$$($(CAT) "$$_SPIN_STATUS"); \
@@ -3585,7 +3584,7 @@ endef
 #* returns: void
 #*
 define _capture
-$(call _echo_command,$1)output=$$($1) || { $(PRINTF) '%s\n' "$$output" >&2; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; $(PRINTF) '%s\n' "$$output"
+$(call _echo_command,$1)output=$$($1) || { printf '%s\n' "$$output" >&2; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; printf '%s\n' "$$output"
 endef
 
 #**
@@ -3628,7 +3627,7 @@ endef
 #* returns: string
 #*
 define _echo_command
-$(if $(and $(_IS_DEBUG),$(if $(_IS_TRACE),,1)),$(PRINTF) '%s\n' '$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(strip $1))' >&2; )
+$(if $(and $(_IS_DEBUG),$(if $(_IS_TRACE),,1)),printf '%s\n' '$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(strip $1))' >&2; )
 endef
 
 #**
@@ -4209,12 +4208,12 @@ section_text=$$([ ! -r '$(_CHANGELOG_FILE)' ] || _CHANGELOG_VERSION='$(_CHANGELO
 	$(AWK) "$$_CHANGELOG_SECTION_AWK" '$(_CHANGELOG_FILE)'); \
 if [ -n "$$section_text" ]; then \
 	$(CAT) >/dev/null; \
-	$(PRINTF) '%s\n' "$$section_text"; \
+	printf '%s\n' "$$section_text"; \
 else \
 	$(AWK) 'NR == 1 && /^## / { next } { body = body $$0 "\n" } \
 		END { sub(/^\n+/, "", body); printf "%s", body }'; \
 fi; \
-[ -z '$(_CHANGELOG_COMPARE)' ] || $(PRINTF) '\n**Full Changelog**: %s\n' '$(_CHANGELOG_COMPARE)'
+[ -z '$(_CHANGELOG_COMPARE)' ] || printf '\n**Full Changelog**: %s\n' '$(_CHANGELOG_COMPARE)'
 endef
 
 #**
@@ -4223,7 +4222,7 @@ endef
 #* returns: void
 #*
 define _changelog_print
-{ $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; $(CAT); }
+{ printf '%s\n\n' '$(CHANGELOG_TITLE)'; $(CAT); }
 endef
 
 #**
@@ -4242,12 +4241,12 @@ else \
 	{ \
 		$(AWK) 'NR == 1 { has_title = $$0 == "$(CHANGELOG_TITLE)" } END { exit !has_title }' \
 			'$(_CHANGELOG_FILE)' 2>/dev/null \
-			|| $(PRINTF) '%s\n\n' '$(CHANGELOG_TITLE)'; \
+			|| printf '%s\n\n' '$(CHANGELOG_TITLE)'; \
 		_CHANGELOG_ADDED='$(_CHANGELOG_FILE).added' \
 			_CHANGELOG_FORCE='$(filter force f,$(_ARG_WORDS))' \
 			$(AWK) "$$_CHANGELOG_MERGE_AWK" \
 			'$(_CHANGELOG_FILE).added' \
-			$$([ -r '$(_CHANGELOG_FILE)' ] && $(PRINTF) '%s' '$(_CHANGELOG_FILE)'); \
+			$$([ -r '$(_CHANGELOG_FILE)' ] && printf '%s' '$(_CHANGELOG_FILE)'); \
 	} > '$(_CHANGELOG_FILE).new'; \
 	$(RM) -f '$(_CHANGELOG_FILE).added'; \
 	if [ ! -r '$(_CHANGELOG_FILE)' ]; then \

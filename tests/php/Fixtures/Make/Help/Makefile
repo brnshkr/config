@@ -165,7 +165,7 @@ $(if $(ENV),$(ENV),dev)
 endef
 
 define no_docs_fn #~~ function without a documentation block
-$(PRINTF) 'no docs'
+printf 'no docs'
 endef
 
 #**
@@ -173,19 +173,19 @@ endef
 #* but is overridden by the inline #~~ tag below.
 #*
 define documented_and_described_fn #~~ inline description overrides the derived one
-$(PRINTF) 'overridden'
+printf 'overridden'
 endef
 
 define undescribed_fn
-$(PRINTF) 'no docs, no description'
+printf 'no docs, no description'
 endef
 
 define verbose_described_fn #~~ described function shown at verbosity >= 1 (via scope)
-$(PRINTF) 'verbose-described'
+printf 'verbose-described'
 endef
 
 define _private_fn
-$(PRINTF) 'private - should not appear'
+printf 'private - should not appear'
 endef
 
 define UPPER_MACRO #~~ define-based macro variable

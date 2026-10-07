@@ -497,7 +497,6 @@ Available commands:
 +    MKDIR                      ?=  mkdir                                            (path to mkdir binary)
 +    MKTEMP                     ?=  mktemp                                           (path to mktemp binary)
 +    MV                         ?=  mv                                               (path to mv binary)
-+    PRINTF                     ?=  printf                                           (path to printf binary)
 +    PS                         ?=  ps                                               (path to ps binary)
 +    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
 +    SCRIPT                     ?=  script                                           (path to script binary)
@@ -556,21 +555,23 @@ Available commands:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-+
-+    returns: string
  
++    returns: string
++
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
+     Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
+     A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
- 
++
 +    parameters:
 +      message: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      arguments?: list<string>
 +      autolink?: OneOf<autolink | no-autolink> = autolink
-+
+ 
 +    returns: void
 +
     run_in
@@ -580,9 +581,9 @@ Available commands:
 +
 +    parameters:
 +      service: string
-+
-+    returns: string
  
++    returns: string
++
     confirm
      Asks a yes/no question before something destructive happens.
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
@@ -591,11 +592,12 @@ Available commands:
 +    parameters:
 +      question: string
 +      default?: OneOf<yes | no> = no
- 
-+    returns: void
 +
++    returns: void
+ 
   app
    advanced
+@@ @@
     resolve_env
      Resolves the environment name from context.
      Defaults to dev when ENV is not set.
@@ -1054,7 +1056,6 @@ Available commands:
     [36mMKDIR                    [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
     [36mMKTEMP                   [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
     [36mMV                       [0m  [90m?=  mv                                               (path to [35mmv[0m[90m binary)[0m
-    [36mPRINTF                   [0m  [90m?=  printf                                           (path to [35mprintf[0m[90m binary)[0m
     [36mPS                       [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
     [36mRM                       [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                   [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
@@ -1366,7 +1367,6 @@ Available commands:
     [32mMKDIR                    [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
     [32mMKTEMP                   [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
     [32mMV                       [0m  [0m?=  mv                                               (path to [33mmv[0m[0m binary)[0m
-    [32mPRINTF                   [0m  [0m?=  printf                                           (path to [33mprintf[0m[0m binary)[0m
     [32mPS                       [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
     [32mRM                       [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                   [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
