@@ -78,7 +78,8 @@ final class Spelling
      * }> every finding, sorted by path, line and word
      *
      * @throws JsonException when the settings file is not valid JSON
-     * @throws RuntimeException when a setting is malformed or an allowed word is already covered
+     * @throws RuntimeException when a setting is malformed
+     * @throws RuntimeException when an allowed word is already covered
      *
      * @example
      * ```php

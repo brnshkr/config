@@ -317,7 +317,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured architecture rule services
      *
-     * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when a namespace is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example
@@ -438,7 +439,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured module isolation rule services
      *
-     * @throws InvalidArgumentException when the pattern is invalid or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when the pattern is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example
@@ -509,7 +511,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured Symfony architecture rule services
      *
-     * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when a namespace is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example
@@ -646,7 +649,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured Doctrine architecture rule services
      *
-     * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when a namespace is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example
@@ -721,7 +725,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured Laravel architecture rule services
      *
-     * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when a namespace is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example
@@ -765,7 +770,8 @@ final class Architecture
      *
      * @return non-empty-list<PhpAtService> configured Tempest architecture rule services
      *
-     * @throws InvalidArgumentException when namespaces or module names are invalid
+     * @throws InvalidArgumentException when a module name is invalid
+     * @throws InvalidArgumentException when a namespace is invalid
      * @throws RuntimeException when the project's `composer.json` cannot be read
      *
      * @example

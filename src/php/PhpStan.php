@@ -959,7 +959,8 @@ final class PhpStan
      *
      * @param list<non-empty-string> $fileExtensions - extensions to analyze, without their leading dot
      *
-     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     * @throws InvalidArgumentException when an extension is not a non-empty string
+     * @throws InvalidArgumentException when an extension starts with a dot
      */
     public function addFileExtensions(array $fileExtensions): self
     {
@@ -973,7 +974,8 @@ final class PhpStan
      *
      * @param list<non-empty-string> $fileExtensions - extensions PHPStan analyzes, without their leading dot
      *
-     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     * @throws InvalidArgumentException when an extension is not a non-empty string
+     * @throws InvalidArgumentException when an extension starts with a dot
      */
     public function setFileExtensions(array $fileExtensions): self
     {
@@ -987,7 +989,8 @@ final class PhpStan
      *
      * @param list<non-empty-string> $fileExtensions - extensions to stop analyzing, without their leading dot
      *
-     * @throws InvalidArgumentException when an extension is not a non-empty string or starts with a dot
+     * @throws InvalidArgumentException when an extension is not a non-empty string
+     * @throws InvalidArgumentException when an extension starts with a dot
      */
     public function removeFileExtensions(array $fileExtensions): self
     {
@@ -1233,7 +1236,8 @@ final class PhpStan
      *
      * @param non-empty-string $package - the Composer package name to read the declaration from
      *
-     * @throws RuntimeException when the package is not installed or declares nothing
+     * @throws RuntimeException when the package declares nothing
+     * @throws RuntimeException when the package is not installed
      *
      * @see https://phpstan.org/config-reference#exceptions
      *
@@ -1255,7 +1259,8 @@ final class PhpStan
      *
      * @param non-empty-string $package - the Composer package name to read the declaration from
      *
-     * @throws RuntimeException when the package is not installed or declares nothing
+     * @throws RuntimeException when the package declares nothing
+     * @throws RuntimeException when the package is not installed
      */
     public function removeUncheckedExceptionsFrom(string $package): self
     {

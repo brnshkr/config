@@ -456,7 +456,8 @@ final class ComposerJson
      *
      * @return array<non-empty-string, non-empty-string> the directory of each development-only package
      *
-     * @throws RuntimeException when the manifest or the installed data cannot be read
+     * @throws RuntimeException when the installed data cannot be read
+     * @throws RuntimeException when the manifest cannot be read
      */
     public function getDevelopmentOnlyPackageDirectories(): array
     {
