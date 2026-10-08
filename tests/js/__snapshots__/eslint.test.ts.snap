@@ -17559,7 +17559,11 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "unicorn/no-unscoped-css-nesting-selector": [
         2,
         {
-          "scopingRootAtRules": [],
+          "scopingRootAtRules": [
+            "custom-variant",
+            "utility",
+            "variant",
+          ],
         },
       ],
       "unicorn/prefer-explicit-viewport-units": [

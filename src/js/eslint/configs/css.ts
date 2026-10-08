@@ -15,7 +15,7 @@ import {
 
 import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
-import { TAILWIND_AT_RULE_PRELUDES } from '#shared/utils/tailwind.ts';
+import { TAILWIND_AT_RULE_PRELUDES, TAILWIND_SCOPING_AT_RULES } from '#shared/utils/tailwind.ts';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
 import type { Config } from '#eslint/types/config.ts';
@@ -142,7 +142,9 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
             'unicorn/no-redundant-nested-style-rules': 'error',
             'unicorn/no-unknown-css-annotations': 'error',
             'unicorn/no-unknown-pseudo-selectors': 'error',
-            'unicorn/no-unscoped-css-nesting-selector': 'error',
+            'unicorn/no-unscoped-css-nesting-selector': ['error', {
+              scopingRootAtRules: TAILWIND_SCOPING_AT_RULES,
+            }],
             'unicorn/prefer-explicit-viewport-units': 'error',
             'unicorn/prefer-media-feature-range-syntax': 'error',
           }
