@@ -102,8 +102,16 @@ final class ArgumentsTest extends TestCase
             directory: self::CONSUMER_DIRECTORY,
         );
 
+        $spaced = $this->runMake(
+            ['-n', 'rector', 'ARGS=\'a b.php\' --dry-run'],
+            ['PATH' => self::TOOLS_DIRECTORY . '/bin:' . Str::fromEnvironment('PATH')],
+            self::TOOLS_DIRECTORY,
+        );
+
         self::assertStringContainsString('consumer-arguments [\'--filter\' \'A|B\'', $result);
         self::assertStringNotContainsString('cOME', $result);
+        self::assertStringContainsString('\'a b.php\' --config', $spaced);
+        self::assertStringContainsString('--dry-run', $spaced);
     }
 
     public function testAnOptionWithAValueReachesTheTargetItFollows(): void

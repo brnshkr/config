@@ -1146,8 +1146,11 @@ ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target go
 
 _GOAL = $@
 
+_COMMAND_LINE_ARGS := $(if $(filter command line,$(origin ARGS)),$(shell \
+	for word in $(ARGS); do printf '%s\000' "$$word"; done | $(TR) ' \n\000' '\037\036 '))
+
 _ARGS = $(strip $(if $(filter command line,$(origin ARGS)) \
-	,$(ARGS), \
+	,$(_COMMAND_LINE_ARGS), \
 	$(if $(_NAMING_GOAL) \
 		,$(filter-out $(_FIRST_GOAL) --,$(_GOAL_WORDS)), \
 		$(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS))) \
@@ -1192,7 +1195,7 @@ endif # /dangling
 
 _IS_JUST_PRINT = $(findstring n,$(firstword -$(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
-_UNKNOWN_ARGS  = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+_UNKNOWN_ARGS  = $(if $(filter command line,$(origin ARGS)),,$(call _shell_quoted,$(filter-out $@,$(_ARGS))))
 _SUGGESTED_FOR = $@
 _TARGET_GOALS  = $(filter-out _% -%,$(_ALL_TARGETS))
 _STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
