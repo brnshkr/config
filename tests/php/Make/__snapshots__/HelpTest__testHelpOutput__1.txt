@@ -186,6 +186,8 @@ Variables:
    COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
+   NODE_SERVICE                ?=  node                                             (compose service node runs in, where the project has one)
+   SEMGREP_SERVICE             ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -1067,6 +1069,8 @@ Available commands:
    [36mCOMPOSE_FILE              [0m  [90m?=                                                   (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE          [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
+   [36mNODE_SERVICE              [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one)[0m
+   [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [36mRUN                       [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
@@ -1378,6 +1382,8 @@ Available commands:
    [32mCOMPOSE_FILE              [0m  [0m?=                                                   (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE          [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
+   [32mNODE_SERVICE              [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one)[0m
+   [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [32mRUN                       [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m

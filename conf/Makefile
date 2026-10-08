@@ -214,6 +214,8 @@ TR     ?= tr#~~ path to `tr` binary
 COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of this project's
 APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty for this machine
 APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering one
+NODE_SERVICE     ?= node#v #~~ compose service `node` runs in, where the project has one
+SEMGREP_SERVICE  ?= semgrep#v #~~ compose service `semgrep` runs in, where the project has one
 IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
 RUN              ?= $(call run_in,$(APP_SERVICE))#v #~~ command the tools run through, empty on this machine
 APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#v #~~ where the tools see the sources, not `CURDIR` in a container
@@ -255,21 +257,17 @@ _COMPOSE_FILES = $(or \
 	)) \
 )
 
-_COMPOSE         = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
-_HAS_DOCKER     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
-_HAS_CONTAINER   = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
-_IS_SERVICE_RUN  = $(filter run,$(APP_SERVICE_MODE))
+_COMPOSE        = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
+_HAS_DOCKER    := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
+_HAS_CONTAINER  = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+_SERVE_FLAGS    = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 
 define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
 /^[^[:space:]]/ { in_services = 0 }
-in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service) }
-in_services && service == _SERVICE && /^    (working_dir|image):/ { \
-	value = $$2; \
-	gsub(/["'"'"']/, "", value); \
-	if ($$1 == "image:") image = value; else directory = value \
-}
-END { if (directory != "") print directory, image }
+in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service); services = services " " service }
+in_services && service == _SERVICE && /^    working_dir:/ { directory = $$2; gsub(/["'"'"']/, "", directory) }
+END { if (directory != "") print directory services }
 endef
 
 
@@ -280,7 +278,9 @@ _CONTAINER_KEYS := APP_DIR \
 	DOCKER \
 	DOCKER_COMPOSE \
 	IS_IN_CONTAINER \
-	RUN
+	NODE_SERVICE \
+	RUN \
+	SEMGREP_SERVICE
 
 _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 	BRNSHKR_CONFIG_DIR \
@@ -425,14 +425,55 @@ function unquote(value,    quote) {
 	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2)
 	return value
 }
-function interpolate(value,    out, name, start, stop) {
+function add_definition(key, value, is_single_quoted, path) {
+	if (!(key in definition_count_by_key)) order[++count] = key
+	definition_count_by_key[key] += 1
+	raw_value_by_definition[key, definition_count_by_key[key]] = value
+	path_by_definition[key, definition_count_by_key[key]] = path
+	if (is_single_quoted) single_quoted_definitions[key, definition_count_by_key[key]] = 1
+}
+function resolve(key, definition, depth) {
+	if (depth > 32) fail("`" key "` refers back to itself in `" path_by_definition[key, definition] "`")
+	if ((key, definition) in single_quoted_definitions) return raw_value_by_definition[key, definition]
+	return interpolate(raw_value_by_definition[key, definition], key, definition, depth)
+}
+function get_value(name, key, definition, depth) {
+	if (name == key) return definition > 1 ? resolve(name, definition - 1, depth + 1) : (name in ENVIRON) ? ENVIRON[name] : ""
+	if (name in ENVIRON) return ENVIRON[name]
+	if (name in definition_count_by_key) return resolve(name, definition_count_by_key[name], depth + 1)
+	return (name in assigned_value_by_key) ? assigned_value_by_key[name] : ""
+}
+function interpolate(value, key, definition, depth,    out, position, backslash_count, rest, name, name_length, closing, operator, default_value, resolved_value) {
 	out = ""
-	while ((start = index(value, "$${")) > 0) {
-		stop = index(substr(value, start), "}")
-		if (stop == 0) break
-		name = substr(value, start + 2, stop - 3)
-		out = out substr(value, 1, start - 1) ((name in ENVIRON) ? ENVIRON[name] : (name in values) ? values[name] : "")
-		value = substr(value, start + stop)
+	while ((position = index(value, "$$")) > 0) {
+		backslash_count = 0
+		while (backslash_count < position - 1 && substr(value, position - backslash_count - 1, 1) == "\\") backslash_count += 1
+		rest = substr(value, position + 1)
+		if (backslash_count % 2) { out = out substr(value, 1, position - 2) "$$"; value = rest; continue }
+		out = out substr(value, 1, position - 1)
+		if (match(rest, /^[{]_?[A-Za-z][A-Za-z0-9_]*/)) {
+			name_length = RLENGTH - 1
+			name = substr(rest, 2, name_length)
+			closing = index(rest, "}")
+			operator = (closing > name_length + 3) ? substr(rest, name_length + 2, 2) : ""
+			if (closing == name_length + 2 || operator == ":-" || operator == ":=") {
+				default_value = (operator == "") ? "" : substr(rest, name_length + 4, closing - name_length - 4)
+				if (index(default_value, "$$")) fail("`$$` in the default of `$${" name "}` in `" path_by_definition[key, definition] "` is not supported")
+				resolved_value = get_value(name, key, definition, depth)
+				if (resolved_value == "" && operator == ":=") assigned_value_by_key[name] = default_value
+				if (resolved_value == "" && operator != "") resolved_value = default_value
+				out = out resolved_value
+				value = substr(rest, closing + 1)
+				continue
+			}
+		} else if (match(rest, /^_?[A-Za-z][A-Za-z0-9_]*/)) {
+			name_length = RLENGTH
+			out = out get_value(substr(rest, 1, name_length), key, definition, depth)
+			value = substr(rest, name_length + 1)
+			continue
+		}
+		out = out "$$"
+		value = rest
 	}
 	return out value
 }
@@ -461,16 +502,13 @@ function load(path,    line, key, value, quote, continued_line, line_number, key
 			sub(/[ \t]+$$/, "", value)
 		}
 		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`")
-		value = unquote(value)
-		if (quote != SQ) value = interpolate(value)
-		if (!(key in values)) order[++count] = key
-		values[key] = value
-		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_value[record_count] = value; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
+		add_definition(key, unquote(value), quote == SQ, path)
+		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_definition[record_count] = definition_count_by_key[key]; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
 	} while ((getline line < path) > 0)
 	close(path)
 	return 1
 }
-function get_environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in values) ? values[_ENV_KEY] : ""; return value != "" ? value : fallback }
+function get_environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in definition_count_by_key) ? resolve(_ENV_KEY, definition_count_by_key[_ENV_KEY], 0) : ""; return value != "" ? value : fallback }
 BEGIN {
 	SQ = sprintf("%c", 39)
 	if (!load(_BASE)) load(_BASE ".dist")
@@ -479,24 +517,23 @@ BEGIN {
 	for (i in tests) if (tests[i] == env) is_test = 1
 	if (!is_test) { load(_BASE ".local"); env = get_environment(env) }
 	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
+	add_definition(_ENV_KEY, env, 1, "")
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
 			key = record_key[record_index]
-			value = record_value[record_index]
+			value = resolve(key, record_definition[record_index], 0)
 			gsub(/\n/, " ", value)
 			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], key, value, (key in ENVIRON) ? "environment" : (last_record_of_key[key] != record_index) ? record_file[last_record_of_key[key]] : "", record_line[record_index]
 		}
 		exit
 	}
-	if (!(_ENV_KEY in values)) order[++count] = _ENV_KEY
-	values[_ENV_KEY] = env
 	if (_ENVIRONMENT) {
-		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], quote_for_shell(values[order[i]])
+		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], quote_for_shell(resolve(order[i], definition_count_by_key[order[i]], 0))
 		exit
 	}
 	for (i = 1; i <= count; i += 1) {
 		key = order[i]
-		value = values[key]
+		value = resolve(key, definition_count_by_key[key], 0)
 		gsub(/\$$/, "$$$$", value)
 		gsub(/#/, "\\#", value)
 		gsub(/\n/, "$$(_NEWLINE)", value)
@@ -529,16 +566,14 @@ export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
 
-_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY),$(shell \
-	$(_HOST_ENVIRONMENT) $(_COMPOSE) config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))
+_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY) $(_COMPOSE_SERVICES),$(shell \
+	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))
 
 _SERVICE_DIRECTORY := $(word 1,$(_SERVICE_CONFIG))
-
-_SERVICE_TOOLS := $(if $(word 2,$(_SERVICE_CONFIG)),$(shell $(DOCKER) image inspect \
-	--format '{{index .Config.Labels "dev.brnshkr.tools"}}' '$(word 2,$(_SERVICE_CONFIG))' </dev/null 2>/dev/null))
+_COMPOSE_SERVICES  := $(wordlist 2,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
 
 ifeq ($(_SERVICE_DIRECTORY),)
-_COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) config --quiet 2>&1 >/dev/null \
+_COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
 	| $(AWK) 'NR == 1 { sub(/^error while interpolating [^:]*: /, ""); print }')
 
 $(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the compose file or empty `APP_SERVICE`)
@@ -735,7 +770,7 @@ _HAS_JS              = $(wildcard $(CURDIR)/package.json)
 _HAS_BUN_INSPECT     = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
 _HAS_COMMITLINT      = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
 _HAS_ESLINT          = $(wildcard $(CURDIR)/node_modules/.bin/eslint)
-_HAS_ESLINT_INSPECT  = $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector)
+_HAS_ESLINT_INSPECT  = $(and $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),$(if $(_HAS_CONTAINER),$(filter $(NODE_SERVICE),$(_COMPOSE_SERVICES)),1))
 _HAS_MARKDOWNLINT    = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT       = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT      = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
@@ -752,7 +787,7 @@ _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 ))
 
 _HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_HAS_CONTAINER), \
-	$(filter semgrep,$(_SERVICE_TOOLS)), \
+	$(filter $(SEMGREP_SERVICE),$(_COMPOSE_SERVICES)), \
 	$(call _is_on_path,semgrep))))
 
 _TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
@@ -877,6 +912,7 @@ _HAS_COVERAGE    := $(_COVERAGE_NAMES)
 _HAS_CI          := $(or $(_HAS_CHECK),$(_HAS_AUDIT),$(_HAS_TEST),$(CI_TARGETS))
 
 export _BRNSHKR_DETECTED_IN := $(CURDIR)
+export _COMPOSE_SERVICES
 export _DETECTED_EDITOR
 export _HAS_ACTIONLINT
 export _HAS_DOCKER
@@ -1942,11 +1978,12 @@ $(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKA
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
-NODE_MODULES_INSPECTOR       ?= $(BUN) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
+NODE_MODULES_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_SERVICE),$(NODE_MODULES_INSPECTOR_PORT)) bun,$(BUN)) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
+NODE_MODULES_INSPECTOR_PORT  ?= 9999#v #~~ port `node-modules-inspector` serves on
 NODE_MODULES_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `node-modules-inspector`
 
 $(call _target,bun-inspect): #~~ runs `node-modules-inspector` #v
-	$(DEBUG_PREFIX)$(NODE_MODULES_INSPECTOR) $(ARGS) $(NODE_MODULES_INSPECTOR_FLAGS)
+	$(DEBUG_PREFIX)$(NODE_MODULES_INSPECTOR) --port $(NODE_MODULES_INSPECTOR_PORT) $(ARGS) $(_SERVE_FLAGS) $(NODE_MODULES_INSPECTOR_FLAGS)
 
 endif # /bun-inspect
 
@@ -2020,12 +2057,14 @@ $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file
 ifneq ($(_HAS_ESLINT_INSPECT),) # eslint-inspect
 
 # NOTICE: runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
-ESLINT_CONFIG_INSPECTOR       ?= $(BUN) x eslint-config-inspector#v #~~ command that runs `eslint-config-inspector`
+ESLINT_CONFIG_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_SERVICE),$(ESLINT_CONFIG_INSPECTOR_PORT)) node $(APP_DIR)/node_modules/.bin/eslint-config-inspector,$(BUN) x eslint-config-inspector)#v #~~ command that runs `eslint-config-inspector`
+ESLINT_CONFIG_INSPECTOR_PORT  ?= 7777#v #~~ port `eslint-config-inspector` serves on
 ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-config-inspector`
 
 $(call _target,eslint-inspect): #~~ runs `eslint-config-inspector` #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) $(ARGS) $(if $(filter %-stats,$(_GOAL)),--stats) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
+	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) --port $(ESLINT_CONFIG_INSPECTOR_PORT) $(ARGS) \
+		$(if $(filter %-stats,$(_GOAL)),--stats) $(_SERVE_FLAGS) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
 $(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ runs `eslint-config-inspector` with a timed full lint #vv
 $(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
@@ -2285,14 +2324,16 @@ endif # /actionlint
 
 ifneq ($(_HAS_SEMGREP),) # semgrep
 
-SEMGREP          ?= $(RUN) semgrep#v #~~ command that runs `semgrep`
+SEMGREP          ?= $(_SEMGREP_RUN) semgrep#v #~~ command that runs `semgrep`
 SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgrep.yaml $(APP_DIR)/$(_CONFIG_DIR)/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
 SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets, detected unless `x-brnshkr` sets them
 SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `semgrep`
 SEMGREP_CACHE    ?= $(APP_DIR)/$(_CACHE_DIR)/semgrep#vv #~~ path to the `semgrep` ruleset cache
 SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
-SEMGREP_PYTHON   ?= $(RUN) python3#vvv #~~ command that runs `python3`, merging `semgrep` rulesets
+SEMGREP_PYTHON   ?= $(_SEMGREP_RUN) python3#vvv #~~ command that runs `python3`, merging `semgrep` rulesets
+
+_SEMGREP_RUN = $(call _enter_service,$(SEMGREP_SERVICE),-T,run)
 
 _LAYERED_CONFIGS += $(call _layered,$(SEMGREP_CONFIG),yaml)
 
@@ -2838,6 +2879,19 @@ $(call _enter_service,$1,-T)
 endef
 
 #**
+#* The command a server runs through in a compose service, its port published on this machine's loopback.
+#*
+#* parameters:
+#*   service: string
+#*   port: string
+#*
+#* returns: string
+#*
+define _serve_in
+$(call _enter_service,$1,--publish 127.0.0.1:$2:$2,run)
+endef
+
+#**
 #* Asks a yes/no question before something destructive happens.
 #* It answers itself where nobody can: under `CI`, or where its input is no terminal, it answers the default.
 #* It succeeds on yes, so the caller reads it as a condition and says what it skipped.
@@ -2918,12 +2972,13 @@ endef
 #* parameters:
 #*   service: string
 #*   flags?: string
+#*   mode?: OneOf<exec | run> = APP_SERVICE_MODE
 #*
 #* returns: string
 #*
 define _enter_service
 $(if $(_HAS_CONTAINER) \
-	,$(if $(_IS_SERVICE_RUN) \
+	,$(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
 		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
 		$(call _start_service,$1)$(_COMPOSE) exec $2 \
 	) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment) \
@@ -3877,7 +3932,7 @@ for ruleset in $(SEMGREP_RULESETS); do \
 	cached_ruleset_path="$$cache_directory/$$ruleset.json"; \
 	[ -r "$$cached_ruleset_path" ] && [ -z "$$(find "$$cached_ruleset_path" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
 	partial_ruleset_path="$$($(MKTEMP) "$$cached_ruleset_path.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-	$(RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
+	$(_SEMGREP_RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
 		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${partial_ruleset_path##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
 		|| { $(RM) -f "$$partial_ruleset_path"; exit $(BRNSHKR_CONFIG_ERROR_CODE); }; \
 	[ ! -r "$$cached_ruleset_path" ] || $(CMP) -s "$$partial_ruleset_path" "$$cached_ruleset_path" \

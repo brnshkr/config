@@ -177,7 +177,6 @@ trait ContainerTrait
         array $environment = [],
         ?string $userAndGroup = null,
         string $fixtureDirectory = self::CONTAINER_DIRECTORY,
-        ?string $image = null,
     ): string {
         $environmentFlags = [];
 
@@ -198,7 +197,7 @@ trait ContainerTrait
             '-w',
             self::getContainerPath($fixtureDirectory),
             ...$environmentFlags,
-            $image ?? self::getImage(),
+            self::getImage(),
             ...$command,
         ], env: self::getBaselineEnvironment());
 
@@ -216,6 +215,7 @@ trait ContainerTrait
      * @return array{
      *     COMPOSE_PROJECT_NAME: string,
      *     FORGE_IMAGE: string,
+     *     SEMGREP_IMAGE: string,
      *     COMPOSE_FILE?: string,
      * }
      */
@@ -226,6 +226,7 @@ trait ContainerTrait
         return [
             'COMPOSE_PROJECT_NAME' => self::PROJECT_NAME . '-' . Str::toLowerCase(basename($fixtureDirectory)),
             'FORGE_IMAGE'          => self::getImage(),
+            'SEMGREP_IMAGE'        => self::getSemgrepImage(),
             ...(is_readable($ownComposeFile) ? ['COMPOSE_FILE' => $ownComposeFile] : []),
         ];
     }
@@ -244,5 +245,11 @@ trait ContainerTrait
     {
         return Str::fromEnvironment('FORGE_IMAGE')
             ?: throw new RuntimeException('`FORGE_IMAGE` is unset, run through make.');
+    }
+
+    private static function getSemgrepImage(): string
+    {
+        return Str::fromEnvironment('SEMGREP_IMAGE')
+            ?: throw new RuntimeException('`SEMGREP_IMAGE` is unset, run through make.');
     }
 }

@@ -194,6 +194,8 @@ Variables:
    COMPOSE_FILE                   ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                    ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE               ?=  exec                                             (run starts a throwaway container instead of entering one)
+   NODE_SERVICE                   ?=  node                                             (compose service node runs in, where the project has one)
+   SEMGREP_SERVICE                ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                            ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                        ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -253,7 +255,8 @@ Variables:
   bun
    BUN                            ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                      ?=  --bun                                            (flags passed to bun before the command)
-   NODE_MODULES_INSPECTOR         ?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR         ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR_PORT    ?=  9999                                             (port node-modules-inspector serves on)
    NODE_MODULES_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
    COMMITLINT                     ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
@@ -265,7 +268,8 @@ Variables:
    ESLINT_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to eslint config)
    ESLINT_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                   ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
-   ESLINT_CONFIG_INSPECTOR        ?=  $(BUN) x eslint-config-inspector                 (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR        ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR_PORT   ?=  7777                                             (port eslint-config-inspector serves on)
    ESLINT_CONFIG_INSPECTOR_FLAGS  ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
    MARKDOWNLINT                   ?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs markdownlint-cli2)
@@ -296,7 +300,7 @@ Variables:
    ACTIONLINT                     ?=  $(RUN) actionlint                                (command that runs actionlint)
    ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
-   SEMGREP                        ?=  $(RUN) semgrep                                   (command that runs semgrep)
+   SEMGREP                        ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS               ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                  ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
@@ -422,6 +426,8 @@ Variables:
    COMPOSE_FILE                    ?=                                                   (compose files, colon-separated, instead of this project's)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering one)
+   NODE_SERVICE                    ?=  node                                             (compose service node runs in, where the project has one)
+   SEMGREP_SERVICE                 ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                 ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                             ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                         ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -546,7 +552,8 @@ Variables:
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
    BUN_AUDIT_FLAGS                 ?=                                                   (additional flags passed to bun audit)
-   NODE_MODULES_INSPECTOR          ?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR          ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR_PORT     ?=  9999                                             (port node-modules-inspector serves on)
    NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
    COMMITLINT                      ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
@@ -561,7 +568,8 @@ Variables:
    ESLINT_CACHE                    ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                    ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
    ESLINT_EXTENSIONS               ?=  $(_ESLINT_EXTENSIONS)                            (extensions eslint lints, set by its config's modules)
-   ESLINT_CONFIG_INSPECTOR         ?=  $(BUN) x eslint-config-inspector                 (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR         ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR_PORT    ?=  7777                                             (port eslint-config-inspector serves on)
    ESLINT_CONFIG_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
    MARKDOWNLINT                    ?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs markdownlint-cli2)
@@ -604,7 +612,7 @@ Variables:
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
    ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
   semgrep
-   SEMGREP                         ?=  $(RUN) semgrep                                   (command that runs semgrep)
+   SEMGREP                         ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS                ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
@@ -835,7 +843,7 @@ Available commands:
     SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
     SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
 +   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
-+   SEMGREP_PYTHON                  ?=  $(RUN) python3                                   (command that runs python3, merging semgrep rulesets)
++   SEMGREP_PYTHON                  ?=  $(_SEMGREP_RUN) python3                          (command that runs python3, merging semgrep rulesets)
    changelog
     CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
     CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
@@ -1433,6 +1441,8 @@ Available commands:
    [36mCOMPOSE_FILE                  [0m  [90m?=                                                   (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE                   [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE              [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
+   [36mNODE_SERVICE                  [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one)[0m
+   [36mSEMGREP_SERVICE               [0m  [90m?=  semgrep                                          (compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER               [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [36mRUN                           [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                       [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
@@ -1574,7 +1584,8 @@ Available commands:
    [36mBUN                           [0m  [90m?=  $(RUN) bun                                       (command that runs [35mbun[0m[90m)[0m
    [36mBUN_FLAGS                     [0m  [90m?=  --bun                                            (flags passed to [35mbun[0m[90m before the command)[0m
    [36mBUN_AUDIT_FLAGS               [0m  [90m?=                                                   (additional flags passed to [35mbun audit[0m[90m)[0m
-   [36mNODE_MODULES_INSPECTOR        [0m  [90m?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs [35mnode-modules-inspector[0m[90m)[0m
+   [36mNODE_MODULES_INSPECTOR        [0m  [90m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs [35mnode-modules-inspector[0m[90m)[0m
+   [36mNODE_MODULES_INSPECTOR_PORT   [0m  [90m?=  9999                                             (port [35mnode-modules-inspector[0m[90m serves on)[0m
    [36mNODE_MODULES_INSPECTOR_FLAGS  [0m  [90m?=                                                   (additional flags passed to [35mnode-modules-inspector[0m[90m)[0m
   [35mcommitlint[0m
    [36mCOMMITLINT                    [0m  [90m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [35mcommitlint[0m[90m)[0m
@@ -1589,7 +1600,8 @@ Available commands:
    [36mESLINT_CACHE                  [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [35meslint[0m[90m cache)[0m
    [36mESLINT_FLAGS                  [0m  [90m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [35meslint[0m[90m)[0m
    [36mESLINT_EXTENSIONS             [0m  [90m?=  $(_ESLINT_EXTENSIONS)                            (extensions [35meslint[0m[90m lints, set by its config's modules)[0m
-   [36mESLINT_CONFIG_INSPECTOR       [0m  [90m?=  $(BUN) x eslint-config-inspector                 (command that runs [35meslint-config-inspector[0m[90m)[0m
+   [36mESLINT_CONFIG_INSPECTOR       [0m  [90m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs [35meslint-config-inspector[0m[90m)[0m
+   [36mESLINT_CONFIG_INSPECTOR_PORT  [0m  [90m?=  7777                                             (port [35meslint-config-inspector[0m[90m serves on)[0m
    [36mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [90m?=                                                   (additional flags passed to [35meslint-config-inspector[0m[90m)[0m
   [35mmarkdownlint[0m
    [36mMARKDOWNLINT                  [0m  [90m?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs [35mmarkdownlint-cli2[0m[90m)[0m
@@ -1632,14 +1644,14 @@ Available commands:
    [36mACTIONLINT_FILES              [0m  [90m?=  $(_ACTIONLINT_FILES)                             (workflows [35mactionlint[0m[90m reads)[0m
    [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [35mactionlint[0m[90m)[0m
   [35msemgrep[0m
-   [36mSEMGREP                       [0m  [90m?=  $(RUN) semgrep                                   (command that runs [35msemgrep[0m[90m)[0m
+   [36mSEMGREP                       [0m  [90m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [35msemgrep[0m[90m)[0m
    [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [35msemgrep[0m[90m config)[0m
    [36mSEMGREP_RULESETS              [0m  [90m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [35mx-brnshkr[0m[90m sets them)[0m
    [36mSEMGREP_FLAGS                 [0m  [90m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [35msemgrep[0m[90m)[0m
    [36mSEMGREP_CACHE                 [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [35msemgrep[0m[90m ruleset cache)[0m
    [36mSEMGREP_MAX_AGE               [0m  [90m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [36mSEMGREP_REGISTRY              [0m  [90m?=  https://semgrep.dev/c/p                          (address [35msemgrep[0m[90m fetches its rulesets from)[0m
-   [36mSEMGREP_PYTHON                [0m  [90m?=  $(RUN) python3                                   (command that runs [35mpython3[0m[90m, merging [35msemgrep[0m[90m rulesets)[0m
+   [36mSEMGREP_PYTHON                [0m  [90m?=  $(_SEMGREP_RUN) python3                          (command that runs [35mpython3[0m[90m, merging [35msemgrep[0m[90m rulesets)[0m
   [35mchangelog[0m
    [36mCHANGELOG_RANGE               [0m  [90m?=                                                   (commit range the changelog covers)[0m
    [36mCHANGELOG_URL                 [0m  [90m?=                                                   (base URL a commit hash links to)[0m
@@ -1874,6 +1886,8 @@ Available commands:
    [32mCOMPOSE_FILE                  [0m  [0m?=                                                   (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE                   [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE              [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
+   [32mNODE_SERVICE                  [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one)[0m
+   [32mSEMGREP_SERVICE               [0m  [0m?=  semgrep                                          (compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER               [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [32mRUN                           [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                       [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
@@ -2015,7 +2029,8 @@ Available commands:
    [32mBUN                           [0m  [0m?=  $(RUN) bun                                       (command that runs [33mbun[0m[0m)[0m
    [32mBUN_FLAGS                     [0m  [0m?=  --bun                                            (flags passed to [33mbun[0m[0m before the command)[0m
    [32mBUN_AUDIT_FLAGS               [0m  [0m?=                                                   (additional flags passed to [33mbun audit[0m[0m)[0m
-   [32mNODE_MODULES_INSPECTOR        [0m  [0m?=  $(BUN) $(BUN_FLAGS) x node-modules-inspector     (command that runs [33mnode-modules-inspector[0m[0m)[0m
+   [32mNODE_MODULES_INSPECTOR        [0m  [0m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs [33mnode-modules-inspector[0m[0m)[0m
+   [32mNODE_MODULES_INSPECTOR_PORT   [0m  [0m?=  9999                                             (port [33mnode-modules-inspector[0m[0m serves on)[0m
    [32mNODE_MODULES_INSPECTOR_FLAGS  [0m  [0m?=                                                   (additional flags passed to [33mnode-modules-inspector[0m[0m)[0m
   [33mcommitlint[0m
    [32mCOMMITLINT                    [0m  [0m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [33mcommitlint[0m[0m)[0m
@@ -2030,7 +2045,8 @@ Available commands:
    [32mESLINT_CACHE                  [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [33meslint[0m[0m cache)[0m
    [32mESLINT_FLAGS                  [0m  [0m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [33meslint[0m[0m)[0m
    [32mESLINT_EXTENSIONS             [0m  [0m?=  $(_ESLINT_EXTENSIONS)                            (extensions [33meslint[0m[0m lints, set by its config's modules)[0m
-   [32mESLINT_CONFIG_INSPECTOR       [0m  [0m?=  $(BUN) x eslint-config-inspector                 (command that runs [33meslint-config-inspector[0m[0m)[0m
+   [32mESLINT_CONFIG_INSPECTOR       [0m  [0m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs [33meslint-config-inspector[0m[0m)[0m
+   [32mESLINT_CONFIG_INSPECTOR_PORT  [0m  [0m?=  7777                                             (port [33meslint-config-inspector[0m[0m serves on)[0m
    [32mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [0m?=                                                   (additional flags passed to [33meslint-config-inspector[0m[0m)[0m
   [33mmarkdownlint[0m
    [32mMARKDOWNLINT                  [0m  [0m?=  $(BUN) $(BUN_FLAGS) x markdownlint-cli2          (command that runs [33mmarkdownlint-cli2[0m[0m)[0m
@@ -2073,14 +2089,14 @@ Available commands:
    [32mACTIONLINT_FILES              [0m  [0m?=  $(_ACTIONLINT_FILES)                             (workflows [33mactionlint[0m[0m reads)[0m
    [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [33mactionlint[0m[0m)[0m
   [33msemgrep[0m
-   [32mSEMGREP                       [0m  [0m?=  $(RUN) semgrep                                   (command that runs [33msemgrep[0m[0m)[0m
+   [32mSEMGREP                       [0m  [0m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [33msemgrep[0m[0m)[0m
    [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [33msemgrep[0m[0m config)[0m
    [32mSEMGREP_RULESETS              [0m  [0m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [33mx-brnshkr[0m[0m sets them)[0m
    [32mSEMGREP_FLAGS                 [0m  [0m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [33msemgrep[0m[0m)[0m
    [32mSEMGREP_CACHE                 [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [33msemgrep[0m[0m ruleset cache)[0m
    [32mSEMGREP_MAX_AGE               [0m  [0m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [32mSEMGREP_REGISTRY              [0m  [0m?=  https://semgrep.dev/c/p                          (address [33msemgrep[0m[0m fetches its rulesets from)[0m
-   [32mSEMGREP_PYTHON                [0m  [0m?=  $(RUN) python3                                   (command that runs [33mpython3[0m[0m, merging [33msemgrep[0m[0m rulesets)[0m
+   [32mSEMGREP_PYTHON                [0m  [0m?=  $(_SEMGREP_RUN) python3                          (command that runs [33mpython3[0m[0m, merging [33msemgrep[0m[0m rulesets)[0m
   [33mchangelog[0m
    [32mCHANGELOG_RANGE               [0m  [0m?=                                                   (commit range the changelog covers)[0m
    [32mCHANGELOG_URL                 [0m  [0m?=                                                   (base URL a commit hash links to)[0m

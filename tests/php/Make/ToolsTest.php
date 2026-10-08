@@ -233,6 +233,7 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
     }
 
+    #[Group('container')]
     #[Group('semgrep')]
     public function testSemgrepSaysWhenARefetchChangedARuleset(): void
     {
@@ -242,19 +243,14 @@ final class ToolsTest extends TestCase
         $filesystem->dumpFile($cachedPath, '{"rules":[{"id":"old"}]}');
         $filesystem->touch($cachedPath, time() - 8 * 86_400);
 
-        $output = $this->runInContainer(
-            [
-                'make',
-                '--no-print-directory',
-                'semgrep',
-                'SEMGREP_RULESETS=default',
-                'SEMGREP_CONFIG=conf/shipped.yaml',
-                'CURL=bin/curl',
-                'SEMGREP=bin/semgrep',
-            ],
-            fixtureDirectory: self::LINTERS_DIRECTORY,
-            image: self::getImage() . '-semgrep',
-        );
+        $output = $this->runMakeIn(self::MODE_RUN, [
+            'semgrep',
+            'APP_SERVICE=app',
+            'SEMGREP_RULESETS=default',
+            'SEMGREP_CONFIG=conf/shipped.yaml',
+            'CURL=bin/curl',
+            'SEMGREP=bin/semgrep',
+        ], fixtureDirectory: self::LINTERS_DIRECTORY);
 
         $finder = new Finder()
             ->in(Path::getDirectory($cachedPath))

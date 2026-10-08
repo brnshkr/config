@@ -172,8 +172,11 @@ Declared `.env` keys travel with each command by name, so their values stay out 
 command-line variables travel with their value.
 The compose file itself may interpolate any key the environment files set, `.env.local` and stage files included.
 Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
-The semgrep targets appear once the service's image lists `semgrep` in its `dev.brnshkr.tools` label,
-as `forge`'s `semgrep` variant does.
+A tool kept out of the project's image runs in a service of its own, started fresh for each command:
+`semgrep` in `SEMGREP_SERVICE`, `eslint-inspect` in `NODE_SERVICE`.
+Their targets appear only where the compose file has that service, profiled or not.
+`eslint-inspect` and `bun-inspect` publish `ESLINT_CONFIG_INSPECTOR_PORT` and `NODE_MODULES_INSPECTOR_PORT`
+on this machine's loopback, for that command alone.
 
 | Target | Does |
 | --- | --- |
@@ -197,6 +200,8 @@ A `.env` is loaded the way `symfony/dotenv` loads it, so one set of files serves
   lists every environment that skips `.env.local` — a test run has to be reproducible — while still
   reading its own `.env.<environment>.local`.
 - Syntax follows Symfony's parser, except `$(command)`, which is refused.
+  `${NAME}`, `$NAME`, `${NAME:-default}` and `${NAME:=default}` resolve once every file is read,
+  so `.env` may refer to a key only `.env.local` sets. A key referring to itself reads its value from an earlier file.
 - Every tracked `.env.<environment>` also gives you `<environment>-<target>`, so `make prod-check` is
   `make APP_ENV=prod check`. `.env.local` and any `.example` are not environments.
 
