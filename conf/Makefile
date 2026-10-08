@@ -295,9 +295,10 @@ _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 	NO_COLOR \
 	TERM
 
-_COMMAND_LINE_KEYS = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
-_FORWARDED_KEYS    = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
-_DECLARED_KEYS     = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
+_COMMAND_LINE_KEYS       = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
+_NON_EMPTY_TERMINAL_KEYS = $(foreach KEY,$(_TERMINAL_KEYS),$(if $(call _forwarded_value,$(KEY)),$(KEY)))
+_FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
+_DECLARED_KEYS           = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
 TARGET_PREFIX  ?= #v #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
