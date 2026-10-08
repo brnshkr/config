@@ -270,12 +270,14 @@ END { if (directory != "") print directory services }
 endef
 
 
-_CONTAINER_KEYS := APP_DIR \
+_CONTAINER_KEYS := ACTIONLINT_SERVICE \
+	APP_DIR \
 	APP_SERVICE \
 	APP_SERVICE_MODE \
 	COMPOSE_FILE \
 	DOCKER \
 	DOCKER_COMPOSE \
+	HADOLINT_SERVICE \
 	IS_IN_CONTAINER \
 	NODE_SERVICE \
 	RUN \
@@ -2276,9 +2278,10 @@ _LAYERED_CONFIGS += $(if $(_HADOLINT_FILES),$(call _layered,$(HADOLINT_CONFIG),y
 
 ifneq ($(_HAS_HADOLINT),) # hadolint
 
-HADOLINT       ?= $(RUN) hadolint#v #~~ command that runs `hadolint`
-HADOLINT_FILES ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
-HADOLINT_FLAGS ?= $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `hadolint`
+HADOLINT         ?= $(call _run_in_own_service,$(HADOLINT_SERVICE)) hadolint#v #~~ command that runs `hadolint`
+HADOLINT_FILES   ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
+HADOLINT_FLAGS   ?= $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `hadolint`
+HADOLINT_SERVICE ?= hadolint#v #~~ compose service `hadolint` runs in, where the project has one
 
 _QUOTED_HADOLINT_FILES = $(call _shell_quoted,$(HADOLINT_FILES))
 
@@ -2315,9 +2318,10 @@ _LAYERED_CONFIGS  += $(if $(_ACTIONLINT_FILES),$(call _layered,$(ACTIONLINT_CONF
 
 ifneq ($(_HAS_ACTIONLINT),) # actionlint
 
-ACTIONLINT       ?= $(RUN) actionlint#v #~~ command that runs `actionlint`
-ACTIONLINT_FILES ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
-ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR),-no-color)#v #~~ additional flags passed to `actionlint`
+ACTIONLINT         ?= $(call _run_in_own_service,$(ACTIONLINT_SERVICE)) actionlint#v #~~ command that runs `actionlint`
+ACTIONLINT_FILES   ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
+ACTIONLINT_FLAGS   ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR),-no-color)#v #~~ additional flags passed to `actionlint`
+ACTIONLINT_SERVICE ?= actionlint#v #~~ compose service `actionlint` runs in, where the project has one
 
 _QUOTED_ACTIONLINT_FILES = $(call _shell_quoted,$(ACTIONLINT_FILES))
 
@@ -2911,6 +2915,19 @@ endef
 #*
 define _serve_in
 $(call _enter_service,$1,--publish 127.0.0.1:$2:$2,run)
+endef
+
+#**
+#* The command a linter runs through, in its own compose service where the project has one.
+#* Without that service it runs through `RUN`.
+#*
+#* parameters:
+#*   service: string
+#*
+#* returns: string
+#*
+define _run_in_own_service
+$(if $(filter $1,$(_COMPOSE_SERVICES)),$(call _enter_service,$1,-T,run),$(RUN))
 endef
 
 #**

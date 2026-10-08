@@ -175,6 +175,9 @@ Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
 A tool kept out of the project's image runs in a service of its own, started fresh for each command:
 `semgrep` in `SEMGREP_SERVICE`, `eslint-inspect` in `NODE_SERVICE`.
 Their targets appear only where the compose file has that service, profiled or not.
+`hadolint` and `actionlint` run in `APP_SERVICE`, or in `HADOLINT_SERVICE` and `ACTIONLINT_SERVICE`
+where the compose file has them. Such a service needs an image with a shell and no entrypoint:
+`hadolint/hadolint:<version>-alpine`, or `rhysd/actionlint` with `entrypoint: []`.
 `eslint-inspect` and `bun-inspect` publish `ESLINT_CONFIG_INSPECTOR_PORT` and `NODE_MODULES_INSPECTOR_PORT`
 on this machine's loopback, for that command alone.
 

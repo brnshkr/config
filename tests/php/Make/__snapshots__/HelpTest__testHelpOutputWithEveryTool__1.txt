@@ -293,12 +293,14 @@ Variables:
    VITEST_COVERAGE_FLAGS          ?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)
   hadolint
    HADOLINT_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
-   HADOLINT                       ?=  $(RUN) hadolint                                  (command that runs hadolint)
+   HADOLINT                       ?=  $(call _run_in_own_service,$(HADOLINT_SERVICE))… (command that runs hadolint)
    HADOLINT_FLAGS                 ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
+   HADOLINT_SERVICE               ?=  hadolint                                         (compose service hadolint runs in, where the project has one)
   actionlint
    ACTIONLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
-   ACTIONLINT                     ?=  $(RUN) actionlint                                (command that runs actionlint)
+   ACTIONLINT                     ?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs actionlint)
    ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
+   ACTIONLINT_SERVICE             ?=  actionlint                                       (compose service actionlint runs in, where the project has one)
   semgrep
    SEMGREP                        ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
@@ -603,14 +605,16 @@ Variables:
    VITEST_COVERAGE_FLAGS           ?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)
   hadolint
    HADOLINT_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
-   HADOLINT                        ?=  $(RUN) hadolint                                  (command that runs hadolint)
+   HADOLINT                        ?=  $(call _run_in_own_service,$(HADOLINT_SERVICE))… (command that runs hadolint)
    HADOLINT_FILES                  ?=  $(_HADOLINT_FILES)                               (dockerfiles hadolint reads)
    HADOLINT_FLAGS                  ?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to hadolint)
+   HADOLINT_SERVICE                ?=  hadolint                                         (compose service hadolint runs in, where the project has one)
   actionlint
    ACTIONLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
-   ACTIONLINT                      ?=  $(RUN) actionlint                                (command that runs actionlint)
+   ACTIONLINT                      ?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs actionlint)
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
    ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
+   ACTIONLINT_SERVICE              ?=  actionlint                                       (compose service actionlint runs in, where the project has one)
   semgrep
    SEMGREP                         ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
@@ -1635,14 +1639,16 @@ Available commands:
    [36mVITEST_COVERAGE_FLAGS         [0m  [90m?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)[0m
   [35mhadolint[0m
    [36mHADOLINT_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
-   [36mHADOLINT                      [0m  [90m?=  $(RUN) hadolint                                  (command that runs [35mhadolint[0m[90m)[0m
+   [36mHADOLINT                      [0m  [90m?=  $(call _run_in_own_service,$(HADOLINT_SERVICE))… (command that runs [35mhadolint[0m[90m)[0m
    [36mHADOLINT_FILES                [0m  [90m?=  $(_HADOLINT_FILES)                               (dockerfiles [35mhadolint[0m[90m reads)[0m
    [36mHADOLINT_FLAGS                [0m  [90m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [35mhadolint[0m[90m)[0m
+   [36mHADOLINT_SERVICE              [0m  [90m?=  hadolint                                         (compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
   [35mactionlint[0m
    [36mACTIONLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [35mactionlint[0m[90m config)[0m
-   [36mACTIONLINT                    [0m  [90m?=  $(RUN) actionlint                                (command that runs [35mactionlint[0m[90m)[0m
+   [36mACTIONLINT                    [0m  [90m?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs [35mactionlint[0m[90m)[0m
    [36mACTIONLINT_FILES              [0m  [90m?=  $(_ACTIONLINT_FILES)                             (workflows [35mactionlint[0m[90m reads)[0m
    [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [35mactionlint[0m[90m)[0m
+   [36mACTIONLINT_SERVICE            [0m  [90m?=  actionlint                                       (compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
   [35msemgrep[0m
    [36mSEMGREP                       [0m  [90m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [35msemgrep[0m[90m)[0m
    [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [35msemgrep[0m[90m config)[0m
@@ -2080,14 +2086,16 @@ Available commands:
    [32mVITEST_COVERAGE_FLAGS         [0m  [0m?=  --coverage --coverage.reporter=text --coverage.… (additional flags passed when collecting coverage)[0m
   [33mhadolint[0m
    [32mHADOLINT_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
-   [32mHADOLINT                      [0m  [0m?=  $(RUN) hadolint                                  (command that runs [33mhadolint[0m[0m)[0m
+   [32mHADOLINT                      [0m  [0m?=  $(call _run_in_own_service,$(HADOLINT_SERVICE))… (command that runs [33mhadolint[0m[0m)[0m
    [32mHADOLINT_FILES                [0m  [0m?=  $(_HADOLINT_FILES)                               (dockerfiles [33mhadolint[0m[0m reads)[0m
    [32mHADOLINT_FLAGS                [0m  [0m?=  $(if $(_IS_NO_COLOR),--no-color)                 (additional flags passed to [33mhadolint[0m[0m)[0m
+   [32mHADOLINT_SERVICE              [0m  [0m?=  hadolint                                         (compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
   [33mactionlint[0m
    [32mACTIONLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [33mactionlint[0m[0m config)[0m
-   [32mACTIONLINT                    [0m  [0m?=  $(RUN) actionlint                                (command that runs [33mactionlint[0m[0m)[0m
+   [32mACTIONLINT                    [0m  [0m?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs [33mactionlint[0m[0m)[0m
    [32mACTIONLINT_FILES              [0m  [0m?=  $(_ACTIONLINT_FILES)                             (workflows [33mactionlint[0m[0m reads)[0m
    [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [33mactionlint[0m[0m)[0m
+   [32mACTIONLINT_SERVICE            [0m  [0m?=  actionlint                                       (compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
   [33msemgrep[0m
    [32mSEMGREP                       [0m  [0m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [33msemgrep[0m[0m)[0m
    [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [33msemgrep[0m[0m config)[0m
