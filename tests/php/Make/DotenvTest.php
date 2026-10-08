@@ -44,12 +44,16 @@ final class DotenvTest extends TestCase
     {
         $directory = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
 
-        $result = $this->runMake(['app-dir'], [
+        $environment = [
             'DOCKER'          => $directory . '/bin/docker',
             'IS_IN_CONTAINER' => '',
-        ], $directory);
+        ];
+
+        $result   = $this->runMake(['app-dir'], $environment, $directory);
+        $commands = $this->runMake(['-n', 'ps'], $environment, $directory);
 
         self::assertStringContainsString('app-dir=/srv/from-environment-file', $result);
+        self::assertStringContainsString('compose -f compose.yaml -f compose.override.yaml ps', $commands);
     }
 
     public function testDotenvResolution(): void

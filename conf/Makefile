@@ -211,7 +211,7 @@ TR     ?= tr#~~ path to `tr` binary
 
 #--- settings
 
-COMPOSE_FILE     ?= #v #~~ compose files, colon-separated, instead of this project's
+COMPOSE_FILE     ?= $(_DOTENV_COMPOSE_FILE)#v #~~ compose files, colon-separated, instead of this project's
 APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty for this machine
 APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering one
 NODE_SERVICE     ?= node#v #~~ compose service `node` runs in, where the project has one
@@ -257,10 +257,9 @@ _COMPOSE_FILES = $(or \
 	)) \
 )
 
-_COMPOSE        = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
-_HAS_DOCKER    := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
-_HAS_CONTAINER  = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
-_SERVE_FLAGS    = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
+_COMPOSE       = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
+_HAS_CONTAINER = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+_SERVE_FLAGS   = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 
 define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
@@ -415,7 +414,7 @@ endif
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
 
 define _DOTENV_AWK
-function fail(message) { if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
+function fail(message) { if (_KEY != "") exit 1; if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
 function quote_for_shell(text,    quoted_text, position) {
 	quoted_text = ""
 	while ((position = index(text, SQ))) { quoted_text = quoted_text substr(text, 1, position - 1) SQ "\\" SQ SQ; text = substr(text, position + 1) }
@@ -519,6 +518,10 @@ BEGIN {
 	if (!is_test) { load(_BASE ".local"); env = get_environment(env) }
 	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
 	add_definition(_ENV_KEY, env, 1, "")
+	if (_KEY != "") {
+		if ((_KEY in definition_count_by_key) && !(_KEY in ENVIRON)) printf "%s", resolve(_KEY, definition_count_by_key[_KEY], 0)
+		exit
+	}
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
 			key = record_key[record_index]
@@ -557,6 +560,11 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 	-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
 	-v _PREFIX='$(_LABEL)' \
 	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
+
+_DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=COMPOSE_FILE '$(_DOTENV_AWK)'))
+
+_HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
 _DOTENV_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
 	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
@@ -1664,6 +1672,10 @@ _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(s
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
 
 export _DOTENV_FILE_KEYS
+
+ifeq ($(COMPOSE_FILE),)
+unexport COMPOSE_FILE
+endif
 
 #**
 #* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.

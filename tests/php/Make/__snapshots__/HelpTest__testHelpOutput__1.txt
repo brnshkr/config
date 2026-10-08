@@ -183,7 +183,7 @@ Variables:
    CONFIG_DIR                  ?=  ./conf                                           (directory holding the project's own tool configs)
    LOCAL_DIR                   ?=  ./.local                                         (directory holding a developer's private files)
   settings
-   COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
+   COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
    NODE_SERVICE                ?=  node                                             (compose service node runs in, where the project has one)
@@ -507,7 +507,7 @@ Available commands:
 +    TPUT                       ?=  tput                                             (path to tput binary)
 +    TR                         ?=  tr                                               (path to tr binary)
    settings
-    COMPOSE_FILE                ?=                                                   (compose files, colon-separated, instead of this project's)
+    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
     APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
 @@ @@
     PACKAGE                     ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
@@ -1066,7 +1066,7 @@ Available commands:
     [36mTPUT                     [0m  [90m?=  tput                                             (path to [35mtput[0m[90m binary)[0m
     [36mTR                       [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
   [35msettings[0m
-   [36mCOMPOSE_FILE              [0m  [90m?=                                                   (compose files, colon-separated, instead of this project's)[0m
+   [36mCOMPOSE_FILE              [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE          [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
    [36mNODE_SERVICE              [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one)[0m
@@ -1379,7 +1379,7 @@ Available commands:
     [32mTPUT                     [0m  [0m?=  tput                                             (path to [33mtput[0m[0m binary)[0m
     [32mTR                       [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
   [33msettings[0m
-   [32mCOMPOSE_FILE              [0m  [0m?=                                                   (compose files, colon-separated, instead of this project's)[0m
+   [32mCOMPOSE_FILE              [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE          [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
    [32mNODE_SERVICE              [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one)[0m
