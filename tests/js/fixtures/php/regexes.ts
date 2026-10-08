@@ -304,6 +304,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /VENDOR\s+\?=\s+@acme/v,
   },
   {
+    file: 'tests/php/Make/PackTest.php',
+    php: String.raw`/\$\((?<directory>_BRNSHKR|_JS|_PHP)_CONFIG_DIR\)\/(?<template>[\w.\-]+)/`,
+    regex: /\$\((?<directory>_BRNSHKR|_JS|_PHP)_CONFIG_DIR\)\/(?<template>[\w.\-]+)/v,
+  },
+  {
     file: 'tests/php/Make/ToolsTest.php',
     php: String.raw`/\nLoaded \d+ rules\n$/`,
     regex: /\nLoaded \d+ rules\n$/v,

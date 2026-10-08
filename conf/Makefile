@@ -1270,7 +1270,10 @@ _PLAIN_CONFIGS    =
 _LAYERED_CONFIGS  =
 _LINKED_CONFIGS   =
 
-_CSS_DATA_CONFIGS = $(call _when_installed,$(CURDIR)/.vscode/tailwind.css-data.json|$(_BRNSHKR_CONFIG_DIR)/vscode-tailwind.css-data.dist.json,node_modules/tailwindcss)
+_JS_CONFIG_DIR  = $(or $(wildcard $(CURDIR)/node_modules/@brnshkr/config/conf),$(_BRNSHKR_CONFIG_DIR))
+_PHP_CONFIG_DIR = $(or $(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf),$(_BRNSHKR_CONFIG_DIR))
+
+_CSS_DATA_CONFIGS = $(call _when_installed,$(CURDIR)/.vscode/tailwind.css-data.json|$(_JS_CONFIG_DIR)/vscode-tailwind.css-data.dist.json,node_modules/tailwindcss)
 
 _CSS_DATA_FILES = $(sort \
 	$(foreach CONFIG,$(_CSS_DATA_CONFIGS),$(call _get_file_name,$(CONFIG))) \
@@ -1285,7 +1288,7 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
 	$(_CSS_DATA_CONFIGS) \
-	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_BRNSHKR_CONFIG_DIR)/bunfig.dist.toml)) \
+	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_JS_CONFIG_DIR)/bunfig.dist.toml)) \
 	$(CURDIR)/Makefile|$(_BRNSHKR_CONFIG_DIR)/Makefile.dist
 
 _STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
@@ -3114,6 +3117,7 @@ endef
 
 #**
 #* Appends the entries of a shipped JSONC file and of its variant per stack, without their outer lines.
+#* Each variant comes from its own stack's installation, which is the only package that ships it.
 #*
 #* parameters:
 #*   outer_line_count: int
@@ -3121,7 +3125,8 @@ endef
 #* returns: void
 #*
 define _append_stack_entries
-for shipped_part in "$$template_path" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$${template_path%.dist.*}.$(SUFFIX).dist.$${template_path##*.}"); do \
+template_name="$${template_path##*/}"; \
+for shipped_part in "$$template_path" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$(if $(filter js,$(SUFFIX)),$(_JS_CONFIG_DIR),$(_PHP_CONFIG_DIR))/$${template_name%.dist.*}.$(SUFFIX).dist.$${template_name##*.}"); do \
 	[ -r "$$shipped_part" ] || continue; \
 	[ ! -s "$$body_path" ] || printf '\n' >> "$$body_path"; \
 	$(AWK) -v outer_line_count=$1 '{ part_lines[NR] = $$0 } \

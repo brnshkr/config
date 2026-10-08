@@ -27,12 +27,9 @@ ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/spelling/ \
 	./conf/twig-cs-fixer.dist.php \
 	./conf/vscode-extensions.dist.jsonc \
-	./conf/vscode-extensions.js.dist.jsonc \
 	./conf/vscode-extensions.php.dist.jsonc \
 	./conf/vscode-settings.dist.jsonc \
-	./conf/vscode-settings.js.dist.jsonc \
-	./conf/vscode-settings.php.dist.jsonc \
-	./conf/vscode-tailwind.css-data.dist.json#vvv
+	./conf/vscode-settings.php.dist.jsonc#vvv
 
 #--- forge
 

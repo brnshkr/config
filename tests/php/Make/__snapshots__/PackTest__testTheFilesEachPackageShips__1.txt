@@ -20,12 +20,9 @@ conf/semgrep.dist.yaml
 conf/spelling/defaults.json
 conf/twig-cs-fixer.dist.php
 conf/vscode-extensions.dist.jsonc
-conf/vscode-extensions.js.dist.jsonc
 conf/vscode-extensions.php.dist.jsonc
 conf/vscode-settings.dist.jsonc
-conf/vscode-settings.js.dist.jsonc
 conf/vscode-settings.php.dist.jsonc
-conf/vscode-tailwind.css-data.dist.json
 src/php/Composer/Command/AbstractCommand.php
 src/php/Composer/Command/BrnshkrConfigCommand.php
 src/php/Composer/Command/CommandProvider.php
@@ -149,6 +146,7 @@ conf/bunfig.dist.toml
 conf/commitlint.dist.mjs
 conf/editorconfig.dist
 conf/eslint.dist.mjs
+conf/gitattributes.dist
 conf/hadolint.dist.yaml
 conf/launch.dist.json
 conf/markdownlint.dist.mjs
@@ -160,10 +158,8 @@ conf/tsconfig.json
 conf/vitest.dist.mjs
 conf/vscode-extensions.dist.jsonc
 conf/vscode-extensions.js.dist.jsonc
-conf/vscode-extensions.php.dist.jsonc
 conf/vscode-settings.dist.jsonc
 conf/vscode-settings.js.dist.jsonc
-conf/vscode-settings.php.dist.jsonc
 conf/vscode-tailwind.css-data.dist.json
 dist/commitlint/index.d.mts
 dist/commitlint/index.mjs
