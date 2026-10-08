@@ -1658,9 +1658,12 @@ SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower 
 SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry publishes
 SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semver grammar, as a POSIX extended regular expression
 
+_DOTENV_FILE_KEYS   := $(if $(_IS_DETECTED_BY_PARENT),$(_DOTENV_FILE_KEYS))
 _DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell $(AWK) $(_DOTENV_AWK_FLAGS) '$(_DOTENV_AWK)'))
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
+
+export _DOTENV_FILE_KEYS
 
 #**
 #* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.

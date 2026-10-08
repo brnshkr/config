@@ -223,7 +223,8 @@ final class DotenvTest extends TestCase
 
     public function testAStageGoalReadsItsOwnStageWhileTheEnvironmentStillWins(): void
     {
-        $stage = $this->runMake(['test-dotenv-show'], directory: self::DOTENV_DIRECTORY);
+        $stage        = $this->runMake(['test-dotenv-show'], directory: self::DOTENV_DIRECTORY);
+        $throughAVerb = $this->runMake(['fixtures', 'FIXTURE_TARGETS=test-dotenv-show'], directory: self::DOTENV_DIRECTORY);
 
         $overridden = $this->runMake(
             ['test-dotenv-show'],
@@ -233,6 +234,7 @@ final class DotenvTest extends TestCase
 
         self::assertStringContainsString('DOTENV_FIXTURE_ENVIRONMENT_FILE=test', $stage);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $stage);
+        self::assertStringContainsString('DOTENV_FIXTURE_ENVIRONMENT_FILE=test', $throughAVerb);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=from-the-environment', $overridden);
     }
 }
