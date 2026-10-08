@@ -51,7 +51,36 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       "inline": "left-to-right",
     },
     "syntax": {
-      "atRules": {},
+      "atRules": {
+        "apply": {
+          "prelude": "<any-value>",
+        },
+        "config": {
+          "prelude": "<string>",
+        },
+        "custom-variant": {
+          "prelude": "<any-value>",
+        },
+        "plugin": {
+          "prelude": "<string>",
+        },
+        "reference": {
+          "prelude": "<string>",
+        },
+        "slot": {},
+        "source": {
+          "prelude": "<any-value>",
+        },
+        "theme": {
+          "prelude": "<any-value>?",
+        },
+        "utility": {
+          "prelude": "<any-value>",
+        },
+        "variant": {
+          "prelude": "<any-value>",
+        },
+      },
       "cssWideKeywords": [],
       "properties": {},
       "types": {},
@@ -1283,7 +1312,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       "angle",
     ],
     "import-notation": [
-      "url",
+      "string",
     ],
     "keyframe-block-no-duplicate-selectors": [
       true,
@@ -1339,6 +1368,14 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "nesting-selector-no-missing-scoping-root": [
       true,
+      {
+        "ignoreAtRules": [
+          "custom-variant",
+          "utility",
+          "variant",
+          "mixin",
+        ],
+      },
     ],
     "no-descending-specificity": [
       true,
@@ -2480,9 +2517,6 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
       "comment-no-empty": null,
       "declaration-property-value-no-unknown": null,
       "function-no-unknown": null,
-      "import-notation": [
-        "string",
-      ],
       "length-zero-no-unit": [
         true,
         {
@@ -2497,14 +2531,6 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
       ],
       "media-feature-name-value-no-unknown": null,
       "media-query-no-invalid": null,
-      "nesting-selector-no-missing-scoping-root": [
-        true,
-        {
-          "ignoreAtRules": [
-            "mixin",
-          ],
-        },
-      ],
       "no-descending-specificity": null,
       "no-duplicate-selectors": null,
       "no-invalid-position-at-import-rule": [
@@ -2639,9 +2665,6 @@ exports[`expected stylelint config > diff: 5.less 1`] = `
       "container-name-pattern": null,
       "declaration-property-value-no-unknown": null,
       "function-no-unknown": null,
-      "import-notation": [
-        "string",
-      ],
       "media-query-no-invalid": null,
       "no-invalid-position-at-import-rule": null,
       "property-no-unknown": [

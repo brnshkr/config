@@ -105,6 +105,14 @@ export const MODULES = <const>{
       ],
     },
   },
+  tailwind: {
+    name: 'tailwind',
+    packages: {
+      requiredAll: [
+        STYLELINT_PACKAGES.TAILWINDCSS,
+      ],
+    },
+  },
 } satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly StylelintPackage[]>>>;
 
 export const resolvePackages: PackageResolver<StylelintPackage> = resolvePackagesSharedSynchronously;

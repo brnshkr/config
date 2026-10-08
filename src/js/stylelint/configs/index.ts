@@ -14,6 +14,7 @@ import { order } from '#stylelint/configs/order.ts';
 import { scss } from '#stylelint/configs/scss.ts';
 import { strict } from '#stylelint/configs/strict.ts';
 import { style } from '#stylelint/configs/style.ts';
+import { tailwind } from '#stylelint/configs/tailwind.ts';
 
 export const configs = <const>{
   baseline,
@@ -28,4 +29,5 @@ export const configs = <const>{
   scss,
   strict,
   style,
+  tailwind,
 };

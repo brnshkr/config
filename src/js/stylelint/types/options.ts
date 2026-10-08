@@ -98,6 +98,15 @@ export interface ConfigOptions {
    * @see https://github.com/stylelint-stylistic/stylelint-config
    */
   style: boolean;
+
+  /**
+   * Declares Tailwind CSS's at-rules, such as `@apply` and `@utility`, so they read as valid CSS.
+   *
+   * @default `Enabled when "tailwindcss" is installed.`
+   *
+   * @see https://tailwindcss.com/docs/functions-and-directives
+   */
+  tailwind: boolean;
 }
 
 export type ResolvedOptions = ConfigOptions

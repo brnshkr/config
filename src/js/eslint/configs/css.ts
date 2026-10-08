@@ -14,7 +14,8 @@ import {
 } from '#eslint/utils/module.ts';
 
 import { doAllPackagesExist } from '#shared/utils/module.ts';
-import { objectFromEntries, objectKeys } from '#shared/utils/object.ts';
+import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
+import { TAILWIND_AT_RULE_PRELUDES } from '#shared/utils/tailwind.ts';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
 import type { Config } from '#eslint/types/config.ts';
@@ -30,37 +31,15 @@ const buildTailwindSyntax = (defaultSyntax: DefaultSyntaxConfig): SyntaxDefiniti
 
   return {
     atrules: {
-      apply: {
-        prelude: '<any-value>',
-      },
-      config: {
-        prelude: '<string>',
-      },
-      'custom-variant': {
-        prelude: '<any-value>',
-      },
-      plugin: {
-        prelude: '<string>',
-      },
-      reference: {
-        prelude: '<string>',
-      },
-      slot: {
-        // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
-        prelude: null,
-      },
-      source: {
-        prelude: '<any-value>',
-      },
-      theme: {
-        prelude: '<any-value>?',
-      },
+      ...objectFromEntries(objectEntries(TAILWIND_AT_RULE_PRELUDES).map(
+        ([name, prelude]) => <const>[name, { prelude }],
+      )),
       utility: {
-        prelude: '<any-value>',
+        prelude: TAILWIND_AT_RULE_PRELUDES.utility,
         descriptors: declarations,
       },
       variant: {
-        prelude: '<any-value>',
+        prelude: TAILWIND_AT_RULE_PRELUDES.variant,
         descriptors: declarations,
       },
     },

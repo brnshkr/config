@@ -55,6 +55,7 @@ export const getConfig = (
     scss: isModuleEnabledByDefault(MODULES.scss),
     strict: isModuleEnabledByDefault(MODULES.strict),
     style: isModuleEnabledByDefault(MODULES.style),
+    tailwind: isModuleEnabledByDefault(MODULES.tailwind),
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
@@ -68,6 +69,7 @@ export const getConfig = (
   setModuleEnabled(MODULES.scss, resolvedOptions.scss);
   setModuleEnabled(MODULES.strict, resolvedOptions.strict);
   setModuleEnabled(MODULES.style, resolvedOptions.style);
+  setModuleEnabled(MODULES.tailwind, resolvedOptions.tailwind);
 
   const config: Config = {};
 
@@ -112,6 +114,10 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.style)) {
     includeConfigs(config, configs.style());
+  }
+
+  if (isModuleEnabled(MODULES.tailwind)) {
+    includeConfigs(config, configs.tailwind());
   }
 
   includeConfigs(config, getUserConfigs(resolvedOptions, additionalConfigs));

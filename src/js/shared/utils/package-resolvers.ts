@@ -214,6 +214,7 @@ export const STYLELINT_PACKAGES = <const>{
   STYLELINT_PLUGIN_USE_BASELINE: 'stylelint-plugin-use-baseline',
   STYLELINT_USE_NESTING: 'stylelint-use-nesting',
   STYLISTIC_STYLELINT_CONFIG: '@stylistic/stylelint-config',
+  TAILWINDCSS: 'tailwindcss',
 };
 
 export type StylelintPackage = typeof STYLELINT_PACKAGES[keyof typeof STYLELINT_PACKAGES];
@@ -257,6 +258,9 @@ export const STYLELINT_PACKAGE_RESOLVERS = <const>{
   ),
   [STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG]: () => isPackageInstalled(
     STYLELINT_PACKAGES.STYLISTIC_STYLELINT_CONFIG,
+  ),
+  [STYLELINT_PACKAGES.TAILWINDCSS]: () => isPackageInstalled(
+    STYLELINT_PACKAGES.TAILWINDCSS,
   ),
 } satisfies Record<StylelintPackage, () => boolean>;
 
