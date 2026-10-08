@@ -575,7 +575,7 @@ _COMPOSE_SERVICES  := $(wordlist 2,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
-	| $(AWK) 'NR == 1 { sub(/^error while interpolating [^:]*: /, ""); print }')
+	| $(AWK) '/ level=warning / { next } { sub(/^error while interpolating [^:]*: /, ""); print; exit }')
 
 $(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the compose file or empty `APP_SERVICE`)
 endif
