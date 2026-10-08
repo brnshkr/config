@@ -375,6 +375,18 @@ final class ComposerJson
     }
 
     /**
+     * @return array<array-key, mixed>
+     *
+     * @throws RuntimeException
+     */
+    public function getExtra(): array
+    {
+        $extra = $this->read()['extra'] ?? [];
+
+        return is_array($extra) ? $extra : [];
+    }
+
+    /**
      * @return ?non-empty-string
      *
      * @throws RuntimeException

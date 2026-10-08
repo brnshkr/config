@@ -193,6 +193,7 @@ final class PhpStan
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      * @throws InvalidArgumentException when a resolved path is not a non-empty string
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when a required optional PHPStan extension is missing
      *
      * @example
@@ -242,6 +243,7 @@ final class PhpStan
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
      * @throws InvalidArgumentException when a resolved path is not a non-empty string
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when a required optional PHPStan extension is missing
      *
      * @example
@@ -2263,6 +2265,7 @@ final class PhpStan
      * }
      *
      * @throws DirectoryNotFoundException
+     * @throws RuntimeException
      */
     private static function getAnalysisPaths(Finder $finder): array
     {

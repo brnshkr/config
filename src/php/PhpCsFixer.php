@@ -58,6 +58,7 @@ final readonly class PhpCsFixer
      * @return PhpCsFixerConfig configured Config instance ready for php-cs-fixer
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when required php-cs-fixer dependencies are missing
      *
      * @example
@@ -106,6 +107,7 @@ final readonly class PhpCsFixer
      * @return self the builder, pre-configured with the baseline
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when required php-cs-fixer dependencies are missing
      *
      * @example

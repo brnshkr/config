@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config;
 
 use Brnshkr\Config\Tests\TwigCsFixerTest;
+use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use TwigCsFixer\Config\Config as TwigCsFixerConfig;
@@ -59,6 +60,7 @@ final readonly class TwigCsFixer
      * @return TwigCsFixerConfig configured Config instance ready for twig-cs-fixer
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      *
      * @example
      * ```php
@@ -106,6 +108,7 @@ final readonly class TwigCsFixer
      * @return self the builder, pre-configured with the baseline
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      *
      * @example
      * ```php

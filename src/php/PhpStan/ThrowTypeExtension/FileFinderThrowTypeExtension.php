@@ -14,6 +14,7 @@ use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\DynamicStaticMethodThrowTypeExtension;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 use function array_any;
 use function array_map;
@@ -55,17 +56,26 @@ final readonly class FileFinderThrowTypeExtension implements DynamicStaticMethod
         StaticCall $staticCall,
         Scope $scope,
     ): ?Type {
+        $throwType          = $methodReflection->getThrowType();
         $arguments          = $staticCall->getArgs();
         $extensionsArgument = count($arguments) < 2 || !isset($arguments[1]) ? null : $arguments[1];
 
-        if ($extensionsArgument === null) {
-            return $methodReflection->getThrowType()?->equals(new ObjectType(InvalidArgumentException::class)) === true
-                ? null
-                : $methodReflection->getThrowType();
+        $isEveryExtensionSupported = $extensionsArgument === null
+            || !self::hasUnsupportedExtension($scope->getType($extensionsArgument->value));
+
+        if (!$throwType instanceof Type || !$isEveryExtensionSupported) {
+            return $throwType;
         }
 
-        $type = $scope->getType($extensionsArgument->value);
+        $remainingThrowType = TypeCombinator::remove($throwType, new ObjectType(InvalidArgumentException::class));
 
+        return $remainingThrowType->getObjectClassNames() === []
+            ? null
+            : $remainingThrowType;
+    }
+
+    private static function hasUnsupportedExtension(Type $type): bool
+    {
         $values = array_map(
             static fn (ConstantStringType $constantStringType): string => $constantStringType->getValue(),
             $type->getConstantStrings(),
@@ -83,8 +93,6 @@ final readonly class FileFinderThrowTypeExtension implements DynamicStaticMethod
         return array_any(
             $values,
             static fn (mixed $value): bool => !in_array($value, FileFinder::EXTENSIONS, true),
-        )
-            ? new ObjectType(InvalidArgumentException::class)
-            : null;
+        );
     }
 }

@@ -13,7 +13,7 @@
 - An `@internal` symbol is usable at or below its own namespace, or below the namespace its tag names.
 - Write `#[\Override]` up front; Rector adds it otherwise.
 - A constant glob such as `Module::NAME_*` also matches array constants, so keep arrays out of the prefix.
-- `FileFinder` ignores `.gitignore`; its exclusions are hardcoded.
+- `FileFinder` ignores `.gitignore`; beside its own exclusions it reads `extra.brnshkr.config.file-finder-excludes`.
 
 ## Rules and tests
 

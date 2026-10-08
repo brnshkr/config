@@ -6,14 +6,17 @@ namespace Brnshkr\Config;
 
 use InvalidArgumentException;
 use LogicException;
+use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 use function array_diff;
+use function array_is_list;
 use function array_keys;
 use function array_map;
 use function in_array;
 use function is_array;
+use function is_string;
 use function iterator_to_array;
 use function sprintf;
 
@@ -44,6 +47,8 @@ final readonly class FileFinder
         self::EXTENSION_TWIG,
     ];
 
+    private const string KEY_EXCLUDES = 'file-finder-excludes';
+
     private function __construct() {}
 
     /**
@@ -59,6 +64,7 @@ final readonly class FileFinder
      *
      * @throws DirectoryNotFoundException when the resolved source directory does not exist
      * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      *
      * @example
      * ```php
@@ -109,6 +115,7 @@ final readonly class FileFinder
             ->notPath([
                 'config/reference.php',
                 '/^tests(?:\/.+)?\/[Ff]ixtures?/',
+                ...self::getConfiguredExcludes(),
             ])
             ->exclude([
                 ProjectDirectory::getCache(),
@@ -133,6 +140,7 @@ final readonly class FileFinder
      *
      * @throws DirectoryNotFoundException when the resolved source directory does not exist
      * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      *
      * @example
      * ```php
@@ -146,5 +154,43 @@ final readonly class FileFinder
         return self::get($finder, $extensions)
             |> iterator_to_array(...)
             |> array_keys(...);
+    }
+
+    /**
+     * @return list<non-empty-string>
+     *
+     * @throws RuntimeException
+     */
+    private static function getConfiguredExcludes(): array
+    {
+        $libraryComposerJson  = ComposerJson::forThisLibrary();
+        $organization         = $libraryComposerJson->getPackageOrganization();
+        $name                 = $libraryComposerJson->getPackageName();
+        $organizationSettings = ComposerJson::forProjectUsingThisLibrary()->getExtra()[$organization] ?? [];
+        $settings             = is_array($organizationSettings) ? $organizationSettings[$name] ?? [] : [];
+        $configuredPatterns   = is_array($settings) ? $settings[self::KEY_EXCLUDES] ?? [] : [];
+
+        $message = sprintf(
+            'The "extra.%s.%s.%s" setting must be a list of paths or patterns.',
+            $organization,
+            $name,
+            self::KEY_EXCLUDES,
+        );
+
+        if (!is_array($configuredPatterns) || !array_is_list($configuredPatterns)) {
+            throw new RuntimeException($message);
+        }
+
+        $excludedPatterns = [];
+
+        foreach ($configuredPatterns as $configuredPattern) {
+            if (!is_string($configuredPattern) || Str::isEmpty($configuredPattern)) {
+                throw new RuntimeException($message);
+            }
+
+            $excludedPatterns[] = $configuredPattern;
+        }
+
+        return $excludedPatterns;
     }
 }

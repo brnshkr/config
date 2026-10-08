@@ -70,6 +70,7 @@ final class Rector
      * @return RectorConfigBuilder configured builder ready for Rector
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when required Rector dependencies are missing
      *
      * @example
@@ -120,6 +121,7 @@ final class Rector
      * @return self the builder, pre-configured with the baseline
      *
      * @throws DirectoryNotFoundException when FileFinder cannot resolve the source directory
+     * @throws RuntimeException when `file-finder-excludes` is malformed
      * @throws RuntimeException when required Rector dependencies are missing
      *
      * @example

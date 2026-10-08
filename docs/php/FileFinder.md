@@ -24,3 +24,20 @@ $twigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSIO
 ```
 
 `FileFinder::EXTENSIONS` holds what is supported; anything else throws `InvalidArgumentException`.
+
+Paths every tool skips go in `composer.json`, each handed to the Finder's `notPath()`:
+
+```json
+{
+  "extra": {
+    "brnshkr": {
+      "config": {
+        "file-finder-excludes": [
+          "src/Email/Generated",
+          "/\\.stub\\.php$/"
+        ]
+      }
+    }
+  }
+}
+```
