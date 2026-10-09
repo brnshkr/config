@@ -2353,7 +2353,7 @@ ifneq ($(_HAS_SEMGREP),) # semgrep
 SEMGREP          ?= $(_SEMGREP_RUN) semgrep#v #~~ command that runs `semgrep`
 SEMGREP_CONFIG   ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgrep.yaml $(APP_DIR)/$(_CONFIG_DIR)/semgrep.dist.yaml,)#v #~~ path to `semgrep` config
 SEMGREP_RULESETS ?= $(_SEMGREP_RULESETS)#v #~~ registry rulesets, detected unless `x-brnshkr` sets them
-SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `semgrep`
+SEMGREP_FLAGS    ?= --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids $(if $(_IS_NO_COLOR),,--force-color)#v #~~ additional flags passed to `semgrep`
 SEMGREP_CACHE    ?= $(APP_DIR)/$(_CACHE_DIR)/semgrep#vv #~~ path to the `semgrep` ruleset cache
 SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched again
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
