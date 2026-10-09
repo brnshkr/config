@@ -35,8 +35,20 @@ _BRNSHKR_COMPOSE_FILES = $(or \
 	)) \
 )
 
-_BRNSHKR_COMPOSE = docker compose $(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
-_BRNSHKR_RUN     = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))
+_BRNSHKR_STAGE = $(or $(APP_ENV),dev)
+
+_BRNSHKR_DOTENV_FILES = $(wildcard \
+	$(or $(wildcard $(CURDIR)/.env),$(CURDIR)/.env.dist) \
+	$(CURDIR)/.env.local \
+	$(CURDIR)/.env.$(_BRNSHKR_STAGE) \
+	$(CURDIR)/.env.$(_BRNSHKR_STAGE).local \
+)
+
+_BRNSHKR_COMPOSE = HOST_UID="$$(id -u)" HOST_GID="$$(id -g)" HOST_APP_DIR='$(CURDIR)' docker compose \
+	$(addprefix --env-file ,$(_BRNSHKR_DOTENV_FILES)) \
+	$(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
+
+_BRNSHKR_RUN = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))
 
 _BRNSHKR_JS_INSTALL = $(or \
 	$(if $(wildcard $(CURDIR)/bun.lock $(CURDIR)/bun.lockb),bun install), \
