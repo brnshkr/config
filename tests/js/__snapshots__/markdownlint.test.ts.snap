@@ -50,6 +50,11 @@ exports[`expected markdownlint config 1`] = `
       "siblings_only": true,
     },
     "no-empty-alt-text": true,
+    "no-hard-tabs": {
+      "ignore_code_languages": [
+        "Makefile",
+      ],
+    },
     "no-inline-html": {
       "allowed_elements": [
         "a",

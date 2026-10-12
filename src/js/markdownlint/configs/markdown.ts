@@ -43,6 +43,11 @@ export const markdown = (): Config[] => {
         'no-duplicate-heading': {
           siblings_only: true,
         },
+        'no-hard-tabs': {
+          ignore_code_languages: [
+            'Makefile',
+          ],
+        },
         'no-inline-html': {
           allowed_elements: [
             'a',
