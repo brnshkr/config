@@ -8,6 +8,9 @@ where: #~~ says where make runs and where a tool runs
 	@echo "make=$$([ -f /.dockerenv ] && echo container || echo host)"
 	@$(RUN) sh -c 'echo "tool=$$([ -f /.dockerenv ] && echo container || echo host)"'
 
+terminal: #~~ says whether a tool writes to a terminal
+	@$(RUN) sh -c '[ -t 1 ] && echo tool=terminal || echo tool=pipe'
+
 where-alt: #~~ says where a tool named for another service runs
 	@$(call run_in,alt) sh -c 'echo "alt=$$([ -f /.dockerenv ] && echo container || echo host)"'
 

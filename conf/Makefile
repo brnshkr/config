@@ -2359,7 +2359,7 @@ SEMGREP_MAX_AGE  ?= 7#vv #~~ days a cached ruleset is kept before it is fetched 
 SEMGREP_REGISTRY ?= https://semgrep.dev/c/p#vvv #~~ address `semgrep` fetches its rulesets from
 SEMGREP_PYTHON   ?= $(_SEMGREP_RUN) python3#vvv #~~ command that runs `python3`, merging `semgrep` rulesets
 
-_SEMGREP_RUN = $(call _enter_service,$(SEMGREP_SERVICE),-T,run)
+_SEMGREP_RUN = $(call _enter_service,$(SEMGREP_SERVICE),,run)
 
 _LAYERED_CONFIGS += $(call _layered,$(SEMGREP_CONFIG),yaml)
 
@@ -2901,7 +2901,7 @@ endef
 #* returns: string
 #*
 define run_in
-$(call _enter_service,$1,-T)
+$(call _enter_service,$1)
 endef
 
 #**
@@ -2927,7 +2927,7 @@ endef
 #* returns: string
 #*
 define _run_in_own_service
-$(if $(filter $1,$(_COMPOSE_SERVICES)),$(call _enter_service,$1,-T,run),$(RUN))
+$(if $(filter $1,$(_COMPOSE_SERVICES)),$(call _enter_service,$1,,run),$(RUN))
 endef
 
 #**

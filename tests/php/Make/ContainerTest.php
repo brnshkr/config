@@ -240,6 +240,27 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @param self::MODE_* $mode
+     */
+    #[DataProvider('provideHostModeCases')]
+    public function testAToolWritesToATerminalExactlyWhenMakeDoes(string $mode): void
+    {
+        $piped = $this->runMakeIn($mode, ['terminal']);
+
+        $process = self::createMakeProcess(
+            ['terminal', ...($mode === self::MODE_RUN ? ['APP_SERVICE_MODE=run'] : [])],
+            self::getContainerEnvironment(),
+            self::CONTAINER_DIRECTORY,
+        );
+
+        $process->setPty(true);
+        $process->mustRun();
+
+        self::assertStringContainsString('tool=pipe', $piped);
+        self::assertStringContainsString('tool=terminal', $process->getOutput());
+    }
+
+    /**
      * @return iterable<string, array{self::MODE_*}>
      */
     public static function provideHostModeCases(): iterable
