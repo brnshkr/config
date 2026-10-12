@@ -4,7 +4,7 @@ include ../../../../../conf/Makefile
 
 #!! Makefile of a project grouping the findings a tool reported
 
-group-pairs group-lists group-text group-eslint group-single group-wide group-braces group-clean group-failing group-crash: export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
+group-pairs group-lists group-text group-eslint group-single group-service group-wide group-braces group-clean group-failing group-crash: export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
 
 groups: #~~ runs two groups the way a verb does
 	@$(MAKE) $(_VERB_FLAGS) group-pairs group-single
@@ -23,6 +23,11 @@ group-eslint: #~~ groups findings from a report that also lists suppressed ones
 
 group-single: #~~ groups a report with exactly one finding
 	@$(call _group,cat single.json,identifier,message)
+
+group-service: APP_DIR := .
+group-service: _SERVICE_DIRECTORY := /srv/acme
+group-service: #~~ groups findings a tool in a service reported under its working directory
+	@$(call _group,cat service.json,identifier,message,@)
 
 group-wide: #~~ groups findings whose total is wider than any count
 	@$(call _group,cat wide.json,identifier,message,@)

@@ -189,6 +189,25 @@ final class VerbsTest extends TestCase
         self::assertStringContainsString("\033]8;;editor://src/a.ts:3\033\\TS2345", $text);
     }
 
+    public function testAFindingFromAServiceShowsAndLinksItsProjectPath(): void
+    {
+        $directory = __DIR__ . '/../Fixtures/Make/Group';
+        $verbose   = $this->runMake(['group-service'], ['V' => '1'], $directory);
+
+        $linked = $this->runMake(
+            ['group-service'],
+            [
+                'EDITOR_URL'  => 'editor://{file}:{line}',
+                'FORCE_COLOR' => '1',
+                'NO_COLOR'    => '',
+            ],
+            $directory,
+        );
+
+        self::assertStringContainsString("Only finding.\n   ./src/a.php:3\n", $verbose);
+        self::assertStringContainsString("\033]8;;editor://src/a.php:3\033\\acme.only", $linked);
+    }
+
     public function testAMessageIsCutToTheTerminalWidthUnlessVerbose(): void
     {
         $cut     = $this->runMake(['group-text', 'COLUMNS=60'], directory: __DIR__ . '/../Fixtures/Make/Group');

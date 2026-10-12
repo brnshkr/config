@@ -1,0 +1,13 @@
+{
+  "files": {
+    "/srv/acme/src/a.php": {
+      "messages": [
+        {
+          "message": "Only finding.",
+          "line": 3,
+          "identifier": "acme.only"
+        }
+      ]
+    }
+  }
+}

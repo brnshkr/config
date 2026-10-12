@@ -3600,7 +3600,7 @@ $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 	};) \
 output=$$($1 2>&1); status=$$?; \
 report=$$(printf '%s\n' "$$output" \
-	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' $(AWK) \
+	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' _SERVICE_DIRECTORY='$(_SERVICE_DIRECTORY)' $(AWK) \
 		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' \
 		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" \
 		-v _COLUMNS="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}" "$$_GROUP_AWK"); code=$$?; \
@@ -4948,15 +4948,20 @@ function get_last_file(text, fallback) {
 	}
 	return fallback
 }
+function strip_directory(file, directory) {
+	return directory != "" && index(file, directory "/") == 1 ? substr(file, length(directory) + 2) : file
+}
+function get_project_path(file) {
+	return strip_directory(strip_directory(file, ENVIRON["_APP_DIR"]), ENVIRON["_SERVICE_DIRECTORY"])
+}
 function get_location_text(file, line) {
-	if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
-	else if (index(file, ENVIRON["_CURDIR"] "/") == 1) file = substr(file, length(ENVIRON["_CURDIR"]) + 2)
+	file = strip_directory(get_project_path(file), ENVIRON["_CURDIR"])
 	return (file ~ /^\// ? file : "./" file) (line != "" ? ":" line : "")
 }
 function render_link(text, file, line,    url, position) {
 	url = ENVIRON["_EDITOR_URL_TEMPLATE"]
 	if (url == "" || file == "" || _IS_NO_COLOR != "") return text
-	if (index(file, ENVIRON["_APP_DIR"] "/") == 1) file = substr(file, length(ENVIRON["_APP_DIR"]) + 2)
+	file = get_project_path(file)
 	if (index(url, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); file = substr(file, 2) }
 	else gsub(/\{cwd\}/, ENVIRON["_CURDIR"], url)
 	position = index(url, "{file}")
