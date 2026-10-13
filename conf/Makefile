@@ -1420,7 +1420,7 @@ $(call _target,startup): $(_STARTUP) #~~ installs everything and writes missing 
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
-GIT_HOOKS ?= #v #~~ git hooks this project installs, as `<hook>=<target>` pairs
+GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#v #~~ git hooks this project installs, as `<hook>=<target>` pairs
 
 $(call _target,install-hooks): #~~ installs this project's git hooks, replacing any that exist #v
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
@@ -2031,8 +2031,6 @@ COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PART
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLOR),--color false)#v #~~ additional flags passed to `commitlint`
 
 _COMMITLINT_PARTS = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
-
-GIT_HOOKS += commit-msg=$(call _target,commitlint)
 
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 

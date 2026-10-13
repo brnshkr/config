@@ -213,7 +213,7 @@ Variables:
    PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
   setup
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                   ?=                                                   (git hooks this project installs, as <hook>=<target> pairs)
+   GIT_HOOKS                   ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
    CONFIG                      ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS         ?=                                                   (extra paths an archive ships, a trailing / for a directory)
    CACHE_DIR                   ?=  ./.cache                                         (directory the tools keep their caches in)
@@ -1169,7 +1169,7 @@ Available commands:
    [36mPHONY                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
-   [36mGIT_HOOKS                 [0m  [90m?=                                                   (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
+   [36mGIT_HOOKS                 [0m  [90m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
    [36mCONFIG                    [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
    [36mARCHIVE_EXTRA_PATHS       [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
    [36mCACHE_DIR                 [0m  [90m?=  ./.cache                                         (directory the tools keep their caches in)[0m
@@ -1488,7 +1488,7 @@ Available commands:
    [32mPHONY                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
-   [32mGIT_HOOKS                 [0m  [0m?=                                                   (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
+   [32mGIT_HOOKS                 [0m  [0m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
    [32mCONFIG                    [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
    [32mARCHIVE_EXTRA_PATHS       [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
    [32mCACHE_DIR                 [0m  [0m?=  ./.cache                                         (directory the tools keep their caches in)[0m
