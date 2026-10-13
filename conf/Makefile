@@ -259,16 +259,16 @@ TAR    ?= tar#~~ path to `tar` binary
 TPUT   ?= tput#~~ path to `tput` binary
 TR     ?= tr#~~ path to `tr` binary
 
-#--- settings
+#---v container
 
-COMPOSE_FILE     ?= $(_DOTENV_COMPOSE_FILE)#v #~~ compose files, colon-separated, instead of this project's
-APP_SERVICE      ?= app#v #~~ compose service the tools run in, empty for this machine
-APP_SERVICE_MODE ?= exec#v #~~ `run` starts a throwaway container instead of entering one
-NODE_SERVICE     ?= node#v #~~ compose service `node` runs in, where the project has one
-SEMGREP_SERVICE  ?= semgrep#v #~~ compose service `semgrep` runs in, where the project has one
-IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#v #~~ whether the tools already run in a container
-RUN              ?= $(call run_in,$(APP_SERVICE))#v #~~ command the tools run through, empty on this machine
-APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#v #~~ where the tools see the sources, not `CURDIR` in a container
+COMPOSE_FILE     ?= $(_DOTENV_COMPOSE_FILE)#~~ compose files, colon-separated, instead of this project's
+APP_SERVICE      ?= app#~~ compose service the tools run in, empty for this machine
+APP_SERVICE_MODE ?= exec#~~ `run` starts a throwaway container instead of entering one
+NODE_SERVICE     ?= node#~~ compose service `node` runs in, where the project has one
+SEMGREP_SERVICE  ?= semgrep#~~ compose service `semgrep` runs in, where the project has one
+IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
+RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
+APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
 HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
 HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
@@ -391,7 +391,7 @@ PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
-#--- settings
+#--- output
 
 define _NEWLINE
 
@@ -1649,11 +1649,11 @@ $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
 ifneq ($(_HAS_CONTAINER),) # container
 
-COMPOSE_UP_FLAGS    ?= --wait#v #~~ additional flags passed to `compose up`
-COMPOSE_DOWN_FLAGS  ?= --remove-orphans#v #~~ additional flags passed to `compose down`
-COMPOSE_BUILD_FLAGS ?= --pull#v #~~ additional flags passed to `compose build`
-COMPOSE_LOGS_FLAGS  ?= --follow#v #~~ additional flags passed to `compose logs`
-SERVICE_SHELL       ?= sh#v #~~ program a service's shell starts
+COMPOSE_UP_FLAGS    ?= --wait#~~ additional flags passed to `compose up`
+COMPOSE_DOWN_FLAGS  ?= --remove-orphans#~~ additional flags passed to `compose down`
+COMPOSE_BUILD_FLAGS ?= --pull#~~ additional flags passed to `compose build`
+COMPOSE_LOGS_FLAGS  ?= --follow#~~ additional flags passed to `compose logs`
+SERVICE_SHELL       ?= sh#~~ program a service's shell starts
 
 $(call _target,up): #~~ starts the services the tools need
 	$(DEBUG_PREFIX)$(_COMPOSE) up $(COMPOSE_UP_FLAGS) $(ARGS)
@@ -1661,7 +1661,7 @@ $(call _target,up): #~~ starts the services the tools need
 $(call _target,down): #~~ stops the services
 	$(DEBUG_PREFIX)$(_COMPOSE) down $(COMPOSE_DOWN_FLAGS) $(ARGS)
 
-$(call _target,ps): #~~ lists what is running #v
+$(call _target,ps): #~~ lists what is running
 	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
 
 $(call _target,shell): $(_TARGET_PREFIX)$(APP_SERVICE)-shell #~~ opens a shell in `APP_SERVICE`
