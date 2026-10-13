@@ -11,7 +11,6 @@ import { snapshotConfigs } from '#tests/utils/config-snapshot.ts';
 import type { JsonObject } from '#tests/utils/json-diff.ts';
 
 const FIXTURES_DIRECTORY = path.join(process.cwd(), 'tests/js/fixtures/eslint');
-const TIMEOUT = 30_000;
 
 test('expected eslint config', async () => {
   const packageConfigs = await getConfig().toConfigs();
@@ -43,4 +42,4 @@ test('expected eslint config', async () => {
       ),
     ),
   });
-}, TIMEOUT);
+});
