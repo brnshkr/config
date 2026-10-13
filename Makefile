@@ -1,6 +1,6 @@
 #-- app
 
-#!! Application Makefile of the `brnshkr/config` package
+#!! This project's targets
 
 STARTUP_TARGETS := build \
 	install-hooks

@@ -18,6 +18,8 @@ endif
 
 #-- app
 
+#!! This project's targets
+
 ping: #~~ answers pong
 	$(DEBUG_PREFIX)$(call log,pong,$(COLOR_SUCCESS))
 
