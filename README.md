@@ -132,7 +132,7 @@ Take a look at the function signatures for exact details.
 ##### ESLint
 
 ```js
-// ./conf/eslint.mjs
+// ./conf/eslint.dist.mjs
 
 import { getConfig } from '@brnshkr/config/eslint';
 
@@ -143,7 +143,7 @@ export default getConfig(/* customize */);
 ##### Stylelint
 
 ```js
-// ./conf/stylelint.mjs
+// ./conf/stylelint.dist.mjs
 
 import { getConfig } from '@brnshkr/config/stylelint';
 
@@ -154,7 +154,7 @@ export default getConfig(/* customize */);
 ##### markdownlint
 
 ```js
-// ./conf/markdownlint.mjs
+// ./conf/markdownlint.dist.mjs
 
 import { getConfig } from '@brnshkr/config/markdownlint';
 
@@ -165,7 +165,7 @@ export default getConfig(/* customize */);
 ##### commitlint
 
 ```js
-// ./conf/commitlint.mjs
+// ./conf/commitlint.dist.mjs
 
 import { getConfig } from '@brnshkr/config/commitlint';
 
@@ -176,7 +176,7 @@ export default getConfig(/* customize */);
 ##### Vitest
 
 ```js
-// ./conf/vitest.mjs
+// ./conf/vitest.dist.mjs
 
 import { getConfig } from '@brnshkr/config/vitest';
 
@@ -202,7 +202,7 @@ A few possible ways are listed below:
 Example call, adjust as needed
 
 ```sh
-bun eslint --config ./conf/eslint.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
+bun eslint --config ./conf/eslint.dist.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
 ```
 
 <!-- omit in toc -->
@@ -211,7 +211,7 @@ bun eslint --config ./conf/eslint.mjs --cache --cache-location ./.cache/eslint.c
 Example call, adjust as needed
 
 ```sh
-bun stylelint --config ./conf/stylelint.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 "**/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}"
+bun stylelint --config ./conf/stylelint.dist.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 "**/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}"
 ```
 
 <!-- omit in toc -->
@@ -220,7 +220,7 @@ bun stylelint --config ./conf/stylelint.mjs --config-basedir ./ --cache --cache-
 Example call, adjust as needed
 
 ```sh
-bun markdownlint-cli2 --config ./conf/markdownlint.mjs "**/*.md"
+bun markdownlint-cli2 --config ./conf/markdownlint.dist.mjs "**/*.md"
 ```
 
 <!-- omit in toc -->
@@ -229,7 +229,7 @@ bun markdownlint-cli2 --config ./conf/markdownlint.mjs "**/*.md"
 Example call, adjust as needed
 
 ```sh
-bun commitlint --config ./conf/commitlint.mjs --edit
+bun commitlint --config ./conf/commitlint.dist.mjs --edit
 ```
 
 <!-- omit in toc -->
@@ -422,7 +422,7 @@ A few possible ways are listed below:
 Example call, adjust as needed
 
 ```sh
-php ./vendor/bin/php-cs-fixer fix --config ./conf/php-cs-fixer.php -v --show-progress=dots
+php ./vendor/bin/php-cs-fixer fix --config ./conf/php-cs-fixer.dist.php -v --show-progress=dots
 ```
 
 <!-- omit in toc -->
@@ -431,7 +431,7 @@ php ./vendor/bin/php-cs-fixer fix --config ./conf/php-cs-fixer.php -v --show-pro
 Example call, adjust as needed
 
 ```sh
-php ./vendor/bin/rector process --config ./conf/rector.php --memory-limit=-1
+php ./vendor/bin/rector process --config ./conf/rector.dist.php --memory-limit=-1
 ```
 
 <!-- omit in toc -->
@@ -440,7 +440,7 @@ php ./vendor/bin/rector process --config ./conf/rector.php --memory-limit=-1
 Example call, adjust as needed
 
 ```sh
-php ./vendor/bin/phpstan analyze --configuration ./conf/phpstan.php -vv --memory-limit=-1
+php ./vendor/bin/phpstan analyze --configuration ./conf/phpstan.dist.php -vv --memory-limit=-1
 ```
 
 <!-- omit in toc -->
@@ -449,7 +449,7 @@ php ./vendor/bin/phpstan analyze --configuration ./conf/phpstan.php -vv --memory
 Example call, adjust as needed
 
 ```sh
-php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
+php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.dist.php -v
 ```
 
 <!-- omit in toc -->
