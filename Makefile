@@ -101,7 +101,7 @@ _MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
 mate: #~~ runs mate where the tools run
 	$(DEBUG_PREFIX)$(MATE) $(ARGS)
 
-discover: #~~ runs mate discover
+discover: #~~ refreshes what mate generates for agents
 	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
 	$(DEBUG_PREFIX)if [ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ]; then \
 		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
