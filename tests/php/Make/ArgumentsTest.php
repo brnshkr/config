@@ -108,7 +108,10 @@ final class ArgumentsTest extends TestCase
             self::TOOLS_DIRECTORY,
         );
 
+        $spacedFirst = $this->runMake(['consumer-arguments', 'ARGS=\'a b\' c'], directory: self::CONSUMER_DIRECTORY);
+
         self::assertStringContainsString('consumer-arguments [\'--filter\' \'A|B\'', $result);
+        self::assertStringContainsString('consumer-arguments [\'a b\' c] [\'a b\']', $spacedFirst);
         self::assertStringNotContainsString('cOME', $result);
         self::assertStringContainsString('\'a b.php\' --config', $spaced);
         self::assertStringContainsString('--dry-run', $spaced);

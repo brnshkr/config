@@ -1143,15 +1143,15 @@ _NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subs
 _NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
 
 TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(MAKECMDGOALS))))#~~ the first target of this run
-ARG1    = $(word 1,$(ARGS))#~~ the running target's first argument, and so on to `ARG9`
-ARG2    = $(word 2,$(ARGS))
-ARG3    = $(word 3,$(ARGS))
-ARG4    = $(word 4,$(ARGS))
-ARG5    = $(word 5,$(ARGS))
-ARG6    = $(word 6,$(ARGS))
-ARG7    = $(word 7,$(ARGS))
-ARG8    = $(word 8,$(ARGS))
-ARG9    = $(word 9,$(ARGS))
+ARG1    = $(call _shell_quoted,$(word 1,$(_ARGS)))#~~ the running target's first argument, and so on to `ARG9`
+ARG2    = $(call _shell_quoted,$(word 2,$(_ARGS)))
+ARG3    = $(call _shell_quoted,$(word 3,$(_ARGS)))
+ARG4    = $(call _shell_quoted,$(word 4,$(_ARGS)))
+ARG5    = $(call _shell_quoted,$(word 5,$(_ARGS)))
+ARG6    = $(call _shell_quoted,$(word 6,$(_ARGS)))
+ARG7    = $(call _shell_quoted,$(word 7,$(_ARGS)))
+ARG8    = $(call _shell_quoted,$(word 8,$(_ARGS)))
+ARG9    = $(call _shell_quoted,$(word 9,$(_ARGS)))
 ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target got, quoted for the shell
 
 _GOAL = $@
