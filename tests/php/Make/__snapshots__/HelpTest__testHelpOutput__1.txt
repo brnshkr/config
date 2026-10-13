@@ -144,10 +144,10 @@ Available commands:
  brnshkr
   common
    help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
+   startup                     installs everything and writes missing files
+   configs                     writes the files this project is missing
+   cc                          clears the named caches, or all of them
+   fresh                       deletes ignored files and runs startup again
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -272,11 +272,11 @@ Available commands:
  brnshkr
   common
    help, h                     shows this help, narrowed by scope, widened by v to vvv
-   startup                     brings a fresh checkout to a workable state
+   startup                     installs everything and writes missing files
    install-hooks               installs this project's git hooks, replacing any that exist
-   configs                     writes missing files, tools configs, local private ones
-   cc                          removes the caches named, or all of them when given none
-   fresh                       removes ignored files but private ones, reruns startup
+   configs                     writes the files this project is missing
+   cc                          clears the named caches, or all of them
+   fresh                       deletes ignored files and runs startup again
    fixtures                    builds the fixtures this project's tests read
   changelog
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
@@ -452,9 +452,9 @@ Available commands:
     verbose_described_fn         described function shown at verbosity >= 1 (via scope)
  
 @@ @@
-    configs                     writes missing files, tools configs, local private ones
-    cc                          removes the caches named, or all of them when given none
-    fresh                       removes ignored files but private ones, reruns startup
+    configs                     writes the files this project is missing
+    cc                          clears the named caches, or all of them
+    fresh                       deletes ignored files and runs startup again
 +   fresh-dry-run               lists what fresh would remove and keep
     fixtures                    builds the fixtures this project's tests read
    changelog
@@ -615,8 +615,8 @@ Available commands:
     documented_and_described_fn
      Documentation block whose first sentence would be derived as a description
 @@ @@
-    cc                          removes the caches named, or all of them when given none
-    fresh                       removes ignored files but private ones, reruns startup
+    cc                          clears the named caches, or all of them
+    fresh                       deletes ignored files and runs startup again
     fresh-dry-run               lists what fresh would remove and keep
 +   pack                        packs every stack's package to ./.local
     fixtures                    builds the fixtures this project's tests read
@@ -663,21 +663,21 @@ Available commands:
   brnshkr
    common
 -   help, h                     shows this help, narrowed by scope, widened by v to vvv
--   startup                     brings a fresh checkout to a workable state
+-   startup                     installs everything and writes missing files
 -   install-hooks               installs this project's git hooks, replacing any that exist
--   configs                     writes missing files, tools configs, local private ones
--   cc                          removes the caches named, or all of them when given none
--   fresh                       removes ignored files but private ones, reruns startup
+-   configs                     writes the files this project is missing
+-   cc                          clears the named caches, or all of them
+-   fresh                       deletes ignored files and runs startup again
 -   fresh-dry-run               lists what fresh would remove and keep
 -   pack                        packs every stack's package to ./.local
 -   fixtures                    builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
-+   startup                                  brings a fresh checkout to a workable state
++   startup                                  installs everything and writes missing files
 +   install-hooks                            installs this project's git hooks, replacing any that exist
-+   configs                                  writes missing files, tools configs, local private ones
-+   cc                                       removes the caches named, or all of them when given none
-+   fresh                                    removes ignored files but private ones, reruns startup
++   configs                                  writes the files this project is missing
++   cc                                       clears the named caches, or all of them
++   fresh                                    deletes ignored files and runs startup again
 +   fresh-dry-run                            lists what fresh would remove and keep
 +   pack                                     packs every stack's package to ./.local
 +   fixtures                                 builds the fixtures this project's tests read
@@ -1297,11 +1297,11 @@ Available commands:
  [35mbrnshkr[0m
   [35mcommon[0m
    [36mhelp, h                   [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m[0m
-   [36mstartup                   [0m  [90mbrings a fresh checkout to a workable state[0m
+   [36mstartup                   [0m  [90minstalls everything and writes missing files[0m
    [36minstall-hooks             [0m  [90minstalls this project's git hooks, replacing any that exist[0m
-   [36mconfigs                   [0m  [90mwrites missing files, [35mtools[0m[90m configs, [35mlocal[0m[90m private ones[0m
-   [36mcc                        [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36mfresh                     [0m  [90mremoves ignored files but private ones, reruns [35mstartup[0m[90m[0m
+   [36mconfigs                   [0m  [90mwrites the files this project is missing[0m
+   [36mcc                        [0m  [90mclears the named caches, or all of them[0m
+   [36mfresh                     [0m  [90mdeletes ignored files and runs [35mstartup[0m[90m again[0m
    [36mfresh-dry-run             [0m  [90mlists what [35mfresh[0m[90m would remove and keep[0m
    [36mpack                      [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mfixtures                  [0m  [90mbuilds the fixtures this project's tests read[0m
@@ -1614,11 +1614,11 @@ Available commands:
  [33mbrnshkr[0m
   [33mcommon[0m
    [32mhelp, h                   [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m[0m
-   [32mstartup                   [0m  [0mbrings a fresh checkout to a workable state[0m
+   [32mstartup                   [0m  [0minstalls everything and writes missing files[0m
    [32minstall-hooks             [0m  [0minstalls this project's git hooks, replacing any that exist[0m
-   [32mconfigs                   [0m  [0mwrites missing files, [33mtools[0m[0m configs, [33mlocal[0m[0m private ones[0m
-   [32mcc                        [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32mfresh                     [0m  [0mremoves ignored files but private ones, reruns [33mstartup[0m[0m[0m
+   [32mconfigs                   [0m  [0mwrites the files this project is missing[0m
+   [32mcc                        [0m  [0mclears the named caches, or all of them[0m
+   [32mfresh                     [0m  [0mdeletes ignored files and runs [33mstartup[0m[0m again[0m
    [32mfresh-dry-run             [0m  [0mlists what [33mfresh[0m[0m would remove and keep[0m
    [32mpack                      [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mfixtures                  [0m  [0mbuilds the fixtures this project's tests read[0m

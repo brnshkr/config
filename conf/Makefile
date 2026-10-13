@@ -1414,7 +1414,7 @@ _STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
 	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
 	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install))
 
-$(call _target,startup): $(_STARTUP) #~~ brings a fresh checkout to a workable state
+$(call _target,startup): $(_STARTUP) #~~ installs everything and writes missing files
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
@@ -1448,7 +1448,7 @@ _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOO
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
-$(call _target,configs): #~~ writes missing files, `tools` configs, `local` private ones
+$(call _target,configs): #~~ writes the files this project is missing
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for config_path in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
 		$(call _refuse_links,"$$config_path" "$${config_path%/*}" "$${config_path}.example"); \
@@ -1525,7 +1525,7 @@ _CACHES                   = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(f
 _CACHE_NAMES              = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
 _NAMED_CACHES             = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
-$(call _target,cc): #~~ removes the caches named, or all of them when given none
+$(call _target,cc): #~~ clears the named caches, or all of them
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
 	$(TRACE_PREFIX)if [ -z '$(if $(_CACHES),1)' ]; then \
 		$(call log,No caches to remove.,$(COLOR_NOTICE)); \
@@ -1583,7 +1583,7 @@ _FRESH_OPTIONS = set -f; \
 	done; \
 	unset IFS)
 
-$(call _target,fresh): #~~ removes ignored files but private ones, reruns `startup`
+$(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
 		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
@@ -1638,7 +1638,7 @@ SERVICE_SHELL       ?= sh#v #~~ program a service's shell starts
 $(call _target,up): #~~ starts the services the tools need
 	$(DEBUG_PREFIX)$(_COMPOSE) up $(COMPOSE_UP_FLAGS) $(ARGS)
 
-$(call _target,down): #~~ stops them again
+$(call _target,down): #~~ stops the services
 	$(DEBUG_PREFIX)$(_COMPOSE) down $(COMPOSE_DOWN_FLAGS) $(ARGS)
 
 $(call _target,ps): #~~ lists what is running #v
@@ -1726,7 +1726,7 @@ $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
 
 ifneq ($(_HAS_COMPOSER_AUDIT),)
-$(call _target,composer-audit): #~~ runs `composer audit` over the locked dependencies #vv
+$(call _target,composer-audit): #~~ checks the Composer lock file for known vulnerabilities #vv
 	$(TRACE_PREFIX)$(call _spinner,$(COMPOSER) audit $(COMPOSER_AUDIT_FLAGS) $(ARGS))
 endif
 
@@ -1842,20 +1842,20 @@ _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_o
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
-$(call _target,phpstan): #~~ runs `phpstan analyze`
+$(call _target,phpstan): #~~ analyzes the PHP code
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) $(_COMMAND) $(_PHP_STAN_ARGS) --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG))
 
 $(call _target,phpstan): _COMMAND = analyze
 
-$(call _target,phpstan-debug): $(call _target,phpstan) #~~ runs `phpstan analyze` in debug mode #vvv
+$(call _target,phpstan-debug): $(call _target,phpstan) #~~ analyzes the PHP code with debug output #vvv
 $(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --no-progress --error-format=json $(ARGS),identifier,message,@)
 
-$(call _target,phpstan-list): #~~ lists all files that are processed by `phpstan` #vv
+$(call _target,phpstan-list): #~~ lists the files `phpstan` reads #vv
 	$(TRACE_PREFIX)$(call _capture,$(MAKE) $(_MAKE_FLAGS) $(call _target,phpstan-raw) -- --debug 2>&1) \
 		| $(AWK) 'match($$0, /.+\.php$$/) { print substr($$0, RSTART, RLENGTH) }'
 
@@ -1863,7 +1863,7 @@ $(call _target,phpstan-print): #~~ prints the resolved `phpstan` configuration #
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
 	$(DEBUG_PREFIX)$(PHP_STAN) dump-parameters --configuration $(PHP_STAN_CONFIG) $(_ANSI_OPTION) $(ARGS)
 
-$(call _target,phpstan-raw): #~~ runs `phpstan analyze` with raw output #vvv
+$(call _target,phpstan-raw): #~~ analyzes the PHP code with raw output #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
 	$(DEBUG_PREFIX)$(PHP_STAN) analyze --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) --error-format=raw $(ARGS)
 
@@ -1879,18 +1879,18 @@ PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
-$(call _target,php-cs-fixer): #~~ runs `php-cs-fixer fix`
+$(call _target,php-cs-fixer): #~~ fixes the PHP coding style
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_FIXER_ARGS))
 
-$(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ runs `php-cs-fixer fix` in dry run mode #v
+$(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ shows the style fixes without writing them #v
 $(call _target,php-cs-fixer-dry-run): _GOAL := $(call _target,php-cs-fixer-dry-run)
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers,,name)
 
-$(call _target,php-cs-fixer-list): #~~ lists all files that are processed by `php-cs-fixer` #vv
+$(call _target,php-cs-fixer-list): #~~ lists the files `php-cs-fixer` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) 2>&1) \
 		| $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }'
@@ -1911,23 +1911,23 @@ RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),-
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
-$(call _target,rector): #~~ runs `rector process`
+$(call _target,rector): #~~ refactors the PHP code
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) $(_COMMAND) $(_FIXER_ARGS) --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_DEBUG_FLAG))
 
 $(call _target,rector): _COMMAND = process
 
-$(call _target,rector-debug): $(call _target,rector) #~~ runs `rector process` in debug mode #vvv
+$(call _target,rector-debug): $(call _target,rector) #~~ refactors the PHP code with debug output #vvv
 $(call _target,rector-debug): _GOAL := $(call _target,rector-debug)
 
-$(call _target,rector-dry-run): $(call _target,rector) #~~ runs `rector process` in dry run mode #v
+$(call _target,rector-dry-run): $(call _target,rector) #~~ shows the refactorings without writing them #v
 $(call _target,rector-dry-run): _GOAL := $(call _target,rector-dry-run)
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(RECTOR) process --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(ARGS) --dry-run --output-format=json,applied_rectors,,file)
 
-$(call _target,rector-list): #~~ lists all files that are processed by `rector` #vv
+$(call _target,rector-list): #~~ lists the files `rector` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
 
@@ -1950,14 +1950,14 @@ TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
 
-$(call _target,twig-cs-fixer): #~~ runs `twig-cs-fixer fix`, or `lint` under `--dry-run`
+$(call _target,twig-cs-fixer): #~~ fixes the Twig coding style
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(_IS_DRY_RUN),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_DEBUG_FLAG) $(_FIXER_ARGS))
 
-$(call _target,twig-cs-fixer-debug): $(call _target,twig-cs-fixer) #~~ runs `twig-cs-fixer` in debug mode #vvv
+$(call _target,twig-cs-fixer-debug): $(call _target,twig-cs-fixer) #~~ fixes the Twig coding style with debug output #vvv
 $(call _target,twig-cs-fixer-debug): _GOAL := $(call _target,twig-cs-fixer-debug)
 
-$(call _target,twig-cs-fixer-dry-run): $(call _target,twig-cs-fixer) #~~ runs `twig-cs-fixer` in dry run mode #v
+$(call _target,twig-cs-fixer-dry-run): $(call _target,twig-cs-fixer) #~~ shows the Twig style fixes without writing them #v
 $(call _target,twig-cs-fixer-dry-run): _GOAL := $(call _target,twig-cs-fixer-dry-run)
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
@@ -1991,7 +1991,7 @@ $(call _target,bun): #~~ runs `bun`
 	$(DEBUG_PREFIX)$(BUN) $(ARGS)
 
 ifneq ($(_HAS_BUN_AUDIT),)
-$(call _target,bun-audit): #~~ runs `bun audit` over the locked dependencies #vv
+$(call _target,bun-audit): #~~ checks the Bun lock file for known vulnerabilities #vv
 	$(TRACE_PREFIX)$(call _spinner,$(BUN) audit $(BUN_AUDIT_FLAGS) $(ARGS))
 endif
 
@@ -2010,7 +2010,7 @@ NODE_MODULES_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_SE
 NODE_MODULES_INSPECTOR_PORT  ?= 9999#v #~~ port `node-modules-inspector` serves on
 NODE_MODULES_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `node-modules-inspector`
 
-$(call _target,bun-inspect): #~~ runs `node-modules-inspector` #v
+$(call _target,bun-inspect): #~~ opens `node-modules-inspector` #v
 	$(DEBUG_PREFIX)$(NODE_MODULES_INSPECTOR) --port $(NODE_MODULES_INSPECTOR_PORT) $(ARGS) $(_SERVE_FLAGS) $(NODE_MODULES_INSPECTOR_FLAGS)
 
 endif # /bun-inspect
@@ -2061,7 +2061,7 @@ ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, set
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
 
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
-$(call _target,eslint): #~~ runs `eslint`, writing fixes unless `--dry-run`
+$(call _target,eslint): #~~ lints and fixes the code
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(_IS_DRY_RUN),,--fix); \
@@ -2070,7 +2070,7 @@ $(call _target,eslint): #~~ runs `eslint`, writing fixes unless `--dry-run`
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		exit $$status)
 
-$(call _target,eslint-dry-run): $(call _target,eslint) #~~ runs `eslint` without writing fixes #v
+$(call _target,eslint-dry-run): $(call _target,eslint) #~~ lints the code without writing fixes #v
 $(call _target,eslint-dry-run): _GOAL := $(call _target,eslint-dry-run)
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
@@ -2089,12 +2089,12 @@ ESLINT_CONFIG_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_
 ESLINT_CONFIG_INSPECTOR_PORT  ?= 7777#v #~~ port `eslint-config-inspector` serves on
 ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-config-inspector`
 
-$(call _target,eslint-inspect): #~~ runs `eslint-config-inspector` #v
+$(call _target,eslint-inspect): #~~ opens `eslint-config-inspector` #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) --port $(ESLINT_CONFIG_INSPECTOR_PORT) $(ARGS) \
 		$(if $(filter %-stats,$(_GOAL)),--stats) $(_SERVE_FLAGS) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
-$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ runs `eslint-config-inspector` with a timed full lint #vv
+$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ opens `eslint-config-inspector` with a timed full lint #vv
 $(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
 
 endif # /eslint-inspect
@@ -2116,7 +2116,7 @@ _MARKDOWNLINT_VALUE_FLAGS := --config \
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),mjs),$(MARKDOWNLINT_EXTENSIONS))
 
-$(call _target,markdownlint): #~~ runs `markdownlint-cli2`, writing fixes unless `--dry-run`
+$(call _target,markdownlint): #~~ lints and fixes the Markdown
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(MARKDOWNLINT) --config $(MARKDOWNLINT_CONFIG) $(MARKDOWNLINT_FLAGS) \
 		$(if $(_IS_DRY_RUN),,--fix) \
@@ -2124,7 +2124,7 @@ $(call _target,markdownlint): #~~ runs `markdownlint-cli2`, writing fixes unless
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)'))
 
-$(call _target,markdownlint-dry-run): $(call _target,markdownlint) #~~ runs `markdownlint-cli2` without writing fixes #v
+$(call _target,markdownlint-dry-run): $(call _target,markdownlint) #~~ lints the Markdown without writing fixes #v
 $(call _target,markdownlint-dry-run): _GOAL := $(call _target,markdownlint-dry-run)
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
@@ -2169,7 +2169,7 @@ STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` p
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
 
-$(call _target,stylelint): #~~ runs `stylelint`, writing fixes unless `--dry-run`
+$(call _target,stylelint): #~~ lints and fixes the styles
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
 		$(if $(_IS_DEBUG),--formatter verbose) $(if $(_IS_DRY_RUN),,--fix) \
@@ -2177,7 +2177,7 @@ $(call _target,stylelint): #~~ runs `stylelint`, writing fixes unless `--dry-run
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(STYLELINT_GLOB)'))
 
-$(call _target,stylelint-dry-run): $(call _target,stylelint) #~~ runs `stylelint` without writing fixes #v
+$(call _target,stylelint-dry-run): $(call _target,stylelint) #~~ lints the styles without writing fixes #v
 $(call _target,stylelint-dry-run): _GOAL := $(call _target,stylelint-dry-run)
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
@@ -2205,7 +2205,7 @@ _TYPESCRIPT_PROJECT := $(APP_DIR)/$(_CONFIG_DIR)/tsconfig.json
 _PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
 _LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
 
-$(call _target,typescript): #~~ runs the `tsc` type check
+$(call _target,typescript): #~~ checks the types
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) $(TYPESCRIPT_FLAGS) $(ARGS))
 
@@ -2251,7 +2251,7 @@ VITEST_COVERAGE_FLAGS?= --coverage \
 
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
 
-$(call _target,vitest): #~~ runs `vitest`
+$(call _target,vitest): #~~ runs the JavaScript tests
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
 
@@ -2296,7 +2296,7 @@ _HADOLINT_VALUE_FLAGS := --config \
 	-f \
 	-t
 
-$(call _target,hadolint): #~~ runs `hadolint` over this project's dockerfiles
+$(call _target,hadolint): #~~ lints the Dockerfiles
 	$(TRACE_PREFIX)$(call _require_file,$(HADOLINT_CONFIG),HADOLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(HADOLINT) --config $(HADOLINT_CONFIG) $(HADOLINT_FLAGS) \
 		$(if $(call _has_positional_arg,$(_ARGS),$(_HADOLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_HADOLINT_FILES)))
@@ -2335,7 +2335,7 @@ _ACTIONLINT_VALUE_FLAGS := -config-file \
 	-pyflakes \
 	-shellcheck
 
-$(call _target,actionlint): #~~ runs `actionlint` over this project's workflows
+$(call _target,actionlint): #~~ lints the workflows
 	$(TRACE_PREFIX)$(call _require_file,$(ACTIONLINT_CONFIG),ACTIONLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(ACTIONLINT) -config-file $(ACTIONLINT_CONFIG) $(ACTIONLINT_FLAGS) \
 		$(if $(call _has_positional_arg,$(_ARGS),$(_ACTIONLINT_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_ACTIONLINT_FILES)))
@@ -2431,7 +2431,7 @@ _SEMGREP_VALUE_FLAGS := --config \
 	-c \
 	-e
 
-$(call _target,semgrep): #~~ runs `semgrep` over this project's sources
+$(call _target,semgrep): #~~ scans the code for known security issues
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
 	$(TRACE_PREFIX)$(call _semgrep_rules)
 	$(TRACE_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) $(ARGS))
@@ -2681,7 +2681,7 @@ endif
 CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
 ifneq ($(_HAS_CHECK),)
-$(call _target,check): #~~ runs the fixers without writing, and every analyzer
+$(call _target,check): #~~ lints and analyzes everything without writing
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
 endif
 
@@ -2692,7 +2692,7 @@ _CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
 CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
 
 ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `CI_TARGETS` one after the other
+$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
 	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
 		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
 	):

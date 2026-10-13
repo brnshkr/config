@@ -120,12 +120,12 @@ Available commands:
  brnshkr
   common
    help, h        shows this help, narrowed by scope, widened by v to vvv
-   startup        brings a fresh checkout to a workable state
-   configs        writes missing files, tools configs, local private ones
-   cc             removes the caches named, or all of them when given none
-   fresh          removes ignored files but private ones, reruns startup
-   check, c       runs the fixers without writing, and every analyzer
-   ci             runs CI_TARGETS one after the other
+   startup        installs everything and writes missing files
+   configs        writes the files this project is missing
+   cc             clears the named caches, or all of them
+   fresh          deletes ignored files and runs startup again
+   check, c       lints and analyzes everything without writing
+   ci             runs check, audit and test, stopping at the first failure
    coverage       runs the tests and fails below the minimum coverage
    fix, f         runs every fixer this project has, writing its fixes
    group, g       counts every tool's findings by identifier
@@ -136,33 +136,33 @@ Available commands:
   phpunit
    phpunit        runs the PHP tests
   phpstan
-   phpstan        runs phpstan analyze
+   phpstan        analyzes the PHP code
   php-cs-fixer
-   php-cs-fixer   runs php-cs-fixer fix
+   php-cs-fixer   fixes the PHP coding style
   rector
-   rector         runs rector process
+   rector         refactors the PHP code
   twig-cs-fixer
-   twig-cs-fixer  runs twig-cs-fixer fix, or lint under --dry-run
+   twig-cs-fixer  fixes the Twig coding style
   bun
    bun            runs bun
   commitlint
    commitlint     lints a commit message
   eslint
-   eslint         runs eslint, writing fixes unless --dry-run
+   eslint         lints and fixes the code
   markdownlint
-   markdownlint   runs markdownlint-cli2, writing fixes unless --dry-run
+   markdownlint   lints and fixes the Markdown
   stylelint
-   stylelint      runs stylelint, writing fixes unless --dry-run
+   stylelint      lints and fixes the styles
   typescript
-   typescript     runs the tsc type check
+   typescript     checks the types
   vitest
-   vitest         runs vitest
+   vitest         runs the JavaScript tests
   hadolint
-   hadolint       runs hadolint over this project's dockerfiles
+   hadolint       lints the Dockerfiles
   actionlint
-   actionlint     runs actionlint over this project's workflows
+   actionlint     lints the workflows
   semgrep
-   semgrep        runs semgrep over this project's sources
+   semgrep        scans the code for known security issues
 
 === full: verbosity-v ===
    ___               __   __
@@ -327,13 +327,13 @@ Available commands:
  brnshkr
   common
    help, h                shows this help, narrowed by scope, widened by v to vvv
-   startup                brings a fresh checkout to a workable state
+   startup                installs everything and writes missing files
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes missing files, tools configs, local private ones
-   cc                     removes the caches named, or all of them when given none
-   fresh                  removes ignored files but private ones, reruns startup
-   check, c               runs the fixers without writing, and every analyzer
-   ci                     runs CI_TARGETS one after the other
+   configs                writes the files this project is missing
+   cc                     clears the named caches, or all of them
+   fresh                  deletes ignored files and runs startup again
+   check, c               lints and analyzes everything without writing
+   ci                     runs check, audit and test, stopping at the first failure
    coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
@@ -347,53 +347,53 @@ Available commands:
    phpunit-coverage       runs the PHP tests and reports how much source they reach
    phpunit-update         runs the PHP tests and updates their snapshots
   phpstan
-   phpstan                runs phpstan analyze
+   phpstan                analyzes the PHP code
    phpstan-group          counts the phpstan findings by identifier
   php-cs-fixer
-   php-cs-fixer           runs php-cs-fixer fix
-   php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+   php-cs-fixer           fixes the PHP coding style
+   php-cs-fixer-dry-run   shows the style fixes without writing them
    php-cs-fixer-group     counts the php-cs-fixer findings by fixer
   rector
-   rector                 runs rector process
-   rector-dry-run         runs rector process in dry run mode
+   rector                 refactors the PHP code
+   rector-dry-run         shows the refactorings without writing them
    rector-group           counts the rector findings by rule
   twig-cs-fixer
-   twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
-   twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+   twig-cs-fixer          fixes the Twig coding style
+   twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
    twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
   bun
    bun                    runs bun
-   bun-inspect            runs node-modules-inspector
+   bun-inspect            opens node-modules-inspector
   commitlint
    commitlint             lints a commit message
   eslint
-   eslint                 runs eslint, writing fixes unless --dry-run
-   eslint-dry-run         runs eslint without writing fixes
+   eslint                 lints and fixes the code
+   eslint-dry-run         lints the code without writing fixes
    eslint-group           counts the eslint findings by rule
-   eslint-inspect         runs eslint-config-inspector
+   eslint-inspect         opens eslint-config-inspector
   markdownlint
-   markdownlint           runs markdownlint-cli2, writing fixes unless --dry-run
-   markdownlint-dry-run   runs markdownlint-cli2 without writing fixes
+   markdownlint           lints and fixes the Markdown
+   markdownlint-dry-run   lints the Markdown without writing fixes
    markdownlint-group     counts the markdownlint findings by rule
   stylelint
-   stylelint              runs stylelint, writing fixes unless --dry-run
-   stylelint-dry-run      runs stylelint without writing fixes
+   stylelint              lints and fixes the styles
+   stylelint-dry-run      lints the styles without writing fixes
    stylelint-group        counts the stylelint findings by rule
   typescript
-   typescript             runs the tsc type check
+   typescript             checks the types
    typescript-group       counts the tsc errors by code
   vitest
-   vitest                 runs vitest
+   vitest                 runs the JavaScript tests
    vitest-coverage        runs vitest and reports how much of the source it reaches
    vitest-update          runs vitest and updates its snapshots
   hadolint
-   hadolint               runs hadolint over this project's dockerfiles
+   hadolint               lints the Dockerfiles
    hadolint-group         counts the hadolint findings by rule
   actionlint
-   actionlint             runs actionlint over this project's workflows
+   actionlint             lints the workflows
    actionlint-group       counts the actionlint findings by rule
   semgrep
-   semgrep                runs semgrep over this project's sources
+   semgrep                scans the code for known security issues
    semgrep-group          counts the semgrep findings by rule
   changelog
    changelog              prints the changelog, or writes it to CHANGELOG_DIR
@@ -666,14 +666,14 @@ Available commands:
  brnshkr
   common
    help, h                shows this help, narrowed by scope, widened by v to vvv
-   startup                brings a fresh checkout to a workable state
+   startup                installs everything and writes missing files
    install-hooks          installs this project's git hooks, replacing any that exist
-   configs                writes missing files, tools configs, local private ones
-   cc                     removes the caches named, or all of them when given none
-   fresh                  removes ignored files but private ones, reruns startup
+   configs                writes the files this project is missing
+   cc                     clears the named caches, or all of them
+   fresh                  deletes ignored files and runs startup again
    fresh-dry-run          lists what fresh would remove and keep
-   check, c               runs the fixers without writing, and every analyzer
-   ci                     runs CI_TARGETS one after the other
+   check, c               lints and analyzes everything without writing
+   ci                     runs check, audit and test, stopping at the first failure
    coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
@@ -690,71 +690,71 @@ Available commands:
    phpunit-list           lists the tests the runner collects
    phpunit-update         runs the PHP tests and updates their snapshots
   phpstan
-   phpstan                runs phpstan analyze
+   phpstan                analyzes the PHP code
    phpstan-group          counts the phpstan findings by identifier
-   phpstan-list           lists all files that are processed by phpstan
+   phpstan-list           lists the files phpstan reads
    phpstan-print          prints the resolved phpstan configuration
   php-cs-fixer
-   php-cs-fixer           runs php-cs-fixer fix
-   php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+   php-cs-fixer           fixes the PHP coding style
+   php-cs-fixer-dry-run   shows the style fixes without writing them
    php-cs-fixer-group     counts the php-cs-fixer findings by fixer
-   php-cs-fixer-list      lists all files that are processed by php-cs-fixer
+   php-cs-fixer-list      lists the files php-cs-fixer reads
    php-cs-fixer-print     prints the php-cs-fixer rules in use
   rector
-   rector                 runs rector process
-   rector-dry-run         runs rector process in dry run mode
+   rector                 refactors the PHP code
+   rector-dry-run         shows the refactorings without writing them
    rector-group           counts the rector findings by rule
-   rector-list            lists all files that are processed by rector
+   rector-list            lists the files rector reads
    rector-print           prints the rector rules in use
   twig-cs-fixer
-   twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
-   twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+   twig-cs-fixer          fixes the Twig coding style
+   twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
    twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
    twig-cs-fixer-print    prints the twig-cs-fixer rules in use
   bun
    bun                    runs bun
    bun-list               lists the files the bun package would ship
-   bun-inspect            runs node-modules-inspector
+   bun-inspect            opens node-modules-inspector
   commitlint
    commitlint             lints a commit message
    commitlint-print       prints the resolved commitlint configuration
   eslint
-   eslint                 runs eslint, writing fixes unless --dry-run
-   eslint-dry-run         runs eslint without writing fixes
+   eslint                 lints and fixes the code
+   eslint-dry-run         lints the code without writing fixes
    eslint-group           counts the eslint findings by rule
    eslint-print           prints the resolved eslint config for a file
-   eslint-inspect         runs eslint-config-inspector
-   eslint-inspect-stats   runs eslint-config-inspector with a timed full lint
+   eslint-inspect         opens eslint-config-inspector
+   eslint-inspect-stats   opens eslint-config-inspector with a timed full lint
   markdownlint
-   markdownlint           runs markdownlint-cli2, writing fixes unless --dry-run
-   markdownlint-dry-run   runs markdownlint-cli2 without writing fixes
+   markdownlint           lints and fixes the Markdown
+   markdownlint-dry-run   lints the Markdown without writing fixes
    markdownlint-group     counts the markdownlint findings by rule
   stylelint
-   stylelint              runs stylelint, writing fixes unless --dry-run
-   stylelint-dry-run      runs stylelint without writing fixes
+   stylelint              lints and fixes the styles
+   stylelint-dry-run      lints the styles without writing fixes
    stylelint-group        counts the stylelint findings by rule
    stylelint-print        prints the resolved stylelint config for a file
   typescript
-   typescript             runs the tsc type check
+   typescript             checks the types
    typescript-group       counts the tsc errors by code
    typescript-list        lists the files the tsc project includes
    typescript-print       prints the resolved tsc project
   vitest
-   vitest                 runs vitest
+   vitest                 runs the JavaScript tests
    vitest-coverage        runs vitest and reports how much of the source it reaches
    vitest-list            lists the tests vitest collects
    vitest-update          runs vitest and updates its snapshots
   hadolint
-   hadolint               runs hadolint over this project's dockerfiles
+   hadolint               lints the Dockerfiles
    hadolint-group         counts the hadolint findings by rule
    hadolint-list          lists the dockerfiles hadolint reads
    hadolint-print         prints the resolved hadolint configuration
   actionlint
-   actionlint             runs actionlint over this project's workflows
+   actionlint             lints the workflows
    actionlint-group       counts the actionlint findings by rule
    actionlint-list        lists the workflows actionlint reads
   semgrep
-   semgrep                runs semgrep over this project's sources
+   semgrep                scans the code for known security issues
    semgrep-group          counts the semgrep findings by rule
    semgrep-list           lists the rulesets semgrep runs
    semgrep-validate       checks that the semgrep rules load
@@ -932,29 +932,29 @@ Available commands:
     phpunit-list           lists the tests the runner collects
     phpunit-update         runs the PHP tests and updates their snapshots
    phpstan
-    phpstan                runs phpstan analyze
-+   phpstan-debug          runs phpstan analyze in debug mode
+    phpstan                analyzes the PHP code
++   phpstan-debug          analyzes the PHP code with debug output
     phpstan-group          counts the phpstan findings by identifier
-    phpstan-list           lists all files that are processed by phpstan
+    phpstan-list           lists the files phpstan reads
     phpstan-print          prints the resolved phpstan configuration
-+   phpstan-raw            runs phpstan analyze with raw output
++   phpstan-raw            analyzes the PHP code with raw output
    php-cs-fixer
-    php-cs-fixer           runs php-cs-fixer fix
-    php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+    php-cs-fixer           fixes the PHP coding style
+    php-cs-fixer-dry-run   shows the style fixes without writing them
 @@ @@
     php-cs-fixer-print     prints the php-cs-fixer rules in use
    rector
-    rector                 runs rector process
-+   rector-debug           runs rector process in debug mode
-    rector-dry-run         runs rector process in dry run mode
+    rector                 refactors the PHP code
++   rector-debug           refactors the PHP code with debug output
+    rector-dry-run         shows the refactorings without writing them
     rector-group           counts the rector findings by rule
-    rector-list            lists all files that are processed by rector
+    rector-list            lists the files rector reads
 @@ @@
     rector-print           prints the rector rules in use
    twig-cs-fixer
-    twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
-+   twig-cs-fixer-debug    runs twig-cs-fixer in debug mode
-    twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+    twig-cs-fixer          fixes the Twig coding style
++   twig-cs-fixer-debug    fixes the Twig coding style with debug output
+    twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
     twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
     twig-cs-fixer-print    prints the twig-cs-fixer rules in use
 @@ @@
@@ -962,7 +962,7 @@ Available commands:
     bun                    runs bun
     bun-list               lists the files the bun package would ship
 +   bun-pack               packs the bun package to ./.local/<VENDOR>/<PACKAGE>
-    bun-inspect            runs node-modules-inspector
+    bun-inspect            opens node-modules-inspector
    commitlint
     commitlint             lints a commit message
 
@@ -979,14 +979,14 @@ Available commands:
   brnshkr
    common
 -   help, h                shows this help, narrowed by scope, widened by v to vvv
--   startup                brings a fresh checkout to a workable state
+-   startup                installs everything and writes missing files
 -   install-hooks          installs this project's git hooks, replacing any that exist
--   configs                writes missing files, tools configs, local private ones
--   cc                     removes the caches named, or all of them when given none
--   fresh                  removes ignored files but private ones, reruns startup
+-   configs                writes the files this project is missing
+-   cc                     clears the named caches, or all of them
+-   fresh                  deletes ignored files and runs startup again
 -   fresh-dry-run          lists what fresh would remove and keep
--   check, c               runs the fixers without writing, and every analyzer
--   ci                     runs CI_TARGETS one after the other
+-   check, c               lints and analyzes everything without writing
+-   ci                     runs check, audit and test, stopping at the first failure
 -   coverage               runs the tests and fails below the minimum coverage
 -   fix, f                 runs every fixer this project has, writing its fixes
 -   group, g               counts every tool's findings by identifier
@@ -996,14 +996,14 @@ Available commands:
 -   fixtures               builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
-+   startup                                  brings a fresh checkout to a workable state
++   startup                                  installs everything and writes missing files
 +   install-hooks                            installs this project's git hooks, replacing any that exist
-+   configs                                  writes missing files, tools configs, local private ones
-+   cc                                       removes the caches named, or all of them when given none
-+   fresh                                    removes ignored files but private ones, reruns startup
++   configs                                  writes the files this project is missing
++   cc                                       clears the named caches, or all of them
++   fresh                                    deletes ignored files and runs startup again
 +   fresh-dry-run                            lists what fresh would remove and keep
-+   check, c                                 runs the fixers without writing, and every analyzer
-+   ci                                       runs CI_TARGETS one after the other
++   check, c                                 lints and analyzes everything without writing
++   ci                                       runs check, audit and test, stopping at the first failure
 +   coverage                                 runs the tests and fails below the minimum coverage
 +   fix, f                                   runs every fixer this project has, writing its fixes
 +   group, g                                 counts every tool's findings by identifier
@@ -1042,136 +1042,136 @@ Available commands:
 +   phpunit-list                             lists the tests the runner collects
 +   phpunit-update                           runs the PHP tests and updates their snapshots
    phpstan
--   phpstan                runs phpstan analyze
--   phpstan-debug          runs phpstan analyze in debug mode
+-   phpstan                analyzes the PHP code
+-   phpstan-debug          analyzes the PHP code with debug output
 -   phpstan-group          counts the phpstan findings by identifier
--   phpstan-list           lists all files that are processed by phpstan
+-   phpstan-list           lists the files phpstan reads
 -   phpstan-print          prints the resolved phpstan configuration
--   phpstan-raw            runs phpstan analyze with raw output
-+   phpstan                                  runs phpstan analyze
-+   phpstan-debug                            runs phpstan analyze in debug mode
+-   phpstan-raw            analyzes the PHP code with raw output
++   phpstan                                  analyzes the PHP code
++   phpstan-debug                            analyzes the PHP code with debug output
 +   phpstan-group                            counts the phpstan findings by identifier
-+   phpstan-list                             lists all files that are processed by phpstan
++   phpstan-list                             lists the files phpstan reads
 +   phpstan-print                            prints the resolved phpstan configuration
-+   phpstan-raw                              runs phpstan analyze with raw output
++   phpstan-raw                              analyzes the PHP code with raw output
    php-cs-fixer
--   php-cs-fixer           runs php-cs-fixer fix
--   php-cs-fixer-dry-run   runs php-cs-fixer fix in dry run mode
+-   php-cs-fixer           fixes the PHP coding style
+-   php-cs-fixer-dry-run   shows the style fixes without writing them
 -   php-cs-fixer-group     counts the php-cs-fixer findings by fixer
--   php-cs-fixer-list      lists all files that are processed by php-cs-fixer
+-   php-cs-fixer-list      lists the files php-cs-fixer reads
 -   php-cs-fixer-print     prints the php-cs-fixer rules in use
-+   php-cs-fixer                             runs php-cs-fixer fix
-+   php-cs-fixer-dry-run                     runs php-cs-fixer fix in dry run mode
++   php-cs-fixer                             fixes the PHP coding style
++   php-cs-fixer-dry-run                     shows the style fixes without writing them
 +   php-cs-fixer-group                       counts the php-cs-fixer findings by fixer
-+   php-cs-fixer-list                        lists all files that are processed by php-cs-fixer
++   php-cs-fixer-list                        lists the files php-cs-fixer reads
 +   php-cs-fixer-print                       prints the php-cs-fixer rules in use
    rector
--   rector                 runs rector process
--   rector-debug           runs rector process in debug mode
--   rector-dry-run         runs rector process in dry run mode
+-   rector                 refactors the PHP code
+-   rector-debug           refactors the PHP code with debug output
+-   rector-dry-run         shows the refactorings without writing them
 -   rector-group           counts the rector findings by rule
--   rector-list            lists all files that are processed by rector
+-   rector-list            lists the files rector reads
 -   rector-print           prints the rector rules in use
-+   rector                                   runs rector process
-+   rector-debug                             runs rector process in debug mode
-+   rector-dry-run                           runs rector process in dry run mode
++   rector                                   refactors the PHP code
++   rector-debug                             refactors the PHP code with debug output
++   rector-dry-run                           shows the refactorings without writing them
 +   rector-group                             counts the rector findings by rule
-+   rector-list                              lists all files that are processed by rector
++   rector-list                              lists the files rector reads
 +   rector-print                             prints the rector rules in use
    twig-cs-fixer
--   twig-cs-fixer          runs twig-cs-fixer fix, or lint under --dry-run
--   twig-cs-fixer-debug    runs twig-cs-fixer in debug mode
--   twig-cs-fixer-dry-run  runs twig-cs-fixer in dry run mode
+-   twig-cs-fixer          fixes the Twig coding style
+-   twig-cs-fixer-debug    fixes the Twig coding style with debug output
+-   twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
 -   twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
 -   twig-cs-fixer-print    prints the twig-cs-fixer rules in use
-+   twig-cs-fixer                            runs twig-cs-fixer fix, or lint under --dry-run
-+   twig-cs-fixer-debug                      runs twig-cs-fixer in debug mode
-+   twig-cs-fixer-dry-run                    runs twig-cs-fixer in dry run mode
++   twig-cs-fixer                            fixes the Twig coding style
++   twig-cs-fixer-debug                      fixes the Twig coding style with debug output
++   twig-cs-fixer-dry-run                    shows the Twig style fixes without writing them
 +   twig-cs-fixer-group                      counts the twig-cs-fixer findings by rule
 +   twig-cs-fixer-print                      prints the twig-cs-fixer rules in use
    bun
 -   bun                    runs bun
 -   bun-list               lists the files the bun package would ship
 -   bun-pack               packs the bun package to ./.local/<VENDOR>/<PACKAGE>
--   bun-inspect            runs node-modules-inspector
+-   bun-inspect            opens node-modules-inspector
 +   bun                                      runs bun
 +   bun-list                                 lists the files the bun package would ship
 +   bun-pack                                 packs the bun package to ./.local/<VENDOR>/<PACKAGE>
-+   bun-inspect                              runs node-modules-inspector
++   bun-inspect                              opens node-modules-inspector
    commitlint
 -   commitlint             lints a commit message
 -   commitlint-print       prints the resolved commitlint configuration
 +   commitlint                               lints a commit message
 +   commitlint-print                         prints the resolved commitlint configuration
    eslint
--   eslint                 runs eslint, writing fixes unless --dry-run
--   eslint-dry-run         runs eslint without writing fixes
+-   eslint                 lints and fixes the code
+-   eslint-dry-run         lints the code without writing fixes
 -   eslint-group           counts the eslint findings by rule
 -   eslint-print           prints the resolved eslint config for a file
--   eslint-inspect         runs eslint-config-inspector
--   eslint-inspect-stats   runs eslint-config-inspector with a timed full lint
-+   eslint                                   runs eslint, writing fixes unless --dry-run
-+   eslint-dry-run                           runs eslint without writing fixes
+-   eslint-inspect         opens eslint-config-inspector
+-   eslint-inspect-stats   opens eslint-config-inspector with a timed full lint
++   eslint                                   lints and fixes the code
++   eslint-dry-run                           lints the code without writing fixes
 +   eslint-group                             counts the eslint findings by rule
 +   eslint-print                             prints the resolved eslint config for a file
-+   eslint-inspect                           runs eslint-config-inspector
-+   eslint-inspect-stats                     runs eslint-config-inspector with a timed full lint
++   eslint-inspect                           opens eslint-config-inspector
++   eslint-inspect-stats                     opens eslint-config-inspector with a timed full lint
    markdownlint
--   markdownlint           runs markdownlint-cli2, writing fixes unless --dry-run
--   markdownlint-dry-run   runs markdownlint-cli2 without writing fixes
+-   markdownlint           lints and fixes the Markdown
+-   markdownlint-dry-run   lints the Markdown without writing fixes
 -   markdownlint-group     counts the markdownlint findings by rule
-+   markdownlint                             runs markdownlint-cli2, writing fixes unless --dry-run
-+   markdownlint-dry-run                     runs markdownlint-cli2 without writing fixes
++   markdownlint                             lints and fixes the Markdown
++   markdownlint-dry-run                     lints the Markdown without writing fixes
 +   markdownlint-group                       counts the markdownlint findings by rule
    stylelint
--   stylelint              runs stylelint, writing fixes unless --dry-run
--   stylelint-dry-run      runs stylelint without writing fixes
+-   stylelint              lints and fixes the styles
+-   stylelint-dry-run      lints the styles without writing fixes
 -   stylelint-group        counts the stylelint findings by rule
 -   stylelint-print        prints the resolved stylelint config for a file
-+   stylelint                                runs stylelint, writing fixes unless --dry-run
-+   stylelint-dry-run                        runs stylelint without writing fixes
++   stylelint                                lints and fixes the styles
++   stylelint-dry-run                        lints the styles without writing fixes
 +   stylelint-group                          counts the stylelint findings by rule
 +   stylelint-print                          prints the resolved stylelint config for a file
    typescript
--   typescript             runs the tsc type check
+-   typescript             checks the types
 -   typescript-group       counts the tsc errors by code
 -   typescript-list        lists the files the tsc project includes
 -   typescript-print       prints the resolved tsc project
-+   typescript                               runs the tsc type check
++   typescript                               checks the types
 +   typescript-group                         counts the tsc errors by code
 +   typescript-list                          lists the files the tsc project includes
 +   typescript-print                         prints the resolved tsc project
    vitest
--   vitest                 runs vitest
+-   vitest                 runs the JavaScript tests
 -   vitest-coverage        runs vitest and reports how much of the source it reaches
 -   vitest-list            lists the tests vitest collects
 -   vitest-update          runs vitest and updates its snapshots
-+   vitest                                   runs vitest
++   vitest                                   runs the JavaScript tests
 +   vitest-coverage                          runs vitest and reports how much of the source it reaches
 +   vitest-list                              lists the tests vitest collects
 +   vitest-update                            runs vitest and updates its snapshots
    hadolint
--   hadolint               runs hadolint over this project's dockerfiles
+-   hadolint               lints the Dockerfiles
 -   hadolint-group         counts the hadolint findings by rule
 -   hadolint-list          lists the dockerfiles hadolint reads
 -   hadolint-print         prints the resolved hadolint configuration
-+   hadolint                                 runs hadolint over this project's dockerfiles
++   hadolint                                 lints the Dockerfiles
 +   hadolint-group                           counts the hadolint findings by rule
 +   hadolint-list                            lists the dockerfiles hadolint reads
 +   hadolint-print                           prints the resolved hadolint configuration
    actionlint
--   actionlint             runs actionlint over this project's workflows
+-   actionlint             lints the workflows
 -   actionlint-group       counts the actionlint findings by rule
 -   actionlint-list        lists the workflows actionlint reads
-+   actionlint                               runs actionlint over this project's workflows
++   actionlint                               lints the workflows
 +   actionlint-group                         counts the actionlint findings by rule
 +   actionlint-list                          lists the workflows actionlint reads
    semgrep
--   semgrep                runs semgrep over this project's sources
+-   semgrep                scans the code for known security issues
 -   semgrep-group          counts the semgrep findings by rule
 -   semgrep-list           lists the rulesets semgrep runs
 -   semgrep-validate       checks that the semgrep rules load
-+   semgrep                                  runs semgrep over this project's sources
++   semgrep                                  scans the code for known security issues
 +   semgrep-group                            counts the semgrep findings by rule
 +   semgrep-list                             lists the rulesets semgrep runs
 +   semgrep-validate                         checks that the semgrep rules load
@@ -1737,14 +1737,14 @@ Available commands:
  [35mbrnshkr[0m
   [35mcommon[0m
    [36mhelp, h              [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m[0m
-   [36mstartup              [0m  [90mbrings a fresh checkout to a workable state[0m
+   [36mstartup              [0m  [90minstalls everything and writes missing files[0m
    [36minstall-hooks        [0m  [90minstalls this project's git hooks, replacing any that exist[0m
-   [36mconfigs              [0m  [90mwrites missing files, [35mtools[0m[90m configs, [35mlocal[0m[90m private ones[0m
-   [36mcc                   [0m  [90mremoves the caches named, or all of them when given none[0m
-   [36mfresh                [0m  [90mremoves ignored files but private ones, reruns [35mstartup[0m[90m[0m
+   [36mconfigs              [0m  [90mwrites the files this project is missing[0m
+   [36mcc                   [0m  [90mclears the named caches, or all of them[0m
+   [36mfresh                [0m  [90mdeletes ignored files and runs [35mstartup[0m[90m again[0m
    [36mfresh-dry-run        [0m  [90mlists what [35mfresh[0m[90m would remove and keep[0m
-   [36mcheck, c             [0m  [90mruns the fixers without writing, and every analyzer[0m
-   [36mci                   [0m  [90mruns [35mCI_TARGETS[0m[90m one after the other[0m
+   [36mcheck, c             [0m  [90mlints and analyzes everything without writing[0m
+   [36mci                   [0m  [90mruns [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, stopping at the first failure[0m
    [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
    [36mfix, f               [0m  [90mruns every fixer this project has, writing its fixes[0m
    [36mgroup, g             [0m  [90mcounts every tool's findings by identifier[0m
@@ -1769,76 +1769,76 @@ Available commands:
    [36mphpunit-list         [0m  [90mlists the tests the runner collects[0m
    [36mphpunit-update       [0m  [90mruns the PHP tests and updates their snapshots[0m
   [35mphpstan[0m
-   [36mphpstan              [0m  [90mruns [35mphpstan analyze[0m[90m[0m
-   [36mphpstan-debug        [0m  [90mruns [35mphpstan analyze[0m[90m in debug mode[0m
+   [36mphpstan              [0m  [90manalyzes the PHP code[0m
+   [36mphpstan-debug        [0m  [90manalyzes the PHP code with debug output[0m
    [36mphpstan-group        [0m  [90mcounts the [35mphpstan[0m[90m findings by identifier[0m
-   [36mphpstan-list         [0m  [90mlists all files that are processed by [35mphpstan[0m[90m[0m
+   [36mphpstan-list         [0m  [90mlists the files [35mphpstan[0m[90m reads[0m
    [36mphpstan-print        [0m  [90mprints the resolved [35mphpstan[0m[90m configuration[0m
-   [36mphpstan-raw          [0m  [90mruns [35mphpstan analyze[0m[90m with raw output[0m
+   [36mphpstan-raw          [0m  [90manalyzes the PHP code with raw output[0m
   [35mphp-cs-fixer[0m
-   [36mphp-cs-fixer         [0m  [90mruns [35mphp-cs-fixer fix[0m[90m[0m
-   [36mphp-cs-fixer-dry-run [0m  [90mruns [35mphp-cs-fixer fix[0m[90m in dry run mode[0m
+   [36mphp-cs-fixer         [0m  [90mfixes the PHP coding style[0m
+   [36mphp-cs-fixer-dry-run [0m  [90mshows the style fixes without writing them[0m
    [36mphp-cs-fixer-group   [0m  [90mcounts the [35mphp-cs-fixer[0m[90m findings by fixer[0m
-   [36mphp-cs-fixer-list    [0m  [90mlists all files that are processed by [35mphp-cs-fixer[0m[90m[0m
+   [36mphp-cs-fixer-list    [0m  [90mlists the files [35mphp-cs-fixer[0m[90m reads[0m
    [36mphp-cs-fixer-print   [0m  [90mprints the [35mphp-cs-fixer[0m[90m rules in use[0m
   [35mrector[0m
-   [36mrector               [0m  [90mruns [35mrector process[0m[90m[0m
-   [36mrector-debug         [0m  [90mruns [35mrector process[0m[90m in debug mode[0m
-   [36mrector-dry-run       [0m  [90mruns [35mrector process[0m[90m in dry run mode[0m
+   [36mrector               [0m  [90mrefactors the PHP code[0m
+   [36mrector-debug         [0m  [90mrefactors the PHP code with debug output[0m
+   [36mrector-dry-run       [0m  [90mshows the refactorings without writing them[0m
    [36mrector-group         [0m  [90mcounts the [35mrector[0m[90m findings by rule[0m
-   [36mrector-list          [0m  [90mlists all files that are processed by [35mrector[0m[90m[0m
+   [36mrector-list          [0m  [90mlists the files [35mrector[0m[90m reads[0m
    [36mrector-print         [0m  [90mprints the [35mrector[0m[90m rules in use[0m
   [35mtwig-cs-fixer[0m
-   [36mtwig-cs-fixer        [0m  [90mruns [35mtwig-cs-fixer fix[0m[90m, or [35mlint[0m[90m under [35m--dry-run[0m[90m[0m
-   [36mtwig-cs-fixer-debug  [0m  [90mruns [35mtwig-cs-fixer[0m[90m in debug mode[0m
-   [36mtwig-cs-fixer-dry-run[0m  [90mruns [35mtwig-cs-fixer[0m[90m in dry run mode[0m
+   [36mtwig-cs-fixer        [0m  [90mfixes the Twig coding style[0m
+   [36mtwig-cs-fixer-debug  [0m  [90mfixes the Twig coding style with debug output[0m
+   [36mtwig-cs-fixer-dry-run[0m  [90mshows the Twig style fixes without writing them[0m
    [36mtwig-cs-fixer-group  [0m  [90mcounts the [35mtwig-cs-fixer[0m[90m findings by rule[0m
    [36mtwig-cs-fixer-print  [0m  [90mprints the [35mtwig-cs-fixer[0m[90m rules in use[0m
   [35mbun[0m
    [36mbun                  [0m  [90mruns [35mbun[0m[90m[0m
    [36mbun-list             [0m  [90mlists the files the bun package would ship[0m
    [36mbun-pack             [0m  [90mpacks the bun package to [35m./.local/<VENDOR>/<PACKAGE>[0m[90m[0m
-   [36mbun-inspect          [0m  [90mruns [35mnode-modules-inspector[0m[90m[0m
+   [36mbun-inspect          [0m  [90mopens [35mnode-modules-inspector[0m[90m[0m
   [35mcommitlint[0m
    [36mcommitlint           [0m  [90mlints a commit message[0m
    [36mcommitlint-print     [0m  [90mprints the resolved [35mcommitlint[0m[90m configuration[0m
   [35meslint[0m
-   [36meslint               [0m  [90mruns [35meslint[0m[90m, writing fixes unless [35m--dry-run[0m[90m[0m
-   [36meslint-dry-run       [0m  [90mruns [35meslint[0m[90m without writing fixes[0m
+   [36meslint               [0m  [90mlints and fixes the code[0m
+   [36meslint-dry-run       [0m  [90mlints the code without writing fixes[0m
    [36meslint-group         [0m  [90mcounts the [35meslint[0m[90m findings by rule[0m
    [36meslint-print         [0m  [90mprints the resolved [35meslint[0m[90m config for a file[0m
-   [36meslint-inspect       [0m  [90mruns [35meslint-config-inspector[0m[90m[0m
-   [36meslint-inspect-stats [0m  [90mruns [35meslint-config-inspector[0m[90m with a timed full lint[0m
+   [36meslint-inspect       [0m  [90mopens [35meslint-config-inspector[0m[90m[0m
+   [36meslint-inspect-stats [0m  [90mopens [35meslint-config-inspector[0m[90m with a timed full lint[0m
   [35mmarkdownlint[0m
-   [36mmarkdownlint         [0m  [90mruns [35mmarkdownlint-cli2[0m[90m, writing fixes unless [35m--dry-run[0m[90m[0m
-   [36mmarkdownlint-dry-run [0m  [90mruns [35mmarkdownlint-cli2[0m[90m without writing fixes[0m
+   [36mmarkdownlint         [0m  [90mlints and fixes the Markdown[0m
+   [36mmarkdownlint-dry-run [0m  [90mlints the Markdown without writing fixes[0m
    [36mmarkdownlint-group   [0m  [90mcounts the [35mmarkdownlint[0m[90m findings by rule[0m
   [35mstylelint[0m
-   [36mstylelint            [0m  [90mruns [35mstylelint[0m[90m, writing fixes unless [35m--dry-run[0m[90m[0m
-   [36mstylelint-dry-run    [0m  [90mruns [35mstylelint[0m[90m without writing fixes[0m
+   [36mstylelint            [0m  [90mlints and fixes the styles[0m
+   [36mstylelint-dry-run    [0m  [90mlints the styles without writing fixes[0m
    [36mstylelint-group      [0m  [90mcounts the [35mstylelint[0m[90m findings by rule[0m
    [36mstylelint-print      [0m  [90mprints the resolved [35mstylelint[0m[90m config for a file[0m
   [35mtypescript[0m
-   [36mtypescript           [0m  [90mruns the [35mtsc[0m[90m type check[0m
+   [36mtypescript           [0m  [90mchecks the types[0m
    [36mtypescript-group     [0m  [90mcounts the [35mtsc[0m[90m errors by code[0m
    [36mtypescript-list      [0m  [90mlists the files the [35mtsc[0m[90m project includes[0m
    [36mtypescript-print     [0m  [90mprints the resolved [35mtsc[0m[90m project[0m
   [35mvitest[0m
-   [36mvitest               [0m  [90mruns [35mvitest[0m[90m[0m
+   [36mvitest               [0m  [90mruns the JavaScript tests[0m
    [36mvitest-coverage      [0m  [90mruns [35mvitest[0m[90m and reports how much of the source it reaches[0m
    [36mvitest-list          [0m  [90mlists the tests [35mvitest[0m[90m collects[0m
    [36mvitest-update        [0m  [90mruns [35mvitest[0m[90m and updates its snapshots[0m
   [35mhadolint[0m
-   [36mhadolint             [0m  [90mruns [35mhadolint[0m[90m over this project's dockerfiles[0m
+   [36mhadolint             [0m  [90mlints the Dockerfiles[0m
    [36mhadolint-group       [0m  [90mcounts the [35mhadolint[0m[90m findings by rule[0m
    [36mhadolint-list        [0m  [90mlists the dockerfiles [35mhadolint[0m[90m reads[0m
    [36mhadolint-print       [0m  [90mprints the resolved [35mhadolint[0m[90m configuration[0m
   [35mactionlint[0m
-   [36mactionlint           [0m  [90mruns [35mactionlint[0m[90m over this project's workflows[0m
+   [36mactionlint           [0m  [90mlints the workflows[0m
    [36mactionlint-group     [0m  [90mcounts the [35mactionlint[0m[90m findings by rule[0m
    [36mactionlint-list      [0m  [90mlists the workflows [35mactionlint[0m[90m reads[0m
   [35msemgrep[0m
-   [36msemgrep              [0m  [90mruns [35msemgrep[0m[90m over this project's sources[0m
+   [36msemgrep              [0m  [90mscans the code for known security issues[0m
    [36msemgrep-group        [0m  [90mcounts the [35msemgrep[0m[90m findings by rule[0m
    [36msemgrep-list         [0m  [90mlists the rulesets [35msemgrep[0m[90m runs[0m
    [36msemgrep-validate     [0m  [90mchecks that the [35msemgrep[0m[90m rules load[0m
@@ -2188,14 +2188,14 @@ Available commands:
  [33mbrnshkr[0m
   [33mcommon[0m
    [32mhelp, h              [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m[0m
-   [32mstartup              [0m  [0mbrings a fresh checkout to a workable state[0m
+   [32mstartup              [0m  [0minstalls everything and writes missing files[0m
    [32minstall-hooks        [0m  [0minstalls this project's git hooks, replacing any that exist[0m
-   [32mconfigs              [0m  [0mwrites missing files, [33mtools[0m[0m configs, [33mlocal[0m[0m private ones[0m
-   [32mcc                   [0m  [0mremoves the caches named, or all of them when given none[0m
-   [32mfresh                [0m  [0mremoves ignored files but private ones, reruns [33mstartup[0m[0m[0m
+   [32mconfigs              [0m  [0mwrites the files this project is missing[0m
+   [32mcc                   [0m  [0mclears the named caches, or all of them[0m
+   [32mfresh                [0m  [0mdeletes ignored files and runs [33mstartup[0m[0m again[0m
    [32mfresh-dry-run        [0m  [0mlists what [33mfresh[0m[0m would remove and keep[0m
-   [32mcheck, c             [0m  [0mruns the fixers without writing, and every analyzer[0m
-   [32mci                   [0m  [0mruns [33mCI_TARGETS[0m[0m one after the other[0m
+   [32mcheck, c             [0m  [0mlints and analyzes everything without writing[0m
+   [32mci                   [0m  [0mruns [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, stopping at the first failure[0m
    [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
    [32mfix, f               [0m  [0mruns every fixer this project has, writing its fixes[0m
    [32mgroup, g             [0m  [0mcounts every tool's findings by identifier[0m
@@ -2220,76 +2220,76 @@ Available commands:
    [32mphpunit-list         [0m  [0mlists the tests the runner collects[0m
    [32mphpunit-update       [0m  [0mruns the PHP tests and updates their snapshots[0m
   [33mphpstan[0m
-   [32mphpstan              [0m  [0mruns [33mphpstan analyze[0m[0m[0m
-   [32mphpstan-debug        [0m  [0mruns [33mphpstan analyze[0m[0m in debug mode[0m
+   [32mphpstan              [0m  [0manalyzes the PHP code[0m
+   [32mphpstan-debug        [0m  [0manalyzes the PHP code with debug output[0m
    [32mphpstan-group        [0m  [0mcounts the [33mphpstan[0m[0m findings by identifier[0m
-   [32mphpstan-list         [0m  [0mlists all files that are processed by [33mphpstan[0m[0m[0m
+   [32mphpstan-list         [0m  [0mlists the files [33mphpstan[0m[0m reads[0m
    [32mphpstan-print        [0m  [0mprints the resolved [33mphpstan[0m[0m configuration[0m
-   [32mphpstan-raw          [0m  [0mruns [33mphpstan analyze[0m[0m with raw output[0m
+   [32mphpstan-raw          [0m  [0manalyzes the PHP code with raw output[0m
   [33mphp-cs-fixer[0m
-   [32mphp-cs-fixer         [0m  [0mruns [33mphp-cs-fixer fix[0m[0m[0m
-   [32mphp-cs-fixer-dry-run [0m  [0mruns [33mphp-cs-fixer fix[0m[0m in dry run mode[0m
+   [32mphp-cs-fixer         [0m  [0mfixes the PHP coding style[0m
+   [32mphp-cs-fixer-dry-run [0m  [0mshows the style fixes without writing them[0m
    [32mphp-cs-fixer-group   [0m  [0mcounts the [33mphp-cs-fixer[0m[0m findings by fixer[0m
-   [32mphp-cs-fixer-list    [0m  [0mlists all files that are processed by [33mphp-cs-fixer[0m[0m[0m
+   [32mphp-cs-fixer-list    [0m  [0mlists the files [33mphp-cs-fixer[0m[0m reads[0m
    [32mphp-cs-fixer-print   [0m  [0mprints the [33mphp-cs-fixer[0m[0m rules in use[0m
   [33mrector[0m
-   [32mrector               [0m  [0mruns [33mrector process[0m[0m[0m
-   [32mrector-debug         [0m  [0mruns [33mrector process[0m[0m in debug mode[0m
-   [32mrector-dry-run       [0m  [0mruns [33mrector process[0m[0m in dry run mode[0m
+   [32mrector               [0m  [0mrefactors the PHP code[0m
+   [32mrector-debug         [0m  [0mrefactors the PHP code with debug output[0m
+   [32mrector-dry-run       [0m  [0mshows the refactorings without writing them[0m
    [32mrector-group         [0m  [0mcounts the [33mrector[0m[0m findings by rule[0m
-   [32mrector-list          [0m  [0mlists all files that are processed by [33mrector[0m[0m[0m
+   [32mrector-list          [0m  [0mlists the files [33mrector[0m[0m reads[0m
    [32mrector-print         [0m  [0mprints the [33mrector[0m[0m rules in use[0m
   [33mtwig-cs-fixer[0m
-   [32mtwig-cs-fixer        [0m  [0mruns [33mtwig-cs-fixer fix[0m[0m, or [33mlint[0m[0m under [33m--dry-run[0m[0m[0m
-   [32mtwig-cs-fixer-debug  [0m  [0mruns [33mtwig-cs-fixer[0m[0m in debug mode[0m
-   [32mtwig-cs-fixer-dry-run[0m  [0mruns [33mtwig-cs-fixer[0m[0m in dry run mode[0m
+   [32mtwig-cs-fixer        [0m  [0mfixes the Twig coding style[0m
+   [32mtwig-cs-fixer-debug  [0m  [0mfixes the Twig coding style with debug output[0m
+   [32mtwig-cs-fixer-dry-run[0m  [0mshows the Twig style fixes without writing them[0m
    [32mtwig-cs-fixer-group  [0m  [0mcounts the [33mtwig-cs-fixer[0m[0m findings by rule[0m
    [32mtwig-cs-fixer-print  [0m  [0mprints the [33mtwig-cs-fixer[0m[0m rules in use[0m
   [33mbun[0m
    [32mbun                  [0m  [0mruns [33mbun[0m[0m[0m
    [32mbun-list             [0m  [0mlists the files the bun package would ship[0m
    [32mbun-pack             [0m  [0mpacks the bun package to [33m./.local/<VENDOR>/<PACKAGE>[0m[0m[0m
-   [32mbun-inspect          [0m  [0mruns [33mnode-modules-inspector[0m[0m[0m
+   [32mbun-inspect          [0m  [0mopens [33mnode-modules-inspector[0m[0m[0m
   [33mcommitlint[0m
    [32mcommitlint           [0m  [0mlints a commit message[0m
    [32mcommitlint-print     [0m  [0mprints the resolved [33mcommitlint[0m[0m configuration[0m
   [33meslint[0m
-   [32meslint               [0m  [0mruns [33meslint[0m[0m, writing fixes unless [33m--dry-run[0m[0m[0m
-   [32meslint-dry-run       [0m  [0mruns [33meslint[0m[0m without writing fixes[0m
+   [32meslint               [0m  [0mlints and fixes the code[0m
+   [32meslint-dry-run       [0m  [0mlints the code without writing fixes[0m
    [32meslint-group         [0m  [0mcounts the [33meslint[0m[0m findings by rule[0m
    [32meslint-print         [0m  [0mprints the resolved [33meslint[0m[0m config for a file[0m
-   [32meslint-inspect       [0m  [0mruns [33meslint-config-inspector[0m[0m[0m
-   [32meslint-inspect-stats [0m  [0mruns [33meslint-config-inspector[0m[0m with a timed full lint[0m
+   [32meslint-inspect       [0m  [0mopens [33meslint-config-inspector[0m[0m[0m
+   [32meslint-inspect-stats [0m  [0mopens [33meslint-config-inspector[0m[0m with a timed full lint[0m
   [33mmarkdownlint[0m
-   [32mmarkdownlint         [0m  [0mruns [33mmarkdownlint-cli2[0m[0m, writing fixes unless [33m--dry-run[0m[0m[0m
-   [32mmarkdownlint-dry-run [0m  [0mruns [33mmarkdownlint-cli2[0m[0m without writing fixes[0m
+   [32mmarkdownlint         [0m  [0mlints and fixes the Markdown[0m
+   [32mmarkdownlint-dry-run [0m  [0mlints the Markdown without writing fixes[0m
    [32mmarkdownlint-group   [0m  [0mcounts the [33mmarkdownlint[0m[0m findings by rule[0m
   [33mstylelint[0m
-   [32mstylelint            [0m  [0mruns [33mstylelint[0m[0m, writing fixes unless [33m--dry-run[0m[0m[0m
-   [32mstylelint-dry-run    [0m  [0mruns [33mstylelint[0m[0m without writing fixes[0m
+   [32mstylelint            [0m  [0mlints and fixes the styles[0m
+   [32mstylelint-dry-run    [0m  [0mlints the styles without writing fixes[0m
    [32mstylelint-group      [0m  [0mcounts the [33mstylelint[0m[0m findings by rule[0m
    [32mstylelint-print      [0m  [0mprints the resolved [33mstylelint[0m[0m config for a file[0m
   [33mtypescript[0m
-   [32mtypescript           [0m  [0mruns the [33mtsc[0m[0m type check[0m
+   [32mtypescript           [0m  [0mchecks the types[0m
    [32mtypescript-group     [0m  [0mcounts the [33mtsc[0m[0m errors by code[0m
    [32mtypescript-list      [0m  [0mlists the files the [33mtsc[0m[0m project includes[0m
    [32mtypescript-print     [0m  [0mprints the resolved [33mtsc[0m[0m project[0m
   [33mvitest[0m
-   [32mvitest               [0m  [0mruns [33mvitest[0m[0m[0m
+   [32mvitest               [0m  [0mruns the JavaScript tests[0m
    [32mvitest-coverage      [0m  [0mruns [33mvitest[0m[0m and reports how much of the source it reaches[0m
    [32mvitest-list          [0m  [0mlists the tests [33mvitest[0m[0m collects[0m
    [32mvitest-update        [0m  [0mruns [33mvitest[0m[0m and updates its snapshots[0m
   [33mhadolint[0m
-   [32mhadolint             [0m  [0mruns [33mhadolint[0m[0m over this project's dockerfiles[0m
+   [32mhadolint             [0m  [0mlints the Dockerfiles[0m
    [32mhadolint-group       [0m  [0mcounts the [33mhadolint[0m[0m findings by rule[0m
    [32mhadolint-list        [0m  [0mlists the dockerfiles [33mhadolint[0m[0m reads[0m
    [32mhadolint-print       [0m  [0mprints the resolved [33mhadolint[0m[0m configuration[0m
   [33mactionlint[0m
-   [32mactionlint           [0m  [0mruns [33mactionlint[0m[0m over this project's workflows[0m
+   [32mactionlint           [0m  [0mlints the workflows[0m
    [32mactionlint-group     [0m  [0mcounts the [33mactionlint[0m[0m findings by rule[0m
    [32mactionlint-list      [0m  [0mlists the workflows [33mactionlint[0m[0m reads[0m
   [33msemgrep[0m
-   [32msemgrep              [0m  [0mruns [33msemgrep[0m[0m over this project's sources[0m
+   [32msemgrep              [0m  [0mscans the code for known security issues[0m
    [32msemgrep-group        [0m  [0mcounts the [33msemgrep[0m[0m findings by rule[0m
    [32msemgrep-list         [0m  [0mlists the rulesets [33msemgrep[0m[0m runs[0m
    [32msemgrep-validate     [0m  [0mchecks that the [33msemgrep[0m[0m rules load[0m
