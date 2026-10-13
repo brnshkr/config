@@ -779,7 +779,9 @@ Available commands:
 +    CMP                            ?=  cmp                                              (path to cmp binary)
 +    CP                             ?=  cp                                               (path to cp binary)
 +    CURL                           ?=  curl                                             (path to curl binary)
++    FIND                           ?=  find                                             (path to find binary)
 +    GIT                            ?=  git                                              (path to git binary)
++    ID                             ?=  id                                               (path to id binary)
 +    LN                             ?=  ln                                               (path to ln binary)
 +    LS                             ?=  ls                                               (path to ls binary)
 +    MKDIR                          ?=  mkdir                                            (path to mkdir binary)
@@ -788,6 +790,8 @@ Available commands:
 +    PS                             ?=  ps                                               (path to ps binary)
 +    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
 +    SCRIPT                         ?=  script                                           (path to script binary)
++    SLEEP                          ?=  sleep                                            (path to sleep binary)
++    SORT                           ?=  sort                                             (path to sort binary)
 +    STTY                           ?=  stty                                             (path to stty binary)
 +    TAR                            ?=  tar                                              (path to tar binary)
 +    TPUT                           ?=  tput                                             (path to tput binary)
@@ -852,19 +856,19 @@ Available commands:
     CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
     CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
 @@ @@
+    text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
- 
++
 +    parameters:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
 +
 +    returns: string
-+
+ 
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
-     Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
@@ -884,18 +888,19 @@ Available commands:
 +
 +    parameters:
 +      service: string
- 
-+    returns: string
 +
++    returns: string
+ 
     confirm
      Asks a yes/no question before something destructive happens.
+@@ @@
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
      It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-+
+ 
 +    parameters:
 +      question: string
 +      default?: OneOf<yes | no> = no
- 
++
 +    returns: void
 +
  Available commands:
@@ -1428,7 +1433,9 @@ Available commands:
     [36mCMP                          [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
     [36mCP                           [0m  [90m?=  cp                                               (path to [35mcp[0m[90m binary)[0m
     [36mCURL                         [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
+    [36mFIND                         [0m  [90m?=  find                                             (path to [35mfind[0m[90m binary)[0m
     [36mGIT                          [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
+    [36mID                           [0m  [90m?=  id                                               (path to [35mid[0m[90m binary)[0m
     [36mLN                           [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
     [36mLS                           [0m  [90m?=  ls                                               (path to [35mls[0m[90m binary)[0m
     [36mMKDIR                        [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
@@ -1437,6 +1444,8 @@ Available commands:
     [36mPS                           [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
     [36mRM                           [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                       [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
+    [36mSLEEP                        [0m  [90m?=  sleep                                            (path to [35msleep[0m[90m binary)[0m
+    [36mSORT                         [0m  [90m?=  sort                                             (path to [35msort[0m[90m binary)[0m
     [36mSTTY                         [0m  [90m?=  stty                                             (path to [35mstty[0m[90m binary)[0m
     [36mTAR                          [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
     [36mTPUT                         [0m  [90m?=  tput                                             (path to [35mtput[0m[90m binary)[0m
@@ -1875,7 +1884,9 @@ Available commands:
     [32mCMP                          [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
     [32mCP                           [0m  [0m?=  cp                                               (path to [33mcp[0m[0m binary)[0m
     [32mCURL                         [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
+    [32mFIND                         [0m  [0m?=  find                                             (path to [33mfind[0m[0m binary)[0m
     [32mGIT                          [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
+    [32mID                           [0m  [0m?=  id                                               (path to [33mid[0m[0m binary)[0m
     [32mLN                           [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
     [32mLS                           [0m  [0m?=  ls                                               (path to [33mls[0m[0m binary)[0m
     [32mMKDIR                        [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
@@ -1884,6 +1895,8 @@ Available commands:
     [32mPS                           [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
     [32mRM                           [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                       [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
+    [32mSLEEP                        [0m  [0m?=  sleep                                            (path to [33msleep[0m[0m binary)[0m
+    [32mSORT                         [0m  [0m?=  sort                                             (path to [33msort[0m[0m binary)[0m
     [32mSTTY                         [0m  [0m?=  stty                                             (path to [33mstty[0m[0m binary)[0m
     [32mTAR                          [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
     [32mTPUT                         [0m  [0m?=  tput                                             (path to [33mtput[0m[0m binary)[0m

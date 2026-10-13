@@ -195,7 +195,9 @@ CHMOD  ?= chmod#~~ path to `chmod` binary
 CMP    ?= cmp#~~ path to `cmp` binary
 CP     ?= cp#~~ path to `cp` binary
 CURL   ?= curl#~~ path to `curl` binary
+FIND   ?= find#~~ path to `find` binary
 GIT    ?= git#~~ path to `git` binary
+ID     ?= id#~~ path to `id` binary
 LN     ?= ln#~~ path to `ln` binary
 LS     ?= ls#~~ path to `ls` binary
 MKDIR  ?= mkdir#~~ path to `mkdir` binary
@@ -204,6 +206,8 @@ MV     ?= mv#~~ path to `mv` binary
 PS     ?= ps#~~ path to `ps` binary
 RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 SCRIPT ?= script#~~ path to `script` binary
+SLEEP  ?= sleep#~~ path to `sleep` binary
+SORT   ?= sort#~~ path to `sort` binary
 STTY   ?= stty#~~ path to `stty` binary
 TAR    ?= tar#~~ path to `tar` binary
 TPUT   ?= tput#~~ path to `tput` binary
@@ -223,7 +227,7 @@ HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container wr
 HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
 HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
 
-_HOST_IDS = $(eval _HOST_IDS := $$(shell id -u 2>/dev/null; id -g 2>/dev/null))$(_HOST_IDS)
+_HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
 
 _HOST_ENVIRONMENT = $(_DOTENV_ENVIRONMENT) \
 	HOST_UID='$(HOST_UID)' \
@@ -1240,7 +1244,7 @@ $(shell printf '%s\n' $(call _shell_quoted,$1) \
 		return previous[right_length] \
 	} \
 	{ measured_distance = levenshtein(_UNKNOWN, $$0); if (measured_distance <= (length(_UNKNOWN) > 4 ? 2 : 1) || (length(_UNKNOWN) >= 3 && index($$0, _UNKNOWN))) printf "%d %s\n", measured_distance, $$0 }' \
-	| sort -n \
+	| $(SORT) -n \
 	| $(AWK) 'NR == 1 { nearest = $$1 } $$1 == nearest && NR <= 3 { print $$2 }')
 endef
 
@@ -3573,7 +3577,7 @@ _SPINNER_SIGNALS     := $(_SIGNAL_INTERRUPT) $(_SIGNAL_TERMINATE) $(_SIGNAL_HANG
 define __spinner
 while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
 	printf '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
-	sleep $(_SPINNER_SECONDS) 2>/dev/null || sleep 1; \
+	$(SLEEP) $(_SPINNER_SECONDS) 2>/dev/null || $(SLEEP) 1; \
 done; done & spinner_pid=$$!
 endef
 
@@ -3971,7 +3975,7 @@ cache_directory='$(call _host_path,$(SEMGREP_CACHE))'; \
 $(MKDIR) -p "$$cache_directory" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 for ruleset in $(SEMGREP_RULESETS); do \
 	cached_ruleset_path="$$cache_directory/$$ruleset.json"; \
-	[ -r "$$cached_ruleset_path" ] && [ -z "$$(find "$$cached_ruleset_path" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
+	[ -r "$$cached_ruleset_path" ] && [ -z "$$($(FIND) "$$cached_ruleset_path" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
 	partial_ruleset_path="$$($(MKTEMP) "$$cached_ruleset_path.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	$(_SEMGREP_RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
 		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${partial_ruleset_path##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
