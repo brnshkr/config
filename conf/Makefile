@@ -2675,34 +2675,11 @@ _GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-
 _PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
 _AUDITS    := $(if $(_HAS_COMPOSER_AUDIT),$(call _target,composer-audit)) $(if $(_HAS_BUN_AUDIT),$(call _target,bun-audit))
 
-ifneq ($(_HAS_AUDIT),)
-$(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
-endif
-
 CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
 ifneq ($(_HAS_CHECK),)
 $(call _target,check): #~~ lints and analyzes everything without writing
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
-endif
-
-_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
-	$(if $(_HAS_AUDIT),$(call _target,audit)) \
-	$(if $(_HAS_TEST),$(call _target,test))
-
-CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
-
-ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
-	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
-		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
-	):
-endif
-
-ifneq ($(_HAS_COVERAGE),)
-$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
 endif
 
 _FIX_ORDER := rector+php-cs-fixer \
@@ -2737,8 +2714,10 @@ $(call _target,group): #~~ counts every tool's findings by identifier
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
 endif
 
-$(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
-	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
+ifneq ($(_HAS_AUDIT),)
+$(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
+endif
 
 TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
 
@@ -2751,6 +2730,27 @@ ifneq ($(_HAS_TEST_UPDATE),)
 $(call _target,test-update): #~~ runs those tests and updates their snapshots
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
 endif
+
+ifneq ($(_HAS_COVERAGE),)
+$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
+endif
+
+_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
+	$(if $(_HAS_AUDIT),$(call _target,audit)) \
+	$(if $(_HAS_TEST),$(call _target,test))
+
+CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+
+ifneq ($(_HAS_CI),)
+$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
+	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
+		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
+	):
+endif
+
+$(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
+	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
 FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
 

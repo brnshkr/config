@@ -121,12 +121,12 @@ Available commands:
   common
    help, h        shows this help, narrowed by scope, widened by v to vvv
    check, c       lints and analyzes everything without writing
-   ci             runs check, audit and test, stopping at the first failure
-   coverage       runs the tests and fails below the minimum coverage
    fix, f         runs every fixer this project has, writing its fixes
    group, g       counts every tool's findings by identifier
    test, t        runs the tests of every stack this project has
    test-update    runs those tests and updates their snapshots
+   coverage       runs the tests and fails below the minimum coverage
+   ci             runs check, audit and test, stopping at the first failure
   setup
    startup        installs everything and writes missing files
    configs        writes the files this project is missing
@@ -330,12 +330,12 @@ Available commands:
   common
    help, h                shows this help, narrowed by scope, widened by v to vvv
    check, c               lints and analyzes everything without writing
-   ci                     runs check, audit and test, stopping at the first failure
-   coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
+   coverage               runs the tests and fails below the minimum coverage
+   ci                     runs check, audit and test, stopping at the first failure
    fixtures               builds the fixtures this project's tests read
   setup
    startup                installs everything and writes missing files
@@ -505,10 +505,10 @@ Variables:
    ARGS                             =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
   common
    CHECK_TARGETS                   ?=                                                   (this project's own targets, run by check)
-   CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIX_TARGETS                     ?=                                                   (this project's own targets, run by fix)
    GROUP_TARGETS                   ?=                                                   (this project's own targets, run by group)
    TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
+   CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
    PHONY                           ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
   setup
@@ -671,12 +671,12 @@ Available commands:
   common
    help, h                shows this help, narrowed by scope, widened by v to vvv
    check, c               lints and analyzes everything without writing
-   ci                     runs check, audit and test, stopping at the first failure
-   coverage               runs the tests and fails below the minimum coverage
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
+   coverage               runs the tests and fails below the minimum coverage
+   ci                     runs check, audit and test, stopping at the first failure
    fixtures               builds the fixtures this project's tests read
   setup
    startup                installs everything and writes missing files
@@ -912,13 +912,13 @@ Available commands:
   app
    commands
 @@ @@
-    coverage               runs the tests and fails below the minimum coverage
-    fix, f                 runs every fixer this project has, writing its fixes
-    group, g               counts every tool's findings by identifier
-+   pack                   packs every stack's package to ./.local
-    test, t                runs the tests of every stack this project has
     test-update            runs those tests and updates their snapshots
+    coverage               runs the tests and fails below the minimum coverage
+    ci                     runs check, audit and test, stopping at the first failure
++   pack                   packs every stack's package to ./.local
     fixtures               builds the fixtures this project's tests read
+   setup
+    startup                installs everything and writes missing files
 @@ @@
    composer
     composer               runs composer
@@ -985,24 +985,24 @@ Available commands:
    common
 -   help, h                shows this help, narrowed by scope, widened by v to vvv
 -   check, c               lints and analyzes everything without writing
--   ci                     runs check, audit and test, stopping at the first failure
--   coverage               runs the tests and fails below the minimum coverage
 -   fix, f                 runs every fixer this project has, writing its fixes
 -   group, g               counts every tool's findings by identifier
--   pack                   packs every stack's package to ./.local
 -   test, t                runs the tests of every stack this project has
 -   test-update            runs those tests and updates their snapshots
+-   coverage               runs the tests and fails below the minimum coverage
+-   ci                     runs check, audit and test, stopping at the first failure
+-   pack                   packs every stack's package to ./.local
 -   fixtures               builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
 +   check, c                                 lints and analyzes everything without writing
-+   ci                                       runs check, audit and test, stopping at the first failure
-+   coverage                                 runs the tests and fails below the minimum coverage
 +   fix, f                                   runs every fixer this project has, writing its fixes
 +   group, g                                 counts every tool's findings by identifier
-+   pack                                     packs every stack's package to ./.local
 +   test, t                                  runs the tests of every stack this project has
 +   test-update                              runs those tests and updates their snapshots
++   coverage                                 runs the tests and fails below the minimum coverage
++   ci                                       runs check, audit and test, stopping at the first failure
++   pack                                     packs every stack's package to ./.local
 +   fixtures                                 builds the fixtures this project's tests read
    setup
 -   startup                installs everything and writes missing files
@@ -1545,10 +1545,10 @@ Available commands:
    [36mARGS                          [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)[0m
   [35mcommon[0m
    [36mCHECK_TARGETS                 [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
-   [36mCI_TARGETS                    [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIX_TARGETS                   [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
    [36mGROUP_TARGETS                 [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS                  [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
+   [36mCI_TARGETS                    [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIXTURE_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
    [36mPHONY                         [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msetup[0m
@@ -1747,13 +1747,13 @@ Available commands:
   [35mcommon[0m
    [36mhelp, h              [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m[0m
    [36mcheck, c             [0m  [90mlints and analyzes everything without writing[0m
-   [36mci                   [0m  [90mruns [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, stopping at the first failure[0m
-   [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
    [36mfix, f               [0m  [90mruns every fixer this project has, writing its fixes[0m
    [36mgroup, g             [0m  [90mcounts every tool's findings by identifier[0m
-   [36mpack                 [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mtest, t              [0m  [90mruns the tests of every stack this project has[0m
    [36mtest-update          [0m  [90mruns those tests and updates their snapshots[0m
+   [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
+   [36mci                   [0m  [90mruns [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, stopping at the first failure[0m
+   [36mpack                 [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mfixtures             [0m  [90mbuilds the fixtures this project's tests read[0m
   [35msetup[0m
    [36mstartup              [0m  [90minstalls everything and writes missing files[0m
@@ -1998,10 +1998,10 @@ Available commands:
    [32mARGS                          [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)[0m
   [33mcommon[0m
    [32mCHECK_TARGETS                 [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
-   [32mCI_TARGETS                    [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIX_TARGETS                   [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
    [32mGROUP_TARGETS                 [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS                  [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
+   [32mCI_TARGETS                    [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIXTURE_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
    [32mPHONY                         [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msetup[0m
@@ -2200,13 +2200,13 @@ Available commands:
   [33mcommon[0m
    [32mhelp, h              [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m[0m
    [32mcheck, c             [0m  [0mlints and analyzes everything without writing[0m
-   [32mci                   [0m  [0mruns [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, stopping at the first failure[0m
-   [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
    [32mfix, f               [0m  [0mruns every fixer this project has, writing its fixes[0m
    [32mgroup, g             [0m  [0mcounts every tool's findings by identifier[0m
-   [32mpack                 [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mtest, t              [0m  [0mruns the tests of every stack this project has[0m
    [32mtest-update          [0m  [0mruns those tests and updates their snapshots[0m
+   [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
+   [32mci                   [0m  [0mruns [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, stopping at the first failure[0m
+   [32mpack                 [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mfixtures             [0m  [0mbuilds the fixtures this project's tests read[0m
   [33msetup[0m
    [32mstartup              [0m  [0minstalls everything and writes missing files[0m

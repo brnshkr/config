@@ -376,10 +376,13 @@ Available commands:
 +   ARGS                         =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)
    common
     CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
-+   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
     FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
     GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
     TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
++   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
+    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
+    PHONY                       ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
+   setup
 @@ @@
    changelog
     CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
@@ -1158,10 +1161,10 @@ Available commands:
    [36mARGS                      [0m  [90m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)[0m
   [35mcommon[0m
    [36mCHECK_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mcheck[0m[90m)[0m
-   [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIX_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
    [36mGROUP_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
+   [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
    [36mPHONY                     [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msetup[0m
@@ -1477,10 +1480,10 @@ Available commands:
    [32mARGS                      [0m  [0m =  $(call _shell_quoted,$(_ARGS))                   (every argument the running target got, quoted for the shell)[0m
   [33mcommon[0m
    [32mCHECK_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mcheck[0m[0m)[0m
-   [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIX_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
    [32mGROUP_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
+   [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
    [32mPHONY                     [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msetup[0m
