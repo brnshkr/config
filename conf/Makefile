@@ -1408,6 +1408,8 @@ $(call _target,list-scopes) \
 
 $(foreach WORD,$(_HELP_WORD_TARGETS),$(eval $(call _target,$(WORD)): _HELP_WORD := $(WORD)))
 
+#--- setup
+
 STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after installs
 
 _STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
