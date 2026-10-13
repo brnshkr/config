@@ -598,7 +598,7 @@ endif # /container
 #---vv theming
 
 INDENT      ?= 1#~~ indent used in `make help` output
-VALUE_WIDTH ?= 48#~~ widest value column in `make help`, truncated past it
+VALUE_WIDTH ?= 48#~~ widest value column in `make help` outside a terminal
 
 NO_COLOR            ?= #~~ whether color is off, on for any value per no-color.org
 _IS_COLOR_FORCED     = $(or $(filter-out $(_FALSE),$(FORCE_COLOR)),$(filter-out $(_FALSE),$(CLICOLOR_FORCE)))
@@ -1373,7 +1373,7 @@ _ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LI
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
 $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
-	$(TRACE_PREFIX)$(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
+	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
 		$(if $(_HAS_RESOLVE_ARGUMENT),$(_HELP_RESOLVE_INPUTS)) \
 		$(if $(or $(_HAS_ENV_ARGUMENT),$(_HAS_RESOLVE_ARGUMENT)),$(_HELP_DOTENV_INPUTS)) \
@@ -1392,6 +1392,7 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		_INLINE_CODE_CLOSE="$$(printf '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
 		_CURRENT_ENV="$(_CURRENT_ENV)" \
+		_COLUMNS="$$terminal_width" \
 		LC_ALL=C \
 		$(AWK) "$$_HELP_AWK" \
 		$(MAKEFILE_LIST)
@@ -5122,6 +5123,13 @@ function render_message(text,    out) {
 	}
 	return out text
 }
+function fit(text, used_width,    room, fitted_text) {
+	room = terminal_width - used_width
+	if (terminal_width <= 0 || get_display_width(text) <= room) return text
+	fitted_text = truncate(text, room)
+	if (gsub(/`/, "`", fitted_text) % 2) { match(fitted_text, /`[^`]*$$/); fitted_text = substr(fitted_text, 1, RSTART - 1) substr(fitted_text, RSTART + 1) }
+	return fitted_text
+}
 function render_inline_code(text,    out, ansi_open, ansi_close) {
 	ansi_open = ENVIRON["_INLINE_CODE_OPEN"]
 	ansi_close = ENVIRON["_INLINE_CODE_CLOSE"]
@@ -5482,6 +5490,23 @@ function get_lowest_verbosity(scope_path,    shown, level) {
 	verbosity = shown
 	return (level <= max_verbosity ? level : -1)
 }
+function collect_description_widths(scope_path,    idx) {
+	if (!does_match_scope(scope_path)) return
+	if (is_scope_target(scope_path))
+		for (idx = 1; idx <= section_count[scope_path, "variables"] + 0; idx += 1)
+			if (is_entry_visible(scope_path, "variables", idx) && section_description[scope_path, "variables", idx] != "")
+				description_widths[++description_width_count] = length(section_description[scope_path, "variables", idx])
+	for (idx = 1; idx <= child_count[scope_path]; idx += 1) collect_description_widths(children[scope_path, idx])
+}
+function get_percentile(values, count, share,    position, sorted_position, held_value) {
+	if (!count) return 0
+	for (position = 2; position <= count; position += 1) {
+		held_value = values[position]
+		for (sorted_position = position - 1; sorted_position >= 1 && values[sorted_position] > held_value; sorted_position -= 1) values[sorted_position + 1] = values[sorted_position]
+		values[sorted_position + 1] = held_value
+	}
+	return values[int((count - 1) * share) + 1]
+}
 function get_tree_max(scope_path, depth, section, mode,    best, idx, width, child_width, value) {
 	if (!does_match_scope(scope_path)) return 0
 	if (is_scope_target(scope_path)) {
@@ -5518,10 +5543,11 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			description = section_description[scope_path, section, idx]
 			if (section == "variables" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && entry in ENVIRON) text = get_resolved_value(entry)
 			if (section == "variables" && source_width) extra = extra "  " variable_source[entry] repeat(" ", source_width - length(variable_source[entry]))
-			if (section == "variables") description = render_inline_code(description)
-			else if (section == "commands") text = render_inline_code(text)
-			else if (section == "functions") { extra = render_inline_code(extra); text = render_inline_code(text) }
-			else if (section == "description") text = render_inline_code(text)
+			extra_width = (length(extra) > 2 ? length(extra) : 2)
+			if (section == "variables") description = render_inline_code(fit(description, column + (is_value_hidden ? 2 : extra_width + description_column + 7)))
+			else if (section == "commands") text = render_inline_code(fit(text, column + 2))
+			else if (section == "functions") { extra = render_inline_code(fit(extra, column + 2)); text = render_inline_code(text) }
+			else if (section == "description") text = render_inline_code(fit(text, (depth + 2) * ENVIRON["INDENT"]))
 			linked_entry = (section == "variables" && variable_source_file[entry] != "") \
 				? render_link(entry, variable_source_file[entry], variable_source_line[entry]) \
 				: render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
@@ -5529,12 +5555,14 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			if (entry_pad < 0) entry_pad = 0
 			padded_entry = linked_entry repeat(" ", entry_pad)
 			if (section == "variables") {
-				if (description != "") {
+				if (description != "" && is_value_hidden) {
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, description
+				} else if (description != "") {
 					text = truncate(text, description_column)
 					format = sprintf("%2s  %s%s", extra, text, repeat(" ", description_column - get_display_width(text)))
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, padded_entry, format, description
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra, text
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra, fit(terminal_width > 0 ? text : truncate(text, ENVIRON["VALUE_WIDTH"] + 0), column + extra_width + 4)
 				}
 			} else if (section == "commands") {
 				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, text
@@ -5644,7 +5672,7 @@ function print_section(has_previous, section, label, column,    top_idx, top_pat
 	}
 	return found + 0
 }
-BEGIN { SQ = sprintf("%c", 39); marker_pattern = "#(v+(&env=[A-Za-z0-9_.|-]+)?|env=[A-Za-z0-9_.|-]+)"; verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
+BEGIN { SQ = sprintf("%c", 39); terminal_width = ENVIRON["_COLUMNS"]; sub(/.* /, "", terminal_width); terminal_width += 0; marker_pattern = "#(v+(&env=[A-Za-z0-9_.|-]+)?|env=[A-Za-z0-9_.|-]+)"; verbosity = ENVIRON["_VERBOSITY"] + 0; max_verbosity = verbosity; seen_scope["main"] = 1; top_count = 1; top_order[1] = "main"; scope_filter_count = (ENVIRON["_SCOPES"] != "" ? split(ENVIRON["_SCOPES"], scope_filter, /[[:space:]]+/) : 0); name_count = split(ENVIRON["_TARGET_NAMES"], name_pairs, /[[:space:]]+/); for (i = 1; i <= name_count; i += 1) { at = index(name_pairs[i], "="); resolved_name[substr(name_pairs[i], 1, at - 1)] = substr(name_pairs[i], at + 1) } }
 current_file != FILENAME { if (open_scope_name != "") close_empty_scope(); current_file = FILENAME; for (i in scope_at) delete scope_at[i]; for (i in is_condition_active) delete is_condition_active[i]; for (i in has_condition_matched) delete has_condition_matched[i]; scope_depth = -1; is_in_define = 0; is_in_documentation = 0; is_in_ifndef = 0; condition_depth = 0 }
 NF && !/^#-/ && !/^#([[:space:]]|$$)/ { open_scope_name = "" }
 /^endef([[:space:]].*)?$$/ { is_in_define = 0; next }
@@ -5841,12 +5869,18 @@ END {
 	for (top_idx = 1; top_idx <= top_count; top_idx += 1) {
 		top_path = top_order[top_idx]
 		column = get_tree_max(top_path, 0, "variables", "name"); if (column > variable_column) variable_column = column
-		column = get_tree_max(top_path, 0, "variables", "value"); if (column > description_column) description_column = column
+		column = get_tree_max(top_path, 0, "variables", "value"); if (column > value_width) value_width = column
 		column = get_tree_max(top_path, 0, "variables", "source"); if (column > source_width) source_width = column
-		if (description_column > ENVIRON["VALUE_WIDTH"] + 0) description_column = ENVIRON["VALUE_WIDTH"] + 0
+		collect_description_widths(top_path)
 		column = get_tree_max(top_path, 0, "functions", "name"); if (column > function_column) function_column = column
 		column = get_tree_max(top_path, 0, "commands", "name"); if (column > command_column) command_column = column
 	}
+	description_width = get_percentile(description_widths, description_width_count, 0.9)
+	value_room = terminal_width - variable_column - (source_width ? source_width + 2 : 0) - description_width - 9
+	description_column = (terminal_width > 0 ? value_room : ENVIRON["VALUE_WIDTH"] + 0)
+	if (description_column > value_width) description_column = value_width
+	is_value_hidden = (terminal_width > 0 && value_room < 16 && ENVIRON["_HAS_RESOLVE_ARGUMENT"] == "")
+	if (description_column < 16 && value_width >= 16) description_column = 16
 	has_printed = 1
 	has_printed += print_section(has_printed, "description", "Description:", 0)
 	has_printed += print_section(has_printed, "variables", "Variables:", variable_column)

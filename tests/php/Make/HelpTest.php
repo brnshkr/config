@@ -7,6 +7,7 @@ namespace Brnshkr\Config\Tests\Make;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\Process\ExecutableFinder;
@@ -96,6 +97,22 @@ final class HelpTest extends TestCase
             ],
             self::SNAPSHOT_SCENARIOS,
         ))));
+    }
+
+    #[Group('tty')]
+    public function testHelpFitsTheTerminalWidth(): void
+    {
+        foreach ([60, 120] as $terminalWidth) {
+            $output = $this->runMakeOnATty(['help', 'v'], self::TOOLS_DIRECTORY, env: [
+                'COLUMNS'  => (string) $terminalWidth,
+                'NO_COLOR' => '1',
+                'PATH'     => self::TOOLS_DIRECTORY . '/bin:' . Str::fromEnvironment('PATH'),
+            ]);
+
+            foreach (Str::split($output, "\n") as $line) {
+                self::assertLessThanOrEqual($terminalWidth, s($line)->trimEnd("\r")->width(), $line);
+            }
+        }
     }
 
     public function testUnknownScopeReportsError(): void
