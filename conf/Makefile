@@ -148,7 +148,9 @@ _HAS_ENV_ARGUMENT          = $(if $(filter env e,$(_ARG_WORDS)),1)
 
 _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
-#--- includes
+#--- config
+
+#---- directories
 
 CONFIG_DIR                ?= ./conf#v #~~ directory holding the project's own tool configs
 LOCAL_DIR                 ?= ./.local#v #~~ directory holding a developer's private files
@@ -177,6 +179,50 @@ $(foreach INCLUDE_DIRECTORY,$(_INCLUDE_DIRECTORIES), \
 )
 
 _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST))
+
+#--- config
+
+CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first found
+ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
+
+FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
+	*.local \
+	*.local.* \
+	/.idea/ \
+	/.vscode/ \
+	/.fleet/ \
+	/.zed/ \
+	/.history/ \
+	/.claude/ \
+	/.agents/ \
+	/.cursor/ \
+	/.aider* \
+	/.continue/ \
+	/.windsurf/#v #~~ patterns `fresh` keeps, unless `--all` is passed
+
+GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#v #~~ git hooks this project installs, as `<hook>=<target>` pairs
+
+#---- directories
+
+CACHE_DIR                ?= ./.cache#v #~~ directory the tools keep their caches in
+_CACHE_DIR                = $(patsubst ./%,%,$(CACHE_DIR))
+export BRNSHKR_CACHE_DIR  = $(_CACHE_DIR)
+
+#---- targets
+
+TARGET_PREFIX  ?= #v #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
+_TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
+
+COLLISION_PREFIX  ?= brnshkr#v #~~ namespace for a shared target whose name this project uses
+_COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
+
+TARGET_ALIASES ?= h=help \
+	$(if $(_HAS_CHECK),c=check) \
+	$(if $(_HAS_TEST),t=test) \
+	$(if $(_HAS_FIX),f=fix) \
+	$(if $(_HAS_GROUP),g=group)#vv #~~ short names for targets, as `<alias>=<target>` pairs
+
+PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 
 #---vvv tools
 
@@ -305,12 +351,6 @@ _NON_EMPTY_TERMINAL_KEYS = $(foreach KEY,$(_TERMINAL_KEYS),$(if $(call _forwarde
 _FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
 _DECLARED_KEYS           = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
-TARGET_PREFIX  ?= #v #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
-_TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
-
-COLLISION_PREFIX  ?= brnshkr#v #~~ namespace for a shared target whose name this project uses
-_COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
-
 define _MANIFEST_NAME_AWK
 /^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
 	match($$0, /^[ \t]*/)
@@ -342,10 +382,16 @@ define _mask_control_characters
 $(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
 endef
 
+#--- config
+
+#---- package
+
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
 PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
+
+#--- settings
 
 define _NEWLINE
 
@@ -1134,12 +1180,6 @@ define _get_alias_target
 $(strip $(foreach PAIR,$(TARGET_ALIASES),$(if $(filter $(firstword $(subst =, ,$(PAIR))),$(patsubst -%,%,$1)),$(lastword $(subst =, ,$(PAIR))))))
 endef
 
-TARGET_ALIASES ?= h=help \
-	$(if $(_HAS_CHECK),c=check) \
-	$(if $(_HAS_TEST),t=test) \
-	$(if $(_HAS_FIX),f=fix) \
-	$(if $(_HAS_GROUP),g=group)#~~ short names for targets, as `<alias>=<target>` pairs
-
 _FIRST_GOAL        := $(firstword $(foreach GOAL,$(MAKECMDGOALS),$(if $(filter $(_ALL_TARGETS),$(GOAL))$(call _get_alias_target,$(GOAL)),$(GOAL))))
 _NAMING_GOAL       := $(filter $(foreach NAME,help configs cc $(_HELP_WORD_TARGETS),$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
 _NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)))
@@ -1421,8 +1461,6 @@ $(call _target,startup): $(_STARTUP) #~~ installs everything and writes missing 
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
 	$(DEBUG_PREFIX)$(if $(STARTUP_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(STARTUP_TARGETS),:)
 
-GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#v #~~ git hooks this project installs, as `<hook>=<target>` pairs
-
 $(call _target,install-hooks): #~~ installs this project's git hooks, replacing any that exist #v
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
 		$(call log,`install-hooks` needs a git checkout.,$(COLOR_ERROR)) >&2; \
@@ -1432,9 +1470,6 @@ $(call _target,install-hooks): #~~ installs this project's git hooks, replacing 
 
 _$(_TARGET_PREFIX)install-missing-hooks:
 	$(TRACE_PREFIX)$(call _install_git_hooks)
-
-CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first found
-ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
 
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
@@ -1521,12 +1556,9 @@ $(call _target,configs): #~~ writes the files this project is missing
 		fi; \
 	done
 
-CACHE_DIR                ?= ./.cache#v #~~ directory the tools keep their caches in
-_CACHE_DIR                = $(patsubst ./%,%,$(CACHE_DIR))
-export BRNSHKR_CACHE_DIR  = $(_CACHE_DIR)
-_CACHES                   = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(foreach CACHE,$$(shell cd '$$(CURDIR)/$$(_CACHE_DIR)' 2>/dev/null && $$(LS)),$$(if $$(findstring %,$$(CACHE)),,$$(CACHE))))))$(_CACHES)
-_CACHE_NAMES              = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
-_NAMED_CACHES             = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
+_CACHES       = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(foreach CACHE,$$(shell cd '$$(CURDIR)/$$(_CACHE_DIR)' 2>/dev/null && $$(LS)),$$(if $$(findstring %,$$(CACHE)),,$$(CACHE))))))$(_CACHES)
+_CACHE_NAMES  = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
+_NAMED_CACHES = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
 $(call _target,cc): #~~ clears the named caches, or all of them
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
@@ -1547,21 +1579,6 @@ $(call _target,cc): #~~ clears the named caches, or all of them
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 		fi; \
 	fi
-
-FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
-	*.local \
-	*.local.* \
-	/.idea/ \
-	/.vscode/ \
-	/.fleet/ \
-	/.zed/ \
-	/.history/ \
-	/.claude/ \
-	/.agents/ \
-	/.cursor/ \
-	/.aider* \
-	/.continue/ \
-	/.windsurf/#v #~~ patterns `fresh` keeps, unless `--all` is passed
 
 _IS_FRESH_ALL    = $(filter --all -a,$(_ARGS))
 _FRESH_UNTRACKED = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --exclude-standard
@@ -2810,8 +2827,6 @@ ifneq ($(_NAMED_OWN_TARGETS),) # own names
 		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /own names
-
-PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 
 .PHONY: $(if $(filter-out $(_FALSE),$(PHONY)),$(if $(filter shared,$(PHONY)),$(_SHARED_TARGETS),$(_ALL_TARGETS)))
 

@@ -184,9 +184,22 @@ Variables:
   variables
    APP_VARIABLE                   ?=  value                                            (a variable of the project's own)
  brnshkr
-  includes
-   CONFIG_DIR                     ?=  ./conf                                           (directory holding the project's own tool configs)
-   LOCAL_DIR                      ?=  ./.local                                         (directory holding a developer's private files)
+  config
+   CONFIG                         ?=                                                   (local/dist to pin the config, else the first found)
+   ARCHIVE_EXTRA_PATHS            ?=                                                   (extra paths an archive ships, a trailing / for a directory)
+   FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
+   GIT_HOOKS                      ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
+   directories
+    CONFIG_DIR                    ?=  ./conf                                           (directory holding the project's own tool configs)
+    LOCAL_DIR                     ?=  ./.local                                         (directory holding a developer's private files)
+    CACHE_DIR                     ?=  ./.cache                                         (directory the tools keep their caches in)
+   targets
+    TARGET_PREFIX                 ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
+    COLLISION_PREFIX              ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
+    PHONY                         ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
+   package
+    VENDOR                        ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
+    PACKAGE                       ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
   settings
    COMPOSE_FILE                   ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                    ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -196,10 +209,6 @@ Variables:
    IS_IN_CONTAINER                ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                            ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                        ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   TARGET_PREFIX                  ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX               ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                         ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                        ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
    DEBUG                          ?=                                                   (whether each command is echoed)
    TRACE                          ?=                                                   (whether every recipe line is echoed)
    ANNOUNCEMENT                   ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
@@ -214,14 +223,8 @@ Variables:
    GROUP_TARGETS                  ?=                                                   (this project's own targets, run by group)
    TEST_TARGETS                   ?=                                                   (this project's own targets, run by test)
    FIXTURE_TARGETS                ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                          ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
   setup
    STARTUP_TARGETS                ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                      ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                         ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS            ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                      ?=  ./.cache                                         (directory the tools keep their caches in)
-   FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
   composer
    COMPOSER                       ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                 ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
@@ -419,9 +422,24 @@ Variables:
   variables
    APP_VARIABLE                    ?=  value                                            (a variable of the project's own)
  brnshkr
-  includes
-   CONFIG_DIR                      ?=  ./conf                                           (directory holding the project's own tool configs)
-   LOCAL_DIR                       ?=  ./.local                                         (directory holding a developer's private files)
+  config
+   CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
+   ARCHIVE_EXTRA_PATHS             ?=                                                   (extra paths an archive ships, a trailing / for a directory)
+   FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
+   GIT_HOOKS                       ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
+   directories
+    CONFIG_DIR                     ?=  ./conf                                           (directory holding the project's own tool configs)
+    LOCAL_DIR                      ?=  ./.local                                         (directory holding a developer's private files)
+    CACHE_DIR                      ?=  ./.cache                                         (directory the tools keep their caches in)
+   targets
+    TARGET_PREFIX                  ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
+    COLLISION_PREFIX               ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
+    TARGET_ALIASES                 ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
+    PHONY                          ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
+   package
+    VENDOR                         ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
+    PACKAGE                        ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
+    VERSION                        ?=  0.0.0-dev                                        (package version)
   settings
    COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -434,11 +452,6 @@ Variables:
    HOST_UID                        ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
    HOST_GID                        ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                    ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
-   TARGET_PREFIX                   ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
-   COLLISION_PREFIX                ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-   VENDOR                          ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
-   PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-   VERSION                         ?=  0.0.0-dev                                        (package version)
    DEBUG                           ?=                                                   (whether each command is echoed)
    TRACE                           ?=                                                   (whether every recipe line is echoed)
    ANNOUNCEMENT                    ?=  Running `%s`                                     (message before each target a verb runs, %s the target)
@@ -486,7 +499,6 @@ Variables:
     COLOR_INLINE_CODE              ?=  $(COLOR_SECONDARY)
     COLOR_HIGHLIGHT                ?=  $(COLOR_YELLOW)
   arguments
-   TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
    TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
    ARG1                             =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to ARG9)
    ARG2                             =  $(call _shell_quoted,$(word 2,$(_ARGS)))
@@ -505,14 +517,8 @@ Variables:
    TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
    CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
-   PHONY                           ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
   setup
    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after installs)
-   GIT_HOOKS                       ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
-   CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
-   ARCHIVE_EXTRA_PATHS             ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-   CACHE_DIR                       ?=  ./.cache                                         (directory the tools keep their caches in)
-   FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
   php
    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
   composer
@@ -762,9 +768,9 @@ Available commands:
 
 === diff: verbosity-vvv from verbosity-vv ===
 @@ @@
-   includes
-    CONFIG_DIR                      ?=  ./conf                                           (directory holding the project's own tool configs)
-    LOCAL_DIR                       ?=  ./.local                                         (directory holding a developer's private files)
+     VENDOR                         ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
+     PACKAGE                        ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
+     VERSION                        ?=  0.0.0-dev                                        (package version)
 +  tools
 +   runtimes
 +    SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
@@ -799,8 +805,8 @@ Available commands:
     COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
     APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
 @@ @@
-    PACKAGE                         ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
-    VERSION                         ?=  0.0.0-dev                                        (package version)
+    HOST_GID                        ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
+    HOST_APP_DIR                    ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
     DEBUG                           ?=                                                   (whether each command is echoed)
 +   DEBUG_PREFIX                    ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
     TRACE                           ?=                                                   (whether every recipe line is echoed)
@@ -821,12 +827,12 @@ Available commands:
 +    MODIFIER_BOLD                  :=  bold
 +    MODIFIER_REVERSE               :=  reverse
    arguments
-    TARGET_ALIASES                  ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
     TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
+    ARG1                             =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to ARG9)
 @@ @@
-    ARCHIVE_EXTRA_PATHS             ?=                                                   (extra paths an archive ships, a trailing / for a directory)
-    CACHE_DIR                       ?=  ./.cache                                         (directory the tools keep their caches in)
-    FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
+    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
+   setup
+    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after installs)
 +  semver
 +   SEMVER_NUMBER                   ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
 +   SEMVER_PRERELEASE_PART          ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
@@ -1217,11 +1223,14 @@ brnshkr.changelog
 brnshkr.commitlint
 brnshkr.common
 brnshkr.composer
+brnshkr.config
+brnshkr.config.directories
+brnshkr.config.package
+brnshkr.config.targets
 brnshkr.dotenv
 brnshkr.eslint
 brnshkr.hadolint
 brnshkr.helpers
-brnshkr.includes
 brnshkr.markdownlint
 brnshkr.php
 brnshkr.php-cs-fixer
@@ -1408,9 +1417,24 @@ Available commands:
   [35mvariables[0m
    [36mAPP_VARIABLE                  [0m  [90m?=  value                                            (a variable of the project's own)[0m
  [35mbrnshkr[0m
-  [35mincludes[0m
-   [36mCONFIG_DIR                    [0m  [90m?=  ./conf                                           (directory holding the project's own tool configs)[0m
-   [36mLOCAL_DIR                     [0m  [90m?=  ./.local                                         (directory holding a developer's private files)[0m
+  [35mconfig[0m
+   [36mCONFIG                        [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
+   [36mARCHIVE_EXTRA_PATHS           [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
+   [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
+   [36mGIT_HOOKS                     [0m  [90m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
+   [35mdirectories[0m
+    [36mCONFIG_DIR                   [0m  [90m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+    [36mLOCAL_DIR                    [0m  [90m?=  ./.local                                         (directory holding a developer's private files)[0m
+    [36mCACHE_DIR                    [0m  [90m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [35mtargets[0m
+    [36mTARGET_PREFIX                [0m  [90m?=                                                   (prefixes every target, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
+    [36mCOLLISION_PREFIX             [0m  [90m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
+    [36mTARGET_ALIASES               [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
+    [36mPHONY                        [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
+   [35mpackage[0m
+    [36mVENDOR                       [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
+    [36mPACKAGE                      [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)[0m
+    [36mVERSION                      [0m  [90m?=  0.0.0-dev                                        (package version)[0m
   [35mtools[0m
    [35mruntimes[0m
     [36mSHELL                        [0m  [90m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1453,11 +1477,6 @@ Available commands:
    [36mHOST_UID                      [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [36mHOST_GID                      [0m  [90m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [36mHOST_APP_DIR                  [0m  [90m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
-   [36mTARGET_PREFIX                 [0m  [90m?=                                                   (prefixes every target, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
-   [36mCOLLISION_PREFIX              [0m  [90m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
-   [36mVENDOR                        [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
-   [36mPACKAGE                       [0m  [90m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)[0m
-   [36mVERSION                       [0m  [90m?=  0.0.0-dev                                        (package version)[0m
    [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed)[0m
    [36mDEBUG_PREFIX                  [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [36mTRACE                         [0m  [90m?=                                                   (whether every recipe line is echoed)[0m
@@ -1514,7 +1533,6 @@ Available commands:
     [36mMODIFIER_BOLD                [0m  [90m:=  bold[0m
     [36mMODIFIER_REVERSE             [0m  [90m:=  reverse[0m
   [35marguments[0m
-   [36mTARGET_ALIASES                [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
    [36mTARGET                        [0m  [90m:=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)[0m
    [36mARG1                          [0m  [90m =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to [35mARG9[0m[90m)[0m
    [36mARG2                          [0m  [90m =  $(call _shell_quoted,$(word 2,$(_ARGS)))[0m
@@ -1533,14 +1551,8 @@ Available commands:
    [36mTEST_TARGETS                  [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
    [36mCI_TARGETS                    [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mFIXTURE_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
-   [36mPHONY                         [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
-   [36mGIT_HOOKS                     [0m  [90m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
-   [36mCONFIG                        [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
-   [36mARCHIVE_EXTRA_PATHS           [0m  [90m?=                                                   (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
-   [36mCACHE_DIR                     [0m  [90m?=  ./.cache                                         (directory the tools keep their caches in)[0m
-   [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
   [35msemver[0m
    [36mSEMVER_NUMBER                 [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [36mSEMVER_PRERELEASE_PART        [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
@@ -1860,9 +1872,24 @@ Available commands:
   [33mvariables[0m
    [32mAPP_VARIABLE                  [0m  [0m?=  value                                            (a variable of the project's own)[0m
  [33mbrnshkr[0m
-  [33mincludes[0m
-   [32mCONFIG_DIR                    [0m  [0m?=  ./conf                                           (directory holding the project's own tool configs)[0m
-   [32mLOCAL_DIR                     [0m  [0m?=  ./.local                                         (directory holding a developer's private files)[0m
+  [33mconfig[0m
+   [32mCONFIG                        [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
+   [32mARCHIVE_EXTRA_PATHS           [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
+   [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
+   [32mGIT_HOOKS                     [0m  [0m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
+   [33mdirectories[0m
+    [32mCONFIG_DIR                   [0m  [0m?=  ./conf                                           (directory holding the project's own tool configs)[0m
+    [32mLOCAL_DIR                    [0m  [0m?=  ./.local                                         (directory holding a developer's private files)[0m
+    [32mCACHE_DIR                    [0m  [0m?=  ./.cache                                         (directory the tools keep their caches in)[0m
+   [33mtargets[0m
+    [32mTARGET_PREFIX                [0m  [0m?=                                                   (prefixes every target, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
+    [32mCOLLISION_PREFIX             [0m  [0m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
+    [32mTARGET_ALIASES               [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
+    [32mPHONY                        [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
+   [33mpackage[0m
+    [32mVENDOR                       [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
+    [32mPACKAGE                      [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)[0m
+    [32mVERSION                      [0m  [0m?=  0.0.0-dev                                        (package version)[0m
   [33mtools[0m
    [33mruntimes[0m
     [32mSHELL                        [0m  [0m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
@@ -1905,11 +1932,6 @@ Available commands:
    [32mHOST_UID                      [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [32mHOST_GID                      [0m  [0m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [32mHOST_APP_DIR                  [0m  [0m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
-   [32mTARGET_PREFIX                 [0m  [0m?=                                                   (prefixes every target, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
-   [32mCOLLISION_PREFIX              [0m  [0m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
-   [32mVENDOR                        [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
-   [32mPACKAGE                       [0m  [0m?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)[0m
-   [32mVERSION                       [0m  [0m?=  0.0.0-dev                                        (package version)[0m
    [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed)[0m
    [32mDEBUG_PREFIX                  [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
    [32mTRACE                         [0m  [0m?=                                                   (whether every recipe line is echoed)[0m
@@ -1966,7 +1988,6 @@ Available commands:
     [32mMODIFIER_BOLD                [0m  [0m:=  bold[0m
     [32mMODIFIER_REVERSE             [0m  [0m:=  reverse[0m
   [33marguments[0m
-   [32mTARGET_ALIASES                [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
    [32mTARGET                        [0m  [0m:=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)[0m
    [32mARG1                          [0m  [0m =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to [33mARG9[0m[0m)[0m
    [32mARG2                          [0m  [0m =  $(call _shell_quoted,$(word 2,$(_ARGS)))[0m
@@ -1985,14 +2006,8 @@ Available commands:
    [32mTEST_TARGETS                  [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
    [32mCI_TARGETS                    [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mFIXTURE_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
-   [32mPHONY                         [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
-   [32mGIT_HOOKS                     [0m  [0m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
-   [32mCONFIG                        [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
-   [32mARCHIVE_EXTRA_PATHS           [0m  [0m?=                                                   (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
-   [32mCACHE_DIR                     [0m  [0m?=  ./.cache                                         (directory the tools keep their caches in)[0m
-   [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
   [33msemver[0m
    [32mSEMVER_NUMBER                 [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [32mSEMVER_PRERELEASE_PART        [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
