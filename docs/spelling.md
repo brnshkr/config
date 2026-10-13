@@ -9,7 +9,8 @@ The word list is shipped by **@brnshkr/config**, so a repository never carries a
 It runs as a test, on whichever stack a repository has.
 On PHP, name the shipped directory as a test suite;
 on JavaScript, import the shipped module from a test of your own.
-`make configs` writes both once the repository has a `tests` directory.
+`make configs tools` writes the PHP one. The [Vitest builder](./js/vitest.md) collects the test itself,
+so the JavaScript file is only needed without it.
 
 ```xml
 <!-- ./conf/phpunit.dist.xml -->

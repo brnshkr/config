@@ -12,7 +12,7 @@ failure-threshold: style
 strict-labels: true
 ```
 
-`hadolint --config ./conf/hadolint.dist.yaml` reads the whole copy, which `make configs` writes.
+`hadolint --config ./conf/hadolint.dist.yaml` reads the whole copy, which `make configs tools` writes.
 The shared Makefile passes it over every tracked Dockerfile.
 
 ## Customizing

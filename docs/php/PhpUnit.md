@@ -19,7 +19,7 @@ and fails on every deprecation, notice, warning and risky, skipped or incomplete
 </testsuites>
 ```
 
-`phpunit --configuration ./conf/phpunit.dist.xml` reads the whole copy, which `make configs` writes.
+`phpunit --configuration ./conf/phpunit.dist.xml` reads the whole copy, which `make configs tools` writes.
 The `Brnshkr\Config` suite runs the tests this package ships, the [spelling check](../spelling.md) among them.
 
 ## Customizing

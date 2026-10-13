@@ -11,7 +11,7 @@ config-variables:
   - RUNNER_IMAGE
 ```
 
-`actionlint -config-file ./conf/actionlint.dist.yaml` reads the whole copy, which `make configs` writes.
+`actionlint -config-file ./conf/actionlint.dist.yaml` reads the whole copy, which `make configs tools` writes.
 The shared Makefile passes it over every tracked workflow.
 
 ## Customizing

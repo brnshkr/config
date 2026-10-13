@@ -67,7 +67,7 @@ To change the shared help, add `#---! brnshkr.theming` to show a section by defa
 to only show it when named, or `#~~! phpstan-debug` to do the same for a single target.
 
 Each tool reads `./conf/<tool>.dist.<ext>` if you have one, and the package's default otherwise.
-`make configs --tools` writes them for you. Settings only you want go into `./conf/<tool>.<ext>`,
+`make configs tools` writes them for you. Settings only you want go into `./conf/<tool>.<ext>`,
 which git ignores and which is read first.
 
 `make configs` also keeps a block between `###> brnshkr/config ###` markers up to date in files like

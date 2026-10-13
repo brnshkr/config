@@ -14,7 +14,7 @@ rules: []
 
 `semgrep scan --config p/default --config ./conf/semgrep.dist.yaml` reads it beside one registry ruleset.
 The shared Makefile picks the rulesets that fit the manifests, the installed packages and the tracked files,
-and caches each one in `./.cache/semgrep/` for `SEMGREP_MAX_AGE` days. `make configs` writes the copy.
+and caches each one in `./.cache/semgrep/` for `SEMGREP_MAX_AGE` days. `make configs tools` writes the copy.
 
 ## Customizing
 
