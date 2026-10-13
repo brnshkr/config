@@ -120,8 +120,7 @@ cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile \
   && make startup
 ```
 
-`make startup` installs each stack, writes every config and `.gitignore` the project is missing, and never
-touches a file that is already there.
+`make startup` installs each stack and writes the `.gitignore`, `.gitattributes` and editor files the project is missing.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -236,24 +235,24 @@ bun commitlint --config ./conf/commitlint.mjs --edit
 <!-- omit in toc -->
 ##### Option 2 — Run Make Targets (@brnshkr Convention)
 
-For these targets to work you need to follow the convention of putting your configuration files into the `./conf` directory
-(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
+These targets look for your configuration files in the `./conf` directory
+(exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
 Your own Makefile includes this one. Copy the starter rather than writing the include by hand: it guards the
-include, so a fresh clone can `make bootstrap` before anything is installed.
+include, so a fresh clone can run a plain `make` before anything is installed.
 
 ```sh
 cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make ci` runs all of it, and `make startup` writes any config you are still missing.
+`make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes` and editor files you are still missing.
 The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->
-###### ESLint (TypeScript Only)
+###### ESLint
 
-Expected configuration file: `./conf/eslint.mjs`
+Optional configuration file: `./conf/eslint.dist.mjs`
 
 ```sh
 make eslint
@@ -262,7 +261,7 @@ make eslint
 <!-- omit in toc -->
 ###### Stylelint
 
-Expected configuration file: `./conf/stylelint.mjs`
+Optional configuration file: `./conf/stylelint.dist.mjs`
 
 ```sh
 make stylelint
@@ -271,7 +270,7 @@ make stylelint
 <!-- omit in toc -->
 ###### markdownlint
 
-Expected configuration file: `./conf/markdownlint.mjs`
+Optional configuration file: `./conf/markdownlint.dist.mjs`
 
 ```sh
 make markdownlint
@@ -280,7 +279,7 @@ make markdownlint
 <!-- omit in toc -->
 ###### commitlint
 
-Expected configuration file: `./conf/commitlint.mjs`
+Optional configuration file: `./conf/commitlint.dist.mjs`
 
 ```sh
 make commitlint
@@ -292,7 +291,7 @@ make commitlint
 When using the recommended way of putting config files into the `./conf` directory
 it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
-installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
+installed, `make configs` writes the settings they need into `./.vscode/settings.json`.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -334,8 +333,7 @@ cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile \
   && make startup
 ```
 
-`make startup` installs each stack, writes every config and `.gitignore` the project is missing, and never
-touches a file that is already there.
+`make startup` installs each stack and writes the `.gitignore`, `.gitattributes` and editor files the project is missing.
 
 To have the packages installed for you, pick the modules interactively:
 
@@ -457,24 +455,24 @@ php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.php -v
 <!-- omit in toc -->
 ##### Option 2 — Run Make Targets (@brnshkr Convention)
 
-For these targets to work you need to follow the convention of putting your configuration files into the `./conf` directory
-(Exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
+These targets look for your configuration files in the `./conf` directory
+(exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
 
 Your own Makefile includes this one. Copy the shipped starter rather than writing the include by hand:
-it guards the include, so a fresh clone can `make bootstrap` before anything is installed.
+it guards the include, so a fresh clone can run a plain `make` before anything is installed.
 
 ```sh
 cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile
 ```
 
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make ci` runs all of it, and `make startup` writes any config you are still missing.
+`make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes` and editor files you are still missing.
 The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 <!-- omit in toc -->
 ###### PHP CS Fixer
 
-Expected configuration file: `./conf/php-cs-fixer.php`
+Optional configuration file: `./conf/php-cs-fixer.dist.php`
 
 ```sh
 make php-cs-fixer
@@ -483,7 +481,7 @@ make php-cs-fixer
 <!-- omit in toc -->
 ###### Rector
 
-Expected configuration file: `./conf/rector.php`
+Optional configuration file: `./conf/rector.dist.php`
 
 ```sh
 make rector
@@ -492,7 +490,7 @@ make rector
 <!-- omit in toc -->
 ###### PHPStan
 
-Expected configuration file: `./conf/phpstan.php`
+Optional configuration file: `./conf/phpstan.dist.php`
 
 ```sh
 make phpstan
@@ -501,7 +499,7 @@ make phpstan
 <!-- omit in toc -->
 ###### Twig CS Fixer
 
-Expected configuration file: `./conf/twig-cs-fixer.php`
+Optional configuration file: `./conf/twig-cs-fixer.dist.php`
 
 ```sh
 make twig-cs-fixer
@@ -513,7 +511,7 @@ make twig-cs-fixer
 When using the recommended way of putting config files into the `./conf` directory
 it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
-installed you can take a look at the `Project specific` section in [`./.vscode/settings.json`](https://github.com/brnshkr/config/blob/master/.vscode/settings.json).
+installed, `make configs` writes the settings they need into `./.vscode/settings.json`.
 
 <!-- omit in toc -->
 #### Plugin Commands
