@@ -235,19 +235,19 @@ Variables:
    PHP_UNIT_MIN_COVERAGE          ?=  100                                              (percentage every metric must reach, 0 for no floor)
    PHP_UNIT_COVERAGE_FLAGS        ?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)
   phpstan
-   PHP_STAN                       ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to phpstan binary)
+   PHP_STAN                       ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs phpstan)
    PHP_STAN_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
    PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
-   PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to php-cs-fixer binary)
+   PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs php-cs-fixer)
    PHP_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
    PHP_CS_FIXER_FLAGS             ?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to php-cs-fixer)
   rector
-   RECTOR                         ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to rector binary)
+   RECTOR                         ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (command that runs rector)
    RECTOR_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to rector config)
    RECTOR_FLAGS                   ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
-   TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to twig-cs-fixer binary)
+   TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (command that runs twig-cs-fixer)
    TWIG_CS_FIXER_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS            ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
   bun
@@ -533,19 +533,19 @@ Variables:
    PHP_UNIT_MIN_COVERAGE_LINES     ?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)
    PHP_UNIT_COVERAGE_FLAGS         ?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)
   phpstan
-   PHP_STAN                        ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to phpstan binary)
+   PHP_STAN                        ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs phpstan)
    PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
    PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
   php-cs-fixer
-   PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to php-cs-fixer binary)
+   PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs php-cs-fixer)
    PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
    PHP_CS_FIXER_FLAGS              ?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to php-cs-fixer)
   rector
-   RECTOR                          ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to rector binary)
+   RECTOR                          ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (command that runs rector)
    RECTOR_CONFIG                   ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to rector config)
    RECTOR_FLAGS                    ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to rector)
   twig-cs-fixer
-   TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to twig-cs-fixer binary)
+   TWIG_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (command that runs twig-cs-fixer)
    TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
    TWIG_CS_FIXER_EXTENSIONS        ?=  twig                                             (extensions twig-cs-fixer reads)
@@ -1569,19 +1569,19 @@ Available commands:
    [36mPHP_UNIT_MIN_COVERAGE_LINES   [0m  [90m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)[0m
    [36mPHP_UNIT_COVERAGE_FLAGS       [0m  [90m?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)[0m
   [35mphpstan[0m
-   [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to [35mphpstan[0m[90m binary)[0m
+   [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs [35mphpstan[0m[90m)[0m
    [36mPHP_STAN_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [35mphpstan[0m[90m config)[0m
    [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mphpstan[0m[90m)[0m
   [35mphp-cs-fixer[0m
-   [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to [35mphp-cs-fixer[0m[90m binary)[0m
+   [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs [35mphp-cs-fixer[0m[90m)[0m
    [36mPHP_CS_FIXER_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [35mphp-cs-fixer[0m[90m config)[0m
    [36mPHP_CS_FIXER_FLAGS            [0m  [90m?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to [35mphp-cs-fixer[0m[90m)[0m
   [35mrector[0m
-   [36mRECTOR                        [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to [35mrector[0m[90m binary)[0m
+   [36mRECTOR                        [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (command that runs [35mrector[0m[90m)[0m
    [36mRECTOR_CONFIG                 [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to [35mrector[0m[90m config)[0m
    [36mRECTOR_FLAGS                  [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mrector[0m[90m)[0m
   [35mtwig-cs-fixer[0m
-   [36mTWIG_CS_FIXER                 [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to [35mtwig-cs-fixer[0m[90m binary)[0m
+   [36mTWIG_CS_FIXER                 [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (command that runs [35mtwig-cs-fixer[0m[90m)[0m
    [36mTWIG_CS_FIXER_CONFIG          [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [35mtwig-cs-fixer[0m[90m config)[0m
    [36mTWIG_CS_FIXER_FLAGS           [0m  [90m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
    [36mTWIG_CS_FIXER_EXTENSIONS      [0m  [90m?=  twig                                             (extensions [35mtwig-cs-fixer[0m[90m reads)[0m
@@ -2021,19 +2021,19 @@ Available commands:
    [32mPHP_UNIT_MIN_COVERAGE_LINES   [0m  [0m?=  $(PHP_UNIT_MIN_COVERAGE)                         (percentage the line metric must reach)[0m
    [32mPHP_UNIT_COVERAGE_FLAGS       [0m  [0m?=  $(if $(_IS_PEST),--coverage $(if $(_PHP_UNIT_FL… (additional flags passed when collecting coverage)[0m
   [33mphpstan[0m
-   [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (path to [33mphpstan[0m[0m binary)[0m
+   [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs [33mphpstan[0m[0m)[0m
    [32mPHP_STAN_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [33mphpstan[0m[0m config)[0m
    [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mphpstan[0m[0m)[0m
   [33mphp-cs-fixer[0m
-   [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (path to [33mphp-cs-fixer[0m[0m binary)[0m
+   [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs [33mphp-cs-fixer[0m[0m)[0m
    [32mPHP_CS_FIXER_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [33mphp-cs-fixer[0m[0m config)[0m
    [32mPHP_CS_FIXER_FLAGS            [0m  [0m?=  --show-progress=$(if $(_IS_PROGRESS_HIDDEN),non… (additional flags passed to [33mphp-cs-fixer[0m[0m)[0m
   [33mrector[0m
-   [32mRECTOR                        [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (path to [33mrector[0m[0m binary)[0m
+   [32mRECTOR                        [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector    (command that runs [33mrector[0m[0m)[0m
    [32mRECTOR_CONFIG                 [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector… (path to [33mrector[0m[0m config)[0m
    [32mRECTOR_FLAGS                  [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mrector[0m[0m)[0m
   [33mtwig-cs-fixer[0m
-   [32mTWIG_CS_FIXER                 [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (path to [33mtwig-cs-fixer[0m[0m binary)[0m
+   [32mTWIG_CS_FIXER                 [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (command that runs [33mtwig-cs-fixer[0m[0m)[0m
    [32mTWIG_CS_FIXER_CONFIG          [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [33mtwig-cs-fixer[0m[0m config)[0m
    [32mTWIG_CS_FIXER_FLAGS           [0m  [0m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
    [32mTWIG_CS_FIXER_EXTENSIONS      [0m  [0m?=  twig                                             (extensions [33mtwig-cs-fixer[0m[0m reads)[0m

@@ -1837,7 +1837,7 @@ endif # /phpunit
 
 ifneq ($(_HAS_PHPSTAN),) # phpstan
 
-PHP_STAN        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan#v #~~ path to `phpstan` binary
+PHP_STAN        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan#v #~~ command that runs `phpstan`
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpstan.php $(APP_DIR)/$(_CONFIG_DIR)/phpstan.dist.php,php)#v #~~ path to `phpstan` config
 PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
@@ -1876,7 +1876,7 @@ endif # /phpstan
 
 ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
 
-PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer#v #~~ path to `php-cs-fixer` binary
+PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer#v #~~ command that runs `php-cs-fixer`
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.php $(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
 PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
@@ -1908,7 +1908,7 @@ endif # /php-cs-fixer
 
 ifneq ($(_HAS_RECTOR),) # rector
 
-RECTOR        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector#v #~~ path to `rector` binary
+RECTOR        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector#v #~~ command that runs `rector`
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector.php $(APP_DIR)/$(_CONFIG_DIR)/rector.dist.php,php)#v #~~ path to `rector` config
 RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
 
@@ -1946,7 +1946,7 @@ endif # /rector
 
 ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 
-TWIG_CS_FIXER            ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-fixer#v #~~ path to `twig-cs-fixer` binary
+TWIG_CS_FIXER            ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-fixer#v #~~ command that runs `twig-cs-fixer`
 TWIG_CS_FIXER_CONFIG     ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-cs-fixer.php $(APP_DIR)/$(_CONFIG_DIR)/twig-cs-fixer.dist.php,php)#v #~~ path to `twig-cs-fixer` config
 TWIG_CS_FIXER_FLAGS      ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig-cs-fixer` reads
