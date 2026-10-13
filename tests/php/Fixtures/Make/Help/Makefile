@@ -8,6 +8,8 @@
 
 root-makefile-command: #~~ command from root Makefile auto-include
 
+check: #~~ own check, which takes the default `c` alias
+
 hidden-command: #~~ shown at verbosity >= 1 #v
 
 multi-a multi-b: #~~ multi-target command (appears joined with /)

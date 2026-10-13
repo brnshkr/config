@@ -212,10 +212,10 @@ COLLISION_PREFIX  ?= brnshkr#v #~~ namespace for a shared target whose name this
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
 TARGET_ALIASES ?= h=help \
-	$(if $(_HAS_CHECK),c=check) \
-	$(if $(_HAS_TEST),t=test) \
-	$(if $(_HAS_FIX),f=fix) \
-	$(if $(_HAS_GROUP),g=group)#vv #~~ short names for targets, as `<alias>=<target>` pairs
+	$(if $(call _get_goal,check),c=check) \
+	$(if $(call _get_goal,test),t=test) \
+	$(if $(call _get_goal,fix),f=fix) \
+	$(if $(call _get_goal,group),g=group)#vv #~~ short names for targets, as `<alias>=<target>` pairs
 
 PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 

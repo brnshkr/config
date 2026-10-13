@@ -152,6 +152,7 @@ Available commands:
  app
   commands
    root-makefile-command       command from root Makefile auto-include
+   check, c                    own check, which takes the default c alias
    multi-a/multi-b             multi-target command (appears joined with /)
    wrapped-a/wrapped-b         multi-target command wrapped over two lines
    no-desc-command             
@@ -290,6 +291,7 @@ Available commands:
  app
   commands
    root-makefile-command       command from root Makefile auto-include
+   check, c                    own check, which takes the default c alias
    hidden-command              shown at verbosity >= 1
    multi-a/multi-b             multi-target command (appears joined with /)
    wrapped-a/wrapped-b         multi-target command wrapped over two lines
@@ -312,7 +314,7 @@ Available commands:
     targets
      TARGET_PREFIX              ?=                                                   (prefixes every target, so brnshkr gives brnshkr-lint)
      COLLISION_PREFIX           ?=  brnshkr                                          (namespace for a shared target whose name this project uses)
-+    TARGET_ALIASES             ?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as <alias>=<target> pairs)
++    TARGET_ALIASES             ?=  h=help $(if $(call _get_goal,check),c=check) $(… (short names for targets, as <alias>=<target> pairs)
      PHONY                      ?=  1                                                (targets marked .PHONY, shared ones only, or 0 none)
     package
      VENDOR                     ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
@@ -703,11 +705,13 @@ Available commands:
   app
    commands
 -   root-makefile-command       command from root Makefile auto-include
+-   check, c                    own check, which takes the default c alias
 -   hidden-command              shown at verbosity >= 1
 -   multi-a/multi-b             multi-target command (appears joined with /)
 -   wrapped-a/wrapped-b         multi-target command wrapped over two lines
 -   no-desc-command             
 +   root-makefile-command                    command from root Makefile auto-include
++   check, c                                 own check, which takes the default c alias
 +   hidden-command                           shown at verbosity >= 1
 +   multi-a/multi-b                          multi-target command (appears joined with /)
 +   wrapped-a/wrapped-b                      multi-target command wrapped over two lines
@@ -814,6 +818,7 @@ Available commands:
  app
   commands
    root-makefile-command  command from root Makefile auto-include
+   check, c               own check, which takes the default c alias
    multi-a/multi-b        multi-target command (appears joined with /)
    wrapped-a/wrapped-b    multi-target command wrapped over two lines
    no-desc-command        
@@ -906,6 +911,7 @@ Available commands:
 - app
 -  commands
 -   root-makefile-command  command from root Makefile auto-include
+-   check, c               own check, which takes the default c alias
 -   multi-a/multi-b        multi-target command (appears joined with /)
 -   wrapped-a/wrapped-b    multi-target command wrapped over two lines
 -   no-desc-command        
@@ -1071,7 +1077,7 @@ Available commands:
    [35mtargets[0m
     [36mTARGET_PREFIX            [0m  [90m?=                                                   (prefixes every target, so [35mbrnshkr[0m[90m gives [35mbrnshkr-lint[0m[90m)[0m
     [36mCOLLISION_PREFIX         [0m  [90m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
-    [36mTARGET_ALIASES           [0m  [90m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
+    [36mTARGET_ALIASES           [0m  [90m?=  h=help $(if $(call _get_goal,check),c=check) $(… (short names for targets, as [35m<alias>=<target>[0m[90m pairs)[0m
     [36mPHONY                    [0m  [90m?=  1                                                (targets marked [35m.PHONY[0m[90m, [35mshared[0m[90m ones only, or [35m0[0m[90m none)[0m
    [35mpackage[0m
     [36mVENDOR                   [0m  [90m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
@@ -1338,6 +1344,7 @@ Available commands:
  [35mapp[0m
   [35mcommands[0m
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
+   [36mcheck, c                  [0m  [90mown check, which takes the default [35mc[0m[90m alias[0m
    [36mhidden-command            [0m  [90mshown at verbosity >= 1[0m
    [36mmulti-a/multi-b           [0m  [90mmulti-target command (appears joined with /)[0m
    [36mwrapped-a/wrapped-b       [0m  [90mmulti-target command wrapped over two lines[0m
@@ -1394,7 +1401,7 @@ Available commands:
    [33mtargets[0m
     [32mTARGET_PREFIX            [0m  [0m?=                                                   (prefixes every target, so [33mbrnshkr[0m[0m gives [33mbrnshkr-lint[0m[0m)[0m
     [32mCOLLISION_PREFIX         [0m  [0m?=  brnshkr                                          (namespace for a shared target whose name this project uses)[0m
-    [32mTARGET_ALIASES           [0m  [0m?=  h=help $(if $(_HAS_CHECK),c=check) $(if $(_HAS_… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
+    [32mTARGET_ALIASES           [0m  [0m?=  h=help $(if $(call _get_goal,check),c=check) $(… (short names for targets, as [33m<alias>=<target>[0m[0m pairs)[0m
     [32mPHONY                    [0m  [0m?=  1                                                (targets marked [33m.PHONY[0m[0m, [33mshared[0m[0m ones only, or [33m0[0m[0m none)[0m
    [33mpackage[0m
     [32mVENDOR                   [0m  [0m?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)[0m
@@ -1661,6 +1668,7 @@ Available commands:
  [33mapp[0m
   [33mcommands[0m
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m
+   [32mcheck, c                  [0m  [0mown check, which takes the default [33mc[0m[0m alias[0m
    [32mhidden-command            [0m  [0mshown at verbosity >= 1[0m
    [32mmulti-a/multi-b           [0m  [0mmulti-target command (appears joined with /)[0m
    [32mwrapped-a/wrapped-b       [0m  [0mmulti-target command wrapped over two lines[0m
