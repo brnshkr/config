@@ -974,7 +974,7 @@ export _SERVICE_DIRECTORY
 
 _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
 
-#---vvv targets
+#---vvv scrape
 
 _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(CURDIR)' \
 	-v _ENABLED_FEATURES=' $(_ENABLED_FEATURES) ' \
