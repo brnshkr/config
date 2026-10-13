@@ -222,13 +222,13 @@ Variables:
    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
   setup
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
+  release
+   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
   hadolint
    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
   actionlint
    ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
-  changelog
-   CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -285,7 +285,7 @@ Available commands:
    configs                     writes the files this project is missing
    cc                          clears the named caches, or all of them
    fresh                       deletes ignored files and runs startup again
-  changelog
+  release
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
  app
   commands
@@ -395,7 +395,7 @@ Available commands:
    setup
     STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
 @@ @@
-   changelog
+   release
     CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
     CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
 +   CHANGELOG_DIR               ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
@@ -404,7 +404,10 @@ Available commands:
 +   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
 +   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
 +   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
-  app
+   hadolint
+    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
+   actionlint
+@@ @@
    variables
     BASE_URL                    ?=  https://example.com                              (base URL for the application)
     TIMEOUT                     :=  30                                               (connection timeout in seconds)
@@ -468,7 +471,7 @@ Available commands:
     cc                          clears the named caches, or all of them
     fresh                       deletes ignored files and runs startup again
 +   fresh-dry-run               lists what fresh would remove and keep
-   changelog
+   release
     changelog                   prints the changelog, or writes it to CHANGELOG_DIR
   app
 @@ @@
@@ -551,9 +554,9 @@ Available commands:
     TARGET                      :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
     ARG1                         =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to ARG9)
 @@ @@
-    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
-   setup
-    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
+    CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
+    CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
+    CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
 +  semver
 +   SEMVER_NUMBER               ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
 +   SEMVER_PRERELEASE_PART      ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
@@ -627,13 +630,13 @@ Available commands:
     documented_and_described_fn
      Documentation block whose first sentence would be derived as a description
 @@ @@
-  brnshkr
-   common
-    help, h                     shows this help, narrowed by scope, widened by v to vvv
+    fresh-dry-run               lists what fresh would remove and keep
+   release
+    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
 +   pack                        packs every stack's package to ./.local
-    fixtures                    builds the fixtures this project's tests read
-   setup
-    startup                     installs everything and writes missing files
+  app
+   commands
+    root-makefile-command       command from root Makefile auto-include
 @@ @@
     verbose-hidden-command      shown at verbosity >= 2
    very-verbose-group
@@ -675,11 +678,9 @@ Available commands:
   brnshkr
    common
 -   help, h                     shows this help, narrowed by scope, widened by v to vvv
--   pack                        packs every stack's package to ./.local
 -   fixtures                    builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
-+   pack                                     packs every stack's package to ./.local
 +   fixtures                                 builds the fixtures this project's tests read
    setup
 -   startup                     installs everything and writes missing files
@@ -694,9 +695,11 @@ Available commands:
 +   cc                                       clears the named caches, or all of them
 +   fresh                                    deletes ignored files and runs startup again
 +   fresh-dry-run                            lists what fresh would remove and keep
-   changelog
+   release
 -   changelog                   prints the changelog, or writes it to CHANGELOG_DIR
+-   pack                        packs every stack's package to ./.local
 +   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
++   pack                                     packs every stack's package to ./.local
   app
    commands
 -   root-makefile-command       command from root Makefile auto-include
@@ -775,7 +778,6 @@ app.very-verbose-group.very-verbose-sub.depth-three.depth-four
 brnshkr
 brnshkr.actionlint
 brnshkr.arguments
-brnshkr.changelog
 brnshkr.common
 brnshkr.config
 brnshkr.config.directories
@@ -786,6 +788,7 @@ brnshkr.dotenv
 brnshkr.hadolint
 brnshkr.helpers
 brnshkr.output
+brnshkr.release
 brnshkr.semver
 brnshkr.setup
 brnshkr.theming
@@ -1193,6 +1196,15 @@ Available commands:
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
+  [35mrelease[0m
+   [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
+   [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
+   [36mCHANGELOG_DIR             [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [36mCHANGELOG_TITLE           [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [36mCHANGELOG_SKIPPED_COMMITS [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
+   [36mCHANGELOG_SKIPPED_TYPES   [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
+   [36mCHANGELOG_GROUPS          [0m  [90m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
+   [36mCHANGELOG_NAMES           [0m  [90m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
   [35msemver[0m
    [36mSEMVER_NUMBER             [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [36mSEMVER_PRERELEASE_PART    [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
@@ -1204,15 +1216,6 @@ Available commands:
    [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
   [35mactionlint[0m
    [36mACTIONLINT_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [35mactionlint[0m[90m config)[0m
-  [35mchangelog[0m
-   [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
-   [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
-   [36mCHANGELOG_DIR             [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
-   [36mCHANGELOG_TITLE           [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
-   [36mCHANGELOG_SKIPPED_COMMITS [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
-   [36mCHANGELOG_SKIPPED_TYPES   [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
-   [36mCHANGELOG_GROUPS          [0m  [90m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
-   [36mCHANGELOG_NAMES           [0m  [90m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
  [35mapp[0m
   [35mvariables[0m
    [36mBASE_URL                  [0m  [90m?=  https://example.com                              (base URL for the application)[0m
@@ -1321,7 +1324,6 @@ Available commands:
  [35mbrnshkr[0m
   [35mcommon[0m
    [36mhelp, h                   [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m[0m
-   [36mpack                      [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mfixtures                  [0m  [90mbuilds the fixtures this project's tests read[0m
   [35msetup[0m
    [36mstartup                   [0m  [90minstalls everything and writes missing files[0m
@@ -1330,8 +1332,9 @@ Available commands:
    [36mcc                        [0m  [90mclears the named caches, or all of them[0m
    [36mfresh                     [0m  [90mdeletes ignored files and runs [35mstartup[0m[90m again[0m
    [36mfresh-dry-run             [0m  [90mlists what [35mfresh[0m[90m would remove and keep[0m
-  [35mchangelog[0m
+  [35mrelease[0m
    [36mchangelog                 [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
+   [36mpack                      [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
  [35mapp[0m
   [35mcommands[0m
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
@@ -1516,6 +1519,15 @@ Available commands:
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
+  [33mrelease[0m
+   [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
+   [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m
+   [32mCHANGELOG_DIR             [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [32mCHANGELOG_TITLE           [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [32mCHANGELOG_SKIPPED_COMMITS [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
+   [32mCHANGELOG_SKIPPED_TYPES   [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
+   [32mCHANGELOG_GROUPS          [0m  [0m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
+   [32mCHANGELOG_NAMES           [0m  [0m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
   [33msemver[0m
    [32mSEMVER_NUMBER             [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [32mSEMVER_PRERELEASE_PART    [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
@@ -1527,15 +1539,6 @@ Available commands:
    [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
   [33mactionlint[0m
    [32mACTIONLINT_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [33mactionlint[0m[0m config)[0m
-  [33mchangelog[0m
-   [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
-   [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m
-   [32mCHANGELOG_DIR             [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
-   [32mCHANGELOG_TITLE           [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
-   [32mCHANGELOG_SKIPPED_COMMITS [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
-   [32mCHANGELOG_SKIPPED_TYPES   [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
-   [32mCHANGELOG_GROUPS          [0m  [0m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
-   [32mCHANGELOG_NAMES           [0m  [0m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
  [33mapp[0m
   [33mvariables[0m
    [32mBASE_URL                  [0m  [0m?=  https://example.com                              (base URL for the application)[0m
@@ -1644,7 +1647,6 @@ Available commands:
  [33mbrnshkr[0m
   [33mcommon[0m
    [32mhelp, h                   [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m[0m
-   [32mpack                      [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mfixtures                  [0m  [0mbuilds the fixtures this project's tests read[0m
   [33msetup[0m
    [32mstartup                   [0m  [0minstalls everything and writes missing files[0m
@@ -1653,8 +1655,9 @@ Available commands:
    [32mcc                        [0m  [0mclears the named caches, or all of them[0m
    [32mfresh                     [0m  [0mdeletes ignored files and runs [33mstartup[0m[0m again[0m
    [32mfresh-dry-run             [0m  [0mlists what [33mfresh[0m[0m would remove and keep[0m
-  [33mchangelog[0m
+  [33mrelease[0m
    [32mchangelog                 [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m
+   [32mpack                      [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
  [33mapp[0m
   [33mcommands[0m
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m

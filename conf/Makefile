@@ -150,38 +150,6 @@ _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
 #--- config
 
-#---- directories
-
-CONFIG_DIR                ?= ./conf#v #~~ directory holding the project's own tool configs
-LOCAL_DIR                 ?= ./.local#v #~~ directory holding a developer's private files
-_CONFIG_DIR                = $(patsubst ./%,%,$(CONFIG_DIR))
-_LOCAL_DIR                 = $(patsubst ./%,%,$(LOCAL_DIR))
-export BRNSHKR_CONFIG_DIR  = $(_CONFIG_DIR)
-export BRNSHKR_LOCAL_DIR   = $(_LOCAL_DIR)
-
-define _include_makefiles_in_directory
-$(eval include $(filter-out $(abspath $(MAKEFILE_LIST)),$(wildcard $1/Makefile $1/*.mk)))
-endef
-
-_SEARCH_BASES := \
-	$(_CONFIG_DIR) \
-	$(_LOCAL_DIR) \
-	$(_LOCAL_DIR)/$(_CONFIG_DIR)
-
-_INCLUDE_DIRECTORIES := $(CURDIR) \
-	$(foreach BASE,$(_SEARCH_BASES), \
-		$(CURDIR)/$(BASE) \
-		$(CURDIR)/$(BASE)/make \
-	)
-
-$(foreach INCLUDE_DIRECTORY,$(_INCLUDE_DIRECTORIES), \
-	$(call _include_makefiles_in_directory,$(INCLUDE_DIRECTORY)) \
-)
-
-_CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST))
-
-#--- config
-
 CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first found
 ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
 
@@ -204,9 +172,36 @@ GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#v #~
 
 #---- directories
 
-CACHE_DIR                ?= ./.cache#v #~~ directory the tools keep their caches in
-_CACHE_DIR                = $(patsubst ./%,%,$(CACHE_DIR))
-export BRNSHKR_CACHE_DIR  = $(_CACHE_DIR)
+CONFIG_DIR                ?= ./conf#v #~~ directory holding the project's own tool configs
+LOCAL_DIR                 ?= ./.local#v #~~ directory holding a developer's private files
+CACHE_DIR                 ?= ./.cache#v #~~ directory the tools keep their caches in
+_CONFIG_DIR                = $(patsubst ./%,%,$(CONFIG_DIR))
+_LOCAL_DIR                 = $(patsubst ./%,%,$(LOCAL_DIR))
+_CACHE_DIR                 = $(patsubst ./%,%,$(CACHE_DIR))
+export BRNSHKR_CONFIG_DIR  = $(_CONFIG_DIR)
+export BRNSHKR_LOCAL_DIR   = $(_LOCAL_DIR)
+export BRNSHKR_CACHE_DIR   = $(_CACHE_DIR)
+
+define _include_makefiles_in_directory
+$(eval include $(filter-out $(abspath $(MAKEFILE_LIST)),$(wildcard $1/Makefile $1/*.mk)))
+endef
+
+_SEARCH_BASES := \
+	$(_CONFIG_DIR) \
+	$(_LOCAL_DIR) \
+	$(_LOCAL_DIR)/$(_CONFIG_DIR)
+
+_INCLUDE_DIRECTORIES := $(CURDIR) \
+	$(foreach BASE,$(_SEARCH_BASES), \
+		$(CURDIR)/$(BASE) \
+		$(CURDIR)/$(BASE)/make \
+	)
+
+$(foreach INCLUDE_DIRECTORY,$(_INCLUDE_DIRECTORIES), \
+	$(call _include_makefiles_in_directory,$(INCLUDE_DIRECTORY)) \
+)
+
+_CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST))
 
 #---- targets
 
@@ -223,6 +218,42 @@ TARGET_ALIASES ?= h=help \
 	$(if $(_HAS_GROUP),g=group)#vv #~~ short names for targets, as `<alias>=<target>` pairs
 
 PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
+
+#---- package
+
+define _MANIFEST_NAME_AWK
+/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
+	match($$0, /^[ \t]*/)
+	if (found_name == "" || RLENGTH < indent) { \
+		indent = RLENGTH; split($$0, parts, "\""); \
+		found_name = parts[4] \
+	}
+}
+END { print found_name }
+endef
+
+_MANIFEST      = $(eval _MANIFEST := $$(firstword $$(wildcard $$(CURDIR)/package.json $$(CURDIR)/composer.json)))$(_MANIFEST)
+_MANIFEST_NAME = $(eval _MANIFEST_NAME := $$(if $$(_MANIFEST),$$(shell $$(AWK) '$$(_MANIFEST_NAME_AWK)' $$(_MANIFEST))))$(_MANIFEST_NAME)
+
+_CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
+
+#**
+#* A text with newlines and each of the given characters replaced by `?`, so none of them can steer the terminal.
+#*
+#* parameters:
+#*   text: string
+#*   characters: list<string>
+#*
+#* returns: string
+#*
+define _mask_control_characters
+$(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
+endef
+
+VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
+VERSION ?= 0.0.0-dev#vv #~~ package version
+_LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
 #---vvv tools
 
@@ -319,7 +350,6 @@ in_services && service == _SERVICE && /^    working_dir:/ { directory = $$2; gsu
 END { if (directory != "") print directory services }
 endef
 
-
 _CONTAINER_KEYS := ACTIONLINT_SERVICE \
 	APP_DIR \
 	APP_SERVICE \
@@ -350,46 +380,6 @@ _COMMAND_LINE_KEYS       = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter comman
 _NON_EMPTY_TERMINAL_KEYS = $(foreach KEY,$(_TERMINAL_KEYS),$(if $(call _forwarded_value,$(KEY)),$(KEY)))
 _FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
 _DECLARED_KEYS           = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
-
-define _MANIFEST_NAME_AWK
-/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
-	match($$0, /^[ \t]*/)
-	if (found_name == "" || RLENGTH < indent) { \
-		indent = RLENGTH; split($$0, parts, "\""); \
-		found_name = parts[4] \
-	}
-}
-END { print found_name }
-endef
-
-ifneq ($(filter undefined,$(origin VENDOR) $(origin PACKAGE)),) # manifest
-_MANIFEST      := $(firstword $(wildcard $(CURDIR)/package.json $(CURDIR)/composer.json))
-_MANIFEST_NAME := $(if $(_MANIFEST),$(shell $(AWK) '$(_MANIFEST_NAME_AWK)' $(_MANIFEST)))
-endif # /manifest
-
-_CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
-
-#**
-#* A text with newlines and each of the given characters replaced by `?`, so none of them can steer the terminal.
-#*
-#* parameters:
-#*   text: string
-#*   characters: list<string>
-#*
-#* returns: string
-#*
-define _mask_control_characters
-$(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
-endef
-
-#--- config
-
-#---- package
-
-VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
-VERSION ?= 0.0.0-dev#vv #~~ package version
-_LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
 #--- output
 
@@ -964,6 +954,7 @@ _GROUP_NAMES := $(strip \
 
 _TEST_NAMES      := $(strip $(_PHPUNIT_NAME) $(_VITEST_NAME))
 _COVERAGE_NAMES  := $(strip $(_PHPUNIT_NAME) $(if $(_HAS_VITEST_COVERAGE),$(_VITEST_NAME)))
+_PACK_NAMES      := $(strip $(if $(_HAS_PHP),composer-pack) $(if $(_HAS_JS),bun-pack))
 _HAS_CHECK       := $(or $(_FIXER_NAMES),$(_ANALYZER_NAMES),$(CHECK_TARGETS))
 _HAS_FIX         := $(or $(_FIXER_NAMES),$(FIX_TARGETS))
 _HAS_GROUP       := $(or $(_GROUP_NAMES),$(GROUP_TARGETS))
@@ -1311,7 +1302,6 @@ _PACKAGE_CONF_DIRS = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
 
 _AUTOLOADER       = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/autoload.php
-_PACK_NAMES      :=
 _PLAIN_CONFIGS    =
 _LAYERED_CONFIGS  =
 _LINKED_CONFIGS   =
@@ -1448,6 +1438,152 @@ $(call _target,list-scopes) \
 	$(call _target,vvv): $(call _target,help) #~~ runs `help` with its own name as the argument #vvvv
 
 $(foreach WORD,$(_HELP_WORD_TARGETS),$(eval $(call _target,$(WORD)): _HELP_WORD := $(WORD)))
+
+_FIXERS    := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)))
+_DRY_RUNS  := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)-dry-run))
+_ANALYZERS := $(foreach ANALYZER_NAME,$(_ANALYZER_NAMES),$(call _target,$(ANALYZER_NAME)))
+_TESTS     := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)))
+_UPDATES   := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)-update))
+_COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERAGE_NAME)-coverage))
+_GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
+_PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
+_AUDITS    := $(if $(_HAS_COMPOSER_AUDIT),$(call _target,composer-audit)) $(if $(_HAS_BUN_AUDIT),$(call _target,bun-audit))
+
+CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
+
+ifneq ($(_HAS_CHECK),)
+$(call _target,check): #~~ lints and analyzes everything without writing
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
+endif
+
+_FIX_ORDER := rector+php-cs-fixer \
+	twig-cs-fixer \
+	eslint+stylelint+markdownlint
+
+FIX_TARGETS ?= #v #~~ this project's own targets, run by `fix`
+
+ifneq ($(_HAS_FIX),)
+$(call _target,fix): #~~ runs every fixer this project has, writing its fixes
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_FIXERS) $(FIX_TARGETS)
+endif
+
+#**
+#* Makes each goal of a fixer chain wait for the ones before it, so `-j` keeps the order.
+#*
+#* parameters:
+#*   goals: list<string>
+#*
+#* returns: string
+#*
+define _order_fixers
+$(if $(word 2,$1),$(lastword $1): | $(filter-out $(lastword $1),$1)$(_NEWLINE)$(call _order_fixers,$(filter-out $(lastword $1),$1)))
+endef
+
+$(foreach CHAIN,$(_FIX_ORDER),$(eval $(call _order_fixers,$(filter $(MAKECMDGOALS),$(foreach NAME,$(subst +, ,$(CHAIN)),$(call _target,$(NAME)))))))
+
+GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
+
+ifneq ($(_HAS_GROUP),)
+$(call _target,group): #~~ counts every tool's findings by identifier
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
+endif
+
+ifneq ($(_HAS_AUDIT),)
+$(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
+endif
+
+TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
+
+ifneq ($(_HAS_TEST),)
+$(call _target,test): #~~ runs the tests of every stack this project has
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS)
+endif
+
+ifneq ($(_HAS_TEST_UPDATE),)
+$(call _target,test-update): #~~ runs those tests and updates their snapshots
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
+endif
+
+ifneq ($(_HAS_COVERAGE),)
+$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
+endif
+
+_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
+	$(if $(_HAS_AUDIT),$(call _target,audit)) \
+	$(if $(_HAS_TEST),$(call _target,test))
+
+CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+
+ifneq ($(_HAS_CI),)
+$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
+	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
+		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
+	):
+endif
+
+FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
+
+$(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
+	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
+	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
+
+_FILE_GOALS := $(if $(_NAMING_GOAL),,$(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS))))
+_NAME_WORDS := $(strip $(foreach WORD,$(filter-out $(_ALL_TARGETS),$(_NAME_GOALS)),$(if $(findstring %,$(WORD))$(findstring :,$(WORD))$(findstring /,$(WORD)),,$(WORD))))
+
+ifneq ($(_FILE_GOALS),)
+.PHONY: $(_FILE_GOALS)
+$(_FILE_GOALS): ; @:
+endif
+
+ifneq ($(_NAMED_TARGETS),)
+.PHONY: $(_NAMED_TARGETS)
+$(_NAMED_TARGETS): ; @:
+endif
+
+ifneq ($(_NAME_WORDS),)
+$(_NAME_WORDS):: ; @:
+endif
+
+.DEFAULT:
+ifeq ($(TARGET),) # unknown
+	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
+		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
+		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),$(call _quoted,$@) $(call _quoted,$(_ALIAS_TARGET))); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}),:)
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),$(call _quoted,$@)),:))
+	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
+else
+	$(TRACE_PREFIX):
+endif # /unknown
+
+_PREFLIGHT := _$(_TARGET_PREFIX)assert-no-collisions
+
+$(filter-out $(_PREFLIGHT),$(_ALL_TARGETS)): | $(_PREFLIGHT)
+
+_$(_TARGET_PREFIX)assert-no-collisions:
+ifneq ($(_DUPLICATE_TARGETS),) # duplicates
+	$(foreach NAME,$(_DUPLICATE_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(NAME))))')$(_NEWLINE))
+	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_DUPLICATE_TARGETS)),them,it)$(_COMMA) since this project defines the same name twice.,$(COLOR_NOTICE))
+	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
+endif # /duplicates
+ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
+	$(foreach NAME,$(_COLLIDING_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
+	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_COLLIDING_TARGETS)),them,it)$(_COMMA) since `TARGET_PREFIX` is already the namespace this project chose.,$(COLOR_NOTICE))
+	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
+endif # /collisions
+ifneq ($(_NAMED_OWN_TARGETS),) # own names
+	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(_FIRST_GOAL)')$(_NEWLINE))
+	$(TRACE_PREFIX)$(if $(word 2,$(_NAMED_OWN_TARGETS)), \
+		$(call log,Run them in make calls of their own$(_COMMA) or pass them as `ARGS="%s"`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'), \
+		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
+	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
+endif # /own names
+
+.PHONY: $(if $(filter-out $(_FALSE),$(PHONY)),$(if $(filter shared,$(PHONY)),$(_SHARED_TARGETS),$(_ALL_TARGETS)))
 
 #--- setup
 
@@ -1645,6 +1781,217 @@ $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 $(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove and keep #vv
 $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
+#--- release
+
+CHANGELOG_RANGE ?= #v #~~ commit range the changelog covers
+CHANGELOG_URL   ?= #v #~~ base URL a commit hash links to
+CHANGELOG_DIR   ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
+CHANGELOG_TITLE ?= \# Changelog#vv #~~ heading a new changelog file starts with
+
+CHANGELOG_SKIPPED_COMMITS ?= chore(hygiene) \
+	chore(release)#vv #~~ `type(scope)` pairs left out of the changelog
+
+CHANGELOG_SKIPPED_TYPES ?= test	\
+	style \
+	build#vv #~~ commit types left out of the changelog
+
+CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
+	a11y=♿_Accessibility \
+	admin=🛠️_Admin \
+	ai=🤖_AI \
+	api=🔌_API \
+	assets=🖼️_Assets \
+	auth=🔐_Auth \
+	backend=🧱_Backend \
+	cache=🗃️_Cache \
+	ci=⚙️_CI \
+	cli=⌨️_CLI \
+	composer=📦_Composer \
+	config=🔧_Configuration \
+	db=🗄️_Database \
+	docker=🐳_Docker \
+	docs=📚_Documentation \
+	events=📡_Events \
+	forms=📝_Forms \
+	frontend=🖥️_Frontend \
+	i18n=🌍_Translations \
+	js=☕_JS \
+	logging=🧾_Logging \
+	mail=✉️_Mail \
+	make=🔨_Make \
+	payment=💳_Payment \
+	perf=⚡_Performance \
+	php=🐘_PHP \
+	queue=📬_Queue \
+	readme=📚_Documentation \
+	release=🔖_Release \
+	routing=🧭_Routing \
+	rule=🧩_Rules \
+	schedule=⏰_Schedule \
+	search=🔍_Search \
+	security=🔒_Security \
+	seo=🔎_SEO \
+	storage=💾_Storage \
+	templates=🖌️_Templates \
+	test=🧪_Tests \
+	twig=🌿_Twig \
+	ui=🎨_UI \
+	vscode=💻_Editor \
+	general=🧰_General#vv #~~ headings per root, as `<root>=<heading>` pairs, `_` a space
+
+CHANGELOG_NAMES ?= a11y=a11y \
+	acl=ACL \
+	apcu=APCu \
+	api=API \
+	aws=AWS \
+	bdd=BDD \
+	cdn=CDN \
+	cgi=CGI \
+	cli=CLI \
+	cms=CMS \
+	commitlint=commitlint \
+	cors=CORS \
+	csp=CSP \
+	css=CSS \
+	csv=CSV \
+	db=Database \
+	dbal=DBAL \
+	di=DI \
+	dns=DNS \
+	dto=DTO \
+	dx=DX \
+	esbuild=esbuild \
+	eslint=ESLint \
+	fastcgi=FastCGI \
+	ffi=FFI \
+	fpm=FPM \
+	frankenphp=FrankenPHP \
+	gcp=GCP \
+	github=GitHub \
+	gitlab=GitLab \
+	graphql=GraphQL \
+	grpc=gRPC \
+	gui=GUI \
+	html=HTML \
+	http=HTTP \
+	i18n=i18n \
+	iam=IAM \
+	ide=IDE \
+	ini=INI \
+	ios=iOS \
+	ip=IP \
+	jetbrains=JetBrains \
+	js=JS \
+	jsdoc=JSDoc \
+	json=JSON \
+	jwt=JWT \
+	k8s=K8s \
+	kubernetes=Kubernetes \
+	l10n=l10n \
+	less=Less \
+	macos=macOS \
+	mariadb=MariaDB \
+	markdownlint=markdownlint \
+	md=Markdown \
+	mdx=MDX \
+	mfa=MFA \
+	mongodb=MongoDB \
+	mysql=MySQL \
+	nestjs=NestJS \
+	nginx=Nginx \
+	nodejs=Node.js \
+	npm=npm \
+	oauth=OAuth \
+	oidc=OIDC \
+	opcache=OPcache \
+	orm=ORM \
+	os=OS \
+	pcov=PCOV \
+	pdo=PDO \
+	php-cs-fixer=PHP-CS-Fixer \
+	php=PHP \
+	phpat=PHPat \
+	phpdoc=PHPDoc \
+	phpstan=PHPStan \
+	phpstorm=PhpStorm \
+	phpunit=PHPUnit \
+	pnpm=pnpm \
+	postgres=PostgreSQL \
+	psr=PSR \
+	qa=QA \
+	rabbitmq=RabbitMQ \
+	rbac=RBAC \
+	rest=REST \
+	roadrunner=RoadRunner \
+	rpc=RPC \
+	saml=SAML \
+	sass=Sass \
+	scss=SCSS \
+	sdk=SDK \
+	seo=SEO \
+	sql=SQL \
+	sqlite=SQLite \
+	ssh=SSH \
+	ssl=SSL \
+	sso=SSO \
+	ssr=SSR \
+	svg=SVG \
+	tdd=TDD \
+	tls=TLS \
+	toml=TOML \
+	ts=TS \
+	twig-cs-fixer=Twig-CS-Fixer \
+	typedoc=TypeDoc \
+	typescript=TypeScript \
+	ui=UI \
+	ulid=ULID \
+	uri=URI \
+	url=URL \
+	utf8=UTF-8 \
+	uuid=UUID \
+	ux=UX \
+	wasm=WASM \
+	webpack=webpack \
+	xhprof=XHProf \
+	xml=XML \
+	yaml=YAML \
+	yarn=Yarn \
+	yml=YAML#vv #~~ title-casing fixes, as `<scope>=<name>` pairs, `_` a space
+
+_CHANGELOG_LAST_TAG = $(eval _CHANGELOG_LAST_TAG := $$(shell $$(GIT) describe --tags --abbrev=0 2>/dev/null))$(_CHANGELOG_LAST_TAG)
+_IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
+_IS_CHANGELOG_WRITE = $(filter write w,$(_ARG_WORDS))
+_IS_CHANGELOG_NOTES = $(filter notes n,$(_ARG_WORDS))
+_CHANGELOG_FILE     = $(CHANGELOG_DIR)/$(_CHANGELOG_MAJOR).x.md
+_CHANGELOG_MAJOR    = $(firstword $(subst ., ,$(patsubst v%,%,$(_CHANGELOG_VERSION))))
+_CHANGELOG_RANGE    = $(if $(_IS_CHANGELOG_ALL),,$(or $(CHANGELOG_RANGE),$(if $(_CHANGELOG_LAST_TAG),$(_CHANGELOG_LAST_TAG)..HEAD)))
+_CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
+_CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
+_CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
+_CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || printf '%s' '$(VERSION)')
+_CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
+
+_CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
+	| $(AWK) '!/^[A-Za-z0-9._+\/-]+$$/ { print; exit }')
+
+$(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
+	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+` and `/`))
+	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
+		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
+			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
+			_CHANGELOG_COMPARE="$(_CHANGELOG_COMPARE)" \
+			_CHANGELOG_ALL="$(_IS_CHANGELOG_ALL)" \
+			_CHANGELOG_COMMITS="$(CHANGELOG_SKIPPED_COMMITS)" \
+			_CHANGELOG_TYPES="$(CHANGELOG_SKIPPED_TYPES)" \
+			_CHANGELOG_MAJOR="$(if $(_IS_CHANGELOG_WRITE),$(_CHANGELOG_MAJOR))" \
+			_CHANGELOG_GROUPS="$(CHANGELOG_GROUPS)" \
+			_CHANGELOG_NAMES="$(CHANGELOG_NAMES)" \
+			$(AWK) "$$_CHANGELOG_AWK" \
+		| { $(if $(_IS_CHANGELOG_WRITE),$(call _changelog_write),$(if $(_IS_CHANGELOG_NOTES),$(call _changelog_notes),$(call _changelog_print))); }
+
+$(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
+	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
+
 #---v container
 
 ifneq ($(_HAS_CONTAINER),) # container
@@ -1739,8 +2086,6 @@ COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_PROGRESS_HI
 COMPOSER_AUDIT_FLAGS  ?= --locked#vv #~~ additional flags passed to `composer audit`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
 _COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
-
-_PACK_NAMES += composer-pack
 
 $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
@@ -2004,8 +2349,6 @@ BUN_AUDIT_FLAGS ?= #vv #~~ additional flags passed to `bun audit`
 
 _BUN_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
 _BUN_INSTALL      = $(BUN) install$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
-
-_PACK_NAMES += bun-pack
 
 $(call _target,bun): #~~ runs `bun`
 	$(DEBUG_PREFIX)$(BUN) $(ARGS)
@@ -2470,365 +2813,6 @@ $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 $(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
 
 endif # /semgrep
-
-#--- changelog
-
-CHANGELOG_RANGE ?= #v #~~ commit range the changelog covers
-CHANGELOG_URL   ?= #v #~~ base URL a commit hash links to
-CHANGELOG_DIR   ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
-CHANGELOG_TITLE ?= \# Changelog#vv #~~ heading a new changelog file starts with
-
-CHANGELOG_SKIPPED_COMMITS ?= chore(hygiene) \
-	chore(release)#vv #~~ `type(scope)` pairs left out of the changelog
-
-CHANGELOG_SKIPPED_TYPES ?= test	\
-	style \
-	build#vv #~~ commit types left out of the changelog
-
-CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
-	a11y=♿_Accessibility \
-	admin=🛠️_Admin \
-	ai=🤖_AI \
-	api=🔌_API \
-	assets=🖼️_Assets \
-	auth=🔐_Auth \
-	backend=🧱_Backend \
-	cache=🗃️_Cache \
-	ci=⚙️_CI \
-	cli=⌨️_CLI \
-	composer=📦_Composer \
-	config=🔧_Configuration \
-	db=🗄️_Database \
-	docker=🐳_Docker \
-	docs=📚_Documentation \
-	events=📡_Events \
-	forms=📝_Forms \
-	frontend=🖥️_Frontend \
-	i18n=🌍_Translations \
-	js=☕_JS \
-	logging=🧾_Logging \
-	mail=✉️_Mail \
-	make=🔨_Make \
-	payment=💳_Payment \
-	perf=⚡_Performance \
-	php=🐘_PHP \
-	queue=📬_Queue \
-	readme=📚_Documentation \
-	release=🔖_Release \
-	routing=🧭_Routing \
-	rule=🧩_Rules \
-	schedule=⏰_Schedule \
-	search=🔍_Search \
-	security=🔒_Security \
-	seo=🔎_SEO \
-	storage=💾_Storage \
-	templates=🖌️_Templates \
-	test=🧪_Tests \
-	twig=🌿_Twig \
-	ui=🎨_UI \
-	vscode=💻_Editor \
-	general=🧰_General#vv #~~ headings per root, as `<root>=<heading>` pairs, `_` a space
-
-CHANGELOG_NAMES ?= a11y=a11y \
-	acl=ACL \
-	apcu=APCu \
-	api=API \
-	aws=AWS \
-	bdd=BDD \
-	cdn=CDN \
-	cgi=CGI \
-	cli=CLI \
-	cms=CMS \
-	commitlint=commitlint \
-	cors=CORS \
-	csp=CSP \
-	css=CSS \
-	csv=CSV \
-	db=Database \
-	dbal=DBAL \
-	di=DI \
-	dns=DNS \
-	dto=DTO \
-	dx=DX \
-	esbuild=esbuild \
-	eslint=ESLint \
-	fastcgi=FastCGI \
-	ffi=FFI \
-	fpm=FPM \
-	frankenphp=FrankenPHP \
-	gcp=GCP \
-	github=GitHub \
-	gitlab=GitLab \
-	graphql=GraphQL \
-	grpc=gRPC \
-	gui=GUI \
-	html=HTML \
-	http=HTTP \
-	i18n=i18n \
-	iam=IAM \
-	ide=IDE \
-	ini=INI \
-	ios=iOS \
-	ip=IP \
-	jetbrains=JetBrains \
-	js=JS \
-	jsdoc=JSDoc \
-	json=JSON \
-	jwt=JWT \
-	k8s=K8s \
-	kubernetes=Kubernetes \
-	l10n=l10n \
-	less=Less \
-	macos=macOS \
-	mariadb=MariaDB \
-	markdownlint=markdownlint \
-	md=Markdown \
-	mdx=MDX \
-	mfa=MFA \
-	mongodb=MongoDB \
-	mysql=MySQL \
-	nestjs=NestJS \
-	nginx=Nginx \
-	nodejs=Node.js \
-	npm=npm \
-	oauth=OAuth \
-	oidc=OIDC \
-	opcache=OPcache \
-	orm=ORM \
-	os=OS \
-	pcov=PCOV \
-	pdo=PDO \
-	php-cs-fixer=PHP-CS-Fixer \
-	php=PHP \
-	phpat=PHPat \
-	phpdoc=PHPDoc \
-	phpstan=PHPStan \
-	phpstorm=PhpStorm \
-	phpunit=PHPUnit \
-	pnpm=pnpm \
-	postgres=PostgreSQL \
-	psr=PSR \
-	qa=QA \
-	rabbitmq=RabbitMQ \
-	rbac=RBAC \
-	rest=REST \
-	roadrunner=RoadRunner \
-	rpc=RPC \
-	saml=SAML \
-	sass=Sass \
-	scss=SCSS \
-	sdk=SDK \
-	seo=SEO \
-	sql=SQL \
-	sqlite=SQLite \
-	ssh=SSH \
-	ssl=SSL \
-	sso=SSO \
-	ssr=SSR \
-	svg=SVG \
-	tdd=TDD \
-	tls=TLS \
-	toml=TOML \
-	ts=TS \
-	twig-cs-fixer=Twig-CS-Fixer \
-	typedoc=TypeDoc \
-	typescript=TypeScript \
-	ui=UI \
-	ulid=ULID \
-	uri=URI \
-	url=URL \
-	utf8=UTF-8 \
-	uuid=UUID \
-	ux=UX \
-	wasm=WASM \
-	webpack=webpack \
-	xhprof=XHProf \
-	xml=XML \
-	yaml=YAML \
-	yarn=Yarn \
-	yml=YAML#vv #~~ title-casing fixes, as `<scope>=<name>` pairs, `_` a space
-
-_CHANGELOG_LAST_TAG = $(eval _CHANGELOG_LAST_TAG := $$(shell $$(GIT) describe --tags --abbrev=0 2>/dev/null))$(_CHANGELOG_LAST_TAG)
-_IS_CHANGELOG_ALL   = $(filter all a,$(_ARG_WORDS))
-_IS_CHANGELOG_WRITE = $(filter write w,$(_ARG_WORDS))
-_IS_CHANGELOG_NOTES = $(filter notes n,$(_ARG_WORDS))
-_CHANGELOG_FILE     = $(CHANGELOG_DIR)/$(_CHANGELOG_MAJOR).x.md
-_CHANGELOG_MAJOR    = $(firstword $(subst ., ,$(patsubst v%,%,$(_CHANGELOG_VERSION))))
-_CHANGELOG_RANGE    = $(if $(_IS_CHANGELOG_ALL),,$(or $(CHANGELOG_RANGE),$(if $(_CHANGELOG_LAST_TAG),$(_CHANGELOG_LAST_TAG)..HEAD)))
-_CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
-_CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
-_CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
-_CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || printf '%s' '$(VERSION)')
-_CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
-
-_CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
-	| $(AWK) '!/^[A-Za-z0-9._+\/-]+$$/ { print; exit }')
-
-$(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
-	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+` and `/`))
-	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
-		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
-			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
-			_CHANGELOG_COMPARE="$(_CHANGELOG_COMPARE)" \
-			_CHANGELOG_ALL="$(_IS_CHANGELOG_ALL)" \
-			_CHANGELOG_COMMITS="$(CHANGELOG_SKIPPED_COMMITS)" \
-			_CHANGELOG_TYPES="$(CHANGELOG_SKIPPED_TYPES)" \
-			_CHANGELOG_MAJOR="$(if $(_IS_CHANGELOG_WRITE),$(_CHANGELOG_MAJOR))" \
-			_CHANGELOG_GROUPS="$(CHANGELOG_GROUPS)" \
-			_CHANGELOG_NAMES="$(CHANGELOG_NAMES)" \
-			$(AWK) "$$_CHANGELOG_AWK" \
-		| { $(if $(_IS_CHANGELOG_WRITE),$(call _changelog_write),$(if $(_IS_CHANGELOG_NOTES),$(call _changelog_notes),$(call _changelog_print))); }
-
-#--- common
-
-_FIXERS    := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)))
-_DRY_RUNS  := $(foreach FIXER_NAME,$(_FIXER_NAMES),$(call _target,$(FIXER_NAME)-dry-run))
-_ANALYZERS := $(foreach ANALYZER_NAME,$(_ANALYZER_NAMES),$(call _target,$(ANALYZER_NAME)))
-_TESTS     := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)))
-_UPDATES   := $(foreach TEST_NAME,$(_TEST_NAMES),$(call _target,$(TEST_NAME)-update))
-_COVERAGE  := $(foreach COVERAGE_NAME,$(_COVERAGE_NAMES),$(call _target,$(COVERAGE_NAME)-coverage))
-_GROUPS    := $(foreach GROUP_NAME,$(_GROUP_NAMES),$(call _target,$(GROUP_NAME)-group))
-_PACKS     := $(foreach PACK_NAME,$(_PACK_NAMES),$(call _target,$(PACK_NAME)))
-_AUDITS    := $(if $(_HAS_COMPOSER_AUDIT),$(call _target,composer-audit)) $(if $(_HAS_BUN_AUDIT),$(call _target,bun-audit))
-
-CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
-
-ifneq ($(_HAS_CHECK),)
-$(call _target,check): #~~ lints and analyzes everything without writing
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
-endif
-
-_FIX_ORDER := rector+php-cs-fixer \
-	twig-cs-fixer \
-	eslint+stylelint+markdownlint
-
-FIX_TARGETS ?= #v #~~ this project's own targets, run by `fix`
-
-ifneq ($(_HAS_FIX),)
-$(call _target,fix): #~~ runs every fixer this project has, writing its fixes
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_FIXERS) $(FIX_TARGETS)
-endif
-
-#**
-#* Makes each goal of a fixer chain wait for the ones before it, so `-j` keeps the order.
-#*
-#* parameters:
-#*   goals: list<string>
-#*
-#* returns: string
-#*
-define _order_fixers
-$(if $(word 2,$1),$(lastword $1): | $(filter-out $(lastword $1),$1)$(_NEWLINE)$(call _order_fixers,$(filter-out $(lastword $1),$1)))
-endef
-
-$(foreach CHAIN,$(_FIX_ORDER),$(eval $(call _order_fixers,$(filter $(MAKECMDGOALS),$(foreach NAME,$(subst +, ,$(CHAIN)),$(call _target,$(NAME)))))))
-
-GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
-
-ifneq ($(_HAS_GROUP),)
-$(call _target,group): #~~ counts every tool's findings by identifier
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
-endif
-
-ifneq ($(_HAS_AUDIT),)
-$(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
-endif
-
-TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
-
-ifneq ($(_HAS_TEST),)
-$(call _target,test): #~~ runs the tests of every stack this project has
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS)
-endif
-
-ifneq ($(_HAS_TEST_UPDATE),)
-$(call _target,test-update): #~~ runs those tests and updates their snapshots
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_UPDATES)
-endif
-
-ifneq ($(_HAS_COVERAGE),)
-$(call _target,coverage): #~~ runs the tests and fails below the minimum coverage
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
-endif
-
-_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
-	$(if $(_HAS_AUDIT),$(call _target,audit)) \
-	$(if $(_HAS_TEST),$(call _target,test))
-
-CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
-
-ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
-	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
-		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
-	):
-endif
-
-$(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
-	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
-
-FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
-
-$(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
-	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
-	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
-
-_FILE_GOALS := $(if $(_NAMING_GOAL),,$(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS))))
-_NAME_WORDS := $(strip $(foreach WORD,$(filter-out $(_ALL_TARGETS),$(_NAME_GOALS)),$(if $(findstring %,$(WORD))$(findstring :,$(WORD))$(findstring /,$(WORD)),,$(WORD))))
-
-ifneq ($(_FILE_GOALS),)
-.PHONY: $(_FILE_GOALS)
-$(_FILE_GOALS): ; @:
-endif
-
-ifneq ($(_NAMED_TARGETS),)
-.PHONY: $(_NAMED_TARGETS)
-$(_NAMED_TARGETS): ; @:
-endif
-
-ifneq ($(_NAME_WORDS),)
-$(_NAME_WORDS):: ; @:
-endif
-
-.DEFAULT:
-ifeq ($(TARGET),) # unknown
-	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
-		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
-	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
-		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),$(call _quoted,$@) $(call _quoted,$(_ALIAS_TARGET))); \
-		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-	}),:)
-	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),$(call _quoted,$@)),:))
-	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
-else
-	$(TRACE_PREFIX):
-endif # /unknown
-
-_PREFLIGHT := _$(_TARGET_PREFIX)assert-no-collisions
-
-$(filter-out $(_PREFLIGHT),$(_ALL_TARGETS)): | $(_PREFLIGHT)
-
-_$(_TARGET_PREFIX)assert-no-collisions:
-ifneq ($(_DUPLICATE_TARGETS),) # duplicates
-	$(foreach NAME,$(_DUPLICATE_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(NAME))))')$(_NEWLINE))
-	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_DUPLICATE_TARGETS)),them,it)$(_COMMA) since this project defines the same name twice.,$(COLOR_NOTICE))
-	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
-endif # /duplicates
-ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
-	$(foreach NAME,$(_COLLIDING_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is defined in %s.,$(COLOR_ERROR),'$(_TARGET_PREFIX)$(NAME)' '$(call _join_as_quoted_list,$(call _named_path,$(call _definitions_of,$(_TARGET_PREFIX)$(NAME))))')$(_NEWLINE))
-	$(TRACE_PREFIX)$(call log,Rename $(if $(word 2,$(_COLLIDING_TARGETS)),them,it)$(_COMMA) since `TARGET_PREFIX` is already the namespace this project chose.,$(COLOR_NOTICE))
-	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
-endif # /collisions
-ifneq ($(_NAMED_OWN_TARGETS),) # own names
-	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(_FIRST_GOAL)')$(_NEWLINE))
-	$(TRACE_PREFIX)$(if $(word 2,$(_NAMED_OWN_TARGETS)), \
-		$(call log,Run them in make calls of their own$(_COMMA) or pass them as `ARGS="%s"`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'), \
-		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
-	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
-endif # /own names
-
-.PHONY: $(if $(filter-out $(_FALSE),$(PHONY)),$(if $(filter shared,$(PHONY)),$(_SHARED_TARGETS),$(_ALL_TARGETS)))
 
 #--- ansi
 

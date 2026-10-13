@@ -226,6 +226,9 @@ Variables:
    FIXTURE_TARGETS                ?=                                                   (this project's own targets, run by fixtures for its tests)
   setup
    STARTUP_TARGETS                ?=                                                   (this project's own targets, run by startup after installs)
+  release
+   CHANGELOG_RANGE                ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL                  ?=                                                   (base URL a commit hash links to)
   composer
    COMPOSER                       ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                 ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_PRO… (additional flags passed to composer)
@@ -307,9 +310,6 @@ Variables:
    SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS               ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                  ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-  changelog
-   CHANGELOG_RANGE                ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL                  ?=                                                   (base URL a commit hash links to)
 
 Functions:
  brnshkr
@@ -342,6 +342,8 @@ Available commands:
    configs                writes the files this project is missing
    cc                     clears the named caches, or all of them
    fresh                  deletes ignored files and runs startup again
+  release
+   changelog              prints the changelog, or writes it to CHANGELOG_DIR
   composer
    composer               runs composer
   phpunit
@@ -397,8 +399,6 @@ Available commands:
   semgrep
    semgrep                scans the code for known security issues
    semgrep-group          counts the semgrep findings by rule
-  changelog
-   changelog              prints the changelog, or writes it to CHANGELOG_DIR
 
 === full: verbosity-vv ===
    ___               __   __
@@ -521,6 +521,15 @@ Variables:
    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
   setup
    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after installs)
+  release
+   CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
+   CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
+   CHANGELOG_DIR                   ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
+   CHANGELOG_TITLE                 ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_SKIPPED_COMMITS       ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
+   CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
+   CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
+   CHANGELOG_NAMES                 ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
   php
    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
   composer
@@ -628,15 +637,6 @@ Variables:
    SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
    SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
    SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
-  changelog
-   CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
-   CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
-   CHANGELOG_DIR                   ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
-   CHANGELOG_TITLE                 ?=  \# Changelog                                     (heading a new changelog file starts with)
-   CHANGELOG_SKIPPED_COMMITS       ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
-   CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
-   CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
-   CHANGELOG_NAMES                 ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
 
 Functions:
  brnshkr
@@ -687,6 +687,8 @@ Available commands:
    cc                     clears the named caches, or all of them
    fresh                  deletes ignored files and runs startup again
    fresh-dry-run          lists what fresh would remove and keep
+  release
+   changelog              prints the changelog, or writes it to CHANGELOG_DIR
   composer
    composer               runs composer
    composer-list          lists the files the composer package would ship
@@ -765,8 +767,6 @@ Available commands:
    semgrep-group          counts the semgrep findings by rule
    semgrep-list           lists the rulesets semgrep runs
    semgrep-validate       checks that the semgrep rules load
-  changelog
-   changelog              prints the changelog, or writes it to CHANGELOG_DIR
 
 === diff: verbosity-vvv from verbosity-vv ===
 @@ @@
@@ -832,9 +832,9 @@ Available commands:
     TARGET                          :=  $(firstword $(filter $(_ALL_TARGETS),$(if $(_NA… (the first target of this run)
     ARG1                             =  $(call _shell_quoted,$(word 1,$(_ARGS)))         (the running target's first argument, and so on to ARG9)
 @@ @@
-    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
-   setup
-    STARTUP_TARGETS                 ?=                                                   (this project's own targets, run by startup after installs)
+    CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
+    CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
+    CHANGELOG_NAMES                 ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
 +  semver
 +   SEMVER_NUMBER                   ?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)
 +   SEMVER_PRERELEASE_PART          ?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)
@@ -859,9 +859,9 @@ Available commands:
     SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
 +   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
 +   SEMGREP_PYTHON                  ?=  $(_SEMGREP_RUN) python3                          (command that runs python3, merging semgrep rulesets)
-   changelog
-    CHANGELOG_RANGE                 ?=                                                   (commit range the changelog covers)
-    CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
+ 
+ Functions:
+  brnshkr
 @@ @@
     text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
@@ -914,14 +914,10 @@ Available commands:
   app
    commands
 @@ @@
-    test-update            runs those tests and updates their snapshots
-    coverage               runs the tests and fails below the minimum coverage
-    ci                     runs check, audit and test, stopping at the first failure
+    fresh-dry-run          lists what fresh would remove and keep
+   release
+    changelog              prints the changelog, or writes it to CHANGELOG_DIR
 +   pack                   packs every stack's package to ./.local
-    fixtures               builds the fixtures this project's tests read
-   setup
-    startup                installs everything and writes missing files
-@@ @@
    composer
     composer               runs composer
     composer-list          lists the files the composer package would ship
@@ -993,7 +989,6 @@ Available commands:
 -   test-update            runs those tests and updates their snapshots
 -   coverage               runs the tests and fails below the minimum coverage
 -   ci                     runs check, audit and test, stopping at the first failure
--   pack                   packs every stack's package to ./.local
 -   fixtures               builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
@@ -1004,7 +999,6 @@ Available commands:
 +   test-update                              runs those tests and updates their snapshots
 +   coverage                                 runs the tests and fails below the minimum coverage
 +   ci                                       runs check, audit and test, stopping at the first failure
-+   pack                                     packs every stack's package to ./.local
 +   fixtures                                 builds the fixtures this project's tests read
    setup
 -   startup                installs everything and writes missing files
@@ -1019,6 +1013,11 @@ Available commands:
 +   cc                                       clears the named caches, or all of them
 +   fresh                                    deletes ignored files and runs startup again
 +   fresh-dry-run                            lists what fresh would remove and keep
+   release
+-   changelog              prints the changelog, or writes it to CHANGELOG_DIR
+-   pack                   packs every stack's package to ./.local
++   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
++   pack                                     packs every stack's package to ./.local
    composer
 -   composer               runs composer
 -   composer-list          lists the files the composer package would ship
@@ -1183,9 +1182,6 @@ Available commands:
 +   semgrep-group                            counts the semgrep findings by rule
 +   semgrep-list                             lists the rulesets semgrep runs
 +   semgrep-validate                         checks that the semgrep rules load
-   changelog
--   changelog              prints the changelog, or writes it to CHANGELOG_DIR
-+   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
 
 === full: list-scopes ===
 app
@@ -1221,7 +1217,6 @@ brnshkr
 brnshkr.actionlint
 brnshkr.arguments
 brnshkr.bun
-brnshkr.changelog
 brnshkr.commitlint
 brnshkr.common
 brnshkr.composer
@@ -1241,6 +1236,7 @@ brnshkr.php-cs-fixer
 brnshkr.phpstan
 brnshkr.phpunit
 brnshkr.rector
+brnshkr.release
 brnshkr.semgrep
 brnshkr.semver
 brnshkr.setup
@@ -1557,6 +1553,15 @@ Available commands:
    [36mFIXTURE_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
+  [35mrelease[0m
+   [36mCHANGELOG_RANGE               [0m  [90m?=                                                   (commit range the changelog covers)[0m
+   [36mCHANGELOG_URL                 [0m  [90m?=                                                   (base URL a commit hash links to)[0m
+   [36mCHANGELOG_DIR                 [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [36mCHANGELOG_TITLE               [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [36mCHANGELOG_SKIPPED_COMMITS     [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
+   [36mCHANGELOG_SKIPPED_TYPES       [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
+   [36mCHANGELOG_GROUPS              [0m  [90m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
+   [36mCHANGELOG_NAMES               [0m  [90m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
   [35msemver[0m
    [36mSEMVER_NUMBER                 [0m  [90m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [36mSEMVER_PRERELEASE_PART        [0m  [90m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
@@ -1674,15 +1679,6 @@ Available commands:
    [36mSEMGREP_MAX_AGE               [0m  [90m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [36mSEMGREP_REGISTRY              [0m  [90m?=  https://semgrep.dev/c/p                          (address [35msemgrep[0m[90m fetches its rulesets from)[0m
    [36mSEMGREP_PYTHON                [0m  [90m?=  $(_SEMGREP_RUN) python3                          (command that runs [35mpython3[0m[90m, merging [35msemgrep[0m[90m rulesets)[0m
-  [35mchangelog[0m
-   [36mCHANGELOG_RANGE               [0m  [90m?=                                                   (commit range the changelog covers)[0m
-   [36mCHANGELOG_URL                 [0m  [90m?=                                                   (base URL a commit hash links to)[0m
-   [36mCHANGELOG_DIR                 [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
-   [36mCHANGELOG_TITLE               [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
-   [36mCHANGELOG_SKIPPED_COMMITS     [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
-   [36mCHANGELOG_SKIPPED_TYPES       [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
-   [36mCHANGELOG_GROUPS              [0m  [90m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
-   [36mCHANGELOG_NAMES               [0m  [90m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [35m<scope>=<name>[0m[90m pairs, [35m_[0m[90m a space)[0m
 
 [35mFunctions:[0m
  [35mbrnshkr[0m
@@ -1751,7 +1747,6 @@ Available commands:
    [36mtest-update          [0m  [90mruns those tests and updates their snapshots[0m
    [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
    [36mci                   [0m  [90mruns [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, stopping at the first failure[0m
-   [36mpack                 [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
    [36mfixtures             [0m  [90mbuilds the fixtures this project's tests read[0m
   [35msetup[0m
    [36mstartup              [0m  [90minstalls everything and writes missing files[0m
@@ -1760,6 +1755,9 @@ Available commands:
    [36mcc                   [0m  [90mclears the named caches, or all of them[0m
    [36mfresh                [0m  [90mdeletes ignored files and runs [35mstartup[0m[90m again[0m
    [36mfresh-dry-run        [0m  [90mlists what [35mfresh[0m[90m would remove and keep[0m
+  [35mrelease[0m
+   [36mchangelog            [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
+   [36mpack                 [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
   [35mcomposer[0m
    [36mcomposer             [0m  [90mruns [35mcomposer[0m[90m[0m
    [36mcomposer-list        [0m  [90mlists the files the composer package would ship[0m
@@ -1850,8 +1848,6 @@ Available commands:
    [36msemgrep-group        [0m  [90mcounts the [35msemgrep[0m[90m findings by rule[0m
    [36msemgrep-list         [0m  [90mlists the rulesets [35msemgrep[0m[90m runs[0m
    [36msemgrep-validate     [0m  [90mchecks that the [35msemgrep[0m[90m rules load[0m
-  [35mchangelog[0m
-   [36mchangelog            [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
 
 === full: theme-symfony ===
 [33m   ___               __   __[0m
@@ -2013,6 +2009,15 @@ Available commands:
    [32mFIXTURE_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
+  [33mrelease[0m
+   [32mCHANGELOG_RANGE               [0m  [0m?=                                                   (commit range the changelog covers)[0m
+   [32mCHANGELOG_URL                 [0m  [0m?=                                                   (base URL a commit hash links to)[0m
+   [32mCHANGELOG_DIR                 [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
+   [32mCHANGELOG_TITLE               [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [32mCHANGELOG_SKIPPED_COMMITS     [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
+   [32mCHANGELOG_SKIPPED_TYPES       [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
+   [32mCHANGELOG_GROUPS              [0m  [0m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
+   [32mCHANGELOG_NAMES               [0m  [0m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
   [33msemver[0m
    [32mSEMVER_NUMBER                 [0m  [0m?=  (0|[1-9][0-9]*)                                  (a numeric identifier, which carries no leading zero)[0m
    [32mSEMVER_PRERELEASE_PART        [0m  [0m?=  (0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)     (one prerelease identifier, no leading zero when numeric)[0m
@@ -2130,15 +2135,6 @@ Available commands:
    [32mSEMGREP_MAX_AGE               [0m  [0m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [32mSEMGREP_REGISTRY              [0m  [0m?=  https://semgrep.dev/c/p                          (address [33msemgrep[0m[0m fetches its rulesets from)[0m
    [32mSEMGREP_PYTHON                [0m  [0m?=  $(_SEMGREP_RUN) python3                          (command that runs [33mpython3[0m[0m, merging [33msemgrep[0m[0m rulesets)[0m
-  [33mchangelog[0m
-   [32mCHANGELOG_RANGE               [0m  [0m?=                                                   (commit range the changelog covers)[0m
-   [32mCHANGELOG_URL                 [0m  [0m?=                                                   (base URL a commit hash links to)[0m
-   [32mCHANGELOG_DIR                 [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
-   [32mCHANGELOG_TITLE               [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
-   [32mCHANGELOG_SKIPPED_COMMITS     [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
-   [32mCHANGELOG_SKIPPED_TYPES       [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
-   [32mCHANGELOG_GROUPS              [0m  [0m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m
-   [32mCHANGELOG_NAMES               [0m  [0m?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as [33m<scope>=<name>[0m[0m pairs, [33m_[0m[0m a space)[0m
 
 [33mFunctions:[0m
  [33mbrnshkr[0m
@@ -2207,7 +2203,6 @@ Available commands:
    [32mtest-update          [0m  [0mruns those tests and updates their snapshots[0m
    [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
    [32mci                   [0m  [0mruns [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, stopping at the first failure[0m
-   [32mpack                 [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
    [32mfixtures             [0m  [0mbuilds the fixtures this project's tests read[0m
   [33msetup[0m
    [32mstartup              [0m  [0minstalls everything and writes missing files[0m
@@ -2216,6 +2211,9 @@ Available commands:
    [32mcc                   [0m  [0mclears the named caches, or all of them[0m
    [32mfresh                [0m  [0mdeletes ignored files and runs [33mstartup[0m[0m again[0m
    [32mfresh-dry-run        [0m  [0mlists what [33mfresh[0m[0m would remove and keep[0m
+  [33mrelease[0m
+   [32mchangelog            [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m
+   [32mpack                 [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
   [33mcomposer[0m
    [32mcomposer             [0m  [0mruns [33mcomposer[0m[0m[0m
    [32mcomposer-list        [0m  [0mlists the files the composer package would ship[0m
@@ -2306,6 +2304,4 @@ Available commands:
    [32msemgrep-group        [0m  [0mcounts the [33msemgrep[0m[0m findings by rule[0m
    [32msemgrep-list         [0m  [0mlists the rulesets [33msemgrep[0m[0m runs[0m
    [32msemgrep-validate     [0m  [0mchecks that the [33msemgrep[0m[0m rules load[0m
-  [33mchangelog[0m
-   [32mchangelog            [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m
 
