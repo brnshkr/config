@@ -1,33 +1,29 @@
 # Makefile [🔍](../../conf/Makefile 'Go to source')
 
-The JavaScript half of the shared [`Makefile`](../Makefile.md): one target per tool,
-present once the repository has a `package.json` and that tool is installed.
-Each reads a config under `./conf/`, overridable through `<TOOL>_CONFIG`;
-`typescript` reads the repository's own `tsconfig.json`.
-`eslint` and `vitest` take a TypeScript config where there is one,
-`./conf/<tool>.config.ts` before the `.mjs`, since both load it natively.
+The JavaScript targets of the shared [`Makefile`](../Makefile.md).
+Each one shows up once your project has a `package.json` and the tool is installed,
+the linters only when there are files for them to read.
 
-## Targets
+| Target | Description |
+| --- | --- |
+| `bun` | Runs `bun`. `bun-pack` packs your package into `./.local`. |
+| `commitlint` | Lints a commit message. |
+| `eslint` | Lints and fixes the code. |
+| `markdownlint` | Lints and fixes the Markdown. |
+| `stylelint` | Lints and fixes the styles. |
+| `typescript` | Checks the types. |
+| `vitest` | Runs the JavaScript tests. |
 
-| Target | Variants | Description |
-| --- | --- | --- |
-| `bun` | `-list`, `-pack` | Runs `bun`. `-pack` writes the package into `./.local`, `-list` names its files. |
-| `commitlint` | `-print` | Lints a commit message rather than the tree. |
-| `eslint` | `-dry-run`, `-group`, `-print` | Lints and writes its fixes. |
-| `markdownlint` | `-dry-run`, `-group` | Lints and writes its fixes. |
-| `stylelint` | `-dry-run`, `-group`, `-print` | Lints and writes its fixes. |
-| `typescript` | `-group`, `-list`, `-print` | Runs the `tsc` type check. |
-| `vitest` | `-coverage`, `-list`, `-update` | Runs the tests. |
+`make help vvv` lists each target's variants. `-list` shows what a tool would read,
+e.g. the tests `vitest` finds or the files `bun` would pack.
 
-`-list` prints what the tool would read: the files `bun` would pack, the tests `vitest` collects, the files
-the `tsc` project includes.
-The other suffixes are the shared ones, described in [Makefile](../Makefile.md).
+Each tool reads its config from `./conf/`, e.g. `./conf/eslint.dist.mjs`, and the package's default if you have none.
+ESLint and Vitest read `./conf/eslint.ts` and `./conf/vitest.ts` first. `typescript` uses your `tsconfig.json`.
 
-`markdownlint` and `stylelint` are handed a glob built from `<TOOL>_EXTENSIONS`,
-and `eslint` uses its own to decide which files a config is worth writing.
-Each follows the packages that are installed, so a repository without `stylelint-config-html` gets no `.svelte` or `.vue`.
+Without arguments `commitlint` lints `.git/COMMIT_EDITMSG`, the message you are committing,
+or the last commit on a fresh clone.
+To lint more, pass a range:
 
-Given no arguments `commitlint` reads `.git/COMMIT_EDITMSG`, where the `commit-msg` hook leaves the message being written;
-a fresh checkout has none, so `HEAD`'s message is linted instead.
-That is what lets one target serve `check` and `ci` alike.
-A range is passed as arguments.
+```sh
+make commitlint COMMITLINT_RANGE=origin/master..HEAD
+```

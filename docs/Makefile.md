@@ -1,230 +1,114 @@
 # Makefile [🔍](../conf/Makefile 'Go to source')
 
-The package ships one `Makefile`, included from your own, that turns a repository into a task runner for both stacks.
-It contributes a target for every tool the repository actually has, a generated `make help` and argument forwarding,
-and declares nothing else. Per-stack pages: [JavaScript](./js/Makefile.md) and [PHP](./php/Makefile.md).
+A shared `Makefile` for both stacks. Include it and you get a target for every tool your project uses,
+a `make help` that lists them, and anything you type after a target is passed on to the tool.
+The tool targets are listed per stack: [JavaScript](./js/Makefile.md) and [PHP](./php/Makefile.md).
+
+## Setup
+
+Copy the starter once and let it set up the rest:
+
+```sh
+cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile \
+  && make startup
+```
+
+In a JavaScript project the starter is `./node_modules/@brnshkr/config/conf/Makefile.dist`.
+On a fresh clone, a plain `make` installs your dependencies and runs `make startup` for you.
+
+## Usage
+
+```sh
+make help                               # everything you can run, add v, vv or vvv for more
+make help phpstan                       # only what belongs to phpstan
+make check                              # every linter and analyzer, without changing files
+make fix                                # every fixer, writing its fixes
+make test                               # every stack's tests
+make ci                                 # check, audit and test, stopping at the first failure
+make phpstan src/User                   # anything after a target goes to the tool
+make phpunit -- --filter 'User|Email'   # flags go after --
+make -j check                           # runs the tools in parallel
+```
+
+Most tool targets have variants like `eslint-dry-run` or `phpstan-print`; `make help vvv` lists them all.
+An argument with a space in it has to go through `ARGS`: `make phpunit ARGS="--filter 'a b'"`.
+
+## Customizing
+
+Every tool has three variables: its command, its config and its flags,
+e.g. `PHP_STAN`, `PHP_STAN_CONFIG` and `PHP_STAN_FLAGS`.
+`make help vvv` lists all variables and `make help resolve` shows their values.
+
+Set your own values above the `include` and append to the shipped ones below it:
 
 ```Makefile
 # ./Makefile
 
-STARTUP_TARGETS := build
+STARTUP_TARGETS := seed
 
 include ./vendor/brnshkr/config/conf/Makefile
+
+PHP_STAN_FLAGS += --xdebug
+
+#-- acme
+
+email-send: #~~ sends a test email, e.g. make email-send info@acme.com welcome
+	$(RUN) bin/console acme:email:send $(ARG1) $(ARG2)
+
+seed: #~~ fills the database #env=dev|test
+	$(RUN) bin/console acme:user:seed $(ARGS)
 ```
 
-For a JavaScript package the path is `./node_modules/@brnshkr/config/conf/Makefile`.
+`#--` starts a section in `make help` and `#~~` describes a target. `#env=` only allows a target in those environments.
+If one of your targets has the same name as a shared one, yours wins and the shared one becomes `brnshkr-<name>`.
+You can also put targets into any `*.mk` file in `./conf/make/`, or in `./.local/` for ones you don't commit.
 
-Neither path resolves before that stack is installed, so [`./conf/Makefile.dist`](../conf/Makefile.dist)
-guards the include and adds a `bootstrap` target that installs and runs `startup`. Copy it to `./Makefile`.
+To change the shared help, add `#---! brnshkr.theming` to show a section by default, `#---!! brnshkr.theming`
+to only show it when named, or `#~~! phpstan-debug` to do the same for a single target.
 
-`make startup` installs each stack, writes any file the repository is missing and runs `STARTUP_TARGETS`.
-After that, `make` on its own prints the help.
+Each tool reads `./conf/<tool>.dist.<ext>` if you have one, and the package's default otherwise.
+`make configs --tools` writes them for you. Settings only you want go into `./conf/<tool>.<ext>`,
+which git ignores and which is read first.
 
-## Targets
-
-`make help` lists what the repository can run: the PHP targets need a `composer.json`, the JavaScript ones
-a `package.json`, and each tool's own appear once that tool is installed and the repository has files it reads.
-Add `v`, `vv` or `vvv` for more, or a scope to narrow it, e.g. `make help phpstan` or `make help brnshkr.phpstan`.
-`make help ls` lists the scopes with something to show at that verbosity,
-`make help resolve` prints what each variable expands to, beside the environment file, `env` or `cli` that gave it,
-and `make help env` what the Makefiles export, then what each environment file set and what replaced it.
-Every `help` argument also runs as a target of its own, so `make ls` is `make help ls`.
-Across both stacks:
-
-| Target | Description |
-| --- | --- |
-| `startup` | Installs each stack, writes any missing file, then runs `STARTUP_TARGETS`. |
-| `fix` | Runs every fixer and writes its fixes. |
-| `check` | Runs every fixer and analyzer without writing anything. |
-| `audit` | Checks every stack's locked dependencies for known advisories, run by `ci` too; `composer-audit` and `bun-audit` check one. `COMPOSER_AUDIT_FLAGS` and `BUN_AUDIT_FLAGS` take ignores or a severity floor. |
-| `test` | Runs every stack's tests. |
-| `ci` | Runs `CI_TARGETS` in order — `check`, `audit`, then `test`, unless set to include `fix` first. |
-| `test-update` | Runs them and updates their snapshots. |
-| `configs` | Writes any file the repository is missing, `--tools` each tool's config too. Name some, or their files, to write only those, `--force` to overwrite. |
-| `pack` | Packs every stack's package into `./.local`. |
-| `changelog` | Prints the changelog for `CHANGELOG_RANGE`, or writes it into `CHANGELOG_DIR`. |
-| `coverage` | Runs the tests with coverage and fails below `<TOOL>_MIN_COVERAGE`. |
-| `group` | Runs every tool that reports identifiers and counts its findings by them, failing only when a tool reports nothing. Each identifier links its first finding beside a message cut to the terminal's width; `V=1` shows the whole message and lists ten locations under it, `V=2` all. |
-| `cc` | Removes the caches of the tools or files named, or all of them after asking. |
-| `fresh` | Removes every ignored file but `FRESH_KEEP` and the private half of each tracked `.dist` file, then reinstalls and runs `startup`, asking first. Untracked files and nested repositories stay too; `--all` removes everything. `--force` skips the question. Needs a commit to reset to. |
-| `fresh-dry-run` | Lists what `fresh` would remove and keep. |
-
-`make -j` runs tools in parallel, keeping fixers that write the same files in order and every tool in color.
-A verb names each target before running it and carries on past a failing one.
-`ci` stops at its first failed step.
-
-A tool's target takes suffixes, the same ones on both stacks:
-`-dry-run` writes nothing,
-`-list` prints what the tool would read,
-`-print` its resolved configuration,
-`-group` its findings counted by identifier,
-`-debug` runs it verbosely,
-`-validate` checks that the rules a tool reads still load,
-`-update` rewrites snapshots
-and `-coverage` measures how much of the source the tests reach.
-`make help` names the ones each tool has.
-
-Anything after a target reaches the tool, so `make phpstan src/Service` and `make composer require symfony/finder`
-both work. A word that is itself a target is run as one, except after `help`, `configs` or `cc`,
-where every word is a name: `make cc phpstan` clears one cache and runs nothing else,
-and a target of your own there is refused. Several targets run in the order given and stop at the first failure,
-`make -k` runs the rest.
-Make reads a word starting with a dash as one of its own options, so flags go behind `--`:
-`make phpunit -- --filter Name`, or `--filter=Name`. Any other `name=value` sets a variable, as `DEBUG=1` does.
-A target of your own reads its arguments as `ARGS`, one at a time as `ARG1` through `ARG9`,
-and `TARGET` names the target they followed. Each one is quoted, so `make phpunit -- --filter 'A|B'`
-reaches the tool rather than the shell. Make splits its command line on spaces before any of this runs,
-so an argument that contains one has to come in as `make phpunit ARGS="--filter 'a b'"`.
-
-## Configuration
-
-Every tool is three variables
-— the command, its config path and its flags, as in `PHP_STAN`, `PHP_STAN_CONFIG` and `PHP_STAN_FLAGS`.
-`make help vvv` lists all of them with what each one does. Set any of them either side of the include; yours wins.
-
-| Variable | Description |
-| --- | --- |
-| `STARTUP_TARGETS` | The repository's own steps, run last by `startup`. |
-| `FIXTURE_TARGETS` | The repository's own steps, run by `fixtures` to build what its tests read. |
-| `CHECK_TARGETS`, `FIX_TARGETS`, `GROUP_TARGETS`, `TEST_TARGETS` | The repository's own steps, run by that verb. |
-| `APP_SERVICE` | Compose service the tools run in. Empty runs them on this machine. |
-| `APP_SERVICE_MODE` | `run` for a throwaway container per command. |
-| `RUN` | Prefix the tools run through, built from `APP_SERVICE`. |
-| `APP_DIR` | Where the tools see the sources: the service's `working_dir`. |
-| `COMPOSE_FILE` | Compose files instead of the repository's, colon-separated. |
-| `TARGET_ALIASES` | Short names for targets, as `<alias>=<target>`. `h`, and `-h` behind a `--`, both reach `help`. |
-| `TARGET_PREFIX` | Namespaces every shared target. Set it above the include. |
-| `COLLISION_PREFIX` | Namespaces a shared target whose name the repository already uses. Set it above the include. |
-| `DOTENV` | Base path of the environment files, or `0` to load none. Set it above the include. |
-| `PHONY` | Marks every target, the repository's own included. `shared` leaves those unmarked, `0` marks none. Set it above the include. |
-| `VENDOR`, `PACKAGE` | What the header and log lines say. Read from the manifest when unset. |
-| `VERSION` | What the header shows. `0.0.0-dev` until the repository sets it. |
-| `PHP_UNIT_EXCLUDED_GROUPS` | Test groups the runner leaves out, listed before each run. |
-| `CONFIG_DIR`, `CACHE_DIR`, `LOCAL_DIR` | Where the project keeps its tool configs, caches and private files: `./conf`, `./.cache` and `./.local` by default; `cc` clears the caches. Set them above the include. |
-| `FRESH_KEEP` | What `fresh` leaves alone: `./.local`, `*.local` and `*.local.*` files, editor and agent directories. Add a pattern with `+=` below the include, drop one with `FRESH_KEEP := $(filter-out /.idea/,$(FRESH_KEEP))`. |
-| `CONFIG` | `local` or `dist` to pin which config every tool reads, instead of the first that is there; the current stage's file of that half still wins. |
-| `DEBUG`, `TRACE` | `DEBUG` echoes each command, `TRACE` every recipe line. Both make Composer (`-v`, `-vvv` under `TRACE`) and `bun install` verbose. |
-| `ANNOUNCEMENT` | What a verb prints before each target it runs, `%s` being the target. Empty silences it. |
-| `NO_COLOR`, `FORCE_COLOR`, `CLICOLOR`, `CLICOLOR_FORCE` | Colors, on a terminal or in CI by default. [`NO_COLOR`](https://no-color.org), `CLICOLOR=0` and `TERM=dumb` turn them off, [`FORCE_COLOR`](https://force-color.org) and `CLICOLOR_FORCE` on; off wins. |
-| `LOGO`, `THEME`, `EDITOR`, `EDITOR_URL` | How output is printed and where its links point. Empty disables the logo or the links. `EDITOR` is detected when unset, and one inherited from the shell naming another editor is ignored rather than rejected. |
-
-A flag is off when it is empty, `0`, `false`, `off` or `no`, and on for anything else.
-`SEMVER_REGEX`, and the four parts it is built from, are there for a repository that has to match a version string itself.
-Every tool reads the first config that is there, looking in `./.local/conf/<stack>`, `./.local/conf`,
-`./.local/<stack>`, `./.local`, `./conf/<stack>` and `./conf`, then either installation of the package.
-`<stack>` is `php` or `js`, and within a directory `<tool>.<extension>` comes before the tracked
-`<tool>.dist.<extension>`.
-Each name is tried for the current stage first, the value of `DOTENV_ENV_KEY`:
-`phpstan.prod.php` and `phpstan.prod.dist.php` come before both plain names when `APP_ENV` is `prod`,
-and a stage without either reads the plain config.
-So a repository tracks the `.dist` file and edits that,
-a developer who wants private settings adds the undotted one
-— which should delegate to the tracked file rather than restate it —
-and a repository content with the shipped defaults keeps neither.
-`<TOOL>_CONFIG` set by hand skips the search, and `CONFIG=local` or `CONFIG=dist` pins it for every tool
-at once — which is how a developer with a private file checks what the gate will read.
-
-`make configs` keeps the package's part of each file between `###> brnshkr/config ###` markers,
-refreshed on every run. Everything outside them stays the repository's own and comes after, so it wins.
-
-| File | Package part |
-| --- | --- |
-| `.gitignore` | caches, dependencies, build output and private configs of what is installed, for every stage |
-| `.gitattributes` | line endings and binaries, plus export rules from the autoload roots and `ARCHIVE_EXTRA_PATHS` |
-| `.editorconfig`, VS Code settings and extensions | defaults for the stacks in use; tool config paths follow `<TOOL>_CONFIG`, binary paths and excludes the configured directories, the Svelte extension while `svelte` is installed, `css.customData` lists every tracked `.vscode/*.css-data.json` |
-| `bunfig.toml` | Bun's defaults, ending in `[install]`: install keys and other tables go below it, top-level keys above |
-| `.vscode/tailwind.css-data.json` | the whole file, while Tailwind is installed |
-| `./Makefile` copied from `./conf/Makefile.dist` | its two marked parts, around the repository's own targets |
-
-`--tools` also writes each tool's tracked config, `--local` its private half too; `--force` overwrites without asking.
-A name writes that config, a file name exactly that file: `make configs phpstan.php` is the private half alone.
-
-## Changelog
-
-`make changelog` prints one release from `git log`, newest first, installing nothing.
-Headings are the **scope root** rather than the commit type, and a nested scope becomes a sub-heading
-— `js/eslint/rule` reads as `rule` under `ESLint` under `☕ JS`.
-Every argument takes a short form and works without dashes: `--all`, `-a`, `all` and `a` are the same.
-
-| Argument | Does |
-| --- | --- |
-| none | the commits since the last tag |
-| `--all` | every release, one section each |
-| `--write` | merges into `CHANGELOG_DIR` rather than printing |
-| `--notes` | a release body: no version heading, ending in the compare link |
-| `--force` | with `--write`, rebuilds each section's version line, headings and entries from git; your notes follow its entries |
-
-`--write` merges into `changelog/<major>.x.md`:
-your notes stay, a missing commit lands after the last entry of its group, and a missing title is restored.
-Below `1.0.0` it asks first.
-Breaking commits are never skipped.
+`make configs` also keeps a block between `###> brnshkr/config ###` markers up to date in files like
+`.gitignore`, `.editorconfig` and the VS Code settings. Everything outside that block is yours.
 
 ## Containers
 
-With a compose file, the tools run in its `app` service, started on first use:
+If your project has a compose file, the tools run in its `app` service. Set `APP_SERVICE` above the include
+to use another one, or leave it empty to run everything on your machine:
 
 ```Makefile
-APP_SERVICE := tools
+# ./Makefile
+
+APP_SERVICE := php
+
+include ./vendor/brnshkr/config/conf/Makefile
+
+user-import: #~~ imports users
+	$(RUN) bin/console acme:user:import
+
+email-queue: #~~ lists queued emails
+	$(call run_in,worker) bin/console acme:email:queue
 ```
 
-Paths map back to your checkout, and inside the container make runs everything directly.
-Declared `.env` keys travel with each command by name, so their values stay out of `DEBUG` output and `ps`;
-command-line variables travel with their value, and terminal settings such as `COLUMNS` only when they hold one.
-The compose file itself may interpolate any key the environment files set, `.env.local` and stage files included.
-Own recipes take `$(RUN)`, another service `$(call run_in,<service>)`.
-A tool kept out of the project's image runs in a service of its own, started fresh for each command:
-`semgrep` in `SEMGREP_SERVICE`, `eslint-inspect` in `NODE_SERVICE`.
-Their targets appear only where the compose file has that service, profiled or not.
-`hadolint` and `actionlint` run in `APP_SERVICE`, or in `HADOLINT_SERVICE` and `ACTIONLINT_SERVICE`
-where the compose file has them. Such a service needs an image with a shell and no entrypoint:
-`hadolint/hadolint:<version>-alpine`, or `rhysd/actionlint` with `entrypoint: []`.
-`eslint-inspect` and `bun-inspect` publish `ESLINT_CONFIG_INSPECTOR_PORT` and `NODE_MODULES_INSPECTOR_PORT`
-on this machine's loopback, for that command alone.
-
-| Target | Does |
-| --- | --- |
-| `up`, `down`, `ps` | starts, stops and lists the services |
-| `shell`, `exec` | a shell, a command in `APP_SERVICE` |
-| `<service>-shell`, `-logs`, `-exec`, `-build` | a shell, the log, a command in that service, its image |
-
-`up`, `down`, `-build` and `-logs` take their flags from `COMPOSE_UP_FLAGS` and its siblings,
-`SERVICE_SHELL` names the shell.
+`$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.
+`make up`, `make down`, `make shell` and `make <service>-logs` manage the services.
 
 ## Environment files
 
-A `.env` is loaded the way `symfony/dotenv` loads it, so one set of files serves PHP, make and anything make runs.
+Loaded the same way `symfony/dotenv` does: `.env`, `.env.local`, `.env.<APP_ENV>` and `.env.<APP_ENV>.local`.
+Later files win, and a real environment variable beats all of them.
+Every tracked `.env.<stage>` also gives you `<stage>-<target>`, so `make prod-check` runs `check` with `APP_ENV=prod`.
 
-- Load order is `.env`, `.env.local`, `.env.<APP_ENV>`, `.env.<APP_ENV>.local`.
-  Later wins, and a real environment variable beats all. `DOTENV_ENV_KEY` renames the variable.
-- `.env` is tracked and holds what is true everywhere.
-  A repository that would rather not track it ships `.env.dist` instead, read only when `.env` is absent.
-- One `.env.<environment>` per environment may be tracked, each with its own untracked `.env.<environment>.local`.
-  `DOTENV_DEFAULT_ENV` is the environment assumed when the variable is unset, and `DOTENV_TEST_ENVS`
-  lists every environment that skips `.env.local` — a test run has to be reproducible — while still
-  reading its own `.env.<environment>.local`.
-- Syntax follows Symfony's parser, except `$(command)`, which is refused.
-  `${NAME}`, `$NAME`, `${NAME:-default}` and `${NAME:=default}` resolve once every file is read,
-  so `.env` may refer to a key only `.env.local` sets. A key referring to itself reads its value from an earlier file.
-- Every tracked `.env.<environment>` also gives you `<environment>-<target>`, so `make prod-check` is
-  `make APP_ENV=prod check`. `.env.local` and any `.example` are not environments.
+## Changelog
 
-## Your own targets
+`make changelog` builds the changelog from your commit messages, grouped by scope.
 
-Write them in any `Makefile` or `*.mk` at the root or under `./conf/`, `./conf/make/`, `./.local/`, `./.local/make/`,
-`./.local/conf/` or `./.local/conf/make/`.
-They are read in that order, so `./.local/` overrides what the repository ships.
-
-Reusing a name is fine: yours keeps it and the shared one moves aside,
-so a `check` of your own leaves `brnshkr-check` beside it.
-Should that name be taken too, the shared one is numbered — `brnshkr-check-1` — and `make help` names it.
-`TARGET_PREFIX := brnshkr` moves all of them aside at once,
-making `make check` into `make brnshkr-check`;
-the separator is added for you and your own targets keep their names.
-
-Your own Makefile can reshape the shared help: `#---! brnshkr.theming` shows that scope by default,
-`#---vv! brnshkr.theming` from `vv`, `#---!! brnshkr.theming` only when named.
-`#~~! phpstan-debug` does the same for a target, variable or function.
-The most specific line wins; unknown names, wrong depths and duplicates fail `make help`.
-
-`seed: #~~ fills the database #env=dev|test` ties a target to environments, and `#---env=prod deployment` a whole scope;
-`#v&env=prod` adds a verbosity. Elsewhere `make help` hides them and running such a target fails.
+```sh
+make changelog              # commits since the last tag
+make changelog all          # every release
+make changelog write        # into ./changelog/<major>.x.md, keeping your own notes
+make changelog notes        # as a release body, ending in the compare link
+make changelog write force  # rebuilds each section from git
+```
