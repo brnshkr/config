@@ -92,6 +92,9 @@ email-queue: #~~ lists queued emails
 	$(call run_in,worker) bin/console acme:email:queue
 ```
 
+The starter installs JavaScript in `JS_SERVICE`, which is `APP_SERVICE` unless you set it. Leave it empty
+when your JavaScript tools run on your machine.
+
 `$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.
 `make up`, `make down`, `make shell` and `make <service>-logs` manage the services.
 
