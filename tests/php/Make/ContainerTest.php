@@ -239,6 +239,29 @@ final class ContainerTest extends TestCase
         self::assertStringContainsString(self::getContainerPath(), $exec);
     }
 
+    public function testExecHandsATargetNameToTheCommandRatherThanRunningIt(): void
+    {
+        $result = $this->runMakeIn(self::MODE_EXEC, ['exec', '--', 'echo', 'help']);
+
+        self::assertMatchesRegularExpression('/^help$/m', $result);
+        self::assertStringNotContainsString('Usage:', $result);
+    }
+
+    public function testExecWithoutACommandIsRefusedBeforeEnteringTheService(): void
+    {
+        foreach (['exec', self::SERVICE . '-exec'] as $target) {
+            $result = $this->runMake(
+                [$target],
+                self::getContainerEnvironment(),
+                self::CONTAINER_DIRECTORY,
+                doExpectFailure: true,
+            );
+
+            self::assertStringContainsString(sprintf('`%s` needs a command', $target), $result);
+            self::assertStringNotContainsString('PATH=', $result);
+        }
+    }
+
     /**
      * @param self::MODE_* $mode
      */

@@ -130,6 +130,26 @@ final class ArgumentsTest extends TestCase
         self::assertStringNotContainsString('--second=OME', $result);
     }
 
+    public function testAPassthroughTargetHandsEveryWordAfterItToItsProgram(): void
+    {
+        $result = $this->runMake(['bun', '--', 'x', 'eslint', '--fix'], ['BUN' => 'echo bun'], self::PROJECT_DIRECTORY);
+
+        self::assertSame("bun x eslint --fix\n", $result);
+    }
+
+    public function testAProjectTargetAfterAPassthroughTargetIsRefusedBeforeAnythingRuns(): void
+    {
+        $result = $this->runMake(
+            ['bun', '--', 'run', 'build'],
+            ['BUN' => 'echo bun'],
+            self::PROJECT_DIRECTORY,
+            doExpectFailure: true,
+        );
+
+        self::assertStringContainsString('`build` is a target of this project, so it cannot follow `bun`', $result);
+        self::assertStringNotContainsString('tsdown', $result);
+    }
+
     public function testAFileArgumentRunsWithoutMakeReportingIt(): void
     {
         $result = $this->runMake(['consumer-arguments', '.', '../Consumer'], directory: self::CONSUMER_DIRECTORY);

@@ -1171,13 +1171,53 @@ define _get_alias_target
 $(strip $(foreach PAIR,$(TARGET_ALIASES),$(if $(filter $(firstword $(subst =, ,$(PAIR))),$(patsubst -%,%,$1)),$(lastword $(subst =, ,$(PAIR))))))
 endef
 
+#**
+#* Whether a goal hands every word after it to the program it runs.
+#*
+#* parameters:
+#*   goal: string
+#*
+#* returns: bool
+#*
+define _is_passthrough_goal
+$(or $(filter $(foreach NAME,bun composer exec shell,$(call _target,$(NAME))),$(call _get_goal,$1)),$(if \
+	$(call _get_goal,$1),,$(filter $(_TARGET_PREFIX)%-exec $(_TARGET_PREFIX)%-shell,$1)))
+endef
+
+#**
+#* The words up to the first passthrough goal, that goal included, or every word without one.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _get_passthrough_lead
+$(eval _gpl_is_done :=)$(foreach WORD,$1,$(if $(_gpl_is_done),,$(WORD)$(if \
+	$(call _is_passthrough_goal,$(WORD)),$(eval _gpl_is_done := 1))))
+endef
+
+#**
+#* The words after the first passthrough goal, which reach its program rather than run.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _get_passthrough_words
+$(wordlist $(words _ $(call _get_passthrough_lead,$1)),$(words $1),$1)
+endef
+
 _FIRST_GOAL        := $(firstword $(foreach GOAL,$(MAKECMDGOALS),$(if $(filter $(_ALL_TARGETS),$(GOAL))$(call _get_alias_target,$(GOAL)),$(GOAL))))
 _NAMING_GOAL       := $(filter $(foreach NAME,help configs cc $(_HELP_WORD_TARGETS),$(call _target,$(NAME))),$(call _get_goal,$(or $(call _get_alias_target,$(_FIRST_GOAL)),$(_FIRST_GOAL))))
-_NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)))
+_PASSTHROUGH_LEAD  := $(if $(_NAMING_GOAL),,$(call _get_passthrough_lead,$(MAKECMDGOALS)))
+_PASSTHROUGH_GOAL  := $(if $(call _is_passthrough_goal,$(lastword $(_PASSTHROUGH_LEAD))),$(lastword $(_PASSTHROUGH_LEAD)))
+_NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)),$(if $(_PASSTHROUGH_GOAL),$(call _get_passthrough_words,$(MAKECMDGOALS))))
 _NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subst =, ,$(PAIR)))),$(_NAME_GOALS))
 _NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
 
-TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(MAKECMDGOALS))))#~~ the first target of this run
+TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(_PASSTHROUGH_LEAD))))#~~ the first target of this run
 ARG1    = $(call _shell_quoted,$(word 1,$(_ARGS)))#~~ the running target's first argument, and so on to `ARG9`
 ARG2    = $(call _shell_quoted,$(word 2,$(_ARGS)))
 ARG3    = $(call _shell_quoted,$(word 3,$(_ARGS)))
@@ -1198,7 +1238,10 @@ _ARGS = $(strip $(if $(filter command line,$(origin ARGS)) \
 	,$(_COMMAND_LINE_ARGS), \
 	$(if $(_NAMING_GOAL) \
 		,$(filter-out $(_FIRST_GOAL) --,$(_GOAL_WORDS)), \
-		$(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS))) \
+		$(if $(and $(_PASSTHROUGH_GOAL),$(filter $(_PASSTHROUGH_GOAL),$(_GOAL))) \
+			,$(call _get_passthrough_words,$(_GOAL_WORDS)), \
+			$(filter-out $(_ALL_TARGETS),$(call _collect_args,$(_GOAL),$(_GOAL_WORDS))) \
+		) \
 	) \
 ))
 
@@ -1529,8 +1572,8 @@ $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
 	$(TRACE_PREFIX)$(if $(FIXTURE_TARGETS),:,$(call log,No fixture to build.,$(COLOR_NOTICE)))
 	$(DEBUG_PREFIX)$(if $(FIXTURE_TARGETS),$(MAKE) $(_VERB_FLAGS) --no-keep-going $(FIXTURE_TARGETS),:)
 
-_FILE_GOALS := $(if $(_NAMING_GOAL),,$(wildcard $(filter-out $(_ALL_TARGETS),$(MAKECMDGOALS))))
 _NAME_WORDS := $(strip $(foreach WORD,$(filter-out $(_ALL_TARGETS),$(_NAME_GOALS)),$(if $(findstring %,$(WORD))$(findstring :,$(WORD))$(findstring /,$(WORD)),,$(WORD))))
+_FILE_GOALS := $(if $(_NAMING_GOAL),,$(wildcard $(filter-out $(_ALL_TARGETS) $(_NAME_WORDS),$(MAKECMDGOALS))))
 
 ifneq ($(_FILE_GOALS),)
 .PHONY: $(_FILE_GOALS)
@@ -1576,7 +1619,7 @@ ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /collisions
 ifneq ($(_NAMED_OWN_TARGETS),) # own names
-	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(_FIRST_GOAL)')$(_NEWLINE))
+	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(or $(_PASSTHROUGH_GOAL),$(_FIRST_GOAL))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(if $(word 2,$(_NAMED_OWN_TARGETS)), \
 		$(call log,Run them in make calls of their own$(_COMMA) or pass them as `ARGS="%s"`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'), \
 		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
@@ -2014,7 +2057,7 @@ $(call _target,ps): #~~ lists what is running
 $(call _target,shell): $(_TARGET_PREFIX)$(APP_SERVICE)-shell #~~ opens a shell in `APP_SERVICE`
 $(call _target,shell): _GOAL := $(call _target,shell)
 
-$(call _target,exec): $(_TARGET_PREFIX)$(APP_SERVICE)-exec #~~ runs a command in `APP_SERVICE`
+$(call _target,exec): $(_TARGET_PREFIX)$(APP_SERVICE)-exec #~~ runs a command in `APP_SERVICE`, flags after `--`, quoted words through `ARGS`
 $(call _target,exec): _GOAL := $(call _target,exec)
 
 _SERVICE_ARGS = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
@@ -2026,6 +2069,10 @@ $(_TARGET_PREFIX)%-logs:
 	$(DEBUG_PREFIX)$(_COMPOSE) logs $(COMPOSE_LOGS_FLAGS) $* $(_SERVICE_ARGS)
 
 $(_TARGET_PREFIX)%-exec:
+	$(TRACE_PREFIX)$(if $(_SERVICE_ARGS),:,{ \
+		$(call log,`%s` needs a command$(_COMMA) pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	})
 	$(DEBUG_PREFIX)$(call run_in,$*) $(_SERVICE_ARGS)
 
 $(_TARGET_PREFIX)%-build:

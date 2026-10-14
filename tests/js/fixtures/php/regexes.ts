@@ -219,6 +219,11 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /^\s+BRNSHKR_LOCAL_DIR\s+private$/mv,
   },
   {
+    file: 'tests/php/Make/ContainerTest.php',
+    php: String.raw`/^help$/m`,
+    regex: /^help$/mv,
+  },
+  {
     file: 'tests/php/Make/DotenvTest.php',
     php: String.raw`/^Exported:$/m`,
     regex: /^Exported:$/mv,
