@@ -5,3 +5,8 @@ self-hosted-runner:
 
 config-variables:
   - RUNNER_IMAGE
+
+paths:
+  .github/workflows/*.{yaml,yml}:
+    ignore:
+      - property "workflow_sha" is not defined
