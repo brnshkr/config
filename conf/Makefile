@@ -2082,10 +2082,10 @@ PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
 
 COMPOSER              ?= $(RUN) composer#v #~~ command that runs `composer`
 unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
-COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
+COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
 COMPOSER_AUDIT_FLAGS  ?= --locked#vv #~~ additional flags passed to `composer audit`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
-_COMPOSER_INSTALL      = $(COMPOSER) install $(COMPOSER_FLAGS)
+_COMPOSER_INSTALL      = $(COMPOSER) install $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(COMPOSER_FLAGS)
 
 $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)

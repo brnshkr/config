@@ -119,6 +119,16 @@ final class ToolsTest extends TestCase
         self::assertMatchesRegularExpression('/\nLoaded \d+ rules\n$/', $result);
     }
 
+    public function testComposerRunsACommandThatTakesNoInstallOptions(): void
+    {
+        $result = $this->runMake(
+            ['composer', '--', 'show', '--self', '--name-only'],
+            directory: self::PROJECT_DIRECTORY,
+        );
+
+        self::assertSame("brnshkr/config\n", $result);
+    }
+
     public function testEveryPestTargetRefusesWhenPestIsNotInstalled(): void
     {
         foreach (['pest', 'pest-debug', 'pest-list', 'pest-update', 'pest-coverage'] as $target) {

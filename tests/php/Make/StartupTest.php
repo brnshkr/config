@@ -28,7 +28,7 @@ final class StartupTest extends TestCase
             directory: $startupDirectory,
         );
 
-        self::assertStringContainsString('composer install', $result);
+        self::assertStringContainsString('composer install --no-progress', $result);
         self::assertStringContainsString('bun install', $result);
         self::assertStringContainsString("Running `startup-own`\nstartup-own\n", $result);
     }
