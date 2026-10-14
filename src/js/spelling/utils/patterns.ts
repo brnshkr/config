@@ -9,7 +9,9 @@ import type { SpellingPattern, SpellingSettings } from '#spelling/types/options.
 
 export const buildPatterns = (settings: SpellingSettings): SpellingPattern[] => [
   ...objectEntries(settings.britishSpellings).map(([britishSpelling, americanSpelling]) => (<const>{
-    pattern: createPattern('giv')`\b${britishSpelling}\w*`,
+    pattern: americanSpelling.startsWith(britishSpelling)
+      ? createPattern('giv')`\b${britishSpelling}(?!${americanSpelling.slice(britishSpelling.length)})\w*`
+      : createPattern('giv')`\b${britishSpelling}\w*`,
     toAmericanSpelling: (word) => americanSpelling + word.slice(britishSpelling.length),
   } satisfies SpellingPattern)),
   ...settings.britishStems.map((britishStem) => (<const>{

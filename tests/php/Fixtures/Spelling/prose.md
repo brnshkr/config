@@ -11,3 +11,5 @@ A bare analyse here is allowed, because the literal names this line.
 A bare analyse here is not, because the literal names line nine only.
 
 A synthetic analysoid keeps this test independent of the shipped suffixes.
+
+Fulfill, fulfilled and FULFILLS are American already, a fulfilment is not.

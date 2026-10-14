@@ -404,10 +404,17 @@ final class Spelling
         $patterns = [];
 
         foreach ($britishSpellings as $britishSpelling => $americanSpelling) {
+            $britishText  = (string) $britishSpelling;
+            $americanText = is_string($americanSpelling) ? $americanSpelling : '';
+
+            $americanLookahead = Str::startsWith($americanText, $britishText)
+                ? '(?!' . Str::quoteRegex(Str::trimPrefix($americanText, $britishText)) . ')'
+                : '';
+
             $patterns[] = [
-                'pattern'        => '/\b' . Str::quoteRegex((string) $britishSpelling) . '\w*/i',
-                'britishPrefix'  => (string) $britishSpelling,
-                'americanPrefix' => is_string($americanSpelling) ? $americanSpelling : '',
+                'pattern'        => '/\b' . Str::quoteRegex($britishText) . $americanLookahead . '\w*/i',
+                'britishPrefix'  => $britishText,
+                'americanPrefix' => $americanText,
             ];
         }
 

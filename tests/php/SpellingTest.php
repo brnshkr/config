@@ -85,6 +85,19 @@ final class SpellingTest extends TestCase
         self::assertContains(11, $lines, '"analyse:9" must not reach line eleven');
     }
 
+    public function testLeavesAWordThatStartsWithTheAmericanSpelling(): void
+    {
+        $suggestions = [];
+
+        foreach ($this->scanCorpus() as $finding) {
+            if ($finding['path'] === 'tests/php/Fixtures/Spelling/prose.md' && $finding['line'] === 15) {
+                $suggestions[] = $finding['suggestion'];
+            }
+        }
+
+        self::assertSame(['fulfillment'], $suggestions);
+    }
+
     public function testSkipsAWordCoveredByAnAllowedLiteral(): void
     {
         foreach ($this->scanCorpus() as $finding) {
