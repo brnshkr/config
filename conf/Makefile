@@ -2103,6 +2103,21 @@ ifeq ($(COMPOSE_FILE),)
 unexport COMPOSE_FILE
 endif
 
+_TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(_DOTENV_STAGES))))
+
+#**
+#* Runs a goal again with the environment key set to a stage, handing on the arguments this run collected.
+#*
+#* parameters:
+#*   stage: string
+#*   goal: string
+#*
+#* returns: string
+#*
+define _run_in_stage
+$(_DOTENV_RESET)$(MAKE) $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $2 $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS))
+endef
+
 #**
 #* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.
 #*
@@ -2116,8 +2131,7 @@ $1-%: _SUGGESTED_FOR = $$*
 $1-%:
 	$$(TRACE_PREFIX)$$(if $$(call _get_goal,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
 		$$(call _suggest,$1-))
-	$$(DEBUG_PREFIX)$$(if $$(call _get_goal,$$*),$$(_DOTENV_RESET)$$(MAKE) $$(_MAKE_FLAGS) $$(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $$* \
-		$$(if $$(_UNKNOWN_ARGS),-- $$(_UNKNOWN_ARGS)),:)
+	$$(DEBUG_PREFIX)$$(if $$(call _get_goal,$$*),$$(call _run_in_stage,$1,$$*),:)
 endef
 
 $(foreach STAGE,$(_DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
@@ -2220,15 +2234,23 @@ $(call _target,pest-update): PHP_UNIT = $(PEST)
 $(call _target,pest-update): _GOAL := $(call _target,pest-update)
 
 $(call _target,phpunit): #~~ runs the PHP tests
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(_DEBUG_FLAG) $(ARGS))
+endif # /test stage
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much source they reach #v
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
+endif # /test stage
 
 $(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information, not progress #vvv
 $(call _target,phpunit-debug): _GOAL := $(call _target,phpunit-debug)
@@ -2238,8 +2260,12 @@ $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(ARGS) --list-tests
 
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
+endif # /test stage
 $(call _target,phpunit-update): export UPDATE_SNAPSHOTS = true
 $(call _target,phpunit-update): _FORWARDED_KEYS += UPDATE_SNAPSHOTS
 
@@ -2663,14 +2689,22 @@ VITEST_COVERAGE_FLAGS?= --coverage \
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
 
 $(call _target,vitest): #~~ runs the JavaScript tests
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
+endif # /test stage
 
 ifneq ($(_HAS_VITEST_COVERAGE),) # vitest-coverage
 
 $(call _target,vitest-coverage): #~~ runs `vitest` and reports how much of the source it reaches #v
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS))
+endif # /test stage
 
 endif # /vitest-coverage
 
@@ -2679,8 +2713,12 @@ $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 	$(DEBUG_PREFIX)$(VITEST) list --config $(VITEST_CONFIG) $(ARGS)
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
+ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
+	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update)
+endif # /test stage
 
 endif # /vitest
 

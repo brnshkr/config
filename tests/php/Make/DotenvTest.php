@@ -241,4 +241,17 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('DOTENV_FIXTURE_ENVIRONMENT_FILE=test', $throughAVerb);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=from-the-environment', $overridden);
     }
+
+    public function testEveryWayToRunTheTestsRunsThemInTheTestStage(): void
+    {
+        $testStageDirectory = $this->getFixtureCopy(__DIR__ . '/../Fixtures/Make/TestStage');
+
+        foreach (['test', 'ci', 'phpunit', 'test-phpunit', 'phpunit-update'] as $goal) {
+            self::assertStringContainsString(
+                'value=from-the-test-file',
+                $this->runMake([$goal], directory: $testStageDirectory),
+                $goal,
+            );
+        }
+    }
 }

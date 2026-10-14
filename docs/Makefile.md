@@ -100,6 +100,7 @@ email-queue: #~~ lists queued emails
 Loaded the same way `symfony/dotenv` does: `.env`, `.env.local`, `.env.<APP_ENV>` and `.env.<APP_ENV>.local`.
 Later files win, and a real environment variable beats all of them.
 Every tracked `.env.<stage>` also gives you `<stage>-<target>`, so `make prod-check` runs `check` with `APP_ENV=prod`.
+With a `.env.test`, the tests always run with `APP_ENV=test`, whether you type `make test`, `make ci` or `make phpunit`.
 
 ## Changelog
 
