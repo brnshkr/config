@@ -56,6 +56,21 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('compose -f compose.yaml -f compose.override.yaml ps', $commands);
     }
 
+    public function testAStageOnTheCommandLineDetectsTheServicesAsItsStageGoalDoes(): void
+    {
+        $directory = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
+
+        $environment = [
+            'DOCKER'          => $directory . '/bin/docker',
+            'IS_IN_CONTAINER' => '',
+        ];
+
+        $commandLine = $this->runMake(['app-dir', 'APP_ENV=test'], $environment, $directory);
+
+        self::assertStringContainsString('app-dir=/srv/from-environment-file', $commandLine);
+        self::assertSame($this->runMake(['test-app-dir'], $environment, $directory), $commandLine);
+    }
+
     public function testDotenvResolution(): void
     {
         $this->assertMatchesSnapshot($this->renderScenarios($this->runMakeConcurrently(array_map(

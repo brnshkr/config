@@ -307,7 +307,7 @@ HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, bo
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
 
-_HOST_ENVIRONMENT = $(_DOTENV_ENVIRONMENT) \
+_HOST_ENVIRONMENT = $(_DOTENV_DEFAULT_ENVIRONMENT) \
 	HOST_UID='$(HOST_UID)' \
 	HOST_GID='$(HOST_GID)' \
 	HOST_APP_DIR='$(HOST_APP_DIR)'
@@ -609,8 +609,8 @@ _DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildc
 
 _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
-_DOTENV_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
-	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
+_DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
+	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
 
 ifneq ($(_HAS_CONTAINER),) # container
 
