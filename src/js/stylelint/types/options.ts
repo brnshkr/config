@@ -4,6 +4,7 @@
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 
+import type { CssDialect } from '#shared/utils/dialect.ts';
 import type { Config } from '#stylelint/types/config.ts';
 
 export interface ConfigOptions {
@@ -24,6 +25,13 @@ export interface ConfigOptions {
    * @see https://github.com/yuschick/stylelint-plugin-defensive-css
    */
   defensive: boolean;
+
+  /**
+   * Additional CSS syntax, e.g. project specific at-rules and functions.
+   *
+   * @default `Tailwind CSS's syntax when the "tailwind" module is enabled.`
+   */
+  dialect: Partial<CssDialect>;
 
   /**
    * Enables `stylelint-config-html`.

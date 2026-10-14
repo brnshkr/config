@@ -83,7 +83,11 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       },
       "cssWideKeywords": [],
       "properties": {},
-      "types": {},
+      "types": {
+        "--alpha()": "--alpha( <color> / <percentage> )",
+        "--spacing()": "--spacing( <number> )",
+        "length-percentage": "<length> | <percentage> | <--spacing()>",
+      },
     },
   },
   "plugins": [
@@ -1295,6 +1299,12 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "function-no-unknown": [
       true,
+      {
+        "ignoreFunctions": [
+          "--alpha",
+          "--spacing",
+        ],
+      },
     ],
     "function-url-no-scheme-relative": [
       true,

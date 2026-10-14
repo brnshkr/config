@@ -13,35 +13,45 @@ import {
   resolvePackages,
 } from '#eslint/utils/module.ts';
 
+import { getScopingRootAtRules, mergeDialects } from '#shared/utils/dialect.ts';
 import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
-import { TAILWIND_AT_RULE_PRELUDES, TAILWIND_SCOPING_AT_RULES } from '#shared/utils/tailwind.ts';
+import { TAILWIND_DIALECT } from '#shared/utils/tailwind.ts';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
 import type { Config } from '#eslint/types/config.ts';
 import type { CssOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
+import type { CssDialect } from '#shared/utils/dialect.ts';
 
 type CustomSyntax = NonNullable<CSSLanguageOptions['customSyntax']>;
 type SyntaxDefinition = Exclude<CustomSyntax, SyntaxExtensionCallback>;
 
-const buildTailwindSyntax = (defaultSyntax: DefaultSyntaxConfig): SyntaxDefinition => {
+const buildDialectSyntax = (
+  dialect: CssDialect,
+  defaultSyntax: DefaultSyntaxConfig,
+): SyntaxDefinition => {
   const declarations = objectFromEntries(objectKeys(defaultSyntax.properties).map(
     (property) => <const>[property, '<declaration-value>'],
   ));
 
   return {
-    atrules: {
-      ...objectFromEntries(objectEntries(TAILWIND_AT_RULE_PRELUDES).map(
-        ([name, prelude]) => <const>[name, { prelude }],
-      )),
-      utility: {
-        prelude: TAILWIND_AT_RULE_PRELUDES.utility,
-        descriptors: declarations,
-      },
-      variant: {
-        prelude: TAILWIND_AT_RULE_PRELUDES.variant,
-        descriptors: declarations,
-      },
+    atrules: objectFromEntries(objectEntries(dialect.atRules).map(
+      ([name, { prelude, descriptors, isDeclarationBlock }]) => <const>[name, {
+        // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
+        prelude: prelude ?? null,
+        descriptors: isDeclarationBlock === true
+          ? {
+            ...declarations,
+            ...descriptors,
+          }
+          : descriptors,
+      }],
+    )),
+    properties: dialect.properties,
+    types: {
+      ...dialect.functions,
+      ...dialect.types,
     },
   };
 };
@@ -66,23 +76,35 @@ const mergeSyntaxDefinitions = (
   },
 });
 
+const buildDialect = (
+  isTailwindEnabled: boolean,
+  options: Maybe<Partial<CssOptions>>,
+): Maybe<CssDialect> => {
+  const dialects = [
+    ...(isTailwindEnabled ? [TAILWIND_DIALECT] : []),
+    ...(options?.dialect === undefined ? [] : [options.dialect]),
+  ];
+
+  return dialects.length === 0 ? undefined : mergeDialects(dialects);
+};
+
 const buildCustomSyntax = (
   customSyntax: CSSLanguageOptions['customSyntax'],
-  isTailwindEnabled: boolean,
+  dialect: Maybe<CssDialect>,
 ): CSSLanguageOptions['customSyntax'] => {
-  if (!isTailwindEnabled) {
+  if (dialect === undefined) {
     return customSyntax;
   }
 
   return (defaultSyntax: DefaultSyntaxConfig): SyntaxDefinition => {
-    const tailwindSyntax = buildTailwindSyntax(defaultSyntax);
+    const dialectSyntax = buildDialectSyntax(dialect, defaultSyntax);
 
     if (customSyntax === undefined) {
-      return tailwindSyntax;
+      return dialectSyntax;
     }
 
     return mergeSyntaxDefinitions(
-      tailwindSyntax,
+      dialectSyntax,
       typeof customSyntax === 'function' ? customSyntax(defaultSyntax) : customSyntax,
     );
   };
@@ -98,7 +120,8 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
   }
 
   const isTailwindEnabled = options?.tailwind ?? doAllPackagesExist([PACKAGES.TAILWINDCSS]);
-  const customSyntax = buildCustomSyntax(options?.customSyntax, isTailwindEnabled);
+  const dialect = buildDialect(isTailwindEnabled, options);
+  const customSyntax = buildCustomSyntax(options?.customSyntax, dialect);
 
   return [
     {
@@ -143,7 +166,7 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
             'unicorn/no-unknown-css-annotations': 'error',
             'unicorn/no-unknown-pseudo-selectors': 'error',
             'unicorn/no-unscoped-css-nesting-selector': ['error', {
-              scopingRootAtRules: TAILWIND_SCOPING_AT_RULES,
+              scopingRootAtRules: getScopingRootAtRules(dialect),
             }],
             'unicorn/prefer-explicit-viewport-units': 'error',
             'unicorn/prefer-media-feature-range-syntax': 'error',

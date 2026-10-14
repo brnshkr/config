@@ -5,6 +5,7 @@
 import type { CSSLanguageOptions } from '@eslint/css';
 import type { Linter } from 'eslint';
 import type { Config, TsEslintParserOptions } from '#eslint/types/config.ts';
+import type { CssDialect } from '#shared/utils/dialect.ts';
 import type { packageOrganization } from '#shared/utils/package-json.ts';
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
@@ -17,6 +18,13 @@ export interface CssOptions {
    * @see https://github.com/eslint/css#configuring-custom-syntax
    */
   customSyntax: CSSLanguageOptions['customSyntax'];
+
+  /**
+   * Additional CSS syntax, e.g. project specific at-rules and functions.
+   *
+   * @default `Tailwind CSS's syntax when the "tailwind" option is enabled.`
+   */
+  dialect: Partial<CssDialect>;
 
   /**
    * Enables the TailwindCSS at-rules and turns off the rules its syntax cannot satisfy.

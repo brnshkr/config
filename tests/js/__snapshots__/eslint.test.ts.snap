@@ -17443,6 +17443,12 @@ exports[`expected eslint config > diff: 21.css 1`] = `
             "prelude": "<any-value>",
           },
         },
+        "properties": {},
+        "types": {
+          "--alpha()": "--alpha( <color> / <percentage> )",
+          "--spacing()": "--spacing( <number> )",
+          "length-percentage": "<length> | <percentage> | <--spacing()>",
+        },
       },
       "tolerant": true,
     },

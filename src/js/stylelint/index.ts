@@ -47,6 +47,7 @@ export const getConfig = (
   const resolvedOptions = <const>{
     baseline: isModuleEnabledByDefault(MODULES.baseline),
     defensive: isModuleEnabledByDefault(MODULES.defensive),
+    dialect: {},
     html: isModuleEnabledByDefault(MODULES.html),
     less: isModuleEnabledByDefault(MODULES.less),
     modules: isModuleEnabledByDefault(MODULES.modules),
@@ -74,7 +75,7 @@ export const getConfig = (
   const config: Config = {};
 
   includeConfigs(config, configs.ignores());
-  includeConfigs(config, configs.css());
+  includeConfigs(config, configs.css(resolvedOptions.dialect));
 
   if (isModuleEnabled(MODULES.baseline)) {
     includeConfigs(config, configs.baseline());
