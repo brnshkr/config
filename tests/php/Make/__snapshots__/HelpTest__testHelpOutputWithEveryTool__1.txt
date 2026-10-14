@@ -204,7 +204,7 @@ Variables:
    COMPOSE_FILE                   ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                    ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE               ?=  exec                                             (run starts a throwaway container instead of entering one)
-   NODE_SERVICE                   ?=  node                                             (compose service node runs in, where the project has one)
+   NODE_SERVICE                   ?=  node                                             (compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                            ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
@@ -272,7 +272,7 @@ Variables:
    ESLINT_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/eslint… (path to eslint config)
    ESLINT_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                   ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
-   ESLINT_CONFIG_INSPECTOR        ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR        ?=  $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve… (command that runs eslint-config-inspector)
    ESLINT_CONFIG_INSPECTOR_PORT   ?=  7777                                             (port eslint-config-inspector serves on)
    ESLINT_CONFIG_INSPECTOR_FLAGS  ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
@@ -445,7 +445,7 @@ Variables:
    COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                     ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering one)
-   NODE_SERVICE                    ?=  node                                             (compose service node runs in, where the project has one)
+   NODE_SERVICE                    ?=  node                                             (compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                 ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                 ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                             ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
@@ -585,7 +585,7 @@ Variables:
    ESLINT_CACHE                    ?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the eslint cache)
    ESLINT_FLAGS                    ?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to eslint)
    ESLINT_EXTENSIONS               ?=  $(_ESLINT_EXTENSIONS)                            (extensions eslint lints, set by its config's modules)
-   ESLINT_CONFIG_INSPECTOR         ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs eslint-config-inspector)
+   ESLINT_CONFIG_INSPECTOR         ?=  $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve… (command that runs eslint-config-inspector)
    ESLINT_CONFIG_INSPECTOR_PORT    ?=  7777                                             (port eslint-config-inspector serves on)
    ESLINT_CONFIG_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to eslint-config-inspector)
   markdownlint
@@ -777,6 +777,7 @@ Available commands:
 +   runtimes
 +    SHELL                          :=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)
 +    PHP                            ?=  $(RUN) php                                       (command that runs php)
++    NODE                           ?=  node                                             (command that runs node)
 +    DOCKER                         ?=  docker                                           (command that runs docker)
 +    DOCKER_COMPOSE                 ?=  $(DOCKER) compose                                (command that runs compose)
 +   utilities
@@ -1438,6 +1439,7 @@ Available commands:
    [35mruntimes[0m
     [36mSHELL                        [0m  [90m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
     [36mPHP                          [0m  [90m?=  $(RUN) php                                       (command that runs [35mphp[0m[90m)[0m
+    [36mNODE                         [0m  [90m?=  node                                             (command that runs [35mnode[0m[90m)[0m
     [36mDOCKER                       [0m  [90m?=  docker                                           (command that runs [35mdocker[0m[90m)[0m
     [36mDOCKER_COMPOSE               [0m  [90m?=  $(DOCKER) compose                                (command that runs [35mcompose[0m[90m)[0m
    [35mutilities[0m
@@ -1468,7 +1470,7 @@ Available commands:
    [36mCOMPOSE_FILE                  [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE                   [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE              [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
-   [36mNODE_SERVICE                  [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one)[0m
+   [36mNODE_SERVICE                  [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE               [0m  [90m?=  semgrep                                          (compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER               [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [36mRUN                           [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
@@ -1625,7 +1627,7 @@ Available commands:
    [36mESLINT_CACHE                  [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [35meslint[0m[90m cache)[0m
    [36mESLINT_FLAGS                  [0m  [90m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [35meslint[0m[90m)[0m
    [36mESLINT_EXTENSIONS             [0m  [90m?=  $(_ESLINT_EXTENSIONS)                            (extensions [35meslint[0m[90m lints, set by its config's modules)[0m
-   [36mESLINT_CONFIG_INSPECTOR       [0m  [90m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs [35meslint-config-inspector[0m[90m)[0m
+   [36mESLINT_CONFIG_INSPECTOR       [0m  [90m?=  $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve… (command that runs [35meslint-config-inspector[0m[90m)[0m
    [36mESLINT_CONFIG_INSPECTOR_PORT  [0m  [90m?=  7777                                             (port [35meslint-config-inspector[0m[90m serves on)[0m
    [36mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [90m?=                                                   (additional flags passed to [35meslint-config-inspector[0m[90m)[0m
   [35mmarkdownlint[0m
@@ -1894,6 +1896,7 @@ Available commands:
    [33mruntimes[0m
     [32mSHELL                        [0m  [0m:=  $(if $(filter-out default,$(origin SHELL)),$(SH… (shell the recipes run in)[0m
     [32mPHP                          [0m  [0m?=  $(RUN) php                                       (command that runs [33mphp[0m[0m)[0m
+    [32mNODE                         [0m  [0m?=  node                                             (command that runs [33mnode[0m[0m)[0m
     [32mDOCKER                       [0m  [0m?=  docker                                           (command that runs [33mdocker[0m[0m)[0m
     [32mDOCKER_COMPOSE               [0m  [0m?=  $(DOCKER) compose                                (command that runs [33mcompose[0m[0m)[0m
    [33mutilities[0m
@@ -1924,7 +1927,7 @@ Available commands:
    [32mCOMPOSE_FILE                  [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE                   [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE              [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
-   [32mNODE_SERVICE                  [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one)[0m
+   [32mNODE_SERVICE                  [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE               [0m  [0m?=  semgrep                                          (compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER               [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [32mRUN                           [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
@@ -2081,7 +2084,7 @@ Available commands:
    [32mESLINT_CACHE                  [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json       (path to the [33meslint[0m[0m cache)[0m
    [32mESLINT_FLAGS                  [0m  [0m?=  --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(i… (additional flags passed to [33meslint[0m[0m)[0m
    [32mESLINT_EXTENSIONS             [0m  [0m?=  $(_ESLINT_EXTENSIONS)                            (extensions [33meslint[0m[0m lints, set by its config's modules)[0m
-   [32mESLINT_CONFIG_INSPECTOR       [0m  [0m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_… (command that runs [33meslint-config-inspector[0m[0m)[0m
+   [32mESLINT_CONFIG_INSPECTOR       [0m  [0m?=  $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve… (command that runs [33meslint-config-inspector[0m[0m)[0m
    [32mESLINT_CONFIG_INSPECTOR_PORT  [0m  [0m?=  7777                                             (port [33meslint-config-inspector[0m[0m serves on)[0m
    [32mESLINT_CONFIG_INSPECTOR_FLAGS [0m  [0m?=                                                   (additional flags passed to [33meslint-config-inspector[0m[0m)[0m
   [33mmarkdownlint[0m

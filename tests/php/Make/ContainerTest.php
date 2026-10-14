@@ -23,6 +23,7 @@ final class ContainerTest extends TestCase
 
     private const string SERVICE       = 'app';
     private const string OTHER_SERVICE = 'alt';
+    private const string BUN_DIRECTORY = __DIR__ . '/../Fixtures/Make/Bun';
 
     private const array EXPECTED_LOCATIONS_BY_MODE = [
         self::MODE_NATIVE => [
@@ -260,6 +261,17 @@ final class ContainerTest extends TestCase
             self::assertStringContainsString(sprintf('`%s` needs a command', $target), $result);
             self::assertStringNotContainsString('PATH=', $result);
         }
+    }
+
+    public function testAnInspectorTheProjectDefinesRunsOnThisMachineWithoutANodeService(): void
+    {
+        $result = $this->runMake(
+            ['eslint-inspect', 'ESLINT_CONFIG_INSPECTOR=echo inspector', 'ESLINT_CONFIG=package.json'],
+            self::getContainerEnvironment(self::BUN_DIRECTORY),
+            self::BUN_DIRECTORY,
+        );
+
+        self::assertSame("inspector --config package.json --port 7777\n", $result);
     }
 
     /**

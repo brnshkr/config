@@ -261,6 +261,7 @@ _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
 SHELL          := $(if $(filter-out default,$(origin SHELL)),$(SHELL),/bin/sh)#~~ shell the recipes run in
 PHP            ?= $(RUN) php#~~ command that runs `php`
+NODE           ?= node#~~ command that runs `node`
 DOCKER         ?= docker#~~ command that runs `docker`
 DOCKER_COMPOSE ?= $(DOCKER) compose#~~ command that runs `compose`
 
@@ -295,7 +296,7 @@ TR     ?= tr#~~ path to `tr` binary
 COMPOSE_FILE     ?= $(_DOTENV_COMPOSE_FILE)#~~ compose files, colon-separated, instead of this project's
 APP_SERVICE      ?= app#~~ compose service the tools run in, empty for this machine
 APP_SERVICE_MODE ?= exec#~~ `run` starts a throwaway container instead of entering one
-NODE_SERVICE     ?= node#~~ compose service `node` runs in, where the project has one
+NODE_SERVICE     ?= node#~~ compose service `node` runs in, where the project has one, empty to run it on the host
 SEMGREP_SERVICE  ?= semgrep#~~ compose service `semgrep` runs in, where the project has one
 IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
 RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
@@ -811,6 +812,8 @@ _COMPOSER_DIRECTORIES := $(if $(wildcard $(CURDIR)/composer.json),$(shell $(AWK)
 _COMPOSER_VENDOR_DIR  := $(word 1,$(_COMPOSER_DIRECTORIES))
 _COMPOSER_BIN_DIR     := $(word 2,$(_COMPOSER_DIRECTORIES))
 
+_IS_ESLINT_INSPECT_SERVED := $(and $(_HAS_CONTAINER),$(NODE_SERVICE),$(filter undefined,$(origin ESLINT_CONFIG_INSPECTOR)))
+
 _HAS_PHP             = $(wildcard $(CURDIR)/composer.json)
 _HAS_PHPUNIT         = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/pest $(CURDIR)/$(_COMPOSER_BIN_DIR)/phpunit)
 _HAS_PHPSTAN         = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/phpstan)
@@ -821,7 +824,7 @@ _HAS_JS              = $(wildcard $(CURDIR)/package.json)
 _HAS_BUN_INSPECT     = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
 _HAS_COMMITLINT      = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
 _HAS_ESLINT          = $(wildcard $(CURDIR)/node_modules/.bin/eslint)
-_HAS_ESLINT_INSPECT  = $(and $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),$(if $(_HAS_CONTAINER),$(filter $(NODE_SERVICE),$(_COMPOSE_SERVICES)),1))
+_HAS_ESLINT_INSPECT  = $(and $(wildcard $(CURDIR)/node_modules/.bin/eslint-config-inspector),$(if $(_IS_ESLINT_INSPECT_SERVED),$(filter $(NODE_SERVICE),$(_COMPOSE_SERVICES)),1))
 _HAS_MARKDOWNLINT    = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT       = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT      = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
@@ -2493,14 +2496,14 @@ $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file
 ifneq ($(_HAS_ESLINT_INSPECT),) # eslint-inspect
 
 # NOTICE: runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
-ESLINT_CONFIG_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(NODE_SERVICE),$(ESLINT_CONFIG_INSPECTOR_PORT)) node $(APP_DIR)/node_modules/.bin/eslint-config-inspector,$(BUN) x eslint-config-inspector)#v #~~ command that runs `eslint-config-inspector`
+ESLINT_CONFIG_INSPECTOR       ?= $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve_in,$(NODE_SERVICE),$(ESLINT_CONFIG_INSPECTOR_PORT)) node $(APP_DIR),$(NODE) $(CURDIR))/node_modules/.bin/eslint-config-inspector#v #~~ command that runs `eslint-config-inspector`
 ESLINT_CONFIG_INSPECTOR_PORT  ?= 7777#v #~~ port `eslint-config-inspector` serves on
 ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-config-inspector`
 
 $(call _target,eslint-inspect): #~~ opens `eslint-config-inspector` #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) --port $(ESLINT_CONFIG_INSPECTOR_PORT) $(ARGS) \
-		$(if $(filter %-stats,$(_GOAL)),--stats) $(_SERVE_FLAGS) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
+		$(if $(filter %-stats,$(_GOAL)),--stats) $(if $(_IS_ESLINT_INSPECT_SERVED),$(_SERVE_FLAGS)) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
 $(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ opens `eslint-config-inspector` with a timed full lint #vv
 $(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
