@@ -1,0 +1,2 @@
+#!/bin/sh
+printf 'services:\n  app:\n    image: %s\n    working_dir: /app\n  %s:\n' "$COMPOSE_FIXTURE_IMAGE" "$COMPOSE_FIXTURE_SERVICE"

@@ -293,17 +293,19 @@ TR     ?= tr#~~ path to `tr` binary
 
 #---v container
 
-COMPOSE_FILE     ?= $(_DOTENV_COMPOSE_FILE)#~~ compose files, colon-separated, instead of this project's
-APP_SERVICE      ?= app#~~ compose service the tools run in, empty for this machine
-APP_SERVICE_MODE ?= exec#~~ `run` starts a throwaway container instead of entering one
-NODE_SERVICE     ?= node#~~ compose service `node` runs in, where the project has one, empty to run it on the host
-SEMGREP_SERVICE  ?= semgrep#~~ compose service `semgrep` runs in, where the project has one
-IS_IN_CONTAINER  ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
-RUN              ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
-APP_DIR          ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
-HOST_UID         ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
-HOST_GID         ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
-HOST_APP_DIR     ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
+COMPOSE_FILE       ?= $(_DOTENV_COMPOSE_FILE)#~~ compose files, colon-separated, instead of this project's
+APP_SERVICE        ?= app#~~ compose service the tools run in, empty for this machine
+APP_SERVICE_MODE   ?= exec#~~ `run` starts a throwaway container instead of entering one
+ACTIONLINT_SERVICE ?= actionlint#~~ compose service `actionlint` runs in, where the project has one
+HADOLINT_SERVICE   ?= hadolint#~~ compose service `hadolint` runs in, where the project has one
+NODE_SERVICE       ?= node#~~ compose service `node` runs in, where the project has one, empty to run it on the host
+SEMGREP_SERVICE    ?= semgrep#~~ compose service `semgrep` runs in, where the project has one
+IS_IN_CONTAINER    ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
+RUN                ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
+APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
+HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
+HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
+HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
 
@@ -348,7 +350,8 @@ define _SERVICE_AWK
 /^[^[:space:]]/ { in_services = 0 }
 in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service); services = services " " service }
 in_services && service == _SERVICE && /^    working_dir:/ { directory = $$2; gsub(/["'"'"']/, "", directory) }
-END { if (directory != "") print directory services }
+in_services && service == _SERVICE && /^    image:/ { image = $$2; gsub(/["'"'"']/, "", image) }
+END { if (directory != "") print directory, (image == "" ? "-" : image) services }
 endef
 
 _CONTAINER_KEYS := ACTIONLINT_SERVICE \
@@ -618,11 +621,12 @@ export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
 
-_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY) $(_COMPOSE_SERVICES),$(shell \
+_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
 	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))
 
 _SERVICE_DIRECTORY := $(word 1,$(_SERVICE_CONFIG))
-_COMPOSE_SERVICES  := $(wordlist 2,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
+_SERVICE_IMAGE     := $(word 2,$(_SERVICE_CONFIG))
+_COMPOSE_SERVICES  := $(wordlist 3,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
@@ -781,16 +785,21 @@ _TRACKED_FILES           := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(
 _HADOLINT_FILES          := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
 _ACTIONLINT_FILES        := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
+_LINTER_IMAGES := ghcr.io/brnshkr/forge:% \
+	ghcr.io/brnshkr/forge@%
+
 #**
 #* Whether a tool this project does not install can run here.
+#* In a container that takes its own compose service or an image known to carry it.
 #*
 #* parameters:
 #*   binary: string
+#*   service: string
 #*
 #* returns: string
 #*
 define _is_tool_available
-$(if $(_HAS_CONTAINER),1,$(call _is_on_path,$1))
+$(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE))),$(call _is_on_path,$1))
 endef
 
 define _COMPOSER_DIRECTORIES_AWK
@@ -829,8 +838,8 @@ _HAS_MARKDOWNLINT    = $(wildcard $(CURDIR)/node_modules/.bin/markdownlint-cli2)
 _HAS_STYLELINT       = $(wildcard $(CURDIR)/node_modules/.bin/stylelint)
 _HAS_TYPESCRIPT      = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
 _HAS_VITEST          = $(and $(wildcard $(CURDIR)/node_modules/.bin/vitest),$(wildcard $(CURDIR)/node_modules/vite/package.json))
-_HAS_HADOLINT       := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint)))
-_HAS_ACTIONLINT     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint)))
+_HAS_HADOLINT       := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint,$(HADOLINT_SERVICE))))
+_HAS_ACTIONLINT     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint,$(ACTIONLINT_SERVICE))))
 _HAS_COMPOSER_AUDIT  = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/composer.lock))
 _HAS_BUN_AUDIT       = $(and $(_HAS_JS),$(wildcard $(CURDIR)/bun.lock))
 _HAS_AUDIT           = $(or $(_HAS_COMPOSER_AUDIT),$(_HAS_BUN_AUDIT))
@@ -974,6 +983,7 @@ export _HAS_DOCKER
 export _HAS_HADOLINT
 export _HAS_SEMGREP
 export _SERVICE_DIRECTORY
+export _SERVICE_IMAGE
 
 _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
 
@@ -2731,10 +2741,9 @@ _LAYERED_CONFIGS += $(if $(_HADOLINT_FILES),$(call _layered,$(HADOLINT_CONFIG),y
 
 ifneq ($(_HAS_HADOLINT),) # hadolint
 
-HADOLINT         ?= $(call _run_in_own_service,$(HADOLINT_SERVICE)) hadolint#v #~~ command that runs `hadolint`
-HADOLINT_FILES   ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
-HADOLINT_FLAGS   ?= $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `hadolint`
-HADOLINT_SERVICE ?= hadolint#v #~~ compose service `hadolint` runs in, where the project has one
+HADOLINT       ?= $(call _run_in_own_service,$(HADOLINT_SERVICE)) hadolint#v #~~ command that runs `hadolint`
+HADOLINT_FILES ?= $(_HADOLINT_FILES)#vv #~~ dockerfiles `hadolint` reads
+HADOLINT_FLAGS ?= $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `hadolint`
 
 _QUOTED_HADOLINT_FILES = $(call _shell_quoted,$(HADOLINT_FILES))
 
@@ -2771,10 +2780,9 @@ _LAYERED_CONFIGS  += $(if $(_ACTIONLINT_FILES),$(call _layered,$(ACTIONLINT_CONF
 
 ifneq ($(_HAS_ACTIONLINT),) # actionlint
 
-ACTIONLINT         ?= $(call _run_in_own_service,$(ACTIONLINT_SERVICE)) actionlint#v #~~ command that runs `actionlint`
-ACTIONLINT_FILES   ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
-ACTIONLINT_FLAGS   ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR),-no-color)#v #~~ additional flags passed to `actionlint`
-ACTIONLINT_SERVICE ?= actionlint#v #~~ compose service `actionlint` runs in, where the project has one
+ACTIONLINT       ?= $(call _run_in_own_service,$(ACTIONLINT_SERVICE)) actionlint#v #~~ command that runs `actionlint`
+ACTIONLINT_FILES ?= $(_ACTIONLINT_FILES)#vv #~~ workflows `actionlint` reads
+ACTIONLINT_FLAGS ?= $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR),-no-color)#v #~~ additional flags passed to `actionlint`
 
 _QUOTED_ACTIONLINT_FILES = $(call _shell_quoted,$(ACTIONLINT_FILES))
 
@@ -3077,12 +3085,12 @@ $(_QUOTE)$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)$(_QUOTE)
 endef
 
 #**
-#* The environment the tools are given inside the container: what the files cannot carry themselves.
+#* The `-e` flags giving the tools inside the container what the files cannot carry themselves.
 #*
 #* returns: string
 #*
 define _forwarded_environment
-$(foreach KEY,$(_FORWARDED_KEYS),$(KEY)=$(call _quoted,$(call _forwarded_value,$(KEY))) )
+$(foreach KEY,$(_FORWARDED_KEYS),-e $(KEY)=$(call _quoted,$(call _forwarded_value,$(KEY))) )
 endef
 
 #**
@@ -3112,7 +3120,7 @@ $(if $(_HAS_CONTAINER) \
 	,$(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
 		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
 		$(call _start_service,$1)$(_COMPOSE) exec $2 \
-	) $(addprefix -e ,$(_DECLARED_KEYS)) $1 env $(_forwarded_environment) \
+	) $(addprefix -e ,$(_DECLARED_KEYS)) $(_forwarded_environment)$1 \
 )
 endef
 

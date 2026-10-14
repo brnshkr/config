@@ -15,6 +15,20 @@ strict-labels: true
 `hadolint --config ./conf/hadolint.dist.yaml` reads the whole copy, which `make configs tools` writes.
 The shared Makefile passes it over every tracked Dockerfile.
 
+If your app image has no hadolint, add a `hadolint` service:
+
+```yaml
+# ./conf/compose.yaml
+services:
+  hadolint:
+    image: hadolint/hadolint:<tag>
+    profiles:
+      - hadolint
+    working_dir: /app
+    volumes:
+      - ..:/app
+```
+
 ## Customizing
 
 hadolint cannot extend a config, so change the copy itself.

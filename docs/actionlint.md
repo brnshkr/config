@@ -14,6 +14,21 @@ config-variables:
 `actionlint -config-file ./conf/actionlint.dist.yaml` reads the whole copy, which `make configs tools` writes.
 The shared Makefile passes it over every tracked workflow.
 
+If your app image has no actionlint, add an `actionlint` service, its entrypoint cleared:
+
+```yaml
+# ./conf/compose.yaml
+services:
+  actionlint:
+    image: rhysd/actionlint:<tag>
+    entrypoint: []
+    profiles:
+      - actionlint
+    working_dir: /app
+    volumes:
+      - ..:/app
+```
+
 ## Customizing
 
 actionlint cannot extend a config, so change the copy itself.

@@ -152,6 +152,31 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
     }
 
+    public function testAContainerOffersALinterOnlyWhereItsServiceOrTheImageCarriesIt(): void
+    {
+        $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);
+        $listings         = [];
+
+        foreach ([
+            'other image' => ['COMPOSE_FIXTURE_IMAGE' => 'acme/app:1'],
+            'forge image' => ['COMPOSE_FIXTURE_IMAGE' => 'ghcr.io/brnshkr/forge:1'],
+            'own service' => ['COMPOSE_FIXTURE_IMAGE' => 'acme/app:1', 'COMPOSE_FIXTURE_SERVICE' => 'hadolint'],
+        ] as $name => $environment) {
+            $listings[$name] = $this->runMake(['help', 'vv', 'APP_SERVICE=app'], [
+                'DOCKER'          => $lintersDirectory . '/bin/docker',
+                'IS_IN_CONTAINER' => '',
+                ...$environment,
+            ], $lintersDirectory);
+        }
+
+        self::assertDoesNotContainSymbol('hadolint-list', $listings['other image']);
+        self::assertDoesNotContainSymbol('actionlint-list', $listings['other image']);
+        self::assertContainsSymbol('hadolint-list', $listings['forge image']);
+        self::assertContainsSymbol('actionlint-list', $listings['forge image']);
+        self::assertContainsSymbol('hadolint-list', $listings['own service']);
+        self::assertDoesNotContainSymbol('actionlint-list', $listings['own service']);
+    }
+
     public function testChangelogRefusesATagItWouldPasteIntoTheShell(): void
     {
         $result = $this->runMake(

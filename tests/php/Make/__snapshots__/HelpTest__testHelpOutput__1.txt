@@ -201,6 +201,8 @@ Variables:
    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
+   ACTIONLINT_SERVICE          ?=  actionlint                                       (compose service actionlint runs in, where the project has one)
+   HADOLINT_SERVICE            ?=  hadolint                                         (compose service hadolint runs in, where the project has one)
    NODE_SERVICE                ?=  node                                             (compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE             ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
@@ -1121,6 +1123,8 @@ Available commands:
    [36mCOMPOSE_FILE              [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE          [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
+   [36mACTIONLINT_SERVICE        [0m  [90m?=  actionlint                                       (compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
+   [36mHADOLINT_SERVICE          [0m  [90m?=  hadolint                                         (compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE              [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
@@ -1446,6 +1450,8 @@ Available commands:
    [32mCOMPOSE_FILE              [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE          [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
+   [32mACTIONLINT_SERVICE        [0m  [0m?=  actionlint                                       (compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
+   [32mHADOLINT_SERVICE          [0m  [0m?=  hadolint                                         (compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE              [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
