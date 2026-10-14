@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
+use function array_column;
 use function is_readable;
 use function md5_file;
 use function sprintf;
@@ -35,6 +36,12 @@ final class ConfigsTest extends TestCase
     private const string SEARCH_DIRECTORY   = __DIR__ . '/../Fixtures/Make/ConfigSearch';
     private const string GUARD_DIRECTORY    = __DIR__ . '/../Fixtures/Make/Guard';
     private const string COMPOSER_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
+    private const string LAYOUT_DIRECTORY   = __DIR__ . '/../Fixtures/Make/ConfigLayout';
+
+    private const array MOVED_DIRECTORIES = [
+        'CACHE_DIR'  => 'var/cache',
+        'CONFIG_DIR' => 'tools/conf',
+    ];
 
     #[Before]
     #[After]
@@ -216,6 +223,70 @@ final class ConfigsTest extends TestCase
         self::assertFileEquals(
             $configsDirectory . '/conf/phpunit.dist.xml',
             $configsDirectory . '/conf/phpunit.xml',
+        );
+    }
+
+    public function testTheTestRunnerConfigIsWrittenForTheProjectLayout(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $layoutDirectory  = $this->getFixtureCopy(self::LAYOUT_DIRECTORY);
+
+        $this->runMake(['configs', 'phpunit.dist.xml'], directory: $configsDirectory);
+        $this->runMake(['configs', 'phpunit.dist.xml'], self::MOVED_DIRECTORIES, $layoutDirectory);
+
+        self::assertFileEquals(
+            self::PROJECT_DIRECTORY . '/conf/phpunit.dist.xml',
+            $configsDirectory . '/conf/phpunit.dist.xml',
+        );
+
+        self::assertSame(
+            [
+                '../../lib/phpunit/phpunit/phpunit.xsd',
+                '../../lib/autoload.php',
+                '../../var/cache/phpunit.cache',
+                '../../tests',
+                '../../lib/brnshkr/config/src/php/Testing',
+                '../../src',
+            ],
+            self::getRelativePaths($layoutDirectory . '/tools/conf/phpunit.dist.xml'),
+        );
+    }
+
+    public function testAProjectTemplateIsCopiedUnchanged(): void
+    {
+        $layoutDirectory = $this->getFixtureCopy(self::LAYOUT_DIRECTORY);
+        $templatePath    = $layoutDirectory . '/tools/conf/phpunit.dist.xml.example';
+
+        new Filesystem()->dumpFile($templatePath, '<phpunit bootstrap="../../lib/autoload.php"/>');
+
+        $this->runMake(['configs', 'phpunit.dist.xml'], self::MOVED_DIRECTORIES, $layoutDirectory);
+
+        self::assertFileEquals($templatePath, $layoutDirectory . '/tools/conf/phpunit.dist.xml');
+    }
+
+    public function testTheShippedTestRunnerConfigRunsFromTheCacheWhenTheProjectKeepsNone(): void
+    {
+        $layoutDirectory = $this->getFixtureCopy(self::LAYOUT_DIRECTORY);
+
+        new Filesystem()->copy(
+            self::PROJECT_DIRECTORY . '/conf/phpunit.dist.xml',
+            $layoutDirectory . '/lib/' . self::getPackageFullName() . '/conf/phpunit.dist.xml',
+        );
+
+        $result = $this->runMake(['phpunit', 'PHP_UNIT=echo'], self::MOVED_DIRECTORIES, $layoutDirectory);
+
+        self::assertMatchesRegularExpression('/--configuration \S+\/var\/cache\/phpunit\.cache\/phpunit\.dist\.xml /', $result);
+
+        self::assertSame(
+            [
+                '../../../lib/phpunit/phpunit/phpunit.xsd',
+                '../../../lib/autoload.php',
+                '../../../var/cache/phpunit.cache',
+                '../../../tests',
+                '../../../lib/brnshkr/config/src/php/Testing',
+                '../../../src',
+            ],
+            self::getRelativePaths($layoutDirectory . '/var/cache/phpunit.cache/phpunit.dist.xml'),
         );
     }
 
@@ -527,5 +598,13 @@ final class ConfigsTest extends TestCase
     private static function getPackageFullName(): string
     {
         return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('composer.json names no package.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function getRelativePaths(string $configPath): array
+    {
+        return array_column(Str::matchAll(new Filesystem()->readFile($configPath), '/[">](?<path>\.\.\/[^"<]*)/'), 'path');
     }
 }

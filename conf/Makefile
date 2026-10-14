@@ -1703,8 +1703,10 @@ $(call _target,configs): #~~ writes the files this project is missing
 			done; \
 		done; \
 		case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
-		if [ -r "$$template_path" ]; then \
+		if [ "$$template_path" = "$${config_path}.example" ]; then \
 			$(CP) "$$template_path" "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		elif [ -r "$$template_path" ]; then \
+			$(call _write_for_layout,"$$template_path","$$config_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		else \
 			included_config_path="$${config_path%/*}/$${config_name%.*}.dist.$${config_name##*.}"; \
 			case "$$config_name" in \
@@ -2214,6 +2216,13 @@ _PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
 
 _PHP_UNIT_GROUP_FLAGS = $(foreach GROUP,$(PHP_UNIT_EXCLUDED_GROUPS),--exclude-group $(GROUP))
 
+_IS_PHP_UNIT_FALLBACK = $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(PHP_UNIT_CONFIG))
+_PHP_UNIT_RUN_CONFIG  = $(if $(_IS_PHP_UNIT_FALLBACK),$(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/phpunit.dist.xml,$(PHP_UNIT_CONFIG))
+
+_PHP_UNIT_WRITE_FALLBACK = $(if $(_IS_PHP_UNIT_FALLBACK),$(MKDIR) -p '$(call _host_path,$(dir $(_PHP_UNIT_RUN_CONFIG)))' \
+	&& $(call _write_for_layout,'$(call _host_path,$(PHP_UNIT_CONFIG))','$(call _host_path,$(_PHP_UNIT_RUN_CONFIG))') \
+	|| exit $(BRNSHKR_CONFIG_ERROR_CODE),:)
+
 _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
 
 _$(_TARGET_PREFIX)assert-pest:
@@ -2248,8 +2257,9 @@ ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
 	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
+	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(_DEBUG_FLAG) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(_DEBUG_FLAG) $(ARGS))
 endif # /test stage
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much source they reach #v
@@ -2257,8 +2267,9 @@ ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
 	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
+	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
 	$(TRACE_PREFIX)$(call _announce_excluded_groups,$(PHP_UNIT_EXCLUDED_GROUPS))
-	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(PHP_UNIT_FLAGS) $(_PHP_UNIT_GROUP_FLAGS) $(PHP_UNIT_COVERAGE_FLAGS) $(ARGS))
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 endif # /test stage
 
@@ -2267,17 +2278,21 @@ $(call _target,phpunit-debug): _GOAL := $(call _target,phpunit-debug)
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(ARGS) --list-tests
+	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
+	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(ARGS) --list-tests
 
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
 	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
-	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
+	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
+	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(_PHP_UNIT_RUN_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
 endif # /test stage
 $(call _target,phpunit-update): export UPDATE_SNAPSHOTS = true
 $(call _target,phpunit-update): _FORWARDED_KEYS += UPDATE_SNAPSHOTS
+
+$(foreach GOAL,phpunit phpunit-coverage phpunit-list phpunit-update,$(call _target,$(GOAL))): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
 
 endif # /phpunit
 
@@ -3278,6 +3293,21 @@ endef
 #*
 define _get_editor_setting
 $(if $(and $1,$(call _get_editor_config,$3)),'  "$2": "$(call _get_editor_config,$3)"')
+endef
+
+#**
+#* Writes a shipped template, pointing its paths at this project's directories.
+#* A template ships for `./conf`, so its leading `../` is the project root.
+#*
+#* parameters:
+#*   template_path: string
+#*   config_path: string
+#*
+#* returns: void
+#*
+define _write_for_layout
+$(AWK) -v project_path='$(CURDIR)' -v config_path=$2 -v cache_directory='$(_CACHE_DIR)' \
+	-v vendor_directory='$(_COMPOSER_VENDOR_DIR)' "$$_LAYOUT_AWK" $1 > $2
 endef
 
 #**
@@ -4392,6 +4422,20 @@ $$path = $$argv[2];
 $$namespace = Brnshkr\Config\ComposerJson::forProjectUsingThisLibrary()->getRootNamespace() ?? 'App';
 
 file_put_contents($$path, preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, file_get_contents($$path), 1));
+endef
+
+define _LAYOUT_AWK_SOURCE
+BEGIN {
+	relative_path = substr(config_path, length(project_path) + 2)
+	for (directory_count = gsub(/\//, "", relative_path); directory_count > 0; directory_count--) root_path = root_path "../"
+}
+{
+	gsub(/\.\.\/\.cache\//, "../" cache_directory "/")
+	gsub(/\.\.\/vendor\//, "../" vendor_directory "/")
+	gsub(/"\.\.\//, "\"" root_path)
+	gsub(/>\.\.\//, ">" root_path)
+	print
+}
 endef
 
 #**
@@ -5992,6 +6036,7 @@ $(call _target,changelog): export _CHANGELOG_AWK = $(_CHANGELOG_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
+$(call _target,configs): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
 $(call _target,configs): export _MANAGED_BLOCK_AWK = $(_MANAGED_BLOCK_AWK_SOURCE)
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) tools t local l force f

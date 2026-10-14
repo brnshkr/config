@@ -19,7 +19,8 @@ and fails on every deprecation, notice, warning and risky, skipped or incomplete
 </testsuites>
 ```
 
-`phpunit --configuration ./conf/phpunit.dist.xml` reads the whole copy, which `make configs tools` writes.
+`phpunit --configuration ./conf/phpunit.dist.xml` reads the whole copy, which `make configs tools` writes
+with its paths following the project's directories. Without a copy, `make phpunit` runs the shipped one.
 The `Brnshkr\Config` suite runs the tests this package ships, the [spelling check](../spelling.md) among them.
 
 ## Customizing
