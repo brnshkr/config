@@ -2,6 +2,8 @@
  * @internal @brnshkr/config/eslint
  */
 
+import path from 'node:path';
+
 import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
@@ -12,10 +14,16 @@ import {
   objectEntries,
   objectFromEntries,
   objectKeys,
+  objectValues,
   readOwnValue,
 } from '#shared/utils/object.ts';
 
-import type { Config } from '#eslint/types/config.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { ESLint, Linter } from 'eslint';
+import type { Config, TsEslintParser } from '#eslint/types/config.ts';
+
+type ParseResult = ReturnType<TsEslintParser['parseForESLint']>;
 
 const TAGS_BY_MODULE = <const>{
   test: [
@@ -24,7 +32,48 @@ const TAGS_BY_MODULE = <const>{
   ],
 } satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
 
-const EXAMPLE_CODE_REGEX = '/```(?:js|javascript|ts|typescript)\\s*\\n([\\s\\S]*?)\\n\\s*```/gv';
+const EXAMPLE_FENCE_LANGUAGES = <const>{
+  js: [
+    'js',
+    'javascript',
+    'ecmascript',
+  ],
+  jsx: [
+    'jsx',
+  ],
+  ts: [
+    'ts',
+    'typescript',
+  ],
+  tsx: [
+    'tsx',
+  ],
+  json: [
+    'json',
+  ],
+  jsonc: [
+    'jsonc',
+  ],
+  json5: [
+    'json5',
+  ],
+  yaml: [
+    'yaml',
+  ],
+  yml: [
+    'yml',
+  ],
+  toml: [
+    'toml',
+  ],
+  css: [
+    'css',
+  ],
+  md: [
+    'md',
+    'markdown',
+  ],
+} satisfies Record<string, readonly string[]>;
 
 export const DESCRIPTION_DASHES = <const>{
   param: 'always',
@@ -246,6 +295,85 @@ export const TAG_SEQUENCE = [
   },
 ];
 
+const memoizeParser = (parser: TsEslintParser): TsEslintParser => {
+  const parsedSources = new Map<string, ParseResult>();
+
+  return {
+    ...parser,
+    // eslint-disable-next-line ts/naming-convention -- Method needs to be cased like this
+    parseForESLint: (...parserArguments): ParseResult => {
+      const [code] = parserArguments;
+      const cachedResult = parsedSources.get(code);
+
+      if (cachedResult !== undefined) {
+        return cachedResult;
+      }
+
+      const parsedResult = parser.parseForESLint(...parserArguments);
+
+      parsedSources.clear();
+      parsedSources.set(code, parsedResult);
+
+      return parsedResult;
+    },
+  };
+};
+
+const mergeExampleProcessors = (processorsByExtension: [string, Linter.Processor][]): Linter.Processor => {
+  const blockCountsByFilePath = new Map<string, number[]>();
+
+  return {
+    meta: {
+      name: `${packageOrganization}/jsdoc-examples`,
+    },
+    supportsAutofix: true,
+    preprocess: (text: string, filePath: string): ReturnType<NonNullable<Linter.Processor['preprocess']>> => {
+      const blockCounts: number[] = [];
+
+      blockCountsByFilePath.set(filePath, blockCounts);
+
+      return [
+        text,
+        ...processorsByExtension.flatMap(([extension, processor]) => {
+          const [, ...blocks] = processor.preprocess?.(text, filePath) ?? [];
+
+          blockCounts.push(blocks.length);
+
+          return blocks.map((block) => (typeof block === 'string'
+            ? block
+            : {
+              ...block,
+              filename: `${path.basename(path.dirname(block.filename))}/*.${extension}`,
+            }));
+        }),
+      ];
+    },
+    postprocess: (
+      [ownMessages = [], ...blockMessages]: Linter.LintMessage[][],
+      filePath: string,
+    ): Linter.LintMessage[] => {
+      const blockCounts = blockCountsByFilePath.get(filePath) ?? [];
+      const mappedMessages = [...ownMessages];
+      let blockOffset = 0;
+
+      blockCountsByFilePath.delete(filePath);
+
+      for (const [index, [, processor]] of processorsByExtension.entries()) {
+        const blockCount = blockCounts.at(index) ?? 0;
+
+        mappedMessages.push(...processor.postprocess?.(
+          [[], ...blockMessages.slice(blockOffset, blockOffset + blockCount)],
+          filePath,
+        ) ?? []);
+
+        blockOffset += blockCount;
+      }
+
+      return mappedMessages;
+    },
+  };
+};
+
 export const jsdoc = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginJsdoc],
@@ -392,19 +520,34 @@ export const jsdoc = async (): Promise<Config[]> => {
   });
 
   const parser = await getTsEslintParserIfExists();
+  const exampleParser = parser ? memoizeParser(parser) : undefined;
 
   const examplePlugin = jsdocProcessorModule
-    ? jsdocProcessorModule.getJsdocProcessorPlugin({
-      checkDefaults: true,
-      checkExamples: true,
-      checkParams: true,
-      checkProperties: true,
-      exampleCodeRegex: EXAMPLE_CODE_REGEX,
-      matchingFileNameDefaults: 'dummy.jsdoc-defaults.md/*.js',
-      matchingFileNameParams: 'dummy.jsdoc-params.md/*.js',
-      matchingFileNameProperties: 'dummy.jsdoc-properties.md/*.js',
-      parser,
-    })
+    ? {
+      meta: {
+        name: `${packageOrganization}/jsdoc-examples`,
+      },
+      processors: {
+        examples: mergeExampleProcessors(objectEntries(EXAMPLE_FENCE_LANGUAGES).map(([extension, languages]) => {
+          const isScriptExtension = extension === 'js';
+
+          const processorPlugin = jsdocProcessorModule.getJsdocProcessorPlugin({
+            allowedLanguagesToProcess: objectValues(EXAMPLE_FENCE_LANGUAGES).flat(),
+            checkDefaults: isScriptExtension,
+            checkExamples: true,
+            checkParams: isScriptExtension,
+            checkProperties: isScriptExtension,
+            exampleCodeRegex: `/\`\`\`(?:${languages.join('|')})\\s*\\n([\\s\\S]*?)\\n\\s*\`\`\`/gv`,
+            matchingFileNameDefaults: 'dummy.jsdoc-defaults.md/*.js',
+            matchingFileNameParams: 'dummy.jsdoc-params.md/*.js',
+            matchingFileNameProperties: 'dummy.jsdoc-properties.md/*.js',
+            parser: exampleParser,
+          });
+
+          return [extension, processorPlugin.processors?.['examples'] ?? {}];
+        })),
+      },
+    } satisfies ESLint.Plugin
     : undefined;
 
   return [
@@ -423,7 +566,7 @@ export const jsdoc = async (): Promise<Config[]> => {
         {
           name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.EXAMPLES}/${SUB_SCOPES.PROCESSOR}`),
           files: GLOB_SCRIPT_FILES,
-          processor: examplePlugin.processors?.['examples'],
+          processor: examplePlugin.processors.examples,
         },
       ]
       : []),

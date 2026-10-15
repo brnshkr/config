@@ -28,6 +28,7 @@ test('expected eslint config', async () => {
     virtualFiles: [
       'README.md/0_0.mjs',
       'a.ts/0_a.md/*.js',
+      'a.ts/0_a.md/*.ts',
       'a.ts/1_dummy.jsdoc-defaults.md/*.js',
       'a.ts/2_dummy.jsdoc-params.md/*.js',
       'a.ts/3_dummy.jsdoc-properties.md/*.js',
