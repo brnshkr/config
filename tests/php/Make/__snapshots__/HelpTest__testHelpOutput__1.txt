@@ -513,6 +513,7 @@ Available commands:
 +    CMP                        ?=  cmp                                              (path to cmp binary)
 +    CP                         ?=  cp                                               (path to cp binary)
 +    CURL                       ?=  curl                                             (path to curl binary)
++    ENV_BIN                    ?=  env                                              (path to env binary)
 +    FIND                       ?=  find                                             (path to find binary)
 +    GIT                        ?=  git                                              (path to git binary)
 +    ID                         ?=  id                                               (path to id binary)
@@ -1102,6 +1103,7 @@ Available commands:
     [36mCMP                      [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
     [36mCP                       [0m  [90m?=  cp                                               (path to [35mcp[0m[90m binary)[0m
     [36mCURL                     [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
+    [36mENV_BIN                  [0m  [90m?=  env                                              (path to [35menv[0m[90m binary)[0m
     [36mFIND                     [0m  [90m?=  find                                             (path to [35mfind[0m[90m binary)[0m
     [36mGIT                      [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
     [36mID                       [0m  [90m?=  id                                               (path to [35mid[0m[90m binary)[0m
@@ -1429,6 +1431,7 @@ Available commands:
     [32mCMP                      [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
     [32mCP                       [0m  [0m?=  cp                                               (path to [33mcp[0m[0m binary)[0m
     [32mCURL                     [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
+    [32mENV_BIN                  [0m  [0m?=  env                                              (path to [33menv[0m[0m binary)[0m
     [32mFIND                     [0m  [0m?=  find                                             (path to [33mfind[0m[0m binary)[0m
     [32mGIT                      [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
     [32mID                       [0m  [0m?=  id                                               (path to [33mid[0m[0m binary)[0m

@@ -267,29 +267,30 @@ DOCKER_COMPOSE ?= $(DOCKER) compose#~~ command that runs `compose`
 
 #---- utilities
 
-AWK    ?= awk#~~ path to `awk` binary
-CAT    ?= cat#~~ path to `cat` binary
-CHMOD  ?= chmod#~~ path to `chmod` binary
-CMP    ?= cmp#~~ path to `cmp` binary
-CP     ?= cp#~~ path to `cp` binary
-CURL   ?= curl#~~ path to `curl` binary
-FIND   ?= find#~~ path to `find` binary
-GIT    ?= git#~~ path to `git` binary
-ID     ?= id#~~ path to `id` binary
-LN     ?= ln#~~ path to `ln` binary
-LS     ?= ls#~~ path to `ls` binary
-MKDIR  ?= mkdir#~~ path to `mkdir` binary
-MKTEMP ?= mktemp#~~ path to `mktemp` binary
-MV     ?= mv#~~ path to `mv` binary
-PS     ?= ps#~~ path to `ps` binary
-RM     := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
-SCRIPT ?= script#~~ path to `script` binary
-SLEEP  ?= sleep#~~ path to `sleep` binary
-SORT   ?= sort#~~ path to `sort` binary
-STTY   ?= stty#~~ path to `stty` binary
-TAR    ?= tar#~~ path to `tar` binary
-TPUT   ?= tput#~~ path to `tput` binary
-TR     ?= tr#~~ path to `tr` binary
+AWK     ?= awk#~~ path to `awk` binary
+CAT     ?= cat#~~ path to `cat` binary
+CHMOD   ?= chmod#~~ path to `chmod` binary
+CMP     ?= cmp#~~ path to `cmp` binary
+CP      ?= cp#~~ path to `cp` binary
+CURL    ?= curl#~~ path to `curl` binary
+ENV_BIN ?= env#~~ path to `env` binary
+FIND    ?= find#~~ path to `find` binary
+GIT     ?= git#~~ path to `git` binary
+ID      ?= id#~~ path to `id` binary
+LN      ?= ln#~~ path to `ln` binary
+LS      ?= ls#~~ path to `ls` binary
+MKDIR   ?= mkdir#~~ path to `mkdir` binary
+MKTEMP  ?= mktemp#~~ path to `mktemp` binary
+MV      ?= mv#~~ path to `mv` binary
+PS      ?= ps#~~ path to `ps` binary
+RM      := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
+SCRIPT  ?= script#~~ path to `script` binary
+SLEEP   ?= sleep#~~ path to `sleep` binary
+SORT    ?= sort#~~ path to `sort` binary
+STTY    ?= stty#~~ path to `stty` binary
+TAR     ?= tar#~~ path to `tar` binary
+TPUT    ?= tput#~~ path to `tput` binary
+TR      ?= tr#~~ path to `tr` binary
 
 #---v container
 
@@ -457,7 +458,7 @@ ifneq ($(_DOTENV_REFUSED_STAGES),)
 $(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
 endif
 
-_DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),env $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
+_DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),$(ENV_BIN) $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
 
 define _DOTENV_AWK
 function fail(message) { if (_KEY != "") exit 1; if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
@@ -1459,7 +1460,7 @@ _ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LI
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
 $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
-	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$(env | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
+	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$($(ENV_BIN) | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
 		$(if $(_HAS_RESOLVE_ARGUMENT),$(_HELP_RESOLVE_INPUTS)) \
 		$(if $(or $(_HAS_ENV_ARGUMENT),$(_HAS_RESOLVE_ARGUMENT)),$(_HELP_DOTENV_INPUTS)) \

@@ -257,6 +257,23 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=from-the-environment', $overridden);
     }
 
+    public function testEnvAndAStageGoalCallTheConfiguredEnvBinary(): void
+    {
+        $dotenvDirectory = $this->getFixtureCopy(self::DOTENV_DIRECTORY);
+        $filesystem      = new Filesystem();
+
+        $filesystem->dumpFile($dotenvDirectory . '/bin/env', "#!/bin/sh\necho \"acme env with \$# arguments\" >&2\nexec env \"\$@\"\n");
+        $filesystem->chmod($dotenvDirectory . '/bin/env', 0o755);
+
+        $exports = $this->runMake(['help', 'env', 'ENV_BIN=bin/env'], directory: $dotenvDirectory);
+        $stage   = $this->runMake(['test-dotenv-show', 'ENV_BIN=bin/env'], directory: $dotenvDirectory);
+
+        self::assertStringContainsString('acme env with 0 arguments', $exports);
+        self::assertMatchesRegularExpression('/^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/m', $exports);
+        self::assertMatchesRegularExpression('/acme env with [1-9]\d* arguments/', $stage);
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $stage);
+    }
+
     public function testEveryWayToRunTheTestsRunsThemInTheTestStage(): void
     {
         $testStageDirectory = $this->getFixtureCopy(__DIR__ . '/../Fixtures/Make/TestStage');
