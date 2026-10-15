@@ -131,6 +131,9 @@ const getNamingConvention = (): NonNullable<Config['rules']>['ts/naming-conventi
   },
 ];
 
+/**
+ * @rejects {Error}
+ */
 export const typescript = async (options?: Partial<TypescriptOptions>): Promise<Config[]> => {
   const {
     requiredAll: [isTypescriptInstalled, tsEslint],
@@ -188,6 +191,9 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
     },
   });
 
+  /**
+   * @throws {Error}
+   */
   const createRulesConfig = (isTypeAware: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.RULES}${isTypeAware ? '-type-aware' : ''}`),
     files: isTypeAware ? typeAwareOptions.files : files,

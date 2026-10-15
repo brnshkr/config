@@ -14,12 +14,18 @@ export interface ObjectDiff {
 
 export type ConfigDiff = Record<string, JsonValue | ObjectDiff>;
 
+/**
+ * @throws {TypeError}
+ */
 const isEqual = (value1: JsonValue, value2: JsonValue): boolean => JSON.stringify(value1) === JSON.stringify(value2);
 
 const isPlainObject = (value: JsonValue | undefined): value is JsonObject => typeof value === 'object'
   && (value ?? undefined) !== undefined
   && !Array.isArray(value);
 
+/**
+ * @throws {TypeError}
+ */
 const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   const addedValues: JsonObject = {};
   const removedKeys: string[] = [];
@@ -50,6 +56,9 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   };
 };
 
+/**
+ * @throws {TypeError}
+ */
 export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): ConfigDiff => {
   const diff: ConfigDiff = {};
 

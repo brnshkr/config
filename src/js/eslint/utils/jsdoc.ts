@@ -5,6 +5,7 @@
 import { createPattern } from '#shared/utils/pattern.ts';
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type ts from 'typescript';
 import type { Maybe } from '#shared/types/core.ts';
 
 export const TAG_API = 'api';
@@ -121,6 +122,18 @@ export const extractBlockComment = (comments: TSESTree.Comment[], node: TSESTree
   }
 
   return undefined;
+};
+
+interface DocumentedNode extends ts.Node {
+  jsDoc?: {
+    getText: () => string;
+  }[];
+}
+
+export const readCommentText = (declaration: Maybe<DocumentedNode>): Maybe<string> => {
+  const [comment] = (declaration?.jsDoc ?? []).toReversed();
+
+  return comment?.getText();
 };
 
 export const hasTag = (

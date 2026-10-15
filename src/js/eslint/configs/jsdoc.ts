@@ -81,6 +81,7 @@ export const DESCRIPTION_DASHES = <const>{
   template: 'always',
   returns: 'never',
   throws: 'never',
+  rejects: 'never',
 } satisfies Record<string, 'always' | 'never'>;
 
 export const THROWS_DESCRIPTION_WORDS = <const>[
@@ -88,15 +89,9 @@ export const THROWS_DESCRIPTION_WORDS = <const>[
   'unless',
 ];
 
-const FRAGMENT_DESCRIPTION_TAGS = objectKeys(DESCRIPTION_DASHES).filter((tag) => tag !== 'throws');
+const FRAGMENT_DESCRIPTION_TAGS = objectKeys(DESCRIPTION_DASHES).filter((tag) => tag !== 'throws' && tag !== 'rejects');
 const DESCRIPTION_FRAGMENT_PATTERN = String.raw`/^(?!\p{Lu}[\p{Ll}\s])[\s\S]*(?<!\.)$/v`;
 const THROWS_DESCRIPTION_PATTERN = String.raw`/^(?:$|(?:${THROWS_DESCRIPTION_WORDS.join('|')})\s[\s\S]*(?<!\.)$)/v`;
-
-const THROWING_FUNCTION_CONTEXTS = <const>[
-  'ArrowFunctionExpression:not([async=true]):has(ThrowStatement)',
-  'FunctionDeclaration:not([async=true]):has(ThrowStatement)',
-  'FunctionExpression:not([async=true]):has(ThrowStatement)',
-] satisfies string[];
 
 export const TAG_SEQUENCE = [
   {
@@ -263,6 +258,7 @@ export const TAG_SEQUENCE = [
     tags: [
       'throws',
       'exception',
+      'rejects',
     ],
   },
   {
@@ -386,6 +382,7 @@ export const jsdoc = async (): Promise<Config[]> => {
 
   const definedTags = [
     'api',
+    'rejects',
     ...isModuleEnabled(MODULES.test) ? TAGS_BY_MODULE.test : [],
   ];
 
@@ -453,10 +450,10 @@ export const jsdoc = async (): Promise<Config[]> => {
                 match: DESCRIPTION_FRAGMENT_PATTERN,
                 message: `The \`@${tag}\` description starts lowercase and ends without a period.`,
               }])),
-              throws: {
+              ...objectFromEntries(['throws', 'rejects'].map((tag) => [tag, {
                 match: THROWS_DESCRIPTION_PATTERN,
-                message: `The \`@throws\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
-              },
+                message: `The \`@${tag}\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
+              }])),
             },
           }],
           'jsdoc/multiline-blocks': ['error', {
@@ -480,15 +477,8 @@ export const jsdoc = async (): Promise<Config[]> => {
           'jsdoc/require-param-description': 'off',
           'jsdoc/require-property-description': 'off',
           'jsdoc/require-returns-description': 'off',
-          'jsdoc/require-jsdoc': ['error', {
-            contexts: THROWING_FUNCTION_CONTEXTS,
-            require: {
-              // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-              FunctionDeclaration: false,
-            },
-          }],
+          'jsdoc/require-jsdoc': 'off',
           'jsdoc/require-template': 'error',
-          'jsdoc/require-throws': 'error',
           'jsdoc/sort-tags': ['error', {
             tagSequence: TAG_SEQUENCE,
           }],

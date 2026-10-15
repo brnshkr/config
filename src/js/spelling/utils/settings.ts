@@ -93,6 +93,9 @@ const readStringListMap = (settings: Record<string, unknown>, settingName: strin
 // eslint-disable-next-line security/detect-non-literal-regexp -- Shipped patterns are ours
 const compileShippedPattern = (source: string): RegExp => new RegExp(source, IGNORE_PATTERN_FLAGS);
 
+/**
+ * @throws {Error}
+ */
 const compileDeclaredPattern = (pattern: string): Maybe<RegExp> => compileConfiguredPattern(
   pattern,
   IGNORE_PATTERN_FLAGS,
@@ -128,6 +131,9 @@ const mergeSettings = (
   allowlist: { ...shippedSettings.allowlist, ...declaredSettings.allowlist },
 });
 
+/**
+ * @throws {Error}
+ */
 export const readSettings = (rootDirectory: string, configPath: string): SpellingSettings => {
   const shippedPath = path.join(findShippedDirectory(), DEFAULTS_FILE);
   const shippedSettings = toSettings(readSettingsFile(shippedPath), compileShippedPattern);
@@ -195,6 +201,9 @@ const rejectCoveredLiterals = (allowlist: Allowlist): void => {
   }
 };
 
+/**
+ * @throws {Error}
+ */
 export const readAllowlist = (settings: SpellingSettings): Allowlist => {
   const allowlist: Allowlist = {};
   const allowlistEntries = objectEntries(settings.allowlist ?? {});

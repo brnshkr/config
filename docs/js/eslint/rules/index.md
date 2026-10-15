@@ -33,6 +33,10 @@ apart from the check for a docblock declaring two visibilities at once, which ap
 
 - [`brnshkr/resolvable-doc-reference`](./resolvable-doc-reference.md)
   — every `@see` and `@link` target must name a symbol that exists
+- [`brnshkr/require-rejects`](./require-rejects.md)
+  — a function must declare every error its promise can reject with, its callees' included
+- [`brnshkr/require-throws`](./require-throws.md)
+  — a function must declare every error it can raise, its callees' included
 
 ## Public API
 

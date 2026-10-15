@@ -518,7 +518,7 @@ test('publicApiDocumentationRule works with default ESLint parser', () => {
   });
 });
 
-const typeAwareRuleTester = createTypeAwareRuleTester(FIXTURE_ROOT, []);
+const typeAwareRuleTester = createTypeAwareRuleTester(FIXTURE_ROOT);
 
 test('publicApiDocumentationRule reads ancestors when type information is available', () => {
   runRuleTests(typeAwareRuleTester, publicApiDocumentationRule, {

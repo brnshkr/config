@@ -33,6 +33,9 @@ const extractRelevantValues = <
   throw new Error(`Expected key "${key}" to be contained in given config.`);
 };
 
+/**
+ * @rejects {Error}
+ */
 export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Config[]> => {
   const {
     requiredAll: [pluginMarkdown, eslintMergeProcessors],

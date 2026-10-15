@@ -98,6 +98,12 @@ const findInFile = (
  *
  * @returns every finding, sorted by path, line and word
  *
+ * @throws {Error} when the shipped spelling defaults cannot be found
+ * @throws {Error} when a settings file cannot be read
+ * @throws {Error} when an ignore pattern cannot be checked for super-linear backtracking
+ * @throws {Error} when an ignore pattern can backtrack super-linearly
+ * @throws {Error} when an allowed word is already covered by a broader entry
+ *
  * @example
  * ```js
  * scan({ rootDirectory: process.cwd() });

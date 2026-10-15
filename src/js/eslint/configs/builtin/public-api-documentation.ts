@@ -24,6 +24,7 @@ import {
   hasParameterProse,
   hasReturnsWithProse,
   hasTag,
+  readCommentText,
   TAG_API,
   TAG_INTERNAL,
 } from '#eslint/utils/jsdoc.ts';
@@ -68,18 +69,6 @@ interface RuleContext {
   fileComment: Maybe<string>;
   services: Maybe<ParserServicesWithTypeInformation>;
 }
-
-interface DocumentedNode extends ts.Node {
-  jsDoc?: {
-    getText: () => string;
-  }[];
-}
-
-const readCommentText = (declaration: Maybe<DocumentedNode>): Maybe<string> => {
-  const [comment] = (declaration?.jsDoc ?? []).toReversed();
-
-  return comment?.getText();
-};
 
 const hasInheritDocTag = (comment: Maybe<string>): boolean => /\*\s+@inheritdoc\b/iv.test(comment ?? '');
 
@@ -373,6 +362,9 @@ export const publicApiDocumentationRule = <const>{
       [MESSAGE_ID_MISSING_TAG_DESCRIPTION]: '{{ kind }} `{{ name }}` is `@api`; its `@{{ tag }}` tag needs a description.',
     },
   },
+  /**
+   * @throws {TypeError}
+   */
   create: (context) => {
     const options = <PackageExportsResolverOptions>(context.options[0] ?? {});
 

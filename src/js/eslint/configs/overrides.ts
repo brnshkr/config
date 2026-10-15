@@ -26,6 +26,7 @@ import {
 
 import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '#eslint/utils/module.ts';
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 import type { TypescriptOptions } from '#eslint/types/options.ts';
@@ -157,6 +158,19 @@ const testOverrides: Config[] = isModuleEnabled(MODULES.test)
       files: GLOB_TEST_FILES,
       rules: {
         'node/no-sync': 'off',
+      },
+    },
+  ]
+  : [];
+
+const builtinOverrides: Config[] = isModuleEnabled(BUILTIN_MODULE)
+  ? [
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TEST}/error-tags`),
+      files: GLOB_TEST_FILES,
+      rules: {
+        [<const>`${packageOrganization}/require-rejects`]: 'off',
+        [<const>`${packageOrganization}/require-throws`]: 'off',
       },
     },
   ]
@@ -335,6 +349,7 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
     ...buildTypeAwareImportOverrides(resolvedTypescriptOptions),
     ...buildTypeUnawareJsdocOverrides(resolvedTypescriptOptions),
     ...testOverrides,
+    ...builtinOverrides,
     ...unicornOverrides,
     ...securityOverrides,
     ...jsdocOverrides,

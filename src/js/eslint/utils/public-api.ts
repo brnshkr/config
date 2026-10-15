@@ -17,6 +17,9 @@ interface ResolutionCacheEntry {
 
 const resolutionCache = new Map<string, ResolutionCacheEntry>();
 
+/**
+ * @throws {TypeError}
+ */
 const getCacheKey = (options: Partial<PackageExportsResolverOptions>, cwd: string): string => JSON.stringify({
   cwd,
   packageJsonPath: options.packageJsonPath,
@@ -25,6 +28,9 @@ const getCacheKey = (options: Partial<PackageExportsResolverOptions>, cwd: strin
   srcExtensions: options.srcExtensions,
 });
 
+/**
+ * @throws {TypeError}
+ */
 export const loadPublicApiResolution = (
   options: Partial<PackageExportsResolverOptions>,
   cwd: string,
@@ -55,6 +61,9 @@ export const loadPublicApiResolution = (
   return resolution;
 };
 
+/**
+ * @throws {TypeError}
+ */
 export const isPublicApiFile = (
   options: PackageExportsResolverOptions,
   cwd: string,

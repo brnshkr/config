@@ -24,6 +24,9 @@ const extractRelevantConfig = (configs: Config[], key: string): Config => {
   throw new Error(`Expected key "${key}" to be contained in given config.`);
 };
 
+/**
+ * @rejects {Error}
+ */
 export const svelte = async (): Promise<Config[]> => {
   const {
     requiredAll: [isSvelteInstalled, pluginSvelte],

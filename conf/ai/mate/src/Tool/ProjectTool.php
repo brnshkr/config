@@ -48,6 +48,8 @@ final class ProjectTool
     private const array JS_ONLY_RULES = [
         'require-import-alias',
         'require-import-attributes',
+        'require-rejects',
+        'require-throws',
     ];
 
     /**

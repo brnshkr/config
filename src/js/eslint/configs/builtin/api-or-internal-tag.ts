@@ -59,6 +59,9 @@ export const apiOrInternalTagRule = <const>{
       [MESSAGE_ID_UNEXPECTED_FILE_TAG_CONFLICT]: 'The file-level docblock must declare exactly one visibility, but carries both `@api` and `@internal`.',
     },
   },
+  /**
+   * @throws {TypeError}
+   */
   create: (context) => {
     const options = <PackageExportsResolverOptions>(context.options[0] ?? {});
     const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;

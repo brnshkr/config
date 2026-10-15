@@ -11,6 +11,7 @@ import type { Config } from '#eslint/types/config.ts';
 
 export const TYPE_AWARE_FIXTURE_ROOT = path.resolve(import.meta.dirname, '../fixtures/type-aware');
 export const TYPE_AWARE_FIXTURE_FILE = path.join(TYPE_AWARE_FIXTURE_ROOT, 'file.ts');
+export const TYPE_AWARE_JS_FIXTURE_FILE = path.join(TYPE_AWARE_FIXTURE_ROOT, 'file.mjs');
 
 const COMMON_OPTIONS = <const>{
   languageOptions: {
@@ -38,7 +39,7 @@ export const tsRuleTester = new RuleTester({
 
 export const createTypeAwareRuleTester = (
   fixtureRoot: string,
-  allowedDefaultProjectPaths: string[] = ['*.ts'],
+  allowedDefaultProjectPaths: string[] = [],
 ): RuleTester => new RuleTester({
   ...COMMON_OPTIONS,
   languageOptions: {
@@ -109,18 +110,30 @@ const getRuleName = (rule: RuleDefinition): string => {
   return name;
 };
 
+/**
+ * @throws {Error}
+ */
 export const runRuleTests = (ruleTester: RuleTester, rule: RuleDefinition, tests: RuleTests): void => {
   ruleTester.run(getRuleName(rule), rule, tests);
 };
 
+/**
+ * @throws {Error}
+ */
 export const runJsRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
   runRuleTests(jsRuleTester, rule, tests);
 };
 
+/**
+ * @throws {Error}
+ */
 export const runTsRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
   runRuleTests(tsRuleTester, rule, tests);
 };
 
+/**
+ * @throws {Error}
+ */
 export const runTypeAwareRuleTests = (rule: RuleDefinition, tests: RuleTests): void => {
   runRuleTests(typeAwareRuleTester, rule, tests);
 };

@@ -69,6 +69,9 @@ const assertLinearBacktracking = ({ source, flags }: PatternParts): void => {
   }
 };
 
+/**
+ * @throws {Error}
+ */
 export const compileConfiguredPattern = (
   pattern: RegExp | string,
   bareSourceFlags?: PatternFlags,

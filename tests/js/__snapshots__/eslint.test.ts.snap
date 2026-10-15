@@ -1396,6 +1396,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "brnshkr/require-import-attributes": [
       2,
     ],
+    "brnshkr/require-rejects": [
+      2,
+    ],
+    "brnshkr/require-throws": [
+      2,
+    ],
     "brnshkr/resolvable-doc-reference": [
       2,
     ],
@@ -1749,6 +1755,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {
         "definedTags": [
           "api",
+          "rejects",
           "vitest-environment",
           "vitest-environment-options",
         ],
@@ -1804,6 +1811,10 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
           "property": {
             "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
             "message": "The \`@property\` description starts lowercase and ends without a period.",
+          },
+          "rejects": {
+            "match": "/^(?:$|(?:when|unless)\\s[\\s\\S]*(?<!\\.)$)/v",
+            "message": "The \`@rejects\` description starts with \`when\` or \`unless\`.",
           },
           "returns": {
             "match": "/^(?!\\p{Lu}[\\p{Ll}\\s])[\\s\\S]*(?<!\\.)$/v",
@@ -1899,6 +1910,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {
         "tags": {
           "property": "always",
+          "rejects": "never",
           "returns": "never",
           "template": "always",
           "throws": "never",
@@ -1906,32 +1918,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       },
     ],
     "jsdoc/require-jsdoc": [
-      2,
-      {
-        "checkAllFunctionExpressions": false,
-        "checkConstructors": true,
-        "checkGetters": true,
-        "checkSetters": true,
-        "contexts": [
-          "ArrowFunctionExpression:not([async=true]):has(ThrowStatement)",
-          "FunctionDeclaration:not([async=true]):has(ThrowStatement)",
-          "FunctionExpression:not([async=true]):has(ThrowStatement)",
-        ],
-        "enableFixer": true,
-        "exemptEmptyConstructors": false,
-        "exemptEmptyFunctions": false,
-        "exemptOverloadedImplementations": false,
-        "fixerMessage": "",
-        "require": {
-          "ArrowFunctionExpression": false,
-          "ClassDeclaration": false,
-          "ClassExpression": false,
-          "FunctionDeclaration": false,
-          "FunctionExpression": false,
-          "MethodDefinition": false,
-        },
-        "skipInterveningOverloadedDeclarations": true,
-      },
+      0,
     ],
     "jsdoc/require-next-description": [
       0,
@@ -1988,7 +1975,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       0,
     ],
     "jsdoc/require-throws": [
-      2,
+      0,
     ],
     "jsdoc/require-throws-description": [
       0,
@@ -2176,6 +2163,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
             "tags": [
               "throws",
               "exception",
+              "rejects",
             ],
           },
           {
@@ -7138,6 +7126,8 @@ exports[`expected eslint config > diff: .circleci/config.yml 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -8336,6 +8326,8 @@ exports[`expected eslint config > diff: .vscode/settings.json 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -9180,6 +9172,12 @@ exports[`expected eslint config > diff: __tests__/a.ts 1`] = `
       ],
     },
     "changedValues": {
+      "brnshkr/require-rejects": [
+        0,
+      ],
+      "brnshkr/require-throws": [
+        0,
+      ],
       "import/max-dependencies": [
         2,
         {
@@ -9270,6 +9268,7 @@ exports[`expected eslint config > diff: 1.js 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -9453,6 +9452,7 @@ exports[`expected eslint config > diff: 3.cjs 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -10675,6 +10675,7 @@ exports[`expected eslint config > diff: 13.svelte.js 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -11870,6 +11871,8 @@ exports[`expected eslint config > diff: 15.json 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -13044,6 +13047,8 @@ exports[`expected eslint config > diff: 17.json5 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -14201,6 +14206,8 @@ exports[`expected eslint config > diff: 18.yml 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -15349,6 +15356,8 @@ exports[`expected eslint config > diff: 20.toml 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -18012,6 +18021,8 @@ exports[`expected eslint config > diff: 21.css 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -19198,6 +19209,8 @@ exports[`expected eslint config > diff: 22.md 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -20041,6 +20054,12 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
       ],
     },
     "changedValues": {
+      "brnshkr/require-rejects": [
+        0,
+      ],
+      "brnshkr/require-throws": [
+        0,
+      ],
       "constructor-super": [
         2,
       ],
@@ -20070,6 +20089,7 @@ exports[`expected eslint config > diff: 23.test.js 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -20452,6 +20472,12 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
       ],
     },
     "changedValues": {
+      "brnshkr/require-rejects": [
+        0,
+      ],
+      "brnshkr/require-throws": [
+        0,
+      ],
       "constructor-super": [
         2,
       ],
@@ -20481,6 +20507,7 @@ exports[`expected eslint config > diff: 25.test.cjs 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -20714,6 +20741,7 @@ exports[`expected eslint config > diff: README.md/0_0.mjs 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -21056,6 +21084,7 @@ exports[`expected eslint config > diff: a.ts/0_a.md/*.js 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -21780,6 +21809,7 @@ exports[`expected eslint config > diff: a.ts/1_dummy.jsdoc-defaults.md/*.js 1`] 
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -24875,6 +24905,8 @@ exports[`expected eslint config > diff: composer.json 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -26204,6 +26236,8 @@ exports[`expected eslint config > diff: package.json 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",
@@ -26863,6 +26897,7 @@ exports[`expected eslint config > diff: scripts/a.js 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -27021,6 +27056,7 @@ exports[`expected eslint config > diff: stylelint.config.mjs 1`] = `
         {
           "definedTags": [
             "api",
+            "rejects",
             "vitest-environment",
             "vitest-environment-options",
           ],
@@ -27876,6 +27912,8 @@ exports[`expected eslint config > diff: tsconfig.build.json 1`] = `
       "brnshkr/public-api-documentation",
       "brnshkr/require-import-alias",
       "brnshkr/require-import-attributes",
+      "brnshkr/require-rejects",
+      "brnshkr/require-throws",
       "brnshkr/resolvable-doc-reference",
       "brnshkr/type-assertion-style",
       "comments/disable-enable-pair",

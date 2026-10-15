@@ -494,6 +494,7 @@ const isMappedEntry = (entry: unknown): entry is Record<string, AllowScalar[]> =
   && !(entry instanceof RegExp);
 
 /**
+ * @throws {Error}
  * @throws {TypeError}
  */
 const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
@@ -678,6 +679,9 @@ export const internalUsageRule = <const>{
       [MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE]: '`{{ symbol }}` is internal to `{{ target }}` and must not be used from `{{ caller }}`.',
     },
   },
+  /**
+   * @throws {Error}
+   */
   create: (context) => {
     const options = <InternalUsageOptions>(context.options[0] ?? {});
 

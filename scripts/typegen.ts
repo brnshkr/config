@@ -16,6 +16,9 @@ const COMBINE_STRATEGIES = <const>['merge', 'replace'];
 type JsonValue = boolean | number | string | null | JsonValue[] | { [key: string]: JsonValue };
 type JsonRecord = Record<string, JsonValue>;
 
+/**
+ * @rejects {TypeError}
+ */
 const generateEsLintTypes = async (): Promise<void> => {
   const allConfigs: Config[] = [
     {

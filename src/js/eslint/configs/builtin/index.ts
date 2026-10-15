@@ -9,6 +9,8 @@ import { internalUsageRule } from '#eslint/configs/builtin/internal-usage.ts';
 import { publicApiDocumentationRule } from '#eslint/configs/builtin/public-api-documentation.ts';
 import { requireImportAliasRule } from '#eslint/configs/builtin/require-import-alias.ts';
 import { requireImportAttributesRule } from '#eslint/configs/builtin/require-import-attributes.ts';
+import { requireRejectsRule } from '#eslint/configs/builtin/require-rejects.ts';
+import { requireThrowsRule } from '#eslint/configs/builtin/require-throws.ts';
 import { resolvableDocReferenceRule } from '#eslint/configs/builtin/resolvable-doc-reference.ts';
 import { typeAssertionStyleRule } from '#eslint/configs/builtin/type-assertion-style.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
@@ -36,6 +38,8 @@ export const RULE_DEFINITIONS = <const>{
   'public-api-documentation': publicApiDocumentationRule,
   'require-import-attributes': requireImportAttributesRule,
   'require-import-alias': requireImportAliasRule,
+  'require-rejects': requireRejectsRule,
+  'require-throws': requireThrowsRule,
   'resolvable-doc-reference': resolvableDocReferenceRule,
   'type-assertion-style': typeAssertionStyleRule,
 } satisfies Record<string, RuleDefinition>;
@@ -71,6 +75,8 @@ export const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>
           tsConfigPath,
         }],
         [<const>`${packageOrganization}/require-import-attributes`]: 'error',
+        [<const>`${packageOrganization}/require-rejects`]: 'error',
+        [<const>`${packageOrganization}/require-throws`]: 'error',
         [<const>`${packageOrganization}/resolvable-doc-reference`]: 'error',
         [<const>`${packageOrganization}/type-assertion-style`]: 'error',
       } satisfies Required<Pick<NonNullable<Config['rules']>, `${typeof packageOrganization}/${keyof typeof RULE_DEFINITIONS}`>>,

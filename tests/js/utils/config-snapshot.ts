@@ -25,6 +25,9 @@ const listFixtures = (fixturesDirectory: string): string[] => {
   return filePaths;
 };
 
+/**
+ * @throws {TypeError}
+ */
 const stripRoot = (config: JsonObject): JsonObject => {
   const root = JSON.stringify(process.cwd()).slice(1, -1);
 
@@ -39,6 +42,9 @@ const expectEveryGlobCovered = (globs: string[], names: string[]): void => {
   expect(uncovered).toStrictEqual([]);
 };
 
+/**
+ * @rejects {TypeError}
+ */
 export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<void> => {
   const {
     fixturesDirectory,

@@ -49,6 +49,7 @@ test('the php groups and the php order agree', () => {
 
 test('both stacks put a dash before the same tag descriptions', () => {
   const javascriptDashes = objectEntries(DESCRIPTION_DASHES)
+    .filter(([tag]) => tag !== 'rejects')
     .map(([tag, dash]) => `${tag === 'returns' ? 'return' : tag}=${String(dash === 'always')}`);
 
   expect(extractPhpConstantFlags(tagDescriptionSource, 'DESCRIPTION_DASHES')).toStrictEqual(javascriptDashes);

@@ -65,8 +65,8 @@ follow them, don't restate them. Beyond what tooling catches:
 
 ### Docs + docblocks
 
-- Tag descriptions, both stacks: ` - ` after `@param`/`@property`/`@template`, none after `@return(s)`/`@throws`;
-  lowercase fragment, no trailing period; `@throws` opens with `when` or `unless`.
+- Tag descriptions, both stacks: ` - ` after `@param`/`@property`/`@template`, none after `@return(s)`/`@throws`/`@rejects`;
+  lowercase fragment, no trailing period; `@throws`/`@rejects` opens with `when` or `unless`.
 - List items by shape: definition/continuation bullets → lowercase start, no trailing period;
   standalone facts → capital + period.
 - Examples use the Acme universe (vendor `Acme`, modules `User` + `Email`); never `App`.
