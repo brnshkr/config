@@ -21,6 +21,7 @@ use Brnshkr\Config\PhpStan\Rule\NamedArgumentsUsageRule;
 use Brnshkr\Config\PhpStan\Rule\PublicApiDocumentationRule;
 use Brnshkr\Config\PhpStan\Rule\ResolvableDocReferenceRule;
 use Brnshkr\Config\PhpStan\Rule\ServiceArgumentBindingRule;
+use Brnshkr\Config\PhpStan\Rule\SuperglobalUsageRule;
 use Brnshkr\Config\PhpStan\Rule\TagDescriptionRule;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Brnshkr\Config\Tests\PhpStanTest;
@@ -45,6 +46,7 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo as SymfonySplFileInfo;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -321,6 +323,9 @@ final class PhpStan
                 self::configureRule(InternalUsageRule::class, [
                     'allowedCallers' => self::getDevelopmentNamespaceExemptions(),
                 ]),
+                self::configureRule(SuperglobalUsageRule::class, [
+                    'forbiddenSuperglobals' => self::getForbiddenSuperglobals(),
+                ]),
             ])
             ->addServices([
                 self::configureStaticThrowTypeExtension(FileFinderThrowTypeExtension::class),
@@ -350,6 +355,11 @@ final class PhpStan
                 [
                     'message'         => '#^Function "(?:getenv|putenv)\(\)" cannot be used#',
                     'identifier'      => 'symplify.forbiddenFuncCall',
+                    'paths'           => $developmentDirectories,
+                    'reportUnmatched' => false,
+                ],
+                [
+                    'identifier'      => SuperglobalUsageRule::getIdentifier(),
                     'paths'           => $developmentDirectories,
                     'reportUnmatched' => false,
                 ],
@@ -2022,6 +2032,37 @@ final class PhpStan
         }
 
         return $forbiddenNodes;
+    }
+
+    /**
+     * @return non-empty-array<non-empty-string, non-empty-string>
+     */
+    private static function getForbiddenSuperglobals(): array
+    {
+        $forbiddenSuperglobals = [
+            '$GLOBALS' => 'Pass the value explicitly instead.',
+            '$_ENV'    => 'Read the environment in one place and inject the value instead.',
+            '$_SERVER' => 'Read the environment in one place and inject the value instead.',
+        ];
+
+        /** @disregard P1009 symfony/http-foundation is not a dependency of brnshkr/config */
+        if (class_exists(Request::class)) {
+            $forbiddenSuperglobals = [
+                ...$forbiddenSuperglobals,
+                '$_COOKIE'  => sprintf('Use "%s::$cookies" instead.', Request::class),
+                '$_FILES'   => sprintf('Use "%s::$files" instead.', Request::class),
+                '$_GET'     => sprintf('Use "%s::$query" instead.', Request::class),
+                '$_POST'    => sprintf('Use "%s::$request" instead.', Request::class),
+                '$_REQUEST' => sprintf('Use "%1$s::$query" or "%1$s::$request" instead.', Request::class),
+            ];
+        }
+
+        /** @disregard P1009 symfony/http-foundation is not a dependency of brnshkr/config */
+        if (interface_exists(SessionInterface::class)) {
+            $forbiddenSuperglobals['$_SESSION'] = sprintf('Use "%s" instead.', SessionInterface::class);
+        }
+
+        return $forbiddenSuperglobals;
     }
 
     /**

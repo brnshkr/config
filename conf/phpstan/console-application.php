@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace {
     use Brnshkr\Config\PhpStan\ProjectKernel;
+    use Brnshkr\Config\Str;
     use Symfony\Bundle\FrameworkBundle\Console\Application;
     use Symfony\Component\Dotenv\Dotenv;
 
@@ -25,7 +26,7 @@ namespace {
     // @phpstan-ignore deadCode.unreachable (the stub above only exists where symfony/dotenv is absent, and this loader cannot run there)
     return new Application(new (ProjectKernel::getClassName())(
         ProjectKernel::getEnvironment(),
-        (bool) ($_SERVER['APP_DEBUG'] ?? false),
+        (bool) Str::fromEnvironment('APP_DEBUG'),
     ));
 }
 

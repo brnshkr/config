@@ -7,7 +7,6 @@ namespace Brnshkr\Config;
 use Brnshkr\Config\Tests\EditorUrlTest;
 
 use function array_any;
-use function array_merge;
 use function getcwd;
 use function is_executable;
 use function is_string;
@@ -142,7 +141,7 @@ final readonly class EditorUrl
      */
     private static function build(?string $editor, array $placeholders): ?string
     {
-        $environment = array_merge($_SERVER, $_ENV);
+        $environment = Str::getEnvironment();
         $wslDistro   = self::getString($environment, self::ENVIRONMENT_WSL_DISTRO);
         $template    = $editor === null ? self::getString($environment, self::ENVIRONMENT_EDITOR_URL) : null;
 

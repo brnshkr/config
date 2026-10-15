@@ -73,6 +73,14 @@
                     "./conf/ai/mate/src"
                 ],
                 "reportUnmatched": false
+            },
+            {
+                "identifier": "brnshkr.superglobalUsage",
+                "paths": [
+                    "./tests/php",
+                    "./conf/ai/mate/src"
+                ],
+                "reportUnmatched": false
             }
         ],
         "scanFiles": [
@@ -200,6 +208,19 @@
                     "Brnshkr\\Config\\Mate": [
                         "Brnshkr\\Config"
                     ]
+                }
+            }
+        },
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\Rule\\SuperglobalUsageRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenSuperglobals": {
+                    "$GLOBALS": "Pass the value explicitly instead.",
+                    "$_ENV": "Read the environment in one place and inject the value instead.",
+                    "$_SERVER": "Read the environment in one place and inject the value instead."
                 }
             }
         },

@@ -72,6 +72,27 @@ trait RuleTrait
     protected const string TAG_NO_NAMED_ARGUMENTS = 'no-named-arguments';
 
     /**
+     * @internal Brnshkr\Config
+     *
+     * @return non-empty-string
+     */
+    public static function getIdentifier(): string
+    {
+        $className = Str::getClassShortName(self::class);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $ruleName = lcfirst(Str::trimSuffix($className, 'Rule'));
+
+        try {
+            $organization = ComposerJson::forThisLibrary()->getPackageOrganization();
+        } catch (RuntimeException $runtimeException) {
+            throw UnreachableException::wrap($runtimeException);
+        }
+
+        return sprintf('%s.%s', $organization, $ruleName);
+    }
+
+    /**
      * @return list<DocTag>
      */
     private static function getDocTags(string $docText): array
@@ -117,21 +138,8 @@ trait RuleTrait
 
     private static function buildRuleError(string $message, int $line, bool $isIgnorable = true): IdentifierRuleError
     {
-        $className = Str::getClassShortName(self::class);
-
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
-        $ruleName = lcfirst(Str::trimSuffix($className, 'Rule'));
-
-        try {
-            $organization = ComposerJson::forThisLibrary()->getPackageOrganization();
-        } catch (RuntimeException $runtimeException) {
-            throw UnreachableException::wrap($runtimeException);
-        }
-
-        $identifier = sprintf('%s.%s', $organization, $ruleName);
-
         $ruleErrorBuilder = RuleErrorBuilder::message($message)
-            ->identifier($identifier)
+            ->identifier(self::getIdentifier())
             ->line($line)
         ;
 

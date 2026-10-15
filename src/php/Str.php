@@ -296,11 +296,24 @@ final readonly class Str
 
     public static function fromEnvironment(string $name): string
     {
-        return match (true) {
-            is_string($_SERVER[$name] ?? null) => $_SERVER[$name],
-            is_string($_ENV[$name] ?? null)    => $_ENV[$name],
+        $value = self::getEnvironment()[$name] ?? null;
+
+        return is_string($value)
+            ? $value
             // @phpstan-ignore symplify.forbiddenFuncCall (The one place this package reads the environment)
-            default => (string) getenv($name),
-        };
+            : (string) getenv($name);
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    public static function getEnvironment(): array
+    {
+        return [
+            // @phpstan-ignore brnshkr.superglobalUsage (The one place this package reads the environment)
+            ...$_ENV,
+            // @phpstan-ignore brnshkr.superglobalUsage (The one place this package reads the environment)
+            ...$_SERVER,
+        ];
     }
 }

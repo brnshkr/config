@@ -23,7 +23,7 @@ $toonCommands = [
     'resources:read',
 ];
 
-$commandLine = $_SERVER['argv'] ?? [];
+$commandLine = Str::getEnvironment()['argv'] ?? [];
 $arguments   = \is_array($commandLine) ? \array_values(\array_filter(\array_slice($commandLine, 1), is_string(...))) : [];
 
 if ($arguments === []) {

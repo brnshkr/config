@@ -307,4 +307,15 @@ final class StrTest extends TestCase
     {
         self::assertSame('', Str::fromEnvironment(self::VARIABLE_NAME));
     }
+
+    public function testTheWholeEnvironmentTakesTheServerArrayOverTheEnvironmentArray(): void
+    {
+        $_ENV[self::VARIABLE_NAME]    = 'environment';
+        $environmentOnly              = Str::getEnvironment();
+        $_SERVER[self::VARIABLE_NAME] = 'server';
+        $bothArrays                   = Str::getEnvironment();
+
+        self::assertSame('environment', $environmentOnly[self::VARIABLE_NAME] ?? null);
+        self::assertSame('server', $bothArrays[self::VARIABLE_NAME] ?? null);
+    }
 }
