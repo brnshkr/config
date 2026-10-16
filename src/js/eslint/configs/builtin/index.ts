@@ -15,7 +15,7 @@ import { resolvableDocReferenceRule } from '#eslint/configs/builtin/resolvable-d
 import { typeAssertionStyleRule } from '#eslint/configs/builtin/type-assertion-style.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 import { packageOrganization, packageOrganizationUpper, packageVersion } from '#shared/utils/package-json.ts';
 
@@ -62,7 +62,7 @@ export const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>
     },
     {
       name: buildConfigName(BUILTIN_SCOPE, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
         [<const>`${packageOrganization}/boolish-prefix`]: 'error',

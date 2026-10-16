@@ -23,6 +23,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_MERGE_PROCESSORS: 'eslint-merge-processors',
   ESLINT_PLUGIN_ANTFU: 'eslint-plugin-antfu',
   ESLINT_PLUGIN_ESLINT_COMMENTS: '@eslint-community/eslint-plugin-eslint-comments',
+  ESLINT_PLUGIN_HTML: 'eslint-plugin-html',
   ESLINT_PLUGIN_IMPORT_X: 'eslint-plugin-import-x',
   ESLINT_PLUGIN_JSDOC: 'eslint-plugin-jsdoc',
   ESLINT_PLUGIN_JSDOC_PROCESSOR: 'eslint-plugin-jsdoc/getJsdocProcessorPlugin.js',
@@ -38,6 +39,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_PLUGIN_UNUSED_IMPORTS: 'eslint-plugin-unused-imports',
   ESLINT_PLUGIN_YML: 'eslint-plugin-yml',
   GLOBALS: 'globals',
+  HTML_ESLINT_PLUGIN: '@html-eslint/eslint-plugin',
   SVELTE: 'svelte',
   TAILWINDCSS: 'tailwindcss',
   TYPESCRIPT: 'typescript',
@@ -69,6 +71,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_ESLINT_COMMENTS]: async () => interopImport(
     import('@eslint-community/eslint-plugin-eslint-comments'),
+  ),
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_HTML]: async () => interopImport(
+    import('eslint-plugin-html'),
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_IMPORT_X]: async () => interopImport(
     import('eslint-plugin-import-x'),
@@ -120,6 +125,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.GLOBALS]: async () => interopImport(
     import('globals'),
+  ),
+  [ESLINT_PACKAGES.HTML_ESLINT_PLUGIN]: async () => interopImport(
+    import('@html-eslint/eslint-plugin'),
   ),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.SVELTE]: () => isPackageInstalled(ESLINT_PACKAGES.SVELTE),

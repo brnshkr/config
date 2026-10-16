@@ -4,9 +4,16 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
-import { INDENT, MAX_LEN, QUOTES } from '#shared/utils/constants.ts';
+
+import {
+  INDENT,
+  MAX_EMPTY_LINES,
+  MAX_LEN,
+  QUOTES,
+} from '#shared/utils/constants.ts';
+
 import { isPlainObject } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';
@@ -46,7 +53,7 @@ export const style = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.STYLE, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...renameRules(styleConfig.rules, { '@stylistic': 'style' }),
         'style/array-bracket-newline': ['error', 'consistent'],
@@ -189,6 +196,13 @@ export const style = async (): Promise<Config[]> => {
               '??',
             ],
           ],
+        }],
+        'style/no-multiple-empty-lines': ['error', {
+          max: MAX_EMPTY_LINES,
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          maxBOF: 0,
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          maxEOF: 0,
         }],
         'style/nonblock-statement-body-position': ['error', 'below'],
         'style/object-curly-newline': ['error', {

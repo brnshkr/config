@@ -4,7 +4,7 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { objectFromEntries } from '#shared/utils/object.ts';
 
@@ -68,7 +68,7 @@ export const javascript = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.JAVASCRIPT, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...jsEslint?.configs.recommended.rules,
         ...(confusingBrowserGlobals
@@ -193,7 +193,9 @@ export const javascript = async (): Promise<Config[]> => {
         }],
         'no-implicit-globals': 'error',
         'no-implied-eval': 'error',
-        'no-inline-comments': 'error',
+        'no-inline-comments': ['error', {
+          ignorePattern: String.raw`^\s*html\s*$`,
+        }],
         'no-inner-declarations': ['error', 'functions', {
           blockScopedFunctions: 'disallow',
         }],

@@ -153,6 +153,16 @@ export interface ConfigOptions {
   css: boolean | Partial<CssOptions>;
 
   /**
+   * Enables `@html-eslint/eslint-plugin`.
+   *
+   * @default `Enabled when "@html-eslint/eslint-plugin" is installed.`
+   *
+   * @see https://github.com/yeonjuan/html-eslint
+   * @see https://github.com/BenoitZugmeyer/eslint-plugin-html
+   */
+  html: boolean;
+
+  /**
    * Enables `eslint-plugin-import-x`.
    *
    * @default `Enabled when "eslint-plugin-import-x" or "eslint-plugin-antfu" are installed.`

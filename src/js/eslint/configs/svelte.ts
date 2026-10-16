@@ -4,12 +4,75 @@
 
 import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { ATTRIBUTE_GROUP_PREFIXES, ATTRIBUTE_ORDER, TRAILING_ATTRIBUTES } from '#eslint/utils/attributes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
 import { GLOB_SVELTE, GLOB_SVELTE_SCRIPT } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { INDENT } from '#shared/utils/constants.ts';
 
 import type { Config } from '#eslint/types/config.ts';
+
+const ATTRIBUTE_DIRECTIVE_GROUPS = [
+  <[string, ...string[]]>[
+    '/^bind:/u',
+    '!bind:this',
+    '/^on:/u',
+  ],
+  ...[
+    'use',
+    'transition',
+    'in',
+    'out',
+    'animate',
+    'let',
+  ].map((directive) => ({
+    match: `/^${directive}:/u`,
+    sort: <const>'alphabetical',
+  })),
+];
+
+const ORDERED_ATTRIBUTE_NAMES = [
+  'this',
+  'slot',
+  ...ATTRIBUTE_ORDER,
+  ...TRAILING_ATTRIBUTES,
+].toSorted((first, second) => first.localeCompare(second));
+
+const SVELTE_ATTRIBUTE_ORDER = [
+  'this',
+  'bind:this',
+  ...ATTRIBUTE_ORDER.filter((attribute) => attribute !== 'class' && attribute !== 'style'),
+  'class',
+  {
+    match: '/^class:/u',
+    sort: <const>'alphabetical',
+  },
+  'style',
+  {
+    match: '/^style:/u',
+    sort: <const>'alphabetical',
+  },
+  'slot',
+  {
+    match: '/^--/u',
+    sort: <const>'alphabetical',
+  },
+  {
+    match: <[string, ...string[]]>[
+      '!/:/u',
+      '!/^--/u',
+      `!/^(?:${ORDERED_ATTRIBUTE_NAMES.join('|')})$/u`,
+      ...ATTRIBUTE_GROUP_PREFIXES.map((prefix) => `!/^${prefix}/u`),
+    ],
+    sort: <const>'alphabetical',
+  },
+  ...TRAILING_ATTRIBUTES,
+  ...ATTRIBUTE_GROUP_PREFIXES.map((prefix) => ({
+    match: `/^${prefix}/u`,
+    sort: <const>'alphabetical',
+  })),
+  ...ATTRIBUTE_DIRECTIVE_GROUPS,
+];
 
 /**
  * @throws {Error}
@@ -130,7 +193,9 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/require-stores-init': 'error',
         'svelte/shorthand-attribute': 'error',
         'svelte/shorthand-directive': 'error',
-        'svelte/sort-attributes': 'error',
+        'svelte/sort-attributes': ['error', {
+          order: SVELTE_ATTRIBUTE_ORDER,
+        }],
         'svelte/spaced-html-comment': 'error',
         'svelte/valid-compile': 'error',
         'svelte/valid-style-parse': 'error',

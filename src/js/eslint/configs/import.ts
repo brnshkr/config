@@ -4,7 +4,7 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
-import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs, GLOB_DEVELOPMENT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { objectKeys } from '#shared/utils/object.ts';
 
@@ -187,7 +187,7 @@ export const imports = async (): Promise<Config[]> => {
     setupConfig,
     {
       name: buildConfigName(MAIN_SCOPES.IMPORT, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...pluginImportRules,
         ...pluginAntfuRules,

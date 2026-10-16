@@ -32,6 +32,17 @@ export const MODULES = <const>{
       ],
     },
   },
+  html: {
+    name: 'html',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.HTML_ESLINT_PLUGIN,
+      ],
+      optional: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_HTML,
+      ],
+    },
+  },
   import: {
     name: 'import',
     packages: {

@@ -2,7 +2,9 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { isModuleEnabled, MODULES, PACKAGES } from '#eslint/utils/module.ts';
 import { GLOB_BENCHMARK_FILES, GLOB_TEST_FILES as GLOB_TEST_FILES_SHARED } from '#shared/utils/globs.ts';
+import { doAllPackagesExist } from '#shared/utils/module.ts';
 
 export const GLOB_CJS = '**/*.cjs';
 export const GLOB_TS = '**/*.?(c|m)ts?(x)';
@@ -15,6 +17,16 @@ export const GLOB_JSON5 = '**/*.json5';
 export const GLOB_YAML = '**/*.y?(a)ml';
 export const GLOB_TOML = '**/*.toml';
 export const GLOB_CSS = '**/*.css';
+export const GLOB_HTML = '**/*.htm?(l)';
+export const GLOB_HTML_ERB = `${GLOB_HTML}.erb`;
+export const GLOB_HTML_PHP = `${GLOB_HTML}.php`;
+export const GLOB_HTML_TWIG = `${GLOB_HTML}.twig`;
+export const GLOB_BLADE = '**/*.blade.php';
+export const GLOB_HANDLEBARS = '**/*.{handlebars,hbs}';
+export const GLOB_NUNJUCKS = '**/*.{njk,nunjucks}';
+export const GLOB_PHTML = '**/*.phtml';
+export const GLOB_PHP = '**/*.php';
+export const GLOB_PHP_INCLUDE = '**/*.inc.php';
 export const GLOB_MD = '**/*.md';
 export const GLOB_MD_CODE_BLOCKS = '**/*.md/**';
 export const GLOB_EXAMPLES = String.raw`**/*.md/\*.[jt]s?(x)`;
@@ -24,6 +36,26 @@ export const GLOB_JSDOC_EXPRESSION_FILES = <const>[
   String.raw`**/*.jsdoc-defaults.md/\*.js`,
   String.raw`**/*.jsdoc-params.md/\*.js`,
   String.raw`**/*.jsdoc-properties.md/\*.js`,
+] satisfies string[];
+
+export const GLOB_PHP_TEMPLATE_FILES = <const>[
+  GLOB_HTML_PHP,
+  GLOB_PHP_INCLUDE,
+  GLOB_PHTML,
+  GLOB_BLADE,
+] satisfies string[];
+
+export const GLOB_TEMPLATE_FILES = <const>[
+  GLOB_HTML_ERB,
+  GLOB_HTML_TWIG,
+  GLOB_HANDLEBARS,
+  GLOB_NUNJUCKS,
+  ...GLOB_PHP_TEMPLATE_FILES,
+] satisfies string[];
+
+export const GLOB_HTML_FILES = <const>[
+  GLOB_HTML,
+  ...GLOB_TEMPLATE_FILES,
 ] satisfies string[];
 
 export const GLOB_SCRIPT_FILES = <const>[
@@ -59,3 +91,12 @@ export const GLOB_TEST_FILES = <const>[
   ...GLOB_TEST_FILES_SHARED,
   ...GLOB_BENCHMARK_FILES,
 ] satisfies string[];
+
+export const getHtmlScriptFileGlobs = (): string[] => (
+  (isModuleEnabled(MODULES.html) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_HTML])) ? [...GLOB_HTML_FILES] : []
+);
+
+export const getScriptFileGlobs = (): string[] => [
+  ...GLOB_SCRIPT_FILES,
+  ...getHtmlScriptFileGlobs(),
+];

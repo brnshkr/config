@@ -8,6 +8,7 @@ export const MAIN_SCOPES = <const>{
   [packageOrganizationUpper]: 'builtin',
   COMMENTS: 'comments',
   CSS: 'css',
+  HTML: 'html',
   IGNORES: 'ignores',
   IMPORT: 'import',
   JAVASCRIPT: 'javascript',

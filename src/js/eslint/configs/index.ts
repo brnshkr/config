@@ -5,6 +5,7 @@
 import { builtin } from '#eslint/configs/builtin/index.ts';
 import { comments } from '#eslint/configs/comments.ts';
 import { css } from '#eslint/configs/css.ts';
+import { html } from '#eslint/configs/html.ts';
 import { ignores } from '#eslint/configs/ignores.ts';
 import { imports } from '#eslint/configs/import.ts';
 import { javascript } from '#eslint/configs/javascript.ts';
@@ -29,6 +30,7 @@ export const configs = <const>{
   [packageOrganization]: builtin,
   comments,
   css,
+  html,
   ignores,
   import: imports,
   javascript,

@@ -4,7 +4,7 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 
 import type { Config } from '#eslint/types/config.ts';
@@ -112,7 +112,7 @@ export const unicorn = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.UNICORN, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...pluginUnicorn.configs.recommended.rules,
         'no-else-return': 'off',
@@ -122,6 +122,11 @@ export const unicorn = async (): Promise<Config[]> => {
           replacements: {
             [String.raw`\bapplication\b(?!/)`]: false,
             [String.raw`\bapplications\b`]: false,
+            [String.raw`\bhtml\b`]: false,
+            [String.raw`(?<!^\s?)\bhtml\b(?!\s?$)`]: {
+              replacement: 'HTML',
+              caseSensitive: false,
+            },
             ...Object.fromEntries(COMMENT_TERMS.map((term) => [
               String.raw`\b${term}\b`,
               {

@@ -7,7 +7,14 @@ import path from 'node:path';
 import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '#eslint/utils/globs.ts';
+
+import {
+  getHtmlScriptFileGlobs,
+  GLOB_SCRIPT_FILES,
+  GLOB_SCRIPT_FILES_WITHOUT_TS,
+  GLOB_TS,
+} from '#eslint/utils/globs.ts';
+
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 
 import {
@@ -404,7 +411,13 @@ export const jsdoc = async (): Promise<Config[]> => {
 
   const createRulesConfig = (isForTypescript: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.RULES}${isForTypescript ? '-typescript' : ''}`),
-    files: isForTypescript ? [GLOB_TS] : [GLOB_TS, ...GLOB_SCRIPT_FILES_WITHOUT_TS],
+    files: isForTypescript
+      ? [GLOB_TS]
+      : [
+        GLOB_TS,
+        ...GLOB_SCRIPT_FILES_WITHOUT_TS,
+        ...getHtmlScriptFileGlobs(),
+      ],
     rules: {
       ...(isForTypescript
         ? {

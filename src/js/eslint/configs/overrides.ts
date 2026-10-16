@@ -8,6 +8,7 @@ import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
 
 import {
+  getHtmlScriptFileGlobs,
   GLOB_CJS,
   GLOB_DEVELOPMENT_FILES,
   GLOB_DTS,
@@ -17,6 +18,7 @@ import {
   GLOB_SCRIPT_FILES,
   GLOB_STYLELINT_CONFIG,
   GLOB_SVELTE,
+  GLOB_TEMPLATE_FILES,
   GLOB_TEST_FILES,
   GLOB_TOML,
   GLOB_TS,
@@ -340,6 +342,81 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
   ]
   : [];
 
+const buildHtmlTemplateOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
+  ? [
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/templates`),
+      files: GLOB_TEMPLATE_FILES,
+      rules: {
+        'html/indent': 'off',
+        'html/require-meta-charset': 'off',
+        'html/require-meta-description': 'off',
+        'html/require-meta-viewport': 'off',
+        'html/require-open-graph-protocol': 'off',
+        'html/require-title': 'off',
+      },
+    },
+  ]
+  : []);
+
+const buildHtmlScriptOverrides = (): Config[] => {
+  const htmlScriptFiles = getHtmlScriptFileGlobs();
+  const isInternalTagSupported = isModuleEnabled(BUILTIN_MODULE) && isModuleEnabled(MODULES.jsdoc);
+
+  return htmlScriptFiles.length > 0
+    ? [
+      {
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/scripts`),
+        files: htmlScriptFiles,
+        ...(isInternalTagSupported
+          ? {
+            settings: {
+              jsdoc: {
+                structuredTags: {
+                  internal: {
+                    name: 'text',
+                    type: false,
+                  },
+                },
+              },
+            },
+          }
+          : undefined),
+        rules: {
+          'capitalized-comments': 'off',
+          'no-inline-comments': 'off',
+          ...(isModuleEnabled(BUILTIN_MODULE)
+            ? {
+              [<const>`${packageOrganization}/require-import-alias`]: 'off',
+            }
+            : {}),
+          ...(isInternalTagSupported
+            ? {
+              'jsdoc/empty-tags': 'off',
+            }
+            : {}),
+          ...(isModuleEnabled(MODULES.import)
+            ? {
+              'import/extensions': ['error', 'ignorePackages'],
+              'import/unambiguous': 'off',
+            }
+            : {}),
+          ...((isModuleEnabled(MODULES.security) && isModuleEnabled(MODULES.regexp))
+            ? {
+              'security/detect-unsafe-regex': 'off',
+            }
+            : {}),
+          ...(isModuleEnabled(MODULES.style)
+            ? {
+              'style/spaced-comment': 'off',
+            }
+            : {}),
+        },
+      },
+    ]
+    : [];
+};
+
 export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
   const resolvedTypescriptOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
 
@@ -353,6 +430,8 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
     ...unicornOverrides,
     ...securityOverrides,
     ...jsdocOverrides,
+    ...buildHtmlTemplateOverrides(),
+    ...buildHtmlScriptOverrides(),
     ...svelteOverrides,
     ...tomlOverrides,
     ...yamlOverrides,

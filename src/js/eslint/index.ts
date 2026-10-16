@@ -64,6 +64,7 @@ export const getConfig = (
     [packageOrganization]: isModuleEnabledByDefault(BUILTIN_MODULE),
     comments: isModuleEnabledByDefault(MODULES.comments),
     css: isModuleEnabledByDefault(MODULES.css),
+    html: isModuleEnabledByDefault(MODULES.html),
     import: isModuleEnabledByDefault(MODULES.import),
     jsdoc: isModuleEnabledByDefault(MODULES.jsdoc),
     json: isModuleEnabledByDefault(MODULES.json),
@@ -86,6 +87,7 @@ export const getConfig = (
   setModuleEnabled(BUILTIN_MODULE, resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.comments, resolvedOptions.comments);
   setModuleEnabled(MODULES.css, resolvedOptions.css !== false);
+  setModuleEnabled(MODULES.html, resolvedOptions.html);
   setModuleEnabled(MODULES.import, resolvedOptions.import);
   setModuleEnabled(MODULES.jsdoc, resolvedOptions.jsdoc);
   setModuleEnabled(MODULES.json, resolvedOptions.json);
@@ -191,6 +193,10 @@ export const getConfig = (
         ? resolvedOptions.css
         : undefined,
     ));
+  }
+
+  if (isModuleEnabled(MODULES.html)) {
+    appendToComposer(configs.html());
   }
 
   if (isModuleEnabled(MODULES.markdown)) {

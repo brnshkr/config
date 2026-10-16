@@ -4,7 +4,7 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 
 import type { Config } from '#eslint/types/config.ts';
@@ -27,7 +27,7 @@ export const perfectionist = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.PERFECTIONIST, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         'perfectionist/sort-array-includes': 'error',
         'perfectionist/sort-heritage-clauses': 'error',

@@ -73,6 +73,7 @@
     "@eslint/markdown": "^8.0.3",
     "@github/markdownlint-github": "^0.8.4",
     "@hongminhee/markdownlint-rules": "^0.2.5",
+    "@html-eslint/eslint-plugin": "^0.66.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/stylelint-config": "^5.0.0",
     "@typescript-eslint/utils": "^8.71.0",
@@ -87,6 +88,7 @@
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-merge-processors": "^2.0.0",
     "eslint-plugin-antfu": "^3.2.3",
+    "eslint-plugin-html": "^8.2.1",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jsdoc": "^65.0.1",
     "eslint-plugin-jsonc": "^3.4.2",
@@ -164,6 +166,9 @@
     "@hongminhee/markdownlint-rules": {
       "optional": true
     },
+    "@html-eslint/eslint-plugin": {
+      "optional": true
+    },
     "@stylistic/eslint-plugin": {
       "optional": true
     },
@@ -204,6 +209,9 @@
       "optional": true
     },
     "eslint-plugin-antfu": {
+      "optional": true
+    },
+    "eslint-plugin-html": {
       "optional": true
     },
     "eslint-plugin-import-x": {
@@ -346,6 +354,7 @@
     "@eslint/markdown": "8.0.3",
     "@github/markdownlint-github": "0.8.4",
     "@hongminhee/markdownlint-rules": "0.2.5",
+    "@html-eslint/eslint-plugin": "0.66.1",
     "@stylistic/eslint-plugin": "5.10.0",
     "@stylistic/stylelint-config": "5.0.0",
     "@total-typescript/ts-reset": "0.6.1",
@@ -365,6 +374,7 @@
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-merge-processors": "2.0.0",
     "eslint-plugin-antfu": "3.2.3",
+    "eslint-plugin-html": "8.2.1",
     "eslint-plugin-import-x": "4.17.1",
     "eslint-plugin-jsdoc": "65.0.1",
     "eslint-plugin-jsonc": "3.4.2",
