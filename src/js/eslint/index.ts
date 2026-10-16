@@ -75,6 +75,7 @@ export const getConfig = (
     security: isModuleEnabledByDefault(MODULES.security),
     style: isModuleEnabledByDefault(MODULES.style),
     svelte: isModuleEnabledByDefault(MODULES.svelte),
+    tailwind: isModuleEnabledByDefault(MODULES.tailwind),
     test: isModuleEnabledByDefault(MODULES.test),
     toml: isModuleEnabledByDefault(MODULES.toml),
     typescript: isModuleEnabledByDefault(MODULES.typescript),
@@ -98,6 +99,7 @@ export const getConfig = (
   setModuleEnabled(MODULES.security, resolvedOptions.security);
   setModuleEnabled(MODULES.style, resolvedOptions.style);
   setModuleEnabled(MODULES.svelte, resolvedOptions.svelte);
+  setModuleEnabled(MODULES.tailwind, resolvedOptions.tailwind !== false);
   setModuleEnabled(MODULES.test, resolvedOptions.test);
   setModuleEnabled(MODULES.toml, resolvedOptions.toml);
   setModuleEnabled(MODULES.typescript, resolvedOptions.typescript !== false);
@@ -192,6 +194,15 @@ export const getConfig = (
       typeof resolvedOptions.css === 'object'
         ? resolvedOptions.css
         : undefined,
+    ));
+  }
+
+  if (isModuleEnabled(MODULES.tailwind)) {
+    appendToComposer(configs.tailwind(
+      typeof resolvedOptions.tailwind === 'object'
+        ? resolvedOptions.tailwind
+        : undefined,
+      resolvedOptions.typescript,
     ));
   }
 

@@ -116,9 +116,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "@stylistic/at-rule-semicolon-newline-after": [
       "always",
     ],
-    "@stylistic/at-rule-semicolon-space-before": [
-      "never",
-    ],
+    "@stylistic/at-rule-semicolon-space-before": null,
     "@stylistic/block-closing-brace-empty-line-before": [
       "never",
     ],

@@ -542,7 +542,6 @@ Both are documented with examples in the [Custom PHPStan Rules docs](https://git
 - Expand [`⚙️ Workflows`](#️-workflows) section in readme
 - Add Vue support
 - Add React support
-- Add Tailwind support via <https://github.com/schoero/eslint-plugin-better-tailwindcss>
 - Improve test setup
 
 Any help is always greatly appreciated 🙂

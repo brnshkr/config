@@ -19,6 +19,7 @@ import { regexp } from '#eslint/configs/regexp.ts';
 import { security } from '#eslint/configs/security.ts';
 import { style } from '#eslint/configs/style.ts';
 import { svelte } from '#eslint/configs/svelte.ts';
+import { tailwind } from '#eslint/configs/tailwind.ts';
 import { test } from '#eslint/configs/test.ts';
 import { toml } from '#eslint/configs/toml.ts';
 import { typescript } from '#eslint/configs/typescript.ts';
@@ -44,6 +45,7 @@ export const configs = <const>{
   security,
   style,
   svelte,
+  tailwind,
   test,
   toml,
   typescript,

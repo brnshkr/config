@@ -9,6 +9,71 @@ import type { CssDialect } from '#shared/utils/dialect.ts';
 import type { packageOrganization } from '#shared/utils/package-json.ts';
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
+export interface TailwindOptions {
+  /**
+   * Directory Tailwind CSS and its configuration are resolved from.
+   *
+   * @default undefined
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#cwd
+   */
+  cwd: string;
+
+  /**
+   * Treats the component classes a project defines in CSS as known.
+   *
+   * @default true
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#detectcomponentclasses
+   */
+  detectComponentClasses: boolean;
+
+  /**
+   * Path to the CSS file holding the Tailwind CSS theme.
+   *
+   * @default undefined
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#entrypoint
+   */
+  entryPoint: string;
+
+  /**
+   * How a message shows a class list.
+   *
+   * @default `"visual", or "compact" in CI.`
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#messagestyle
+   */
+  messageStyle: 'compact' | 'raw' | 'visual';
+
+  /**
+   * Root font size in pixels.
+   *
+   * @default 16
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#rootfontsize
+   */
+  rootFontSize: number;
+
+  /**
+   * Path to the JavaScript configuration of Tailwind CSS 3.
+   *
+   * @default undefined
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#tailwindconfig
+   */
+  tailwindConfig: string;
+
+  /**
+   * Path to the TypeScript configuration file, used to resolve path aliases.
+   *
+   * @default `The tsconfig.json file the "typescript" module uses.`
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#tsconfig
+   */
+  tsconfig: string;
+}
+
 export interface CssOptions {
   /**
    * Additional syntax definitions, e.g. project specific at-rules.
@@ -22,23 +87,14 @@ export interface CssOptions {
   /**
    * Additional CSS syntax, e.g. project specific at-rules and functions.
    *
-   * @default `Tailwind CSS's syntax when the "tailwind" option is enabled.`
+   * @default `Tailwind CSS's syntax when the "tailwind" module is enabled.`
    */
   dialect: Partial<CssDialect>;
 
   /**
-   * Enables the TailwindCSS at-rules and turns off the rules its syntax cannot satisfy.
-   *
-   * @default `Enabled when "tailwindcss" is installed.`
-   *
-   * @see https://tailwindcss.com/docs/functions-and-directives
-   */
-  tailwind: boolean;
-
-  /**
    * Enables tolerant parsing of preludes the CSS parser cannot read.
    *
-   * @default `Enabled when the "tailwind" option is enabled.`
+   * @default `Enabled when the "tailwind" module is enabled.`
    */
   tolerant: boolean;
 }
@@ -252,6 +308,16 @@ export interface ConfigOptions {
    * @see https://github.com/sveltejs/eslint-plugin-svelte
    */
   svelte: boolean;
+
+  /**
+   * Enables `eslint-plugin-better-tailwindcss`.
+   *
+   * @default `Enabled when "tailwindcss" is installed.`
+   *
+   * @see https://github.com/tailwindlabs/tailwindcss
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss
+   */
+  tailwind: boolean | Partial<TailwindOptions>;
 
   /**
    * Enables `@vitest/eslint-plugin`.

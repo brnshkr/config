@@ -108,11 +108,11 @@ export interface ConfigOptions {
   style: boolean;
 
   /**
-   * Declares Tailwind CSS's at-rules, such as `@apply` and `@utility`, so they read as valid CSS.
+   * Enables Tailwind CSS support.
    *
    * @default `Enabled when "tailwindcss" is installed.`
    *
-   * @see https://tailwindcss.com/docs/functions-and-directives
+   * @see https://github.com/tailwindlabs/tailwindcss
    */
   tailwind: boolean;
 }

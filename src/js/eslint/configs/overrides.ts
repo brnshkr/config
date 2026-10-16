@@ -13,6 +13,7 @@ import {
   GLOB_DEVELOPMENT_FILES,
   GLOB_DTS,
   GLOB_EXAMPLES,
+  GLOB_HTML,
   GLOB_JSDOC_EXPRESSION_FILES,
   GLOB_MD_CODE_BLOCKS,
   GLOB_SCRIPT_FILES,
@@ -26,8 +27,15 @@ import {
   GLOB_YAML_FIXED_EXTENSION_FILES,
 } from '#eslint/utils/globs.ts';
 
-import { BUILTIN_MODULE, isModuleEnabled, MODULES } from '#eslint/utils/module.ts';
+import {
+  BUILTIN_MODULE,
+  isModuleEnabled,
+  MODULES,
+  PACKAGES,
+} from '#eslint/utils/module.ts';
+
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 
 import type { Config } from '#eslint/types/config.ts';
@@ -342,7 +350,7 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
   ]
   : [];
 
-const buildHtmlTemplateOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
+const buildHtmlOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/templates`),
@@ -356,6 +364,16 @@ const buildHtmlTemplateOverrides = (): Config[] => (isModuleEnabled(MODULES.html
         'html/require-title': 'off',
       },
     },
+    ...((isModuleEnabled(MODULES.tailwind) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS]))
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/tailwind`),
+        files: [GLOB_HTML],
+        rules: {
+          'html/class-spacing': 'off',
+          'html/no-duplicate-class': 'off',
+        },
+      } satisfies Config]
+      : []),
   ]
   : []);
 
@@ -430,7 +448,7 @@ export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOption
     ...unicornOverrides,
     ...securityOverrides,
     ...jsdocOverrides,
-    ...buildHtmlTemplateOverrides(),
+    ...buildHtmlOverrides(),
     ...buildHtmlScriptOverrides(),
     ...svelteOverrides,
     ...tomlOverrides,

@@ -22,6 +22,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_MARKDOWN: '@eslint/markdown',
   ESLINT_MERGE_PROCESSORS: 'eslint-merge-processors',
   ESLINT_PLUGIN_ANTFU: 'eslint-plugin-antfu',
+  ESLINT_PLUGIN_BETTER_TAILWINDCSS: 'eslint-plugin-better-tailwindcss',
   ESLINT_PLUGIN_ESLINT_COMMENTS: '@eslint-community/eslint-plugin-eslint-comments',
   ESLINT_PLUGIN_HTML: 'eslint-plugin-html',
   ESLINT_PLUGIN_IMPORT_X: 'eslint-plugin-import-x',
@@ -42,6 +43,7 @@ export const ESLINT_PACKAGES = <const>{
   HTML_ESLINT_PLUGIN: '@html-eslint/eslint-plugin',
   SVELTE: 'svelte',
   TAILWINDCSS: 'tailwindcss',
+  TAILWINDCSS_COLORS: 'tailwindcss/colors',
   TYPESCRIPT: 'typescript',
   TYPESCRIPT_ESLINT: 'typescript-eslint',
   VITEST_ESLINT_PLUGIN: '@vitest/eslint-plugin',
@@ -68,6 +70,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU]: async () => interopImport(
     import('eslint-plugin-antfu'),
+  ),
+  [ESLINT_PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS]: async () => interopImport(
+    import('eslint-plugin-better-tailwindcss'),
   ),
   [ESLINT_PACKAGES.ESLINT_PLUGIN_ESLINT_COMMENTS]: async () => interopImport(
     import('@eslint-community/eslint-plugin-eslint-comments'),
@@ -133,6 +138,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   [ESLINT_PACKAGES.SVELTE]: () => isPackageInstalled(ESLINT_PACKAGES.SVELTE),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.TAILWINDCSS]: () => isPackageInstalled(ESLINT_PACKAGES.TAILWINDCSS),
+  [ESLINT_PACKAGES.TAILWINDCSS_COLORS]: async () => interopImport(
+    import('tailwindcss/colors'),
+  ),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.TYPESCRIPT]: () => isPackageInstalled(ESLINT_PACKAGES.TYPESCRIPT),
   [ESLINT_PACKAGES.TYPESCRIPT_ESLINT]: async () => interopImport(

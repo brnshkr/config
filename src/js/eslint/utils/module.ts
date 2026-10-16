@@ -147,6 +147,18 @@ export const MODULES = <const>{
       ],
     },
   },
+  tailwind: {
+    name: 'tailwind',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.TAILWINDCSS,
+      ],
+      optional: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS,
+        ESLINT_PACKAGES.TAILWINDCSS_COLORS,
+      ],
+    },
+  },
   test: {
     name: 'test',
     packages: {

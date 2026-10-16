@@ -22,6 +22,7 @@ export const MAIN_SCOPES = <const>{
   SECURITY: 'security',
   STYLE: 'style',
   SVELTE: 'svelte',
+  TAILWIND: 'tailwind',
   TEST: 'test',
   TOML: 'toml',
   TYPESCRIPT: 'typescript',

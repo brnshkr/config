@@ -9,12 +9,10 @@ import { GLOB_CSS } from '#eslint/utils/globs.ts';
 import {
   isModuleEnabled,
   MODULES,
-  PACKAGES,
   resolvePackages,
 } from '#eslint/utils/module.ts';
 
 import { getScopingRootAtRules, mergeDialects } from '#shared/utils/dialect.ts';
-import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
 import { TAILWIND_DIALECT } from '#shared/utils/tailwind.ts';
 
@@ -119,7 +117,7 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
     return [];
   }
 
-  const isTailwindEnabled = options?.tailwind ?? doAllPackagesExist([PACKAGES.TAILWINDCSS]);
+  const isTailwindEnabled = isModuleEnabled(MODULES.tailwind);
   const dialect = buildDialect(isTailwindEnabled, options);
   const customSyntax = buildCustomSyntax(options?.customSyntax, dialect);
 
