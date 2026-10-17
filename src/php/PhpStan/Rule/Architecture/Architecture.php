@@ -20,6 +20,7 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\EntityAndRepositoryTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\MigrationIsolationTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\RoleFoldersExhaustiveTest as DoctrineRoleFoldersExhaustiveTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\ExceptionPlacementTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\KindPlacementTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\NoDevelopmentDependencyTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Invariant\NoTestDependencyTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\CastTest;
@@ -231,6 +232,36 @@ final class Architecture
         }
 
         return $services;
+    }
+
+    /**
+     * Build the opt-in rules placing every enum, interface and trait in a namespace named for its kind.
+     *
+     * The only preset without the baseline, so it composes with any other preset.
+     *
+     * @param ?non-empty-string $root - root namespace, or null to read it from `autoload`
+     * @param array<key-of<KindPlacementTest::DEFAULT_SEGMENTS>, ?non-empty-string> $segments - namespace segment per kind, merged over the defaults; null leaves the kind unchecked
+     *
+     * @return non-empty-list<PhpAtService> configured architecture rule services
+     *
+     * @throws InvalidArgumentException when a namespace is empty after normalization
+     * @throws RuntimeException when the project's `composer.json` cannot be read
+     *
+     * @example
+     * ```php
+     * $kindPlacement = Architecture::kindPlacement();
+     * $withContracts = Architecture::kindPlacement(segments: ['Interface' => 'Contract', 'Trait' => null]);
+     * ```
+     */
+    public static function kindPlacement(?string $root = null, array $segments = []): array
+    {
+        return [
+            PhpStan::configurePhpAtTest(KindPlacementTest::class, [
+                'root'               => self::resolveRoot($root),
+                'segments'           => $segments,
+                'excludedNamespaces' => self::normalizeNamespaces(ComposerJson::forProjectUsingThisLibrary()->getDevelopmentNamespaces()),
+            ]),
+        ];
     }
 
     /**

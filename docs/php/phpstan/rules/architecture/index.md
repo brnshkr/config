@@ -12,6 +12,7 @@ with no arguments is correct in any repository. Passing one explicitly overrides
 | Preset | Covers |
 | --- | --- |
 | [`baseline()`](./Library.md) | what every preset includes: tests, exceptions and development-only packages |
+| [`kindPlacement()`](./Library.md) | opt-in: enums, interfaces and traits in a namespace named for their kind |
 | [`library()`](./Library.md) | a published package — its exception interface, its model, its facades |
 | [`layered()`](./Layered.md) | Domain / Application / Infrastructure isolation |
 | [`ddd()`](./Ddd.md) | full Domain-Driven Design, built on `layered()` |
@@ -19,7 +20,8 @@ with no arguments is correct in any repository. Passing one explicitly overrides
 | [`symfony()` / `laravel()` / `tempest()` / `doctrine()`](./Framework.md) | framework role-folder placement and isolation |
 | [`symfonyBundle()` / `laravelPackage()` / `tempestPackage()`](./Library.md) | the same, for a package rather than an application |
 
-Every preset carries the [baseline](./Library.md), so composing a second preset to get them is never necessary.
+Every preset but `kindPlacement()` carries the [baseline](./Library.md),
+so composing a second preset to get them is never necessary.
 
 ## Composing
 

@@ -95,13 +95,24 @@ trait ArchitectureRuleTrait
         return PHPat::rule()
             ->classes(Selector::AllOf(Selector::inNamespace($root), ...$detection))
             ->should()
-            ->beNamed(sprintf(
-                '/^%s\\\(?:[^\\\]+\\\)*%s\\\[^\\\]+$/',
-                Str::quoteRegex($root),
-                Str::quoteRegex($targetSegment),
-            ), regex: true)
+            ->beNamed(self::buildNestedSegmentPattern($root, $targetSegment), regex: true)
             ->because(sprintf('%s must reside in a %s namespace.', $noun, $targetSegment))
         ;
+    }
+
+    /**
+     * @param non-empty-string $root
+     * @param non-empty-string $targetSegment
+     *
+     * @return non-empty-string
+     */
+    private static function buildNestedSegmentPattern(string $root, string $targetSegment): string
+    {
+        return sprintf(
+            '/^%s\\\(?:[^\\\]+\\\)*%s\\\[^\\\]+$/',
+            Str::quoteRegex($root),
+            Str::quoteRegex($targetSegment),
+        );
     }
 
     /**

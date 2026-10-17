@@ -119,6 +119,7 @@
         "./src/php/PhpStan/Rule/Architecture/Doctrine/MigrationIsolationTest.php",
         "./src/php/PhpStan/Rule/Architecture/Doctrine/RoleFoldersExhaustiveTest.php",
         "./src/php/PhpStan/Rule/Architecture/Invariant/ExceptionPlacementTest.php",
+        "./src/php/PhpStan/Rule/Architecture/Invariant/KindPlacementTest.php",
         "./src/php/PhpStan/Rule/Architecture/Invariant/NoDevelopmentDependencyTest.php",
         "./src/php/PhpStan/Rule/Architecture/Invariant/NoTestDependencyTest.php",
         "./src/php/PhpStan/Rule/Architecture/Laravel/CastTest.php",

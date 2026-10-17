@@ -32,6 +32,19 @@ Classmap-only packages contribute their top-level namespace through `./vendor/co
 — a classmapped class in the global namespace contributes nothing, since it has no namespace to forbid. A package autoloading
 only through `autoload.files` is not covered at all: its functions are global, and a namespace rule cannot reach them.
 
+## `Architecture::kindPlacement()`
+
+Opt-in: enums, interfaces and traits each sit in a namespace named for their kind, at any depth.
+It carries no baseline, so add it beside another preset.
+
+```php
+// Acme\User\Enum\Role, Acme\Email\Interface\MailerInterface, Acme\User\Trait\HasEmail
+Architecture::kindPlacement();
+
+// Acme\User\Enum\Role, Acme\Email\Contract\MailerInterface, traits anywhere
+Architecture::kindPlacement(segments: ['Interface' => 'Contract', 'Trait' => null]);
+```
+
 ## `Architecture::library()`
 
 The baseline plus what a published package owes its consumers.
