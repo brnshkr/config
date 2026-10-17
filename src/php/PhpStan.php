@@ -29,6 +29,7 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Composer\InstalledVersions;
 use DateTimeImmutable;
+use Fruitcake\LaravelDebugbar\LaravelDebugbar;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use PhpCsFixer\Finder as PhpCsFixerFinder;
@@ -59,10 +60,12 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\AbstractString;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\VarDumper\VarDumper;
 use Symfony\Component\VarExporter\VarExporter;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symplify\PHPStanRules\Rules as SymplifyPhpStanRules;
+use Tempest\Debug\Debug;
 use Throwable;
 
 use function array_any;
@@ -2039,37 +2042,58 @@ final class PhpStan
     private static function getForbiddenFunctions(): array
     {
         $forbiddenFunctions = [
-            'eval'                 => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'compact'              => 'Explicitly assign to keys in the array.',
-            'extract'              => 'Explicitly define variables for the entries of the array.',
-            'define'               => 'Declare the constant with "const" instead.',
-            'assert'               => 'Throw a "LogicException" or a domain exception instead.',
-            'method_exists'        => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'property_exists'      => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload'         => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload_*'       => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'call_user_func'       => 'Call the callable directly instead.',
-            'call_user_func_array' => 'Call the callable directly, spreading the arguments, instead.',
-            'func_get_args'        => 'Use a variadic parameter instead.',
-            'gettype'              => 'Use "get_debug_type()" instead.',
-            'settype'              => 'Use a cast instead.',
-            'getenv'               => 'Read the environment in one place and inject the value instead.',
-            'putenv'               => 'Pass the environment to the process that needs it instead.',
-            'ini_set'              => 'Configure the runtime in php.ini instead.',
-            'set_time_limit'       => 'Configure the runtime in php.ini instead.',
-            'error_reporting'      => 'Configure the runtime in php.ini instead.',
-            'rand'                 => 'Use "random_int()" instead.',
-            'mt_rand'              => 'Use "random_int()" instead.',
-            'lcg_value'            => sprintf('Use "%s::nextFloat()" instead.', Randomizer::class),
-            'array_rand'           => sprintf('Use "%s::pickArrayKeys()" instead.', Randomizer::class),
-            'shuffle'              => sprintf('Use "%s::shuffleArray()" instead.', Randomizer::class),
-            'str_shuffle'          => sprintf('Use "%s::shuffleBytes()" instead.', Randomizer::class),
-            'var_dump'             => 'Please remove all debug functions. Use a logger if needed.',
-            'print_r'              => 'Please remove all debug functions. Use a logger if needed.',
-            'dd'                   => 'Please remove all debug functions. Use a logger if needed.',
-            'dump'                 => 'Please remove all debug functions. Use a logger if needed.',
-            'debug'                => 'Please remove all debug functions. Use a logger if needed.',
+            'eval'                  => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'compact'               => 'Explicitly assign to keys in the array.',
+            'extract'               => 'Explicitly define variables for the entries of the array.',
+            'define'                => 'Declare the constant with "const" instead.',
+            'assert'                => 'Throw a "LogicException" or a domain exception instead.',
+            'method_exists'         => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'property_exists'       => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload'          => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload_*'        => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'call_user_func'        => 'Call the callable directly instead.',
+            'call_user_func_array'  => 'Call the callable directly, spreading the arguments, instead.',
+            'func_get_args'         => 'Use a variadic parameter instead.',
+            'gettype'               => 'Use "get_debug_type()" instead.',
+            'settype'               => 'Use a cast instead.',
+            'getenv'                => 'Read the environment in one place and inject the value instead.',
+            'putenv'                => 'Pass the environment to the process that needs it instead.',
+            'ini_set'               => 'Configure the runtime in php.ini instead.',
+            'set_time_limit'        => 'Configure the runtime in php.ini instead.',
+            'error_reporting'       => 'Configure the runtime in php.ini instead.',
+            'rand'                  => 'Use "random_int()" instead.',
+            'mt_rand'               => 'Use "random_int()" instead.',
+            'lcg_value'             => sprintf('Use "%s::nextFloat()" instead.', Randomizer::class),
+            'array_rand'            => sprintf('Use "%s::pickArrayKeys()" instead.', Randomizer::class),
+            'shuffle'               => sprintf('Use "%s::shuffleArray()" instead.', Randomizer::class),
+            'str_shuffle'           => sprintf('Use "%s::shuffleBytes()" instead.', Randomizer::class),
+            'var_dump'              => 'Please remove all debug functions. Use a logger if needed.',
+            'print_r'               => 'Please remove all debug functions. Use a logger if needed.',
+            'debug_backtrace'       => 'Please remove all debug functions. Use a logger if needed.',
+            'debug_print_backtrace' => 'Please remove all debug functions. Use a logger if needed.',
         ];
+
+        /** @disregard P1009 symfony/var-dumper and tempest/debug are not dependencies of brnshkr/config */
+        if (class_exists(VarDumper::class) || class_exists(Debug::class)) {
+            $forbiddenFunctions['dd']   = 'Please remove all debug functions. Use a logger if needed.';
+            $forbiddenFunctions['dump'] = 'Please remove all debug functions. Use a logger if needed.';
+        }
+
+        /** @disregard P1009 fruitcake/laravel-debugbar is not a dependency of brnshkr/config */
+        if (class_exists(LaravelDebugbar::class)) {
+            $forbiddenFunctions['debug'] = 'Please remove all debug functions. Use a logger if needed.';
+        }
+
+        /** @disregard P1009 tempest/debug is not a dependency of brnshkr/config */
+        if (class_exists(Debug::class)) {
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'ld' => 'Please remove all debug functions. Use a logger if needed.',
+                'le' => 'Please remove all debug functions. Use a logger if needed.',
+                'll' => 'Please remove all debug functions. Use a logger if needed.',
+                'lw' => 'Please remove all debug functions. Use a logger if needed.',
+            ];
+        }
 
         /** @disregard P1009 psr/log is not a dependency of brnshkr/config */
         if (interface_exists(LoggerInterface::class)) {
