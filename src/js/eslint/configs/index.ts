@@ -15,6 +15,7 @@ import { markdown } from '#eslint/configs/markdown.ts';
 import { node } from '#eslint/configs/node.ts';
 import { overrides } from '#eslint/configs/overrides.ts';
 import { perfectionist } from '#eslint/configs/perfectionist.ts';
+import { php } from '#eslint/configs/php.ts';
 import { regexp } from '#eslint/configs/regexp.ts';
 import { security } from '#eslint/configs/security.ts';
 import { style } from '#eslint/configs/style.ts';
@@ -41,6 +42,7 @@ export const configs = <const>{
   node,
   overrides,
   perfectionist,
+  php,
   regexp,
   security,
   style,

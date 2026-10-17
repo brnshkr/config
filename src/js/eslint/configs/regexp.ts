@@ -4,7 +4,7 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
+import { getScriptFileGlobs, GLOB_PHP_REGEXP_BLOCKS } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 
 import type { Config } from '#eslint/types/config.ts';
@@ -27,7 +27,10 @@ export const regexp = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.REGEXP, SUB_SCOPES.RULES),
-      files: getScriptFileGlobs(),
+      files: [
+        ...getScriptFileGlobs(),
+        GLOB_PHP_REGEXP_BLOCKS,
+      ],
       rules: {
         ...pluginRegExp.configs.recommended.rules,
         'regexp/confusing-quantifier': 'error',

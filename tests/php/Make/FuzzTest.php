@@ -111,13 +111,13 @@ final class FuzzTest extends TestCase
             self::assertStringNotContainsString("\x07", $output, $command);
 
             self::assertDoesNotMatchRegularExpression(
-                '/unterminated|missing separator|awk:|syntax error|bad substitution|not found|missing \'}\'/i',
+                '/awk:|bad substitution|missing \'\}\'|missing separator|not found|syntax error|unterminated/i',
                 $output,
                 $command,
             );
 
             if (!$process->isSuccessful()) {
-                self::assertMatchesRegularExpression('/^\[.+\] |\*\*\* \[.+\] .*  Stop\.$/m', $output, $command);
+                self::assertMatchesRegularExpression('/^\[.+\] |\*\*\* \[.+\] .* {2}Stop\.$/m', $output, $command);
             }
         }
 

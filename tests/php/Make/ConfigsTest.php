@@ -472,9 +472,9 @@ final class ConfigsTest extends TestCase
 
         self::assertMatchesRegularExpression('/PHP_STAN_CONFIG\s+\?=\s+\S*(?<!\.local)\/tools\/phpstan\.php/', $resolved);
         self::assertMatchesRegularExpression('/RECTOR_CONFIG\s+\?=\s+\S*\/private\/rector\.php/', $resolved);
-        self::assertMatchesRegularExpression('/^\s+BRNSHKR_CONFIG_DIR\s+tools$/m', $exported);
-        self::assertMatchesRegularExpression('/^\s+BRNSHKR_CACHE_DIR\s+acme-cache$/m', $exported);
-        self::assertMatchesRegularExpression('/^\s+BRNSHKR_LOCAL_DIR\s+private$/m', $exported);
+        self::assertMatchesRegularExpression('/^[\t ]+BRNSHKR_CONFIG_DIR[\t ]+tools$/m', $exported);
+        self::assertMatchesRegularExpression('/^[\t ]+BRNSHKR_CACHE_DIR[\t ]+acme-cache$/m', $exported);
+        self::assertMatchesRegularExpression('/^[\t ]+BRNSHKR_LOCAL_DIR[\t ]+private$/m', $exported);
     }
 
     public function testTheEditorSettingsFollowTheConfiguredDirectories(): void

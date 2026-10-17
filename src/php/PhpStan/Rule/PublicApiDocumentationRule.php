@@ -320,7 +320,7 @@ final readonly class PublicApiDocumentationRule implements Rule
 
     private static function hasInheritDocTag(string $docText): bool
     {
-        return Str::match($docText, '/\*\s+@inheritDoc\b/i') !== [];
+        return Str::match($docText, '/\*\s+@inheritdoc\b/i') !== [];
     }
 
     /**

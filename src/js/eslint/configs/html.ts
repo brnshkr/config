@@ -14,9 +14,7 @@ import {
   GLOB_HTML_PHP,
   GLOB_HTML_TWIG,
   GLOB_NUNJUCKS,
-  GLOB_PHP,
   GLOB_PHP_INCLUDE,
-  GLOB_PHP_TEMPLATE_FILES,
   GLOB_PHTML,
   GLOB_SCRIPT_FILES,
 } from '#eslint/utils/globs.ts';
@@ -24,20 +22,8 @@ import {
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { INDENT, MAX_EMPTY_LINES, MAX_LEN } from '#shared/utils/constants.ts';
 import { objectEntries, objectFromEntries, readOwnValue } from '#shared/utils/object.ts';
-import { packageOrganization } from '#shared/utils/package-json.ts';
 
-import type { Linter } from 'eslint';
 import type { Config } from '#eslint/types/config.ts';
-
-interface SourcePosition {
-  line: number;
-  column: number;
-}
-
-interface PhpHtmlBlock extends SourcePosition {
-  text: string;
-  indent: number;
-}
 
 const TEMPLATE_ENGINES = <const>{
   blade: {
@@ -595,91 +581,6 @@ const HTML_EXTENSIONS = <const>[
   '.twig',
 ] satisfies string[];
 
-const createHeredocPattern = (): RegExp => /<<<[\t ]*(?<quote>["']?)HTML\k<quote>\r?\n(?<body>(?:.*\r?\n)*?)(?<indent>[\t ]*)HTML\b/dgv;
-const createMarkedStringPattern = (): RegExp => /(?:\/\/[\t ]*language=html\b|\/\*[\t ]*html[\t ]*\*\/|\/\*\*[\t ]*@lang[\t ]+html[\t ]*\*\/)[^"']*'(?<body>(?:[^'\\]|\\.)*)'/dgiv;
-
-const getSourcePosition = (text: string, offset: number): SourcePosition => {
-  const lines = text.slice(0, offset).split('\n');
-
-  return {
-    line: lines.length,
-    column: (lines.at(-1)?.length ?? 0) + 1,
-  };
-};
-
-const findPhpHtmlBlocks = (text: string): PhpHtmlBlock[] => [
-  ...text.matchAll(createHeredocPattern()).map((match) => {
-    const indent = match.groups?.['indent'] ?? '';
-    const [bodyStart = 0] = match.indices?.groups?.['body'] ?? [];
-
-    return {
-      ...getSourcePosition(text, bodyStart + indent.length),
-      text: (match.groups?.['body'] ?? '')
-        .split('\n')
-        .map((line) => line.slice(indent.length))
-        .join('\n'),
-      indent: indent.length,
-    };
-  }),
-  ...text.matchAll(createMarkedStringPattern()).map((match) => {
-    const [bodyStart = 0] = match.indices?.groups?.['body'] ?? [];
-
-    return {
-      ...getSourcePosition(text, bodyStart),
-      text: `${match.groups?.['body'] ?? ''}\n`,
-      indent: 0,
-    };
-  }),
-];
-
-const mapToSource = (block: PhpHtmlBlock, line: number, column: number): SourcePosition => ({
-  line: block.line + (line - 1),
-  column: column + (line === 1 ? block.column - 1 : block.indent),
-});
-
-const createPhpHtmlProcessor = (): Linter.Processor => {
-  const blocksByFilePath = new Map<string, PhpHtmlBlock[]>();
-
-  return {
-    meta: {
-      name: `${packageOrganization}/php-html`,
-    },
-    supportsAutofix: false,
-    preprocess: (text, filePath): ReturnType<NonNullable<Linter.Processor['preprocess']>> => {
-      const blocks = findPhpHtmlBlocks(text);
-
-      blocksByFilePath.set(filePath, blocks);
-
-      return blocks.map((block, index) => ({
-        text: block.text,
-        filename: `${String(index)}.html`,
-      }));
-    },
-    postprocess: (blockMessages, filePath): Linter.LintMessage[] => {
-      const blocks = blocksByFilePath.get(filePath) ?? [];
-
-      blocksByFilePath.delete(filePath);
-
-      return blockMessages.flatMap((messages, index) => {
-        const block = blocks.at(index);
-
-        return block === undefined
-          ? []
-          : messages.map((message) => ({
-            ...message,
-            ...mapToSource(block, message.line, message.column),
-            ...((message.endLine === undefined || message.endColumn === undefined)
-              ? undefined
-              : {
-                endLine: mapToSource(block, message.endLine, message.endColumn).line,
-                endColumn: mapToSource(block, message.endLine, message.endColumn).column,
-              }),
-          }));
-      });
-    },
-  };
-};
-
 export const html = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginHtml],
@@ -706,14 +607,6 @@ export const html = async (): Promise<Config[]> => {
       settings: {
         'html/html-extensions': HTML_EXTENSIONS,
       },
-    },
-    {
-      name: buildConfigName(MAIN_SCOPES.HTML, SUB_SCOPES.PROCESSOR),
-      files: [
-        GLOB_PHP,
-      ],
-      ignores: GLOB_PHP_TEMPLATE_FILES,
-      processor: createPhpHtmlProcessor(),
     },
     {
       name: buildConfigName(MAIN_SCOPES.HTML, SUB_SCOPES.PARSER),

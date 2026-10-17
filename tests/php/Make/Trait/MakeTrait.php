@@ -285,7 +285,7 @@ trait MakeTrait
     {
         /** @disregard P1013 \@phpstan-require-extends is not recognized by intelephense (See: https://github.com/bmewburn/vscode-intelephense/issues/3256) */
         self::assertMatchesRegularExpression(
-            sprintf('/(?<![\w.-])%s(?![\w.-])/', Str::quoteRegex($symbol)),
+            sprintf('/(?<![\w\-.])%s(?![\w\-.])/', Str::quoteRegex($symbol)),
             $output,
             sprintf('expected %s in output', $symbol),
         );
@@ -295,7 +295,7 @@ trait MakeTrait
     {
         /** @disregard P1013 \@phpstan-require-extends is not recognized by intelephense (See: https://github.com/bmewburn/vscode-intelephense/issues/3256) */
         self::assertDoesNotMatchRegularExpression(
-            sprintf('/(?<![\w.-])%s(?![\w.-])/', Str::quoteRegex($symbol)),
+            sprintf('/(?<![\w\-.])%s(?![\w\-.])/', Str::quoteRegex($symbol)),
             $output,
             sprintf('unexpected %s in output', $symbol),
         );

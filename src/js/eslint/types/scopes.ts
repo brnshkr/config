@@ -18,6 +18,7 @@ export const MAIN_SCOPES = <const>{
   NODE: 'node',
   OVERRIDES: 'overrides',
   PERFECTIONIST: 'perfectionist',
+  PHP: 'php',
   REGEXP: 'regexp',
   SECURITY: 'security',
   STYLE: 'style',

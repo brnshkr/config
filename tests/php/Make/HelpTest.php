@@ -275,7 +275,7 @@ final class HelpTest extends TestCase
     {
         self::assertSame($this->runMakeHelp(['list-scopes']), $this->runMake(['list-scopes']));
         self::assertSame($this->runMakeHelp(['vvv', 'app.commands']), $this->runMake(['vvv', 'app.commands']));
-        self::assertMatchesRegularExpression('/ARGS +=  +\'vv\' /', $this->runMake(['r', 'vv']));
+        self::assertMatchesRegularExpression('/ARGS += {2,}\'vv\' /', $this->runMake(['r', 'vv']));
     }
 
     public function testTheScopeListNamesOnlyScopesWithSomethingToShow(): void

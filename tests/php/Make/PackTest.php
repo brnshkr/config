@@ -94,7 +94,7 @@ final class PackTest extends TestCase
     {
         $templateReads = Str::matchAll(
             new Filesystem()->readFile(self::PROJECT_DIRECTORY . '/conf/Makefile'),
-            '/\$\((?<directory>_BRNSHKR|_JS|_PHP)_CONFIG_DIR\)\/(?<template>[\w.\-]+)/',
+            '/\$\((?<directory>_BRNSHKR|_JS|_PHP)_CONFIG_DIR\)\/(?<template>[\w\-.]+)/',
         );
 
         $stackPartFinder = new Finder()

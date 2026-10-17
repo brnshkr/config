@@ -111,7 +111,7 @@ final readonly class TagDescriptionRule implements Rule
             array_map(static fn (string $word): string => $word . ' ', self::THROWS_DESCRIPTION_WORDS),
         );
 
-        $isSentence = Str::match($prose, '/^\p{Lu}[\p{Ll}\s]/') !== [] || Str::endsWith($prose, '.');
+        $isSentence = Str::match($prose, '/^\p{Lu}[\s\p{Ll}]/') !== [] || Str::endsWith($prose, '.');
 
         $problem = match (true) {
             $isDashed !== self::DESCRIPTION_DASHES[$tag['kind']] => $isDashed ? 'takes no leading dash' : 'needs a leading dash',

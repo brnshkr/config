@@ -210,6 +210,10 @@ export const getConfig = (
     appendToComposer(configs.html());
   }
 
+  if (isModuleEnabled(MODULES.html) || isModuleEnabled(MODULES.regexp)) {
+    appendToComposer(configs.php());
+  }
+
   if (isModuleEnabled(MODULES.markdown)) {
     appendToComposer(configs.markdown(
       typeof resolvedOptions.markdown === 'object'

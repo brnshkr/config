@@ -52,7 +52,7 @@ final class VerbsTest extends TestCase
         $default   = $this->runMake(['ci'], directory: $directory);
         $fixing    = $this->runMake(['ci'], ['CI_TARGETS' => 'fix check test'], $directory);
 
-        self::assertMatchesRegularExpression('/--dry-run\n.*phpstan analyze.*\n.*phpunit/s', $default);
+        self::assertMatchesRegularExpression('/--dry-run\n(?:.*\n)*?.*phpstan analyze.*\n(?:.*\n)*?.*phpunit/', $default);
         self::assertStringNotContainsString(" -v\n", $default);
         self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s', $fixing);
     }

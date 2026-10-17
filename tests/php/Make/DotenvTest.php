@@ -173,7 +173,7 @@ final class DotenvTest extends TestCase
         self::assertMatchesRegularExpression('/^Exported:$/m', $exportedSection);
 
         self::assertMatchesRegularExpression(
-            '/^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/m',
+            '/^[\t ]+FIXTURE_MAKEFILE_EXPORT[\t ]+exported by the makefile$/m',
             $exportedSection,
         );
 
@@ -183,22 +183,22 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('_HAS_DOCKER', $outputWithPrivateExports);
 
         self::assertMatchesRegularExpression(
-            '/^\s+\.\/\.env\n\s+DOTENV_FIXTURE_PLAIN\s+one\s+\(replaced by the environment\)$/m',
+            '/^[\t ]+\.\/\.env\n[\t ]+DOTENV_FIXTURE_PLAIN[\t ]+one[\t ]+\(replaced by the environment\)$/m',
             $environmentFileSection,
         );
 
         self::assertMatchesRegularExpression(
-            '/^\s+DOTENV_FIXTURE_LAYER\s+base\s+\(replaced by \.\/\.env\.dev\.local\)$/m',
+            '/^[\t ]+DOTENV_FIXTURE_LAYER[\t ]+base[\t ]+\(replaced by \.\/\.env\.dev\.local\)$/m',
             $environmentFileSection,
         );
 
         self::assertMatchesRegularExpression(
-            '/^\s+\.\/\.env\.dev\.local\n\s+DOTENV_FIXTURE_LAYER\s+dev-local$/m',
+            '/^[\t ]+\.\/\.env\.dev\.local\n[\t ]+DOTENV_FIXTURE_LAYER[\t ]+dev-local$/m',
             $environmentFileSection,
         );
 
         self::assertMatchesRegularExpression(
-            '/^\s+DOTENV_FIXTURE_LATER\s+later\s+\(replaced by the command line\)$/m',
+            '/^[\t ]+DOTENV_FIXTURE_LATER[\t ]+later[\t ]+\(replaced by the command line\)$/m',
             $outputWithACommandLineValue,
         );
 
@@ -217,7 +217,7 @@ final class DotenvTest extends TestCase
             self::DOTENV_DIRECTORY,
         );
 
-        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LAYER +\?=  \.\/\.env\.dev\.local +dev-local\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LAYER +\?= {2}\.\/\.env\.dev\.local +dev-local\n/', $resolved);
         self::assertStringContainsString("acme://open/.env.dev.local#1\e\\DOTENV_FIXTURE_LAYER", $linked);
         self::assertStringNotContainsString('DOTENV_FIXTURE_LAYER', $plain);
     }
@@ -235,9 +235,9 @@ final class DotenvTest extends TestCase
             self::DOTENV_DIRECTORY,
         );
 
-        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_PLAIN +\?=  cli +from-the-command-line\n/', $resolved);
-        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LATER +\?=  env +from-the-environment\n/', $resolved);
-        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?=  cli +given\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_PLAIN +\?= {2}cli +from-the-command-line\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LATER +\?= {2}env +from-the-environment\n/', $resolved);
+        self::assertMatchesRegularExpression('/DOTENV_FIXTURE_ONLY_ON_THE_COMMAND_LINE +\?= {2}cli +given\n/', $resolved);
     }
 
     public function testAStageGoalReadsItsOwnStageWhileTheEnvironmentStillWins(): void
@@ -269,7 +269,7 @@ final class DotenvTest extends TestCase
         $stage   = $this->runMake(['test-dotenv-show', 'ENV_BIN=bin/env'], directory: $dotenvDirectory);
 
         self::assertStringContainsString('acme env with 0 arguments', $exports);
-        self::assertMatchesRegularExpression('/^\s+FIXTURE_MAKEFILE_EXPORT\s+exported by the makefile$/m', $exports);
+        self::assertMatchesRegularExpression('/^[\t ]+FIXTURE_MAKEFILE_EXPORT[\t ]+exported by the makefile$/m', $exports);
         self::assertMatchesRegularExpression('/acme env with [1-9]\d* arguments/', $stage);
         self::assertStringContainsString('DOTENV_FIXTURE_LAYER=test-env-local', $stage);
     }

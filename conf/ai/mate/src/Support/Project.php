@@ -91,9 +91,11 @@ final class Project
         $process->run();
 
         $output = s($process->getOutput() . "\n" . $process->getErrorOutput())
+            // eslint-disable no-control-regex, regexp/no-control-character -- Stripping control characters is what this pattern is for
             ->replaceMatches('/\x1B\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]/', '')
             ->replaceMatches('/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\\)/', '')
             ->replaceMatches('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '')
+            // eslint-enable no-control-regex, regexp/no-control-character
             ->trim()
         ;
 

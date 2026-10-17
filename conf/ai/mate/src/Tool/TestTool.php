@@ -117,7 +117,7 @@ final class TestTool
         $snapshotHashes = [];
 
         foreach (Str::split($status['output'], "\n") as $statusLine) {
-            $dirtySnapshotPath = Str::match(Str::trim($statusLine), '/^\S+\s+(?<path>.*)$/s')['path'] ?? '';
+            $dirtySnapshotPath = Str::match(Str::trim($statusLine), '/^\S+\s+(?<path>\S.*)$/s')['path'] ?? '';
 
             if ($dirtySnapshotPath === '' || !Str::isNonDecimalIntString($dirtySnapshotPath)) {
                 continue;

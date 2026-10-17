@@ -61,7 +61,7 @@ trait ArchitectureRuleTrait
      */
     private static function selectByClassnameSuffix(string $suffix): SelectorInterface
     {
-        return Selector::classname(sprintf('/.*%s$/', $suffix), true);
+        return Selector::classname(sprintf('/%s$/', $suffix), true);
     }
 
     /**
@@ -195,6 +195,7 @@ trait ArchitectureRuleTrait
             ->classes(Selector::inNamespace($root))
             ->should()
             ->beNamed(sprintf(
+                // eslint-disable-next-line regexp/no-useless-non-capturing-group -- The placeholder is filled with an alternation
                 '/^%s\\\(?:%s)\\\.+$/',
                 Str::quoteRegex($root),
                 $foldersAlternation,
