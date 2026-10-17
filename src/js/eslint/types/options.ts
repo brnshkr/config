@@ -306,6 +306,7 @@ export interface ConfigOptions {
    * @default `Enabled when "eslint-plugin-svelte" is installed.`
    *
    * @see https://github.com/sveltejs/eslint-plugin-svelte
+   * @see https://github.com/yeonjuan/html-eslint/tree/main/packages/eslint-plugin-svelte
    */
   svelte: boolean;
 

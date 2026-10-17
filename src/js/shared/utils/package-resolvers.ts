@@ -41,6 +41,7 @@ export const ESLINT_PACKAGES = <const>{
   ESLINT_PLUGIN_YML: 'eslint-plugin-yml',
   GLOBALS: 'globals',
   HTML_ESLINT_PLUGIN: '@html-eslint/eslint-plugin',
+  HTML_ESLINT_PLUGIN_SVELTE: '@html-eslint/eslint-plugin-svelte',
   SVELTE: 'svelte',
   TAILWINDCSS: 'tailwindcss',
   TAILWINDCSS_COLORS: 'tailwindcss/colors',
@@ -133,6 +134,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.HTML_ESLINT_PLUGIN]: async () => interopImport(
     import('@html-eslint/eslint-plugin'),
+  ),
+  [ESLINT_PACKAGES.HTML_ESLINT_PLUGIN_SVELTE]: async () => interopImport(
+    import('@html-eslint/eslint-plugin-svelte'),
   ),
   // Do not import, just check for existence
   [ESLINT_PACKAGES.SVELTE]: () => isPackageInstalled(ESLINT_PACKAGES.SVELTE),

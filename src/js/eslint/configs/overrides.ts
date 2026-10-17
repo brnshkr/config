@@ -315,6 +315,17 @@ const buildSvelteOverrides = (): Config[] => (isModuleEnabled(MODULES.svelte)
         },
       } satisfies Config]
       : []),
+    ...((isModuleEnabled(MODULES.tailwind)
+      && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS, PACKAGES.HTML_ESLINT_PLUGIN_SVELTE]))
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/tailwind`),
+        files: [GLOB_SVELTE],
+        rules: {
+          'svelte-html/class-spacing': 'off',
+          'svelte-html/no-duplicate-class': 'off',
+        },
+      } satisfies Config]
+      : []),
   ]
   : []);
 

@@ -74,6 +74,7 @@
     "@github/markdownlint-github": "^0.8.4",
     "@hongminhee/markdownlint-rules": "^0.2.5",
     "@html-eslint/eslint-plugin": "^0.66.1",
+    "@html-eslint/eslint-plugin-svelte": "^0.66.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/stylelint-config": "^5.0.0",
     "@typescript-eslint/utils": "^8.71.0",
@@ -168,6 +169,9 @@
       "optional": true
     },
     "@html-eslint/eslint-plugin": {
+      "optional": true
+    },
+    "@html-eslint/eslint-plugin-svelte": {
       "optional": true
     },
     "@stylistic/eslint-plugin": {
@@ -359,6 +363,7 @@
     "@github/markdownlint-github": "0.8.4",
     "@hongminhee/markdownlint-rules": "0.2.5",
     "@html-eslint/eslint-plugin": "0.66.1",
+    "@html-eslint/eslint-plugin-svelte": "0.66.1",
     "@stylistic/eslint-plugin": "5.10.0",
     "@stylistic/stylelint-config": "5.0.0",
     "@total-typescript/ts-reset": "0.6.1",

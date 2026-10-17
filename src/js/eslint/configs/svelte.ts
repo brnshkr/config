@@ -2,10 +2,11 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { REQUIRED_ATTRIBUTES, RESTRICTED_ATTRIBUTE_VALUES, RESTRICTED_ATTRIBUTES } from '#eslint/configs/html.ts';
 import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { ATTRIBUTE_GROUP_PREFIXES, ATTRIBUTE_ORDER, TRAILING_ATTRIBUTES } from '#eslint/utils/attributes.ts';
-import { buildConfigName } from '#eslint/utils/config.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
 import { GLOB_SVELTE, GLOB_SVELTE_SCRIPT } from '#eslint/utils/globs.ts';
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { INDENT } from '#shared/utils/constants.ts';
@@ -93,6 +94,7 @@ const extractRelevantConfig = (configs: Config[], key: string): Config => {
 export const svelte = async (): Promise<Config[]> => {
   const {
     requiredAll: [isSvelteInstalled, pluginSvelte],
+    optional: [pluginHtmlSvelte],
   } = await resolvePackages(MODULES.svelte);
 
   if (!isSvelteInstalled || !pluginSvelte) {
@@ -104,6 +106,11 @@ export const svelte = async (): Promise<Config[]> => {
       name: buildConfigName(MAIN_SCOPES.SVELTE, SUB_SCOPES.SETUP),
       plugins: {
         svelte: pluginSvelte,
+        ...(pluginHtmlSvelte
+          ? {
+            'svelte-html': pluginHtmlSvelte,
+          }
+          : undefined),
       },
     },
     {
@@ -201,5 +208,29 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/valid-style-parse': 'error',
       },
     },
+    ...(pluginHtmlSvelte
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.SVELTE, `${SUB_SCOPES.RULES}-html`),
+          files: [GLOB_SVELTE],
+          rules: {
+            ...renameRules(pluginHtmlSvelte.configs.recommended.rules, { '@html-eslint/svelte': 'svelte-html' }),
+            'svelte-html/no-restricted-attr-values': [
+              'error',
+              ...RESTRICTED_ATTRIBUTE_VALUES,
+            ],
+            'svelte-html/no-restricted-attrs': [
+              'error',
+              ...RESTRICTED_ATTRIBUTES,
+            ],
+            'svelte-html/require-attrs': [
+              'error',
+              ...REQUIRED_ATTRIBUTES,
+            ],
+            'svelte-html/use-baseline': 'error',
+          },
+        } satisfies Config,
+      ]
+      : []),
   ];
 };

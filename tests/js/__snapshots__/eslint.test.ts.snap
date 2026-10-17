@@ -1324,6 +1324,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "style:@stylistic/eslint-plugin@5.10.0",
     "perfectionist:eslint-plugin-perfectionist@5.12.1",
     "svelte:eslint-plugin-svelte@3.23.1",
+    "svelte-html:@html-eslint/eslint-plugin-svelte@0.66.1",
     "json:@eslint/json@2.1.1",
     "jsonc:eslint-plugin-jsonc@3.4.2",
     "toml:eslint-plugin-toml@1.5.0",
@@ -1746,6 +1747,13 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {
         "attrPatterns": [
           "^on",
+        ],
+        "tagPatterns": [
+          ".*",
+        ],
+      },
+      {
+        "attrPatterns": [
           "^(?:autofocus|contenteditable|srcdoc)$",
         ],
         "tagPatterns": [
@@ -15321,6 +15329,6273 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
   "processor": "eslint-plugin-svelte@3.23.1",
   "rules": {
     "addedValues": {
+      "svelte-html/class-spacing": [
+        0,
+      ],
+      "svelte-html/no-duplicate-class": [
+        0,
+      ],
+      "svelte-html/no-ineffective-attrs": [
+        2,
+      ],
+      "svelte-html/no-invalid-attr-value": [
+        2,
+      ],
+      "svelte-html/no-obsolete-attrs": [
+        2,
+      ],
+      "svelte-html/no-obsolete-tags": [
+        2,
+      ],
+      "svelte-html/no-restricted-attr-values": [
+        2,
+        {
+          "attrPatterns": [
+            "^(?:action|formaction|href|src)$",
+          ],
+          "attrValuePatterns": [
+            "^\\s*javascript:",
+          ],
+        },
+        {
+          "attrPatterns": [
+            "^href$",
+          ],
+          "attrValuePatterns": [
+            "^#$",
+          ],
+        },
+        {
+          "attrPatterns": [
+            "^sandbox$",
+          ],
+          "attrValuePatterns": [
+            "^(?=.*\\ballow-scripts\\b)(?=.*\\ballow-same-origin\\b)",
+          ],
+        },
+        {
+          "attrPatterns": [
+            "^target$",
+          ],
+          "attrValuePatterns": [
+            "^_(?:parent|self|top)$",
+          ],
+        },
+        {
+          "attrPatterns": [
+            "^autocomplete$",
+          ],
+          "attrValuePatterns": [
+            "^off$",
+          ],
+        },
+      ],
+      "svelte-html/no-restricted-attrs": [
+        2,
+        {
+          "attrPatterns": [
+            "^(?:autofocus|contenteditable|srcdoc)$",
+          ],
+          "tagPatterns": [
+            ".*",
+          ],
+        },
+      ],
+      "svelte-html/require-attrs": [
+        2,
+        {
+          "attr": "href",
+          "conditions": [
+            {
+              "attr": "download",
+              "kind": "present",
+            },
+          ],
+          "tag": "a",
+        },
+        {
+          "attr": "title",
+          "tag": "abbr",
+        },
+        {
+          "attr": "sandbox",
+          "tag": "iframe",
+        },
+        {
+          "attr": "decoding",
+          "tag": "img",
+        },
+        {
+          "attr": "sizes",
+          "conditions": [
+            {
+              "attr": "srcset",
+              "kind": "present",
+            },
+          ],
+          "tag": "img",
+        },
+        {
+          "attr": "accept",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "file",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "absent",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "date",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "datetime-local",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "email",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "month",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "number",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "password",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "search",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "tel",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "text",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "time",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "url",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "week",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "autocomplete",
+          "tag": "select",
+        },
+        {
+          "attr": "autocomplete",
+          "tag": "textarea",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additionalName",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additionalName",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additionalName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additional_name",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additional_name",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "additional_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleInitial",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleInitial",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleInitial",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_initial",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_initial",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_initial",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleName",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleName",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middleName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_name",
+            },
+          ],
+          "tag": "input",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_name",
+            },
+          ],
+          "tag": "select",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "middle_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "county",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "county",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "county",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "province",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "province",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "province",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "region",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "region",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "region",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "state",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "state",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "state",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "city",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "city",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "city",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "town",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "town",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "town",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "district",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "district",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "district",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suburb",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suburb",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suburb",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "neighborhood",
+            },
+          ],
+          "tag": "input",
+          "value": "address-level4",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "neighborhood",
+            },
+          ],
+          "tag": "select",
+          "value": "address-level4",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "neighborhood",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-level4",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address1",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address1",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address1",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine1",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine1",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine1",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line1",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line1",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line1",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line1",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address2",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address2",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address2",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine2",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine2",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine2",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line2",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line2",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line2",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line2",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address3",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address3",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address3",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine3",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine3",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "addressLine3",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line3",
+            },
+          ],
+          "tag": "input",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line3",
+            },
+          ],
+          "tag": "select",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "address_line3",
+            },
+          ],
+          "tag": "textarea",
+          "value": "address-line3",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDate",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDate",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDate",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_date",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_date",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_date",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthday",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthday",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthday",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dateOfBirth",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dateOfBirth",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dateOfBirth",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "date_of_birth",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "date_of_birth",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "date_of_birth",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dob",
+            },
+          ],
+          "tag": "input",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dob",
+            },
+          ],
+          "tag": "select",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dob",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDay",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDay",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthDay",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_day",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_day",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_day",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-day",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthMonth",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthMonth",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthMonth",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_month",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_month",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_month",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthYear",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthYear",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birthYear",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_year",
+            },
+          ],
+          "tag": "input",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_year",
+            },
+          ],
+          "tag": "select",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "birth_year",
+            },
+          ],
+          "tag": "textarea",
+          "value": "bday-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardMiddleName",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardMiddleName",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardMiddleName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_middle_name",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_middle_name",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_middle_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-additional-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvc",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvc",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvc",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvv",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvv",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cvv",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "securityCode",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "securityCode",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "securityCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "security_code",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "security_code",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "security_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-csc",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardExpiry",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardExpiry",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardExpiry",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_expiry",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_expiry",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_expiry",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryMonth",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryMonth",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryMonth",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_month",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_month",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_month",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp-month",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryYear",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryYear",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiryYear",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_year",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_year",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "expiry_year",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-exp-year",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardLastName",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardLastName",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardLastName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_last_name",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_last_name",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_last_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardFirstName",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardFirstName",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardFirstName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_first_name",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_first_name",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_first_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardName",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardName",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_name",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_name",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholderName",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholderName",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholderName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholder_name",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholder_name",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardholder_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardNumber",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardNumber",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardNumber",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_number",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_number",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_number",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "ccNumber",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "ccNumber",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "ccNumber",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cc_number",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cc_number",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cc_number",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-number",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardType",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardType",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cardType",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_type",
+            },
+          ],
+          "tag": "input",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_type",
+            },
+          ],
+          "tag": "select",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "card_type",
+            },
+          ],
+          "tag": "textarea",
+          "value": "cc-type",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country",
+            },
+          ],
+          "tag": "input",
+          "value": "country",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country",
+            },
+          ],
+          "tag": "select",
+          "value": "country",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country",
+            },
+          ],
+          "tag": "textarea",
+          "value": "country",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "countryName",
+            },
+          ],
+          "tag": "input",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "countryName",
+            },
+          ],
+          "tag": "select",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "countryName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country_name",
+            },
+          ],
+          "tag": "input",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country_name",
+            },
+          ],
+          "tag": "select",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "country_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "country-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currentPassword",
+            },
+          ],
+          "tag": "input",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currentPassword",
+            },
+          ],
+          "tag": "select",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currentPassword",
+            },
+          ],
+          "tag": "textarea",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "current_password",
+            },
+          ],
+          "tag": "input",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "current_password",
+            },
+          ],
+          "tag": "select",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "current_password",
+            },
+          ],
+          "tag": "textarea",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oldPassword",
+            },
+          ],
+          "tag": "input",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oldPassword",
+            },
+          ],
+          "tag": "select",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oldPassword",
+            },
+          ],
+          "tag": "textarea",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "old_password",
+            },
+          ],
+          "tag": "input",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "old_password",
+            },
+          ],
+          "tag": "select",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "old_password",
+            },
+          ],
+          "tag": "textarea",
+          "value": "current-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email",
+            },
+          ],
+          "tag": "input",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email",
+            },
+          ],
+          "tag": "select",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email",
+            },
+          ],
+          "tag": "textarea",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "emailAddress",
+            },
+          ],
+          "tag": "input",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "emailAddress",
+            },
+          ],
+          "tag": "select",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "emailAddress",
+            },
+          ],
+          "tag": "textarea",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email_address",
+            },
+          ],
+          "tag": "input",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email_address",
+            },
+          ],
+          "tag": "select",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "email_address",
+            },
+          ],
+          "tag": "textarea",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mail",
+            },
+          ],
+          "tag": "input",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mail",
+            },
+          ],
+          "tag": "select",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mail",
+            },
+          ],
+          "tag": "textarea",
+          "value": "email",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "familyName",
+            },
+          ],
+          "tag": "input",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "familyName",
+            },
+          ],
+          "tag": "select",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "familyName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "family_name",
+            },
+          ],
+          "tag": "input",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "family_name",
+            },
+          ],
+          "tag": "select",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "family_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "lastName",
+            },
+          ],
+          "tag": "input",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "lastName",
+            },
+          ],
+          "tag": "select",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "lastName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "last_name",
+            },
+          ],
+          "tag": "input",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "last_name",
+            },
+          ],
+          "tag": "select",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "last_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "surname",
+            },
+          ],
+          "tag": "input",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "surname",
+            },
+          ],
+          "tag": "select",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "surname",
+            },
+          ],
+          "tag": "textarea",
+          "value": "family-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "firstName",
+            },
+          ],
+          "tag": "input",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "firstName",
+            },
+          ],
+          "tag": "select",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "firstName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "first_name",
+            },
+          ],
+          "tag": "input",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "first_name",
+            },
+          ],
+          "tag": "select",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "first_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "forename",
+            },
+          ],
+          "tag": "input",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "forename",
+            },
+          ],
+          "tag": "select",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "forename",
+            },
+          ],
+          "tag": "textarea",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "givenName",
+            },
+          ],
+          "tag": "input",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "givenName",
+            },
+          ],
+          "tag": "select",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "givenName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "given_name",
+            },
+          ],
+          "tag": "input",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "given_name",
+            },
+          ],
+          "tag": "select",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "given_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "given-name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificPrefix",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificPrefix",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificPrefix",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_prefix",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_prefix",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_prefix",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "salutation",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "salutation",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "salutation",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-prefix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificSuffix",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificSuffix",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorificSuffix",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_suffix",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_suffix",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "honorific_suffix",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suffix",
+            },
+          ],
+          "tag": "input",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suffix",
+            },
+          ],
+          "tag": "select",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "suffix",
+            },
+          ],
+          "tag": "textarea",
+          "value": "honorific-suffix",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "impp",
+            },
+          ],
+          "tag": "input",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "impp",
+            },
+          ],
+          "tag": "select",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "impp",
+            },
+          ],
+          "tag": "textarea",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instantMessaging",
+            },
+          ],
+          "tag": "input",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instantMessaging",
+            },
+          ],
+          "tag": "select",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instantMessaging",
+            },
+          ],
+          "tag": "textarea",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instant_messaging",
+            },
+          ],
+          "tag": "input",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instant_messaging",
+            },
+          ],
+          "tag": "select",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "instant_messaging",
+            },
+          ],
+          "tag": "textarea",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "messenger",
+            },
+          ],
+          "tag": "input",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "messenger",
+            },
+          ],
+          "tag": "select",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "messenger",
+            },
+          ],
+          "tag": "textarea",
+          "value": "impp",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "language",
+            },
+          ],
+          "tag": "input",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "language",
+            },
+          ],
+          "tag": "select",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "language",
+            },
+          ],
+          "tag": "textarea",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferredLanguage",
+            },
+          ],
+          "tag": "input",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferredLanguage",
+            },
+          ],
+          "tag": "select",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferredLanguage",
+            },
+          ],
+          "tag": "textarea",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferred_language",
+            },
+          ],
+          "tag": "input",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferred_language",
+            },
+          ],
+          "tag": "select",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "preferred_language",
+            },
+          ],
+          "tag": "textarea",
+          "value": "language",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "fullName",
+            },
+          ],
+          "tag": "input",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "fullName",
+            },
+          ],
+          "tag": "select",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "fullName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "full_name",
+            },
+          ],
+          "tag": "input",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "full_name",
+            },
+          ],
+          "tag": "select",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "full_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "name",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "newPassword",
+            },
+          ],
+          "tag": "input",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "newPassword",
+            },
+          ],
+          "tag": "select",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "newPassword",
+            },
+          ],
+          "tag": "textarea",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "new_password",
+            },
+          ],
+          "tag": "input",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "new_password",
+            },
+          ],
+          "tag": "select",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "new_password",
+            },
+          ],
+          "tag": "textarea",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plainPassword",
+            },
+          ],
+          "tag": "input",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plainPassword",
+            },
+          ],
+          "tag": "select",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plainPassword",
+            },
+          ],
+          "tag": "textarea",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plain_password",
+            },
+          ],
+          "tag": "input",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plain_password",
+            },
+          ],
+          "tag": "select",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "plain_password",
+            },
+          ],
+          "tag": "textarea",
+          "value": "new-password",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickName",
+            },
+          ],
+          "tag": "input",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickName",
+            },
+          ],
+          "tag": "select",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nick_name",
+            },
+          ],
+          "tag": "input",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nick_name",
+            },
+          ],
+          "tag": "select",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nick_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickname",
+            },
+          ],
+          "tag": "input",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickname",
+            },
+          ],
+          "tag": "select",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nickname",
+            },
+          ],
+          "tag": "textarea",
+          "value": "nickname",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oneTimeCode",
+            },
+          ],
+          "tag": "input",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oneTimeCode",
+            },
+          ],
+          "tag": "select",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "oneTimeCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "one_time_code",
+            },
+          ],
+          "tag": "input",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "one_time_code",
+            },
+          ],
+          "tag": "select",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "one_time_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "otp",
+            },
+          ],
+          "tag": "input",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "otp",
+            },
+          ],
+          "tag": "select",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "otp",
+            },
+          ],
+          "tag": "textarea",
+          "value": "one-time-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "company",
+            },
+          ],
+          "tag": "input",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "company",
+            },
+          ],
+          "tag": "select",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "company",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization",
+            },
+          ],
+          "tag": "input",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization",
+            },
+          ],
+          "tag": "select",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "jobTitle",
+            },
+          ],
+          "tag": "input",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "jobTitle",
+            },
+          ],
+          "tag": "select",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "jobTitle",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "job_title",
+            },
+          ],
+          "tag": "input",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "job_title",
+            },
+          ],
+          "tag": "select",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "job_title",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organizationTitle",
+            },
+          ],
+          "tag": "input",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organizationTitle",
+            },
+          ],
+          "tag": "select",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organizationTitle",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization_title",
+            },
+          ],
+          "tag": "input",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization_title",
+            },
+          ],
+          "tag": "select",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "organization_title",
+            },
+          ],
+          "tag": "textarea",
+          "value": "organization-title",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "avatar",
+            },
+          ],
+          "tag": "input",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "avatar",
+            },
+          ],
+          "tag": "select",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "avatar",
+            },
+          ],
+          "tag": "textarea",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "photo",
+            },
+          ],
+          "tag": "input",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "photo",
+            },
+          ],
+          "tag": "select",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "photo",
+            },
+          ],
+          "tag": "textarea",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profilePicture",
+            },
+          ],
+          "tag": "input",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profilePicture",
+            },
+          ],
+          "tag": "select",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profilePicture",
+            },
+          ],
+          "tag": "textarea",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profile_picture",
+            },
+          ],
+          "tag": "input",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profile_picture",
+            },
+          ],
+          "tag": "select",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "profile_picture",
+            },
+          ],
+          "tag": "textarea",
+          "value": "photo",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postalCode",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postalCode",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postalCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postal_code",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postal_code",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postal_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postcode",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postcode",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "postcode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipCode",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipCode",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip_code",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip_code",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zip_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipcode",
+            },
+          ],
+          "tag": "input",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipcode",
+            },
+          ],
+          "tag": "select",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "zipcode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "postal-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "gender",
+            },
+          ],
+          "tag": "input",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "gender",
+            },
+          ],
+          "tag": "select",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "gender",
+            },
+          ],
+          "tag": "textarea",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "sex",
+            },
+          ],
+          "tag": "input",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "sex",
+            },
+          ],
+          "tag": "select",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "sex",
+            },
+          ],
+          "tag": "textarea",
+          "value": "sex",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street",
+            },
+          ],
+          "tag": "input",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street",
+            },
+          ],
+          "tag": "select",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street",
+            },
+          ],
+          "tag": "textarea",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "streetAddress",
+            },
+          ],
+          "tag": "input",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "streetAddress",
+            },
+          ],
+          "tag": "select",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "streetAddress",
+            },
+          ],
+          "tag": "textarea",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street_address",
+            },
+          ],
+          "tag": "input",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street_address",
+            },
+          ],
+          "tag": "select",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "street_address",
+            },
+          ],
+          "tag": "textarea",
+          "value": "street-address",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cellPhone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cellPhone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cellPhone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cell_phone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cell_phone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "cell_phone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobilePhone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobilePhone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobilePhone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile_phone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile_phone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "mobile_phone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneNumber",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneNumber",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneNumber",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_number",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_number",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_number",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "telephone",
+            },
+          ],
+          "tag": "input",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "telephone",
+            },
+          ],
+          "tag": "select",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "telephone",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "areaCode",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "areaCode",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "areaCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "area_code",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "area_code",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "area_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-area-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dialCode",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dialCode",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dialCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dial_code",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dial_code",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "dial_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneCountryCode",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneCountryCode",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneCountryCode",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_country_code",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_country_code",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_country_code",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-country-code",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "extension",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "extension",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "extension",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneExtension",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneExtension",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phoneExtension",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_extension",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_extension",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "phone_extension",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-extension",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "localNumber",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "localNumber",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "localNumber",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "local_number",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "local_number",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "local_number",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-local",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nationalNumber",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nationalNumber",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "nationalNumber",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "national_number",
+            },
+          ],
+          "tag": "input",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "national_number",
+            },
+          ],
+          "tag": "select",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "national_number",
+            },
+          ],
+          "tag": "textarea",
+          "value": "tel-national",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "amount",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "amount",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "amount",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionAmount",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionAmount",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionAmount",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_amount",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_amount",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_amount",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-amount",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currency",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currency",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "currency",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionCurrency",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionCurrency",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transactionCurrency",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_currency",
+            },
+          ],
+          "tag": "input",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_currency",
+            },
+          ],
+          "tag": "select",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "transaction_currency",
+            },
+          ],
+          "tag": "textarea",
+          "value": "transaction-currency",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "homepage",
+            },
+          ],
+          "tag": "input",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "homepage",
+            },
+          ],
+          "tag": "select",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "homepage",
+            },
+          ],
+          "tag": "textarea",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "website",
+            },
+          ],
+          "tag": "input",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "website",
+            },
+          ],
+          "tag": "select",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "website",
+            },
+          ],
+          "tag": "textarea",
+          "value": "url",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "userName",
+            },
+          ],
+          "tag": "input",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "userName",
+            },
+          ],
+          "tag": "select",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "userName",
+            },
+          ],
+          "tag": "textarea",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "user_name",
+            },
+          ],
+          "tag": "input",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "user_name",
+            },
+          ],
+          "tag": "select",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "user_name",
+            },
+          ],
+          "tag": "textarea",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "username",
+            },
+          ],
+          "tag": "input",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "username",
+            },
+          ],
+          "tag": "select",
+          "value": "username",
+        },
+        {
+          "attr": "autocomplete",
+          "conditions": [
+            {
+              "attr": "name",
+              "kind": "equal",
+              "value": "username",
+            },
+          ],
+          "tag": "textarea",
+          "value": "username",
+        },
+        {
+          "attr": "inputmode",
+          "conditions": [
+            {
+              "attr": "type",
+              "kind": "equal",
+              "value": "number",
+            },
+          ],
+          "tag": "input",
+        },
+        {
+          "attr": "as",
+          "conditions": [
+            {
+              "attr": "rel",
+              "kind": "equal",
+              "value": "preload",
+            },
+          ],
+          "tag": "link",
+        },
+        {
+          "attr": "crossorigin",
+          "conditions": [
+            {
+              "attr": "rel",
+              "kind": "equal",
+              "value": "preload",
+            },
+            {
+              "attr": "as",
+              "kind": "equal",
+              "value": "font",
+            },
+          ],
+          "tag": "link",
+        },
+        {
+          "attr": "type",
+          "conditions": [
+            {
+              "attr": "rel",
+              "kind": "equal",
+              "value": "icon",
+            },
+          ],
+          "tag": "link",
+        },
+        {
+          "attr": "loading",
+          "tag": "iframe",
+        },
+        {
+          "attr": "loading",
+          "tag": "img",
+        },
+        {
+          "attr": "kind",
+          "tag": "track",
+        },
+        {
+          "attr": "srclang",
+          "conditions": [
+            {
+              "attr": "kind",
+              "kind": "equal",
+              "value": "subtitles",
+            },
+          ],
+          "tag": "track",
+        },
+        {
+          "attr": "muted",
+          "conditions": [
+            {
+              "attr": "autoplay",
+              "kind": "present",
+            },
+          ],
+          "tag": "video",
+        },
+        {
+          "attr": "playsinline",
+          "conditions": [
+            {
+              "attr": "autoplay",
+              "kind": "present",
+            },
+          ],
+          "tag": "video",
+        },
+      ],
+      "svelte-html/use-baseline": [
+        2,
+      ],
       "svelte/block-lang": [
         2,
         {

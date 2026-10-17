@@ -145,6 +145,9 @@ export const MODULES = <const>{
         ESLINT_PACKAGES.SVELTE,
         ESLINT_PACKAGES.ESLINT_PLUGIN_SVELTE,
       ],
+      optional: [
+        ESLINT_PACKAGES.HTML_ESLINT_PLUGIN_SVELTE,
+      ],
     },
   },
   tailwind: {

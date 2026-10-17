@@ -338,7 +338,7 @@ const AUTOPLAY_ATTRIBUTES = <const>[
   'playsinline',
 ];
 
-const REQUIRED_ATTRIBUTES = [
+export const REQUIRED_ATTRIBUTES = [
   {
     tag: 'a',
     attr: 'href',
@@ -500,19 +500,27 @@ const REQUIRED_ATTRIBUTES = [
   })),
 ];
 
-const RESTRICTED_ATTRIBUTES = [
+export const RESTRICTED_ATTRIBUTES = [
   {
     tagPatterns: [
       '.*',
     ],
     attrPatterns: [
-      '^on',
       '^(?:autofocus|contenteditable|srcdoc)$',
     ],
   },
 ];
 
-const RESTRICTED_ATTRIBUTE_VALUES = [
+const INLINE_EVENT_HANDLER_ATTRIBUTES = {
+  tagPatterns: [
+    '.*',
+  ],
+  attrPatterns: [
+    '^on',
+  ],
+};
+
+export const RESTRICTED_ATTRIBUTE_VALUES = [
   {
     attrPatterns: [
       '^(?:action|formaction|href|src)$',
@@ -689,6 +697,7 @@ export const html = async (): Promise<Config[]> => {
         ],
         'html/no-restricted-attrs': [
           'error',
+          INLINE_EVENT_HANDLER_ATTRIBUTES,
           ...RESTRICTED_ATTRIBUTES,
         ],
         'html/no-restricted-tags': ['error', {
