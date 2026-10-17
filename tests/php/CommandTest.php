@@ -76,42 +76,42 @@ final class CommandTest extends TestCase
         $titleCasePackageName             = s($packageName)->title()->toString();
 
         $expectedOutput = <<<EOF
-   ___               __   __
-  / _ )_______  ____/ /  / /__ ____
- / _  / __/ _ \\(_--/ _ \\/  ´_// __/
-/____/_/ /_//_/___/_//_/_/\\_\\/_/
+               ___               __   __
+              / _ )_______  ____/ /  / /__ ____
+             / _  / __/ _ \\(_--/ _ \\/  ´_// __/
+            /____/_/ /_//_/___/_//_/_/\\_\\/_/
 
-{$titleCasePackageName} ({$packageVersion})
+            {$titleCasePackageName} ({$packageVersion})
 
-Description:
-  Displays {$packageOrganization}/{$packageName} composer plugin overview
+            Description:
+              Displays {$packageOrganization}/{$packageName} composer plugin overview
 
-Usage:
-  {$packageOrganization}:{$packageName}
-  {$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}
+            Usage:
+              {$packageOrganization}:{$packageName}
+              {$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}
 
-Options:
-  -h, --help                     Display help for the given command. When no command is given display help for the list command
-      --silent                   Do not output any message
-  -q, --quiet                    Only errors are displayed. All other output is suppressed
-  -V, --version                  Display this application version
-      --ansi|--no-ansi           Force (or disable --no-ansi) ANSI output
-  -n, --no-interaction           Do not ask any interactive question
-      --profile                  Display timing and memory usage information
-      --no-plugins               Whether to disable plugins.
-      --no-scripts               Skips the execution of all scripts defined in composer.json file.
-  -d, --working-dir=WORKING-DIR  If specified, use the given directory as working directory.
-      --no-cache                 Prevent use of the cache
-  -v|vv|vvv, --verbose           Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
+            Options:
+              -h, --help                     Display help for the given command. When no command is given display help for the list command
+                  --silent                   Do not output any message
+              -q, --quiet                    Only errors are displayed. All other output is suppressed
+              -V, --version                  Display this application version
+                  --ansi|--no-ansi           Force (or disable --no-ansi) ANSI output
+              -n, --no-interaction           Do not ask any interactive question
+                  --profile                  Display timing and memory usage information
+                  --no-plugins               Whether to disable plugins.
+                  --no-scripts               Skips the execution of all scripts defined in composer.json file.
+              -d, --working-dir=WORKING-DIR  If specified, use the given directory as working directory.
+                  --no-cache                 Prevent use of the cache
+              -v|vv|vvv, --verbose           Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 
-Available commands:
-  {$packageOrganization}:{$packageName}                        [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}] Displays {$packageOrganization}/{$packageName} composer plugin overview
-  {$packageOrganization}:{$packageName}:extract-phar           [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:ep] Extracts a .phar file from a given vendor package
-  {$packageOrganization}:{$packageName}:print-module-config    [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:pmc] Prints the resolved configuration as JSON for any supported {$packageOrganization}/{$packageName} module
-  {$packageOrganization}:{$packageName}:setup                  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:s] Installs the packages the {$packageOrganization}/{$packageName} modules you pick need
-  {$packageOrganization}:{$packageName}:update-php-extensions  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:upe] Updates required PHP extensions in composer.json based on installed vendor files
+            Available commands:
+              {$packageOrganization}:{$packageName}                        [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}] Displays {$packageOrganization}/{$packageName} composer plugin overview
+              {$packageOrganization}:{$packageName}:extract-phar           [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:ep] Extracts a .phar file from a given vendor package
+              {$packageOrganization}:{$packageName}:print-module-config    [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:pmc] Prints the resolved configuration as JSON for any supported {$packageOrganization}/{$packageName} module
+              {$packageOrganization}:{$packageName}:setup                  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:s] Installs the packages the {$packageOrganization}/{$packageName} modules you pick need
+              {$packageOrganization}:{$packageName}:update-php-extensions  [{$firstLetterOfPackageOrganization}:{$firstLetterOfPackageName}:upe] Updates required PHP extensions in composer.json based on installed vendor files
 
-EOF;
+            EOF;
 
         self::assertSame(0, $exitCode);
         self::assertStringContainsStringIgnoringLineEndings($expectedOutput, $outputString);

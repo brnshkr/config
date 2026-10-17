@@ -31,7 +31,7 @@ Module::PhpCsFixer->warnMissingPackages();
 /**
  * Builds a ready-to-use PHP-CS-Fixer config that captures the @brnshkr coding-style decisions.
  *
- * Extends the `@PhpCsFixer` and `@PhpCsFixer:risky` presets with project-specific opinions
+ * Extends the `@auto` and `@PhpCsFixer` presets, risky halves included, with project-specific opinions
  * around alignment, ordering, native-function invocation, and PHPDoc layout. When the optional
  * `kubawerlos/php-cs-fixer-custom-fixers` package is installed, its fixers are layered on top
  * automatically.
@@ -130,6 +130,7 @@ final readonly class PhpCsFixer
         ;
 
         $rules = [
+            '@auto'                  => true,
             '@auto:risky'            => true,
             '@PhpCsFixer'            => true,
             '@PhpCsFixer:risky'      => true,

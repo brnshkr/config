@@ -247,6 +247,7 @@
     "parallelConfig": {},
     "phpExecutable": null,
     "rules": {
+        "@auto": true,
         "@auto:risky": true,
         "@PhpCsFixer": true,
         "@PhpCsFixer:risky": true,
