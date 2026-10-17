@@ -43,6 +43,38 @@ const expectEveryGlobCovered = (globs: string[], names: string[]): void => {
 };
 
 /**
+ * @throws {TypeError}
+ */
+const expectDiffsFromClosestPrintedConfig = (configs: Map<string, JsonObject>, configNames: string[]): void => {
+  const [baseConfigName, ...otherConfigNames] = configNames;
+
+  if (baseConfigName === undefined) {
+    return;
+  }
+
+  expect(configs.get(baseConfigName)).toMatchSnapshot(`base: ${baseConfigName}`);
+
+  const printedConfigNames = [baseConfigName];
+
+  for (const configName of otherConfigNames) {
+    const config = configs.get(configName) ?? {};
+
+    const [closestPrintedConfigDiff] = printedConfigNames
+      .map((printedConfigName) => ({
+        printedConfigName,
+        diff: computeConfigDiff(configs.get(printedConfigName) ?? {}, config),
+      }))
+      .toSorted((first, second) => JSON.stringify(first.diff).length - JSON.stringify(second.diff).length);
+
+    expect(closestPrintedConfigDiff?.diff).toMatchSnapshot(
+      `diff: ${configName} (from ${closestPrintedConfigDiff?.printedConfigName ?? baseConfigName})`,
+    );
+
+    printedConfigNames.push(configName);
+  }
+};
+
+/**
  * @rejects {TypeError}
  */
 export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<void> => {
@@ -89,17 +121,5 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
 
   expect(objectFromEntries(groups)).toMatchSnapshot('config-groups');
 
-  const [baseName, ...otherNames] = objectKeys(groups);
-
-  if (baseName === undefined) {
-    return;
-  }
-
-  const baseConfig = configs.get(baseName) ?? {};
-
-  expect(baseConfig).toMatchSnapshot(`base: ${baseName}`);
-
-  for (const name of otherNames) {
-    expect(computeConfigDiff(baseConfig, configs.get(name) ?? {})).toMatchSnapshot(`diff: ${name}`);
-  }
+  expectDiffsFromClosestPrintedConfig(configs, objectKeys(groups));
 };

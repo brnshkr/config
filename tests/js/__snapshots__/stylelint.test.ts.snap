@@ -2270,7 +2270,7 @@ exports[`expected stylelint config > config-groups 1`] = `
 }
 `;
 
-exports[`expected stylelint config > diff: 2.scss 1`] = `
+exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
 {
   "+_resolvedCustomSyntax": {},
   "+customSyntax": {},
@@ -2584,15 +2584,14 @@ exports[`expected stylelint config > diff: 2.scss 1`] = `
 }
 `;
 
-exports[`expected stylelint config > diff: 3.html 1`] = `
+exports[`expected stylelint config > diff: 3.html (from 1.css) 1`] = `
 {
   "+customSyntax": "postcss-html",
 }
 `;
 
-exports[`expected stylelint config > diff: 4.svelte 1`] = `
+exports[`expected stylelint config > diff: 4.svelte (from 3.html) 1`] = `
 {
-  "+customSyntax": "postcss-html",
   "+name": "brnshkr/svelte",
   "rules": {
     "addedValues": {},
@@ -2615,11 +2614,11 @@ exports[`expected stylelint config > diff: 4.svelte 1`] = `
 }
 `;
 
-exports[`expected stylelint config > diff: 5.less 1`] = `
+exports[`expected stylelint config > diff: 5.less (from 4.svelte) 1`] = `
 {
   "+_resolvedCustomSyntax": {},
-  "+customSyntax": {},
-  "+name": "brnshkr/less",
+  "customSyntax": {},
+  "name": "brnshkr/less",
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
@@ -2673,18 +2672,14 @@ exports[`expected stylelint config > diff: 5.less 1`] = `
       "container-name-pattern": null,
       "declaration-property-value-no-unknown": null,
       "function-no-unknown": null,
+      "keyframes-name-pattern": [
+        "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+        {},
+      ],
       "media-query-no-invalid": null,
       "no-invalid-position-at-import-rule": null,
       "property-no-unknown": [
         true,
-      ],
-      "selector-pseudo-class-no-unknown": [
-        true,
-        {
-          "ignorePseudoClasses": [
-            "global",
-          ],
-        },
       ],
       "selector-type-no-unknown": [
         true,
