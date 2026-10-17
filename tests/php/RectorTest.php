@@ -100,7 +100,7 @@ final class RectorTest extends TestCase
 
         $paths = self::readRectorState($rectorConfigBuilder, 'paths');
 
-        self::assertNotEmpty($paths);
+        self::assertNotSame([], $paths);
 
         foreach ($paths as $path) {
             self::assertIsString($path);

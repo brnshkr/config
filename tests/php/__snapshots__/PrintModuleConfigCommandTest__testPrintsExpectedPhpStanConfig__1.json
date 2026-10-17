@@ -81,6 +81,26 @@
                     "./conf/ai/mate/src"
                 ],
                 "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.commandHasAsCommandAttribute",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.forbiddenTrait",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.noNullableServiceInConstructor",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.noReadonlyApiParam",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.requiredInterfaceContractNamespace",
+                "reportUnmatched": false
             }
         ],
         "scanFiles": [
@@ -99,7 +119,6 @@
         },
         "type_coverage": {
             "constant_type": 100,
-            "declare": 100,
             "param_type": 100,
             "property_type": 100,
             "return_type": 100
@@ -113,6 +132,7 @@
             "null_over_false": true
         },
         "symplify": {
+            "configurable": false,
             "ctor": true,
             "laravelReturnType": false,
             "mocks": true,
@@ -130,69 +150,14 @@
         "Brnshkr\\Config\\PhpStan\\Rule\\ResolvableDocReferenceRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\TagDescriptionRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\ServiceArgumentBindingRule",
-        "Symplify\\PHPStanRules\\Rules\\Complexity\\ForbiddenArrayMethodCallRule",
-        "Symplify\\PHPStanRules\\Rules\\Complexity\\ForeachCeptionRule",
-        "Symplify\\PHPStanRules\\Rules\\Complexity\\NoArrayMapWithArrayCallableRule",
-        "Symplify\\PHPStanRules\\Rules\\Complexity\\NoJustPropertyAssignRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoDoctrineListenerWithoutContractRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoGetRepositoryOnServiceRepositoryEntityRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoGetRepositoryOutsideServiceRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoParentRepositoryRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\NoRepositoryCallInDataFixtureRule",
-        "Symplify\\PHPStanRules\\Rules\\Doctrine\\RequireQueryBuilderOnRepositoryRule",
+        "PHPStan\\Rules\\PHPUnit\\AssertEmptyIsDiscouragedRule",
+        "PHPStan\\Rules\\PHPUnit\\AssertEqualsIsDiscouragedRule",
         "Symplify\\PHPStanRules\\Rules\\Doctrine\\RequireServiceRepositoryParentRule",
-        "Symplify\\PHPStanRules\\Rules\\Domain\\RequireAttributeNamespaceRule",
-        "Symplify\\PHPStanRules\\Rules\\Domain\\RequireExceptionNamespaceRule",
-        "Symplify\\PHPStanRules\\Rules\\Enum\\RequireUniqueEnumConstantRule",
-        "Symplify\\PHPStanRules\\Rules\\Explicit\\ExplicitClassPrefixSuffixRule",
-        "Symplify\\PHPStanRules\\Rules\\Explicit\\NoMissingVariableDimFetchRule",
-        "Symplify\\PHPStanRules\\Rules\\Explicit\\NoProtectedClassStmtRule",
-        "Symplify\\PHPStanRules\\Rules\\ForbiddenExtendOfNonAbstractClassRule",
-        "Symplify\\PHPStanRules\\Rules\\ForbiddenMultipleClassLikeInOneFileRule",
-        "Symplify\\PHPStanRules\\Rules\\ForbiddenStaticClassConstFetchRule",
-        "Symplify\\PHPStanRules\\Rules\\NoDynamicNameRule",
+        "Symplify\\PHPStanRules\\Rules\\ForbiddenSwitchRule",
         "Symplify\\PHPStanRules\\Rules\\NoEntityOutsideEntityNamespaceRule",
-        "Symplify\\PHPStanRules\\Rules\\NoGlobalConstRule",
-        "Symplify\\PHPStanRules\\Rules\\NoMissnamedDocTagRule",
-        "Symplify\\PHPStanRules\\Rules\\NoReferenceRule",
-        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\NoAssertFuncCallInTestsRule",
-        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\NoMockObjectAndRealObjectPropertyRule",
-        "Symplify\\PHPStanRules\\Rules\\PHPUnit\\PublicStaticDataProviderRule",
-        "Symplify\\PHPStanRules\\Rules\\PreventParentMethodVisibilityOverrideRule",
         "Symplify\\PHPStanRules\\Rules\\Rector\\AvoidFeatureSetAttributeInRectorRule",
         "Symplify\\PHPStanRules\\Rules\\Rector\\PreferDirectIsNameRule",
-        "Symplify\\PHPStanRules\\Rules\\RequireAttributeNameRule",
-        "Symplify\\PHPStanRules\\Rules\\StringFileAbsolutePathExistsRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\AlreadyRegisteredAutodiscoveryServiceRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoBundleResourceConfigRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoDuplicateArgAutowireByTypeRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoDuplicateArgsAutowireByTypeRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoServiceSameNameSetClassRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\NoSetClassServiceDuplicationRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\PreferAutowireAttributeOverConfigParamRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\ServicesExcludedDirectoryMustExistRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\ConfigClosure\\TaggedIteratorOverRepeatedServiceCallRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\FormTypeClassNameRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoAbstractControllerConstructorRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoBareAndSecurityIsGrantedContentsRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoClassLevelRouteRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoConstructorAndRequiredTogetherRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoControllerMethodInjectionRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoFindTaggedServiceIdsCallRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetDoctrineInControllerRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetInCommandRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoGetInControllerRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoListenerWithoutContractRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoRouteTrailingSlashPathRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoRoutingPrefixRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoServiceAutowireDuplicateRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\NoStringInGetSubscribedEventsRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequiredOnlyInAbstractRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequireIsGrantedEnumRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\RequireRouteNameToGenerateControllerRouteRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\SingleArgEventDispatchRule",
-        "Symplify\\PHPStanRules\\Rules\\Symfony\\SingleRequiredMethodRule",
-        "Symplify\\PHPStanRules\\Rules\\UppercaseConstantRule"
+        "Symplify\\PHPStanRules\\Rules\\StringFileAbsolutePathExistsRule"
     ],
     "services": [
         {
@@ -261,6 +226,7 @@
                     "composer/spdx-licenses": "./vendor/composer/spdx-licenses",
                     "composer/xdebug-handler": "./vendor/composer/xdebug-handler",
                     "doctrine/deprecations": "./vendor/doctrine/deprecations",
+                    "entropy/entropy": "./vendor/entropy/entropy",
                     "ergebnis/agent-detector": "./vendor/ergebnis/agent-detector",
                     "evenement/evenement": "./vendor/evenement/evenement",
                     "fidry/cpu-core-counter": "./vendor/fidry/cpu-core-counter",
@@ -270,7 +236,6 @@
                     "marc-mabe/php-enum": "./vendor/marc-mabe/php-enum",
                     "matesofmate/common": "./vendor/matesofmate/common",
                     "myclabs/deep-copy": "./vendor/myclabs/deep-copy",
-                    "nette/utils": "./vendor/nette/utils",
                     "nikic/php-parser": "./vendor/nikic/php-parser",
                     "nunomaduro/collision": "./vendor/nunomaduro/collision",
                     "nunomaduro/termwind": "./vendor/nunomaduro/termwind",
@@ -323,6 +288,7 @@
                     "symfony/console": "./vendor/symfony/console",
                     "symfony/dependency-injection": "./vendor/symfony/dependency-injection",
                     "symfony/deprecation-contracts": "./vendor/symfony/deprecation-contracts",
+                    "symfony/dotenv": "./vendor/symfony/dotenv",
                     "symfony/event-dispatcher": "./vendor/symfony/event-dispatcher",
                     "symfony/event-dispatcher-contracts": "./vendor/symfony/event-dispatcher-contracts",
                     "symfony/options-resolver": "./vendor/symfony/options-resolver",
@@ -374,7 +340,6 @@
                     "PhpParser\\Node\\Expr\\Print_",
                     "PhpParser\\Node\\Stmt\\Global_",
                     "PhpParser\\Node\\Stmt\\Goto_",
-                    "PhpParser\\Node\\Stmt\\Switch_",
                     "PhpParser\\Node\\Expr\\ShellExec"
                 ]
             }

@@ -118,7 +118,7 @@ final class PhpCsFixerTest extends TestCase
             $paths[] = $file->getPathname();
         }
 
-        self::assertNotEmpty($paths);
+        self::assertNotSame([], $paths);
 
         foreach ($paths as $path) {
             self::assertStringContainsString('/src/php/Composer/', $path);

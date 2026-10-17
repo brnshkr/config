@@ -14,6 +14,7 @@ use function in_array;
 enum Package: string
 {
     case DependencyInjection     = 'symfony/dependency-injection';
+    case DoctrineOrm             = 'doctrine/orm';
     case ExtensionInstaller      = 'phpstan/extension-installer';
     case Finder                  = 'symfony/finder';
     case FrameworkBundle         = 'symfony/framework-bundle';

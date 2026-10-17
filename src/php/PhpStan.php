@@ -33,6 +33,8 @@ use InvalidArgumentException;
 use OutOfBoundsException;
 use PhpCsFixer\Finder as PhpCsFixerFinder;
 use PhpParser\Node;
+use PHPStan\Rules\PHPUnit\AssertEmptyIsDiscouragedRule;
+use PHPStan\Rules\PHPUnit\AssertEqualsIsDiscouragedRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Type\DynamicStaticMethodThrowTypeExtension;
 use Psr\Log\LoggerInterface;
@@ -88,6 +90,7 @@ use function iterator_to_array;
 use function ksort;
 use function serialize;
 use function sprintf;
+use function version_compare;
 
 // @codeCoverageIgnoreStart
 // NOTICE: Ignored so a random test is not charged with this file-level statement
@@ -150,7 +153,8 @@ final class PhpStan
 {
     private const string UNCHECKED_EXCEPTIONS_PATH = 'phpstan/unchecked-exceptions.php';
 
-    private const string TYPE_SYMFONY_BUNDLE = 'symfony-bundle';
+    private const string TYPE_COMPOSER_PLUGIN = 'composer-plugin';
+    private const string TYPE_SYMFONY_BUNDLE  = 'symfony-bundle';
 
     private const string CONFIG_REFERENCE_PATH       = 'config/reference.php';
     private const string CONTAINER_CONFIGURATOR_PATH = 'symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php';
@@ -384,12 +388,17 @@ final class PhpStan
             $phpStanConfig->addScanFiles($symfonyScanFiles);
         }
 
-        if (ComposerJson::forProjectUsingThisLibrary()->getPackageType() === self::TYPE_SYMFONY_BUNDLE) {
+        $packageType = ComposerJson::forProjectUsingThisLibrary()->getPackageType();
+
+        if ($packageType === self::TYPE_SYMFONY_BUNDLE) {
             $phpStanConfig->addIgnoredErrors([
-                [
-                    'identifier'      => 'symfony.preferAutowireAttributeOverConfigParam',
-                    'reportUnmatched' => false,
-                ],
+                'symfony.noServiceSetterCall' => false,
+            ]);
+        }
+
+        if ($packageType === self::TYPE_COMPOSER_PLUGIN) {
+            $phpStanConfig->addIgnoredErrors([
+                'symplify.commandHasAsCommandAttribute' => false,
             ]);
         }
 
@@ -409,11 +418,19 @@ final class PhpStan
             ]);
         }
 
+        if (Package::PhpStanPhpUnit->isInstalled() && Package::PhpStanStrictRules->isInstalled()) {
+            $phpStanConfig->addRules([
+                // @phpstan-ignore phpstanApi.classConstant (Registering a phpstan-phpunit rule that ships only behind bleeding edge)
+                AssertEmptyIsDiscouragedRule::class,
+                // @phpstan-ignore phpstanApi.classConstant (Registering a phpstan-phpunit rule that ships only behind bleeding edge)
+                AssertEqualsIsDiscouragedRule::class,
+            ]);
+        }
+
         if (Package::TypeCoverage->isInstalled()) {
             $phpStanConfig
                 ->setTypeCoverage([
                     'constant_type' => 100,
-                    'declare'       => 100,
                     'param_type'    => 100,
                     'property_type' => 100,
                     'return_type'   => 100,
@@ -430,9 +447,20 @@ final class PhpStan
         }
 
         if (Package::PhpStanRules->isInstalled()) {
+            $hasNativeLazyObjects = Package::DoctrineOrm->isInstalled()
+                && version_compare((string) InstalledVersions::getVersion(Package::DoctrineOrm->value), '3.4', '>=');
+
             $phpStanConfig
+                ->addIgnoredErrors([
+                    ...$hasNativeLazyObjects ? ['doctrine.noReadonlyEntityClass' => false] : [],
+                    'symplify.forbiddenTrait'                     => false,
+                    'symplify.noNullableServiceInConstructor'     => false,
+                    'symplify.noReadonlyApiParam'                 => false,
+                    'symplify.requiredInterfaceContractNamespace' => false,
+                ])
                 ->addRules(self::getSymplifyRules())
                 ->setSymplify([
+                    'configurable'      => false,
                     'ctor'              => true,
                     'laravelReturnType' => Package::Laravel->isInstalled(),
                     'mocks'             => Package::PhpStanPhpUnit->isInstalled(),
@@ -1930,69 +1958,12 @@ final class PhpStan
     private static function getSymplifyRules(): array
     {
         return [
-            SymplifyPhpStanRules\Complexity\ForbiddenArrayMethodCallRule::class,
-            SymplifyPhpStanRules\Complexity\ForeachCeptionRule::class,
-            SymplifyPhpStanRules\Complexity\NoArrayMapWithArrayCallableRule::class,
-            SymplifyPhpStanRules\Complexity\NoJustPropertyAssignRule::class,
-            SymplifyPhpStanRules\Doctrine\NoDoctrineListenerWithoutContractRule::class,
-            SymplifyPhpStanRules\Doctrine\NoGetRepositoryOnServiceRepositoryEntityRule::class,
-            SymplifyPhpStanRules\Doctrine\NoGetRepositoryOutsideServiceRule::class,
-            SymplifyPhpStanRules\Doctrine\NoParentRepositoryRule::class,
-            SymplifyPhpStanRules\Doctrine\NoRepositoryCallInDataFixtureRule::class,
-            SymplifyPhpStanRules\Doctrine\RequireQueryBuilderOnRepositoryRule::class,
             SymplifyPhpStanRules\Doctrine\RequireServiceRepositoryParentRule::class,
-            SymplifyPhpStanRules\Domain\RequireAttributeNamespaceRule::class,
-            SymplifyPhpStanRules\Domain\RequireExceptionNamespaceRule::class,
-            SymplifyPhpStanRules\Enum\RequireUniqueEnumConstantRule::class,
-            SymplifyPhpStanRules\Explicit\ExplicitClassPrefixSuffixRule::class,
-            SymplifyPhpStanRules\Explicit\NoMissingVariableDimFetchRule::class,
-            SymplifyPhpStanRules\Explicit\NoProtectedClassStmtRule::class,
-            SymplifyPhpStanRules\ForbiddenExtendOfNonAbstractClassRule::class,
-            SymplifyPhpStanRules\ForbiddenMultipleClassLikeInOneFileRule::class,
-            SymplifyPhpStanRules\ForbiddenStaticClassConstFetchRule::class,
-            SymplifyPhpStanRules\NoDynamicNameRule::class,
+            SymplifyPhpStanRules\ForbiddenSwitchRule::class,
             SymplifyPhpStanRules\NoEntityOutsideEntityNamespaceRule::class,
-            SymplifyPhpStanRules\NoGlobalConstRule::class,
-            SymplifyPhpStanRules\NoMissnamedDocTagRule::class,
-            SymplifyPhpStanRules\NoReferenceRule::class,
-            SymplifyPhpStanRules\PHPUnit\NoAssertFuncCallInTestsRule::class,
-            SymplifyPhpStanRules\PHPUnit\NoMockObjectAndRealObjectPropertyRule::class,
-            SymplifyPhpStanRules\PHPUnit\PublicStaticDataProviderRule::class,
-            SymplifyPhpStanRules\PreventParentMethodVisibilityOverrideRule::class,
             SymplifyPhpStanRules\Rector\AvoidFeatureSetAttributeInRectorRule::class,
             SymplifyPhpStanRules\Rector\PreferDirectIsNameRule::class,
-            SymplifyPhpStanRules\RequireAttributeNameRule::class,
             SymplifyPhpStanRules\StringFileAbsolutePathExistsRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\AlreadyRegisteredAutodiscoveryServiceRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\NoBundleResourceConfigRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\NoDuplicateArgAutowireByTypeRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\NoDuplicateArgsAutowireByTypeRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\NoServiceSameNameSetClassRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\NoSetClassServiceDuplicationRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\PreferAutowireAttributeOverConfigParamRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\ServicesExcludedDirectoryMustExistRule::class,
-            SymplifyPhpStanRules\Symfony\ConfigClosure\TaggedIteratorOverRepeatedServiceCallRule::class,
-            SymplifyPhpStanRules\Symfony\FormTypeClassNameRule::class,
-            SymplifyPhpStanRules\Symfony\NoAbstractControllerConstructorRule::class,
-            SymplifyPhpStanRules\Symfony\NoBareAndSecurityIsGrantedContentsRule::class,
-            SymplifyPhpStanRules\Symfony\NoClassLevelRouteRule::class,
-            SymplifyPhpStanRules\Symfony\NoConstructorAndRequiredTogetherRule::class,
-            SymplifyPhpStanRules\Symfony\NoControllerMethodInjectionRule::class,
-            SymplifyPhpStanRules\Symfony\NoFindTaggedServiceIdsCallRule::class,
-            SymplifyPhpStanRules\Symfony\NoGetDoctrineInControllerRule::class,
-            SymplifyPhpStanRules\Symfony\NoGetInCommandRule::class,
-            SymplifyPhpStanRules\Symfony\NoGetInControllerRule::class,
-            SymplifyPhpStanRules\Symfony\NoListenerWithoutContractRule::class,
-            SymplifyPhpStanRules\Symfony\NoRouteTrailingSlashPathRule::class,
-            SymplifyPhpStanRules\Symfony\NoRoutingPrefixRule::class,
-            SymplifyPhpStanRules\Symfony\NoServiceAutowireDuplicateRule::class,
-            SymplifyPhpStanRules\Symfony\NoStringInGetSubscribedEventsRule::class,
-            SymplifyPhpStanRules\Symfony\RequiredOnlyInAbstractRule::class,
-            SymplifyPhpStanRules\Symfony\RequireIsGrantedEnumRule::class,
-            SymplifyPhpStanRules\Symfony\RequireRouteNameToGenerateControllerRouteRule::class,
-            SymplifyPhpStanRules\Symfony\SingleArgEventDispatchRule::class,
-            SymplifyPhpStanRules\Symfony\SingleRequiredMethodRule::class,
-            SymplifyPhpStanRules\UppercaseConstantRule::class,
             self::configureRule(SymplifyPhpStanRules\ForbiddenNodeRule::class, [
                 'forbiddenNodes' => self::getForbiddenNodes(),
             ]),
@@ -2022,7 +1993,6 @@ final class PhpStan
             Node\Expr\Print_::class,
             Node\Stmt\Global_::class,
             Node\Stmt\Goto_::class,
-            Node\Stmt\Switch_::class,
         ];
 
         if (class_exists(Process::class)) {

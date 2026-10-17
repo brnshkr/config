@@ -883,6 +883,7 @@ final class Architecture
      */
     private static function tempestBase(array $roots): array
     {
+        // @phpstan-ignore symplify.requireArrayShapeReturn (A preset is a list of rules, not a fixed shape)
         return [
             PhpStan::configurePhpAtTest(RouteNoDatabaseTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(ConsoleNoHttpTest::class, ['roots' => $roots]),

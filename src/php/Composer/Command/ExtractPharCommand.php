@@ -10,6 +10,7 @@ use Brnshkr\Config\Str;
 use InvalidArgumentException;
 use Override;
 use Phar;
+use PharException;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -61,6 +62,7 @@ final class ExtractPharCommand extends AbstractCommand
      * @return self::SUCCESS
      *
      * @throws InvalidArgumentException
+     * @throws PharException
      * @throws RuntimeException
      */
     #[Override]
@@ -142,6 +144,7 @@ final class ExtractPharCommand extends AbstractCommand
      * @param non-empty-string $targetDirectory
      *
      * @throws IOException
+     * @throws PharException
      * @throws UnexpectedValueException
      */
     private function extractPhar(string $pharPath, string $targetDirectory): void

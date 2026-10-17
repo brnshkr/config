@@ -26,7 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Symplify\PHPStanRules\Rules\Symfony\NoFindTaggedServiceIdsCallRule;
+use Symplify\PHPStanRules\Rules\ForbiddenSwitchRule;
 
 use function array_filter;
 use function array_values;
@@ -61,7 +61,7 @@ final class PhpStanTest extends TestCase
         ;
 
         self::assertIsArray($exceptions);
-        self::assertNotEmpty($exceptions['uncheckedExceptionRegexes'] ?? null);
+        self::assertNotSame([], $exceptions['uncheckedExceptionRegexes'] ?? []);
 
         $check = $exceptions['check'] ?? null;
 
@@ -346,7 +346,7 @@ final class PhpStanTest extends TestCase
 
         self::assertIsArray($exceptions);
         self::assertArrayNotHasKey('check', $exceptions);
-        self::assertNotEmpty($exceptions['uncheckedExceptionRegexes'] ?? null);
+        self::assertNotSame([], $exceptions['uncheckedExceptionRegexes'] ?? []);
     }
 
     public function testRemovingAParameterLeavesPhpStanOnItsOwnDefault(): void
@@ -510,7 +510,6 @@ final class PhpStanTest extends TestCase
         self::assertSame(
             [
                 'constant_type' => 100,
-                'declare'       => 100,
                 'param_type'    => 100,
                 'property_type' => 100,
                 'return_type'   => 100,
@@ -532,6 +531,7 @@ final class PhpStanTest extends TestCase
 
         self::assertSame(
             [
+                'configurable'      => false,
                 'ctor'              => true,
                 'laravelReturnType' => Package::Laravel->isInstalled(),
                 'mocks'             => Package::PhpStanPhpUnit->isInstalled(),
@@ -540,7 +540,7 @@ final class PhpStanTest extends TestCase
             $config['parameters']['symplify'] ?? null,
         );
 
-        self::assertContains(NoFindTaggedServiceIdsCallRule::class, $config['rules']);
+        self::assertContains(ForbiddenSwitchRule::class, $config['rules']);
     }
 
     public function testServicesAreAddedReplacedAndRemoved(): void

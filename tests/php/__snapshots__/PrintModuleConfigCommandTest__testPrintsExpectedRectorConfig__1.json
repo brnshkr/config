@@ -226,7 +226,7 @@
     "parallel": null,
     "parallelTimeoutSeconds": 120,
     "parallelMaxNumberOfProcess": 32,
-    "parallelJobSize": 16,
+    "parallelJobSize": 48,
     "importNames": false,
     "importDocBlockNames": false,
     "importShortClasses": true,

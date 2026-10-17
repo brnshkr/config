@@ -88,4 +88,6 @@ The rules `commitlint` enforces (`conf/commitlint.mjs`):
 
 - After any install: dev deps (composer `require-dev`, bun `devDependencies`) pin exact from the lock file
   (strip the `v` prefix); runtime (`require`, `dependencies`, `peerDependencies`) keep caret ranges.
+- A bumped tool raises its floor in the same change: the `peerDependencies` caret and the composer `conflict` range
+  (`<new || >=next-major`).
 - Version in `package.json` ⇄ `composer.json` ⇄ `conf/Makefile` (`VERSION`) must match — `project-version-sync-check`.
