@@ -29,19 +29,10 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 -->
 - [👋 About the Project](#-about-the-project)
 - [📚 Documentation](#-documentation)
-- [☕ JS](#-js)
-  - [🧰 Prerequisites](#-prerequisites)
-  - [🚀 Installation](#-installation)
-    - [🎨 Custom](#-custom)
-  - [👀 Usage](#-usage)
-  - [🧩 Custom ESLint Rules](#-custom-eslint-rules)
-- [🐘 PHP](#-php)
-  - [🧰 Prerequisites](#-prerequisites-1)
-  - [🚀 Installation](#-installation-1)
-    - [🎨 Custom](#-custom-1)
-  - [👀 Usage](#-usage-1)
-  - [🧩 Custom PHPStan Rules](#-custom-phpstan-rules)
-- [🔨 TODOs / Roadmap](#-todos--roadmap)
+- [🧰 Prerequisites](#-prerequisites)
+- [🚀 Installation](#-installation)
+- [👀 Usage](#-usage)
+- [🧩 Custom Rules](#-custom-rules)
 - [❤️ Contributing](#️-contributing)
   - [💄 Commit Style](#-commit-style)
   - [⚙️ Workflows](#️-workflows)
@@ -72,240 +63,16 @@ the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makef
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-## ☕ JS
+## 🧰 Prerequisites
 
-### 🧰 Prerequisites
+<!-- omit in toc -->
+### JS
 
 - Node.js >= v24.15 or Bun >= v1.4 (Older versions may work, but are untested)
 - Any JavaScript package manager (Bun, Yarn, PNPM, NPM)
 
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-### 🚀 Installation
-
 <!-- omit in toc -->
-#### Bun
-
-```sh
-bun a -D -E @brnshkr/config
-```
-
-<!-- omit in toc -->
-#### Yarn
-
-```sh
-yarn add -D -E @brnshkr/config
-```
-
-<!-- omit in toc -->
-#### PNPM
-
-```sh
-pnpm add -D -E @brnshkr/config
-```
-
-<!-- omit in toc -->
-#### NPM
-
-```sh
-npm i -D -E @brnshkr/config
-```
-
-Take a look at the `peerDependencies` in the [package.json](./package.json) file
-and install the ones you need for the modules you want to use.  
-Copy the starter `Makefile` once, and let it write the rest:
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile \
-  && make startup
-```
-
-`make startup` installs each stack and writes the `.gitignore`, `.gitattributes` and editor files the project is missing.
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-#### 🎨 Custom
-
-Take a look at the function signatures for exact details.
-
-<!-- omit in toc -->
-##### ESLint
-
-```js
-// ./conf/eslint.dist.mjs
-
-import { getConfig } from '@brnshkr/config/eslint';
-
-export default getConfig(/* customize */);
-```
-
-<!-- omit in toc -->
-##### Stylelint
-
-```js
-// ./conf/stylelint.dist.mjs
-
-import { getConfig } from '@brnshkr/config/stylelint';
-
-export default getConfig(/* customize */);
-```
-
-<!-- omit in toc -->
-##### markdownlint
-
-```js
-// ./conf/markdownlint.dist.mjs
-
-import { getConfig } from '@brnshkr/config/markdownlint';
-
-export default getConfig(/* customize */);
-```
-
-<!-- omit in toc -->
-##### commitlint
-
-```js
-// ./conf/commitlint.dist.mjs
-
-import { getConfig } from '@brnshkr/config/commitlint';
-
-export default getConfig(/* customize */);
-```
-
-<!-- omit in toc -->
-##### Vitest
-
-```js
-// ./conf/vitest.dist.mjs
-
-import { getConfig } from '@brnshkr/config/vitest';
-
-export default getConfig(/* customize */);
-```
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-### 👀 Usage
-
-<!-- omit in toc -->
-#### Run Tooling
-
-This package provides **configurations**, not a hard requirement on _how_ you run tools.  
-A few possible ways are listed below:
-
-<!-- omit in toc -->
-##### Option 1 — Run Tools Directly (Most Flexible)
-
-<!-- omit in toc -->
-###### ESLint
-
-Example call, adjust as needed
-
-```sh
-bun eslint --config ./conf/eslint.dist.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0
-```
-
-<!-- omit in toc -->
-###### Stylelint
-
-Example call, adjust as needed
-
-```sh
-bun stylelint --config ./conf/stylelint.dist.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --max-warnings 0 "**/*.{css,ejs,html,less,postcss,scss,svelte,svg,vue}"
-```
-
-<!-- omit in toc -->
-###### markdownlint
-
-Example call, adjust as needed
-
-```sh
-bun markdownlint-cli2 --config ./conf/markdownlint.dist.mjs "**/*.md"
-```
-
-<!-- omit in toc -->
-###### commitlint
-
-Example call, adjust as needed
-
-```sh
-bun commitlint --config ./conf/commitlint.dist.mjs --edit
-```
-
-<!-- omit in toc -->
-##### Option 2 — Run Make Targets (@brnshkr Convention)
-
-These targets look for your configuration files in the `./conf` directory
-(exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
-
-Your own Makefile includes this one. Copy the starter rather than writing the include by hand: it guards the
-include, so a fresh clone can run a plain `make` before anything is installed.
-
-```sh
-cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile
-```
-
-A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes` and editor files you are still missing.
-The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
-
-<!-- omit in toc -->
-###### ESLint
-
-Optional configuration file: `./conf/eslint.dist.mjs`
-
-```sh
-make eslint
-```
-
-<!-- omit in toc -->
-###### Stylelint
-
-Optional configuration file: `./conf/stylelint.dist.mjs`
-
-```sh
-make stylelint
-```
-
-<!-- omit in toc -->
-###### markdownlint
-
-Optional configuration file: `./conf/markdownlint.dist.mjs`
-
-```sh
-make markdownlint
-```
-
-<!-- omit in toc -->
-###### commitlint
-
-Optional configuration file: `./conf/commitlint.dist.mjs`
-
-```sh
-make commitlint
-```
-
-<!-- omit in toc -->
-#### IDE Setup
-
-When using the recommended way of putting config files into the `./conf` directory
-it might be necessary to instruct your IDE to read these files correctly.  
-If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
-installed, `make configs` writes the settings they need into `./.vscode/settings.json`.
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-### 🧩 Custom ESLint Rules
-
-The default ESLint configuration ships a small `brnshkr` plugin that contributes a handful
-of project-specific rules, all enabled out of the box. Each rule is documented with examples
-in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/index.md).
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-## 🐘 PHP
-
-### 🧰 Prerequisites
+### PHP
 
 - PHP >= 8.5 (Older versions may work, but are untested)
 - Composer >= 2.9 (Older versions may work, but are untested)
@@ -315,10 +82,23 @@ in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-### 🚀 Installation
+## 🚀 Installation
 
 <!-- omit in toc -->
-#### Composer
+### Bun
+
+```sh
+bun a -D -E @brnshkr/config
+```
+
+Any other JavaScript package manager works the same way,
+e.g. `yarn add -D -E @brnshkr/config`, `pnpm add -D -E @brnshkr/config` or `npm i -D -E @brnshkr/config`.
+
+Take a look at the `peerDependencies` in the [package.json](./package.json) file
+and install the ones you need for the modules you want to use.
+
+<!-- omit in toc -->
+### Composer
 
 ```sh
 composer r --dev brnshkr/config
@@ -326,15 +106,6 @@ composer r --dev brnshkr/config
 
 Take a look at the `suggest`ed packages in the [composer.json](./composer.json) file and install the ones
 you need for the modules you want to use.  
-Copy the starter `Makefile` once, and let it write the rest:
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile \
-  && make startup
-```
-
-`make startup` installs each stack and writes the `.gitignore`, `.gitattributes` and editor files the project is missing.
-
 To have the packages installed for you, pick the modules interactively:
 
 ```sh
@@ -343,208 +114,177 @@ composer brnshkr:config:setup
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-#### 🎨 Custom
+## 👀 Usage
 
-Take a look at the function signatures for exact details.
+This package provides **configurations**, not a hard requirement on _how_ you run tools.
 
 <!-- omit in toc -->
-##### PHP CS Fixer
+### 🎨 Configuration
 
-```php
-<?php
-// ./conf/php-cs-fixer.dist.php
+Each tool reads a config file like the ones below. Put it wherever the tool looks for one,
+or anywhere else and point the tool to it with its `--config` option; @brnshkr projects keep them in `./conf`.
 
-declare(strict_types=1);
+To use the defaults as they are, re-export them:
 
-use Brnshkr\Config\PhpCsFixer;
+```js
+// ./conf/eslint.dist.mjs
 
-return PhpCsFixer::getConfig(/* customize */);
+export { default } from '@brnshkr/config/eslint';
 ```
 
-<!-- omit in toc -->
-##### Rector
-
 ```php
-<?php
-// ./conf/rector.dist.php
-
-declare(strict_types=1);
-
-use Brnshkr\Config\Rector;
-
-return Rector::getConfig(/* customize */);
-```
-
-<!-- omit in toc -->
-##### PHPStan
-
-```php
-<?php
 // ./conf/phpstan.dist.php
 
-declare(strict_types=1);
+return include __DIR__ . '/../vendor/brnshkr/config/conf/phpstan.dist.php';
+```
+
+To customize them, pass your options to `getConfig()`.
+Take a look at the function signatures for exact details.
+
+```js
+// ./conf/eslint.dist.mjs
+
+import { getConfig } from '@brnshkr/config/eslint';
+
+export default getConfig(/* customize */);
+```
+
+```php
+// ./conf/phpstan.dist.php
 
 use Brnshkr\Config\PhpStan;
 
 return PhpStan::getConfig(/* customize */);
 ```
 
-<!-- omit in toc -->
-##### Twig CS Fixer
+The other config builders work the same way, with their module listed in the table below.
+PHPStan reads a `.neon` file by default and a `.php` one with `--configuration`, and both can include ours:
 
 ```php
-<?php
-// ./conf/twig-cs-fixer.dist.php
+// ./conf/phpstan.dist.php
 
-declare(strict_types=1);
-
-use Brnshkr\Config\TwigCsFixer;
-
-return TwigCsFixer::getConfig(/* customize */);
+return [
+    'includes' => [
+        __DIR__ . '/../vendor/brnshkr/config/conf/phpstan.dist.php',
+    ],
+];
 ```
 
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-### 👀 Usage
+Every tool and its options are described in the [docs](https://github.com/brnshkr/config/blob/master/docs/index.md).
 
 <!-- omit in toc -->
-#### Run Tooling
+### Run Tooling
 
-This package provides **configurations**, not a hard requirement on _how_ you run tools.  
 A few possible ways are listed below:
 
 <!-- omit in toc -->
-##### Option 1 — Run Tools Directly (Most Flexible)
+#### Option 1 — Run Tools Directly (Most Flexible)
 
-<!-- omit in toc -->
-###### PHP CS Fixer
-
-Example call, adjust as needed
+Example calls, adjust as needed (these are the commands the make targets run)
 
 ```sh
-php ./vendor/bin/php-cs-fixer fix --config ./conf/php-cs-fixer.dist.php -v --show-progress=dots
+# ESLint
+bun --bun x eslint --config ./conf/eslint.dist.mjs --cache --cache-location ./.cache/eslint.cache.json --max-warnings 0 --fix
+
+# Stylelint
+bun --bun x stylelint --config ./conf/stylelint.dist.mjs --config-basedir ./ --cache --cache-location ./.cache/stylelint.cache.json --allow-empty-input --max-warnings 0 --ignore-path ./.gitignore --ignore-path ./.stylelintignore --fix './**/*.{css,less,scss,ejs,html,svelte,svg,vue,astro,xml}'
+
+# markdownlint
+bun --bun x markdownlint-cli2 --config ./conf/markdownlint.dist.mjs --fix './**/*.{md,markdown}'
+
+# commitlint
+bun --bun x commitlint --config ./conf/commitlint.dist.mjs --edit
+
+# TypeScript
+bun --bun x tsc --project ./tsconfig.json --noEmit
+
+# Vitest
+bun --bun x vitest --config ./conf/vitest.dist.mjs --run --passWithNoTests
+```
+
+```sh
+# PHP CS Fixer
+./vendor/bin/php-cs-fixer fix --config ./conf/php-cs-fixer.dist.php --show-progress=dots -v
+
+# Rector
+./vendor/bin/rector process --config ./conf/rector.dist.php --memory-limit=-1
+
+# PHPStan
+./vendor/bin/phpstan analyze --configuration ./conf/phpstan.dist.php --memory-limit=-1 -vv
+
+# Twig CS Fixer
+./vendor/bin/twig-cs-fixer lint --fix --config ./conf/twig-cs-fixer.dist.php -v
+
+# PHPUnit
+./vendor/bin/phpunit --configuration ./conf/phpunit.dist.xml
+```
+
+```sh
+# semgrep
+semgrep scan --config p/default --config ./conf/semgrep.dist.yaml --error --quiet --metrics off --disable-version-check --no-rewrite-rule-ids
+
+# hadolint
+hadolint --config ./conf/hadolint.dist.yaml ./Dockerfile
+
+# actionlint
+actionlint -config-file ./conf/actionlint.dist.yaml
 ```
 
 <!-- omit in toc -->
-###### Rector
+#### Option 2 — Run Make Targets (@brnshkr Convention)
 
-Example call, adjust as needed
-
-```sh
-php ./vendor/bin/rector process --config ./conf/rector.dist.php --memory-limit=-1
-```
-
-<!-- omit in toc -->
-###### PHPStan
-
-Example call, adjust as needed
+Your own Makefile includes this one. Copy the starter rather than writing the include by hand: it guards the
+include, so a fresh clone can run a plain `make` before anything is installed.
 
 ```sh
-php ./vendor/bin/phpstan analyze --configuration ./conf/phpstan.dist.php -vv --memory-limit=-1
+cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile \
+  && make startup
 ```
 
-<!-- omit in toc -->
-###### Twig CS Fixer
-
-Example call, adjust as needed
-
-```sh
-php ./vendor/bin/twig-cs-fixer fix --config ./conf/twig-cs-fixer.dist.php -v
-```
-
-<!-- omit in toc -->
-##### Option 2 — Run Make Targets (@brnshkr Convention)
-
-These targets look for your configuration files in the `./conf` directory
-(exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf)).
-
-Your own Makefile includes this one. Copy the shipped starter rather than writing the include by hand:
-it guards the include, so a fresh clone can run a plain `make` before anything is installed.
-
-```sh
-cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile
-```
-
+When installed through Composer, the starter lives in `./vendor/brnshkr/config/conf/Makefile.dist` instead.  
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
 `make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes` and editor files you are still missing.
-The full reference is [`docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
+The full reference is [`./docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
-<!-- omit in toc -->
-###### PHP CS Fixer
+These targets look for your configuration files in the `./conf` directory
+(exactly how it is done in this project as well; see [`./conf`](https://github.com/brnshkr/config/blob/master/conf))
+and use the defaults of this package without one.
 
-Optional configuration file: `./conf/php-cs-fixer.dist.php`
+| Tool | Module | Target | Optional configuration file |
+| --- | --- | --- | --- |
+| ESLint | `@brnshkr/config/eslint` | `make eslint` | `./conf/eslint.dist.mjs` |
+| Stylelint | `@brnshkr/config/stylelint` | `make stylelint` | `./conf/stylelint.dist.mjs` |
+| markdownlint | `@brnshkr/config/markdownlint` | `make markdownlint` | `./conf/markdownlint.dist.mjs` |
+| commitlint | `@brnshkr/config/commitlint` | `make commitlint` | `./conf/commitlint.dist.mjs` |
+| TypeScript | `@brnshkr/config/conf/tsconfig.json` | `make typescript` | `./tsconfig.json` |
+| Vitest | `@brnshkr/config/vitest` | `make vitest` | `./conf/vitest.dist.mjs` |
+| PHP CS Fixer | `Brnshkr\Config\PhpCsFixer` | `make php-cs-fixer` | `./conf/php-cs-fixer.dist.php` |
+| Rector | `Brnshkr\Config\Rector` | `make rector` | `./conf/rector.dist.php` |
+| PHPStan | `Brnshkr\Config\PhpStan` | `make phpstan` | `./conf/phpstan.dist.php` |
+| Twig CS Fixer | `Brnshkr\Config\TwigCsFixer` | `make twig-cs-fixer` | `./conf/twig-cs-fixer.dist.php` |
+| PHPUnit | — | `make phpunit` | `./conf/phpunit.dist.xml` |
+| semgrep | — | `make semgrep` | `./conf/semgrep.dist.yaml` |
+| hadolint | — | `make hadolint` | `./conf/hadolint.dist.yaml` |
+| actionlint | — | `make actionlint` | `./conf/actionlint.dist.yaml` |
 
-```sh
-make php-cs-fixer
-```
-
-<!-- omit in toc -->
-###### Rector
-
-Optional configuration file: `./conf/rector.dist.php`
-
-```sh
-make rector
-```
-
-<!-- omit in toc -->
-###### PHPStan
-
-Optional configuration file: `./conf/phpstan.dist.php`
-
-```sh
-make phpstan
-```
-
-<!-- omit in toc -->
-###### Twig CS Fixer
-
-Optional configuration file: `./conf/twig-cs-fixer.dist.php`
-
-```sh
-make twig-cs-fixer
-```
-
-<!-- omit in toc -->
-#### IDE Setup
-
-When using the recommended way of putting config files into the `./conf` directory
-it might be necessary to instruct your IDE to read these files correctly.  
+When using the `./conf` directory it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)
-installed, `make configs` writes the settings they need into `./.vscode/settings.json`.
+installed, `make configs` writes the settings they need into `./.vscode/settings.json`,
+pointing at the files the targets use.
 
 <!-- omit in toc -->
-#### Plugin Commands
+### Composer Plugin
 
-Overview of all commands provided by the composer plugin.  
-For full usage run `composer help <command>`, `composer <command> --help` or `composer <command> -h`.
-
-| Command | Alias | Description |
-| --- | --- | --- |
-| `brnshkr:config` | `b:c` | Displays the plugin overview and a list of available commands. Useful to quickly discover what the plugin exposes. |
-| `brnshkr:config:update-php-extensions` | `b:c:upe` | Scans installed packages and updates `composer.json` with required `ext-*` platform packages. |
-| `brnshkr:config:extract-phar <package>` | `b:c:ep` | Extracts a `.phar` file from a given vendor package. |
+The Composer package also adds a few helper commands,
+see the [Composer plugin docs](https://github.com/brnshkr/config/blob/master/docs/php/Composer.md).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
-### 🧩 Custom PHPStan Rules
+## 🧩 Custom Rules
 
-Beyond the upstream rule set, the default configuration ships a number of custom PHPStan rules in two flavors.
-**Standalone rules** are general-purpose checks enabled out of the box,
-while **architecture presets** are opinionated bundles of class-placement and isolation rules tailored to a
-specific framework or architecture style — opt-in and configured through `setArchitecture()`.
-Both are documented with examples in the [Custom PHPStan Rules docs](https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/index.md).
-
-<p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
-
-## 🔨 TODOs / Roadmap
-
-- Expand [`⚙️ Workflows`](#️-workflows) section in readme
-- Add Vue support
-- Add React support
-- Improve test setup
-
-Any help is always greatly appreciated 🙂
+Both stacks ship custom rules on top of the upstream ones. Each rule is documented with examples
+in the [Custom ESLint Rules docs](https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/index.md)
+and the [Custom PHPStan Rules docs](https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/index.md).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -566,6 +306,8 @@ Don't forget to give the project a star! Thanks again!
 New to the codebase?
 The [Development docs](https://github.com/brnshkr/config/blob/master/docs/development.md)
 cover environment setup and the day-to-day commands for both stacks.
+
+Any help is always greatly appreciated 🙂
 
 ### 💄 Commit Style
 

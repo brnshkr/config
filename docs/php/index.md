@@ -1,6 +1,6 @@
 # 🐘 PHP
 
-The PHP half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-php) covers setup.
+The PHP half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-installation) covers setup.
 
 - [PHPStan](./phpstan/index.md) — analysis configuration plus the custom standalone and architecture rules
 - [PHP-CS-Fixer](./PhpCsFixer.md) — coding-style configuration

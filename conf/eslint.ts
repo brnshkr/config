@@ -155,6 +155,13 @@ export default getConfig({
   },
 }, {
   files: [
+    'README.md/**',
+  ],
+  rules: {
+    'no-restricted-exports': 'off',
+  },
+}, {
+  files: [
     'docs/js/stylelint.md/**',
   ],
   rules: {

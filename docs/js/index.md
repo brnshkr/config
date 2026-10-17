@@ -1,6 +1,6 @@
 # ☕ JS
 
-The JavaScript half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-js) covers setup.
+The JavaScript half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-installation) covers setup.
 
 - [commitlint](./commitlint.md) — commit-message rules, checked on the `commit-msg` hook
 - [ESLint](./eslint/index.md) — lint configuration plus the custom `brnshkr` rules
