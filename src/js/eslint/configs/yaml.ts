@@ -33,7 +33,7 @@ export const yaml = async (): Promise<Config[]> => {
       rules: {
         /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...renameRules(pluginYaml.configs.standard[2]?.rules, { yml: 'yaml' }),
-        /* eslint-enable no-magic-numbers -- Restore rule */
+        /* eslint-enable no-magic-numbers */
         'yaml/file-extension': 'error',
         'yaml/flow-mapping-curly-spacing': ['error', 'always', {
           emptyObjects: 'never',

@@ -20,7 +20,7 @@ const getImplementedName = (expression: TSESTree.Expression): string => {
 
   return '';
 };
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */
 
 /**
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/interface-suffix.md
@@ -73,6 +73,6 @@ export const interfaceSuffixRule = <const>{
       ClassDeclaration: checkHeritage,
       ClassExpression: checkHeritage,
     };
-    /* eslint-enable ts/naming-convention -- Restore rule */
+    /* eslint-enable ts/naming-convention */
   },
 } satisfies RuleDefinition;

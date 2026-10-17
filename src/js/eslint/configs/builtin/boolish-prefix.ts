@@ -201,7 +201,7 @@ const resolveFromSyntax = (ruleContext: RuleContext, target: SymbolTarget): Reso
   };
 };
 
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */
 
 const resolveFromTypes = (
   services: ParserServicesWithTypeInformation,
@@ -390,7 +390,7 @@ const buildVisitors = (ruleContext: RuleContext): RuleVisitors => ({
     }
   },
 });
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */
 
 /**
  * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/boolish-prefix.md

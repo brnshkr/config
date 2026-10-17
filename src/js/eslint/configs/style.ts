@@ -42,7 +42,7 @@ export const style = async (): Promise<Config[]> => {
   const indentRuleConfig = (Array.isArray(indentRuleEntry) && isPlainObject(indentRuleEntry[2]))
     ? indentRuleEntry[2]
     : undefined;
-  /* eslint-enable no-magic-numbers -- Restore rule */
+  /* eslint-enable no-magic-numbers */
 
   return [
     {
@@ -227,7 +227,7 @@ export const style = async (): Promise<Config[]> => {
             multiline: true,
             consistent: true,
           },
-          /* eslint-enable ts/naming-convention -- Restore rule */
+          /* eslint-enable ts/naming-convention */
         }],
         'style/object-property-newline': ['error', {
           allowAllPropertiesOnSameLine: true,

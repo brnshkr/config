@@ -40,7 +40,7 @@ export const renameRules = (
     return [key, value];
   }),
 );
-/* eslint-enable ts/no-explicit-any -- Restore rule */
+/* eslint-enable ts/no-explicit-any */
 
 const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'name',

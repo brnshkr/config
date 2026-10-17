@@ -119,4 +119,4 @@ export const markdown = (): Config[] => {
     },
   ];
 };
-/* eslint-enable ts/naming-convention -- Restore rule */
+/* eslint-enable ts/naming-convention */

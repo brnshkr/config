@@ -248,7 +248,7 @@ const walkNode = (walkContext: WalkContext, node: TSESTree.Node, state: WalkStat
     walkChildren(walkContext, node, state);
   }
 };
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */
 
 export const collectThrownErrors = (context: RuleContext, node: FunctionNode): ThrownError[] => {
   const cachedErrors = thrownErrorsByFunction.get(node);

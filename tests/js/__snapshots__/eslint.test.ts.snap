@@ -1457,6 +1457,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
           "svelte-ignore",
           "v8 ignore",
         ],
+        "ignore": [
+          "eslint-enable",
+        ],
       },
     ],
     "complexity": [

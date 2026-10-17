@@ -22,7 +22,7 @@ export const createPhpRegexes = (): PhpRegex[] => [
     php: String.raw`/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/`,
     regex: /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/v,
   },
-  /* eslint-enable no-control-regex, regexp/control-character-escape, regexp/no-control-character, unicorn/no-hex-escape -- Restore rules */
+  /* eslint-enable no-control-regex, regexp/control-character-escape, regexp/no-control-character, unicorn/no-hex-escape */
   {
     file: 'conf/ai/mate/src/Tool/TestTool.php',
     php: String.raw`/^\S+\s+(?<path>.*)$/s`,
@@ -384,4 +384,4 @@ export const createPhpRegexes = (): PhpRegex[] => [
     regex: /(?<letter>[a-z])(?<digit>\d)/v,
   },
 ];
-/* eslint-enable regexp/prefer-set-operation -- Restore rule */
+/* eslint-enable regexp/prefer-set-operation */

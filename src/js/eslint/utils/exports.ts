@@ -73,7 +73,7 @@ const DEFAULT_KIND_MAP: Partial<Record<TSESTree.Node['type'], ExportedSymbolKind
   NewExpression: 'Constant',
   ObjectExpression: 'Constant',
 };
-/* eslint-enable ts/naming-convention -- Restore rule */
+/* eslint-enable ts/naming-convention */
 
 const collectAtomicNamedDeclaration = (
   declaration: TSESTree.Node,
@@ -155,7 +155,7 @@ const collectDefaultDeclaration = (
     name,
   }];
 };
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */
 
 export interface ExportVisitors {
   ExportDefaultDeclaration: (node: TSESTree.ExportDefaultDeclaration) => void;

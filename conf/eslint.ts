@@ -8,7 +8,7 @@ const isInEditor = Boolean(import.meta.env?.['VSCODE_PID']
   ?? import.meta.env?.['JETBRAINS_IDE']
   ?? import.meta.env?.['VIM']
   ?? import.meta.env?.['NVIM']);
-/* eslint-enable ts/no-unnecessary-condition -- Restore rule */
+/* eslint-enable ts/no-unnecessary-condition */
 
 if (isInEditor) {
   log(`ESLint is running in an editor.`);

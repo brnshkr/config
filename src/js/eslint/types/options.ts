@@ -98,7 +98,7 @@ export interface CssOptions {
    */
   tolerant: boolean;
 }
-/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
+/* eslint-enable brnshkr/boolish-prefix */
 
 export interface NodeOptions {
   /**
@@ -365,7 +365,7 @@ export interface ConfigOptions {
    */
   yaml: boolean;
 }
-/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
+/* eslint-enable brnshkr/boolish-prefix */
 
 export type ResolvedOptions = ConfigOptions & Omit<Config, 'files'>;
 export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'files'>;

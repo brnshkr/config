@@ -123,4 +123,4 @@ export type ResolvedOptions = ConfigOptions
 export type UserOptions = Partial<ConfigOptions>
   & Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>;
 
-/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
+/* eslint-enable brnshkr/boolish-prefix */

@@ -29,7 +29,7 @@ const UNKNOWN_THROWN_TYPE = <const>{
 const TYPE_SYMBOL_FLAGS: ts.SymbolFlags.Type = 788_968;
 const ANY_TYPE_FLAGS: ts.TypeFlags.Any = 1;
 const UNKNOWN_TYPE_FLAGS: ts.TypeFlags.Unknown = 2;
-/* eslint-enable ts/no-unsafe-enum-assignment -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-assignment */
 const resolvedTypesByChecker = new WeakMap<ts.TypeChecker, Map<string, ThrownType>>();
 const createDeclaredTagPattern = (): RegExp => /@(?<tag>exception|rejects|throws)\b[\t ]*(?:\{(?<type>[^\}]*)\})?/gv;
 

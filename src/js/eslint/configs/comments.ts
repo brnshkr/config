@@ -44,6 +44,9 @@ export const comments = async (): Promise<Config[]> => {
             'svelte-ignore',
             'v8 ignore',
           ],
+          ignore: [
+            'eslint-enable',
+          ],
         }],
       },
     },

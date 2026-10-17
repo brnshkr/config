@@ -227,4 +227,4 @@ export const classifyExpression = (node: TSESTree.Expression): TypeClassificatio
     ? TYPE_CLASSIFICATIONS.NON_BOOL
     : (classifyBooleanOperator(node) ?? TYPE_CLASSIFICATIONS.UNKNOWN);
 };
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */

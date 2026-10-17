@@ -65,4 +65,4 @@ export interface ConfigOptions {
 export type ResolvedOptions = ConfigOptions & Config;
 export type UserOptions = Partial<ConfigOptions> & Config;
 
-/* eslint-enable brnshkr/boolish-prefix -- Restore rule */
+/* eslint-enable brnshkr/boolish-prefix */

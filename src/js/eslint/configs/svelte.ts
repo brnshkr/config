@@ -133,7 +133,7 @@ export const svelte = async (): Promise<Config[]> => {
           /* eslint-disable unicorn/no-null -- Null is required here to allow for tags without a lang attribute */
           script: ['ts', null],
           style: ['scss', null],
-          /* eslint-enable unicorn/no-null -- Restore rule */
+          /* eslint-enable unicorn/no-null */
         }],
         'svelte/button-has-type': 'error',
         'svelte/consistent-selector-style': ['error', {

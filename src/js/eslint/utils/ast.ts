@@ -110,4 +110,4 @@ export const resolveFunctionShape = (
     returnType: declaration.returnType,
   };
 };
-/* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+/* eslint-enable ts/no-unsafe-enum-comparison */

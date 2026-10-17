@@ -80,7 +80,7 @@ export const requireImportAttributesRule = <const>{
           && attribute.key.value === 'type'
         ),
       );
-      /* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+      /* eslint-enable ts/no-unsafe-enum-comparison */
 
       if (!typeProperty) {
         context.report({
