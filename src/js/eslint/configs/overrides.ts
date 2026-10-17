@@ -41,7 +41,7 @@ import { packageOrganization } from '#shared/utils/package-json.ts';
 import type { Config } from '#eslint/types/config.ts';
 import type { TypescriptOptions } from '#eslint/types/options.ts';
 
-const jsOverrides: Config[] = [
+const buildJsOverrides = (): Config[] => [
   {
     name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JAVASCRIPT}/scripts`),
     files: ['scripts/**/*.?(c)js'],
@@ -73,7 +73,7 @@ const jsOverrides: Config[] = [
   },
 ];
 
-const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
+const buildTsOverrides = (): Config[] => (isModuleEnabled(MODULES.typescript)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/ts`),
@@ -121,7 +121,7 @@ const tsOverrides: Config[] = isModuleEnabled(MODULES.typescript)
       },
     },
   ]
-  : [];
+  : []);
 
 const isTypeAware = (typescriptOptions?: Partial<TypescriptOptions>): boolean => isModuleEnabled(MODULES.typescript)
   && (typescriptOptions?.typeAware ?? doesTsConfigExist(resolveTsConfigPath(typescriptOptions))) !== false;
@@ -161,7 +161,7 @@ const buildTypeUnawareJsdocOverrides = (typescriptOptions?: Partial<TypescriptOp
     : [];
 };
 
-const testOverrides: Config[] = isModuleEnabled(MODULES.test)
+const buildTestOverrides = (): Config[] => (isModuleEnabled(MODULES.test)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TEST}/general`),
@@ -171,9 +171,9 @@ const testOverrides: Config[] = isModuleEnabled(MODULES.test)
       },
     },
   ]
-  : [];
+  : []);
 
-const builtinOverrides: Config[] = isModuleEnabled(BUILTIN_MODULE)
+const buildBuiltinOverrides = (): Config[] => (isModuleEnabled(BUILTIN_MODULE)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TEST}/error-tags`),
@@ -184,9 +184,9 @@ const builtinOverrides: Config[] = isModuleEnabled(BUILTIN_MODULE)
       },
     },
   ]
-  : [];
+  : []);
 
-const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
+const buildUnicornOverrides = (): Config[] => (isModuleEnabled(MODULES.unicorn)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JAVASCRIPT}/classes`),
@@ -210,9 +210,9 @@ const unicornOverrides: Config[] = isModuleEnabled(MODULES.unicorn)
       },
     },
   ]
-  : [];
+  : []);
 
-const securityOverrides: Config[] = (isModuleEnabled(MODULES.security) && isModuleEnabled(MODULES.regexp))
+const buildSecurityOverrides = (): Config[] => ((isModuleEnabled(MODULES.security) && isModuleEnabled(MODULES.regexp))
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SECURITY}/regexp`),
@@ -222,9 +222,9 @@ const securityOverrides: Config[] = (isModuleEnabled(MODULES.security) && isModu
       },
     },
   ]
-  : [];
+  : []);
 
-const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
+const buildJsdocOverrides = (): Config[] => (isModuleEnabled(MODULES.jsdoc)
   ? [
     ...(isModuleEnabled(BUILTIN_MODULE)
       ? [{
@@ -283,9 +283,9 @@ const jsdocOverrides: Config[] = isModuleEnabled(MODULES.jsdoc)
       },
     },
   ]
-  : [];
+  : []);
 
-const svelteOverrides: Config[] = isModuleEnabled(MODULES.svelte)
+const buildSvelteOverrides = (): Config[] => (isModuleEnabled(MODULES.svelte)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/general`),
@@ -316,9 +316,9 @@ const svelteOverrides: Config[] = isModuleEnabled(MODULES.svelte)
       } satisfies Config]
       : []),
   ]
-  : [];
+  : []);
 
-const tomlOverrides: Config[] = isModuleEnabled(MODULES.toml)
+const buildTomlOverrides = (): Config[] => (isModuleEnabled(MODULES.toml)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TOML}/general`),
@@ -328,9 +328,9 @@ const tomlOverrides: Config[] = isModuleEnabled(MODULES.toml)
       },
     },
   ]
-  : [];
+  : []);
 
-const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
+const buildYamlOverrides = (): Config[] => (isModuleEnabled(MODULES.yaml)
   ? [
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.YAML}/general`),
@@ -348,7 +348,7 @@ const yamlOverrides: Config[] = isModuleEnabled(MODULES.yaml)
       },
     },
   ]
-  : [];
+  : []);
 
 const buildHtmlOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
   ? [
@@ -435,39 +435,43 @@ const buildHtmlScriptOverrides = (): Config[] => {
     : [];
 };
 
+const buildDevelopmentOverrides = (): Config[] => [
+  {
+    name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${SUB_SCOPES.DEVELOPMENT}/general`),
+    files: GLOB_DEVELOPMENT_FILES,
+    rules: {
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
+      'no-irregular-whitespace': 'off',
+      'no-restricted-exports': 'off',
+      'import/max-dependencies': 'off',
+      'import/no-default-export': 'off',
+      'import/no-rename-default': 'off',
+      'import/no-named-as-default-member': 'off',
+      'node/no-sync': 'off',
+      'unicorn/no-barrel-files': 'off',
+    },
+  },
+];
+
 export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
   const resolvedTypescriptOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
 
   return [
-    ...jsOverrides,
-    ...tsOverrides,
+    ...buildJsOverrides(),
+    ...buildTsOverrides(),
     ...buildTypeAwareImportOverrides(resolvedTypescriptOptions),
     ...buildTypeUnawareJsdocOverrides(resolvedTypescriptOptions),
-    ...testOverrides,
-    ...builtinOverrides,
-    ...unicornOverrides,
-    ...securityOverrides,
-    ...jsdocOverrides,
+    ...buildTestOverrides(),
+    ...buildBuiltinOverrides(),
+    ...buildUnicornOverrides(),
+    ...buildSecurityOverrides(),
+    ...buildJsdocOverrides(),
     ...buildHtmlOverrides(),
     ...buildHtmlScriptOverrides(),
-    ...svelteOverrides,
-    ...tomlOverrides,
-    ...yamlOverrides,
-    {
-      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${SUB_SCOPES.DEVELOPMENT}/general`),
-      files: GLOB_DEVELOPMENT_FILES,
-      rules: {
-        'max-lines': 'off',
-        'max-lines-per-function': 'off',
-        'no-irregular-whitespace': 'off',
-        'no-restricted-exports': 'off',
-        'import/max-dependencies': 'off',
-        'import/no-default-export': 'off',
-        'import/no-rename-default': 'off',
-        'import/no-named-as-default-member': 'off',
-        'node/no-sync': 'off',
-        'unicorn/no-barrel-files': 'off',
-      },
-    },
+    ...buildSvelteOverrides(),
+    ...buildTomlOverrides(),
+    ...buildYamlOverrides(),
+    ...buildDevelopmentOverrides(),
   ];
 };
