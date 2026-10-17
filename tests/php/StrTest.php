@@ -149,6 +149,18 @@ final class StrTest extends TestCase
 
         yield 'a multi-line body' => [true, "~a\nb~"];
 
+        yield 'an escaped delimiter in the body' => [true, '/Acme\/User/'];
+
+        yield 'an unescaped delimiter in the body' => [false, '/Acme/User/'];
+
+        yield 'an unknown flag' => [false, '/dev/null'];
+
+        yield 'a sprintf format' => [false, '%s=%s'];
+
+        yield 'a quoted string' => [false, '"**/Acme/**"'];
+
+        yield 'a backticked string' => [false, '`Acme`'];
+
         yield 'a plain word' => [false, 'Acme'];
 
         yield 'an unclosed pattern' => [false, '/Acme'];

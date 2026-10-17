@@ -124,7 +124,7 @@ final readonly class Str
 
     public static function isRegex(string $string): bool
     {
-        return self::match($string, '/^(?<delimiter>[^\w\\\]).*\k<delimiter>[A-Za-z]*$/s') !== [];
+        return self::match($string, '/^(?<delimiter>[^\s\w"%\'\\\`])(?:\\\.|(?!\k<delimiter>)[^\\\])*\k<delimiter>[ADJSUXimnsux]*$/s') !== [];
     }
 
     /**

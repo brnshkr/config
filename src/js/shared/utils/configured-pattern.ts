@@ -21,7 +21,9 @@ const readPatternParts = (pattern: RegExp | string, bareSourceFlags?: PatternFla
     };
   }
 
-  const groups = /^(?<delimiter>[^\w\\])(?<source>.*)\k<delimiter>(?<flags>[A-Za-z]*)$/sv.exec(pattern)?.groups;
+  const groups = /^(?<delimiter>[^\s\w"%'\\`])(?<source>(?:\\.|(?!\k<delimiter>)[^\\])*)\k<delimiter>(?<flags>[dgimsuvy]*)$/sv
+    .exec(pattern)
+    ?.groups;
 
   if (groups !== undefined) {
     return {

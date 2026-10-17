@@ -110,8 +110,8 @@ const allowedCallers = [
 ## Differences from the PHP rule
 
 - a module may always use the symbols it declares itself, because the module is the unit of encapsulation in JavaScript
-- `/` is the namespace separator here, so a prefix carrying both a leading and a trailing
-  separator reads as a delimited pattern instead
+- `/` is the namespace separator here, so a one-segment prefix carrying both a leading and a trailing
+  separator, like `/acme/`, reads as a delimited pattern instead
 - a pattern is rejected when it can backtrack super-linearly,
   a check that needs `scslre` and `@eslint-community/regexpp` installed
 - a file-level docblock carrying `@internal` covers the whole module.

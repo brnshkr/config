@@ -135,8 +135,8 @@ export const createPhpRegexes = (): PhpRegex[] => [
   },
   {
     file: 'src/php/Str.php',
-    php: String.raw`/^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/s`,
-    regex: /^(?<delimiter>[^\w\\]).*\k<delimiter>[A-Za-z]*$/sv,
+    php: '/^(?<delimiter>[^\\s\\w"%\'\\\\`])(?:\\\\.|(?!\\k<delimiter>)[^\\\\])*\\k<delimiter>[ADJSUXimnsux]*$/s',
+    regex: /^(?<delimiter>[^\s\w"%'\\`])(?:\\.|(?!\k<delimiter>)[^\\])*\k<delimiter>[ADJSUXimnsux]*$/sv,
   },
   {
     file: 'src/php/TwigCsFixer.php',
