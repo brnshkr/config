@@ -372,8 +372,6 @@
                     "PhpParser\\Node\\Expr\\PreDec",
                     "PhpParser\\Node\\Expr\\PreInc",
                     "PhpParser\\Node\\Expr\\Print_",
-                    "PhpParser\\Node\\InterpolatedStringPart",
-                    "PhpParser\\Node\\Scalar\\InterpolatedString",
                     "PhpParser\\Node\\Stmt\\Global_",
                     "PhpParser\\Node\\Stmt\\Goto_",
                     "PhpParser\\Node\\Stmt\\Switch_",

@@ -75,7 +75,6 @@ final class CommandTest extends TestCase
         $firstLetterOfPackageOrganization = s($packageOrganization)->slice(0, 1)->toString();
         $titleCasePackageName             = s($packageName)->title()->toString();
 
-        // @phpstan-ignore symplify.forbiddenNode (Use of encapsed strings to preserve easy readability and adjustability here)
         $expectedOutput = <<<EOF
    ___               __   __
   / _ )_______  ____/ /  / /__ ____

@@ -2020,8 +2020,6 @@ final class PhpStan
             Node\Expr\PreDec::class,
             Node\Expr\PreInc::class,
             Node\Expr\Print_::class,
-            Node\InterpolatedStringPart::class,
-            Node\Scalar\InterpolatedString::class,
             Node\Stmt\Global_::class,
             Node\Stmt\Goto_::class,
             Node\Stmt\Switch_::class,
