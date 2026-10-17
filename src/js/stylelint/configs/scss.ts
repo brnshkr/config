@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/stylelint
  */
 
+import { isCssModulesActive } from '#stylelint/configs/modules.ts';
 import { OVERRIDES } from '#stylelint/types/overrides.ts';
 import { buildOverrideName } from '#stylelint/utils/config.ts';
 import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
@@ -18,13 +19,18 @@ export const scss = (): Config[] => {
     return [];
   }
 
+  const hasCssModules = isCssModulesActive();
+
   return [
     {
       overrides: [
         {
           name: buildOverrideName(OVERRIDES.SCSS),
           files: ['**/*.scss'],
-          extends: PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,
+          extends: [
+            PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,
+            ...hasCssModules ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES] : [],
+          ],
           rules: {
             'scss/at-each-key-value-single-line': true,
             'scss/at-mixin-argumentless-call-parentheses': 'always',
@@ -65,7 +71,18 @@ export const scss = (): Config[] => {
             'scss/function-no-unknown': true,
             // eslint-disable-next-line unicorn/no-null -- Null is required here
             'property-no-unknown': null,
-            'scss/property-no-unknown': true,
+            'scss/property-no-unknown': hasCssModules
+              ? [true, {
+                ignoreProperties: [
+                  'compose-with',
+                  'composes',
+                ],
+                ignoreSelectors: [
+                  ':export',
+                  '/^:import/',
+                ],
+              }]
+              : [true],
             'scss/selector-no-redundant-nesting-selector': true,
             'scss/comment-no-loud': true,
             ...isStylelintPluginUseBaselineInstalled

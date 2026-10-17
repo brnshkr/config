@@ -2,22 +2,31 @@
  * @internal @brnshkr/config/stylelint
  */
 
-import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
+import {
+  isModuleEnabled,
+  MODULES,
+  PACKAGES,
+  resolvePackages,
+} from '#stylelint/utils/module.ts';
 
 import type { Config } from '#stylelint/types/config.ts';
 
-export const modules = (): Config[] => {
+export const isCssModulesActive = (): boolean => {
+  if (!isModuleEnabled(MODULES.modules)) {
+    return false;
+  }
+
   const {
     requiredAll: [isStylelintConfigCssModulesInstalled],
   } = resolvePackages(MODULES.modules);
 
-  if (!isStylelintConfigCssModulesInstalled) {
-    return [];
-  }
+  return isStylelintConfigCssModulesInstalled;
+};
 
-  return [
+export const modules = (): Config[] => (isCssModulesActive()
+  ? [
     {
       extends: PACKAGES.STYLELINT_CONFIG_CSS_MODULES,
     },
-  ];
-};
+  ]
+  : []);

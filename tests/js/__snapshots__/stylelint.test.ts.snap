@@ -2282,8 +2282,8 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
-    "<root>/node_modules/stylelint-scss/src/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+    "<root>/node_modules/stylelint-scss/src/index.js",
   ],
   "rules": {
     "addedValues": {
@@ -2345,6 +2345,11 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
       ],
       "scss/at-rule-no-unknown": [
         true,
+        {
+          "ignoreAtRules": [
+            "value",
+          ],
+        },
       ],
       "scss/at-use-no-redundant-alias": [
         true,
@@ -2496,6 +2501,16 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
       ],
       "scss/property-no-unknown": [
         true,
+        {
+          "ignoreProperties": [
+            "compose-with",
+            "composes",
+          ],
+          "ignoreSelectors": [
+            ":export",
+            "/^:import/",
+          ],
+        },
       ],
       "scss/selector-no-redundant-nesting-selector": [
         true,
@@ -2517,6 +2532,7 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
           ],
           "ignoreAtRules": [
             "else",
+            "value",
           ],
         },
       ],
@@ -2567,17 +2583,6 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
         },
       ],
       "property-no-unknown": null,
-      "selector-pseudo-class-no-unknown": [
-        true,
-      ],
-      "selector-type-no-unknown": [
-        true,
-        {
-          "ignore": [
-            "custom-elements",
-          ],
-        },
-      ],
     },
     "removedKeys": [],
   },
@@ -2614,11 +2619,11 @@ exports[`expected stylelint config > diff: 4.svelte (from 3.html) 1`] = `
 }
 `;
 
-exports[`expected stylelint config > diff: 5.less (from 4.svelte) 1`] = `
+exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
 {
   "+_resolvedCustomSyntax": {},
+  "+name": "brnshkr/less",
   "customSyntax": {},
-  "name": "brnshkr/less",
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
@@ -2648,23 +2653,12 @@ exports[`expected stylelint config > diff: 5.less (from 4.svelte) 1`] = `
       ],
     },
     "changedValues": {
-      "at-rule-empty-line-before": [
-        "always",
-        {
-          "except": [
-            "blockless-after-same-name-blockless",
-            "first-nested",
-          ],
-          "ignore": [
-            "after-comment",
-          ],
-        },
-      ],
       "at-rule-no-unknown": [
         true,
         {
           "ignoreAtRules": [
             "plugin",
+            "value",
           ],
         },
       ],
@@ -2672,23 +2666,8 @@ exports[`expected stylelint config > diff: 5.less (from 4.svelte) 1`] = `
       "container-name-pattern": null,
       "declaration-property-value-no-unknown": null,
       "function-no-unknown": null,
-      "keyframes-name-pattern": [
-        "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
-        {},
-      ],
       "media-query-no-invalid": null,
       "no-invalid-position-at-import-rule": null,
-      "property-no-unknown": [
-        true,
-      ],
-      "selector-type-no-unknown": [
-        true,
-        {
-          "ignore": [
-            "custom-elements",
-          ],
-        },
-      ],
     },
     "removedKeys": [],
   },
