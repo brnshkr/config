@@ -206,6 +206,7 @@
         "./vendor/rector/rector/vendor/rector/rector-symfony/src/Set/../../config/sets/symfony/composer-based.php"
     ],
     "skip": [
+        "Rector\\TypeDeclaration\\Rector\\FunctionLike\\AddParamTypeSplFixedArrayRector",
         "Rector\\CodeQuality\\Rector\\ClassMethod\\LocallyCalledStaticMethodToNonStaticRector",
         "Rector\\CodingStyle\\Rector\\ClassMethod\\NewlineBeforeNewAssignSetRector",
         "Rector\\CodingStyle\\Rector\\ClassLike\\NewlineBetweenClassLikeStmtsRector",

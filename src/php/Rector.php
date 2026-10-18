@@ -18,6 +18,7 @@ use Rector\Configuration\RectorConfigBuilder;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
+use Rector\TypeDeclaration\Rector\FunctionLike\AddParamTypeSplFixedArrayRector;
 use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
@@ -179,6 +180,7 @@ final class Rector
 
         /** @disregard P1009 Some skipped classes come bundled with rector and are not picked up by intelephense */
         return new self($rectorConfigBuilder, FileFinder::getFilePaths($finder), [
+            AddParamTypeSplFixedArrayRector::class,
             LocallyCalledStaticMethodToNonStaticRector::class,
             NewlineBeforeNewAssignSetRector::class,
             NewlineBetweenClassLikeStmtsRector::class,
