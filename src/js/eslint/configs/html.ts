@@ -14,7 +14,6 @@ import {
   GLOB_HTML_PHP,
   GLOB_HTML_TWIG,
   GLOB_NUNJUCKS,
-  GLOB_PHP_INCLUDE,
   GLOB_PHTML,
   GLOB_SCRIPT_FILES,
 } from '#eslint/utils/globs.ts';
@@ -56,7 +55,6 @@ const TEMPLATE_ENGINES = <const>{
   php: {
     files: [
       GLOB_HTML_PHP,
-      GLOB_PHP_INCLUDE,
       GLOB_PHTML,
     ],
     syntax: {

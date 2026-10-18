@@ -26,7 +26,6 @@ export const GLOB_HANDLEBARS = '**/*.{handlebars,hbs}';
 export const GLOB_NUNJUCKS = '**/*.{njk,nunjucks}';
 export const GLOB_PHTML = '**/*.phtml';
 export const GLOB_PHP = '**/*.php';
-export const GLOB_PHP_INCLUDE = '**/*.inc.php';
 export const GLOB_PHP_HTML_BLOCKS = '**/*.php/*.html';
 export const GLOB_PHP_REGEXP_BLOCKS = '**/*.php/*.regexp';
 export const GLOB_MD = '**/*.md';
@@ -42,7 +41,6 @@ export const GLOB_JSDOC_EXPRESSION_FILES = <const>[
 
 export const GLOB_PHP_TEMPLATE_FILES = <const>[
   GLOB_HTML_PHP,
-  GLOB_PHP_INCLUDE,
   GLOB_PHTML,
   GLOB_BLADE,
 ] satisfies string[];

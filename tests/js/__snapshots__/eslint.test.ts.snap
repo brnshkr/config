@@ -13136,8 +13136,10 @@ exports[`expected eslint config > config-groups 1`] = `
   ],
   "33.html.php": [
     "33.html.php",
-    "34.inc.php",
     "35.phtml",
+  ],
+  "34.inc.php": [
+    "34.inc.php",
   ],
   "36.blade.php": [
     "36.blade.php",
@@ -25309,6 +25311,113 @@ exports[`expected eslint config > diff: 33.html.php (from 32.html) 1`] = `
 }
 `;
 
+exports[`expected eslint config > diff: 34.inc.php (from 20.toml) 1`] = `
+{
+  "+processor": "brnshkr/php",
+  "-rules": {
+    "no-irregular-whitespace": [
+      0,
+      {
+        "skipComments": false,
+        "skipJSXText": false,
+        "skipRegExps": false,
+        "skipStrings": true,
+        "skipTemplates": false,
+      },
+    ],
+    "toml/array-bracket-newline": [
+      2,
+    ],
+    "toml/array-bracket-spacing": [
+      2,
+      "never",
+    ],
+    "toml/array-element-newline": [
+      2,
+    ],
+    "toml/comma-style": [
+      2,
+    ],
+    "toml/indent": [
+      2,
+      2,
+    ],
+    "toml/inline-table-curly-newline": [
+      2,
+    ],
+    "toml/inline-table-curly-spacing": [
+      2,
+      "always",
+      {
+        "emptyObjects": "never",
+      },
+    ],
+    "toml/inline-table-key-value-newline": [
+      2,
+    ],
+    "toml/key-spacing": [
+      2,
+    ],
+    "toml/keys-order": [
+      2,
+    ],
+    "toml/no-mixed-type-in-array": [
+      2,
+    ],
+    "toml/no-space-dots": [
+      2,
+    ],
+    "toml/no-unreadable-number-separator": [
+      2,
+    ],
+    "toml/padding-line-between-pairs": [
+      2,
+    ],
+    "toml/padding-line-between-tables": [
+      2,
+    ],
+    "toml/precision-of-fractional-seconds": [
+      2,
+    ],
+    "toml/precision-of-integer": [
+      2,
+    ],
+    "toml/quoted-keys": [
+      2,
+    ],
+    "toml/spaced-comment": [
+      2,
+      "always",
+      {
+        "markers": [
+          "##>",
+          "##<",
+        ],
+      },
+    ],
+    "toml/table-bracket-spacing": [
+      2,
+    ],
+    "toml/tables-order": [
+      2,
+    ],
+    "toml/vue-custom-block/no-parsing-error": [
+      2,
+    ],
+  },
+  "language": "@/js",
+  "languageOptions": {
+    "addedValues": {
+      "parser": "espree@11.2.0",
+    },
+    "changedValues": {
+      "ecmaVersion": 2026,
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
 exports[`expected eslint config > diff: 36.blade.php (from 33.html.php) 1`] = `
 {
   "languageOptions": {
@@ -25665,330 +25774,293 @@ exports[`expected eslint config > diff: a.php/0_0.html (from 32.html) 1`] = `
 }
 `;
 
-exports[`expected eslint config > diff: a.php/1_1.regexp (from 20.toml) 1`] = `
+exports[`expected eslint config > diff: a.php/1_1.regexp (from 34.inc.php) 1`] = `
 {
-  "language": "@/js",
-  "languageOptions": {
-    "addedValues": {
-      "parser": "espree@11.2.0",
-    },
-    "changedValues": {
-      "ecmaVersion": 2026,
-    },
-    "removedKeys": [],
+  "+rules": {
+    "no-control-regex": [
+      2,
+    ],
+    "no-empty-character-class": [
+      0,
+    ],
+    "no-invalid-regexp": [
+      0,
+      {},
+    ],
+    "no-misleading-character-class": [
+      2,
+      {
+        "allowEscape": false,
+      },
+    ],
+    "no-regex-spaces": [
+      2,
+    ],
+    "no-useless-backreference": [
+      0,
+    ],
+    "prefer-regex-literals": [
+      0,
+      {
+        "disallowRedundantWrapping": false,
+      },
+    ],
+    "regexp/confusing-quantifier": [
+      2,
+    ],
+    "regexp/control-character-escape": [
+      0,
+    ],
+    "regexp/grapheme-string-literal": [
+      0,
+    ],
+    "regexp/letter-case": [
+      2,
+      {
+        "hexadecimalEscape": "uppercase",
+        "unicodeEscape": "uppercase",
+      },
+    ],
+    "regexp/match-any": [
+      2,
+    ],
+    "regexp/negation": [
+      2,
+    ],
+    "regexp/no-contradiction-with-assertion": [
+      2,
+    ],
+    "regexp/no-control-character": [
+      2,
+    ],
+    "regexp/no-dupe-characters-character-class": [
+      2,
+    ],
+    "regexp/no-dupe-disjunctions": [
+      2,
+    ],
+    "regexp/no-empty-alternative": [
+      2,
+    ],
+    "regexp/no-empty-capturing-group": [
+      2,
+    ],
+    "regexp/no-empty-character-class": [
+      2,
+    ],
+    "regexp/no-empty-group": [
+      2,
+    ],
+    "regexp/no-empty-lookarounds-assertion": [
+      2,
+    ],
+    "regexp/no-empty-string-literal": [
+      2,
+    ],
+    "regexp/no-escape-backspace": [
+      2,
+    ],
+    "regexp/no-extra-lookaround-assertions": [
+      2,
+    ],
+    "regexp/no-invalid-regexp": [
+      2,
+    ],
+    "regexp/no-invisible-character": [
+      2,
+    ],
+    "regexp/no-lazy-ends": [
+      2,
+    ],
+    "regexp/no-legacy-features": [
+      2,
+    ],
+    "regexp/no-misleading-capturing-group": [
+      2,
+    ],
+    "regexp/no-misleading-unicode-character": [
+      2,
+    ],
+    "regexp/no-missing-g-flag": [
+      2,
+    ],
+    "regexp/no-non-standard-flag": [
+      2,
+    ],
+    "regexp/no-obscure-range": [
+      2,
+    ],
+    "regexp/no-octal": [
+      2,
+    ],
+    "regexp/no-optional-assertion": [
+      2,
+    ],
+    "regexp/no-potentially-useless-backreference": [
+      2,
+    ],
+    "regexp/no-standalone-backslash": [
+      2,
+    ],
+    "regexp/no-super-linear-backtracking": [
+      2,
+    ],
+    "regexp/no-super-linear-move": [
+      2,
+    ],
+    "regexp/no-trivially-nested-assertion": [
+      2,
+    ],
+    "regexp/no-trivially-nested-quantifier": [
+      2,
+    ],
+    "regexp/no-unused-capturing-group": [
+      2,
+    ],
+    "regexp/no-useless-assertions": [
+      2,
+    ],
+    "regexp/no-useless-backreference": [
+      2,
+    ],
+    "regexp/no-useless-character-class": [
+      2,
+    ],
+    "regexp/no-useless-dollar-replacements": [
+      2,
+    ],
+    "regexp/no-useless-escape": [
+      2,
+    ],
+    "regexp/no-useless-flag": [
+      2,
+    ],
+    "regexp/no-useless-lazy": [
+      2,
+    ],
+    "regexp/no-useless-non-capturing-group": [
+      2,
+    ],
+    "regexp/no-useless-quantifier": [
+      2,
+    ],
+    "regexp/no-useless-range": [
+      2,
+    ],
+    "regexp/no-useless-set-operand": [
+      2,
+    ],
+    "regexp/no-useless-string-literal": [
+      2,
+    ],
+    "regexp/no-useless-two-nums-quantifier": [
+      2,
+    ],
+    "regexp/no-zero-quantifier": [
+      2,
+    ],
+    "regexp/optimal-lookaround-quantifier": [
+      2,
+    ],
+    "regexp/optimal-quantifier-concatenation": [
+      2,
+    ],
+    "regexp/prefer-character-class": [
+      2,
+    ],
+    "regexp/prefer-d": [
+      2,
+    ],
+    "regexp/prefer-escape-replacement-dollar-char": [
+      2,
+    ],
+    "regexp/prefer-lookaround": [
+      2,
+    ],
+    "regexp/prefer-named-backreference": [
+      2,
+    ],
+    "regexp/prefer-named-capture-group": [
+      2,
+    ],
+    "regexp/prefer-named-replacement": [
+      2,
+    ],
+    "regexp/prefer-plus-quantifier": [
+      2,
+    ],
+    "regexp/prefer-predefined-assertion": [
+      2,
+    ],
+    "regexp/prefer-quantifier": [
+      2,
+    ],
+    "regexp/prefer-question-quantifier": [
+      2,
+    ],
+    "regexp/prefer-range": [
+      2,
+    ],
+    "regexp/prefer-regexp-exec": [
+      2,
+    ],
+    "regexp/prefer-regexp-test": [
+      2,
+    ],
+    "regexp/prefer-result-array-groups": [
+      2,
+    ],
+    "regexp/prefer-set-operation": [
+      0,
+    ],
+    "regexp/prefer-star-quantifier": [
+      2,
+    ],
+    "regexp/prefer-unicode-codepoint-escapes": [
+      2,
+    ],
+    "regexp/prefer-w": [
+      2,
+    ],
+    "regexp/require-unicode-sets-regexp": [
+      0,
+    ],
+    "regexp/simplify-set-operations": [
+      0,
+    ],
+    "regexp/sort-alternatives": [
+      2,
+    ],
+    "regexp/sort-character-class-elements": [
+      2,
+    ],
+    "regexp/sort-flags": [
+      2,
+    ],
+    "regexp/strict": [
+      2,
+    ],
+    "regexp/unicode-escape": [
+      0,
+    ],
+    "regexp/unicode-property": [
+      2,
+      {
+        "key": "short",
+        "property": "short",
+      },
+    ],
+    "regexp/use-ignore-case": [
+      2,
+    ],
   },
+  "-processor": "brnshkr/php",
   "linterOptions": {
     "addedValues": {},
     "changedValues": {
       "reportUnusedDisableDirectives": 0,
     },
     "removedKeys": [],
-  },
-  "rules": {
-    "addedValues": {
-      "no-control-regex": [
-        2,
-      ],
-      "no-empty-character-class": [
-        0,
-      ],
-      "no-invalid-regexp": [
-        0,
-        {},
-      ],
-      "no-misleading-character-class": [
-        2,
-        {
-          "allowEscape": false,
-        },
-      ],
-      "no-regex-spaces": [
-        2,
-      ],
-      "no-useless-backreference": [
-        0,
-      ],
-      "prefer-regex-literals": [
-        0,
-        {
-          "disallowRedundantWrapping": false,
-        },
-      ],
-      "regexp/confusing-quantifier": [
-        2,
-      ],
-      "regexp/control-character-escape": [
-        0,
-      ],
-      "regexp/grapheme-string-literal": [
-        0,
-      ],
-      "regexp/letter-case": [
-        2,
-        {
-          "hexadecimalEscape": "uppercase",
-          "unicodeEscape": "uppercase",
-        },
-      ],
-      "regexp/match-any": [
-        2,
-      ],
-      "regexp/negation": [
-        2,
-      ],
-      "regexp/no-contradiction-with-assertion": [
-        2,
-      ],
-      "regexp/no-control-character": [
-        2,
-      ],
-      "regexp/no-dupe-characters-character-class": [
-        2,
-      ],
-      "regexp/no-dupe-disjunctions": [
-        2,
-      ],
-      "regexp/no-empty-alternative": [
-        2,
-      ],
-      "regexp/no-empty-capturing-group": [
-        2,
-      ],
-      "regexp/no-empty-character-class": [
-        2,
-      ],
-      "regexp/no-empty-group": [
-        2,
-      ],
-      "regexp/no-empty-lookarounds-assertion": [
-        2,
-      ],
-      "regexp/no-empty-string-literal": [
-        2,
-      ],
-      "regexp/no-escape-backspace": [
-        2,
-      ],
-      "regexp/no-extra-lookaround-assertions": [
-        2,
-      ],
-      "regexp/no-invalid-regexp": [
-        2,
-      ],
-      "regexp/no-invisible-character": [
-        2,
-      ],
-      "regexp/no-lazy-ends": [
-        2,
-      ],
-      "regexp/no-legacy-features": [
-        2,
-      ],
-      "regexp/no-misleading-capturing-group": [
-        2,
-      ],
-      "regexp/no-misleading-unicode-character": [
-        2,
-      ],
-      "regexp/no-missing-g-flag": [
-        2,
-      ],
-      "regexp/no-non-standard-flag": [
-        2,
-      ],
-      "regexp/no-obscure-range": [
-        2,
-      ],
-      "regexp/no-octal": [
-        2,
-      ],
-      "regexp/no-optional-assertion": [
-        2,
-      ],
-      "regexp/no-potentially-useless-backreference": [
-        2,
-      ],
-      "regexp/no-standalone-backslash": [
-        2,
-      ],
-      "regexp/no-super-linear-backtracking": [
-        2,
-      ],
-      "regexp/no-super-linear-move": [
-        2,
-      ],
-      "regexp/no-trivially-nested-assertion": [
-        2,
-      ],
-      "regexp/no-trivially-nested-quantifier": [
-        2,
-      ],
-      "regexp/no-unused-capturing-group": [
-        2,
-      ],
-      "regexp/no-useless-assertions": [
-        2,
-      ],
-      "regexp/no-useless-backreference": [
-        2,
-      ],
-      "regexp/no-useless-character-class": [
-        2,
-      ],
-      "regexp/no-useless-dollar-replacements": [
-        2,
-      ],
-      "regexp/no-useless-escape": [
-        2,
-      ],
-      "regexp/no-useless-flag": [
-        2,
-      ],
-      "regexp/no-useless-lazy": [
-        2,
-      ],
-      "regexp/no-useless-non-capturing-group": [
-        2,
-      ],
-      "regexp/no-useless-quantifier": [
-        2,
-      ],
-      "regexp/no-useless-range": [
-        2,
-      ],
-      "regexp/no-useless-set-operand": [
-        2,
-      ],
-      "regexp/no-useless-string-literal": [
-        2,
-      ],
-      "regexp/no-useless-two-nums-quantifier": [
-        2,
-      ],
-      "regexp/no-zero-quantifier": [
-        2,
-      ],
-      "regexp/optimal-lookaround-quantifier": [
-        2,
-      ],
-      "regexp/optimal-quantifier-concatenation": [
-        2,
-      ],
-      "regexp/prefer-character-class": [
-        2,
-      ],
-      "regexp/prefer-d": [
-        2,
-      ],
-      "regexp/prefer-escape-replacement-dollar-char": [
-        2,
-      ],
-      "regexp/prefer-lookaround": [
-        2,
-      ],
-      "regexp/prefer-named-backreference": [
-        2,
-      ],
-      "regexp/prefer-named-capture-group": [
-        2,
-      ],
-      "regexp/prefer-named-replacement": [
-        2,
-      ],
-      "regexp/prefer-plus-quantifier": [
-        2,
-      ],
-      "regexp/prefer-predefined-assertion": [
-        2,
-      ],
-      "regexp/prefer-quantifier": [
-        2,
-      ],
-      "regexp/prefer-question-quantifier": [
-        2,
-      ],
-      "regexp/prefer-range": [
-        2,
-      ],
-      "regexp/prefer-regexp-exec": [
-        2,
-      ],
-      "regexp/prefer-regexp-test": [
-        2,
-      ],
-      "regexp/prefer-result-array-groups": [
-        2,
-      ],
-      "regexp/prefer-set-operation": [
-        0,
-      ],
-      "regexp/prefer-star-quantifier": [
-        2,
-      ],
-      "regexp/prefer-unicode-codepoint-escapes": [
-        2,
-      ],
-      "regexp/prefer-w": [
-        2,
-      ],
-      "regexp/require-unicode-sets-regexp": [
-        0,
-      ],
-      "regexp/simplify-set-operations": [
-        0,
-      ],
-      "regexp/sort-alternatives": [
-        2,
-      ],
-      "regexp/sort-character-class-elements": [
-        2,
-      ],
-      "regexp/sort-flags": [
-        2,
-      ],
-      "regexp/strict": [
-        2,
-      ],
-      "regexp/unicode-escape": [
-        0,
-      ],
-      "regexp/unicode-property": [
-        2,
-        {
-          "key": "short",
-          "property": "short",
-        },
-      ],
-      "regexp/use-ignore-case": [
-        2,
-      ],
-    },
-    "changedValues": {},
-    "removedKeys": [
-      "toml/array-bracket-newline",
-      "toml/array-bracket-spacing",
-      "toml/array-element-newline",
-      "toml/comma-style",
-      "toml/indent",
-      "toml/inline-table-curly-newline",
-      "toml/inline-table-curly-spacing",
-      "toml/inline-table-key-value-newline",
-      "toml/key-spacing",
-      "toml/keys-order",
-      "toml/no-space-dots",
-      "toml/no-unreadable-number-separator",
-      "toml/padding-line-between-pairs",
-      "toml/padding-line-between-tables",
-      "toml/precision-of-fractional-seconds",
-      "toml/precision-of-integer",
-      "toml/quoted-keys",
-      "toml/spaced-comment",
-      "toml/table-bracket-spacing",
-      "toml/tables-order",
-      "toml/vue-custom-block/no-parsing-error",
-      "toml/no-mixed-type-in-array",
-      "no-irregular-whitespace",
-    ],
   },
 }
 `;
