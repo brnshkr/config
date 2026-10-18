@@ -21,6 +21,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\GroupUse;
+use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\TraitUse;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeTraverser;
@@ -120,7 +121,10 @@ final readonly class InternalUsageRule implements Rule
     {
         $callerNamespace = self::resolveCallerNamespace($node, $scope);
 
-        if ($node instanceof Use_ || $node instanceof GroupUse || $node instanceof TraitUse) {
+        if ($node instanceof Namespace_
+            || $node instanceof Use_
+            || $node instanceof GroupUse
+            || $node instanceof TraitUse) {
             return [];
         }
 
