@@ -130,13 +130,14 @@ final readonly class FileFinder
     /**
      * Return matched file paths as a flat list of strings.
      *
-     * Convenience over {@see self::get()} for callers that only need the absolute paths,
-     * not the underlying SplFileInfo objects.
+     * Convenience over {@see self::get()} for callers that only need the paths,
+     * not the underlying SplFileInfo objects. Each path starts with the directory the Finder searches:
+     * `./src/User.php` by default, `/srv/acme/src/User.php` after `in('/srv/acme')`.
      *
      * @param ?Finder $finder - pre-configured Finder to extend, or null to scan the working directory
      * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions - file extensions to include
      *
-     * @return list<non-empty-string> absolute paths to matched files
+     * @return list<non-empty-string> paths to matched files
      *
      * @throws DirectoryNotFoundException when the resolved source directory does not exist
      * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed

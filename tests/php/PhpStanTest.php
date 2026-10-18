@@ -26,11 +26,14 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Finder\Finder;
 use Symplify\PHPStanRules\Rules\ForbiddenSwitchRule;
 
 use function array_filter;
 use function array_values;
+use function chdir;
 use function count;
+use function getcwd;
 
 /**
  * @internal
@@ -358,6 +361,31 @@ final class PhpStanTest extends TestCase
 
         self::assertArrayNotHasKey('exceptions', $parameters);
         self::assertArrayNotHasKey('bootstrapFiles', $parameters);
+    }
+
+    public function testAFileInTheRootIsAnalyzedOnItsOwnRatherThanThroughTheWholeRoot(): void
+    {
+        $projectDirectory  = __DIR__ . '/Fixtures/PhpStan/RootFile';
+        $previousDirectory = getcwd() ?: '.';
+
+        chdir($projectDirectory);
+
+        try {
+            $parameters         = PhpStan::getConfig()['parameters'];
+            $absoluteParameters = PhpStan::getConfig(new Finder()->in($projectDirectory))['parameters'];
+        } finally {
+            chdir($previousDirectory);
+        }
+
+        $expectedPaths = [
+            $projectDirectory . '/importmap.php',
+            $projectDirectory . '/src',
+        ];
+
+        self::assertSame($expectedPaths, $parameters['paths'] ?? null);
+        self::assertSame($expectedPaths, $absoluteParameters['paths'] ?? null);
+        self::assertArrayNotHasKey('excludePaths', $parameters);
+        self::assertArrayNotHasKey('excludePaths', $absoluteParameters);
     }
 
     public function testPathsAreAddedAndRemovedWithoutTouchingTheRest(): void

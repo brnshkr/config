@@ -74,7 +74,6 @@ use function array_filter;
 use function array_find;
 use function array_is_list;
 use function array_key_exists;
-use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_pop;
@@ -89,7 +88,6 @@ use function is_array;
 use function is_file;
 use function is_readable;
 use function is_string;
-use function iterator_to_array;
 use function ksort;
 use function serialize;
 use function sprintf;
@@ -2307,30 +2305,36 @@ final class PhpStan
      */
     private static function getAnalysisPaths(Finder $finder): array
     {
-        $finderResults = FileFinder::get($finder) |> iterator_to_array(...);
-        $analyzedFiles = array_keys($finderResults);
-        $directories   = $analyzedFiles |> self::convertFilesToMinimalAnalysisPaths(...);
+        $cwd           = (getcwd() ?: '.') . '/';
+        $rootPath      = Path::canonicalize($cwd);
+        $analyzedPaths = FileFinder::getFilePaths($finder);
 
-        if ($directories === []) {
-            return [
-                'paths'         => [],
-                'excludedPaths' => [],
-            ];
-        }
+        $rootFilePaths = array_values(array_filter(
+            $analyzedPaths,
+            static fn (string $path): bool => Path::getDirectory(Str::toAbsolutePath($cwd, $path)) === $rootPath,
+        ));
 
-        $allFilesInDirectories = FileFinder::get(new Finder()->in($directories))
-            |> iterator_to_array(...)
-            |> array_keys(...);
-
-        $excludedPaths = array_diff($allFilesInDirectories, $analyzedFiles)
+        $directoryPaths = array_diff($analyzedPaths, $rootFilePaths)
             |> array_values(...)
-            |> (static fn (array $excludedFiles): array => self::convertFilesToMinimalExcludedPaths($excludedFiles, $analyzedFiles));
+            |> self::convertFilesToMinimalAnalysisPaths(...);
 
-        $cwd = (getcwd() ?: '.') . '/';
+        $filePathsInDirectories = $directoryPaths === []
+            ? []
+            : FileFinder::getFilePaths(new Finder()->in($directoryPaths));
+
+        $excludedPaths = array_diff($filePathsInDirectories, $analyzedPaths)
+            |> array_values(...)
+            |> (static fn (array $paths): array => self::convertFilesToMinimalExcludedPaths($paths, $analyzedPaths));
 
         return [
-            'paths'         => array_map(static fn (string $path): string => Str::toAbsolutePath($cwd, $path), $directories),
-            'excludedPaths' => array_map(static fn (string $path): string => Str::toAbsolutePath($cwd, $path), $excludedPaths),
+            'paths' => array_map(
+                static fn (string $path): string => Str::toAbsolutePath($cwd, $path),
+                [...$rootFilePaths, ...$directoryPaths],
+            ),
+            'excludedPaths' => array_map(
+                static fn (string $path): string => Str::toAbsolutePath($cwd, $path),
+                $excludedPaths,
+            ),
         ];
     }
 
