@@ -14,7 +14,6 @@ so the JavaScript file is only needed without it.
 
 ```xml
 <!-- ./conf/phpunit.dist.xml -->
-<?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
     <testsuite name="Brnshkr\Config">
