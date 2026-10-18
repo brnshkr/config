@@ -42,7 +42,9 @@ So one class can require names where they matter and waive them where they do no
  */
 final class UserService
 {
-    public function __construct(public array $listeners = []) {}
+    public function __construct(
+        public array $listeners = [],
+    ) {}
 
     /**
      * One obvious argument, so naming it adds nothing.

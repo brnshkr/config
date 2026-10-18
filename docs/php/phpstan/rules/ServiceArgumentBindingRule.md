@@ -5,6 +5,8 @@ Binding by name makes that name part of the contract, and nothing checks it. The
 at compile time, in whichever application installs the package rather than the one that broke it.
 
 ```php
+namespace Acme\Email;
+
 final class Mailer
 {
     public function __construct(
@@ -37,6 +39,8 @@ $services->set('app.mailer', Mailer::class)
 The class is the one the definition names, through `->set()` written either way, or through `inline_service()`.
 
 ```php
+use Acme\Email\Mailer;
+
 // ❌ Bad — an inline definition binds by name too
 $services->set('app.mailer', Mailer::class)
     ->arg('$dsn', inline_service(Mailer::class)
@@ -57,6 +61,9 @@ A factory replaces the constructor with the callable it names, wherever it sits 
 | `->constructor('fromDsn')` | `fromDsn()` on the defined class |
 
 ```php
+use Acme\Email\Mailer;
+use Acme\Email\MailerFactory;
+
 // ✅ Good — `$region` is a parameter of the factory, not of Mailer
 $services->set('app.mailer', Mailer::class)
     ->factory([MailerFactory::class, 'create'])

@@ -63,7 +63,7 @@ final readonly class PhpCsFixer
      *
      * @example
      * ```php
-     * // conf/php-cs-fixer.php
+     * // ./conf/php-cs-fixer.php
      * return PhpCsFixer::getConfig();
      * ```
      */
@@ -84,7 +84,7 @@ final readonly class PhpCsFixer
      *
      * @example
      * ```php
-     * // conf/php-cs-fixer.php
+     * // ./conf/php-cs-fixer.php
      * $config = include __DIR__ . '/php-cs-fixer.dist.php';
      *
      * return PhpCsFixer::from($config)
@@ -112,7 +112,7 @@ final readonly class PhpCsFixer
      *
      * @example
      * ```php
-     * // conf/php-cs-fixer.php
+     * // ./conf/php-cs-fixer.php
      * return PhpCsFixer::getBuilder()
      *     ->addRules(['simplified_null_return' => true])
      *     ->build()

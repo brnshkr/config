@@ -59,6 +59,7 @@ namespace Acme\Domain\ValueObject;
 final class EmailAddress
 {
     public string $localPart;
+
     public string $domain;
 }
 

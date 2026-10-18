@@ -75,7 +75,7 @@ final class Rector
      *
      * @example
      * ```php
-     * // conf/rector.php
+     * // ./conf/rector.php
      * return Rector::getConfig();
      * ```
      */
@@ -98,7 +98,9 @@ final class Rector
      *
      * @example
      * ```php
-     * // conf/rector.php
+     * // ./conf/rector.php
+     * use Acme\Rector\SomeRector;
+     *
      * $config = include __DIR__ . '/rector.dist.php';
      *
      * return Rector::from($config)
@@ -126,7 +128,9 @@ final class Rector
      *
      * @example
      * ```php
-     * // conf/rector.php
+     * // ./conf/rector.php
+     * use Acme\Rector\SomeRector;
+     *
      * return Rector::getBuilder()
      *     ->addSkips([SomeRector::class])
      *     ->build()
@@ -190,6 +194,8 @@ final class Rector
      *
      * @example
      * ```php
+     * use Acme\Rector\SomeRector;
+     *
      * $builder->addRules([SomeRector::class]);
      * ```
      */
@@ -213,6 +219,8 @@ final class Rector
      *
      * @example
      * ```php
+     * use Acme\Rector\SomeRector;
+     *
      * $builder->setRules([SomeRector::class]);
      * ```
      */
@@ -230,6 +238,8 @@ final class Rector
      *
      * @example
      * ```php
+     * use Acme\Rector\SomeRector;
+     *
      * $builder->addSkips([SomeRector::class => ['src/legacy']]);
      * ```
      */

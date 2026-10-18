@@ -25,7 +25,7 @@ interface UserRepositoryInterface {}
 interface CacheableInterface {}
 
 // ✅ Skipped — two '*Interface' implementations make the suffix ambiguous
-final class CachedUserStore implements UserRepositoryInterface, CacheableInterface {}
+final class CachedUserStore implements CacheableInterface, UserRepositoryInterface {}
 ```
 
 Non-`*Interface` parents (a base class, a non-suffixed interface, a marker like `\Stringable`) are ignored for the count

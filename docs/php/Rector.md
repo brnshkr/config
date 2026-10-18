@@ -19,6 +19,9 @@ Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narro
 `getBuilder()` gives the same configuration as a builder, and `build()` finishes it.
 
 ```php
+use Acme\Rector\SomeRector;
+use Brnshkr\Config\Rector;
+
 return Rector::getBuilder()
     ->addSkips([SomeRector::class])
     ->build()
@@ -34,6 +37,9 @@ so what the repository configured survives. `from()` takes what that file return
 
 ```php
 // ./conf/rector.php
+use Acme\Rector\SomeRector;
+use Brnshkr\Config\Rector;
+
 $config = include __DIR__ . '/rector.dist.php';
 
 return Rector::from($config)

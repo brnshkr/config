@@ -19,6 +19,8 @@ Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narro
 `getBuilder()` gives the same configuration as a builder, and `build()` finishes it.
 
 ```php
+use Brnshkr\Config\PhpStan;
+
 return PhpStan::getBuilder()
     ->setLevel(10)
     ->addIgnoredErrors(['ternary.shortNotAllowed'])
@@ -31,6 +33,8 @@ so what the repository configured survives. `from()` takes what that file return
 
 ```php
 // ./conf/phpstan.php
+use Brnshkr\Config\PhpStan;
+
 $config = include __DIR__ . '/phpstan.dist.php';
 
 return PhpStan::from($config)
@@ -52,6 +56,8 @@ Name the identifier rather than the message: it survives a rewording, and PHPSta
 Map one to `false` to also silence the report when it never matches.
 
 ```php
+use Brnshkr\Config\PhpStan;
+
 return PhpStan::getBuilder()
     ->addIgnoredErrors([
         'ternary.shortNotAllowed',
@@ -72,6 +78,8 @@ Declare the ones callers should not have to catch in `./conf/phpstan/unchecked-e
 returning a list of class names, and read a dependency's declaration rather than restating it:
 
 ```php
+use Brnshkr\Config\PhpStan;
+
 return PhpStan::getBuilder()
     ->addUncheckedExceptionsFrom('brnshkr/doxter')
     ->build()

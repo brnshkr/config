@@ -11,10 +11,12 @@ final class User
 {
     // ❌ Bad — boolean property and method without a boolish prefix
     public bool $active;
+
     public function verified(): bool {}
 
     // ✅ Good
     public bool $isActive;
+
     public function isVerified(): bool {}
 }
 ```

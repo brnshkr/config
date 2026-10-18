@@ -23,6 +23,9 @@ return PhpStan::getBuilder()
 The `{name}` placeholder can sit anywhere in the namespace. A nested module root works just as well:
 
 ```php
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 return PhpStan::getBuilder()
     ->addArchitecture(Architecture::modular(
         modules: ['User', 'Email'],

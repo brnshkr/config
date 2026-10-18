@@ -61,6 +61,10 @@ function formatUser(User $user, bool $isShort): string {}
 /**
  * Formats a user for display in a listing.
  *
+ * @api
+ *
+ * @no-named-arguments
+ *
  * @param User $user - the user being rendered
  * @param bool $isShort - whether to collapse the result to a single line
  *
@@ -70,10 +74,6 @@ function formatUser(User $user, bool $isShort): string {}
  * ```php
  * formatUser($user, false);
  * ```
- *
- * @api
- *
- * @no-named-arguments
  */
 function formatUser(User $user, bool $isShort): string {}
 ```

@@ -205,7 +205,7 @@ final class PhpStan
      *
      * @example
      * ```php
-     * // conf/phpstan.php
+     * // ./conf/phpstan.php
      * return PhpStan::getConfig();
      * ```
      */
@@ -226,7 +226,7 @@ final class PhpStan
      *
      * @example
      * ```php
-     * // conf/phpstan.php
+     * // ./conf/phpstan.php
      * $config = include __DIR__ . '/phpstan.dist.php';
      *
      * return PhpStan::from($config)
@@ -255,9 +255,9 @@ final class PhpStan
      *
      * @example
      * ```php
-     * // conf/phpstan.php
+     * // ./conf/phpstan.php
      * return PhpStan::getBuilder()
-     *     ->addArchitecture(Architecture::symfony('Acme'))
+     *     ->addArchitecture(Architecture::symfony(root: 'Acme'))
      *     ->build()
      * ;
      * ```
@@ -609,7 +609,7 @@ final class PhpStan
      * @example
      * ```php
      * PhpStan::getBuilder()
-     *     ->replaceRule(InternalUsageRule::class, ['allowedCallers' => ['Acme\\Testing']])
+     *     ->replaceRule(InternalUsageRule::class, ['allowedCallers' => ['Acme\Testing']])
      *     ->build()
      * ;
      * ```
@@ -1208,9 +1208,11 @@ final class PhpStan
      *
      * @example
      * ```php
+     * use Brnshkr\Config\Exception\UnreachableException;
+     *
      * PhpStan::getBuilder()->addUncheckedExceptions([
      *     UnreachableException::class,
-     *     '/\\\\Exception\\\\Unreachable[A-Za-z]*$/',
+     *     '/\\\Exception\\\Unreachable[A-Za-z]*$/',
      * ]);
      * ```
      */
@@ -1513,8 +1515,8 @@ final class PhpStan
      * @example
      * ```php
      * $builder->addArchitecture([
-     *     ...Architecture::laravel('Acme'),
-     *     ...Architecture::doctrine('Acme'),
+     *     ...Architecture::laravel(root: 'Acme'),
+     *     ...Architecture::doctrine(root: 'Acme'),
      * ]);
      * ```
      */
@@ -1571,7 +1573,9 @@ final class PhpStan
      *
      * @example
      * ```php
-     * $builder->addArchitecture(Architecture::laravel('Acme'));
+     * use Brnshkr\Config\PhpStan\Rule\Architecture\Laravel\ServiceProviderTest;
+     *
+     * $builder->addArchitecture(Architecture::laravel(root: 'Acme'));
      * $builder->removeArchitecture([ServiceProviderTest::class]);
      * ```
      */
@@ -1607,6 +1611,8 @@ final class PhpStan
      *
      * @example
      * ```php
+     * use Acme\PhpStan\MyRule;
+     *
      * $builder->addRules([
      *     PhpStan::configureRule(MyRule::class, ['allowedNamespaces' => ['Acme\\']]),
      * ]);
@@ -1665,6 +1671,8 @@ final class PhpStan
      *
      * @example
      * ```php
+     * use Brnshkr\Config\PhpStan\Rule\Architecture\Doctrine\EntityAndRepositoryTest;
+     *
      * PhpStan::configurePhpAtTest(EntityAndRepositoryTest::class, ['root' => 'Acme']);
      * ```
      */

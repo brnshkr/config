@@ -13,14 +13,17 @@ final class PasswordHasher {}
 
 // ❌ Bad — consumed from another package
 namespace Acme\Email;
+
 new \Acme\User\Internal\PasswordHasher();
 
 // ❌ Bad — a sibling namespace sits outside the declaring subtree
 namespace Acme\User\Authentication;
+
 new \Acme\User\Internal\PasswordHasher();
 
 // ✅ Good — consumed from below the declaring namespace
 namespace Acme\User\Internal\Hashing;
+
 new \Acme\User\Internal\PasswordHasher();
 ```
 
@@ -40,10 +43,12 @@ final class UserOnlyHelper {}
 
 // ❌ Bad — caller is not inside the declared @internal target
 namespace Acme\Email;
+
 new \Acme\Shared\UserOnlyHelper();
 
 // ✅ Good — caller sits inside the declared @internal target
 namespace Acme\User\Authentication;
+
 new \Acme\Shared\UserOnlyHelper();
 ```
 
@@ -68,6 +73,9 @@ expression to mean only one, as `/^Acme$/` does.
 A bare entry exempts its subject from every internal, everywhere. A list bounds it to the other side of the pair:
 
 ```php
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
+
 PhpStan::getBuilder()->replaceRule(InternalUsageRule::class, [
     'allowedCallers' => [
         'Acme\Console',                    // may reach any internal at all

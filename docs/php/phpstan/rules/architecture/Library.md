@@ -25,6 +25,8 @@ Reading the requirement rather than `type: composer-plugin` covers a package tha
 being a plugin, and Composer enforces the requirement for plugins anyway. Anything else is named through `except`.
 
 ```php
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 Architecture::baseline(except: ['Vendor\ProvidedAtRuntime']);
 ```
 
@@ -38,6 +40,8 @@ Opt-in: enums, interfaces and traits each sit in a namespace named for their kin
 It carries no baseline, so add it beside another preset.
 
 ```php
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 // Acme\User\Enum\Role, Acme\Email\Interface\MailerInterface, Acme\User\Trait\HasEmail
 Architecture::kindPlacement();
 
@@ -56,6 +60,8 @@ The baseline plus what a published package owes its consumers.
 | `facades` | the classes behind a facade do not reach back through it |
 
 ```php
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 Architecture::library(
     exceptionInterface: 'Acme\Exception\ExceptionInterface',
     model: 'Acme\Model',
@@ -75,6 +81,8 @@ and one more: a package may not depend on the namespace of the application insta
 `symfonyBundle()` also drops the fixture placement rule, which is an application concern.
 
 ```php
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 Architecture::symfonyBundle();
 Architecture::laravelPackage(application: 'App');
 ```

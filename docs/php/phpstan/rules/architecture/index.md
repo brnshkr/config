@@ -26,16 +26,20 @@ so composing a second preset to get them is never necessary.
 ## Composing
 
 ```php
+use Acme\Email\PhpStan\EmailSenderRequiresQueueRule;
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+
 return PhpStan::getBuilder()
     ->addArchitecture(Architecture::ddd())
     ->addArchitecture([
-        Architecture::layered(), 
+        Architecture::layered(),
         Architecture::modular(modules: ['User', 'Email']),
     ])
     ->addArchitecture([
         Architecture::symfony(root: 'Acme'),
         PhpStan::configurePhpAtTest(EmailSenderRequiresQueueRule::class, [
-          'roots' => ['Acme'],
+            'roots' => ['Acme'],
         ]),
     ])
     ->build()
@@ -58,6 +62,10 @@ therefore takes a list — `['roots' => ['Acme\User', 'Acme\Email']]` — and yi
 or a full service definition to drop only the instance whose class _and_ arguments match.
 
 ```php
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ControllerTest;
+
 return PhpStan::getBuilder()
     ->addArchitecture(Architecture::symfony(root: 'Acme'))
     ->removeArchitecture([ControllerTest::class])

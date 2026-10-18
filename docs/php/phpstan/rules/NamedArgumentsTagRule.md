@@ -15,7 +15,9 @@ because a caller — or a dependency-injection container binding by name — wri
  */
 final class UserService
 {
-    public function __construct(public string $locale = 'en') {}
+    public function __construct(
+        public string $locale = 'en',
+    ) {}
 }
 ```
 
@@ -27,7 +29,9 @@ gets reported.
 // ❌ Bad — the parameter name is part of the contract by accident
 final class UserService
 {
-    public function __construct(private readonly string $locale) {}
+    public function __construct(
+        private readonly string $locale,
+    ) {}
 }
 
 // ✅ Good
@@ -36,7 +40,9 @@ final class UserService
  */
 final class UserService
 {
-    public function __construct(private readonly string $locale) {}
+    public function __construct(
+        private readonly string $locale,
+    ) {}
 }
 ```
 

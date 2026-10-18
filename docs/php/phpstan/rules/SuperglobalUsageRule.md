@@ -20,7 +20,9 @@ final readonly class Mailer
 // ✅ Good — the environment is read in one place and the host injected
 final readonly class Mailer
 {
-    public function __construct(private string $host) {}
+    public function __construct(
+        private string $host,
+    ) {}
 
     public function send(string $message): void
     {

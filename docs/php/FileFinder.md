@@ -20,6 +20,9 @@ Both take a [Finder](https://symfony.com/doc/current/components/finder.html) to 
 and the extensions to collect.
 
 ```php
+use Brnshkr\Config\FileFinder;
+use Symfony\Component\Finder\Finder;
+
 $twigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
 ```
 

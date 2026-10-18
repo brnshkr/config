@@ -58,7 +58,7 @@ Anything a consumer has to write, or catch, to use the symbol:
  */
 abstract class UserStore
 {
-    public function name(): string { /* … */ }
+    public function name(): string {}
 }
 
 // ✅ Good — a consumer calls name() without ever naming UserStore

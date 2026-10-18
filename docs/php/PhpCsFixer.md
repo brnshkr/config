@@ -19,6 +19,8 @@ Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narro
 `getBuilder()` gives the same configuration as a builder, and `build()` finishes it.
 
 ```php
+use Brnshkr\Config\PhpCsFixer;
+
 return PhpCsFixer::getBuilder()
     ->addRules(['simplified_null_return' => true])
     ->build()
@@ -33,6 +35,8 @@ the repository configured survives. `from()` takes what that file returns:
 
 ```php
 // ./conf/php-cs-fixer.php
+use Brnshkr\Config\PhpCsFixer;
+
 $config = include __DIR__ . '/php-cs-fixer.dist.php';
 
 return PhpCsFixer::from($config)

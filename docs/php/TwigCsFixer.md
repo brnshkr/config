@@ -19,6 +19,9 @@ Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narro
 `getBuilder()` gives the same configuration as a builder, and `build()` finishes it.
 
 ```php
+use Brnshkr\Config\TwigCsFixer;
+use TwigCsFixer\Rules\File\FileExtensionRule;
+
 return TwigCsFixer::getBuilder()
     ->addRules([new FileExtensionRule()])
     ->build()
@@ -33,6 +36,9 @@ the repository configured survives. `from()` takes what that file returns:
 
 ```php
 // ./conf/twig-cs-fixer.php
+use Brnshkr\Config\TwigCsFixer;
+use TwigCsFixer\Rules\File\FileExtensionRule;
+
 $config = include __DIR__ . '/twig-cs-fixer.dist.php';
 
 return TwigCsFixer::from($config)

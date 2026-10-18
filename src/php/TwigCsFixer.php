@@ -64,7 +64,7 @@ final readonly class TwigCsFixer
      *
      * @example
      * ```php
-     * // conf/twig-cs-fixer.php
+     * // ./conf/twig-cs-fixer.php
      * return TwigCsFixer::getConfig();
      * ```
      */
@@ -85,7 +85,7 @@ final readonly class TwigCsFixer
      *
      * @example
      * ```php
-     * // conf/twig-cs-fixer.php
+     * // ./conf/twig-cs-fixer.php
      * $config = include __DIR__ . '/twig-cs-fixer.dist.php';
      *
      * return TwigCsFixer::from($config)
@@ -112,7 +112,7 @@ final readonly class TwigCsFixer
      *
      * @example
      * ```php
-     * // conf/twig-cs-fixer.php
+     * // ./conf/twig-cs-fixer.php
      * return TwigCsFixer::getBuilder()
      *     ->addRules([new FileExtensionRule()])
      *     ->build()
