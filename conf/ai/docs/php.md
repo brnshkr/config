@@ -21,6 +21,11 @@
 - A PHPStan rule is a class in `src/php/PhpStan/Rule/`, a test in `tests/php/PhpStan/Rule/`,
   fixtures in `tests/php/Fixtures/PhpStan/Rule/<Name>/` and a page `docs/php/phpstan/rules/<Name>.md`.
   Check the pairing with `project-rule-docs-audit`.
+- A php-cs-fixer fixer is a `FixerTrait` class in `src/php/PhpCsFixer/Fixer/` registered by the `PhpCsFixer` builder,
+  a test in `tests/php/PhpCsFixer/Fixer/` and a page in `docs/php/php-cs-fixer/rules/`.
+- A Rector rule is a class in `src/php/Rector/Rule/`, a set in `src/php/Rector/config/` the `Rector` builder loads,
+  a test on Rector's `AbstractRectorTestCase` in `tests/php/Rector/Rule/` with `*.inc` fixtures declaring
+  class names no other fixture uses, and a page in `docs/php/rector/rules/`.
 - A rule test marks expected errors with `// ERROR <context>` in its fixture. A rule reporting two errors on one line
   uses PHPStan's `RuleTestCase` with an explicit list instead.
 - Fixtures use the vendor `Acme` and are not analyzed.

@@ -3,6 +3,7 @@
 A `@see` target must name a symbol that exists, so a reference that no longer points anywhere is reported
 instead of silently rotting. Targets resolve through the file's namespace and its `use` statements.
 
+<!-- brnshkr-skip -->
 ```php
 namespace Acme\User;
 

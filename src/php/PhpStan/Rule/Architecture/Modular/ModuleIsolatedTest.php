@@ -28,6 +28,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
  *     'modules' => [
  *         ['module' => 'Acme\User', 'label' => 'User', 'siblings' => ['Acme\Email']],

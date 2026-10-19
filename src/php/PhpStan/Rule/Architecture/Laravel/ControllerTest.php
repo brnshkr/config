@@ -24,6 +24,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ControllerTest::class, ['root' => 'Acme']);
  * ```
  */

@@ -26,7 +26,8 @@ use Symfony\Component\Finder\Finder;
 $twigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
 ```
 
-`FileFinder::EXTENSIONS` holds what is supported; anything else throws `InvalidArgumentException`.
+`FileFinder::EXTENSIONS` holds what is supported, `FileFinder::MARKDOWN_EXTENSIONS` both Markdown spellings;
+anything else throws `InvalidArgumentException`.
 
 Paths every tool skips go in `composer.json`, each handed to the Finder's `notPath()`:
 

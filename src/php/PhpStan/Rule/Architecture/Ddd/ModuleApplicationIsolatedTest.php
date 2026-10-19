@@ -31,6 +31,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ModuleApplicationIsolatedTest::class, [
  *     'application' => 'Acme\Application',
  *     'module'      => 'User',

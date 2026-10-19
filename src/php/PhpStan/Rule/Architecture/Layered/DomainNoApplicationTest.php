@@ -20,6 +20,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(DomainNoApplicationTest::class, [
  *     'domain'      => 'Acme\Domain',
  *     'application' => 'Acme\Application',

@@ -22,6 +22,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(DomainNoFrameworkTest::class, [
  *     'domain'       => 'Acme\Domain',
  *     'isolatedFrom' => ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],

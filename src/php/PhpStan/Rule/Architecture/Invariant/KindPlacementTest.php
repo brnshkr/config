@@ -26,6 +26,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(KindPlacementTest::class, [
  *     'root'     => 'Acme',
  *     'segments' => ['Interface' => 'Contract', 'Trait' => null],

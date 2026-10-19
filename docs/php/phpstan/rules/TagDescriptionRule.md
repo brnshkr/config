@@ -4,6 +4,7 @@ Every tag description must take one shape, on `@api` and `@internal` symbols ali
 `@param`, `@property` and `@template` put a dash between the declaration and the description,
 `@return` and `@throws` take none, and a description is a lowercase fragment without a closing period.
 
+<!-- brnshkr-skip -->
 ```php
 // ❌ Bad
 /**
@@ -11,6 +12,7 @@ Every tag description must take one shape, on `@api` and `@internal` symbols ali
  *
  * @return User - the persisted user
  */
+function rename(User $user): User {}
 
 // ✅ Good
 /**
@@ -18,6 +20,7 @@ Every tag description must take one shape, on `@api` and `@internal` symbols ali
  *
  * @return User the persisted user
  */
+function rename(User $user): User {}
 ```
 
 A `@throws` description names the condition, opening with `when` or `unless`:
@@ -27,11 +30,13 @@ A `@throws` description names the condition, opening with `when` or `unless`:
 /**
  * @throws InvalidArgumentException if the name is empty
  */
+function rename(string $name): void {}
 
 // ✅ Good
 /**
  * @throws InvalidArgumentException when the name is empty
  */
+function rename(string $name): void {}
 ```
 
 The dash follows the whole declaration, a multi-line type or a `@template` bound included,

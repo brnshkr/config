@@ -102,7 +102,11 @@ final class ToolsTest extends TestCase
     {
         $result = $this->runMake(['rector-print'], directory: self::PROJECT_DIRECTORY);
 
-        self::assertStringStartsWith("Loaded rector rules\n===================\n\n * Rector\\", $result);
+        self::assertStringStartsWith(
+            "Loaded rector rules\n===================\n\n * Brnshkr\\Config\\Rector\\Rule\\FencedCodeRector\n * Rector\\",
+            $result,
+        );
+
         self::assertStringContainsString(' * Rector\DeadCode\Rector\\', $result);
         self::assertMatchesRegularExpression('/\nLoaded \d+ rules\n$/', $result);
     }

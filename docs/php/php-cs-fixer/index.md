@@ -1,4 +1,4 @@
-# PHP-CS-Fixer [🔍](../../src/php/PhpCsFixer.php 'Go to source')
+# PHP-CS-Fixer [🔍](../../../src/php/PhpCsFixer.php 'Go to source')
 
 `Brnshkr\Config\PhpCsFixer` is the @brnshkr coding-style configuration, ready to return from a config file.
 
@@ -12,7 +12,7 @@ return PhpCsFixer::getConfig();
 ```
 
 Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narrow the scope
-— [`FileFinder`](./FileFinder.md) applies the shared exclusions either way.
+— [`FileFinder`](../FileFinder.md) applies the shared exclusions either way.
 
 ## Customizing
 
@@ -47,3 +47,7 @@ return PhpCsFixer::from($config)
 
 A repository that tracks no config of its own has nothing to include; `getBuilder()` above
 starts from the same defaults that file would have carried.
+
+## Rules
+
+- [Custom rules](./rules/index.md) — what the `Brnshkr` fixers do beyond PHP-CS-Fixer's own

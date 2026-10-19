@@ -23,6 +23,8 @@ use Symfony\Component\Console\Command\Command;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(CommandTest::class, ['root' => 'Acme']);
  * ```
  */

@@ -23,7 +23,7 @@ use function sprintf;
 /**
  * Shared file-discovery helper that every tool config in this package delegates to.
  *
- * Filters by PHP and/or Twig extensions with project-wide noise (dependencies, caches, build
+ * Filters by PHP, Twig and/or Markdown extensions with project-wide noise (dependencies, caches, build
  * artifacts, generated files and test fixtures) excluded, and also picks up `bin/console` when PHP
  * files are requested. Callers may pass a pre-configured Symfony Finder to narrow the scope
  * further, otherwise the current working directory is scanned.
@@ -36,15 +36,27 @@ use function sprintf;
  */
 final readonly class FileFinder
 {
-    public const string EXTENSION_PHP  = 'php';
-    public const string EXTENSION_TWIG = 'twig';
+    public const string EXTENSION_MARKDOWN = 'markdown';
+    public const string EXTENSION_MD       = 'md';
+    public const string EXTENSION_PHP      = 'php';
+    public const string EXTENSION_TWIG     = 'twig';
 
     /**
      * @phpstan-var non-empty-list<self::EXTENSION_*>
      */
     public const array EXTENSIONS = [
+        self::EXTENSION_MARKDOWN,
+        self::EXTENSION_MD,
         self::EXTENSION_PHP,
         self::EXTENSION_TWIG,
+    ];
+
+    /**
+     * @phpstan-var non-empty-list<self::EXTENSION_*>
+     */
+    public const array MARKDOWN_EXTENSIONS = [
+        self::EXTENSION_MARKDOWN,
+        self::EXTENSION_MD,
     ];
 
     private const string KEY_EXCLUDES = 'file-finder-excludes';
@@ -155,6 +167,14 @@ final readonly class FileFinder
         return self::get($finder, $extensions)
             |> iterator_to_array(...)
             |> array_keys(...);
+    }
+
+    /**
+     * @internal
+     */
+    public static function isMarkdown(string $path): bool
+    {
+        return in_array(Str::toLowerCase(Str::afterLast($path, '.')), self::MARKDOWN_EXTENSIONS, true);
     }
 
     /**

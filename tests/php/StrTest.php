@@ -74,6 +74,8 @@ final class StrTest extends TestCase
     {
         self::assertSame(3, Str::length('äöü'));
         self::assertSame('äöü', Str::toLowerCase('ÄÖÜ'));
+        self::assertSame('Äöü', Str::upperFirst('äöü'));
+        self::assertSame('Acme', Str::upperFirst('acme'));
         self::assertSame('ä', Str::slice('äbc', 0, 1));
         self::assertSame('bc', Str::slice('äbc', 1));
     }

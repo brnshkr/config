@@ -1,6 +1,7 @@
 {
   "allowlist": {
     "*": [
+      "PHPStan\\Analyser\\Error",
       "PHPStan\\Analyser\\Scope"
     ],
     "conf/ai/mate/INSTRUCTIONS.md": [

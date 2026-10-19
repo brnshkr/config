@@ -34,6 +34,7 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpFunctionFromParserNodeReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\RuleErrorBuilder;
+use ReflectionException;
 use RuntimeException;
 
 use function array_any;
@@ -220,6 +221,51 @@ trait RuleTrait
     private static function hasClassTag(ClassReflection $classReflection, string $tag): bool
     {
         return self::hasTagInText($classReflection->getNativeReflection()->getDocComment() ?: '', $tag);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private static function requiresNamedArguments(ClassReflection $classReflection, string $methodName): bool
+    {
+        $methodDoc = $classReflection->getNativeReflection()->hasMethod($methodName)
+            ? ($classReflection->getNativeReflection()->getMethod($methodName)->getDocComment() ?: '')
+            : '';
+
+        if (self::hasTagInText($methodDoc, self::TAG_NAMED_ARGUMENTS)) {
+            return true;
+        }
+
+        if (self::hasTagInText($methodDoc, self::TAG_NO_NAMED_ARGUMENTS)) {
+            return false;
+        }
+
+        return self::hasClassTag($classReflection, self::TAG_NAMED_ARGUMENTS);
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function getPositionalArgumentMessage(string $target): string
+    {
+        return sprintf(
+            'Call to `%s` must name its arguments, because it is tagged `@named-arguments`.',
+            $target,
+        );
+    }
+
+    /**
+     * @param self::KIND_* $kind
+     *
+     * @return non-empty-string
+     */
+    private static function getMissingMessage(string $kind, string $name): string
+    {
+        return sprintf(
+            '%s `%s` does not exist.',
+            $kind,
+            $name,
+        );
     }
 
     private static function hasTagInText(string $text, string $tag): bool

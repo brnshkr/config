@@ -91,10 +91,7 @@ final readonly class NamedArgumentsUsageRule implements Rule
             return [];
         }
 
-        return [self::buildRuleError(sprintf(
-            'Call to `%s` must name its arguments, because it is tagged `@named-arguments`.',
-            $target,
-        ), $node->getStartLine())];
+        return [self::buildRuleError(self::getPositionalArgumentMessage($target), $node->getStartLine())];
     }
 
     /**
@@ -160,26 +157,6 @@ final readonly class NamedArgumentsUsageRule implements Rule
         }
 
         return null;
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    private static function requiresNamedArguments(ClassReflection $classReflection, string $methodName): bool
-    {
-        $methodDoc = $classReflection->getNativeReflection()->hasMethod($methodName)
-            ? $classReflection->getNativeReflection()->getMethod($methodName)->getDocComment() ?: ''
-            : '';
-
-        if (self::hasTagInText($methodDoc, self::TAG_NAMED_ARGUMENTS)) {
-            return true;
-        }
-
-        if (self::hasTagInText($methodDoc, self::TAG_NO_NAMED_ARGUMENTS)) {
-            return false;
-        }
-
-        return self::hasClassTag($classReflection, self::TAG_NAMED_ARGUMENTS);
     }
 
     /**

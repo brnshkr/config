@@ -1,4 +1,4 @@
-# Rector [🔍](../../src/php/Rector.php 'Go to source')
+# Rector [🔍](../../../src/php/Rector.php 'Go to source')
 
 `Brnshkr\Config\Rector` is the @brnshkr Rector configuration, ready to return from a config file.
 
@@ -12,7 +12,7 @@ return Rector::getConfig();
 ```
 
 Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narrow the scope
-— [`FileFinder`](./FileFinder.md) applies the shared exclusions either way.
+— [`FileFinder`](../FileFinder.md) applies the shared exclusions either way.
 
 ## Customizing
 
@@ -50,3 +50,7 @@ return Rector::from($config)
 
 A repository that tracks no config of its own has nothing to include; `getBuilder()` above
 starts from the same defaults that file would have carried.
+
+## Rules
+
+- [Custom rules](./rules/index.md) — what this package refactors beyond Rector's own rules

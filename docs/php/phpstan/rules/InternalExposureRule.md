@@ -28,7 +28,7 @@ final class UserService
     public array $hashers = [];
 
     // ✅ Good
-    public function rehash(PasswordHasherInterface $hasher): self
+    public function rehash(PasswordHasherInterface $passwordHasher): self
     {
         return $this;
     }

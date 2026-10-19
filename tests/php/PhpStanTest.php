@@ -379,11 +379,13 @@ final class PhpStanTest extends TestCase
 
         $expectedPaths = [
             $projectDirectory . '/importmap.php',
+            $projectDirectory . '/README.md',
             $projectDirectory . '/src',
         ];
 
         self::assertSame($expectedPaths, $parameters['paths'] ?? null);
         self::assertSame($expectedPaths, $absoluteParameters['paths'] ?? null);
+        self::assertSame(FileFinder::MARKDOWN_EXTENSIONS, $parameters['fileExtensions'] ?? null);
         self::assertArrayNotHasKey('excludePaths', $parameters);
         self::assertArrayNotHasKey('excludePaths', $absoluteParameters);
     }

@@ -22,6 +22,8 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(EventListenerTest::class, ['root' => 'Acme']);
  * ```
  */

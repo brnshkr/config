@@ -34,6 +34,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::getBuilder()
  *     ->replaceRule(SuperglobalUsageRule::class, [
  *         'forbiddenSuperglobals' => [

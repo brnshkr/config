@@ -23,6 +23,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(FacadeIsolatedTest::class, [
  *     'facade'    => 'Acme\Filter',
  *     'namespace' => 'Acme\Filter',

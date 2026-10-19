@@ -3,8 +3,8 @@
 The PHP half of **@brnshkr/config**. Per-tool pages below; the [README](../../README.md#-installation) covers setup.
 
 - [PHPStan](./phpstan/index.md) — analysis configuration plus the custom standalone and architecture rules
-- [PHP-CS-Fixer](./PhpCsFixer.md) — coding-style configuration
-- [Rector](./Rector.md) — refactoring configuration
+- [PHP-CS-Fixer](./php-cs-fixer/index.md) — coding-style configuration
+- [Rector](./rector/index.md) — refactoring configuration
 - [Twig-CS-Fixer](./TwigCsFixer.md) — template-style configuration
 - [PHPUnit](./PhpUnit.md) — test runner configuration
 - [FileFinder](./FileFinder.md) — the file discovery every tool configuration runs on

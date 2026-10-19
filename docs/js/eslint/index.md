@@ -45,6 +45,9 @@ project's `.gitignore` always is.
 What comes back is a [`FlatConfigComposer`](https://github.com/antfu/eslint-flat-config-utils),
 so `.append()`, `.prepend()` and `.override()` are available where a config is assembled in steps.
 
+Code blocks in Markdown pages are linted too;
+one preceded by `<!-- brnshkr-skip -->` or `<!-- eslint-skip -->` is left alone.
+
 ## Rules
 
 - [Custom rules](./rules/index.md) — what the `brnshkr` plugin checks beyond the plugins above

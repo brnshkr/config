@@ -22,6 +22,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(SubscriberTest::class, ['root' => 'Acme']);
  * ```
  */

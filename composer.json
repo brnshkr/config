@@ -47,6 +47,7 @@
     "friendsofphp/php-cs-fixer": "3.95.27",
     "helgesverre/toon": "3.2.1",
     "kubawerlos/php-cs-fixer-custom-fixers": "3.37.4",
+    "league/commonmark": "2.10.3",
     "matesofmate/composer-extension": "0.7.1",
     "matesofmate/phpstan-extension": "0.7.1",
     "matesofmate/phpunit-extension": "0.7.1",
@@ -77,6 +78,7 @@
   "conflict": {
     "friendsofphp/php-cs-fixer": "<3.95.27 || >=4",
     "kubawerlos/php-cs-fixer-custom-fixers": "<3.37.3 || >=4",
+    "league/commonmark": "<2.10.3 || >=3",
     "phpat/phpat": "<0.12.4 || >=0.13",
     "phpstan/extension-installer": "<1.4.3 || >=3",
     "phpstan/phpstan": "<2.3.1 || >=3",
@@ -96,6 +98,7 @@
   "suggest": {
     "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
     "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
+    "league/commonmark": "Optional for checking, formatting and refactoring code blocks in docblocks and Markdown pages",
     "phpat/phpat": "Optional architecture-related PHPStan rules",
     "phpstan/extension-installer": "Optional for autoloading of additional PHPStan configurations",
     "phpstan/phpstan": "Needed for static code analysis",

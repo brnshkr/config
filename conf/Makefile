@@ -2437,6 +2437,11 @@ $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use
 
 $(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
+ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
+$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): export BRNSHKR_TWIG_CS_FIXER_CONFIG = $(TWIG_CS_FIXER_CONFIG)
+$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): _FORWARDED_KEYS += BRNSHKR_TWIG_CS_FIXER_CONFIG
+endif # /php-cs-fixer
+
 endif # /twig-cs-fixer
 
 endif # /php

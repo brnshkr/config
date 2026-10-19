@@ -61,6 +61,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::getBuilder()
  *     ->replaceRule(InternalUsageRule::class, [
  *         'allowedCallers'   => ['Acme\Tests'],

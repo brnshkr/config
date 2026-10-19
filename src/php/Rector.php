@@ -19,6 +19,7 @@ use Rector\Contract\Rector\RectorInterface;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\TypeDeclaration\Rector\FunctionLike\AddParamTypeSplFixedArrayRector;
+use Rector\TypeDeclarationDocblocks\Rector\Class_\AddParamTypeToRefactorMethodRector;
 use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
@@ -39,11 +40,18 @@ Module::Rector->warnMissingPackages();
  *
  * @no-named-arguments
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/Rector.md
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/rector/index.md
  * @see RectorTest
  */
 final class Rector
 {
+    private const array PROCESSED_FILE_EXTENSIONS = [
+        FileFinder::EXTENSION_PHP,
+        ...FileFinder::MARKDOWN_EXTENSIONS,
+    ];
+
+    private const string FENCED_CODE_SET = __DIR__ . '/Rector/config/fenced-code.php';
+
     private function __construct(
         private readonly RectorConfigBuilder $rectorConfigBuilder,
         /**
@@ -143,6 +151,8 @@ final class Rector
         $rectorConfigBuilder = RectorConfig::configure()
             ->withCache(ProjectDirectory::getCache() . '/rector.cache')
             ->withRootFiles()
+            ->withFileExtensions(self::PROCESSED_FILE_EXTENSIONS)
+            ->withSets([self::FENCED_CODE_SET])
             ->withPhpSets()
             ->withAttributesSets()
             ->withPreparedSets(
@@ -179,8 +189,9 @@ final class Rector
         }
 
         /** @disregard P1009 Some skipped classes come bundled with rector and are not picked up by intelephense */
-        return new self($rectorConfigBuilder, FileFinder::getFilePaths($finder), [
+        return new self($rectorConfigBuilder, FileFinder::getFilePaths($finder, self::PROCESSED_FILE_EXTENSIONS), [
             AddParamTypeSplFixedArrayRector::class,
+            AddParamTypeToRefactorMethodRector::class,
             LocallyCalledStaticMethodToNonStaticRector::class,
             NewlineBeforeNewAssignSetRector::class,
             NewlineBetweenClassLikeStmtsRector::class,

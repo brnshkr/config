@@ -3,7 +3,11 @@
     "parameters": {
         "level": "max",
         "paths": [
+            "./AGENTS.md",
+            "./CLAUDE.md",
+            "./README.md",
             "./conf",
+            "./docs",
             "./mate",
             "./scripts",
             "./src/php",
@@ -14,6 +18,10 @@
                 "./tests/php/Fixtures"
             ]
         },
+        "fileExtensions": [
+            "markdown",
+            "md"
+        ],
         "tmpDir": ".cache/phpstan.cache",
         "editorUrlTitle": "%%relFile%%:%%line%%",
         "errorFormat": "ticketswap",
@@ -142,6 +150,7 @@
     "rules": [
         "Brnshkr\\Config\\PhpStan\\Rule\\ApiOrInternalTagRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\FencedCodeRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\InternalExposureRule",
         "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsTagRule",
@@ -225,6 +234,7 @@
                     "composer/semver": "./vendor/composer/semver",
                     "composer/spdx-licenses": "./vendor/composer/spdx-licenses",
                     "composer/xdebug-handler": "./vendor/composer/xdebug-handler",
+                    "dflydev/dot-access-data": "./vendor/dflydev/dot-access-data",
                     "doctrine/deprecations": "./vendor/doctrine/deprecations",
                     "entropy/entropy": "./vendor/entropy/entropy",
                     "ergebnis/agent-detector": "./vendor/ergebnis/agent-detector",
@@ -233,9 +243,12 @@
                     "filp/whoops": "./vendor/filp/whoops",
                     "jean85/pretty-package-versions": "./vendor/jean85/pretty-package-versions",
                     "justinrainbow/json-schema": "./vendor/justinrainbow/json-schema",
+                    "league/config": "./vendor/league/config",
                     "marc-mabe/php-enum": "./vendor/marc-mabe/php-enum",
                     "matesofmate/common": "./vendor/matesofmate/common",
                     "myclabs/deep-copy": "./vendor/myclabs/deep-copy",
+                    "nette/schema": "./vendor/nette/schema",
+                    "nette/utils": "./vendor/nette/utils",
                     "nikic/php-parser": "./vendor/nikic/php-parser",
                     "nunomaduro/collision": "./vendor/nunomaduro/collision",
                     "nunomaduro/termwind": "./vendor/nunomaduro/termwind",

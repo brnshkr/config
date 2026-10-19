@@ -19,6 +19,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(PolicyTest::class, ['root' => 'Acme']);
  * ```
  */

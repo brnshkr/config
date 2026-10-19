@@ -21,6 +21,8 @@ use PHPat\Test\PHPat;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ValueObjectImmutableTest::class, [
  *     'valueObject' => 'Acme\Domain\ValueObject',
  * ]);

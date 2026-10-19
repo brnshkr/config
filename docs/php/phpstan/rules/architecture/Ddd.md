@@ -12,11 +12,11 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 
 return PhpStan::getBuilder()
     ->addArchitecture(Architecture::ddd(
-        modules: ['User', 'Email'],
         interface: 'Acme\Interface',
         valueObject: 'Acme\Domain\ValueObject',
         domainEvent: 'Acme\Domain\Event',
         isolatedFrom: ['Doctrine\ORM', 'Symfony\Component\HttpFoundation'],
+        modules: ['User', 'Email'],
     ))
     ->build()
 ;

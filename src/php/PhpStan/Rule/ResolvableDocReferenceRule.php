@@ -305,11 +305,7 @@ final readonly class ResolvableDocReferenceRule implements Rule
      */
     private static function buildMissingError(string $kind, string $name, int $line): IdentifierRuleError
     {
-        return self::buildRuleError(sprintf(
-            '%s `%s` does not exist.',
-            $kind,
-            $name,
-        ), $line);
+        return self::buildRuleError(self::getMissingMessage($kind, $name), $line);
     }
 
     /**

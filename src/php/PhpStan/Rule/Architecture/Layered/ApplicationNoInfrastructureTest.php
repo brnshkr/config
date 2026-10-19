@@ -21,6 +21,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ApplicationNoInfrastructureTest::class, [
  *     'application'    => 'Acme\Application',
  *     'infrastructure' => 'Acme\Infrastructure',

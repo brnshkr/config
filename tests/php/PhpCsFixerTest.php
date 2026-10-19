@@ -33,6 +33,31 @@ use function count;
 #[UsesClass(Str::class)]
 final class PhpCsFixerTest extends TestCase
 {
+    public function testTheFixersThatChangeMarkdownRunUnderANameThatSkipsIt(): void
+    {
+        $rules        = PhpCsFixer::getConfig()->getRules();
+        $organization = Str::upperFirst(ComposerJson::forThisLibrary()->getPackageOrganization());
+
+        self::assertFalse($rules['no_trailing_whitespace_in_string'] ?? null);
+        self::assertFalse($rules['string_line_ending'] ?? null);
+        self::assertTrue($rules[$organization . '/no_trailing_whitespace_in_string'] ?? null);
+        self::assertTrue($rules[$organization . '/string_line_ending'] ?? null);
+    }
+
+    public function testADisabledFixerThatChangesMarkdownIsNotRenamed(): void
+    {
+        $rules = PhpCsFixer::getBuilder()
+            ->addRules(['string_line_ending' => false])
+            ->build()
+            ->getRules()
+        ;
+
+        $organization = Str::upperFirst(ComposerJson::forThisLibrary()->getPackageOrganization());
+
+        self::assertFalse($rules['string_line_ending'] ?? null);
+        self::assertArrayNotHasKey($organization . '/string_line_ending', $rules);
+    }
+
     public function testRulesAreMergedIntoTheBaseline(): void
     {
         $baseline = PhpCsFixer::getConfig()->getRules();

@@ -22,6 +22,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(NormalizerTest::class, ['root' => 'Acme']);
  * ```
  */

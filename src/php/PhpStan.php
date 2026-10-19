@@ -13,6 +13,7 @@ use Brnshkr\Config\PhpStan\Rule\ApiOrInternalTagRule;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Architecture;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\DevFunctionUsageRule;
+use Brnshkr\Config\PhpStan\Rule\FencedCodeRule;
 use Brnshkr\Config\PhpStan\Rule\InterfaceSuffixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalExposureRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
@@ -165,6 +166,11 @@ final class PhpStan
 
     private const array EXCLUDE_PATH_GROUPS = ['analyse', 'analyseAndScan'];
 
+    private const array ANALYZED_FILE_EXTENSIONS = [
+        FileFinder::EXTENSION_PHP,
+        ...FileFinder::MARKDOWN_EXTENSIONS,
+    ];
+
     private const array TAG_PHP_AT_TEST                 = ['phpat.test'];
     private const array TAG_RULE                        = ['phpstan.rules.rule'];
     private const array TAG_STATIC_THROW_TYPE_EXTENSION = ['phpstan.dynamicStaticMethodThrowTypeExtension'];
@@ -273,6 +279,7 @@ final class PhpStan
         $phpStanConfig = new self()
             ->setLevel('max')
             ->setPaths($analysisPaths['paths'], $analysisPaths['excludedPaths'])
+            ->addFileExtensions(FileFinder::MARKDOWN_EXTENSIONS)
             ->setTemporaryDirectory(ProjectDirectory::getCache() . '/phpstan.cache')
             ->setParameters([
                 'editorUrl'                                          => EditorUrl::forPhpStan(),
@@ -318,6 +325,7 @@ final class PhpStan
             ->addRules([
                 ApiOrInternalTagRule::class,
                 BoolishPrefixRule::class,
+                FencedCodeRule::class,
                 InterfaceSuffixRule::class,
                 InternalExposureRule::class,
                 NamedArgumentsTagRule::class,
@@ -2315,7 +2323,7 @@ final class PhpStan
     {
         $cwd           = (getcwd() ?: '.') . '/';
         $rootPath      = Path::canonicalize($cwd);
-        $analyzedPaths = FileFinder::getFilePaths($finder);
+        $analyzedPaths = FileFinder::getFilePaths($finder, self::ANALYZED_FILE_EXTENSIONS);
 
         $rootFilePaths = array_values(array_filter(
             $analyzedPaths,
@@ -2328,7 +2336,7 @@ final class PhpStan
 
         $filePathsInDirectories = $directoryPaths === []
             ? []
-            : FileFinder::getFilePaths(new Finder()->in($directoryPaths));
+            : FileFinder::getFilePaths(new Finder()->in($directoryPaths), self::ANALYZED_FILE_EXTENSIONS);
 
         $excludedPaths = array_diff($filePathsInDirectories, $analyzedPaths)
             |> array_values(...)

@@ -64,6 +64,7 @@ namespace Acme\User\Internal;
 
 // ✅ Good — both classes are covered by the file-level '@internal'
 final class PasswordHasher {}
+
 final class UsernameNormalizer {}
 ```
 

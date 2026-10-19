@@ -22,6 +22,8 @@ use Twig\Extension\AbstractExtension;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['root' => 'Acme']);
  * ```
  */

@@ -20,6 +20,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(InfrastructureNoInterfaceTest::class, [
  *     'infrastructure' => 'Acme\Infrastructure',
  *     'interface'      => 'Acme\Interface',

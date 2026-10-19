@@ -8,8 +8,13 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
 use Brnshkr\Config\Tests\PhpCsFixerTest;
 use PhpCsFixer\Config as PhpCsFixerConfig;
+use PhpCsFixer\Fixer\StringNotation\NoTrailingWhitespaceInStringFixer;
+use PhpCsFixer\Fixer\StringNotation\StringLineEndingFixer;
+use PhpCsFixer\RuleSet\RuleSet;
 use PhpCsFixerCustomFixers\Fixer;
 use PhpCsFixerCustomFixers\Fixers;
 use RuntimeException;
@@ -38,7 +43,7 @@ Module::PhpCsFixer->warnMissingPackages();
  *
  * @no-named-arguments
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/php/PhpCsFixer.md
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/php-cs-fixer/index.md
  * @see PhpCsFixerTest
  */
 final readonly class PhpCsFixer
@@ -124,10 +129,21 @@ final readonly class PhpCsFixer
         $config = new PhpCsFixerConfig();
 
         $config
-            ->setCacheFile(ProjectDirectory::getCache() . '/php-cs-fixer.cache.json')
-            ->setFinder(FileFinder::get($finder))
             ->setRiskyAllowed(true)
+            ->setCacheFile(ProjectDirectory::getCache() . '/php-cs-fixer.cache.json')
+            ->setFinder(FileFinder::get($finder, [
+                FileFinder::EXTENSION_PHP,
+                ...FileFinder::MARKDOWN_EXTENSIONS,
+            ]))
         ;
+
+        $fencedCodeFixer = new FencedCodeFixer($config);
+
+        $config->registerCustomFixers([
+            $fencedCodeFixer,
+            new MarkdownSafeFixer(new NoTrailingWhitespaceInStringFixer()),
+            new MarkdownSafeFixer(new StringLineEndingFixer()),
+        ]);
 
         $rules = [
             '@auto'                  => true,
@@ -550,6 +566,8 @@ final readonly class PhpCsFixer
             ]);
         }
 
+        $rules[FencedCodeFixer::name()] = true;
+
         $config->setRules(array_filter($rules, Str::isNonDecimalIntString(...), ARRAY_FILTER_USE_KEY));
 
         return new self($config);
@@ -617,6 +635,29 @@ final readonly class PhpCsFixer
      */
     public function build(): PhpCsFixerConfig
     {
+        $rules = $this->phpCsFixerConfig->getRules();
+
+        // @phpstan-ignore brnshkr.internalUsage (php-cs-fixer offers no public way to resolve rule names to fixers)
+        $resolvedRules = new RuleSet($rules)->getRules();
+
+        foreach ($this->phpCsFixerConfig->getCustomFixers() as $customFixer) {
+            if (!$customFixer instanceof MarkdownSafeFixer) {
+                continue;
+            }
+
+            $fixerName   = $customFixer->getName();
+            $wrappedName = $customFixer->getWrappedName();
+
+            if (isset($resolvedRules[$wrappedName])
+                && Str::isNonDecimalIntString($wrappedName)
+                && Str::isNonDecimalIntString($fixerName)) {
+                $rules[$wrappedName] = false;
+                $rules[$fixerName]   = $resolvedRules[$wrappedName];
+            }
+        }
+
+        $this->phpCsFixerConfig->setRules($rules);
+
         return $this->phpCsFixerConfig;
     }
 }

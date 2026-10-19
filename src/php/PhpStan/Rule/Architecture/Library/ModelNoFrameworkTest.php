@@ -20,6 +20,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ModelNoFrameworkTest::class, [
  *     'model'        => 'Acme\Model',
  *     'isolatedFrom' => ['PhpParser', 'Symfony'],

@@ -37,6 +37,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::getBuilder()
  *     ->replaceRule(DevFunctionUsageRule::class, [
  *         'developmentPackageDirectories' => ['symfony/var-dumper' => __DIR__ . '/vendor/symfony/var-dumper'],

@@ -24,6 +24,7 @@ use function mb_strrpos;
 use function mb_strtolower;
 use function mb_substr;
 use function mb_trim;
+use function mb_ucfirst;
 use function preg_match;
 use function preg_match_all;
 use function preg_quote;
@@ -64,6 +65,9 @@ final readonly class Str
         return (string) (int) $string !== $string;
     }
 
+    /**
+     * @return int<0, max>
+     */
     public static function length(string $string): int
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
@@ -74,6 +78,12 @@ final readonly class Str
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strtolower($string);
+    }
+
+    public static function upperFirst(string $string): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return mb_ucfirst($string);
     }
 
     public static function startsWith(string $haystack, string $needle): bool

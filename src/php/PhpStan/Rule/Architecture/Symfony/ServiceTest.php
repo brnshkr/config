@@ -23,6 +23,8 @@ use function sprintf;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ServiceTest::class, ['root' => 'Acme']);
  * ```
  */

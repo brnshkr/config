@@ -22,6 +22,8 @@ use PHPat\Test\PHPat;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(MessageTest::class, ['root' => 'Acme']);
  * ```
  */

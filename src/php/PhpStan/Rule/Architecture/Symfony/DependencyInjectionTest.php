@@ -28,6 +28,8 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(DependencyInjectionTest::class, ['root' => 'Acme']);
  * ```
  */

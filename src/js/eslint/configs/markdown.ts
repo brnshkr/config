@@ -7,6 +7,7 @@ import { buildConfigName } from '#eslint/utils/config.ts';
 import { GLOB_MD } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { readOwnValue } from '#shared/utils/object.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 import type { MarkdownOptions } from '#eslint/types/options.ts';
@@ -48,6 +49,9 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
   const language = options?.language ?? 'markdown/commonmark';
   const frontmatter = options?.frontmatter ?? false;
   const { mergeProcessors, processorPassThrough } = eslintMergeProcessors;
+  const markdownProcessor = pluginMarkdown.processors.markdown;
+  const skipMarker = `<!-- ${packageOrganization}-skip -->`;
+  const eslintSkipMarker = `${'<!-- eslint-skip'.padEnd(skipMarker.length - ' -->'.length)} -->`;
 
   return [
     {
@@ -60,7 +64,13 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
       name: buildConfigName(MAIN_SCOPES.MARKDOWN, SUB_SCOPES.PROCESSOR),
       files: [GLOB_MD],
       processor: mergeProcessors([
-        pluginMarkdown.processors.markdown,
+        {
+          ...markdownProcessor,
+          preprocess: (markdownText, filePath) => markdownProcessor.preprocess(
+            markdownText.replaceAll(skipMarker, () => eslintSkipMarker),
+            filePath,
+          ),
+        },
         processorPassThrough,
       ]),
     },

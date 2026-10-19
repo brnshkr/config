@@ -22,6 +22,8 @@ use PHPat\Test\Builder\BuildStep;
  *
  * @example
  * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
  * PhpStan::configurePhpAtTest(ModelTest::class, ['root' => 'Acme']);
  * ```
  */

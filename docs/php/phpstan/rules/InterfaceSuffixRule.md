@@ -22,6 +22,7 @@ so the rule steps back and leaves naming to the author:
 
 ```php
 interface UserRepositoryInterface {}
+
 interface CacheableInterface {}
 
 // ✅ Skipped — two '*Interface' implementations make the suffix ambiguous
