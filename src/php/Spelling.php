@@ -13,11 +13,7 @@ use function array_is_list;
 use function array_map;
 use function array_values;
 use function basename;
-use function fclose;
-use function feof;
 use function file_get_contents;
-use function fread;
-use function function_exists;
 use function in_array;
 use function is_array;
 use function is_file;
@@ -25,16 +21,8 @@ use function is_readable;
 use function is_string;
 use function max;
 use function mb_substr;
-use function microtime;
-use function proc_close;
-use function proc_open;
-use function proc_terminate;
 use function sprintf;
-use function stream_select;
-use function stream_set_blocking;
 use function usort;
-
-use const STDERR;
 
 /**
  * Reports British spellings in a repository's tracked prose, docblocks and identifiers.
@@ -58,10 +46,6 @@ final class Spelling
     private const string DEFAULTS_PATH = 'conf/spelling/defaults.json';
 
     private const string EVERY_PATH = '*';
-
-    private const int COMMAND_TIMEOUT_SECONDS = 60;
-
-    private const int READ_CHUNK_BYTES = 8_192;
 
     /**
      * Scan a repository and return every finding, sorted by path, line and word.
@@ -456,6 +440,7 @@ final class Spelling
     }
 
     /**
+     * @param non-empty-string $rootDirectory
      * @param array<string, mixed> $settings
      *
      * @return list<string>
@@ -469,7 +454,22 @@ final class Spelling
         $ignorePatterns = array_values(is_array($settings['ignorePatterns'] ?? null) ? $settings['ignorePatterns'] : []);
         $filePaths      = [];
 
-        foreach (Str::split(self::runCommand(['git', 'ls-files', '-z'], $rootDirectory), "\0") as $filePath) {
+        $processResult = Process::run([
+            'git',
+            'ls-files',
+            '-z',
+        ], $rootDirectory);
+
+        if ($processResult['exitCode'] !== 0) {
+            throw new RuntimeException(Str::trim(sprintf(
+                '"git ls-files -z" failed in "%s" with exit code %d. %s',
+                $rootDirectory,
+                $processResult['exitCode'],
+                $processResult['errorOutput'],
+            )));
+        }
+
+        foreach (Str::split($processResult['output'], "\0") as $filePath) {
             if ($filePath === '') {
                 continue;
             }
@@ -586,108 +586,5 @@ final class Spelling
         $fileContents = file_get_contents($filePath);
 
         return $fileContents === false ? null : $fileContents;
-    }
-
-    /**
-     * @param list<string> $command
-     *
-     * @throws RuntimeException
-     */
-    private static function runCommand(array $command, string $workingDirectory): string
-    {
-        if (!function_exists('proc_open')) {
-            throw new RuntimeException(
-                sprintf('Running "%s" needs proc_open(), which this PHP installation disabled.', Str::join($command, ' ')),
-            );
-        }
-
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => STDERR,
-        ];
-
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
-        $process = proc_open($command, $descriptors, $processPipes, $workingDirectory);
-
-        if ($process === false) {
-            throw new RuntimeException(sprintf('Unable to run "%s".', Str::join($command, ' ')));
-        }
-
-        if (!isset($processPipes[0], $processPipes[1])) {
-            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
-            proc_close($process);
-
-            throw new RuntimeException(sprintf('"%s" opened no pipes.', Str::join($command, ' ')));
-        }
-
-        fclose($processPipes[0]);
-
-        $output = self::readUntilEndOfFile($process, $processPipes[1], $command);
-
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0) {
-            throw new RuntimeException(sprintf(
-                '"%s" failed in "%s" with exit code %d.',
-                Str::join($command, ' '),
-                $workingDirectory,
-                $exitCode,
-            ));
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param resource $process
-     * @param resource $pipe
-     * @param list<string> $command
-     *
-     * @throws RuntimeException
-     */
-    private static function readUntilEndOfFile(mixed $process, mixed $pipe, array $command): string
-    {
-        stream_set_blocking($pipe, false);
-
-        $deadline = microtime(true) + self::COMMAND_TIMEOUT_SECONDS;
-        $output   = '';
-
-        while (!feof($pipe)) {
-            $remainingSeconds = $deadline - microtime(true);
-
-            if ($remainingSeconds <= 0) {
-                // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
-                proc_terminate($process);
-                fclose($pipe);
-                // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/process here to keep package as lightweight as possible)
-                proc_close($process);
-
-                throw new RuntimeException(sprintf(
-                    '"%s" did not finish within %d seconds.',
-                    Str::join($command, ' '),
-                    self::COMMAND_TIMEOUT_SECONDS,
-                ));
-            }
-
-            $readable = [$pipe];
-            $writable = [];
-            $errored  = [];
-
-            stream_select($readable, $writable, $errored, (int) $remainingSeconds, 0);
-
-            $chunk = fread($pipe, self::READ_CHUNK_BYTES);
-
-            if ($chunk === false) {
-                break;
-            }
-
-            $output .= $chunk;
-        }
-
-        fclose($pipe);
-
-        return $output;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests;
 
 use Brnshkr\Config\Json;
+use Brnshkr\Config\Process;
 use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Spelling;
 use Brnshkr\Config\Str;
@@ -15,7 +16,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Process as SymfonyProcess;
 
 use function array_column;
 use function array_unique;
@@ -31,6 +32,7 @@ use function sys_get_temp_dir;
 #[CoversClass(Spelling::class)]
 #[UsesClass(ProjectDirectory::class)]
 #[UsesClass(Json::class)]
+#[UsesClass(Process::class)]
 #[UsesClass(Str::class)]
 final class SpellingTest extends TestCase
 {
@@ -158,8 +160,23 @@ final class SpellingTest extends TestCase
             $filesystem->dumpFile($repositoryRoot . '/' . $filePath, "colour\n");
         }
 
-        new Process(['git', 'init', '--quiet'], $repositoryRoot)->mustRun();
-        new Process(['git', 'add', '--', 'notes.md', 'Makefile', 'notes.txt', 'tests/fixtures/notes.md', 'gone.md'], $repositoryRoot)->mustRun();
+        new SymfonyProcess([
+            'git',
+            'init',
+            '--quiet',
+        ], $repositoryRoot)->mustRun();
+
+        new SymfonyProcess([
+            'git',
+            'add',
+            '--',
+            'notes.md',
+            'Makefile',
+            'notes.txt',
+            'tests/fixtures/notes.md',
+            'gone.md',
+        ], $repositoryRoot)->mustRun();
+
         $filesystem->remove($repositoryRoot . '/gone.md');
 
         $paths = array_column(Spelling::scan($repositoryRoot), 'path')
@@ -202,7 +219,12 @@ final class SpellingTest extends TestCase
             Json::encode(self::CORPUS_PATHS),
         );
 
-        $process = new Process(['bun', '--bun', '-e', $program], $this->getRepositoryRoot());
+        $process = new SymfonyProcess([
+            'bun',
+            '--bun',
+            '-e',
+            $program,
+        ], $this->getRepositoryRoot());
 
         $process->run();
         self::assertTrue($process->isSuccessful(), $process->getErrorOutput());

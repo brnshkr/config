@@ -6,7 +6,7 @@
 - Native functions such as `trim`, `json_decode`, `mkdir` or `shell_exec` are forbidden wherever the component
   replacing them is installed. PHPStan names the replacement, usually in `Str`, `Json`, Symfony String,
   Filesystem, Finder or Process.
-  A scope every module shares (`Str`, `ComposerJson`, `Spelling`) keeps the native call behind
+  A scope every module shares (e.g. `Str`, `ComposerJson`, `Process`) keeps the native call behind
   `@phpstan-ignore symplify.forbiddenFuncCall (…)`, or calls the `Str` method wrapping it, such as `Str::split()`.
   The `autoload-dev` directories may call `getenv` and `putenv` and use superglobals.
   Everything else reads the environment through `Str::fromEnvironment()` or `Str::getEnvironment()`.
