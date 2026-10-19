@@ -96,6 +96,7 @@
     "vincentlanglet/twig-cs-fixer": "<4.1.1 || >=5"
   },
   "suggest": {
+    "ext-dom": "Optional for checking XML code blocks with PHPStan",
     "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
     "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
     "league/commonmark": "Optional for checking, formatting and refactoring code blocks in docblocks and Markdown pages",

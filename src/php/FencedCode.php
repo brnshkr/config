@@ -43,8 +43,10 @@ use const TOKEN_PARSE;
  */
 final readonly class FencedCode
 {
-    public const string LANGUAGE_PHP  = 'php';
-    public const string LANGUAGE_TWIG = 'twig';
+    public const string LANGUAGE_MAKEFILE = 'makefile';
+    public const string LANGUAGE_PHP      = 'php';
+    public const string LANGUAGE_TWIG     = 'twig';
+    public const string LANGUAGE_XML      = 'xml';
 
     public const string OPENING_TAG = "<?php\n";
 

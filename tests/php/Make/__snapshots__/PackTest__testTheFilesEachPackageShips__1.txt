@@ -124,6 +124,7 @@ src/php/PhpStan/Rule/FileLevelDocCache.php
 src/php/PhpStan/Rule/InterfaceSuffixRule.php
 src/php/PhpStan/Rule/InternalExposureRule.php
 src/php/PhpStan/Rule/InternalUsageRule.php
+src/php/PhpStan/Rule/MakefileExampleAnalyzer.php
 src/php/PhpStan/Rule/NamedArgumentsTagRule.php
 src/php/PhpStan/Rule/NamedArgumentsUsageRule.php
 src/php/PhpStan/Rule/PhpExampleAnalyzer.php
@@ -134,6 +135,7 @@ src/php/PhpStan/Rule/SuperglobalUsageRule.php
 src/php/PhpStan/Rule/TagDescriptionRule.php
 src/php/PhpStan/Rule/Trait/ArchitectureRuleTrait.php
 src/php/PhpStan/Rule/Trait/RuleTrait.php
+src/php/PhpStan/Rule/XmlExampleAnalyzer.php
 src/php/PhpStan/ThrowTypeExtension/FileFinderThrowTypeExtension.php
 src/php/Process.php
 src/php/ProjectDirectory.php

@@ -26,7 +26,8 @@
 - A Rector rule is a class in `src/php/Rector/Rule/`, a set in `src/php/Rector/config/` the `Rector` builder loads,
   a test on Rector's `AbstractRectorTestCase` in `tests/php/Rector/Rule/` with `*.inc` fixtures declaring
   class names no other fixture uses, and a page in `docs/php/rector/rules/`.
-- A rule test marks expected errors with `// ERROR <context>` in its fixture. A rule reporting two errors on one line
+- A rule test marks expected errors with `// ERROR <context>` in its fixture. A rule reporting two errors on one line,
+  or on a line that cannot carry the comment (e.g. in an XML or Makefile code block),
   uses PHPStan's `RuleTestCase` with an explicit list instead.
 - Fixtures use the vendor `Acme` and are not analyzed.
 - A command extending `AbstractCommand` catches its exceptions, so assert its exit code and output, never

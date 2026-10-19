@@ -25,7 +25,7 @@ to a specific framework or architecture style — they are opt-in and configured
 ## Documentation
 
 - [`FencedCodeRule`](./FencedCodeRule.md)
-  — PHP code blocks may only use existing code, with arguments it accepts
+  — code blocks must parse, and PHP ones may only use existing code, with arguments it accepts
 - [`ResolvableDocReferenceRule`](./ResolvableDocReferenceRule.md)
   — every `@see` and `@link` target must name a symbol that exists
 - [`TagDescriptionRule`](./TagDescriptionRule.md)

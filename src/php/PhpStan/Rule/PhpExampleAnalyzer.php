@@ -47,15 +47,11 @@ use const PHP_INT_MAX;
  *     message: non-empty-string,
  *     identifier: non-empty-string,
  * }
- * @phpstan-type ExampleError array{
- *     message: non-empty-string,
- *     identifier: non-empty-string,
- *     line: int,
- * }
  * @phpstan-type DocumentedMethod array{
  *     className: string,
  *     methodName: string,
  * }
+ * @phpstan-import-type ExampleError from FencedCodeRule
  *
  * @see FencedCodeRuleTest
  */

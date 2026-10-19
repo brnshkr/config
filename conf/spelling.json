@@ -25,6 +25,9 @@
       "{analyse,",
       "analyse?:"
     ],
+    "tests/php/PhpStan/Rule/FencedCodeRuleTest.php": [
+      "->analyse("
+    ],
     "tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php": [
       "->analyse("
     ],

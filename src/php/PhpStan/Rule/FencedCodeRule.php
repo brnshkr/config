@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Exception\UnreachableException;
 use Brnshkr\Config\FencedCode;
 use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
+use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\PhpStan\Rule\FencedCodeRuleTest;
 use Closure;
 use Override;
@@ -26,6 +29,7 @@ use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\ParserFactory;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\Container;
 use PHPStan\Node\VirtualNode;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
@@ -33,23 +37,32 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\FileTypeMapper;
 use ReflectionException;
+use RuntimeException;
 
 use function array_first;
 use function array_map;
+use function is_string;
 use function max;
 use function sprintf;
 
 /**
- * Reports PHP code blocks in docblocks and Markdown pages that call missing code or pass arguments it does not take.
+ * Reports code blocks in docblocks and Markdown pages that do not parse, call missing code or pass wrong arguments.
  *
- * No example runs, so a renamed method or a dropped parameter leaves it wrong without anyone noticing.
- * Each block is checked like code of its own: names resolve through its own `use` and `namespace` lines,
+ * No test runs an example, so a renamed method or a dropped parameter leaves it wrong without anyone noticing.
+ * Each PHP block is checked like code of its own: names resolve through its own `use` and `namespace` lines,
  * then through the file's, and names under a placeholder namespace are skipped.
+ * An XML block must parse and match the schema it names, a Makefile block must parse with `make`
+ * and, when it includes the shared Makefile, pass `make help`.
  *
  * @api
  *
  * @no-named-arguments
  *
+ * @phpstan-type ExampleError array{
+ *     message: non-empty-string,
+ *     identifier: non-empty-string,
+ *     line: int,
+ * }
  * @phpstan-type NestedDoc array{
  *     text: string,
  *     line: int,
@@ -57,7 +70,6 @@ use function sprintf;
  *     documentedMethod: ?DocumentedMethod,
  * }
  * @phpstan-import-type DocumentedMethod from PhpExampleAnalyzer
- * @phpstan-import-type ExampleError from PhpExampleAnalyzer
  *
  * @implements Rule<NodeAbstract>
  *
@@ -79,20 +91,58 @@ final readonly class FencedCodeRule implements Rule
 {
     use RuleTrait;
 
+    /**
+     * @internal
+     */
+    public const string PROBLEM_PARSE = 'Code block does not parse';
+
     private const string IDENTIFIER_PARSE = 'phpstan.parse';
+
+    private const string SHARED_MAKEFILE_PATH = '/conf/Makefile';
+
+    private XmlExampleAnalyzer $xmlExampleAnalyzer;
+
+    private MakefileExampleAnalyzer $makefileExampleAnalyzer;
 
     /**
      * @internal invoked by PHPStan
      *
      * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
      * @param FileTypeMapper $fileTypeMapper - PHPStan docblock resolver, applies the file's namespace and imports (auto-wired)
+     * @param Container $container - PHPStan container, read for its temporary directory (auto-wired)
      * @param list<string> $placeholderNamespaces - namespaces of the placeholder classes examples may use
+     *
+     * @throws RuntimeException when a `composer.json` cannot be read
      */
     public function __construct(
         private ReflectionProvider $reflectionProvider,
         private FileTypeMapper $fileTypeMapper,
+        Container $container,
         private array $placeholderNamespaces = ['Acme'],
-    ) {}
+    ) {
+        $temporaryDirectory  = $container->getParameters()['tmpDir'] ?? null;
+        $libraryComposerJson = ComposerJson::forThisLibrary();
+
+        if (!is_string($temporaryDirectory) || Str::isEmpty($temporaryDirectory)) {
+            throw new UnreachableException('PHPStan always sets its `tmpDir` parameter.');
+        }
+
+        $this->xmlExampleAnalyzer = new XmlExampleAnalyzer(ComposerJson::forProjectUsingThisLibrary()->getDirectory());
+
+        $sharedMakefileSuffix = Str::join([
+            $libraryComposerJson->getPackageOrganization(),
+            $libraryComposerJson->getPackageName(),
+        ], '/') . self::SHARED_MAKEFILE_PATH;
+
+        $this->makefileExampleAnalyzer = new MakefileExampleAnalyzer(
+            $temporaryDirectory,
+            $libraryComposerJson->getDirectory() . self::SHARED_MAKEFILE_PATH,
+            [
+                '/' . $sharedMakefileSuffix,
+                '/@' . $sharedMakefileSuffix,
+            ],
+        );
+    }
 
     /**
      * @internal invoked by PHPStan
@@ -150,6 +200,54 @@ final readonly class FencedCodeRule implements Rule
             ];
         }
 
+        return [
+            ...$errors,
+            ...self::analyzeFencedCodes(
+                FencedCode::filterByLanguage($fencedCodes, FencedCode::LANGUAGE_XML),
+                $firstLine,
+                $this->xmlExampleAnalyzer->analyze(...),
+            ),
+            ...self::analyzeFencedCodes(
+                FencedCode::filterByLanguage($fencedCodes, FencedCode::LANGUAGE_MAKEFILE),
+                $firstLine,
+                $this->makefileExampleAnalyzer->analyze(...),
+            ),
+        ];
+    }
+
+    /**
+     * @internal
+     *
+     * @return ExampleError
+     */
+    public static function buildExampleError(string $problem, string $detail, int $line): array
+    {
+        return [
+            'message'    => $problem . ': ' . Str::trimSuffix(Str::trim($detail), '.') . '.',
+            'identifier' => self::getIdentifier(),
+            'line'       => $line,
+        ];
+    }
+
+    /**
+     * @param list<FencedCode> $fencedCodes
+     * @param Closure(string $code): list<ExampleError> $analyze
+     *
+     * @return list<IdentifierRuleError>
+     */
+    private static function analyzeFencedCodes(array $fencedCodes, int $firstLine, Closure $analyze): array
+    {
+        $errors = [];
+
+        foreach ($fencedCodes as $fencedCode) {
+            foreach ($analyze($fencedCode->code) as $exampleError) {
+                $errors[] = self::buildBlockError([
+                    ...$exampleError,
+                    'line' => $firstLine + $fencedCode->firstLineIndex + $exampleError['line'] - 1,
+                ]);
+            }
+        }
+
         return $errors;
     }
 
@@ -197,7 +295,8 @@ final readonly class FencedCodeRule implements Rule
         } catch (Error $error) {
             return [self::buildBlockError([
                 'message' => sprintf(
-                    'Code block does not parse: %s.',
+                    '%s: %s.',
+                    self::PROBLEM_PARSE,
                     $error->getRawMessage(),
                 ),
                 'identifier' => self::IDENTIFIER_PARSE,

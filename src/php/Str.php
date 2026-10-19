@@ -110,6 +110,17 @@ final readonly class Str
     }
 
     /**
+     * @param list<string> $needles
+     */
+    public static function endsWithAny(string $haystack, array $needles): bool
+    {
+        return array_any(
+            $needles,
+            static fn (string $needle): bool => self::endsWith($haystack, $needle),
+        );
+    }
+
+    /**
      * @param int<0, max> $times
      */
     public static function repeat(string $string, int $times): string

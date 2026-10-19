@@ -91,6 +91,9 @@ final class StrTest extends TestCase
         self::assertTrue(Str::startsWithAny('./src', ['/', './']));
         self::assertFalse(Str::startsWithAny('src', ['/', './']));
         self::assertFalse(Str::startsWithAny('src', []));
+        self::assertTrue(Str::endsWithAny('Makefile.dist', ['.mk', '.dist']));
+        self::assertFalse(Str::endsWithAny('Makefile', ['.mk', '.dist']));
+        self::assertFalse(Str::endsWithAny('Makefile', []));
     }
 
     public function testRepeatAndReplaceBuildTheExpectedString(): void
