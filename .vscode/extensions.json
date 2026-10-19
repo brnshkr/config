@@ -22,7 +22,10 @@
     "junstyle.php-cs-fixer",
     "mblode.twig-language-2",
     "SanderRonde.phpstan-vscode",
-    "xdebug.php-debug"
+    "xdebug.php-debug",
+
+    // Frameworks
+    "svelte.svelte-vscode"
     // ###< brnshkr/config ###
   ]
 }
