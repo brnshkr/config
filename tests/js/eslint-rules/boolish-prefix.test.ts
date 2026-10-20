@@ -16,7 +16,6 @@ import {
 import { extractPhpListConstant, readPhpRuleSource } from '#tests/utils/php-rule.ts';
 
 import {
-
   createRuleCaseBuilders,
   runJsRuleTests,
   runTypeAwareRuleTests,
