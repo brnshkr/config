@@ -38,7 +38,7 @@ _BRNSHKR_COMPOSE_FILES = $(or \
 	)) \
 )
 
-_BRNSHKR_STAGE = $(or $(APP_ENV),dev)
+_BRNSHKR_STAGE = $(or $(APP_ENV),$(DOTENV_DEFAULT_ENV),dev)
 
 _BRNSHKR_DOTENV_FILES = $(wildcard \
 	$(or $(wildcard $(CURDIR)/.env),$(CURDIR)/.env.dist) \
