@@ -230,7 +230,7 @@ const walkNode = (walkContext: WalkContext, node: TSESTree.Node, state: WalkStat
     if (isInlineCallback(node)) {
       walkNode(walkContext, node.body, {
         ...state,
-        isAsync: node.async,
+        isAsync: state.isAsync || node.async,
       });
     }
   } else if (node.type === 'TryStatement') {

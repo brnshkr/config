@@ -96,6 +96,11 @@ test('requireThrowsRule scenarios with type information', () => {
         'throw inside an async function rejects instead',
         '/**\n * @rejects {Error} when asked\n */\nexport const greet = async (): Promise<never> => {\n  throw new Error(\'acme\');\n};\n',
       ),
+      buildValidTypeAwareCase(
+        'inline callback throw inside an async function rejects instead',
+        `${FAILING_READ}/**\n * @rejects {Error} when a user is missing\n */\n`
+        + 'export const greet = async (ids: string[]): Promise<string[]> => ids.map(() => readUser());\n',
+      ),
     ],
     invalid: [
       buildInvalidTypeAwareCase(

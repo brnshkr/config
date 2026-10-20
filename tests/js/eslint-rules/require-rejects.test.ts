@@ -83,6 +83,11 @@ test('requireRejectsRule scenarios with type information', () => {
         [MESSAGE_ID_MISSING_REJECTS],
       ),
       buildInvalidTypeAwareCase(
+        'inline callback throw inside an async function',
+        `${FAILING_READ}export const greet = async (ids: string[]): Promise<string[]> => ids.map(() => readUser());\n`,
+        [MESSAGE_ID_MISSING_REJECTS],
+      ),
+      buildInvalidTypeAwareCase(
         'promise reject undeclared',
         'export const greet = (): Promise<never> => Promise.reject(new TypeError(\'acme\'));\n',
         [MESSAGE_ID_MISSING_REJECTS],
