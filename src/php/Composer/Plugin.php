@@ -12,6 +12,7 @@ use Composer\IO\IOInterface;
 use Composer\Package\BasePackage;
 use Composer\Plugin\Capability\CommandProvider as BaseCommandProvider;
 use Composer\Plugin\Capable;
+use Composer\Plugin\CommandEvent;
 use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Plugin\PrePoolCreateEvent;
@@ -20,6 +21,11 @@ use DateTimeImmutable;
 use Override;
 use RuntimeException;
 
+use function array_any;
+use function array_filter;
+use function array_values;
+use function in_array;
+use function is_array;
 use function sprintf;
 
 /**
@@ -27,6 +33,14 @@ use function sprintf;
  */
 final class Plugin implements Capable, EventSubscriberInterface, PluginInterface
 {
+    private const array LOCK_REFRESH_PACKAGES = [
+        'lock',
+        'mirrors',
+        'nothing',
+    ];
+
+    private bool $isLockRefresh = false;
+
     private Composer $composer;
 
     private Console $console;
@@ -68,9 +82,26 @@ final class Plugin implements Capable, EventSubscriberInterface, PluginInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            PluginEvents::COMMAND          => 'onCommand',
             PluginEvents::PRE_POOL_CREATE  => 'onPrePoolCreate',
             ScriptEvents::POST_INSTALL_CMD => 'onPostInstall',
         ];
+    }
+
+    public function onCommand(CommandEvent $commandEvent): void
+    {
+        if ($commandEvent->getCommandName() !== 'update') {
+            return;
+        }
+
+        $input    = $commandEvent->getInput();
+        $packages = $input->getArgument('packages');
+
+        $this->isLockRefresh = $input->getOption('lock') === true
+            || (is_array($packages) && array_any(
+                $packages,
+                static fn (mixed $package): bool => in_array($package, self::LOCK_REFRESH_PACKAGES, true),
+            ));
     }
 
     /**
@@ -86,19 +117,35 @@ final class Plugin implements Capable, EventSubscriberInterface, PluginInterface
      */
     public function onPrePoolCreate(PrePoolCreateEvent $prePoolCreateEvent): void
     {
+        if ($this->isLockRefresh) {
+            return;
+        }
+
         $releaseAge = ReleaseAge::fromExtra(
             $this->composer->getPackage()->getExtra(),
             $this->libraryComposerJson->getPackageOrganization(),
             $this->libraryComposerJson->getPackageName(),
         );
 
+        $request  = $prePoolCreateEvent->getRequest();
         $packages = $prePoolCreateEvent->getPackages();
-        $now      = new DateTimeImmutable();
 
-        $this->reportPackages('Held back as younger than the minimum release age:', $releaseAge->getHeldBackPackages($packages, $now));
-        $this->reportPackages('Taken unchecked, as they have no release time:', $releaseAge->getPackagesWithoutReleaseTime($packages));
+        $unpinnedPackages = array_filter(
+            $packages,
+            static fn (BasePackage $basePackage): bool => !$request->isFixedPackage($basePackage)
+                && !$request->isLockedPackage($basePackage),
+        );
 
-        $prePoolCreateEvent->setPackages($releaseAge->getAcceptedPackages($packages, $now));
+        $heldBackPackages  = $releaseAge->getHeldBackPackages($unpinnedPackages, new DateTimeImmutable());
+        $uncheckedPackages = $releaseAge->getPackagesWithoutReleaseTime($unpinnedPackages);
+
+        $this->reportPackages('Held back as younger than the minimum release age:', $heldBackPackages);
+        $this->reportPackages('Taken unchecked, as they have no release time:', $uncheckedPackages);
+
+        $prePoolCreateEvent->setPackages(array_values(array_filter(
+            $packages,
+            static fn (BasePackage $basePackage): bool => !in_array($basePackage, $heldBackPackages, true),
+        )));
     }
 
     /**

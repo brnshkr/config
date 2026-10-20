@@ -105,27 +105,6 @@ final readonly class ReleaseAge
      *
      * @return list<TPackage>
      */
-    public function getAcceptedPackages(array $packages, DateTimeImmutable $now): array
-    {
-        if ($this->minimumAge === 0) {
-            return array_values($packages);
-        }
-
-        $cutoffTimestamp = $now->getTimestamp() - $this->minimumAge;
-
-        return array_values(array_filter(
-            $packages,
-            fn (BasePackage $basePackage): bool => !$this->isTooYoung($basePackage, $cutoffTimestamp),
-        ));
-    }
-
-    /**
-     * @template TPackage of BasePackage
-     *
-     * @param array<array-key, TPackage> $packages
-     *
-     * @return list<TPackage>
-     */
     public function getHeldBackPackages(array $packages, DateTimeImmutable $now): array
     {
         if ($this->minimumAge === 0) {

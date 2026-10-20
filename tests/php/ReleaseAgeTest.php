@@ -29,31 +29,23 @@ final class ReleaseAgeTest extends TestCase
 {
     private const string NOW = '1991-08-06 12:00:00';
 
-    public function testAVersionYoungerThanTheMinimumAgeIsDropped(): void
-    {
-        $kept = new ReleaseAge()->getAcceptedPackages([
-            self::createPackage('vendor/fresh', '-6 days'),
-            self::createPackage('vendor/settled', '-8 days'),
-        ], new DateTimeImmutable(self::NOW));
-
-        self::assertSame(['vendor/settled'], self::getNames($kept));
-    }
-
     public function testAVersionWithoutAReleaseTimeIsKept(): void
     {
-        $kept = new ReleaseAge()->getAcceptedPackages([self::createPackage('vendor/path', null)], new DateTimeImmutable(self::NOW));
+        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
+            self::createPackage('vendor/path', null),
+        ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame(['vendor/path'], self::getNames($kept));
+        self::assertSame([], $heldBackPackages);
     }
 
     public function testAnExcludedPackageIsKeptHoweverYoung(): void
     {
-        $kept = new ReleaseAge(excludedPackageNames: ['symfony/*'])->getAcceptedPackages([
+        $heldBackPackages = new ReleaseAge(excludedPackageNames: ['symfony/*'])->getHeldBackPackages([
             self::createPackage('symfony/console', '-1 hour'),
             self::createPackage('vendor/fresh', '-1 hour'),
         ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame(['symfony/console'], self::getNames($kept));
+        self::assertSame(['vendor/fresh'], self::getNames($heldBackPackages));
     }
 
     public function testTheRootPackageAndPlatformPackagesAreKept(): void
@@ -62,24 +54,13 @@ final class ReleaseAgeTest extends TestCase
 
         $rootPackage->setReleaseDate(new DateTimeImmutable(self::NOW));
 
-        $kept = new ReleaseAge()->getAcceptedPackages([
+        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
             $rootPackage,
             self::createPackage('php', '-1 hour'),
             self::createPackage('ext-intl', '-1 hour'),
         ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame([
-            'vendor/root',
-            'php',
-            'ext-intl',
-        ], self::getNames($kept));
-    }
-
-    public function testAMinimumAgeOfZeroKeepsEveryVersion(): void
-    {
-        $kept = new ReleaseAge(0)->getAcceptedPackages([self::createPackage('vendor/fresh', '-1 second')], new DateTimeImmutable(self::NOW));
-
-        self::assertSame(['vendor/fresh'], self::getNames($kept));
+        self::assertSame([], $heldBackPackages);
     }
 
     public function testTheSettingsAreReadFromTheNestedExtraKey(): void
@@ -89,26 +70,23 @@ final class ReleaseAgeTest extends TestCase
             'minimum-release-age-excludes' => ['vendor/*'],
         ]);
 
-        $kept = $releaseAge->getAcceptedPackages([
+        $heldBackPackages = $releaseAge->getHeldBackPackages([
             self::createPackage('other/fresh', '-30 minutes'),
             self::createPackage('other/settled', '-2 hours'),
             self::createPackage('vendor/fresh', '-30 minutes'),
         ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame([
-            'other/settled',
-            'vendor/fresh',
-        ], self::getNames($kept));
+        self::assertSame(['other/fresh'], self::getNames($heldBackPackages));
     }
 
     public function testNoSettingsMeansSevenDays(): void
     {
-        $kept = self::createReleaseAge([])->getAcceptedPackages([
+        $heldBackPackages = self::createReleaseAge([])->getHeldBackPackages([
             self::createPackage('vendor/fresh', '-6 days'),
             self::createPackage('vendor/settled', '-8 days'),
         ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame(['vendor/settled'], self::getNames($kept));
+        self::assertSame(['vendor/fresh'], self::getNames($heldBackPackages));
     }
 
     #[DataProvider('provideAMalformedSettingIsRejectedCases')]
@@ -137,9 +115,11 @@ final class ReleaseAgeTest extends TestCase
 
     public function testADevVersionIsKeptHoweverYoung(): void
     {
-        $kept = new ReleaseAge()->getAcceptedPackages([self::createPackage('vendor/branch', '-1 hour', 'dev-main')], new DateTimeImmutable(self::NOW));
+        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
+            self::createPackage('vendor/branch', '-1 hour', 'dev-main'),
+        ], new DateTimeImmutable(self::NOW));
 
-        self::assertSame(['vendor/branch'], self::getNames($kept));
+        self::assertSame([], $heldBackPackages);
     }
 
     public function testOnlyCheckedVersionsWithoutAReleaseTimeAreListed(): void
