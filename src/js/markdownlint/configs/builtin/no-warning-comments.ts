@@ -5,7 +5,8 @@
 import { packageOrganization } from '#shared/utils/package-json.ts';
 import { createPattern } from '#shared/utils/pattern.ts';
 
-import type { MicromarkToken, Rule, RuleOnError } from 'markdownlint';
+import type { MicromarkToken, RuleOnError } from 'markdownlint';
+import type { BuiltinRule } from '#markdownlint/types/rules.ts';
 
 const SCANNED_TOKEN_TYPES = new Set([
   'codeFlowValue',
@@ -47,7 +48,7 @@ const walkTokens = (tokens: MicromarkToken[], onError: RuleOnError): void => {
 /**
  * @see https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-warning-comments.md
  */
-export const noWarningCommentsRule = {
+export const noWarningCommentsRule: BuiltinRule = {
   names: [`${packageOrganization}/no-warning-comments`],
   description: 'Open work belongs in a backlog, not in a comment.',
   information: new URL('https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-warning-comments.md'),
@@ -56,4 +57,4 @@ export const noWarningCommentsRule = {
   function: (parameters, onError): void => {
     walkTokens(parameters.parsers.micromark.tokens, onError);
   },
-} satisfies Rule;
+};

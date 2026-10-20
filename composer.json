@@ -141,6 +141,13 @@
         "conf/ai/mate/config.php"
       ]
     },
+    "brnshkr": {
+      "config": {
+        "file-finder-excludes": [
+          "docs/js/markdownlint/rules/no-php-open-tag.md"
+        ]
+      }
+    },
     "class": "Brnshkr\\Config\\Composer\\Plugin"
   },
   "minimum-stability": "stable",

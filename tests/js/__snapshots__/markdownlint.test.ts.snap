@@ -3,6 +3,7 @@
 exports[`expected markdownlint config 1`] = `
 {
   "config": {
+    "brnshkr/no-php-open-tag": true,
     "brnshkr/no-warning-comments": true,
     "code-block-style": {
       "style": "fenced",
@@ -211,6 +212,17 @@ exports[`expected markdownlint config 1`] = `
     },
   },
   "customRules": [
+    {
+      "description": "A PHP open tag turns the rest of the page into PHP for the PHP tools.",
+      "information": "https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-php-open-tag.md",
+      "names": [
+        "brnshkr/no-php-open-tag",
+      ],
+      "parser": "micromark",
+      "tags": [
+        "code",
+      ],
+    },
     {
       "description": "Open work belongs in a backlog, not in a comment.",
       "information": "https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-warning-comments.md",

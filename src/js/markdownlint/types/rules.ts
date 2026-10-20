@@ -9,6 +9,13 @@ import type {
   SetextHeadingBlankLinesConfig,
 } from '@hongminhee/markdownlint-rules';
 
+import type { Rule } from 'markdownlint';
+import type { packageOrganization } from '#shared/utils/package-json.ts';
+
+export interface BuiltinRule extends Rule {
+  names: [`${typeof packageOrganization}/${string}`];
+}
+
 export type TableStyle = 'aligned' | 'compact' | 'tight' | 'any';
 export type SearchScope = 'all' | 'code' | 'text';
 

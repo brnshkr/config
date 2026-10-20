@@ -15,6 +15,7 @@
         ],
         "excludePaths": {
             "analyseAndScan": [
+                "./docs/js/markdownlint/rules/no-php-open-tag.md",
                 "./tests/php/Fixtures"
             ]
         },
