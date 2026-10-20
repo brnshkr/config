@@ -4,16 +4,10 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
-
-import {
-  GLOB_PHP,
-  GLOB_PHP_HTML_BLOCKS,
-  GLOB_PHP_REGEXP_BLOCKS,
-  GLOB_PHP_TEMPLATE_FILES,
-} from '#eslint/utils/globs.ts';
-
+import { GLOB_PHP_HTML_BLOCKS, GLOB_PHP_REGEXP_BLOCKS } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, PACKAGES } from '#eslint/utils/module.ts';
 import { PHP_INDENT } from '#shared/utils/constants.ts';
+import { GLOB_PHP, GLOB_PHP_TEMPLATE_FILES } from '#shared/utils/globs.ts';
 import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 

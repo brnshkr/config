@@ -913,10 +913,12 @@ _ESLINT_EXTENSIONS := $(if $(_HAS_ESLINT),js cjs mjs jsx \
 	$(call _when_installed,css,node_modules/@eslint/css) \
 	$(call _when_installed,md,node_modules/@eslint/markdown))
 
-_STYLELINT_EXTENSIONS := $(if $(_HAS_STYLELINT),css \
+_STYLELINT_EXTENSIONS := $(if $(_HAS_STYLELINT),css md markdown js cjs mjs jsx \
+	$(call _when_installed,ts cts mts tsx,node_modules/typescript) \
+	$(if $(_HAS_PHP),php) \
 	$(call _when_installed,less,node_modules/stylelint-config-standard-less) \
 	$(call _when_installed,scss,node_modules/stylelint-config-standard-scss) \
-	$(call _when_installed,ejs html svelte svg vue astro xml,node_modules/stylelint-config-html))
+	$(call _when_installed,ejs html svelte svg vue astro xml phtml,node_modules/stylelint-config-html))
 
 _PHPUNIT_NAME       := $(if $(_TESTS_DIRECTORY),$(call _get_tracked_tool,phpunit,$(and $(_HAS_PHP),$(_HAS_PHPUNIT)),PHP_EXTENSIONS))
 _PHPSTAN_NAME       := $(call _get_tracked_tool,phpstan,$(and $(_HAS_PHP),$(_HAS_PHPSTAN)),PHP_EXTENSIONS)
@@ -2656,6 +2658,9 @@ $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for 
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,stylelint-print),$(_STYLELINT_VALUE_FLAGS))
 	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) --print-config $(ARGS)
+
+$(call _target,stylelint) $(call _target,stylelint-group): export BRNSHKR_STYLELINT_CONFIG = $(STYLELINT_CONFIG)
+$(call _target,stylelint) $(call _target,stylelint-group): _FORWARDED_KEYS += BRNSHKR_STYLELINT_CONFIG
 
 endif # /stylelint
 

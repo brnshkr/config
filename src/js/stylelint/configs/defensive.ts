@@ -2,6 +2,9 @@
  * @internal @brnshkr/config/stylelint
  */
 
+import { GLOB_FENCED_CODE_BLOCKS } from '#stylelint/configs/builtin/fenced-code.ts';
+import { OVERRIDES } from '#stylelint/types/overrides.ts';
+import { buildOverrideName } from '#stylelint/utils/config.ts';
 import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
 
 import type { Config } from '#stylelint/types/config.ts';
@@ -27,6 +30,16 @@ export const defensive = (): Config[] => {
           strict: true,
         }],
       },
+      overrides: [
+        {
+          name: buildOverrideName(OVERRIDES.DEFENSIVE_FENCED_CODE_BLOCKS),
+          files: [GLOB_FENCED_CODE_BLOCKS],
+          rules: {
+            // eslint-disable-next-line unicorn/no-null -- Null is required here
+            'defensive-css/require-at-layer': null,
+          },
+        },
+      ],
     },
   ];
 };

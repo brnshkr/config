@@ -13,7 +13,6 @@ import {
   GLOB_DEVELOPMENT_FILES,
   GLOB_DTS,
   GLOB_EXAMPLES,
-  GLOB_HTML,
   GLOB_JSDOC_EXPRESSION_FILES,
   GLOB_MD_CODE_BLOCKS,
   GLOB_SCRIPT_FILES,
@@ -35,6 +34,7 @@ import {
 } from '#eslint/utils/module.ts';
 
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { GLOB_HTML } from '#shared/utils/globs.ts';
 import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 

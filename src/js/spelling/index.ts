@@ -1,9 +1,9 @@
 import path from 'node:path';
 
-import { getEnvironmentValue } from '#shared/utils/environment.ts';
 import { readTextFile } from '#shared/utils/filesystem.ts';
 import { readOwnValue } from '#shared/utils/object.ts';
 import { createPattern } from '#shared/utils/pattern.ts';
+import { getConfigDirectory } from '#shared/utils/project-directory.ts';
 import { collectFilePaths } from '#spelling/utils/files.ts';
 import { buildPatterns } from '#spelling/utils/patterns.ts';
 import { readAllowlist, readSettings } from '#spelling/utils/settings.ts';
@@ -17,7 +17,6 @@ import type {
 } from '#spelling/types/options.ts';
 
 const EVERY_PATH = '*';
-const DEFAULT_CONFIG_DIRECTORY = 'conf';
 
 const maskAllowedLiterals = (
   line: string,
@@ -110,11 +109,9 @@ const findInFile = (
  * ```
  */
 export const scan = (options?: Partial<SpellingOptions>): SpellingFinding[] => {
-  const configDirectory = getEnvironmentValue('BRNSHKR_CONFIG_DIR') ?? '';
-
   const {
     rootDirectory = process.cwd(),
-    configPath = `${configDirectory === '' ? DEFAULT_CONFIG_DIRECTORY : configDirectory}/spelling.json`,
+    configPath = `${getConfigDirectory()}/spelling.json`,
     paths,
   } = options ?? {};
 

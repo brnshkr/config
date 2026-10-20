@@ -3,7 +3,8 @@
  */
 
 import { createModuleState, resolvePackagesSharedSynchronously } from '#shared/utils/module.ts';
-import { STYLELINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { ESLINT_PACKAGES, STYLELINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 import type { ModuleInfo, PackageResolver } from '#shared/utils/module.ts';
 import type { StylelintPackage } from '#shared/utils/package-resolvers.ts';
@@ -12,6 +13,9 @@ import type { configs } from '#stylelint/configs/index.ts';
 export { STYLELINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
+  [packageOrganization]: {
+    name: packageOrganization,
+  },
   baseline: {
     name: 'baseline',
     packages: {
@@ -50,6 +54,14 @@ export const MODULES = <const>{
     packages: {
       requiredAll: [
         STYLELINT_PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
+      ],
+    },
+  },
+  markdown: {
+    name: 'markdown',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.ESLINT_MARKDOWN,
       ],
     },
   },
@@ -113,7 +125,12 @@ export const MODULES = <const>{
       ],
     },
   },
-} satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly StylelintPackage[]>>>;
+} satisfies Partial<Record<
+  keyof typeof configs,
+  ModuleInfo<readonly (StylelintPackage | typeof ESLINT_PACKAGES.ESLINT_MARKDOWN)[]>
+>>;
 
+// eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+export const BUILTIN_MODULE = MODULES[packageOrganization];
 export const resolvePackages: PackageResolver<StylelintPackage> = resolvePackagesSharedSynchronously;
 export const { isModuleEnabled, setModuleEnabled } = createModuleState();

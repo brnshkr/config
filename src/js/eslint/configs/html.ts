@@ -7,19 +7,17 @@ import { ATTRIBUTE_GROUP_PREFIXES, ATTRIBUTE_ORDER, TRAILING_ATTRIBUTES } from '
 import { buildConfigName } from '#eslint/utils/config.ts';
 
 import {
-  GLOB_BLADE,
   GLOB_HANDLEBARS,
   GLOB_HTML_ERB,
   GLOB_HTML_FILES,
-  GLOB_HTML_PHP,
   GLOB_HTML_TWIG,
   GLOB_NUNJUCKS,
-  GLOB_PHTML,
   GLOB_SCRIPT_FILES,
 } from '#eslint/utils/globs.ts';
 
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { INDENT, MAX_EMPTY_LINES, MAX_LEN } from '#shared/utils/constants.ts';
+import { GLOB_BLADE, GLOB_HTML_PHP, GLOB_PHTML } from '#shared/utils/globs.ts';
 import { objectEntries, objectFromEntries, readOwnValue } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';

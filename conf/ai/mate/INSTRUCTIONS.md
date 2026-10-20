@@ -71,8 +71,9 @@ follow them, don't restate them. Beyond what tooling catches:
   standalone facts → capital + period.
 - Examples use the Acme universe (vendor `Acme`, modules `User` + `Email`); never `App`.
 - PHP code blocks in docblocks and `.md` are checked, formatted and refactored (`FencedCodeRule`,
-  `Brnshkr/fenced_code`, `FencedCodeRector`; Twig blocks are formatted, XML and Makefile ones checked):
-  no open tag or strict-types/XML declaration, import every name, deliberate mistakes under `<!-- brnshkr-skip -->`.
+  `Brnshkr/fenced_code`, `FencedCodeRector`; Twig blocks are formatted, XML and Makefile ones checked,
+  stylesheet ones linted by `brnshkr/fenced-code`): no open tag or strict-types/XML declaration, import every name,
+  deliberate mistakes under `<!-- brnshkr-skip -->`.
 - Never enumerate exhaustive sets ("all rules", full lists) — they drift. Describe intent; concrete items only as "e.g.".
 
 ## Commits

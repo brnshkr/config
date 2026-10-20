@@ -21,9 +21,15 @@
   "stylelint.validate": [
     "css",
     "html",
+    "javascript",
+    "javascriptreact",
     "less",
+    "markdown",
+    "php",
     "scss",
     "svelte",
+    "typescript",
+    "typescriptreact",
     "vue-html",
     "vue",
     "xml"

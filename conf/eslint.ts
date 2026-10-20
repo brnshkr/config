@@ -162,7 +162,7 @@ export default getConfig({
   },
 }, {
   files: [
-    'docs/js/stylelint.md/**',
+    'docs/js/stylelint/index.md/**',
   ],
   rules: {
     'unicorn/no-null': 'off',

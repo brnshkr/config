@@ -4,13 +4,29 @@
 
 import path from 'node:path';
 
-import { getEnvironmentValue } from '#shared/utils/environment.ts';
+import { getCacheDirectory, getLocalDirectory } from '#shared/utils/project-directory.ts';
 
-const getDirectoryGlob = (variableName: string, defaultDirectory: string): string => {
-  const configuredDirectory = getEnvironmentValue(variableName) ?? '';
+const getDirectoryGlob = (directory: string): string => `**/${path.normalize(directory)}/**`;
 
-  return `**/${path.normalize(configuredDirectory === '' ? defaultDirectory : configuredDirectory)}/**`;
-};
+export const GLOB_JS_TS = '**/*.?(c|m)[jt]s?(x)';
+export const GLOB_HTML = '**/*.htm?(l)';
+export const GLOB_HTML_PHP = `${GLOB_HTML}.php`;
+export const GLOB_BLADE = '**/*.blade.php';
+export const GLOB_PHTML = '**/*.phtml';
+export const GLOB_PHP = '**/*.php';
+
+export const MARKDOWN_EXTENSIONS = <const>[
+  'md',
+  'markdown',
+] satisfies string[];
+
+export const GLOB_MD = `**/*.{${MARKDOWN_EXTENSIONS.join(',')}}`;
+
+export const GLOB_PHP_TEMPLATE_FILES = <const>[
+  GLOB_HTML_PHP,
+  GLOB_PHTML,
+  GLOB_BLADE,
+] satisfies string[];
 
 export const GLOB_TEST_FILES = <const>[
   '**/__tests__/**/*.?(c|m)[jt]s?(x)',
@@ -24,14 +40,14 @@ export const GLOB_BENCHMARK_FILES = <const>[
 ] satisfies string[];
 
 export const GLOB_IGNORES = <const>[
-  getDirectoryGlob('BRNSHKR_CACHE_DIR', '.cache'),
+  getDirectoryGlob(getCacheDirectory()),
   '**/.changeset/**',
   '**/.git/objects/**',
   '**/.git/subtree-cache/**',
   '**/.hg/store/**',
   '**/.history/**',
   '**/.idea/**',
-  getDirectoryGlob('BRNSHKR_LOCAL_DIR', '.local'),
+  getDirectoryGlob(getLocalDirectory()),
   '**/.next/**',
   '**/.nuxt/**',
   '**/.output/**',

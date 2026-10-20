@@ -95,6 +95,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
+    {
+      "ruleName": "brnshkr/fenced-code",
+    },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
@@ -2255,6 +2258,9 @@ exports[`expected stylelint config > config-groups 1`] = `
   "1.css": [
     "1.css",
   ],
+  "11.phtml": [
+    "11.phtml",
+  ],
   "2.scss": [
     "2.scss",
   ],
@@ -2266,6 +2272,18 @@ exports[`expected stylelint config > config-groups 1`] = `
   ],
   "5.less": [
     "5.less",
+  ],
+  "6.md": [
+    "6.md",
+    "7.ts",
+    "8.php",
+  ],
+  "6.md/0.fenced.css": [
+    "6.md/0.fenced.css",
+  ],
+  "9.blade.php": [
+    "9.blade.php",
+    "10.html.php",
   ],
 }
 `;
@@ -2280,6 +2298,9 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
+    {
+      "ruleName": "brnshkr/fenced-code",
+    },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
@@ -2629,6 +2650,9 @@ exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-use-nesting/index.mjs",
     "<root>/node_modules/stylelint-declaration-strict-value/dist/index.modern.mjs",
+    {
+      "ruleName": "brnshkr/fenced-code",
+    },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
     "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
@@ -2671,5 +2695,53 @@ exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
     },
     "removedKeys": [],
   },
+}
+`;
+
+exports[`expected stylelint config > diff: 6.md (from 3.html) 1`] = `
+{
+  "+_resolvedCustomSyntax": {},
+  "+name": "brnshkr/fenced-code-rule",
+  "customSyntax": {},
+  "rules": {
+    "addedValues": {
+      "brnshkr/fenced-code": [
+        true,
+      ],
+    },
+    "changedValues": {
+      "no-empty-source": null,
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected stylelint config > diff: 6.md/0.fenced.css (from 1.css) 1`] = `
+{
+  "+name": "brnshkr/fenced-code-blocks",
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "defensive-css/require-at-layer": null,
+      "no-unknown-animations": null,
+      "no-unknown-custom-media": null,
+      "no-unknown-custom-properties": null,
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected stylelint config > diff: 9.blade.php (from 6.md) 1`] = `
+{
+  "-_resolvedCustomSyntax": {},
+  "customSyntax": "postcss-html",
+}
+`;
+
+exports[`expected stylelint config > diff: 11.phtml (from 3.html) 1`] = `
+{
+  "+name": "brnshkr/php-template",
 }
 `;

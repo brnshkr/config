@@ -113,6 +113,7 @@
     "markdownlint-rule-search-replace": "^1.2.0",
     "markdownlint-rule-table-format": "^1.0.3",
     "node-modules-inspector": "^2.7.0",
+    "postcss": "^8.5.28",
     "postcss-html": "^2.0.0",
     "scslre": "^0.3.0",
     "stylelint": "^17.16.0",
@@ -288,6 +289,9 @@
     "node-modules-inspector": {
       "optional": true
     },
+    "postcss": {
+      "optional": true
+    },
     "postcss-html": {
       "optional": true
     },
@@ -409,6 +413,7 @@
     "markdownlint-rule-table-format": "1.0.3",
     "minimatch": "10.2.6",
     "node-modules-inspector": "2.7.0",
+    "postcss": "8.5.28",
     "postcss-html": "2.0.0",
     "scslre": "0.3.0",
     "stylelint": "17.16.0",

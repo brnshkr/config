@@ -1,7 +1,14 @@
 import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 import { configs } from '#stylelint/configs/index.ts';
 import { getUserConfigs, includeConfigs } from '#stylelint/utils/config.ts';
-import { isModuleEnabled, MODULES, setModuleEnabled } from '#stylelint/utils/module.ts';
+
+import {
+  BUILTIN_MODULE,
+  isModuleEnabled,
+  MODULES,
+  setModuleEnabled,
+} from '#stylelint/utils/module.ts';
 
 import type { Config } from '#stylelint/types/config.ts';
 import type { ResolvedOptions, UserOptions } from '#stylelint/types/options.ts';
@@ -19,7 +26,7 @@ import type { ResolvedOptions, UserOptions } from '#stylelint/types/options.ts';
  *
  * @returns final Stylelint config ready to be consumed by Stylelint
  *
- * @see https://github.com/brnshkr/config/blob/master/docs/js/stylelint.md
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/stylelint/index.md
  *
  * @example
  * ```js
@@ -45,11 +52,13 @@ export const getConfig = (
   ...additionalConfigs: Config[]
 ): Config => {
   const resolvedOptions = <const>{
+    [packageOrganization]: isModuleEnabledByDefault(BUILTIN_MODULE),
     baseline: isModuleEnabledByDefault(MODULES.baseline),
     defensive: isModuleEnabledByDefault(MODULES.defensive),
     dialect: {},
     html: isModuleEnabledByDefault(MODULES.html),
     less: isModuleEnabledByDefault(MODULES.less),
+    markdown: isModuleEnabledByDefault(MODULES.markdown),
     modules: isModuleEnabledByDefault(MODULES.modules),
     nesting: isModuleEnabledByDefault(MODULES.nesting),
     order: isModuleEnabledByDefault(MODULES.order),
@@ -60,10 +69,13 @@ export const getConfig = (
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
+  // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+  setModuleEnabled(BUILTIN_MODULE, resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.baseline, resolvedOptions.baseline);
   setModuleEnabled(MODULES.defensive, resolvedOptions.defensive);
   setModuleEnabled(MODULES.html, resolvedOptions.html);
   setModuleEnabled(MODULES.less, resolvedOptions.less);
+  setModuleEnabled(MODULES.markdown, resolvedOptions.markdown);
   setModuleEnabled(MODULES.modules, resolvedOptions.modules);
   setModuleEnabled(MODULES.nesting, resolvedOptions.nesting);
   setModuleEnabled(MODULES.order, resolvedOptions.order);
@@ -119,6 +131,15 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.tailwind)) {
     includeConfigs(config, configs.tailwind());
+  }
+
+  if (isModuleEnabled(BUILTIN_MODULE)) {
+    // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+    includeConfigs(config, configs[packageOrganization]());
+  }
+
+  if (isModuleEnabled(BUILTIN_MODULE) && isModuleEnabled(MODULES.markdown)) {
+    includeConfigs(config, configs.markdown(config));
   }
 
   includeConfigs(config, getUserConfigs(resolvedOptions, additionalConfigs));

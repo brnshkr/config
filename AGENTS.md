@@ -18,7 +18,7 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 
 - `src/js/eslint/` — flat-config builder; rule groups in `configs/` (incl. custom rules `configs/builtin/`)
   lazy plugin loading `utils/module.ts`, typegen output `types/`
-- `src/js/stylelint/` — config builder, named modes in `configs/`
+- `src/js/stylelint/` — config builder, named modes in `configs/` (incl. custom rules `configs/builtin/`)
 - `src/php/` — builders `PhpStan.php`, `Rector.php`, `PhpCsFixer.php`,
   `TwigCsFixer.php`, `FileFinder.php`; Composer plugin `Composer/`;
   custom rules `PhpStan/Rule/`, `PhpCsFixer/Fixer/`, `Rector/Rule/`

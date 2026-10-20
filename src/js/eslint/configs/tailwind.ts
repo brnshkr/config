@@ -4,10 +4,11 @@
 
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
-import { GLOB_CSS, GLOB_HTML, GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
+import { GLOB_CSS, GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 import { INDENT, MAX_LEN } from '#shared/utils/constants.ts';
+import { GLOB_HTML } from '#shared/utils/globs.ts';
 import { isPlainObject, objectEntries } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';

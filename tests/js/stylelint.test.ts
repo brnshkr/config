@@ -16,6 +16,9 @@ test('expected stylelint config', async () => {
     globs: (config.overrides ?? [])
       .flatMap(({ files }) => (Array.isArray(files) ? files : [files]))
       .filter((glob) => typeof glob === 'string'),
+    virtualFiles: [
+      '6.md/0.fenced.css',
+    ],
     resolve: async (filePath) => <JsonObject><unknown>(await stylelint.resolveConfig(filePath, {
       config,
     })),
