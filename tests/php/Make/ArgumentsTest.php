@@ -7,6 +7,7 @@ namespace Brnshkr\Config\Tests\Make;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -36,6 +37,30 @@ final class ArgumentsTest extends TestCase
         );
 
         self::assertStringContainsString('`vendor/..` cannot name a package', $result);
+    }
+
+    #[DataProvider('provideABareExportIsRefusedCases')]
+    public function testABareExportIsRefused(string $exportLine): void
+    {
+        $directory = $this->writeProject('BareExport');
+
+        new Filesystem()->appendToFile($directory . '/Makefile', $exportLine . "\n");
+
+        $result = $this->runMake(['help'], directory: $directory, doExpectFailure: true);
+
+        self::assertStringContainsString('`Makefile:2` exports every variable. Export each one by name instead.', $result);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideABareExportIsRefusedCases(): iterable
+    {
+        yield 'bare' => ['export'];
+
+        yield 'commented' => ['export # Acme passes everything on'];
+
+        yield 'special target' => ['.EXPORT_ALL_VARIABLES:'];
     }
 
     public function testACollidingNameStaysWithTheProjectAndTheSharedOneMovesAside(): void

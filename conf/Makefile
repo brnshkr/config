@@ -1024,6 +1024,7 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 	/^ifdef|^ifndef|^ifeq|^ifneq/ { depth += 1; next } \
 	/^endif/ { if (skip == depth) skip = 0; depth -= 1; next } \
 	skip { next } \
+	/^export[[:space:]]*(\043.*)?$$/ || /^\.EXPORT_ALL_VARIABLES[[:space:]]*:/ { printf "!export|%s:%d ", FILENAME, FNR; next } \
 	{ start_line = FNR } \
 	/^[^\043\t=]*\\$$/ { while ($$0 ~ /\\$$/ && (getline continuation) > 0) { \
 		sub(/[[:space:]]*\\$$/, " "); sub(/^[[:space:]]+/, "", continuation); $$0 = $$0 continuation \
@@ -1038,6 +1039,13 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 	}' \
 	$(MAKEFILE_LIST) \
 )
+
+_BARE_EXPORTS   := $(patsubst !export|%,%,$(filter !export|%,$(_TARGET_SOURCES)))
+_TARGET_SOURCES := $(filter-out !export|%,$(_TARGET_SOURCES))
+
+ifneq ($(_BARE_EXPORTS),)
+$(error [$(_LABEL)] `$(call _mask_control_characters,$(firstword $(_BARE_EXPORTS)),$(_CONTROL_CHARACTERS))` exports every variable. Export each one by name instead)
+endif
 
 _TARGET_FILES := $(foreach SOURCE,$(_TARGET_SOURCES),$(firstword $(subst :, ,$(SOURCE))))
 
