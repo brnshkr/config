@@ -13,6 +13,7 @@ import {
   GLOB_DEVELOPMENT_FILES,
   GLOB_DTS,
   GLOB_EXAMPLES,
+  GLOB_HTML_FILES,
   GLOB_JSDOC_EXPRESSION_FILES,
   GLOB_MD_CODE_BLOCKS,
   GLOB_SCRIPT_FILES,
@@ -34,7 +35,6 @@ import {
 } from '#eslint/utils/module.ts';
 
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
-import { GLOB_HTML } from '#shared/utils/globs.ts';
 import { doAllPackagesExist } from '#shared/utils/module.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 
@@ -378,7 +378,7 @@ const buildHtmlOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
     ...((isModuleEnabled(MODULES.tailwind) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS]))
       ? [{
         name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/tailwind`),
-        files: [GLOB_HTML],
+        files: GLOB_HTML_FILES,
         rules: {
           'html/class-spacing': 'off',
           'html/no-duplicate-class': 'off',

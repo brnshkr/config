@@ -4,76 +4,14 @@
 
 import type { CSSLanguageOptions } from '@eslint/css';
 import type { Linter } from 'eslint';
+import type { Settings } from 'eslint-plugin-better-tailwindcss/api/types';
 import type { Config, TsEslintParserOptions } from '#eslint/types/config.ts';
 import type { CssDialect } from '#shared/utils/dialect.ts';
 import type { packageOrganization } from '#shared/utils/package-json.ts';
 
+export type TailwindOptions = Settings;
+
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
-export interface TailwindOptions {
-  /**
-   * Directory Tailwind CSS and its configuration are resolved from.
-   *
-   * @default undefined
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#cwd
-   */
-  cwd: string;
-
-  /**
-   * Treats the component classes a project defines in CSS as known.
-   *
-   * @default true
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#detectcomponentclasses
-   */
-  detectComponentClasses: boolean;
-
-  /**
-   * Path to the CSS file holding the Tailwind CSS theme.
-   *
-   * @default undefined
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#entrypoint
-   */
-  entryPoint: string;
-
-  /**
-   * How a message shows a class list.
-   *
-   * @default `"visual", or "compact" in CI.`
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#messagestyle
-   */
-  messageStyle: 'compact' | 'raw' | 'visual';
-
-  /**
-   * Root font size in pixels.
-   *
-   * @default 16
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#rootfontsize
-   */
-  rootFontSize: number;
-
-  /**
-   * Path to the JavaScript configuration of Tailwind CSS 3.
-   *
-   * @default undefined
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#tailwindconfig
-   */
-  tailwindConfig: string;
-
-  /**
-   * Path to the TypeScript configuration file, used to resolve path aliases.
-   *
-   * @default `The tsconfig.json file the "typescript" module uses.`
-   *
-   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/settings/settings.md#tsconfig
-   */
-  tsconfig: string;
-}
-
 export interface CssOptions {
   /**
    * Additional syntax definitions, e.g. project specific at-rules.

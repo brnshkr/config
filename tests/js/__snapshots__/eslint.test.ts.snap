@@ -1329,7 +1329,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "jsonc:eslint-plugin-jsonc@3.4.2",
     "toml:eslint-plugin-toml@1.5.0",
     "yaml:eslint-plugin-yml@3.9.0",
-    "css:@eslint/css@2.0.0",
+    "css:@eslint/css@2.0.1",
     "tailwind:better-tailwindcss",
     "html:@html-eslint/eslint-plugin@0.66.1",
     "html-scripts",
@@ -25265,14 +25265,8 @@ exports[`expected eslint config > diff: 33.html.php (from 32.html) 1`] = `
   "rules": {
     "addedValues": {},
     "changedValues": {
-      "html/class-spacing": [
-        2,
-      ],
       "html/indent": [
         0,
-        2,
-      ],
-      "html/no-duplicate-class": [
         2,
       ],
       "html/require-meta-charset": [
@@ -25291,22 +25285,7 @@ exports[`expected eslint config > diff: 33.html.php (from 32.html) 1`] = `
         0,
       ],
     },
-    "removedKeys": [
-      "tailwind/enforce-consistent-class-order",
-      "tailwind/enforce-consistent-line-wrapping",
-      "tailwind/no-deprecated-classes",
-      "tailwind/no-duplicate-classes",
-      "tailwind/no-unnecessary-whitespace",
-      "tailwind/enforce-canonical-classes",
-      "tailwind/no-concatenated-classes",
-      "tailwind/no-conflicting-classes",
-      "tailwind/no-unknown-classes",
-      "tailwind/enforce-consistent-important-position",
-      "tailwind/enforce-consistent-variable-syntax",
-      "tailwind/enforce-consistent-variant-order",
-      "tailwind/enforce-logical-properties",
-      "tailwind/no-restricted-classes",
-    ],
+    "removedKeys": [],
   },
 }
 `;
