@@ -155,6 +155,7 @@
   "config": {
     "sort-packages": true,
     "allow-plugins": {
+      "brnshkr/config": true,
       "pestphp/pest-plugin": true,
       "php-http/discovery": false,
       "phpstan/extension-installer": true,
