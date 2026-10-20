@@ -3772,7 +3772,8 @@ has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] \
 if [ -z "$$has_spinner" ]; then \
 	spin_command; \
 else \
-	export _SPIN_STATUS=$$($(MKTEMP)); \
+	_SPIN_STATUS="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	export _SPIN_STATUS; \
 	script_command='trap "printf $(_INTERRUPT_EXIT_CODE) > \"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); printf "%s" $$? > "$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
 		set -- -qfc "$$script_command" /dev/null; \
