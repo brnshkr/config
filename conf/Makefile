@@ -4353,13 +4353,21 @@ END { if (!has_failed) close_entry() }
 endef
 
 define _GITATTRIBUTES_PROGRAM_SOURCE
-$$manifest = json_decode((string) file_get_contents($$argv[1]), true, flags: JSON_THROW_ON_ERROR);
+declare(strict_types=1);
 
-$$shippedPaths = ['composer.json', 'LICENSE', 'README.md'];
-$$declaredPaths = array_filter(explode(' ', $$argv[2] ?? ''));
+/**
+ * @var array{
+ *     autoload?: array<string, array<string, string|list<string>>|list<string>>,
+ *     bin?: string|list<string>,
+ * } $$manifest
+ */
+$$manifest = \json_decode((string) \file_get_contents($$argv[1]), true, flags: \JSON_THROW_ON_ERROR);
+
+$$shippedPaths  = ['composer.json', 'LICENSE', 'README.md'];
+$$declaredPaths = \array_filter(\explode(' ', $$argv[2] ?? ''), static fn (string $$path): bool => $$path !== '');
 
 foreach (['psr-4', 'psr-0', 'classmap', 'files'] as $$section) {
-    foreach ((array) ($$manifest['autoload'][$$section] ?? []) as $$sectionPaths) {
+    foreach ($$manifest['autoload'][$$section] ?? [] as $$sectionPaths) {
         foreach ((array) $$sectionPaths as $$sectionPath) {
             $$shippedPaths[] = $$sectionPath;
         }
@@ -4370,26 +4378,30 @@ foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
     $$shippedPaths[] = $$binaryPath;
 }
 
-$$projectDirectory = dirname($$argv[1]);
-$$doesExist = static fn (string $$path): bool => file_exists(
-    $$projectDirectory . '/' . mb_trim((string) preg_replace('#^(?:\./)+#', '', $$path), '/'),
+$$projectDirectory = \dirname($$argv[1]);
+
+$$doesExist = static fn (string $$path): bool => \file_exists(
+    $$projectDirectory . '/' . \mb_trim((string) \preg_replace('#^(?:\./)+#', '', $$path), '/'),
 );
-$$shippedPaths = array_filter($$shippedPaths, $$doesExist);
-$$declaredPaths = array_filter($$declaredPaths, $$doesExist);
+
+$$shippedPaths  = \array_filter($$shippedPaths, $$doesExist);
+$$declaredPaths = \array_filter($$declaredPaths, $$doesExist);
 
 if ($$shippedPaths === [] && $$declaredPaths === []) {
     exit(0);
 }
 
-$$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirectory): array {
+$$expand = static function (bool $$doesExpandDirectories, string ...$$paths) use ($$projectDirectory): array {
     $$expandedPaths = [];
 
     foreach ($$paths as $$path) {
-        $$path = (string) preg_replace('#^(?:\./)+#', '', $$path);
-        $$isWholeTree = $$wholeTree
-            ? is_dir($$projectDirectory . '/' . mb_trim($$path, '/'))
-            : str_ends_with($$path, '/');
-        $$path = '/' . mb_trim($$path, '/');
+        $$path = (string) \preg_replace('#^(?:\./)+#', '', $$path);
+
+        $$isWholeTree = $$doesExpandDirectories
+            ? \is_dir($$projectDirectory . '/' . \mb_trim($$path, '/'))
+            : \str_ends_with($$path, '/');
+
+        $$path            = '/' . \mb_trim($$path, '/');
         $$expandedPaths[] = $$path;
 
         if ($$isWholeTree) {
@@ -4400,40 +4412,46 @@ $$expand = static function (array $$paths, bool $$wholeTree) use ($$projectDirec
     return $$expandedPaths;
 };
 
-$$shippedPaths = [...$$expand($$shippedPaths, true), ...$$expand($$declaredPaths, false)];
-$$shippedLookup = array_flip($$shippedPaths);
+$$shippedPaths  = [...$$expand(true, ...$$shippedPaths), ...$$expand(false, ...$$declaredPaths)];
+$$shippedLookup = \array_flip($$shippedPaths);
 
 foreach ($$shippedPaths as $$path) {
-    while (($$path = dirname($$path)) !== '/' && $$path !== '.') {
+    while (($$path = \dirname($$path)) !== '/' && $$path !== '.') {
         $$shippedPaths[] = $$path;
     }
 }
 
-$$shippedPaths = array_values(array_unique($$shippedPaths));
+$$shippedPaths = \array_values(\array_unique($$shippedPaths));
 
-sort($$shippedPaths);
+\sort($$shippedPaths);
 
-$$pathWidth = max(array_map(mb_strlen(...), [...$$shippedPaths, '*']));
+$$pathWidth = \max(\array_map(mb_strlen(...), [...$$shippedPaths, '*']));
+
 $$renderedLines = [
-    mb_str_pad('*', $$pathWidth) . '  export-ignore',
-    mb_str_pad('.*', $$pathWidth) . '  export-ignore',
+    \mb_str_pad('*', $$pathWidth) . '  export-ignore',
+    \mb_str_pad('.*', $$pathWidth) . '  export-ignore',
 ];
 
-foreach ($$shippedPaths as $$path) {
-    $$renderedLines[] = mb_str_pad($$path, $$pathWidth) . ' -export-ignore'
-        . (isset($$shippedLookup[$$path]) ? '' : ' -export-subst');
+foreach ($$shippedPaths as $$shippedPath) {
+    $$renderedLines[] = \mb_str_pad($$shippedPath, $$pathWidth) . ' -export-ignore'
+        . (isset($$shippedLookup[$$shippedPath]) ? '' : ' -export-subst');
 }
 
-echo implode("\n", $$renderedLines), "\n";
+echo \implode("\n", $$renderedLines), "\n";
 endef
 
 define _NAME_INTERNAL_TAG_PROGRAM_SOURCE
+declare(strict_types=1);
+
+use Brnshkr\Config\ComposerJson;
+
 require $$argv[1];
 
-$$path = $$argv[2];
-$$namespace = Brnshkr\Config\ComposerJson::forProjectUsingThisLibrary()->getRootNamespace() ?? 'App';
+$$path           = $$argv[2];
+$$namespace      = ComposerJson::forProjectUsingThisLibrary()->getRootNamespace() ?? 'App';
+$$configContents = (string) \file_get_contents($$path);
 
-file_put_contents($$path, preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, file_get_contents($$path), 1));
+\file_put_contents($$path, \preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, $$configContents, 1));
 endef
 
 define _LAYOUT_AWK_SOURCE
@@ -4515,67 +4533,87 @@ fi
 endef
 
 define _RULES_PROGRAM_SOURCE
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Contract\Rector\RectorInterface;
+use Rector\DependencyInjection\LazyContainerFactory;
+use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
+use TwigCsFixer\Config\Config;
+
 [, $$autoloaderPath, $$toolName, $$configPath, $$urlTemplate, $$appDirectory, $$hostDirectory] = $$argv;
 
 require $$autoloaderPath;
 
 if ($$toolName === 'rector') {
-    $$rectorConfig = new Rector\DependencyInjection\LazyContainerFactory()->create();
+    $$rectorConfig = new LazyContainerFactory()->create();
 
-    (require $$configPath)($$rectorConfig);
+    /**
+     * @var callable(RectorConfig $$rectorConfig): void $$configureRector
+     */
+    $$configureRector = require $$configPath;
+
+    $$configureRector($$rectorConfig);
 
     $$rectorConfig->boot();
 
-    $$rules = $$rectorConfig->findByContract(Rector\Contract\Rector\RectorInterface::class);
+    $$rules = $$rectorConfig->findByContract(RectorInterface::class);
 
-    $$skippedRuleNames = array_keys(array_filter(
-        $$rectorConfig->make(Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver::class)->resolve(),
+    $$skippedRuleNames = \array_keys(\array_filter(
+        $$rectorConfig->make(SkippedClassResolver::class)->resolve(),
         static fn (?array $$paths): bool => $$paths === null,
     ));
 } else {
-    $$rules            = (require $$configPath)->getRuleset()->getRules();
-    $$skippedRuleNames = [];
+    /**
+     * @var Config $$twigCsFixerConfig
+     */
+    $$twigCsFixerConfig = require $$configPath;
+    $$rules             = $$twigCsFixerConfig->getRuleset()->getRules();
+    $$skippedRuleNames  = [];
 }
 
-$$ruleNames = array_values(array_unique(array_map(static fn (object $$rule): string => $$rule::class, $$rules)));
+$$ruleNames = \array_map(static fn (object $$rule): string => $$rule::class, $$rules)
+    |> \array_unique(...)
+    |> \array_values(...);
 
-sort($$ruleNames);
-sort($$skippedRuleNames);
+\sort($$ruleNames);
+\sort($$skippedRuleNames);
 
 $$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$hostDirectory): string {
-    $$fileName = $$urlTemplate === '' || !class_exists($$name) ? false : new ReflectionClass($$name)->getFileName();
+    $$fileName = $$urlTemplate === '' || !\class_exists($$name) ? false : new \ReflectionClass($$name)->getFileName();
 
     if ($$fileName === false) {
         return $$name;
     }
 
-    $$isInApp = str_starts_with($$fileName, $$appDirectory . '/');
-    $$url     = strtr($$urlTemplate, [
+    $$isInApp = \str_starts_with($$fileName, $$appDirectory . '/');
+
+    $$url = \strtr($$urlTemplate, [
         '{cwd}'  => $$isInApp ? $$hostDirectory : '',
-        '{file}' => $$isInApp ? mb_substr($$fileName, mb_strlen($$appDirectory) + 1) : mb_ltrim($$fileName, '/'),
-        '{line}' => (string) new ReflectionClass($$name)->getStartLine(),
+        '{file}' => $$isInApp ? \mb_substr($$fileName, \mb_strlen($$appDirectory) + 1) : \mb_ltrim($$fileName, '/'),
+        '{line}' => (string) new \ReflectionClass($$name)->getStartLine(),
     ]);
 
     return "\033]8;;" . $$url . "\033\\" . $$name . "\033]8;;\033\\";
 };
 
-$$printSection = static function (string $$title, array $$names) use ($$link): void {
-    echo $$title, PHP_EOL, str_repeat('=', mb_strlen($$title)), PHP_EOL, PHP_EOL;
+$$printSection = static function (string $$title, string ...$$names) use ($$link): void {
+    echo $$title, \PHP_EOL, \str_repeat('=', \mb_strlen($$title)), \PHP_EOL, \PHP_EOL;
 
     foreach ($$names as $$name) {
-        echo ' * ', $$link($$name), PHP_EOL;
+        echo ' * ', $$link($$name), \PHP_EOL;
     }
 
-    echo PHP_EOL;
+    echo \PHP_EOL;
 };
 
-$$printSection(sprintf('Loaded %s rules', $$toolName), $$ruleNames);
+$$printSection(\sprintf('Loaded %s rules', $$toolName), ...$$ruleNames);
 
 if ($$skippedRuleNames !== []) {
-    $$printSection(sprintf('Skipped %s rules', $$toolName), $$skippedRuleNames);
+    $$printSection(\sprintf('Skipped %s rules', $$toolName), ...$$skippedRuleNames);
 }
 
-printf('Loaded %d rules%s', count($$ruleNames), PHP_EOL);
+\printf('Loaded %d rules%s', \count($$ruleNames), \PHP_EOL);
 endef
 
 define _CHANGELOG_SECTION_AWK_SOURCE

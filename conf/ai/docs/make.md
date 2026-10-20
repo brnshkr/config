@@ -26,3 +26,5 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
 - A help feature gets an entry in `Fixtures/Make/Help/`.
 - Clear `MAKEFLAGS` when a test runs make.
 - A new way checkout data reaches make becomes a `FuzzTest` channel, with the targets that read it.
+- `ProgramsTest` parses every embedded program and holds the PHP ones to this repository's PHPStan, php-cs-fixer and
+  Rector configs; a finding only a script earns is ignored in `Fixtures/Make/Programs/phpstan.php`.

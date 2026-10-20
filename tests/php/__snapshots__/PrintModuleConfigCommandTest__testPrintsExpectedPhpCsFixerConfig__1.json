@@ -297,6 +297,7 @@
         "./tests/php/Make/HelpTest.php",
         "./tests/php/Make/OutputTest.php",
         "./tests/php/Make/PackTest.php",
+        "./tests/php/Make/ProgramsTest.php",
         "./tests/php/Make/StartupTest.php",
         "./tests/php/Make/ToolsTest.php",
         "./tests/php/Make/Trait/ContainerTrait.php",
