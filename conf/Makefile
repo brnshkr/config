@@ -4887,8 +4887,8 @@ function flush(section, version, compare,    position, label, printed_labels, ou
 	return out
 }
 BEGIN {
-	RS = "\x1e"
-	FS = "\x1f"
+	RS = "\036"
+	FS = "\037"
 	other = "📌 Other"
 	breaking_label = "⚠ Breaking changes"
 	_URL = ENVIRON["_CHANGELOG_URL"]
