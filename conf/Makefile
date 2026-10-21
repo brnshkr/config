@@ -2090,7 +2090,8 @@ _CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
 _CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
 _CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
 _CHANGELOG_VERSION  = $(shell $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)' 2>/dev/null || printf '%s' '$(VERSION)')
-_CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_END))
+_CHANGELOG_TO       = $(if $(and $(filter HEAD,$(_CHANGELOG_END)),$(_CHANGELOG_VERSION)),v$(patsubst v%,%,$(_CHANGELOG_VERSION)),$(_CHANGELOG_END))
+_CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGELOG_URL)/compare/$(_CHANGELOG_START)...$(_CHANGELOG_TO))
 
 _CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
 	| $(AWK) '!/^[A-Za-z0-9._+\/-]+$$/ { print; exit }')
