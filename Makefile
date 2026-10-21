@@ -9,7 +9,7 @@ include ./conf/Makefile
 
 #--- release
 
-VERSION := 0.0.1-beta.8
+VERSION := 0.0.1-beta.9
 
 ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/Makefile.dist \
