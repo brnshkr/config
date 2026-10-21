@@ -582,7 +582,7 @@ Variables:
   commitlint
    COMMITLINT                      ?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs commitlint)
    COMMITLINT_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to commitlint config)
-   COMMITLINT_RANGE                ?=                                                   (commit range to lint, as <from>..<to>, not one message)
+   COMMITLINT_RANGE                ?=  $(if $(_CI_RANGE_START),$(_CI_RANGE_START)..HEA… (commit range to lint, as <from>..<to>, read from GitHub and GitLab CI)
    COMMITLINT_SOURCE               ?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages commitlint reads)
    COMMITLINT_FLAGS                ?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to commitlint)
   eslint
@@ -1627,7 +1627,7 @@ Available commands:
   [35mcommitlint[0m
    [36mCOMMITLINT                    [0m  [90m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [35mcommitlint[0m[90m)[0m
    [36mCOMMITLINT_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to [35mcommitlint[0m[90m config)[0m
-   [36mCOMMITLINT_RANGE              [0m  [90m?=                                                   (commit range to lint, as [35m<from>..<to>[0m[90m, not one message)[0m
+   [36mCOMMITLINT_RANGE              [0m  [90m?=  $(if $(_CI_RANGE_START),$(_CI_RANGE_START)..HEA… (commit range to lint, as [35m<from>..<to>[0m[90m, read from GitHub and GitLab CI)[0m
    [36mCOMMITLINT_SOURCE             [0m  [90m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [35mcommitlint[0m[90m reads)[0m
    [36mCOMMITLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [35mcommitlint[0m[90m)[0m
   [35meslint[0m
@@ -2087,7 +2087,7 @@ Available commands:
   [33mcommitlint[0m
    [32mCOMMITLINT                    [0m  [0m?=  $(BUN) $(BUN_FLAGS) x commitlint                 (command that runs [33mcommitlint[0m[0m)[0m
    [32mCOMMITLINT_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commit… (path to [33mcommitlint[0m[0m config)[0m
-   [32mCOMMITLINT_RANGE              [0m  [0m?=                                                   (commit range to lint, as [33m<from>..<to>[0m[0m, not one message)[0m
+   [32mCOMMITLINT_RANGE              [0m  [0m?=  $(if $(_CI_RANGE_START),$(_CI_RANGE_START)..HEA… (commit range to lint, as [33m<from>..<to>[0m[0m, read from GitHub and GitLab CI)[0m
    [32mCOMMITLINT_SOURCE             [0m  [0m?=  $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COM… (which messages [33mcommitlint[0m[0m reads)[0m
    [32mCOMMITLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLO… (additional flags passed to [33mcommitlint[0m[0m)[0m
   [33meslint[0m

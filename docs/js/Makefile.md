@@ -21,8 +21,8 @@ Each tool reads its config from `./conf/`, e.g. `./conf/eslint.dist.mjs`, and th
 ESLint and Vitest read `./conf/eslint.ts` and `./conf/vitest.ts` first. `typescript` uses your `tsconfig.json`.
 
 Without arguments `commitlint` lints `.git/COMMIT_EDITMSG`, the message you are committing,
-or the last commit on a fresh clone.
-To lint more, pass a range:
+or the last commit on a fresh clone. In GitHub and GitLab CI it lints every commit the push or pull request brings.
+To lint a range of your own, pass it:
 
 ```sh
 make commitlint COMMITLINT_RANGE=origin/master..HEAD

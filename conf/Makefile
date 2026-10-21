@@ -2503,11 +2503,23 @@ ifneq ($(_HAS_COMMITLINT),) # commitlint
 
 COMMITLINT        ?= $(BUN) $(BUN_FLAGS) x commitlint#v #~~ command that runs `commitlint`
 COMMITLINT_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/commitlint.mjs $(APP_DIR)/$(_CONFIG_DIR)/commitlint.dist.mjs,js)#v #~~ path to `commitlint` config
-COMMITLINT_RANGE  ?= #vv #~~ commit range to lint, as `<from>..<to>`, not one message
+COMMITLINT_RANGE  ?= $(if $(_CI_RANGE_START),$(_CI_RANGE_START)..HEAD)#vv #~~ commit range to lint, as `<from>..<to>`, read from GitHub and GitLab CI
 COMMITLINT_SOURCE ?= $(if $(COMMITLINT_RANGE),--from $(word 1,$(_COMMITLINT_PARTS)) --to $(or $(word 2,$(_COMMITLINT_PARTS)),HEAD),$(if $(wildcard $(CURDIR)/.git/COMMIT_EDITMSG),--edit,--last))#vv #~~ which messages `commitlint` reads
 COMMITLINT_FLAGS  ?= $(if $(_IS_DEBUG),--verbose) $(if $(_IS_NO_COLOR),--color false)#v #~~ additional flags passed to `commitlint`
 
-_COMMITLINT_PARTS = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
+_COMMITLINT_PARTS  = $(subst .., ,$(subst ...,..,$(COMMITLINT_RANGE)))
+_EMPTY_COMMIT     := 0000000000000000000000000000000000000000
+
+_GITHUB_PUSH_START = $(if $(wildcard $(GITHUB_EVENT_PATH)),$(shell $(AWK) \
+	'match($$0, /"before"[[:space:]]*:[[:space:]]*"[0-9a-f]+"/) { before = substr($$0, RSTART, RLENGTH); gsub(/.*"before"[[:space:]]*:[[:space:]]*"|"$$/, "", before); print before; exit }' \
+	'$(GITHUB_EVENT_PATH)'))
+
+_CI_RANGE_START = $(filter-out $(_EMPTY_COMMIT),$(firstword \
+	$(if $(GITHUB_BASE_REF),origin/$(GITHUB_BASE_REF)) \
+	$(_GITHUB_PUSH_START) \
+	$(CI_MERGE_REQUEST_DIFF_BASE_SHA) \
+	$(CI_COMMIT_BEFORE_SHA) \
+))
 
 _LAYERED_CONFIGS += $(call _layered,$(COMMITLINT_CONFIG),mjs)
 

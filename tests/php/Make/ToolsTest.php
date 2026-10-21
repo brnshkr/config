@@ -9,6 +9,7 @@ use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -30,10 +31,11 @@ final class ToolsTest extends TestCase
     use ContainerTrait;
     use MatchesSnapshots;
 
-    private const string LINTERS_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Linters';
-    private const string COVERAGE_DIRECTORY = __DIR__ . '/../Fixtures/Make/Coverage';
-    private const string SETTINGS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Settings';
-    private const string COMPOSER_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
+    private const string LINTERS_DIRECTORY       = __DIR__ . '/../Fixtures/Make/Linters';
+    private const string COVERAGE_DIRECTORY      = __DIR__ . '/../Fixtures/Make/Coverage';
+    private const string SETTINGS_DIRECTORY      = __DIR__ . '/../Fixtures/Make/Settings';
+    private const string COMPOSER_DIRECTORY      = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
+    private const string GITHUB_EVENTS_DIRECTORY = __DIR__ . '/../Fixtures/Make/GitHubEvents';
 
     #[Before]
     #[After]
@@ -154,6 +156,53 @@ final class ToolsTest extends TestCase
     public function testActionlintResolvesItsWorkflows(): void
     {
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));
+    }
+
+    /**
+     * @param array<string, string> $environment
+     */
+    #[DataProvider('provideCommitlintReadsTheRangeTheCiNamesCases')]
+    public function testCommitlintReadsTheRangeTheCiNames(array $environment, string $expectedSource): void
+    {
+        $result = $this->runMake(['-n', 'commitlint'], [
+            'CI_COMMIT_BEFORE_SHA'           => '',
+            'CI_MERGE_REQUEST_DIFF_BASE_SHA' => '',
+            'GITHUB_BASE_REF'                => '',
+            'GITHUB_EVENT_PATH'              => '',
+            ...$environment,
+        ], self::TOOLS_DIRECTORY);
+
+        self::assertStringContainsString($expectedSource, $result);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>, string}>
+     */
+    public static function provideCommitlintReadsTheRangeTheCiNamesCases(): iterable
+    {
+        $commit      = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+        $emptyCommit = '0000000000000000000000000000000000000000';
+        $commitRange = '--from ' . $commit . ' --to HEAD';
+
+        yield 'GitHub pull request' => [['GITHUB_BASE_REF' => 'master'], '--from origin/master --to HEAD'];
+
+        yield 'GitHub push' => [['GITHUB_EVENT_PATH' => self::GITHUB_EVENTS_DIRECTORY . '/push.json'], $commitRange];
+
+        yield 'GitHub new branch' => [['GITHUB_EVENT_PATH' => self::GITHUB_EVENTS_DIRECTORY . '/new-branch.json'], '--last'];
+
+        yield 'GitLab merge request' => [['CI_MERGE_REQUEST_DIFF_BASE_SHA' => $commit], $commitRange];
+
+        yield 'GitLab push' => [['CI_COMMIT_BEFORE_SHA' => $commit], $commitRange];
+
+        yield 'GitLab new branch' => [['CI_COMMIT_BEFORE_SHA' => $emptyCommit], '--last'];
+
+        yield 'a range set by hand' => [
+            [
+                'COMMITLINT_RANGE' => 'origin/dev..HEAD',
+                'GITHUB_BASE_REF'  => 'master',
+            ],
+            '--from origin/dev --to HEAD',
+        ];
     }
 
     public function testAContainerOffersALinterOnlyWhereItsServiceOrTheImageCarriesIt(): void
