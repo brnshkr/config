@@ -35,9 +35,13 @@ export const yaml = async (): Promise<Config[]> => {
         ...renameRules(pluginYaml.configs.standard[2]?.rules, { yml: 'yaml' }),
         /* eslint-enable no-magic-numbers */
         'yaml/file-extension': 'error',
+        'yaml/flow-mapping-curly-newline': ['error', {
+          consistent: true,
+        }],
         'yaml/flow-mapping-curly-spacing': ['error', 'always', {
           emptyObjects: 'never',
         }],
+        'yaml/flow-sequence-bracket-newline': ['error', 'consistent'],
         'yaml/indent': ['error', INDENT],
         'yaml/no-boolean-key': 'error',
         'yaml/quotes': ['error', {

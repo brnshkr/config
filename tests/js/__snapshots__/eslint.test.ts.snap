@@ -13282,6 +13282,9 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       ],
       "yaml/flow-mapping-curly-newline": [
         2,
+        {
+          "consistent": true,
+        },
       ],
       "yaml/flow-mapping-curly-spacing": [
         2,
@@ -13292,6 +13295,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       ],
       "yaml/flow-sequence-bracket-newline": [
         2,
+        "consistent",
       ],
       "yaml/flow-sequence-bracket-spacing": [
         2,
@@ -22766,6 +22770,7 @@ exports[`expected eslint config > diff: 20.toml (from .circleci/config.yml) 1`] 
     "addedValues": {
       "toml/array-bracket-newline": [
         2,
+        "consistent",
       ],
       "toml/array-bracket-spacing": [
         2,
@@ -22773,6 +22778,7 @@ exports[`expected eslint config > diff: 20.toml (from .circleci/config.yml) 1`] 
       ],
       "toml/array-element-newline": [
         2,
+        "consistent",
       ],
       "toml/comma-style": [
         2,
@@ -22783,6 +22789,9 @@ exports[`expected eslint config > diff: 20.toml (from .circleci/config.yml) 1`] 
       ],
       "toml/inline-table-curly-newline": [
         2,
+        {
+          "consistent": true,
+        },
       ],
       "toml/inline-table-curly-spacing": [
         2,
@@ -25306,6 +25315,7 @@ exports[`expected eslint config > diff: 34.inc.php (from 20.toml) 1`] = `
     ],
     "toml/array-bracket-newline": [
       2,
+      "consistent",
     ],
     "toml/array-bracket-spacing": [
       2,
@@ -25313,6 +25323,7 @@ exports[`expected eslint config > diff: 34.inc.php (from 20.toml) 1`] = `
     ],
     "toml/array-element-newline": [
       2,
+      "consistent",
     ],
     "toml/comma-style": [
       2,
@@ -25323,6 +25334,9 @@ exports[`expected eslint config > diff: 34.inc.php (from 20.toml) 1`] = `
     ],
     "toml/inline-table-curly-newline": [
       2,
+      {
+        "consistent": true,
+      },
     ],
     "toml/inline-table-curly-spacing": [
       2,
