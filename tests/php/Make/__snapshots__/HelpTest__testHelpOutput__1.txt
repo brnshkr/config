@@ -227,6 +227,7 @@ Variables:
    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
   setup
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
+   TRUST_CERTIFICATE           ?=  $(CURDIR)/$(_CACHE_DIR)/xdg.cache/caddy/pki/aut… (certificate authority trust installs)
   release
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
@@ -512,6 +513,8 @@ Available commands:
 +   utilities
 +    AWK                        ?=  awk                                              (path to awk binary)
 +    CAT                        ?=  cat                                              (path to cat binary)
++    CERTUTIL                   ?=  certutil                                         (path to NSS's certutil binary)
++    CERTUTIL_EXE               ?=  certutil.exe                                     (path to Windows' certutil.exe binary)
 +    CHMOD                      ?=  chmod                                            (path to chmod binary)
 +    CMP                        ?=  cmp                                              (path to cmp binary)
 +    CP                         ?=  cp                                               (path to cp binary)
@@ -529,12 +532,16 @@ Available commands:
 +    PS                         ?=  ps                                               (path to ps binary)
 +    RM                         :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
 +    SCRIPT                     ?=  script                                           (path to script binary)
++    SECURITY                   ?=  security                                         (path to macOS's security binary)
 +    SLEEP                      ?=  sleep                                            (path to sleep binary)
 +    SORT                       ?=  sort                                             (path to sort binary)
 +    STTY                       ?=  stty                                             (path to stty binary)
++    SUDO                       ?=  sudo                                             (path to sudo binary)
 +    TAR                        ?=  tar                                              (path to tar binary)
 +    TPUT                       ?=  tput                                             (path to tput binary)
 +    TR                         ?=  tr                                               (path to tr binary)
++    UPDATE_CA_CERTS            ?=  update-ca-certificates                           (path to update-ca-certificates binary)
++    WSLPATH                    ?=  wslpath                                          (path to wslpath binary)
    container
     COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
     APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
@@ -578,24 +585,24 @@ Available commands:
     HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
    actionlint
 @@ @@
-    text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
-+
+ 
 +    parameters:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
- 
++
 +    returns: string
 +
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
      Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
+     A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
- 
++
 +    parameters:
 +      message: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
@@ -603,30 +610,31 @@ Available commands:
 +      autolink?: OneOf<autolink | no-autolink> = autolink
 +
 +    returns: void
-+
+ 
     run_in
      The command a tool named for a compose service runs through, empty on this machine.
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
- 
++
 +    parameters:
 +      service: string
 +
 +    returns: string
-+
+ 
     confirm
      Asks a yes/no question before something destructive happens.
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
      It succeeds on yes, so the caller reads it as a condition and says what it skipped.
- 
++
 +    parameters:
 +      question: string
 +      default?: OneOf<yes | no> = no
 +
 +    returns: void
-+
+ 
   app
    advanced
+@@ @@
     resolve_env
      Resolves the environment name from context.
      Defaults to dev when ENV is not set.
@@ -1102,6 +1110,8 @@ Available commands:
    [35mutilities[0m
     [36mAWK                      [0m  [90m?=  awk                                              (path to [35mawk[0m[90m binary)[0m
     [36mCAT                      [0m  [90m?=  cat                                              (path to [35mcat[0m[90m binary)[0m
+    [36mCERTUTIL                 [0m  [90m?=  certutil                                         (path to NSS's [35mcertutil[0m[90m binary)[0m
+    [36mCERTUTIL_EXE             [0m  [90m?=  certutil.exe                                     (path to Windows' [35mcertutil.exe[0m[90m binary)[0m
     [36mCHMOD                    [0m  [90m?=  chmod                                            (path to [35mchmod[0m[90m binary)[0m
     [36mCMP                      [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
     [36mCP                       [0m  [90m?=  cp                                               (path to [35mcp[0m[90m binary)[0m
@@ -1119,12 +1129,16 @@ Available commands:
     [36mPS                       [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
     [36mRM                       [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                   [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
+    [36mSECURITY                 [0m  [90m?=  security                                         (path to macOS's [35msecurity[0m[90m binary)[0m
     [36mSLEEP                    [0m  [90m?=  sleep                                            (path to [35msleep[0m[90m binary)[0m
     [36mSORT                     [0m  [90m?=  sort                                             (path to [35msort[0m[90m binary)[0m
     [36mSTTY                     [0m  [90m?=  stty                                             (path to [35mstty[0m[90m binary)[0m
+    [36mSUDO                     [0m  [90m?=  sudo                                             (path to [35msudo[0m[90m binary)[0m
     [36mTAR                      [0m  [90m?=  tar                                              (path to [35mtar[0m[90m binary)[0m
     [36mTPUT                     [0m  [90m?=  tput                                             (path to [35mtput[0m[90m binary)[0m
     [36mTR                       [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
+    [36mUPDATE_CA_CERTS          [0m  [90m?=  update-ca-certificates                           (path to [35mupdate-ca-certificates[0m[90m binary)[0m
+    [36mWSLPATH                  [0m  [90m?=  wslpath                                          (path to [35mwslpath[0m[90m binary)[0m
   [35mcontainer[0m
    [36mCOMPOSE_FILE              [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
@@ -1219,6 +1233,7 @@ Available commands:
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
+   [36mTRUST_CERTIFICATE         [0m  [90m?=  $(CURDIR)/$(_CACHE_DIR)/xdg.cache/caddy/pki/aut… (certificate authority [35mtrust[0m[90m installs)[0m
   [35mrelease[0m
    [36mCHANGELOG_RANGE           [0m  [90m?=                                                   (commit range the changelog covers)[0m
    [36mCHANGELOG_URL             [0m  [90m?=                                                   (base URL a commit hash links to)[0m
@@ -1434,6 +1449,8 @@ Available commands:
    [33mutilities[0m
     [32mAWK                      [0m  [0m?=  awk                                              (path to [33mawk[0m[0m binary)[0m
     [32mCAT                      [0m  [0m?=  cat                                              (path to [33mcat[0m[0m binary)[0m
+    [32mCERTUTIL                 [0m  [0m?=  certutil                                         (path to NSS's [33mcertutil[0m[0m binary)[0m
+    [32mCERTUTIL_EXE             [0m  [0m?=  certutil.exe                                     (path to Windows' [33mcertutil.exe[0m[0m binary)[0m
     [32mCHMOD                    [0m  [0m?=  chmod                                            (path to [33mchmod[0m[0m binary)[0m
     [32mCMP                      [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
     [32mCP                       [0m  [0m?=  cp                                               (path to [33mcp[0m[0m binary)[0m
@@ -1451,12 +1468,16 @@ Available commands:
     [32mPS                       [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
     [32mRM                       [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                   [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
+    [32mSECURITY                 [0m  [0m?=  security                                         (path to macOS's [33msecurity[0m[0m binary)[0m
     [32mSLEEP                    [0m  [0m?=  sleep                                            (path to [33msleep[0m[0m binary)[0m
     [32mSORT                     [0m  [0m?=  sort                                             (path to [33msort[0m[0m binary)[0m
     [32mSTTY                     [0m  [0m?=  stty                                             (path to [33mstty[0m[0m binary)[0m
+    [32mSUDO                     [0m  [0m?=  sudo                                             (path to [33msudo[0m[0m binary)[0m
     [32mTAR                      [0m  [0m?=  tar                                              (path to [33mtar[0m[0m binary)[0m
     [32mTPUT                     [0m  [0m?=  tput                                             (path to [33mtput[0m[0m binary)[0m
     [32mTR                       [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
+    [32mUPDATE_CA_CERTS          [0m  [0m?=  update-ca-certificates                           (path to [33mupdate-ca-certificates[0m[0m binary)[0m
+    [32mWSLPATH                  [0m  [0m?=  wslpath                                          (path to [33mwslpath[0m[0m binary)[0m
   [33mcontainer[0m
    [32mCOMPOSE_FILE              [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
@@ -1551,6 +1572,7 @@ Available commands:
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
+   [32mTRUST_CERTIFICATE         [0m  [0m?=  $(CURDIR)/$(_CACHE_DIR)/xdg.cache/caddy/pki/aut… (certificate authority [33mtrust[0m[0m installs)[0m
   [33mrelease[0m
    [32mCHANGELOG_RANGE           [0m  [0m?=                                                   (commit range the changelog covers)[0m
    [32mCHANGELOG_URL             [0m  [0m?=                                                   (base URL a commit hash links to)[0m

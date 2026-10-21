@@ -9,6 +9,8 @@ use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
+use function array_map;
+
 /**
  * @internal
  */
@@ -19,6 +21,7 @@ final class StartupTest extends TestCase
 
     private const string STARTUP_DIRECTORY = __DIR__ . '/../Fixtures/Make/Startup';
     private const string STARTER_DIRECTORY = __DIR__ . '/../Fixtures/Make/Starter';
+    private const string TRUST_DIRECTORY   = __DIR__ . '/../Fixtures/Make/Trust';
 
     public function testStartupInstallsEachStackThenRunsTheProjectsOwnTargets(): void
     {
@@ -59,6 +62,27 @@ final class StartupTest extends TestCase
         self::assertStringContainsString(' run --rm app yarn install', $inService);
         self::assertStringContainsString('yarn install', $onThisMachine);
         self::assertStringNotContainsString('docker', $onThisMachine);
+    }
+
+    public function testTrustInstallsTheCertificateAuthorityWhereThisMachineKeepsItsRoots(): void
+    {
+        [$windows, $linux, $unknown] = array_map(
+            fn (string $binDirectory): string => $this->runMake(
+                ['trust'],
+                [
+                    'HOME' => self::TRUST_DIRECTORY,
+                    'PATH' => self::TRUST_DIRECTORY . $binDirectory . ':/usr/bin:/bin',
+                ],
+                self::TRUST_DIRECTORY,
+                doExpectFailure: $binDirectory === '',
+            ),
+            ['/bin-wsl', '/bin-linux', ''],
+        );
+
+        self::assertMatchesRegularExpression('#certutil\.exe -addstore -user Root wslpath -w \S+/Trust/\.cache/xdg\.cache/caddy/#', $windows);
+        self::assertMatchesRegularExpression('#sudo cp \S+/root\.crt /usr/local/share/ca-certificates/Trust\.crt#', $linux);
+        self::assertStringContainsString('sudo update-ca-certificates', $linux);
+        self::assertStringContainsString('No trust store found', $unknown);
     }
 
     public function testTheStarterHandsComposeTheEnvironmentFilesResolvedAsAWhole(): void

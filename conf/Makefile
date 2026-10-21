@@ -267,31 +267,37 @@ DOCKER_COMPOSE ?= $(DOCKER) compose#~~ command that runs `compose`
 
 #---- utilities
 
-AWK     ?= awk#~~ path to `awk` binary
-CAT     ?= cat#~~ path to `cat` binary
-CHMOD   ?= chmod#~~ path to `chmod` binary
-CMP     ?= cmp#~~ path to `cmp` binary
-CP      ?= cp#~~ path to `cp` binary
-CURL    ?= curl#~~ path to `curl` binary
-DATE    ?= date#~~ path to `date` binary
-ENV_BIN ?= env#~~ path to `env` binary
-FIND    ?= find#~~ path to `find` binary
-GIT     ?= git#~~ path to `git` binary
-ID      ?= id#~~ path to `id` binary
-LN      ?= ln#~~ path to `ln` binary
-LS      ?= ls#~~ path to `ls` binary
-MKDIR   ?= mkdir#~~ path to `mkdir` binary
-MKTEMP  ?= mktemp#~~ path to `mktemp` binary
-MV      ?= mv#~~ path to `mv` binary
-PS      ?= ps#~~ path to `ps` binary
-RM      := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
-SCRIPT  ?= script#~~ path to `script` binary
-SLEEP   ?= sleep#~~ path to `sleep` binary
-SORT    ?= sort#~~ path to `sort` binary
-STTY    ?= stty#~~ path to `stty` binary
-TAR     ?= tar#~~ path to `tar` binary
-TPUT    ?= tput#~~ path to `tput` binary
-TR      ?= tr#~~ path to `tr` binary
+AWK             ?= awk#~~ path to `awk` binary
+CAT             ?= cat#~~ path to `cat` binary
+CERTUTIL        ?= certutil#~~ path to NSS's `certutil` binary
+CERTUTIL_EXE    ?= certutil.exe#~~ path to Windows' `certutil.exe` binary
+CHMOD           ?= chmod#~~ path to `chmod` binary
+CMP             ?= cmp#~~ path to `cmp` binary
+CP              ?= cp#~~ path to `cp` binary
+CURL            ?= curl#~~ path to `curl` binary
+DATE            ?= date#~~ path to `date` binary
+ENV_BIN         ?= env#~~ path to `env` binary
+FIND            ?= find#~~ path to `find` binary
+GIT             ?= git#~~ path to `git` binary
+ID              ?= id#~~ path to `id` binary
+LN              ?= ln#~~ path to `ln` binary
+LS              ?= ls#~~ path to `ls` binary
+MKDIR           ?= mkdir#~~ path to `mkdir` binary
+MKTEMP          ?= mktemp#~~ path to `mktemp` binary
+MV              ?= mv#~~ path to `mv` binary
+PS              ?= ps#~~ path to `ps` binary
+RM              := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
+SCRIPT          ?= script#~~ path to `script` binary
+SECURITY        ?= security#~~ path to macOS's `security` binary
+SLEEP           ?= sleep#~~ path to `sleep` binary
+SORT            ?= sort#~~ path to `sort` binary
+STTY            ?= stty#~~ path to `stty` binary
+SUDO            ?= sudo#~~ path to `sudo` binary
+TAR             ?= tar#~~ path to `tar` binary
+TPUT            ?= tput#~~ path to `tput` binary
+TR              ?= tr#~~ path to `tr` binary
+UPDATE_CA_CERTS ?= update-ca-certificates#~~ path to `update-ca-certificates` binary
+WSLPATH         ?= wslpath#~~ path to `wslpath` binary
 
 #---v container
 
@@ -1807,6 +1813,27 @@ $(call _target,cc): #~~ clears the named caches, or all of them
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 		fi; \
 	fi
+
+TRUST_CERTIFICATE ?= $(CURDIR)/$(_CACHE_DIR)/xdg.cache/caddy/pki/authorities/local/root.crt#v #~~ certificate authority `trust` installs
+_TRUST_NAME        = $(subst /,-,$(subst @,,$(_LABEL)))
+
+ifneq ($(wildcard $(TRUST_CERTIFICATE)),)
+$(call _target,trust): #~~ makes this machine's browsers trust the project's certificate authority
+	$(DEBUG_PREFIX)if command -v '$(CERTUTIL_EXE)' >/dev/null 2>&1; then \
+		'$(CERTUTIL_EXE)' -addstore -user Root "$$('$(WSLPATH)' -w '$(TRUST_CERTIFICATE)')"; \
+	elif command -v '$(SECURITY)' >/dev/null 2>&1; then \
+		'$(SUDO)' '$(SECURITY)' add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain '$(TRUST_CERTIFICATE)'; \
+	elif command -v '$(UPDATE_CA_CERTS)' >/dev/null 2>&1; then \
+		'$(SUDO)' $(CP) '$(TRUST_CERTIFICATE)' '/usr/local/share/ca-certificates/$(_TRUST_NAME).crt' \
+			&& '$(SUDO)' '$(UPDATE_CA_CERTS)'; \
+	else \
+		$(call log,No trust store found: neither `%s`$(_COMMA) `%s` nor `%s` exists.,$(COLOR_ERROR),'$(CERTUTIL_EXE)' '$(SECURITY)' '$(UPDATE_CA_CERTS)') >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	fi || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	if command -v '$(CERTUTIL)' >/dev/null 2>&1 && [ -d "$$HOME/.pki/nssdb" ]; then \
+		'$(CERTUTIL)' -d "sql:$$HOME/.pki/nssdb" -A -t C,, -n '$(_TRUST_NAME)' -i '$(TRUST_CERTIFICATE)'; \
+	fi
+endif
 
 _IS_FRESH_ALL    = $(filter --all -a,$(_ARGS))
 _FRESH_UNTRACKED = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --exclude-standard
