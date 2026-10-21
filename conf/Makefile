@@ -1865,6 +1865,7 @@ CHANGELOG_SKIPPED_TYPES ?= test	\
 
 CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	a11y=♿_Accessibility \
+	actions=⚙️_CI \
 	admin=🛠️_Admin \
 	ai=🤖_AI \
 	api=🔌_API \
@@ -1877,6 +1878,7 @@ CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	composer=📦_Composer \
 	config=🔧_Configuration \
 	db=🗄️_Database \
+	deps=📦_Dependencies \
 	docker=🐳_Docker \
 	docs=📚_Documentation \
 	events=📡_Events \
