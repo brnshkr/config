@@ -24,7 +24,7 @@ make help phpstan                       # only what belongs to phpstan
 make check                              # every linter and analyzer, without changing files
 make fix                                # every fixer, writing its fixes
 make test                               # every stack's tests
-make ci                                 # check, audit and test, stopping at the first failure
+make ci                                 # fix, then check, audit and test, failing at the end
 make phpstan src/User                   # anything after a target goes to the tool
 make phpunit -- --filter 'User|Email'   # flags go after --
 make -j check                           # runs the tools in parallel

@@ -122,7 +122,7 @@ Available commands:
    test, t        runs the tests of every stack this project has
    test-update    runs those tests and updates their snapshots
    coverage       runs the tests and fails below the minimum coverage
-   ci             runs check, audit and test, stopping at the first failure
+   ci             runs fix, check, audit and test, failing at the end if any of them failed
   setup
    startup        installs everything and writes missing files
    configs        writes the files this project is missing
@@ -337,7 +337,7 @@ Available commands:
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
    coverage               runs the tests and fails below the minimum coverage
-   ci                     runs check, audit and test, stopping at the first failure
+   ci                     runs fix, check, audit and test, failing at the end if any of them failed
    fixtures               builds the fixtures this project's tests read
   setup
    startup                installs everything and writes missing files
@@ -685,7 +685,7 @@ Available commands:
    test, t                runs the tests of every stack this project has
    test-update            runs those tests and updates their snapshots
    coverage               runs the tests and fails below the minimum coverage
-   ci                     runs check, audit and test, stopping at the first failure
+   ci                     runs fix, check, audit and test, failing at the end if any of them failed
    fixtures               builds the fixtures this project's tests read
   setup
    startup                installs everything and writes missing files
@@ -1005,7 +1005,7 @@ Available commands:
 -   test, t                runs the tests of every stack this project has
 -   test-update            runs those tests and updates their snapshots
 -   coverage               runs the tests and fails below the minimum coverage
--   ci                     runs check, audit and test, stopping at the first failure
+-   ci                     runs fix, check, audit and test, failing at the end if any of them failed
 -   fixtures               builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
@@ -1015,7 +1015,7 @@ Available commands:
 +   test, t                                  runs the tests of every stack this project has
 +   test-update                              runs those tests and updates their snapshots
 +   coverage                                 runs the tests and fails below the minimum coverage
-+   ci                                       runs check, audit and test, stopping at the first failure
++   ci                                       runs fix, check, audit and test, failing at the end if any of them failed
 +   fixtures                                 builds the fixtures this project's tests read
    setup
 -   startup                installs everything and writes missing files
@@ -1776,7 +1776,7 @@ Available commands:
    [36mtest, t              [0m  [90mruns the tests of every stack this project has[0m
    [36mtest-update          [0m  [90mruns those tests and updates their snapshots[0m
    [36mcoverage             [0m  [90mruns the tests and fails below the minimum coverage[0m
-   [36mci                   [0m  [90mruns [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, stopping at the first failure[0m
+   [36mci                   [0m  [90mruns [35mfix[0m[90m, [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m, failing at the end if any of them failed[0m
    [36mfixtures             [0m  [90mbuilds the fixtures this project's tests read[0m
   [35msetup[0m
    [36mstartup              [0m  [90minstalls everything and writes missing files[0m
@@ -2245,7 +2245,7 @@ Available commands:
    [32mtest, t              [0m  [0mruns the tests of every stack this project has[0m
    [32mtest-update          [0m  [0mruns those tests and updates their snapshots[0m
    [32mcoverage             [0m  [0mruns the tests and fails below the minimum coverage[0m
-   [32mci                   [0m  [0mruns [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, stopping at the first failure[0m
+   [32mci                   [0m  [0mruns [33mfix[0m[0m, [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m, failing at the end if any of them failed[0m
    [32mfixtures             [0m  [0mbuilds the fixtures this project's tests read[0m
   [33msetup[0m
    [32mstartup              [0m  [0minstalls everything and writes missing files[0m

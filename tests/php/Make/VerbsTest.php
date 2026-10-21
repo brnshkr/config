@@ -54,11 +54,11 @@ final class VerbsTest extends TestCase
     {
         $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $default   = $this->runMake(['ci'], directory: $directory);
-        $fixing    = $this->runMake(['ci'], ['CI_TARGETS' => 'fix check test'], $directory);
+        $checking  = $this->runMake(['ci'], ['CI_TARGETS' => 'check test'], $directory);
 
-        self::assertMatchesRegularExpression('/--dry-run\n(?:.*\n)*?.*phpstan analyze.*\n(?:.*\n)*?.*phpunit/', $default);
-        self::assertStringNotContainsString(" -v\n", $default);
-        self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpunit/s', $fixing);
+        self::assertMatchesRegularExpression('/php-cs-fixer fix [^\n]* -v\n.*--dry-run\n.*phpstan analyze.*phpunit/s', $default);
+        self::assertMatchesRegularExpression('/--dry-run\n(?:.*\n)*?.*phpstan analyze.*\n(?:.*\n)*?.*phpunit/', $checking);
+        self::assertStringNotContainsString(" -v\n", $checking);
     }
 
     public function testFixRunsRectorBeforePhpCsFixerEvenInParallel(): void
@@ -113,7 +113,7 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString('[acme/verbs]', $silenced);
     }
 
-    public function testAVerbRunsEveryToolPastAFailureWhileCiAndAFixChainStop(): void
+    public function testAVerbAndCiRunEveryToolPastAFailureWhileAFixChainStops(): void
     {
         $directory = __DIR__ . '/../Fixtures/Make/Verbs';
         $check     = $this->runMake(['check'], ['PHP_CS_FIXER' => 'false'], $directory, doExpectFailure: true);
@@ -122,7 +122,7 @@ final class VerbsTest extends TestCase
 
         self::assertStringContainsString('phpstan done', $check);
         self::assertStringContainsString('phpstan done', $ci);
-        self::assertStringNotContainsString('Running `test`', $ci);
+        self::assertStringContainsString('Running `test`', $ci);
         self::assertStringNotContainsString('php-cs-fixer fix', $fix);
     }
 

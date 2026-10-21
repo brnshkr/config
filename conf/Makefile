@@ -1583,7 +1583,8 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
 endif
 
-_CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
+_CI_TARGETS := $(if $(_HAS_FIX),$(call _target,fix)) \
+	$(if $(_HAS_CHECK),$(call _target,check)) \
 	$(if $(_HAS_AUDIT),$(call _target,audit)) \
 	$(if $(_HAS_TEST),$(call _target,test))
 
@@ -1613,10 +1614,10 @@ $(if $(CI_SUMMARY_FILE),is_failed=; \
 endef
 
 ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure
-	$(DEBUG_PREFIX)$(foreach TARGET,$(CI_TARGETS), \
-		$(MAKE) $(_VERB_FLAGS) $(TARGET) && \
-	):
+$(call _target,ci): #~~ runs `fix`, `check`, `audit` and `test`, failing at the end if any of them failed
+	$(DEBUG_PREFIX)is_failed=; $(foreach TARGET,$(CI_TARGETS), \
+		$(MAKE) $(_VERB_FLAGS) $(TARGET) || is_failed=1; \
+	) [ -z "$$is_failed" ]
 endif
 
 FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
