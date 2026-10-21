@@ -60,4 +60,12 @@ final class StartupTest extends TestCase
         self::assertStringContainsString('yarn install', $onThisMachine);
         self::assertStringNotContainsString('docker', $onThisMachine);
     }
+
+    public function testTheStarterHandsComposeTheEnvironmentFilesResolvedAsAWhole(): void
+    {
+        $environment = ['PATH' => self::STARTER_DIRECTORY . '/bin:' . Str::fromEnvironment('PATH')];
+        $result      = $this->runMake([], $environment, self::STARTER_DIRECTORY, doExpectFailure: true);
+
+        self::assertStringContainsString('ACME_IMAGE=acme/user:mine ACME_TITLE=Acme Shop', $result);
+    }
 }

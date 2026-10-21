@@ -47,8 +47,15 @@ _BRNSHKR_DOTENV_FILES = $(wildcard \
 	$(CURDIR)/.env.$(_BRNSHKR_STAGE).local \
 )
 
+ifeq ($(wildcard $(_BRNSHKR_CONFIG_PATHS)),)
+_BRNSHKR_DOTENV_KEYS := $(shell awk -F= '/^[A-Z_a-z][0-9A-Z_a-z]*=/ { print $$1 }' $(_BRNSHKR_DOTENV_FILES))
+
+-include $(_BRNSHKR_DOTENV_FILES)
+$(foreach KEY,$(_BRNSHKR_DOTENV_KEYS),$(eval $(KEY) = $(subst ",,$(subst ',,$(value $(KEY))))))
+export $(_BRNSHKR_DOTENV_KEYS)
+endif
+
 _BRNSHKR_COMPOSE = HOST_UID="$$(id -u)" HOST_GID="$$(id -g)" HOST_APP_DIR='$(CURDIR)' docker compose \
-	$(addprefix --env-file ,$(_BRNSHKR_DOTENV_FILES)) \
 	$(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
 
 _BRNSHKR_RUN    = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))
