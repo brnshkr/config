@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/vitest
  */
 
+import { getEnvironmentValue } from '#shared/utils/environment.ts';
 import { GLOB_IGNORES, GLOB_TEST_FILES } from '#shared/utils/globs.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 
@@ -25,6 +26,21 @@ export const test = (): Config[] => [
     test: {
       include: GLOB_TEST_FILES,
       exclude: GLOB_IGNORES.flatMap((glob) => NARROWED_IGNORES.get(glob) ?? glob),
+      ...getEnvironmentValue('GITHUB_ACTIONS') === 'true'
+        ? {
+          reporters: [
+            'default',
+            [
+              'github-actions',
+              {
+                jobSummary: {
+                  enabled: false,
+                },
+              },
+            ],
+          ],
+        }
+        : {},
     },
   },
 ];
