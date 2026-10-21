@@ -132,6 +132,7 @@ final readonly class FileFinder
             ->exclude([
                 ProjectDirectory::getCache(),
                 ProjectDirectory::getLocal(),
+                'changelog',
                 'node_modules',
                 'var',
                 'vendor',

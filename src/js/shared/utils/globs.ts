@@ -67,6 +67,7 @@ export const GLOB_IGNORES = <const>[
   '**/bower_components/**',
   '**/build/**',
   '**/bun.lock',
+  '**/changelog/**',
   '**/composer.lock',
   '**/coverage/**',
   '**/dist/**',

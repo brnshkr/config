@@ -25,6 +25,7 @@
     "${configDir}/**/__snapshots__/**",
     "${configDir}/**/bower_components/**",
     "${configDir}/**/build/**",
+    "${configDir}/**/changelog/**",
     "${configDir}/**/coverage/**",
     "${configDir}/**/dist/**",
     "${configDir}/**/node_modules/**",

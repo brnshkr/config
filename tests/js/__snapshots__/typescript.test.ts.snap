@@ -74,6 +74,7 @@ exports[`expected typescript config 1`] = `
         "./**/__snapshots__/**",
         "./**/bower_components/**",
         "./**/build/**",
+        "./**/changelog/**",
         "./**/coverage/**",
         "./**/dist/**",
         "./**/node_modules/**",
