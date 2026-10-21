@@ -397,6 +397,7 @@ Available commands:
     GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
     TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
 +   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
++   CI_SUMMARY_FILE             ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit and test add a row per target to)
     FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
    setup
     STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
@@ -515,6 +516,7 @@ Available commands:
 +    CMP                        ?=  cmp                                              (path to cmp binary)
 +    CP                         ?=  cp                                               (path to cp binary)
 +    CURL                       ?=  curl                                             (path to curl binary)
++    DATE                       ?=  date                                             (path to date binary)
 +    ENV_BIN                    ?=  env                                              (path to env binary)
 +    FIND                       ?=  find                                             (path to find binary)
 +    GIT                        ?=  git                                              (path to git binary)
@@ -576,45 +578,44 @@ Available commands:
     HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
    actionlint
 @@ @@
+    text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
- 
++
 +    parameters:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
-+
+ 
 +    returns: string
 +
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
      Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
-     A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
-+
+ 
 +    parameters:
 +      message: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      arguments?: list<string>
 +      autolink?: OneOf<autolink | no-autolink> = autolink
- 
++
 +    returns: void
 +
     run_in
      The command a tool named for a compose service runs through, empty on this machine.
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
-+
+ 
 +    parameters:
 +      service: string
 +
 +    returns: string
- 
++
     confirm
      Asks a yes/no question before something destructive happens.
-@@ @@
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
      It succeeds on yes, so the caller reads it as a condition and says what it skipped.
  
@@ -1105,6 +1106,7 @@ Available commands:
     [36mCMP                      [0m  [90m?=  cmp                                              (path to [35mcmp[0m[90m binary)[0m
     [36mCP                       [0m  [90m?=  cp                                               (path to [35mcp[0m[90m binary)[0m
     [36mCURL                     [0m  [90m?=  curl                                             (path to [35mcurl[0m[90m binary)[0m
+    [36mDATE                     [0m  [90m?=  date                                             (path to [35mdate[0m[90m binary)[0m
     [36mENV_BIN                  [0m  [90m?=  env                                              (path to [35menv[0m[90m binary)[0m
     [36mFIND                     [0m  [90m?=  find                                             (path to [35mfind[0m[90m binary)[0m
     [36mGIT                      [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
@@ -1213,6 +1215,7 @@ Available commands:
    [36mGROUP_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
+   [36mCI_SUMMARY_FILE           [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m add a row per target to)[0m
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
@@ -1435,6 +1438,7 @@ Available commands:
     [32mCMP                      [0m  [0m?=  cmp                                              (path to [33mcmp[0m[0m binary)[0m
     [32mCP                       [0m  [0m?=  cp                                               (path to [33mcp[0m[0m binary)[0m
     [32mCURL                     [0m  [0m?=  curl                                             (path to [33mcurl[0m[0m binary)[0m
+    [32mDATE                     [0m  [0m?=  date                                             (path to [33mdate[0m[0m binary)[0m
     [32mENV_BIN                  [0m  [0m?=  env                                              (path to [33menv[0m[0m binary)[0m
     [32mFIND                     [0m  [0m?=  find                                             (path to [33mfind[0m[0m binary)[0m
     [32mGIT                      [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
@@ -1543,6 +1547,7 @@ Available commands:
    [32mGROUP_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
+   [32mCI_SUMMARY_FILE           [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m add a row per target to)[0m
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m

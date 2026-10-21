@@ -273,6 +273,7 @@ CHMOD   ?= chmod#~~ path to `chmod` binary
 CMP     ?= cmp#~~ path to `cmp` binary
 CP      ?= cp#~~ path to `cp` binary
 CURL    ?= curl#~~ path to `curl` binary
+DATE    ?= date#~~ path to `date` binary
 ENV_BIN ?= env#~~ path to `env` binary
 FIND    ?= find#~~ path to `find` binary
 GIT     ?= git#~~ path to `git` binary
@@ -1519,7 +1520,7 @@ CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
 ifneq ($(_HAS_CHECK),)
 $(call _target,check): #~~ lints and analyzes everything without writing
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS)
+	$(DEBUG_PREFIX)$(call _run_summarized,$(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS))
 endif
 
 _FIX_ORDER := rector+php-cs-fixer \
@@ -1556,14 +1557,14 @@ endif
 
 ifneq ($(_HAS_AUDIT),)
 $(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_AUDITS)
+	$(DEBUG_PREFIX)$(call _run_summarized,$(_AUDITS))
 endif
 
 TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
 
 ifneq ($(_HAS_TEST),)
 $(call _target,test): #~~ runs the tests of every stack this project has
-	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_TESTS) $(TEST_TARGETS)
+	$(DEBUG_PREFIX)$(call _run_summarized,$(_TESTS) $(TEST_TARGETS))
 endif
 
 ifneq ($(_HAS_TEST_UPDATE),)
@@ -1580,7 +1581,30 @@ _CI_TARGETS := $(if $(_HAS_CHECK),$(call _target,check)) \
 	$(if $(_HAS_AUDIT),$(call _target,audit)) \
 	$(if $(_HAS_TEST),$(call _target,test))
 
-CI_TARGETS ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+CI_TARGETS      ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+CI_SUMMARY_FILE ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit` and `test` add a row per target to
+_CI_LOG_URL      = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID))
+
+#**
+#* Runs targets in one make, or one at a time with a row each where a CI summary file is set.
+#*
+#* parameters:
+#*   targets: list<string>
+#*
+#* returns: void
+#*
+define _run_summarized
+$(if $(CI_SUMMARY_FILE),is_failed=; \
+	$(AWK) '/^\| Target \|/ { is_found = 1 } END { exit !is_found }' '$(CI_SUMMARY_FILE)' 2>/dev/null \
+		|| printf '| Target | Result | Time |\n| --- | --- | --- |\n' >> '$(CI_SUMMARY_FILE)'; \
+	for target in $1; do \
+		start=$$($(DATE) +%s); \
+		result='✅'; \
+		$(MAKE) $(_VERB_FLAGS) "$$target" || { result='❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))'; is_failed=1; }; \
+		printf '| `%s` | %s | %ss |\n' "$$target" "$$result" "$$(($$($(DATE) +%s) - start))" >> '$(CI_SUMMARY_FILE)'; \
+	done; \
+	[ -z "$$is_failed" ],$(MAKE) $(_VERB_FLAGS) $1)
+endef
 
 ifneq ($(_HAS_CI),)
 $(call _target,ci): #~~ runs `check`, `audit` and `test`, stopping at the first failure

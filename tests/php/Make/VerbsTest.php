@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\Make;
 
+use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Spatie\Snapshots\MatchesSnapshots;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -16,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 final class VerbsTest extends TestCase
 {
     use MakeTrait;
+    use MatchesSnapshots;
 
     public function testFixWritesCheckOnlyReadsAndTestOnlyTests(): void
     {
@@ -120,6 +124,33 @@ final class VerbsTest extends TestCase
         self::assertStringContainsString('phpstan done', $ci);
         self::assertStringNotContainsString('Running `test`', $ci);
         self::assertStringNotContainsString('php-cs-fixer fix', $fix);
+    }
+
+    public function testAVerbAddsARowPerTargetToTheCiSummary(): void
+    {
+        $directory   = $this->getFixtureCopy(__DIR__ . '/../Fixtures/Make/Verbs');
+        $summaryPath = $directory . '/summary.md';
+
+        $this->runMake(
+            ['check'],
+            [
+                'CI_SUMMARY_FILE'   => $summaryPath,
+                'GITHUB_REPOSITORY' => 'acme/verbs',
+                'GITHUB_RUN_ID'     => '1',
+                'GITHUB_SERVER_URL' => 'https://github.com',
+                'PHP_CS_FIXER'      => 'false',
+            ],
+            $directory,
+            doExpectFailure: true,
+        );
+
+        $this->runMake(['test'], ['CI_SUMMARY_FILE' => $summaryPath], $directory);
+
+        $this->assertMatchesSnapshot(Str::replaceMatches(
+            new Filesystem()->readFile($summaryPath),
+            '/\| \d+s \|/',
+            static fn (): string => '| <seconds>s |',
+        ));
     }
 
     #[Group('make4')]
