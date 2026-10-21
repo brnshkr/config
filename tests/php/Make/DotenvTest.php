@@ -56,6 +56,20 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('compose -f compose.yaml -f compose.override.yaml ps', $commands);
     }
 
+    public function testARefusingComposeIsQuotedRatherThanBlamingTheWorkingDirectory(): void
+    {
+        $directory = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
+
+        $environment = [
+            'DOCKER'          => $directory . '/bin/missing-docker',
+            'IS_IN_CONTAINER' => '',
+        ];
+
+        $result = $this->runMake(['app-dir'], $environment, $directory, doExpectFailure: true);
+
+        self::assertStringContainsString('The command docker could not be found in this WSL 2 distro.', $result);
+    }
+
     public function testAStageOnTheCommandLineDetectsTheServicesAsItsStageGoalDoes(): void
     {
         $directory = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
