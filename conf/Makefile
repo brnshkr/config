@@ -334,16 +334,15 @@ _COMPOSE_CANDIDATES := compose.yaml \
 	docker-compose.yaml \
 	docker-compose.yml
 
-_COMPOSE_FILES = $(or \
-	$(subst :, ,$(COMPOSE_FILE)), \
-	$(firstword $(wildcard \
-		$(addprefix $(CURDIR)/,$(_COMPOSE_CANDIDATES)) \
-		$(addprefix $(CURDIR)/$(_CONFIG_DIR)/,$(_COMPOSE_CANDIDATES)) \
-	)) \
-)
+_COMPOSE_CANDIDATE = $(firstword $(wildcard \
+	$(addprefix $(CURDIR)/,$(_COMPOSE_CANDIDATES)) \
+	$(addprefix $(CURDIR)/$(_CONFIG_DIR)/,$(_COMPOSE_CANDIDATES)) \
+))
 
-_COMPOSE       = $(DOCKER_COMPOSE) $(addprefix -f ,$(_COMPOSE_FILES))
-_HAS_CONTAINER = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(_COMPOSE_FILES),$(_HAS_DOCKER))))
+COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ compose files the container targets use
+
+_COMPOSE       = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
+_HAS_CONTAINER = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
 _SERVE_FLAGS   = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 
 define _SERVICE_AWK
@@ -444,11 +443,11 @@ DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, `
 DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
 DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
 DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.env.local` file
+DOTENV_STAGES      := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))#~~ stages the `.env.<stage>` files name
 _CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
-_DOTENV_STAGES     := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))
-_CONFIG_STAGES      = $(sort $(_DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
+_CONFIG_STAGES      = $(sort $(DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
 
 _DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
 	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || printf '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
@@ -611,7 +610,7 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 _DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
 	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=COMPOSE_FILE '$(_DOTENV_AWK)'))
 
-_HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(_COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
+_HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
 _DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
 	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
@@ -1310,7 +1309,7 @@ _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
 _UNKNOWN_ARGS  = $(if $(filter command line,$(origin ARGS)),,$(call _shell_quoted,$(filter-out $@,$(_ARGS))))
 _SUGGESTED_FOR = $@
 _TARGET_GOALS  = $(filter-out _% -%,$(_ALL_TARGETS))
-_STAGE_GOALS   = $(foreach STAGE,$(_DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
+_STAGE_GOALS   = $(foreach STAGE,$(DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
 
 #**
 #* The goals tied for nearest to what was typed, at most three.
@@ -1346,7 +1345,7 @@ $(shell printf '%s\n' $(call _shell_quoted,$1) \
 	| $(AWK) 'NR == 1 { nearest = $$1 } $$1 == nearest && NR <= 3 { print $$2 }')
 endef
 
-_IS_NEAR_A_STAGE = $(if $(findstring -,$(_SUGGESTED_FOR)),$(call _suggestions,$(_DOTENV_STAGES),$(firstword $(subst -, ,$(_SUGGESTED_FOR)))))
+_IS_NEAR_A_STAGE = $(if $(findstring -,$(_SUGGESTED_FOR)),$(call _suggestions,$(DOTENV_STAGES),$(firstword $(subst -, ,$(_SUGGESTED_FOR)))))
 
 _SUGGESTED_TARGETS = $(if $(filter -%,$(_SUGGESTED_FOR)),,$(or \
 	$(and $(_IS_NEAR_A_STAGE),$(call _suggestions,$(_TARGET_GOALS) $(_STAGE_GOALS))), \
@@ -2126,7 +2125,7 @@ ifeq ($(COMPOSE_FILE),)
 unexport COMPOSE_FILE
 endif
 
-_TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(_DOTENV_STAGES))))
+_TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(DOTENV_STAGES))))
 
 #**
 #* Runs a goal again with the environment key set to a stage, handing on the arguments this run collected.
@@ -2157,7 +2156,7 @@ $1-%:
 	$$(DEBUG_PREFIX)$$(if $$(call _get_goal,$$*),$$(call _run_in_stage,$1,$$*),:)
 endef
 
-$(foreach STAGE,$(_DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
+$(foreach STAGE,$(DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
 
 ifneq ($(_HAS_PHP),) # php
 
@@ -3933,7 +3932,7 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 	-v _CWD='$(CURDIR)' \
 	-v _APP_DIR='$(APP_DIR)' \
 	-v _PREFIX='$(_TARGET_PREFIX)' \
-	-v _STAGES=' $(_DOTENV_STAGES) ' \
+	-v _STAGES=' $(DOTENV_STAGES) ' \
 	-v _TARGETS=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
 	function render_url(url, path, line,    placeholder_position) { \
 		if (index(url, "{cwd}") && substr(path, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); path = substr(path, 2) } \
