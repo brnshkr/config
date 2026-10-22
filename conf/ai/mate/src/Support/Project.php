@@ -27,9 +27,10 @@ final class Project
      * @phpstan-var array<non-empty-string, false>
      */
     private const array INHERITED_MAKE_VARIABLES = [
-        'MAKEFLAGS' => false,
-        'MAKELEVEL' => false,
-        'MFLAGS'    => false,
+        'MAKEFLAGS'      => false,
+        'MAKELEVEL'      => false,
+        'MFLAGS'         => false,
+        '_IS_ANNOUNCING' => false,
     ];
 
     private function __construct() {}

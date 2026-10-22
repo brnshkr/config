@@ -12,15 +12,12 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversNothing]
-final class MateScriptTest extends TestCase
+final class MateTargetTest extends TestCase
 {
     public function testAMessageReachesTheToolWithItsQuotesAndNewlinesAndTheAnswerIsToon(): void
     {
-        $result = Project::run([
-            Project::getRootDirectory() . '/scripts/mate.php',
-            'tools:call',
-            'project-commitlint-check',
-            "--message=fix(make): quote it's names\n\nkeep it's body",
+        $result = Project::runTarget('mate', [
+            'ARGS' => "tools:call project-commitlint-check \"--message=fix(make): quote it's names\n\nkeep it's body\"",
         ]);
 
         self::assertStringStartsWith('exitCode: 2', $result['output']);

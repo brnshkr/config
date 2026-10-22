@@ -75,7 +75,6 @@ PHP_UNIT_FLAGS += --parallel --processes=2
 
 COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php
 MV       := mv#vvv #~~ path to `mv` binary
-XARGS    := xargs#vvv #~~ path to `xargs` binary
 
 # NOTICE: `braces` has no fixed release and upstream disputes the advisory:
 # https://github.com/advisories/GHSA-vfj7-8cjw-p6xm, https://github.com/micromatch/braces/issues/70
@@ -94,12 +93,19 @@ watch: #~~ rebuilds `./dist/` as the sources change
 
 #--- mate
 
-_MATE_BINARY     := $(APP_DIR)/vendor/bin/mate
-MATE             := $(RUN) $(_MATE_BINARY)#v
+MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate#v
 _MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
 
-mate: #~~ runs mate where the tools run
-	$(DEBUG_PREFIX)$(MATE) $(ARGS)
+_MATE_TOON_COMMANDS := tools:call \
+	tools:inspect \
+	tools:list \
+	resources:read
+
+_MATE_FORMAT = $(if $(filter $(_MATE_TOON_COMMANDS),$(firstword $(_ARGS))),$(if $(filter --format --format=%,$(_ARGS)),,--format=toon))
+
+mate: #~~ runs mate where the tools run, answering in TOON unless `--format` is given
+	$(DEBUG_PREFIX)$(if $(filter command line,$(origin ARGS)),eval "set -- $$ARGS",set -- $(ARGS)); \
+		$(MATE) "$$@" $(_MATE_FORMAT)
 
 discover: #~~ refreshes what mate generates for agents
 	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
@@ -116,10 +122,6 @@ discover: #~~ refreshes what mate generates for agents
 			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
 			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
 	fi
-
-# NOTICE: `./scripts/mate.php` feeds its arguments here separated by NUL, so none of their quoting is lost on the way
-_mate-from-stdin:
-	$(DEBUG_PREFIX)$(RUN) $(XARGS) -0 $(_MATE_BINARY)
 
 #---vvv debug
 

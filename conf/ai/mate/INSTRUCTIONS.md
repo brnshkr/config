@@ -10,8 +10,9 @@ Stale guidance is worse than none.
 
 ## Tools
 
-- Prefer the `project-*` mate tools, run as `./scripts/mate.php tools:call <tool> --<param>=<value>`
-  (a boolean as a bare flag; answers in TOON):
+- Prefer the `project-*` mate tools, run as `make mate -- tools:call <tool> --<param>=<value>`
+  (a boolean as a bare flag; answers in TOON; a value with spaces or newlines goes through `ARGS`:
+  `make mate ARGS="tools:call project-commitlint-check '--message=<draft>'"`):
   `project-quality-check --tool=<tool>` (phpstan/php-cs-fixer/rector/twig-cs-fixer/eslint/markdownlint/stylelint/typescript;
   dry-run by default, `--isDryRun=false` writes),
   `project-tests-run --suite=php|js` (Pest or Vitest; `--filter`, `--doesUpdateSnapshots`, reports changed snapshots),

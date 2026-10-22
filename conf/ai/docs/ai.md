@@ -13,5 +13,5 @@
 - `conf/ai/mate/INSTRUCTIONS.md` loads into every session, so keep it lean.
 - A tool is a `#[MateTool]` method on a class in `conf/ai/mate/src/Tool/`, returning scalars or arrays.
   Shell work goes through `Project::run()`, a make target through `Project::runTarget()`.
-- Try a tool with `./scripts/mate.php tools:inspect <name>` and `./scripts/mate.php tools:call <name> --<param>=<value>`;
-  `./scripts/mate.php` runs mate where the tools run, arguments untouched, and answers in TOON.
+- Try a tool with `make mate -- tools:inspect <name>` and `make mate -- tools:call <name> --<param>=<value>`;
+  `make mate` runs mate where the tools run and answers in TOON; `ARGS` carries a value with spaces or newlines intact.
