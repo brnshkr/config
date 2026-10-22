@@ -5,7 +5,7 @@ If you only consume the package, you want the [README](../README.md) and the per
 
 ## Setup
 
-With both version managers below in place, one command installs everything:
+With PHP 8.5 and Bun on this machine, one command installs everything:
 
 ```sh
 make startup
@@ -16,13 +16,6 @@ builds `./dist/` and installs the git hooks.
 
 ## ☕ JS
 
-### Node version
-
-The required Node version is pinned in [`.nvmrc`](../.nvmrc). We use [nvm](https://github.com/nvm-sh/nvm);
-with it installed and activated, running `nvm install` from the repo root installs and selects the pinned version.
-
-### Targets
-
 Everything runs through `make`; `make help` lists what this checkout can actually run,
 and [`./docs/Makefile.md`](./Makefile.md) is the reference.
 Frequently used:
@@ -32,17 +25,10 @@ Frequently used:
 - `make ci` — `make fix`, `make check`, `make audit`, then `make test`
 - `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
 - `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
-- `make eslint-inspect` — inspect the ESLint configuration, `make eslint-inspect-stats` to also time every rule
+- `make eslint-inspect` — inspect the ESLint configuration (needs Node),
+  `make eslint-inspect-stats` to also time every rule
 
 ## 🐘 PHP
-
-### PHP version
-
-The required PHP version and build configuration are pinned in [`mise.toml`](../mise.toml).
-We use [mise](https://github.com/jdx/mise) with the [verzly/mise-php](https://github.com/verzly/mise-php) plugin;
-with it installed and activated, running `mise install` from the repo root installs and selects the pinned version.
-
-### Targets
 
 The same `make` as above; [`./docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
 Frequently used:
