@@ -2,7 +2,14 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { REQUIRED_ATTRIBUTES, RESTRICTED_ATTRIBUTE_VALUES, RESTRICTED_ATTRIBUTES } from '#eslint/configs/html.ts';
+import {
+  ID_NAMING_PATTERN,
+  REQUIRED_ATTRIBUTES,
+  RESTRICTED_ATTRIBUTE_VALUES,
+  RESTRICTED_ATTRIBUTES,
+  RESTRICTED_TAGS,
+} from '#eslint/configs/html.ts';
+
 import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { ATTRIBUTE_GROUP_PREFIXES, ATTRIBUTE_ORDER, TRAILING_ATTRIBUTES } from '#eslint/utils/attributes.ts';
@@ -215,6 +222,7 @@ export const svelte = async (): Promise<Config[]> => {
           files: [GLOB_SVELTE],
           rules: {
             ...renameRules(pluginHtmlSvelte.configs.recommended.rules, { '@html-eslint/svelte': 'svelte-html' }),
+            'svelte-html/id-naming-convention': ['error', 'regex', ID_NAMING_PATTERN],
             'svelte-html/no-restricted-attr-values': [
               'error',
               ...RESTRICTED_ATTRIBUTE_VALUES,
@@ -223,6 +231,7 @@ export const svelte = async (): Promise<Config[]> => {
               'error',
               ...RESTRICTED_ATTRIBUTES,
             ],
+            'svelte-html/no-restricted-tags': ['error', RESTRICTED_TAGS],
             'svelte-html/require-attrs': [
               'error',
               ...REQUIRED_ATTRIBUTES,

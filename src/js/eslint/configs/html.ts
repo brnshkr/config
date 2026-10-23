@@ -559,6 +559,17 @@ export const RESTRICTED_ATTRIBUTE_VALUES = [
   },
 ];
 
+export const ID_NAMING_PATTERN = {
+  pattern: String.raw`^[a-z][\dA-Za-z]*(?:_+[\dA-Za-z]+)*_*$`,
+  flags: 'v',
+};
+
+export const RESTRICTED_TAGS = {
+  tagPatterns: [
+    '^[bisu]$',
+  ],
+};
+
 const ATTRIBUTE_PRIORITY = [
   ...ATTRIBUTE_ORDER,
   {
@@ -649,10 +660,7 @@ export const html = async (): Promise<Config[]> => {
           skip: PREFORMATTED_TAGS,
         }],
         'html/head-order': 'error',
-        'html/id-naming-convention': ['error', 'regex', {
-          pattern: String.raw`^[a-z][\dA-Za-z]*(?:_+[\dA-Za-z]+)*_*$`,
-          flags: 'v',
-        }],
+        'html/id-naming-convention': ['error', 'regex', ID_NAMING_PATTERN],
         'html/indent': ['error', INDENT],
         'html/lowercase': 'error',
         'html/max-element-depth': ['error', {
@@ -696,11 +704,7 @@ export const html = async (): Promise<Config[]> => {
           INLINE_EVENT_HANDLER_ATTRIBUTES,
           ...RESTRICTED_ATTRIBUTES,
         ],
-        'html/no-restricted-tags': ['error', {
-          tagPatterns: [
-            '^[bisu]$',
-          ],
-        }],
+        'html/no-restricted-tags': ['error', RESTRICTED_TAGS],
         'html/no-script-style-type': 'error',
         'html/no-skip-heading-levels': 'error',
         'html/no-target-blank': 'error',

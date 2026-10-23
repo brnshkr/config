@@ -15340,6 +15340,11 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
       ],
       "svelte-html/id-naming-convention": [
         2,
+        "regex",
+        {
+          "flags": "v",
+          "pattern": "^[a-z][\\dA-Za-z]*(?:_+[\\dA-Za-z]+)*_*$",
+        },
       ],
       "svelte-html/no-duplicate-class": [
         0,
@@ -15412,6 +15417,11 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
       ],
       "svelte-html/no-restricted-tags": [
         2,
+        {
+          "tagPatterns": [
+            "^[bisu]$",
+          ],
+        },
       ],
       "svelte-html/require-attrs": [
         2,
