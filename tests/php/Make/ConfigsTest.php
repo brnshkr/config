@@ -362,6 +362,22 @@ final class ConfigsTest extends TestCase
         );
     }
 
+    public function testTheLocalEnvironmentFilesAreIgnoredOnceAnEnvironmentFileExists(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $this->runMake(['configs', 'gitignore'], directory: $configsDirectory);
+
+        $withoutEnvironmentFiles = $filesystem->readFile($configsDirectory . '/.gitignore');
+
+        $filesystem->touch($configsDirectory . '/.env.test');
+        $this->runMake(['configs', 'gitignore'], directory: $configsDirectory);
+
+        self::assertStringNotContainsString('/.env', $withoutEnvironmentFiles);
+        self::assertStringContainsString("/.env.*.local\n/.env.local\n", $filesystem->readFile($configsDirectory . '/.gitignore'));
+    }
+
     public function testConfigsWritesWhenThereIsNoRepositoryToAsk(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);

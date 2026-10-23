@@ -1419,6 +1419,7 @@ _EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(fore
 _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	/$(_CACHE_DIR)/ \
 	/$(_LOCAL_DIR)/ \
+	$(if $(wildcard $(CURDIR)/.env $(CURDIR)/.env.*),/.env.local /.env.*.local) \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
