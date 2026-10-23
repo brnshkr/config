@@ -1289,7 +1289,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "when": false,
       "window": false,
     },
-    "parser": "typescript-eslint/parser@8.71.0",
+    "parser": "typescript-eslint/parser@8.71.2",
     "parserOptions": {
       "ecmaFeatures": {
         "jsx": true,
@@ -1310,7 +1310,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "@",
     "antfu:antfu@3.2.3",
     "unused:unused-imports",
-    "ts:@typescript-eslint/eslint-plugin@8.71.0",
+    "ts:@typescript-eslint/eslint-plugin@8.71.2",
     "test:vitest@1.6.27",
     "jsdoc",
     "examples:brnshkr/jsdoc-examples",
@@ -1324,14 +1324,14 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "style:@stylistic/eslint-plugin@5.10.0",
     "perfectionist:eslint-plugin-perfectionist@5.12.1",
     "svelte:eslint-plugin-svelte@3.23.1",
-    "svelte-html:@html-eslint/eslint-plugin-svelte@0.66.1",
+    "svelte-html:@html-eslint/eslint-plugin-svelte@0.67.0",
     "json:@eslint/json@2.1.1",
     "jsonc:eslint-plugin-jsonc@3.4.2",
     "toml:eslint-plugin-toml@1.5.0",
     "yaml:eslint-plugin-yml@3.9.0",
     "css:@eslint/css@2.0.1",
     "tailwind:better-tailwindcss",
-    "html:@html-eslint/eslint-plugin@0.66.1",
+    "html:@html-eslint/eslint-plugin@0.67.0",
     "html-scripts",
     "markdown:@eslint/markdown@8.0.3",
   ],
@@ -15315,7 +15315,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "svelte-eslint-parser@1.8.1",
+      "parser": "svelte-eslint-parser@1.9.0",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
@@ -15324,7 +15324,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.71.0",
+        "parser": "typescript-eslint/parser@8.71.2",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -15337,6 +15337,9 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
     "addedValues": {
       "svelte-html/class-spacing": [
         0,
+      ],
+      "svelte-html/id-naming-convention": [
+        2,
       ],
       "svelte-html/no-duplicate-class": [
         0,
@@ -15406,6 +15409,9 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
             ".*",
           ],
         },
+      ],
+      "svelte-html/no-restricted-tags": [
+        2,
       ],
       "svelte-html/require-attrs": [
         2,
@@ -21599,6 +21605,9 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
           "tag": "video",
         },
       ],
+      "svelte-html/require-li-container": [
+        2,
+      ],
       "svelte-html/use-baseline": [
         2,
       ],
@@ -22139,7 +22148,7 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "svelte-eslint-parser@1.8.1",
+      "parser": "svelte-eslint-parser@1.9.0",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
@@ -22148,7 +22157,7 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.71.0",
+        "parser": "typescript-eslint/parser@8.71.2",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -23491,6 +23500,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
               "rx": "<declaration-value>",
               "ry": "<declaration-value>",
               "scale": "<declaration-value>",
+              "scroll-axis-lock": "<declaration-value>",
               "scroll-behavior": "<declaration-value>",
               "scroll-initial-target": "<declaration-value>",
               "scroll-margin": "<declaration-value>",
@@ -23636,6 +23646,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
               "widows": "<declaration-value>",
               "width": "<declaration-value>",
               "will-change": "<declaration-value>",
+              "window-drag": "<declaration-value>",
               "word-break": "<declaration-value>",
               "word-spacing": "<declaration-value>",
               "word-wrap": "<declaration-value>",
@@ -24219,6 +24230,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
               "rx": "<declaration-value>",
               "ry": "<declaration-value>",
               "scale": "<declaration-value>",
+              "scroll-axis-lock": "<declaration-value>",
               "scroll-behavior": "<declaration-value>",
               "scroll-initial-target": "<declaration-value>",
               "scroll-margin": "<declaration-value>",
@@ -24364,6 +24376,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
               "widows": "<declaration-value>",
               "width": "<declaration-value>",
               "will-change": "<declaration-value>",
+              "window-drag": "<declaration-value>",
               "word-break": "<declaration-value>",
               "word-spacing": "<declaration-value>",
               "word-wrap": "<declaration-value>",
@@ -24942,7 +24955,7 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "@html-eslint/parser@0.66.1",
+      "parser": "@html-eslint/parser@0.67.0",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
