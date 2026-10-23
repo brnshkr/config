@@ -2226,7 +2226,7 @@ unexport COMPOSER      # NOTICE: Composer reads this as the manifest to open
 COMPOSER_FLAGS        ?= $(if $(_IS_CI),--no-interaction) $(if $(_IS_TRACE),-vvv,$(if $(_IS_DEBUG),-v))#v #~~ additional flags passed to `composer`
 COMPOSER_AUDIT_FLAGS  ?= --locked#vv #~~ additional flags passed to `composer audit`
 _COMPOSER_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(PACKAGE)
-_COMPOSER_INSTALL      = $(COMPOSER) install $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(COMPOSER_FLAGS)
+_COMPOSER_INSTALL      = $(if $(_IS_CI),$(COMPOSER) validate --no-check-all --no-check-publish --no-interaction && )$(COMPOSER) install $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(COMPOSER_FLAGS)
 
 $(call _target,composer): #~~ runs `composer`
 	$(DEBUG_PREFIX)$(COMPOSER) $(COMPOSER_FLAGS) $(ARGS)
@@ -2519,7 +2519,7 @@ BUN_FLAGS       ?= --bun#v #~~ flags passed to `bun` before the command
 BUN_AUDIT_FLAGS ?= #vv #~~ additional flags passed to `bun audit`
 
 _BUN_PACKAGE_DIR := $(CURDIR)/$(_LOCAL_DIR)/$(if $(VENDOR),$(VENDOR)/)$(PACKAGE)
-_BUN_INSTALL      = $(BUN) install$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
+_BUN_INSTALL      = $(BUN) install$(if $(_IS_CI), --frozen-lockfile)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)), --verbose)
 
 $(call _target,bun): #~~ runs `bun`
 	$(DEBUG_PREFIX)$(BUN) $(ARGS)

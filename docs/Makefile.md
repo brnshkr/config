@@ -15,6 +15,7 @@ cp -v ./vendor/brnshkr/config/conf/Makefile.dist ./Makefile \
 
 In a JavaScript project the starter is `./node_modules/@brnshkr/config/conf/Makefile.dist`.
 On a fresh clone, a plain `make` installs your dependencies and runs `make startup` for you.
+In CI, where `CI` is set, an install fails on a lock file that no longer matches its manifest instead of rewriting it.
 
 ## Usage
 

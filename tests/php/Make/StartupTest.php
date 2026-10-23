@@ -8,6 +8,7 @@ use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 use function array_map;
 
@@ -29,13 +30,48 @@ final class StartupTest extends TestCase
 
         $result = $this->runMake(
             ['startup'],
-            ['COMPOSER' => 'echo composer', 'BUN' => 'echo bun'],
+            ['BUN' => 'echo bun', 'CI' => '', 'COMPOSER' => 'echo composer'],
             directory: $startupDirectory,
         );
 
         self::assertStringContainsString('composer install --no-progress', $result);
         self::assertStringContainsString('bun install', $result);
+        self::assertStringNotContainsString('composer validate', $result);
+        self::assertStringNotContainsString('--frozen-lockfile', $result);
         self::assertStringContainsString("Running `startup-own`\nstartup-own\n", $result);
+    }
+
+    public function testStartupRefusesAStaleLockUnderCi(): void
+    {
+        $startupDirectory = $this->getFixtureCopy(self::STARTUP_DIRECTORY);
+
+        $result = $this->runMake(
+            ['startup'],
+            ['BUN' => 'echo bun', 'CI' => 'true', 'COMPOSER' => 'echo composer'],
+            directory: $startupDirectory,
+        );
+
+        self::assertStringContainsString('composer validate --no-check-all --no-check-publish --no-interaction', $result);
+        self::assertStringContainsString('bun install --frozen-lockfile', $result);
+    }
+
+    public function testTheStarterInstallsAgainstTheBunLockUnderCi(): void
+    {
+        $starterDirectory = $this->getFixtureCopy(self::STARTER_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->rename($starterDirectory . '/yarn.lock', $starterDirectory . '/bun.lock');
+        $filesystem->dumpFile($starterDirectory . '/bin/bun', "#!/bin/sh\necho \"bun $*\"\n");
+        $filesystem->chmod($starterDirectory . '/bin/bun', 0o755);
+
+        $result = $this->runMake(
+            ['JS_SERVICE='],
+            ['CI' => 'true', 'PATH' => $starterDirectory . '/bin:' . Str::fromEnvironment('PATH')],
+            $starterDirectory,
+            doExpectFailure: true,
+        );
+
+        self::assertStringContainsString('bun install --frozen-lockfile', $result);
     }
 
     public function testStartupSkipsTheInstallsTheCallerAlreadyRan(): void
