@@ -25,6 +25,7 @@ make help phpstan                       # only what belongs to phpstan
 make check                              # every linter and analyzer, without changing files
 make fix                                # every fixer, writing its fixes
 make test                               # every stack's tests
+make test-matrix                        # the tests once per TEST_MATRIX row
 make ci                                 # fix, then check, audit and test, failing at the end
 make phpstan src/User                   # anything after a target goes to the tool
 make phpunit -- --filter 'User|Email'   # flags go after --
@@ -98,6 +99,50 @@ when your JavaScript tools run on your machine.
 
 `$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.
 `make up`, `make down`, `make shell` and `make <service>-logs` manage the services.
+
+## Test matrix
+
+`TEST_MATRIX` runs the tests against more than your lock files, one row per run:
+
+```Makefile
+# ./Makefile
+
+TEST_MATRIX_IMAGE_KEY := ACME_IMAGE
+
+# another toolchain, newer Acme packages and newer frontend packages
+TEST_MATRIX += tag[php8.4-bun1.3];composer[acme/*:^2.0];bun[@acme/ui:^3.1&@acme/icons:2.0.0]
+
+# every Composer package at its lowest, except `acme/email` at the highest `^2.4` allows
+TEST_MATRIX += composer[*:lowest&acme/email:^2.4]
+
+# only `acme/user` at its lowest
+TEST_MATRIX += composer[acme/user:lowest]
+
+# another repository on the same toolchain
+TEST_MATRIX += image[ghcr.io/acme/app];tag[php8.5-bun1.4]
+
+# an image of its own
+TEST_MATRIX += image[ghcr.io/acme/app:2@sha256:<digest>]
+```
+
+Without comments, the rows also fit one assignment:
+
+```Makefile
+TEST_MATRIX := \
+	tag[php8.4-bun1.3];composer[acme/*:^2.0] \
+	composer[*:lowest]
+```
+
+A row joins `name[value]` fields with `;`. `image[…]` swaps the repository, or the whole image when it has a tag or digest.
+`tag[…]` swaps the tag and keeps its suffix, so `app:1-dev` becomes `app:php8.4-bun1.3-dev`.
+`composer[…]` and `bun[…]` take `&`-joined `package:constraint` entries,
+where `lowest` is the lowest version the manifest allows, which Bun cannot resolve.
+`TEST_MATRIX_IMAGE_KEY` names the variable your compose file reads the image from.
+
+`make ci` runs every row after the tests, one after another and apart from your own containers.
+On your machine, your manifests and lock files are restored afterwards.
+For a CI job per row, `make -s test-matrix-rows` prints the rows as a JSON list,
+`make test-matrix -- 'composer[acme/user:lowest]'` runs one of them, and `make ci TEST_MATRIX=` skips them.
 
 ## Environment files
 

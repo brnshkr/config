@@ -1583,14 +1583,229 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_COVERAGE)
 endif
 
-_CI_TARGETS := $(if $(_HAS_FIX),$(call _target,fix)) \
+TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-matrix` runs
+TEST_MATRIX_IMAGE_KEY ?= #vv #~~ variable naming the image the compose file runs
+
+_MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
+_MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
+_MATRIX_SETTINGS   = COMPOSE_PROJECT_NAME='$(_MATRIX_PROJECT)' APP_SERVICE_MODE=run $${reference:+$(TEST_MATRIX_IMAGE_KEY)="$$reference"}
+_MATRIX_MAKE       = $(MAKE) $(_VERB_FLAGS) --no-print-directory CI_SUMMARY_FILE= $(_MATRIX_SETTINGS)
+
+_MATRIX_INSTALLS = $(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
+	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install)
+
+_MATRIX_MANIFESTS = $(notdir $(wildcard \
+	$(CURDIR)/composer.json \
+	$(CURDIR)/composer.lock \
+	$(CURDIR)/package.json \
+	$(CURDIR)/bun.lock \
+))
+
+ifneq ($(_HAS_TEST),)
+$(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
+	$(DEBUG_PREFIX)set -f; \
+	report_error() { \
+		format="$$1"; shift; \
+		printf '$(call text,[$(_LABEL)],$(COLOR_ERROR)) '"$$format"'\n' "$$@" | $(call _render_inline_code,print,yes) >&2; \
+	}; \
+	refuse_row() { \
+		report_error "$$@"; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	}; \
+	read_row() { \
+		row="$$1"; image_field=; tag_field=; composer_entries=; bun_entries=; reference=; seen_fields=' '; \
+		old_ifs="$$IFS"; IFS=';'; set -- $$row; IFS="$$old_ifs"; \
+		for field in "$$@"; do \
+			name="$${field%%\[*}"; value="$${field#*\[}"; value="$${value%\]}"; \
+			case "$$field" in \
+				*\[?*\]) \
+				;; \
+				*) \
+					refuse_row '`%s` is no field, write `name[value]`.' "$$field" \
+				;; \
+			esac; \
+			case "$$seen_fields" in \
+				*" $$name "*) \
+					refuse_row '`%s[…]` is in one row twice.' "$$name" \
+				;; \
+			esac; \
+			seen_fields="$$seen_fields$$name "; \
+			case "$$name" in \
+				image) \
+					image_field="$$value" \
+				;; \
+				tag) \
+					case "$$value" in \
+						*[:/@]*) \
+							refuse_row '`%s` is no tag, drop its `:`, `/` or `@`.' "$$value" \
+						;; \
+					esac; \
+					tag_field="$$value" \
+				;; \
+				composer) \
+					composer_entries="$$value" \
+				;; \
+				bun) \
+					bun_entries="$$value" \
+				;; \
+				*) \
+					refuse_row '`%s[…]` is no matrix field, use `image`, `tag`, `composer` or `bun`.' "$$name" \
+				;; \
+			esac; \
+		done; \
+		if [ -n "$$image_field$$tag_field" ]; then \
+			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`$(_COMMA) set it to the variable the compose file reads the image from.' "$$row";) \
+			image='$($(TEST_MATRIX_IMAGE_KEY))'; image="$${image%@*}"; tag="$${image##*:}"; \
+			case "$${image_field##*/}" in \
+				*:*|*@*) \
+					[ -z "$$tag_field" ] || refuse_row '`tag[%s]` contradicts `image[%s]`, which carries its own tag.' "$$tag_field" "$$image_field"; \
+					reference="$$image_field" \
+				;; \
+				*) \
+					[ -z "$$tag_field" ] || tag="$$tag_field$$(printf '%s' "$$tag" | sed 's/^[^-]*//')"; \
+					reference="$${image_field:-$${image%:*}}:$$tag" \
+				;; \
+			esac; \
+		fi; \
+		lowest_names=; constrained_names=; constraints=; is_everything_lowest=; seen_packages=' '; \
+		old_ifs="$$IFS"; IFS='&'; for entry in $$composer_entries; do IFS="$$old_ifs"; \
+			package="$${entry%:*}"; constraint="$${entry##*:}"; \
+			case "$$entry" in \
+				?*:?*) \
+				;; \
+				*) \
+					refuse_row '`%s` is no `package:constraint`.' "$$entry" \
+				;; \
+			esac; \
+			if [ "$$package" = '*' ]; then \
+				[ "$$constraint" = lowest ] || refuse_row '`*` only takes `lowest`, not `%s`.' "$$constraint"; \
+				[ -z "$$is_everything_lowest" ] || refuse_row '`*:lowest` is in one row twice.'; \
+				is_everything_lowest=1; \
+				continue; \
+			fi; \
+			names=$$($(MAKE) -s --no-print-directory $(_MATRIX_SETTINGS) $(call _target,composer) \
+				ARGS="show --name-only --no-ansi '$$package'" 2>/dev/null); \
+			[ -n "$$names" ] || refuse_row '`%s` matches no installed package.' "$$package"; \
+			for name in $$names; do \
+				case "$$seen_packages" in \
+					*" $$name "*) \
+						refuse_row '`%s` is moved twice in one row.' "$$name" \
+					;; \
+				esac; \
+				seen_packages="$$seen_packages$$name "; \
+				if [ "$$constraint" = lowest ]; then \
+					lowest_names="$$lowest_names $$name"; \
+				else \
+					constrained_names="$$constrained_names $$name"; \
+					constraints="$$constraints '--with=$$name:$$constraint'"; \
+				fi; \
+			done; \
+		done; IFS="$$old_ifs"; \
+		[ -z "$$is_everything_lowest" ] || [ -z "$$lowest_names" ] \
+			|| refuse_row '`*:lowest` already covers `%s`.' "$${lowest_names# }"; \
+		seen_packages=' '; old_ifs="$$IFS"; IFS='&'; for entry in $$bun_entries; do IFS="$$old_ifs"; \
+			package="$${entry%:*}"; constraint="$${entry##*:}"; \
+			case "$$entry" in \
+				'*':*|*:lowest) \
+					refuse_row '`%s` needs a lower bound, since Bun resolves no lowest versions.' "$$entry" \
+				;; \
+				?*:?*) \
+				;; \
+				*) \
+					refuse_row '`%s` is no `package:constraint`.' "$$entry" \
+				;; \
+			esac; \
+			case "$$seen_packages" in \
+				*" $$package "*) \
+					refuse_row '`%s` is moved twice in one row.' "$$package" \
+				;; \
+			esac; \
+			seen_packages="$$seen_packages$$package "; \
+		done; IFS="$$old_ifs"; \
+	}; \
+	restore_manifests() { \
+		cp $(addprefix '$(_MATRIX_BACKUP_DIR)'/,$(_MATRIX_MANIFESTS)) . \
+			&& $(MAKE) $(_VERB_FLAGS) --no-print-directory $(_MATRIX_INSTALLS); \
+	}; \
+	set -- $(call _shell_quoted,$(TEST_MATRIX)); \
+	[ "$$#" -gt 0 ] || refuse_row '`TEST_MATRIX` has no rows, so `test-matrix` has nothing to run.'; \
+	repeated_row=$$(printf '%s\n' "$$@" | sort | uniq -d | head -n 1); \
+	[ -z "$$repeated_row" ] || refuse_row '`%s` is in `TEST_MATRIX` twice.' "$$repeated_row"; \
+	listed_rows=" $$* "; \
+	$(if $(ARGS),set -- $(ARGS);) \
+	for row in "$$@"; do \
+		case "$$listed_rows" in \
+			*" $$row "*) \
+			;; \
+			*) \
+				refuse_row '`%s` is no `TEST_MATRIX` row.' "$$row" \
+			;; \
+		esac; \
+		read_row "$$row"; \
+	done; \
+	mkdir -p '$(_MATRIX_BACKUP_DIR)' && cp $(_MATRIX_MANIFESTS) '$(_MATRIX_BACKUP_DIR)/' || exit 1; \
+	$(if $(_IS_CI),,trap 'cd "$(CURDIR)" && restore_manifests' EXIT;) \
+	$(if $(CI_SUMMARY_FILE),$(_add_summary_header);) \
+	failed_rows=; is_first_row=1; \
+	for row in "$$@"; do \
+		[ -n "$$is_first_row" ] || restore_manifests || exit 1; \
+		is_first_row=; start=$$($(DATE) +%s); result='✅'; \
+		read_row "$$row"; \
+		( \
+			[ -z "$$is_everything_lowest" ] || $(_MATRIX_MAKE) $(call _target,composer) ARGS='update --prefer-lowest' || exit 1; \
+			[ -z "$$lowest_names" ] || $(_MATRIX_MAKE) $(call _target,composer) \
+				ARGS="update $$lowest_names --prefer-lowest --with-all-dependencies" || exit 1; \
+			[ -z "$$constrained_names" ] || $(_MATRIX_MAKE) $(call _target,composer) \
+				ARGS="update $$constrained_names --with-all-dependencies $$constraints" || exit 1; \
+			old_ifs="$$IFS"; IFS='&'; for entry in $$bun_entries; do IFS="$$old_ifs"; \
+				$(_MATRIX_MAKE) $(call _target,bun) ARGS="pm pkg set 'overrides.$${entry%:*}=$${entry##*:}'" || exit 1; \
+			done; IFS="$$old_ifs"; \
+			[ -z "$$bun_entries" ] || $(_MATRIX_MAKE) $(call _target,bun) ARGS=install || exit 1; \
+			$(_MATRIX_MAKE) $(call _target,test) \
+		) || { result='$(_CI_FAILED_RESULT)'; failed_rows="$$failed_rows $$row"; }; \
+		$(if $(CI_SUMMARY_FILE),$(call _add_summary_row,"$(call _target,test-matrix) $$(printf '%s' "$$row" | sed 's/|/\\|/g')");) \
+	done; \
+	$(if $(_IS_CI),,trap - EXIT; restore_manifests || exit 1;) \
+	for row in $$failed_rows; do report_error '`%s` failed.' "$$row"; done; \
+	[ -z "$$failed_rows" ]
+endif
+
+$(call _target,test-matrix-rows): #~~ prints the `TEST_MATRIX` rows as a JSON list #vvvv
+	$(DEBUG_PREFIX)printf '%s\n' $(call _quoted,[$(subst $(_SPACE),$(_COMMA),$(foreach \
+		ROW,$(if $(_HAS_TEST),$(TEST_MATRIX)),"$(subst ",\",$(subst \,\\,$(ROW)))"))])
+
+_CI_TARGETS = $(if $(_HAS_FIX),$(call _target,fix)) \
 	$(if $(_HAS_CHECK),$(call _target,check)) \
 	$(if $(_HAS_AUDIT),$(call _target,audit)) \
-	$(if $(_HAS_TEST),$(call _target,test))
+	$(if $(_HAS_TEST),$(call _target,test)) \
+	$(if $(and $(_HAS_TEST),$(TEST_MATRIX)),$(call _target,test-matrix))
 
-CI_TARGETS      ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
-CI_SUMMARY_FILE ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit` and `test` add a row per target to
-_CI_LOG_URL      = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID))
+CI_TARGETS        ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
+CI_SUMMARY_FILE   ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit`, `test` and `test-matrix` add their rows to
+_CI_LOG_URL        = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID))
+_CI_FAILED_RESULT  = ❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))
+
+#**
+#* Adds the table header to the CI summary file unless it has one.
+#*
+#* returns: string
+#*
+define _add_summary_header
+$(AWK) '/^\| Target \|/ { is_found = 1 } END { exit !is_found }' '$(CI_SUMMARY_FILE)' 2>/dev/null \
+	|| printf '| Target | Result | Time |\n| --- | --- | --- |\n' >> '$(CI_SUMMARY_FILE)'
+endef
+
+#**
+#* Adds a row with `result` and the seconds since `start` to the CI summary file.
+#*
+#* parameters:
+#*   target: string
+#*
+#* returns: string
+#*
+define _add_summary_row
+printf '| `%s` | %s | %ss |\n' $1 "$$result" "$$(($$($(DATE) +%s) - start))" >> '$(CI_SUMMARY_FILE)'
+endef
 
 #**
 #* Runs targets in one make, or one at a time with a row each where a CI summary file is set.
@@ -1602,19 +1817,18 @@ _CI_LOG_URL      = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITO
 #*
 define _run_summarized
 $(if $(CI_SUMMARY_FILE),is_failed=; \
-	$(AWK) '/^\| Target \|/ { is_found = 1 } END { exit !is_found }' '$(CI_SUMMARY_FILE)' 2>/dev/null \
-		|| printf '| Target | Result | Time |\n| --- | --- | --- |\n' >> '$(CI_SUMMARY_FILE)'; \
+	$(_add_summary_header); \
 	for target in $1; do \
 		start=$$($(DATE) +%s); \
 		result='✅'; \
-		$(MAKE) $(_VERB_FLAGS) "$$target" || { result='❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))'; is_failed=1; }; \
-		printf '| `%s` | %s | %ss |\n' "$$target" "$$result" "$$(($$($(DATE) +%s) - start))" >> '$(CI_SUMMARY_FILE)'; \
+		$(MAKE) $(_VERB_FLAGS) "$$target" || { result='$(_CI_FAILED_RESULT)'; is_failed=1; }; \
+		$(call _add_summary_row,"$$target"); \
 	done; \
 	[ -z "$$is_failed" ],$(MAKE) $(_VERB_FLAGS) $1)
 endef
 
 ifneq ($(_HAS_CI),)
-$(call _target,ci): #~~ runs `fix`, `check`, `audit` and `test`, failing at the end if any of them failed
+$(call _target,ci): #~~ runs `CI_TARGETS`, failing at the end if any of them failed
 	$(DEBUG_PREFIX)is_failed=; $(foreach TARGET,$(CI_TARGETS), \
 		$(MAKE) $(_VERB_FLAGS) $(TARGET) || is_failed=1; \
 	) [ -z "$$is_failed" ]

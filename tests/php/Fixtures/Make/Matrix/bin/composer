@@ -1,0 +1,31 @@
+#!/bin/sh
+case " $* " in
+  *" show "*)
+    for argument in "$@"; do
+      pattern="$argument"
+    done
+
+    case "$pattern" in
+      "acme/*")
+        echo acme/email
+        echo acme/user
+      ;;
+
+      acme/email|acme/user)
+        echo "$pattern"
+      ;;
+    esac
+
+    exit 0
+  ;;
+
+  *" update "*":^9."*)
+    exit 1
+  ;;
+
+  *" update "*)
+    echo "{\"updated\": true}" > composer.lock
+  ;;
+esac
+
+echo "composer $*"

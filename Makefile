@@ -39,6 +39,8 @@ SEMGREP_IMAGE ?= semgrep/semgrep:1.177.0-nonroot#~~ image the semgrep tests run 
 export FORGE_IMAGE
 export SEMGREP_IMAGE
 
+TEST_MATRIX_IMAGE_KEY := FORGE_IMAGE
+
 #---vvv changelog
 
 CHANGELOG_NAMES += editor-url=EditorUrl \

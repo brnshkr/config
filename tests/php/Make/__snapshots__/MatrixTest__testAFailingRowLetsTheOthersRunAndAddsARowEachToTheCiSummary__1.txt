@@ -1,0 +1,4 @@
+| Target | Result | Time |
+| --- | --- | --- |
+| `test-matrix composer[acme/user:^9.0]` | ❌ [log](https://github.com/acme/matrix/actions/runs/1) | <seconds>s |
+| `test-matrix composer[*:lowest]` | ✅ | <seconds>s |

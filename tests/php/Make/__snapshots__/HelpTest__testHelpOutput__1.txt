@@ -224,6 +224,7 @@ Variables:
    FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
    GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
    TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
+   TEST_MATRIX                 ?=                                                   (rows of images and dependency constraints test-matrix runs)
    FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
   setup
    STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
@@ -395,10 +396,13 @@ Available commands:
    common
     CHECK_TARGETS               ?=                                                   (this project's own targets, run by check)
     FIX_TARGETS                 ?=                                                   (this project's own targets, run by fix)
+@@ @@
     GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
     TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
+    TEST_MATRIX                 ?=                                                   (rows of images and dependency constraints test-matrix runs)
++   TEST_MATRIX_IMAGE_KEY       ?=                                                   (variable naming the image the compose file runs)
 +   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
-+   CI_SUMMARY_FILE             ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit and test add a row per target to)
++   CI_SUMMARY_FILE             ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit, test and test-matrix add their rows to)
     FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
    setup
     STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
@@ -700,6 +704,7 @@ Available commands:
 -   fixtures                    builds the fixtures this project's tests read
 +   help, h                                  shows this help, narrowed by scope, widened by v to vvv
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
++   test-matrix-rows                         prints the TEST_MATRIX rows as a JSON list
 +   fixtures                                 builds the fixtures this project's tests read
    setup
 -   startup                     installs everything and writes missing files
@@ -1228,8 +1233,10 @@ Available commands:
    [36mFIX_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfix[0m[90m)[0m
    [36mGROUP_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
+   [36mTEST_MATRIX               [0m  [90m?=                                                   (rows of images and dependency constraints [35mtest-matrix[0m[90m runs)[0m
+   [36mTEST_MATRIX_IMAGE_KEY     [0m  [90m?=                                                   (variable naming the image the compose file runs)[0m
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
-   [36mCI_SUMMARY_FILE           [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m and [35mtest[0m[90m add a row per target to)[0m
+   [36mCI_SUMMARY_FILE           [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m, [35mtest[0m[90m and [35mtest-matrix[0m[90m add their rows to)[0m
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
@@ -1567,8 +1574,10 @@ Available commands:
    [32mFIX_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfix[0m[0m)[0m
    [32mGROUP_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
+   [32mTEST_MATRIX               [0m  [0m?=                                                   (rows of images and dependency constraints [33mtest-matrix[0m[0m runs)[0m
+   [32mTEST_MATRIX_IMAGE_KEY     [0m  [0m?=                                                   (variable naming the image the compose file runs)[0m
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
-   [32mCI_SUMMARY_FILE           [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m and [33mtest[0m[0m add a row per target to)[0m
+   [32mCI_SUMMARY_FILE           [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m, [33mtest[0m[0m and [33mtest-matrix[0m[0m add their rows to)[0m
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
