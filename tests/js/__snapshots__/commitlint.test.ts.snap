@@ -117,8 +117,8 @@ exports[`expected commitlint config 1`] = `
           'measure',          'missing',
           'non-empty-string', 'pad',
           'promote',          'prove',
-          'spell',            'throw',
-          'widen'
+          'simulate',         'spell',
+          'throw',            'widen'
         ]
       }
     ]

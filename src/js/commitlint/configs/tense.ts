@@ -26,6 +26,7 @@ const ALLOWLIST = <const>[
   'pad',
   'promote',
   'prove',
+  'simulate',
   'spell',
   'throw',
   'widen',
