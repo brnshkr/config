@@ -55,7 +55,7 @@ $(foreach KEY,$(_BRNSHKR_DOTENV_KEYS),$(eval $(KEY) = $(subst ",,$(subst ',,$(va
 export $(_BRNSHKR_DOTENV_KEYS)
 endif
 
-_BRNSHKR_COMPOSE = HOST_UID="$$(id -u)" HOST_GID="$$(id -g)" HOST_APP_DIR='$(CURDIR)' docker compose \
+_BRNSHKR_COMPOSE = HOST_UID="$$(id -u)" HOST_GID="$$(id -g)" HOST_APP_DIR='$(CURDIR)' FORGE_REPOSITORY='$(or $(FORGE_REPOSITORY),ghcr.io/brnshkr/forge)' docker compose \
 	$(addprefix -f ,$(_BRNSHKR_COMPOSE_FILES))
 
 _BRNSHKR_RUN    = $(and $(APP_SERVICE),$(_BRNSHKR_COMPOSE_FILES),$(_BRNSHKR_COMPOSE) run --rm $(APP_SERVICE))

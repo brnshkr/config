@@ -314,13 +314,15 @@ APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools s
 HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
 HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
+FORGE_REPOSITORY   ?= $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshkr/forge)#vv #~~ where forge's images and Compose fragments are published
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
 
 _HOST_ENVIRONMENT = $(_DOTENV_DEFAULT_ENVIRONMENT) \
 	HOST_UID='$(HOST_UID)' \
 	HOST_GID='$(HOST_GID)' \
-	HOST_APP_DIR='$(HOST_APP_DIR)'
+	HOST_APP_DIR='$(HOST_APP_DIR)' \
+	FORGE_REPOSITORY='$(FORGE_REPOSITORY)'
 
 #**
 #* Whether a command is on `PATH`, or exists where it names a path, looked up without starting a shell.
@@ -617,6 +619,9 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 _DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
 	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=COMPOSE_FILE '$(_DOTENV_AWK)'))
 
+_DOTENV_FORGE_REPOSITORY := $(if $(and $(filter file,$(origin FORGE_REPOSITORY)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_REPOSITORY '$(_DOTENV_AWK)'))
+
 _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
 _DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
@@ -627,6 +632,7 @@ ifneq ($(_HAS_CONTAINER),) # container
 export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
+export FORGE_REPOSITORY
 
 _SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
 	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))

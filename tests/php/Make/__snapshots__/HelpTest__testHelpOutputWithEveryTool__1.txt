@@ -459,6 +459,7 @@ Variables:
    HOST_UID                        ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
    HOST_GID                        ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
    HOST_APP_DIR                    ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
+   FORGE_REPOSITORY                ?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)
    COMPOSE_FILES                    =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)
   output
    DEBUG                           ?=                                                   (whether each command is echoed)
@@ -1511,6 +1512,7 @@ Available commands:
    [36mHOST_UID                      [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [36mHOST_GID                      [0m  [90m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [36mHOST_APP_DIR                  [0m  [90m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
+   [36mFORGE_REPOSITORY              [0m  [90m?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)[0m
    [36mCOMPOSE_FILES                 [0m  [90m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)[0m
   [35moutput[0m
    [36mDEBUG                         [0m  [90m?=                                                   (whether each command is echoed)[0m
@@ -1983,6 +1985,7 @@ Available commands:
    [32mHOST_UID                      [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [32mHOST_GID                      [0m  [0m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
    [32mHOST_APP_DIR                  [0m  [0m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
+   [32mFORGE_REPOSITORY              [0m  [0m?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)[0m
    [32mCOMPOSE_FILES                 [0m  [0m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)[0m
   [33moutput[0m
    [32mDEBUG                         [0m  [0m?=                                                   (whether each command is echoed)[0m
