@@ -75,7 +75,7 @@ PHP_UNIT_FLAGS += --parallel --processes=2
 
 #---vv tools
 
-COMPOSER := $(PHP) $(APP_DIR)/scripts/composer.php
+COMPOSER := $(if $(wildcard $(CURDIR)/vendor/autoload.php),$(PHP) $(APP_DIR)/scripts/composer.php,$(COMPOSER))
 MV       := mv#vvv #~~ path to `mv` binary
 
 # NOTICE: `braces` has no fixed release and upstream disputes the advisory:
