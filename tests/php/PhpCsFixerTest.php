@@ -10,6 +10,8 @@ use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
 use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -25,8 +27,10 @@ use function count;
  */
 #[CoversClass(PhpCsFixer::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(FencedCodeFixer::class)]
 #[UsesClass(FileFinder::class)]
 #[UsesClass(Json::class)]
+#[UsesClass(MarkdownSafeFixer::class)]
 #[UsesClass(Module::class)]
 #[UsesClass(Package::class)]
 #[UsesClass(ProjectDirectory::class)]

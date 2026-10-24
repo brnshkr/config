@@ -16,6 +16,7 @@ use Brnshkr\Config\PhpStan\ProjectKernel;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Modular\ModuleIsolatedTest;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
 use Brnshkr\Config\PhpStan\Rule\InternalUsageRule;
+use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\PhpStan\ThrowTypeExtension\FileFinderThrowTypeExtension;
 use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Str;
@@ -24,6 +25,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
@@ -48,6 +50,7 @@ use function getcwd;
 #[UsesClass(Package::class)]
 #[UsesClass(ProjectKernel::class)]
 #[UsesClass(Str::class)]
+#[UsesTrait(RuleTrait::class)]
 final class PhpStanTest extends TestCase
 {
     #[After]

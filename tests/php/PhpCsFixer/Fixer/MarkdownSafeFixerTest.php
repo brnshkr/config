@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\PhpCsFixer\Fixer;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
 use Brnshkr\Config\Str;
@@ -20,6 +21,7 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 #[CoversClass(MarkdownSafeFixer::class)]
 #[UsesClass(ComposerJson::class)]
+#[UsesClass(FileFinder::class)]
 #[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
 final class MarkdownSafeFixerTest extends TestCase

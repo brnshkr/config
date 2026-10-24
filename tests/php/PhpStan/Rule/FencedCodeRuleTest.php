@@ -6,6 +6,7 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\FencedCode;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\Rule\FencedCodeRule;
 use Brnshkr\Config\PhpStan\Rule\MakefileExampleAnalyzer;
@@ -38,6 +39,7 @@ use function array_values;
 #[CoversClass(XmlExampleAnalyzer::class)]
 #[UsesClass(ComposerJson::class)]
 #[UsesClass(FencedCode::class)]
+#[UsesClass(FileFinder::class)]
 #[UsesClass(Json::class)]
 #[UsesClass(NamedArgumentsUsageRule::class)]
 #[UsesClass(Process::class)]

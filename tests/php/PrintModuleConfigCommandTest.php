@@ -18,8 +18,11 @@ use Brnshkr\Config\Json;
 use Brnshkr\Config\Module;
 use Brnshkr\Config\Package;
 use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
 use Brnshkr\Config\PhpStan;
 use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Rector;
 use Brnshkr\Config\Str;
@@ -28,6 +31,7 @@ use Brnshkr\Config\TwigCsFixer;
 use Composer\Console\Application;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesTrait;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
 use stdClass;
@@ -70,6 +74,9 @@ use function Symfony\Component\String\s;
 #[UsesClass(Str::class)]
 #[UsesClass(JsonSnapshotDriver::class)]
 #[UsesClass(TwigCsFixer::class)]
+#[UsesClass(FencedCodeFixer::class)]
+#[UsesClass(MarkdownSafeFixer::class)]
+#[UsesTrait(RuleTrait::class)]
 final class PrintModuleConfigCommandTest extends TestCase
 {
     use MatchesSnapshots;

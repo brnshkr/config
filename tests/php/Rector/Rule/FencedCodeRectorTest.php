@@ -14,6 +14,7 @@ use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesFile;
 use Rector\Testing\PHPUnit\AbstractRectorTestCase;
 
 /**
@@ -25,6 +26,7 @@ use Rector\Testing\PHPUnit\AbstractRectorTestCase;
 #[UsesClass(FileFinder::class)]
 #[UsesClass(Json::class)]
 #[UsesClass(Str::class)]
+#[UsesFile(__DIR__ . '/../../../../src/php/Rector/config/fenced-code.php')]
 final class FencedCodeRectorTest extends AbstractRectorTestCase
 {
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/Rector/Rule/FencedCode';
