@@ -198,17 +198,17 @@ Variables:
     VENDOR                     ?=  $(if $(findstring /,$(_MANIFEST_NAME)),$(firstw… (vendor name, taken from the manifest when unset)
     PACKAGE                    ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
   container
-   COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
-   APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
+   COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
+   APP_SERVICE                 ?=  app                                              (Compose service the tools run in, empty for this machine)
    APP_SERVICE_MODE            ?=  exec                                             (run starts a throwaway container instead of entering one)
-   ACTIONLINT_SERVICE          ?=  actionlint                                       (compose service actionlint runs in, where the project has one)
-   HADOLINT_SERVICE            ?=  hadolint                                         (compose service hadolint runs in, where the project has one)
-   NODE_SERVICE                ?=  node                                             (compose service node runs in, where the project has one, empty to run it on the host)
-   SEMGREP_SERVICE             ?=  semgrep                                          (compose service semgrep runs in, where the project has one)
+   ACTIONLINT_SERVICE          ?=  actionlint                                       (Compose service actionlint runs in, where the project has one)
+   HADOLINT_SERVICE            ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
+   NODE_SERVICE                ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
+   SEMGREP_SERVICE             ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
-   COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)
+   COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
   output
    DEBUG                       ?=                                                   (whether each command is echoed)
    TRACE                       ?=                                                   (whether every recipe line is echoed)
@@ -263,7 +263,7 @@ Functions:
   helpers
    text                         wraps a string in ANSI color and modifier escapes, resetting after it
    log                          prints a message behind the <VENDOR>/<PACKAGE> label
-   run_in                       the command a tool named for a compose service runs through, empty on this machine
+   run_in                       the command a tool named for a Compose service runs through, empty on this machine
    confirm                      asks a yes/no question before something destructive happens
  app
   advanced
@@ -327,17 +327,17 @@ Available commands:
      PACKAGE                    ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
 +    VERSION                    ?=  0.0.0-dev                                        (package version)
    container
-    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
-    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
+    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
+    APP_SERVICE                 ?=  app                                              (Compose service the tools run in, empty for this machine)
 @@ @@
     IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
     RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
     APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
 +   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
 +   HOST_GID                    ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
-+   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)
++   HOST_APP_DIR                ?=  $(CURDIR)                                        (where this project sits on this machine, bound by Compose)
 +   FORGE_REPOSITORY            ?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)
-    COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)
+    COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
    output
     DEBUG                       ?=                                                   (whether each command is echoed)
 @@ @@
@@ -401,7 +401,7 @@ Available commands:
     GROUP_TARGETS               ?=                                                   (this project's own targets, run by group)
     TEST_TARGETS                ?=                                                   (this project's own targets, run by test)
     TEST_MATRIX                 ?=                                                   (rows of images and dependency constraints test-matrix runs)
-+   TEST_MATRIX_IMAGE_KEY       ?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)
++   TEST_MATRIX_IMAGE_KEY       ?=  FORGE_IMAGE                                      (variable naming the image the Compose file runs)
 +   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
 +   CI_SUMMARY_FILE             ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit, test and test-matrix add their rows to)
     FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
@@ -441,7 +441,7 @@ Available commands:
    helpers
 -   text                         wraps a string in ANSI color and modifier escapes, resetting after it
 -   log                          prints a message behind the <VENDOR>/<PACKAGE> label
--   run_in                       the command a tool named for a compose service runs through, empty on this machine
+-   run_in                       the command a tool named for a Compose service runs through, empty on this machine
 -   confirm                      asks a yes/no question before something destructive happens
 +   text
 +    Wraps a string in ANSI color and modifier escapes, resetting after it.
@@ -456,7 +456,7 @@ Available commands:
 +    off where the sentence is about neither.
 +
 +   run_in
-+    The command a tool named for a compose service runs through, empty on this machine.
++    The command a tool named for a Compose service runs through, empty on this machine.
 +    The service is started first, once per run, unless a throwaway container is what runs it.
 +    A key the .env files declare passes by name, so its value never reaches a command line.
 +
@@ -548,10 +548,10 @@ Available commands:
 +    UPDATE_CA_CERTS            ?=  update-ca-certificates                           (path to update-ca-certificates binary)
 +    WSLPATH                    ?=  wslpath                                          (path to wslpath binary)
    container
-    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)
-    APP_SERVICE                 ?=  app                                              (compose service the tools run in, empty for this machine)
+    COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
+    APP_SERVICE                 ?=  app                                              (Compose service the tools run in, empty for this machine)
 @@ @@
-    COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)
+    COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
    output
     DEBUG                       ?=                                                   (whether each command is echoed)
 +   DEBUG_PREFIX                ?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)
@@ -617,7 +617,7 @@ Available commands:
 +    returns: void
  
     run_in
-     The command a tool named for a compose service runs through, empty on this machine.
+     The command a tool named for a Compose service runs through, empty on this machine.
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
 +
@@ -1146,21 +1146,21 @@ Available commands:
     [36mUPDATE_CA_CERTS          [0m  [90m?=  update-ca-certificates                           (path to [35mupdate-ca-certificates[0m[90m binary)[0m
     [36mWSLPATH                  [0m  [90m?=  wslpath                                          (path to [35mwslpath[0m[90m binary)[0m
   [35mcontainer[0m
-   [36mCOMPOSE_FILE              [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
-   [36mAPP_SERVICE               [0m  [90m?=  app                                              (compose service the tools run in, empty for this machine)[0m
+   [36mCOMPOSE_FILE              [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
+   [36mAPP_SERVICE               [0m  [90m?=  app                                              (Compose service the tools run in, empty for this machine)[0m
    [36mAPP_SERVICE_MODE          [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
-   [36mACTIONLINT_SERVICE        [0m  [90m?=  actionlint                                       (compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
-   [36mHADOLINT_SERVICE          [0m  [90m?=  hadolint                                         (compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
-   [36mNODE_SERVICE              [0m  [90m?=  node                                             (compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
-   [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
+   [36mACTIONLINT_SERVICE        [0m  [90m?=  actionlint                                       (Compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
+   [36mHADOLINT_SERVICE          [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
+   [36mNODE_SERVICE              [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
+   [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (Compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [36mRUN                       [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
    [36mHOST_UID                  [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [36mHOST_GID                  [0m  [90m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
-   [36mHOST_APP_DIR              [0m  [90m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
+   [36mHOST_APP_DIR              [0m  [90m?=  $(CURDIR)                                        (where this project sits on this machine, bound by Compose)[0m
    [36mFORGE_REPOSITORY          [0m  [90m?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)[0m
-   [36mCOMPOSE_FILES             [0m  [90m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)[0m
+   [36mCOMPOSE_FILES             [0m  [90m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)[0m
   [35moutput[0m
    [36mDEBUG                     [0m  [90m?=                                                   (whether each command is echoed)[0m
    [36mDEBUG_PREFIX              [0m  [90m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
@@ -1236,7 +1236,7 @@ Available commands:
    [36mGROUP_TARGETS             [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS              [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
    [36mTEST_MATRIX               [0m  [90m?=                                                   (rows of images and dependency constraints [35mtest-matrix[0m[90m runs)[0m
-   [36mTEST_MATRIX_IMAGE_KEY     [0m  [90m?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)[0m
+   [36mTEST_MATRIX_IMAGE_KEY     [0m  [90m?=  FORGE_IMAGE                                      (variable naming the image the Compose file runs)[0m
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mCI_SUMMARY_FILE           [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m, [35mtest[0m[90m and [35mtest-matrix[0m[90m add their rows to)[0m
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
@@ -1320,7 +1320,7 @@ Available commands:
     [90mreturns: void[0m
 
    [36mrun_in[0m
-    [90mThe command a tool named for a compose service runs through, empty on this machine.[0m
+    [90mThe command a tool named for a Compose service runs through, empty on this machine.[0m
     [90mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
     [90mA key the [35m.env[0m[90m files declare passes by name, so its value never reaches a command line.[0m
 
@@ -1488,21 +1488,21 @@ Available commands:
     [32mUPDATE_CA_CERTS          [0m  [0m?=  update-ca-certificates                           (path to [33mupdate-ca-certificates[0m[0m binary)[0m
     [32mWSLPATH                  [0m  [0m?=  wslpath                                          (path to [33mwslpath[0m[0m binary)[0m
   [33mcontainer[0m
-   [32mCOMPOSE_FILE              [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (compose files, colon-separated, instead of this project's)[0m
-   [32mAPP_SERVICE               [0m  [0m?=  app                                              (compose service the tools run in, empty for this machine)[0m
+   [32mCOMPOSE_FILE              [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
+   [32mAPP_SERVICE               [0m  [0m?=  app                                              (Compose service the tools run in, empty for this machine)[0m
    [32mAPP_SERVICE_MODE          [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
-   [32mACTIONLINT_SERVICE        [0m  [0m?=  actionlint                                       (compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
-   [32mHADOLINT_SERVICE          [0m  [0m?=  hadolint                                         (compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
-   [32mNODE_SERVICE              [0m  [0m?=  node                                             (compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
-   [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
+   [32mACTIONLINT_SERVICE        [0m  [0m?=  actionlint                                       (Compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
+   [32mHADOLINT_SERVICE          [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
+   [32mNODE_SERVICE              [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
+   [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (Compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
    [32mRUN                       [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
    [32mHOST_UID                  [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [32mHOST_GID                  [0m  [0m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
-   [32mHOST_APP_DIR              [0m  [0m?=  $(CURDIR)                                        (where this project sits on this machine, bound by compose)[0m
+   [32mHOST_APP_DIR              [0m  [0m?=  $(CURDIR)                                        (where this project sits on this machine, bound by Compose)[0m
    [32mFORGE_REPOSITORY          [0m  [0m?=  $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshk… (where forge's images and Compose fragments are published)[0m
-   [32mCOMPOSE_FILES             [0m  [0m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (compose files the container targets use)[0m
+   [32mCOMPOSE_FILES             [0m  [0m =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)[0m
   [33moutput[0m
    [32mDEBUG                     [0m  [0m?=                                                   (whether each command is echoed)[0m
    [32mDEBUG_PREFIX              [0m  [0m?=  $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)… (prefix for a command)[0m
@@ -1578,7 +1578,7 @@ Available commands:
    [32mGROUP_TARGETS             [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS              [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
    [32mTEST_MATRIX               [0m  [0m?=                                                   (rows of images and dependency constraints [33mtest-matrix[0m[0m runs)[0m
-   [32mTEST_MATRIX_IMAGE_KEY     [0m  [0m?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)[0m
+   [32mTEST_MATRIX_IMAGE_KEY     [0m  [0m?=  FORGE_IMAGE                                      (variable naming the image the Compose file runs)[0m
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mCI_SUMMARY_FILE           [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m, [33mtest[0m[0m and [33mtest-matrix[0m[0m add their rows to)[0m
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
@@ -1662,7 +1662,7 @@ Available commands:
     [0mreturns: void[0m
 
    [32mrun_in[0m
-    [0mThe command a tool named for a compose service runs through, empty on this machine.[0m
+    [0mThe command a tool named for a Compose service runs through, empty on this machine.[0m
     [0mThe service is started first, once per run, unless a throwaway container is what runs it.[0m
     [0mA key the [33m.env[0m[0m files declare passes by name, so its value never reaches a command line.[0m
 

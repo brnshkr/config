@@ -280,7 +280,7 @@ final class MatrixTest extends TestCase
 
         yield 'image without its variable' => [
             ['TEST_MATRIX_IMAGE_KEY=', 'TEST_MATRIX=tag[php8.5-bun1.4]'],
-            '`tag[php8.5-bun1.4]` needs `TEST_MATRIX_IMAGE_KEY`, set it to the variable the compose file reads the image from.',
+            '`tag[php8.5-bun1.4]` needs `TEST_MATRIX_IMAGE_KEY`, set it to the variable the Compose file reads the image from.',
         ];
     }
 

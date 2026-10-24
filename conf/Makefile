@@ -301,19 +301,19 @@ WSLPATH         ?= wslpath#~~ path to `wslpath` binary
 
 #---v container
 
-COMPOSE_FILE       ?= $(_DOTENV_COMPOSE_FILE)#~~ compose files, colon-separated, instead of this project's
-APP_SERVICE        ?= app#~~ compose service the tools run in, empty for this machine
+COMPOSE_FILE       ?= $(_DOTENV_COMPOSE_FILE)#~~ Compose files, colon-separated, instead of this project's
+APP_SERVICE        ?= app#~~ Compose service the tools run in, empty for this machine
 APP_SERVICE_MODE   ?= exec#~~ `run` starts a throwaway container instead of entering one
-ACTIONLINT_SERVICE ?= actionlint#~~ compose service `actionlint` runs in, where the project has one
-HADOLINT_SERVICE   ?= hadolint#~~ compose service `hadolint` runs in, where the project has one
-NODE_SERVICE       ?= node#~~ compose service `node` runs in, where the project has one, empty to run it on the host
-SEMGREP_SERVICE    ?= semgrep#~~ compose service `semgrep` runs in, where the project has one
+ACTIONLINT_SERVICE ?= actionlint#~~ Compose service `actionlint` runs in, where the project has one
+HADOLINT_SERVICE   ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
+NODE_SERVICE       ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
+SEMGREP_SERVICE    ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
 IS_IN_CONTAINER    ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
 RUN                ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
 APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
 HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
-HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by compose
+HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by Compose
 FORGE_REPOSITORY   ?= $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshkr/forge)#vv #~~ where forge's images and Compose fragments are published
 
 _HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
@@ -348,7 +348,7 @@ _COMPOSE_CANDIDATE = $(firstword $(wildcard \
 	$(addprefix $(CURDIR)/$(_CONFIG_DIR)/,$(_COMPOSE_CANDIDATES)) \
 ))
 
-COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ compose files the container targets use
+COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ Compose files the container targets use
 
 _COMPOSE       = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
 _HAS_CONTAINER = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
@@ -645,7 +645,7 @@ ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
 	| $(AWK) '/ level=warning / || !NF { next } { sub(/^error while interpolating [^:]*: /, ""); print; exit }')
 
-$(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the compose file or empty `APP_SERVICE`)
+$(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the Compose file or empty `APP_SERVICE`)
 endif
 endif # /container
 
@@ -803,7 +803,7 @@ _LINTER_IMAGES := ghcr.io/brnshkr/forge:% \
 
 #**
 #* Whether a tool this project does not install can run here.
-#* In a container that takes its own compose service or an image known to carry it.
+#* In a container that takes its own Compose service or an image known to carry it.
 #*
 #* parameters:
 #*   binary: string
@@ -1591,7 +1591,7 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 endif
 
 TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-matrix` runs
-TEST_MATRIX_IMAGE_KEY ?= FORGE_IMAGE#vv #~~ variable naming the image the compose file runs
+TEST_MATRIX_IMAGE_KEY ?= FORGE_IMAGE#vv #~~ variable naming the image the Compose file runs
 
 _MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
 _MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
@@ -1661,7 +1661,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 			esac; \
 		done; \
 		if [ -n "$$image_field$$tag_field" ]; then \
-			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`$(_COMMA) set it to the variable the compose file reads the image from.' "$$row";) \
+			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`$(_COMMA) set it to the variable the Compose file reads the image from.' "$$row";) \
 			image='$(or $($(TEST_MATRIX_IMAGE_KEY)),$(filter-out -,$(_SERVICE_IMAGE)))'; image="$${image%@*}"; tag="$${image##*:}"; \
 			case "$${image_field##*/}" in \
 				*:*|*@*) \
@@ -3312,7 +3312,7 @@ printf '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
 endef
 
 #**
-#* The command a tool named for a compose service runs through, empty on this machine.
+#* The command a tool named for a Compose service runs through, empty on this machine.
 #* The service is started first, once per run, unless a throwaway container is what runs it.
 #* A key the `.env` files declare passes by name, so its value never reaches a command line.
 #*
@@ -3326,7 +3326,7 @@ $(call _enter_service,$1)
 endef
 
 #**
-#* The command a server runs through in a compose service, its port published on this machine's loopback.
+#* The command a server runs through in a Compose service, its port published on this machine's loopback.
 #*
 #* parameters:
 #*   service: string
@@ -3339,7 +3339,7 @@ $(call _enter_service,$1,--publish 127.0.0.1:$2:$2,run)
 endef
 
 #**
-#* The command a linter runs through, in its own compose service where the project has one.
+#* The command a linter runs through, in its own Compose service where the project has one.
 #* Without that service it runs through `RUN`.
 #*
 #* parameters:
@@ -3427,7 +3427,7 @@ $(if $(filter EDITOR_URL,$1),$(_EDITOR_URL),$($1))
 endef
 
 #**
-#* Enters a compose service, starting it when it is not running.
+#* Enters a Compose service, starting it when it is not running.
 #*
 #* parameters:
 #*   service: string

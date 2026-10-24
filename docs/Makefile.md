@@ -77,7 +77,7 @@ which git ignores and which is read first.
 
 ## Containers
 
-If your project has a compose file, the tools run in its `app` service. Set `APP_SERVICE` above the include
+If your project has a Compose file, the tools run in its `app` service. Set `APP_SERVICE` above the include
 to use another one, or leave it empty to run everything on your machine:
 
 ```Makefile
@@ -137,7 +137,7 @@ A row joins `name[value]` fields with `;`. `image[…]` swaps the repository, or
 `tag[…]` swaps the tag and keeps its suffix, so `app:1-dev` becomes `app:php8.4-bun1.3-dev`.
 `composer[…]` and `bun[…]` take `&`-joined `package:constraint` entries,
 where `lowest` is the lowest version the manifest allows, which Bun cannot resolve.
-`TEST_MATRIX_IMAGE_KEY` names the variable your compose file reads the image from.
+`TEST_MATRIX_IMAGE_KEY` names the variable your Compose file reads the image from.
 
 `make ci` runs every row after the tests, one after another and apart from your own containers.
 On your machine, your manifests and lock files are restored afterwards.
