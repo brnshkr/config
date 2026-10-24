@@ -527,7 +527,7 @@ Variables:
    GROUP_TARGETS                   ?=                                                   (this project's own targets, run by group)
    TEST_TARGETS                    ?=                                                   (this project's own targets, run by test)
    TEST_MATRIX                     ?=                                                   (rows of images and dependency constraints test-matrix runs)
-   TEST_MATRIX_IMAGE_KEY           ?=                                                   (variable naming the image the compose file runs)
+   TEST_MATRIX_IMAGE_KEY           ?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)
    CI_TARGETS                      ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
    CI_SUMMARY_FILE                 ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit, test and test-matrix add their rows to)
    FIXTURE_TARGETS                 ?=                                                   (this project's own targets, run by fixtures for its tests)
@@ -1589,7 +1589,7 @@ Available commands:
    [36mGROUP_TARGETS                 [0m  [90m?=                                                   (this project's own targets, run by [35mgroup[0m[90m)[0m
    [36mTEST_TARGETS                  [0m  [90m?=                                                   (this project's own targets, run by [35mtest[0m[90m)[0m
    [36mTEST_MATRIX                   [0m  [90m?=                                                   (rows of images and dependency constraints [35mtest-matrix[0m[90m runs)[0m
-   [36mTEST_MATRIX_IMAGE_KEY         [0m  [90m?=                                                   (variable naming the image the compose file runs)[0m
+   [36mTEST_MATRIX_IMAGE_KEY         [0m  [90m?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)[0m
    [36mCI_TARGETS                    [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mCI_SUMMARY_FILE               [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m, [35mtest[0m[90m and [35mtest-matrix[0m[90m add their rows to)[0m
    [36mFIXTURE_TARGETS               [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
@@ -2062,7 +2062,7 @@ Available commands:
    [32mGROUP_TARGETS                 [0m  [0m?=                                                   (this project's own targets, run by [33mgroup[0m[0m)[0m
    [32mTEST_TARGETS                  [0m  [0m?=                                                   (this project's own targets, run by [33mtest[0m[0m)[0m
    [32mTEST_MATRIX                   [0m  [0m?=                                                   (rows of images and dependency constraints [33mtest-matrix[0m[0m runs)[0m
-   [32mTEST_MATRIX_IMAGE_KEY         [0m  [0m?=                                                   (variable naming the image the compose file runs)[0m
+   [32mTEST_MATRIX_IMAGE_KEY         [0m  [0m?=  FORGE_IMAGE                                      (variable naming the image the compose file runs)[0m
    [32mCI_TARGETS                    [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mCI_SUMMARY_FILE               [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m, [33mtest[0m[0m and [33mtest-matrix[0m[0m add their rows to)[0m
    [32mFIXTURE_TARGETS               [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m

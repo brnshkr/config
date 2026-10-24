@@ -1591,7 +1591,7 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 endif
 
 TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-matrix` runs
-TEST_MATRIX_IMAGE_KEY ?= #vv #~~ variable naming the image the compose file runs
+TEST_MATRIX_IMAGE_KEY ?= FORGE_IMAGE#vv #~~ variable naming the image the compose file runs
 
 _MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
 _MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
@@ -1662,7 +1662,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 		done; \
 		if [ -n "$$image_field$$tag_field" ]; then \
 			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`$(_COMMA) set it to the variable the compose file reads the image from.' "$$row";) \
-			image='$($(TEST_MATRIX_IMAGE_KEY))'; image="$${image%@*}"; tag="$${image##*:}"; \
+			image='$(or $($(TEST_MATRIX_IMAGE_KEY)),$(filter-out -,$(_SERVICE_IMAGE)))'; image="$${image%@*}"; tag="$${image##*:}"; \
 			case "$${image_field##*/}" in \
 				*:*|*@*) \
 					[ -z "$$tag_field" ] || refuse_row '`tag[%s]` contradicts `image[%s]`, which carries its own tag.' "$$tag_field" "$$image_field"; \

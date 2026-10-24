@@ -96,6 +96,24 @@ final class MatrixTest extends TestCase
         self::assertStringContainsString('matrix-test on registry.acme.test/user:php8.5-bun1.4 in acme-matrix', $otherVariable);
     }
 
+    public function testATagWithoutAnImageVariableComposesWithTheServiceImage(): void
+    {
+        $matrixDirectory = $this->getFixtureCopy(self::MATRIX_DIRECTORY);
+
+        $result = $this->runMake(
+            [
+                'test-matrix',
+                'ACME_IMAGE=',
+                '_SERVICE_IMAGE=ghcr.io/acme/service:1-dev@sha256:0000',
+                'TEST_MATRIX=tag[php8.5-bun1.4]',
+            ],
+            self::createEnvironment($matrixDirectory, 'true'),
+            $matrixDirectory,
+        );
+
+        self::assertStringContainsString('matrix-test on ghcr.io/acme/service:php8.5-bun1.4-dev in acme-matrix', $result);
+    }
+
     public function testARowRunLocallyPutsTheLockFilesBack(): void
     {
         $matrixDirectory = $this->getFixtureCopy(self::MATRIX_DIRECTORY);
