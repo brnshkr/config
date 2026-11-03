@@ -16,7 +16,9 @@
       "name": "Bun: attach",
       "type": "bun",
       "request": "attach",
-      "url": "ws://localhost:6499/"
+      "url": "ws://localhost:6499/",
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app"
     },
     {
       "name": "Bun: launch current file",
