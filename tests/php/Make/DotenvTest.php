@@ -67,7 +67,7 @@ final class DotenvTest extends TestCase
 
         $result = $this->runMake(['app-dir'], $environment, $directory, doExpectFailure: true);
 
-        self::assertStringContainsString('The command docker could not be found in this WSL 2 distro.', $result);
+        self::assertStringContainsString('The command docker could not be found in this WSL 2 distro.  Stop.', $result);
     }
 
     public function testAStageOnTheCommandLineDetectsTheServicesAsItsStageGoalDoes(): void

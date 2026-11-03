@@ -643,9 +643,13 @@ _COMPOSE_SERVICES  := $(wordlist 3,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
-	| $(AWK) '/ level=warning / || !NF { next } { sub(/^error while interpolating [^:]*: /, ""); print; exit }')
+	| $(AWK) '/ level=warning / || !NF { next } { sub(/^error while interpolating [^:]*: /, ""); sub(/\.$$/, ""); print; exit }')
 
-$(error [$(_LABEL)] $(or $(_COMPOSE_REFUSAL),`$(APP_SERVICE)` has no `working_dir`), so fix the Compose file or empty `APP_SERVICE`)
+ifneq ($(_COMPOSE_REFUSAL),)
+$(error [$(_LABEL)] $(_COMPOSE_REFUSAL))
+endif
+
+$(error [$(_LABEL)] `$(APP_SERVICE)` has no `working_dir`, so fix the Compose file or empty `APP_SERVICE`)
 endif
 endif # /container
 
