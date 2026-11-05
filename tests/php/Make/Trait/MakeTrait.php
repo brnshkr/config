@@ -151,6 +151,17 @@ trait MakeTrait
         ], $directory)->mustRun();
     }
 
+    private static function tagInto(string $directory, string $tag): void
+    {
+        new Process([
+            'git',
+            '-c',
+            'tag.gpgsign=false',
+            'tag',
+            $tag,
+        ], $directory)->mustRun();
+    }
+
     /**
      * @param list<string> $args
      * @param array<string, string> $env

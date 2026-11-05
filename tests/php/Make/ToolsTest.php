@@ -243,10 +243,37 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString('`v1;false` does not name a tag', $result);
     }
 
+    public function testTheFirstReleaseShowsTheInitialText(): void
+    {
+        $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
+
+        self::commitInto($consumerDirectory, 'feat(user): import users');
+
+        $result = $this->runMake(['changelog', 'VERSION=1.0.0'], directory: $consumerDirectory);
+
+        self::assertStringContainsString("## 1.0.0\n\nInitial release\n", $result);
+        self::assertStringNotContainsString('import users', $result);
+    }
+
+    public function testOnlyTheFirstReleaseShowsTheInitialText(): void
+    {
+        $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
+
+        self::commitInto($consumerDirectory, 'feat(user): import users');
+        self::tagInto($consumerDirectory, 'v1.0.0');
+        self::commitInto($consumerDirectory, 'fix(email): keep address casing');
+
+        $result = $this->runMake(['changelog', 'all', 'VERSION=1.1.0'], directory: $consumerDirectory);
+
+        self::assertStringContainsString("## v1.0.0\n\nInitial release\n", $result);
+        self::assertStringContainsString('keep address casing', $result);
+        self::assertStringNotContainsString('import users', $result);
+    }
+
     public function testChangelogReportsWhetherItCreatedUpdatedOrLeftTheFile(): void
     {
         $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
-        $write             = ['changelog', 'write', 'VERSION=1.0.0'];
+        $write             = ['changelog', 'write', 'VERSION=1.0.0', 'CHANGELOG_INITIAL='];
 
         self::commitInto($consumerDirectory, 'feat(user): import users');
 
@@ -271,7 +298,7 @@ final class ToolsTest extends TestCase
     {
         $consumerDirectory = $this->getFixtureCopy(self::CONSUMER_DIRECTORY);
         $changelogPath     = $consumerDirectory . '/changelog/1.x.md';
-        $write             = ['changelog', 'write', 'VERSION=1.0.0'];
+        $write             = ['changelog', 'write', 'VERSION=1.0.0', 'CHANGELOG_INITIAL='];
         $filesystem        = new Filesystem();
 
         self::commitInto($consumerDirectory, 'feat(user): import users');

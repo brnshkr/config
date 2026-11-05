@@ -167,3 +167,5 @@ make changelog write        # into ./changelog/<major>.x.md, keeping your own no
 make changelog notes        # as a release body, ending in the compare link
 make changelog write force  # rebuilds each section from git
 ```
+
+A first release, with no earlier tag, shows `CHANGELOG_INITIAL` instead of its commits. Set it empty to list them.

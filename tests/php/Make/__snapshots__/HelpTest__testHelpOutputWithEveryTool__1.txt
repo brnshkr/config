@@ -544,6 +544,7 @@ Variables:
    CHANGELOG_URL                   ?=                                                   (base URL a commit hash links to)
    CHANGELOG_DIR                   ?=  $(CURDIR)/changelog                              (directory the release notes are written to)
    CHANGELOG_TITLE                 ?=  \# Changelog                                     (heading a new changelog file starts with)
+   CHANGELOG_INITIAL               ?=  Initial release                                  (text the first release carries instead of its commits, empty to list them)
    CHANGELOG_SKIPPED_COMMITS       ?=  chore(hygiene) chore(release)                    (type(scope) pairs left out of the changelog)
    CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
    CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
@@ -1610,6 +1611,7 @@ Available commands:
    [36mCHANGELOG_URL                 [0m  [90m?=                                                   (base URL a commit hash links to)[0m
    [36mCHANGELOG_DIR                 [0m  [90m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
    [36mCHANGELOG_TITLE               [0m  [90m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [36mCHANGELOG_INITIAL             [0m  [90m?=  Initial release                                  (text the first release carries instead of its commits, empty to list them)[0m
    [36mCHANGELOG_SKIPPED_COMMITS     [0m  [90m?=  chore(hygiene) chore(release)                    ([35mtype(scope)[0m[90m pairs left out of the changelog)[0m
    [36mCHANGELOG_SKIPPED_TYPES       [0m  [90m?=  test style build                                 (commit types left out of the changelog)[0m
    [36mCHANGELOG_GROUPS              [0m  [90m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [35m<root>=<heading>[0m[90m pairs, [35m_[0m[90m a space)[0m
@@ -2087,6 +2089,7 @@ Available commands:
    [32mCHANGELOG_URL                 [0m  [0m?=                                                   (base URL a commit hash links to)[0m
    [32mCHANGELOG_DIR                 [0m  [0m?=  $(CURDIR)/changelog                              (directory the release notes are written to)[0m
    [32mCHANGELOG_TITLE               [0m  [0m?=  \# Changelog                                     (heading a new changelog file starts with)[0m
+   [32mCHANGELOG_INITIAL             [0m  [0m?=  Initial release                                  (text the first release carries instead of its commits, empty to list them)[0m
    [32mCHANGELOG_SKIPPED_COMMITS     [0m  [0m?=  chore(hygiene) chore(release)                    ([33mtype(scope)[0m[0m pairs left out of the changelog)[0m
    [32mCHANGELOG_SKIPPED_TYPES       [0m  [0m?=  test style build                                 (commit types left out of the changelog)[0m
    [32mCHANGELOG_GROUPS              [0m  [0m?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as [33m<root>=<heading>[0m[0m pairs, [33m_[0m[0m a space)[0m

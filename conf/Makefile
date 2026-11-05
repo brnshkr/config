@@ -2163,10 +2163,11 @@ $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 
 #--- release
 
-CHANGELOG_RANGE ?= #v #~~ commit range the changelog covers
-CHANGELOG_URL   ?= #v #~~ base URL a commit hash links to
-CHANGELOG_DIR   ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
-CHANGELOG_TITLE ?= \# Changelog#vv #~~ heading a new changelog file starts with
+CHANGELOG_RANGE   ?= #v #~~ commit range the changelog covers
+CHANGELOG_URL     ?= #v #~~ base URL a commit hash links to
+CHANGELOG_DIR     ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
+CHANGELOG_TITLE   ?= \# Changelog#vv #~~ heading a new changelog file starts with
+CHANGELOG_INITIAL ?= Initial release#vv #~~ text the first release carries instead of its commits, empty to list them
 
 CHANGELOG_SKIPPED_COMMITS ?= chore(hygiene) \
 	chore(release)#vv #~~ `type(scope)` pairs left out of the changelog
@@ -2187,9 +2188,11 @@ CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	cache=🗃️_Cache \
 	ci=⚙️_CI \
 	cli=⌨️_CLI \
+	compose=🐳_Docker \
 	composer=📦_Composer \
 	config=🔧_Configuration \
 	db=🗄️_Database \
+	deploy=🚀_Deployment \
 	deps=📦_Dependencies \
 	docker=🐳_Docker \
 	docs=📚_Documentation \
@@ -2197,6 +2200,7 @@ CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	forms=📝_Forms \
 	frontend=🖥️_Frontend \
 	i18n=🌍_Translations \
+	images=🐳_Docker \
 	js=☕_JS \
 	logging=🧾_Logging \
 	mail=✉️_Mail \
@@ -2219,6 +2223,7 @@ CHANGELOG_GROUPS ?= dependencies=📦_Dependencies \
 	twig=🌿_Twig \
 	ui=🎨_UI \
 	vscode=💻_Editor \
+	workflows=⚙️_CI \
 	general=🧰_General#vv #~~ headings per root, as `<root>=<heading>` pairs, `_` a space
 
 CHANGELOG_NAMES ?= a11y=a11y \
@@ -2347,6 +2352,7 @@ _IS_CHANGELOG_NOTES = $(filter notes n,$(_ARG_WORDS))
 _CHANGELOG_FILE     = $(CHANGELOG_DIR)/$(_CHANGELOG_MAJOR).x.md
 _CHANGELOG_MAJOR    = $(firstword $(subst ., ,$(patsubst v%,%,$(_CHANGELOG_VERSION))))
 _CHANGELOG_RANGE    = $(if $(_IS_CHANGELOG_ALL),,$(or $(CHANGELOG_RANGE),$(if $(_CHANGELOG_LAST_TAG),$(_CHANGELOG_LAST_TAG)..HEAD)))
+_CHANGELOG_INITIAL  = $(if $(_CHANGELOG_RANGE),,$(CHANGELOG_INITIAL))
 _CHANGELOG_PARTS    = $(subst .., ,$(subst ...,..,$(_CHANGELOG_RANGE)))
 _CHANGELOG_START    = $(word 1,$(_CHANGELOG_PARTS))
 _CHANGELOG_END      = $(word 2,$(_CHANGELOG_PARTS))
@@ -2364,6 +2370,7 @@ $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_
 			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
 			_CHANGELOG_COMPARE="$(_CHANGELOG_COMPARE)" \
 			_CHANGELOG_ALL="$(_IS_CHANGELOG_ALL)" \
+			_CHANGELOG_INITIAL="$(_CHANGELOG_INITIAL)" \
 			_CHANGELOG_COMMITS="$(CHANGELOG_SKIPPED_COMMITS)" \
 			_CHANGELOG_TYPES="$(CHANGELOG_SKIPPED_TYPES)" \
 			_CHANGELOG_MAJOR="$(if $(_IS_CHANGELOG_WRITE),$(_CHANGELOG_MAJOR))" \
@@ -5264,6 +5271,7 @@ function flush(section, version, compare,    position, label, printed_labels, ou
 	if (_all != "" && !(section in section_commit_count)) return ""
 	if (_major != "" && get_major(version) != _major) return ""
 	out = (version == "") ? "" : "## " ((compare != "") ? "[" version "](" compare ")" : version) "\n"
+	if (_initial != "" && section == last_section) return out ((out == "") ? "" : "\n") _initial "\n"
 	if (!(section in has_content)) return out ((out == "") ? "" : "\n") "_No changes_\n"
 	if ((section in breaking)) out = out "\n### " breaking_label "\n\n" breaking[section]
 	for (position = 1; position <= rank; position += 1) {
@@ -5285,6 +5293,7 @@ BEGIN {
 	_version = ENVIRON["_CHANGELOG_VERSION"]
 	_compare = ENVIRON["_CHANGELOG_COMPARE"]
 	_all = ENVIRON["_CHANGELOG_ALL"]
+	_initial = ENVIRON["_CHANGELOG_INITIAL"]
 	_commits = ENVIRON["_CHANGELOG_COMMITS"]
 	_types = ENVIRON["_CHANGELOG_TYPES"]
 	_major = ENVIRON["_CHANGELOG_MAJOR"]
@@ -5392,6 +5401,7 @@ BEGIN {
 	has_content[section] = 1
 }
 END {
+	last_section = section
 	for (index_ = 0; index_ <= section; index_ += 1) {
 		rendered_section = flush(index_, section_version[index_], (_all != "") ? section_compare[index_] : _compare)
 		if (rendered_section == "") continue
