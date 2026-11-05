@@ -153,6 +153,23 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['hadolint-list']));
     }
 
+    public function testALintSkipsADeletedTrackedFile(): void
+    {
+        $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);
+
+        new Filesystem()->remove($lintersDirectory . '/docker/app.Dockerfile');
+
+        $result = $this->runMake(
+            ['hadolint-list'],
+            ['PATH' => $lintersDirectory . '/bin:' . Str::fromEnvironment('PATH')],
+            $lintersDirectory,
+        );
+
+        self::assertStringNotContainsString('docker/app.Dockerfile', $result);
+        self::assertMatchesRegularExpression('/^Dockerfile$/m', $result);
+        self::assertStringContainsString('docker/it\'s dé jà.Dockerfile', $result);
+    }
+
     public function testActionlintResolvesItsWorkflows(): void
     {
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));

@@ -830,6 +830,7 @@ Available commands:
 +    TR                             ?=  tr                                               (path to tr binary)
 +    UPDATE_CA_CERTS                ?=  update-ca-certificates                           (path to update-ca-certificates binary)
 +    WSLPATH                        ?=  wslpath                                          (path to wslpath binary)
++    XARGS                          ?=  xargs                                            (path to xargs binary)
    container
     COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
     APP_SERVICE                     ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
@@ -890,19 +891,19 @@ Available commands:
  Functions:
   brnshkr
 @@ @@
-    text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
-+
+ 
 +    parameters:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
 +
 +    returns: string
- 
++
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
+     Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
      A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
@@ -1504,6 +1505,7 @@ Available commands:
     [36mTR                           [0m  [90m?=  tr                                               (path to [35mtr[0m[90m binary)[0m
     [36mUPDATE_CA_CERTS              [0m  [90m?=  update-ca-certificates                           (path to [35mupdate-ca-certificates[0m[90m binary)[0m
     [36mWSLPATH                      [0m  [90m?=  wslpath                                          (path to [35mwslpath[0m[90m binary)[0m
+    [36mXARGS                        [0m  [90m?=  xargs                                            (path to [35mxargs[0m[90m binary)[0m
   [35mcontainer[0m
    [36mCOMPOSE_FILE                  [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
    [36mAPP_SERVICE                   [0m  [90m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m
@@ -1982,6 +1984,7 @@ Available commands:
     [32mTR                           [0m  [0m?=  tr                                               (path to [33mtr[0m[0m binary)[0m
     [32mUPDATE_CA_CERTS              [0m  [0m?=  update-ca-certificates                           (path to [33mupdate-ca-certificates[0m[0m binary)[0m
     [32mWSLPATH                      [0m  [0m?=  wslpath                                          (path to [33mwslpath[0m[0m binary)[0m
+    [32mXARGS                        [0m  [0m?=  xargs                                            (path to [33mxargs[0m[0m binary)[0m
   [33mcontainer[0m
    [32mCOMPOSE_FILE                  [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
    [32mAPP_SERVICE                   [0m  [0m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m

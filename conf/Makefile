@@ -298,6 +298,7 @@ TPUT            ?= tput#~~ path to `tput` binary
 TR              ?= tr#~~ path to `tr` binary
 UPDATE_CA_CERTS ?= update-ca-certificates#~~ path to `update-ca-certificates` binary
 WSLPATH         ?= wslpath#~~ path to `wslpath` binary
+XARGS           ?= xargs#~~ path to `xargs` binary
 
 _COMMA := ,
 _QUOTE := '
@@ -833,12 +834,15 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
-_MASKS_AND_TRACKED_FILES := $(shell printf '\037 \036 '; $(GIT) ls-files -z 2>/dev/null | $(TR) ' \n\000' '\037\036 ')
-_MASKED_SPACE            := $(word 1,$(_MASKS_AND_TRACKED_FILES))
-_MASKED_NEWLINE          := $(word 2,$(_MASKS_AND_TRACKED_FILES))
-_TRACKED_FILES           := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(_MASKS_AND_TRACKED_FILES))
-_HADOLINT_FILES          := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
-_ACTIONLINT_FILES        := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
+_MASKS_AND_TRACKED_FILES := $(shell printf '\037 \036 '; $(GIT) ls-files -z 2>/dev/null \
+	| $(XARGS) -0 $(SHELL) -c 'for file do [ ! -e "$$file" ] && [ ! -L "$$file" ] || printf "%s\0" "$$file"; done' sh \
+	| $(TR) ' \n\000' '\037\036 ')
+
+_MASKED_SPACE     := $(word 1,$(_MASKS_AND_TRACKED_FILES))
+_MASKED_NEWLINE   := $(word 2,$(_MASKS_AND_TRACKED_FILES))
+_TRACKED_FILES    := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(_MASKS_AND_TRACKED_FILES))
+_HADOLINT_FILES   := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
+_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
 _LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
 
