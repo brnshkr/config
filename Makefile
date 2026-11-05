@@ -127,6 +127,8 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
+_TABLE_COLORS := $(filter-out $(COLOR_NORMAL),$(_COLORS))
+
 colors: _MODIFIER_COLUMN_WIDTH = $(shell printf '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
@@ -136,11 +138,7 @@ colors: _MODIFIER_COLUMN_WIDTH = $(shell printf '$(_MODIFIER_COLUMNS)' | $(AWK) 
 		print max \
 	}' \
 )
-
-_TABLE_COLORS := $(filter-out $(COLOR_NORMAL),$(_COLORS))
-
 colors: _COLOR_COLUMN_WIDTHS = $(foreach COLOR,$(_TABLE_COLORS),$(shell printf '$(COLOR)' | $(AWK) '{ print length($$0) }'))
-
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
 	$(DEBUG_PREFIX)printf '%-$(_MODIFIER_COLUMN_WIDTH)s'
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \

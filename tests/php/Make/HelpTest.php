@@ -271,6 +271,14 @@ final class HelpTest extends TestCase
         self::assertStringContainsString('args=\'foo\'', $this->runMake(['wrapped-a', 'foo']));
     }
 
+    public function testSettingsAboveARuleLeaveItsDescription(): void
+    {
+        self::assertMatchesRegularExpression(
+            '/configured-command +command whose settings sit above its rule/',
+            $this->runMakeHelp(),
+        );
+    }
+
     public function testAHelpArgumentIsATargetOfItsOwn(): void
     {
         self::assertSame($this->runMakeHelp(['list-scopes']), $this->runMake(['list-scopes']));

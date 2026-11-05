@@ -754,6 +754,8 @@ _EDITOR_URL_TEMPLATE = $(subst {wslDistro},$(WSL_DISTRO_NAME),$(or \
 _EDITOR_URL      = $(subst {cwd},$(CURDIR),$(_EDITOR_URL_TEMPLATE))
 _INLINE_CODE_URL = $(if $(_IS_NO_COLOR),,$(_EDITOR_URL_TEMPLATE))
 
+export EDITOR_URL
+
 ifeq ($(origin LOGO),undefined) # logo
 define LOGO
    ___               __   __
@@ -1524,6 +1526,8 @@ _RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_KEYS) $(filter-
 _ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LIST))
 _CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
 
+$(call _target,help): export _HELP_AWK          = $(_HELP_AWK_SOURCE)
+$(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
 $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
 	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$($(ENV_BIN) | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
@@ -1606,6 +1610,7 @@ $(foreach CHAIN,$(_FIX_ORDER),$(eval $(call _order_fixers,$(filter $(MAKECMDGOAL
 GROUP_TARGETS ?= #v #~~ this project's own targets, run by `group`
 
 ifneq ($(_HAS_GROUP),)
+$(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
 $(call _target,group): #~~ counts every tool's findings by identifier
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
 endif
@@ -1983,6 +1988,12 @@ _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOO
 _CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
+$(call _target,configs): _ARG_VALUES                       = $(_CONFIG_NAMES) tools t local l force f
+$(call _target,configs): _ARG_FILES                        = $(_CONFIG_FILES)
+$(call _target,configs): export _GITATTRIBUTES_PROGRAM     = $(_GITATTRIBUTES_PROGRAM_SOURCE)
+$(call _target,configs): export _LAYOUT_AWK                = $(_LAYOUT_AWK_SOURCE)
+$(call _target,configs): export _MANAGED_BLOCK_AWK         = $(_MANAGED_BLOCK_AWK_SOURCE)
+$(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
 $(call _target,configs): #~~ writes the files this project is missing
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for config_path in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
@@ -2059,6 +2070,8 @@ _CACHES       = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(foreach CACHE
 _CACHE_NAMES  = $(sort $(foreach CACHE,$(_CACHES),$(call _get_short_name,$(CACHE))))
 _NAMED_CACHES = $(strip $(foreach CACHE,$(_CACHES),$(if $(filter $(CACHE) $(call _get_short_name,$(CACHE)),$(_ARG_WORDS)),$(CACHE))))
 
+$(call _target,cc): _ARG_VALUES = $(_CACHE_NAMES)
+$(call _target,cc): _ARG_FILES  = $(_CACHES)
 $(call _target,cc): #~~ clears the named caches, or all of them
 	$(TRACE_PREFIX)$(call _require_known_value,cache)
 	$(TRACE_PREFIX)if [ -z '$(if $(_CACHES),1)' ]; then \
@@ -2123,6 +2136,8 @@ _FRESH_OPTIONS = set -f; \
 	done; \
 	unset IFS)
 
+$(call _target,fresh): export _FRESH_ESCAPE_AWK = $(_FRESH_ESCAPE_AWK_SOURCE)
+$(call _target,fresh): export _FRESH_KEPT_AWK   = $(_FRESH_KEPT_AWK_SOURCE)
 $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
 		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
@@ -2162,8 +2177,8 @@ $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 			}; } && $(MAKE) $(_VERB_FLAGS) --no-keep-going $$is_installing $(call _target,startup); \
 		})
 
-$(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove and keep #vv
 $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
+$(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove and keep #vv
 
 #--- release
 
@@ -2367,6 +2382,9 @@ _CHANGELOG_COMPARE  = $(if $(and $(CHANGELOG_URL),$(_CHANGELOG_START)),$(CHANGEL
 _CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describe --tags --exact-match '$(_CHANGELOG_END)'; } 2>/dev/null \
 	| $(AWK) '!/^[A-Za-z0-9._+\/-]+$$/ { print; exit }')
 
+$(call _target,changelog): export _CHANGELOG_AWK         = $(_CHANGELOG_AWK_SOURCE)
+$(call _target,changelog): export _CHANGELOG_MERGE_AWK   = $(_CHANGELOG_MERGE_AWK_SOURCE)
+$(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
 	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+` and `/`))
 	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
@@ -2452,11 +2470,11 @@ $(call _target,down): #~~ stops the services
 $(call _target,ps): #~~ lists what is running
 	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
 
-$(call _target,shell): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-shell #~~ opens a shell in the service the tools run in
 $(call _target,shell): _GOAL := $(call _target,shell)
+$(call _target,shell): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-shell #~~ opens a shell in the service the tools run in
 
-$(call _target,exec): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-exec #~~ runs a command in the service the tools run in, flags after `--`, quoted words through `ARGS`
 $(call _target,exec): _GOAL := $(call _target,exec)
+$(call _target,exec): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-exec #~~ runs a command in the service the tools run in, flags after `--`, quoted words through `ARGS`
 
 _SERVICE_ARGS       = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
 _TARGETED_SERVICES := $(filter-out $(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(_COMPOSE_SERVICES))
@@ -2601,26 +2619,27 @@ _$(_TARGET_PREFIX)assert-pest:
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 
+$(call _target,pest): PHP_UNIT  = $(PEST)
+$(call _target,pest): _GOAL    := $(call _target,pest)
 $(call _target,pest): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit) #~~ runs the PHP tests through `pest` in particular #vvv
-$(call _target,pest): PHP_UNIT = $(PEST)
-$(call _target,pest): _GOAL := $(call _target,pest)
 
+$(call _target,pest-coverage): PHP_UNIT  = $(PEST)
+$(call _target,pest-coverage): _GOAL    := $(call _target,pest-coverage)
 $(call _target,pest-coverage): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-coverage) #~~ runs them through `pest` and reports its coverage #vvv
-$(call _target,pest-coverage): PHP_UNIT = $(PEST)
-$(call _target,pest-coverage): _GOAL := $(call _target,pest-coverage)
 
+$(call _target,pest-debug): PHP_UNIT  = $(PEST)
+$(call _target,pest-debug): _GOAL    := $(call _target,pest-debug)
 $(call _target,pest-debug): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit) #~~ runs them through `pest` with debugging information #vvv
-$(call _target,pest-debug): PHP_UNIT = $(PEST)
-$(call _target,pest-debug): _GOAL := $(call _target,pest-debug)
 
+$(call _target,pest-list): PHP_UNIT  = $(PEST)
+$(call _target,pest-list): _GOAL    := $(call _target,pest-list)
 $(call _target,pest-list): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-list) #~~ lists the tests `pest` collects #vvv
-$(call _target,pest-list): PHP_UNIT = $(PEST)
-$(call _target,pest-list): _GOAL := $(call _target,pest-list)
 
+$(call _target,pest-update): PHP_UNIT  = $(PEST)
+$(call _target,pest-update): _GOAL    := $(call _target,pest-update)
 $(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest $(call _target,phpunit-update) #~~ runs them through `pest` and updates their snapshots #vvv
-$(call _target,pest-update): PHP_UNIT = $(PEST)
-$(call _target,pest-update): _GOAL := $(call _target,pest-update)
 
+$(foreach GOAL,phpunit phpunit-coverage phpunit-list phpunit-update,$(call _target,$(GOAL))): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
 $(call _target,phpunit): #~~ runs the PHP tests
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
 	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
@@ -2642,14 +2661,16 @@ else
 	$(TRACE_PREFIX)$(if $(or $(_IS_PEST),$(if $(_PHP_UNIT_FLOORS),,1)),:,$(foreach FLOOR,$(_PHP_UNIT_FLOORS),$(call _require_coverage,$(call _host_path,$(PHP_UNIT_COVERAGE_FILE)),$(firstword $(subst =, ,$(FLOOR))),$(lastword $(subst =, ,$(FLOOR))),PHP_UNIT_COVERAGE_FILE)$(_NEWLINE)))
 endif # /test stage
 
-$(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information, not progress #vvv
 $(call _target,phpunit-debug): _GOAL := $(call _target,phpunit-debug)
+$(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests with debugging information, not progress #vvv
 
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
 	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(ARGS) --list-tests
 
+$(call _target,phpunit-update): _FORWARDED_KEYS         += UPDATE_SNAPSHOTS
+$(call _target,phpunit-update): export UPDATE_SNAPSHOTS  = true
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
 	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
@@ -2658,10 +2679,6 @@ else
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
 	$(DEBUG_PREFIX)$(_PHP_UNIT_UPDATE) --configuration $(_PHP_UNIT_RUN_CONFIG) $(PHP_UNIT_FLAGS) $(PHP_UNIT_SNAPSHOT_FLAGS) $(ARGS)
 endif # /test stage
-$(call _target,phpunit-update): export UPDATE_SNAPSHOTS = true
-$(call _target,phpunit-update): _FORWARDED_KEYS += UPDATE_SNAPSHOTS
-
-$(foreach GOAL,phpunit phpunit-coverage phpunit-list phpunit-update,$(call _target,$(GOAL))): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
 
 endif # /phpunit
 
@@ -2677,14 +2694,13 @@ _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_o
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
+$(call _target,phpstan): _COMMAND = analyze
 $(call _target,phpstan): #~~ analyzes the PHP code
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) $(_COMMAND) $(_PHP_STAN_ARGS) --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG))
 
-$(call _target,phpstan): _COMMAND = analyze
-
-$(call _target,phpstan-debug): $(call _target,phpstan) #~~ analyzes the PHP code with debug output #vvv
 $(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
+$(call _target,phpstan-debug): $(call _target,phpstan) #~~ analyzes the PHP code with debug output #vvv
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -2714,12 +2730,16 @@ PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
+ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
+$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): _FORWARDED_KEYS                     += BRNSHKR_TWIG_CS_FIXER_CONFIG
+$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): export BRNSHKR_TWIG_CS_FIXER_CONFIG  = $(TWIG_CS_FIXER_CONFIG)
+endif # /twig-cs-fixer
 $(call _target,php-cs-fixer): #~~ fixes the PHP coding style
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_FIXER_ARGS))
 
-$(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ shows the style fixes without writing them #v
 $(call _target,php-cs-fixer-dry-run): _GOAL := $(call _target,php-cs-fixer-dry-run)
+$(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ shows the style fixes without writing them #v
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -2746,17 +2766,16 @@ RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),-
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
+$(call _target,rector): _COMMAND = process
 $(call _target,rector): #~~ refactors the PHP code
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(RECTOR) $(_COMMAND) $(_FIXER_ARGS) --config $(RECTOR_CONFIG) $(RECTOR_FLAGS) $(if $(_IS_DRY_RUN),--dry-run) $(_DEBUG_FLAG))
 
-$(call _target,rector): _COMMAND = process
-
-$(call _target,rector-debug): $(call _target,rector) #~~ refactors the PHP code with debug output #vvv
 $(call _target,rector-debug): _GOAL := $(call _target,rector-debug)
+$(call _target,rector-debug): $(call _target,rector) #~~ refactors the PHP code with debug output #vvv
 
-$(call _target,rector-dry-run): $(call _target,rector) #~~ shows the refactorings without writing them #v
 $(call _target,rector-dry-run): _GOAL := $(call _target,rector-dry-run)
+$(call _target,rector-dry-run): $(call _target,rector) #~~ shows the refactorings without writing them #v
 
 $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
@@ -2766,11 +2785,10 @@ $(call _target,rector-list): #~~ lists the files `rector` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
 
+$(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
 	$(TRACE_PREFIX)$(call _php_program,_RULES_PROGRAM,rector $(RECTOR_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
-
-$(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 
 endif # /rector
 
@@ -2789,26 +2807,20 @@ $(call _target,twig-cs-fixer): #~~ fixes the Twig coding style
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(TWIG_CS_FIXER) lint $(if $(_IS_DRY_RUN),,--fix) --config $(TWIG_CS_FIXER_CONFIG) $(TWIG_CS_FIXER_FLAGS) $(_DEBUG_FLAG) $(_FIXER_ARGS))
 
-$(call _target,twig-cs-fixer-debug): $(call _target,twig-cs-fixer) #~~ fixes the Twig coding style with debug output #vvv
 $(call _target,twig-cs-fixer-debug): _GOAL := $(call _target,twig-cs-fixer-debug)
+$(call _target,twig-cs-fixer-debug): $(call _target,twig-cs-fixer) #~~ fixes the Twig coding style with debug output #vvv
 
-$(call _target,twig-cs-fixer-dry-run): $(call _target,twig-cs-fixer) #~~ shows the Twig style fixes without writing them #v
 $(call _target,twig-cs-fixer-dry-run): _GOAL := $(call _target,twig-cs-fixer-dry-run)
+$(call _target,twig-cs-fixer-dry-run): $(call _target,twig-cs-fixer) #~~ shows the Twig style fixes without writing them #v
 
 $(call _target,twig-cs-fixer-group): #~~ counts the `twig-cs-fixer` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _group,$(TWIG_CS_FIXER) lint --config $(TWIG_CS_FIXER_CONFIG) --report gitlab $(ARGS),check_name,description,path)
 
+$(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
 	$(TRACE_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
-
-$(call _target,twig-cs-fixer-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
-
-ifneq ($(_HAS_PHP_CS_FIXER),) # php-cs-fixer
-$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): export BRNSHKR_TWIG_CS_FIXER_CONFIG = $(TWIG_CS_FIXER_CONFIG)
-$(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): _FORWARDED_KEYS += BRNSHKR_TWIG_CS_FIXER_CONFIG
-endif # /php-cs-fixer
 
 endif # /twig-cs-fixer
 
@@ -2918,8 +2930,8 @@ $(call _target,eslint): #~~ lints and fixes the code
 		$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
 		exit $$status)
 
-$(call _target,eslint-dry-run): $(call _target,eslint) #~~ lints the code without writing fixes #v
 $(call _target,eslint-dry-run): _GOAL := $(call _target,eslint-dry-run)
+$(call _target,eslint-dry-run): $(call _target,eslint) #~~ lints the code without writing fixes #v
 
 $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
@@ -2942,8 +2954,8 @@ $(call _target,eslint-inspect): #~~ opens `eslint-config-inspector` #v
 	$(DEBUG_PREFIX)$(ESLINT_CONFIG_INSPECTOR) --config $(ESLINT_CONFIG) --port $(ESLINT_CONFIG_INSPECTOR_PORT) $(ARGS) \
 		$(if $(filter %-stats,$(_GOAL)),--stats) $(if $(_IS_ESLINT_INSPECT_SERVED),$(_SERVE_FLAGS)) $(ESLINT_CONFIG_INSPECTOR_FLAGS)
 
-$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ opens `eslint-config-inspector` with a timed full lint #vv
 $(call _target,eslint-inspect-stats): _GOAL := $(call _target,eslint-inspect-stats)
+$(call _target,eslint-inspect-stats): $(call _target,eslint-inspect) #~~ opens `eslint-config-inspector` with a timed full lint #vv
 
 endif # /eslint-inspect
 
@@ -2972,8 +2984,8 @@ $(call _target,markdownlint): #~~ lints and fixes the Markdown
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(MARKDOWNLINT_GLOB)'))
 
-$(call _target,markdownlint-dry-run): $(call _target,markdownlint) #~~ lints the Markdown without writing fixes #v
 $(call _target,markdownlint-dry-run): _GOAL := $(call _target,markdownlint-dry-run)
+$(call _target,markdownlint-dry-run): $(call _target,markdownlint) #~~ lints the Markdown without writing fixes #v
 
 $(call _target,markdownlint-group): #~~ counts the `markdownlint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
@@ -3017,6 +3029,8 @@ STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` p
 
 _LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
 
+$(call _target,stylelint) $(call _target,stylelint-group): _FORWARDED_KEYS                 += BRNSHKR_STYLELINT_CONFIG
+$(call _target,stylelint) $(call _target,stylelint-group): export BRNSHKR_STYLELINT_CONFIG  = $(STYLELINT_CONFIG)
 $(call _target,stylelint): #~~ lints and fixes the styles
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --config-basedir $(APP_DIR) --cache --cache-location $(STYLELINT_CACHE) $(STYLELINT_FLAGS) \
@@ -3025,8 +3039,8 @@ $(call _target,stylelint): #~~ lints and fixes the styles
 			$(_FIXER_ARGS), \
 			$(_FIXER_ARGS) '$(STYLELINT_GLOB)'))
 
-$(call _target,stylelint-dry-run): $(call _target,stylelint) #~~ lints the styles without writing fixes #v
 $(call _target,stylelint-dry-run): _GOAL := $(call _target,stylelint-dry-run)
+$(call _target,stylelint-dry-run): $(call _target,stylelint) #~~ lints the styles without writing fixes #v
 
 $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
@@ -3036,9 +3050,6 @@ $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for 
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,stylelint-print),$(_STYLELINT_VALUE_FLAGS))
 	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) --print-config $(ARGS)
-
-$(call _target,stylelint) $(call _target,stylelint-group): export BRNSHKR_STYLELINT_CONFIG = $(STYLELINT_CONFIG)
-$(call _target,stylelint) $(call _target,stylelint-group): _FORWARDED_KEYS += BRNSHKR_STYLELINT_CONFIG
 
 endif # /stylelint
 
@@ -3292,6 +3303,7 @@ _SEMGREP_VALUE_FLAGS := --config \
 	-c \
 	-e
 
+$(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
 $(call _target,semgrep): #~~ scans the code for known security issues
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
 	$(TRACE_PREFIX)$(call _semgrep_rules)
@@ -3309,8 +3321,6 @@ $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
 	$(TRACE_PREFIX)$(call _semgrep_rules)
 	$(DEBUG_PREFIX)$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS)
-
-$(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
 
 endif # /semgrep
 
@@ -6322,6 +6332,8 @@ function get_target_name(name) { return (name in resolved_name) ? resolved_name[
 { while (match($$0, /\$$\(call _target,[a-zA-Z0-9_.-]+\)/)) $$0 = substr($$0, 1, RSTART - 1) get_target_name(substr($$0, RSTART + 15, RLENGTH - 16)) substr($$0, RSTART + RLENGTH) }
 { gsub(/\$$\(_TARGET_PREFIX\)/, ENVIRON["_TARGET_PREFIX"]) }
 
+/^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:[ \t]+(export[ \t]+)?[A-Za-z_][A-Za-z0-9_]*[ \t]*[+:?]?=/ { next }
+
 /^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ {
 	split($$0, parts, ":")
 	description = get_description()
@@ -6442,22 +6454,3 @@ END {
 	has_printed += print_section(has_printed, "commands", "Available commands:", command_column)
 }
 endef
-
-export EDITOR_URL
-
-$(call _target,cc): _ARG_VALUES = $(_CACHE_NAMES)
-$(call _target,cc): _ARG_FILES = $(_CACHES)
-$(call _target,changelog): export _CHANGELOG_AWK = $(_CHANGELOG_AWK_SOURCE)
-$(call _target,changelog): export _CHANGELOG_MERGE_AWK = $(_CHANGELOG_MERGE_AWK_SOURCE)
-$(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
-$(call _target,configs): export _GITATTRIBUTES_PROGRAM = $(_GITATTRIBUTES_PROGRAM_SOURCE)
-$(call _target,configs): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
-$(call _target,configs): export _MANAGED_BLOCK_AWK = $(_MANAGED_BLOCK_AWK_SOURCE)
-$(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
-$(call _target,configs): _ARG_VALUES = $(_CONFIG_NAMES) tools t local l force f
-$(call _target,configs): _ARG_FILES = $(_CONFIG_FILES)
-$(call _target,fresh): export _FRESH_ESCAPE_AWK = $(_FRESH_ESCAPE_AWK_SOURCE)
-$(call _target,fresh): export _FRESH_KEPT_AWK = $(_FRESH_KEPT_AWK_SOURCE)
-$(call _target,help): export _HELP_AWK = $(_HELP_AWK_SOURCE)
-$(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
-$(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)

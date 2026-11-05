@@ -18,6 +18,10 @@ wrapped-a \
 wrapped-b: #~~ multi-target command wrapped over two lines
 	@printf 'args=%s\n' "$(ARGS)"
 
+configured-command: _CONFIGURED_SETTING      := value
+configured-command: export CONFIGURED_EXPORT  = value
+configured-command: #~~ command whose settings sit above its rule
+
 no-desc-command:
 
 .dot-command: #~~ dot-prefixed commands are skipped by the parser
