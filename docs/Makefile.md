@@ -77,8 +77,9 @@ which git ignores and which is read first.
 
 ## Containers
 
-If your project has a Compose file, the tools run in its `app` service. Set `APP_SERVICE` above the include
-to use another one, or leave it empty to run everything on your machine:
+If your project has a Compose file, the tools run in its `php-app` service, else its `bun-app` service,
+or in its `cli` service where there is neither. Set `APP_SERVICE` or `CLI_SERVICE` above the include
+to use another one, or leave `APP_SERVICE` empty to run everything on your machine:
 
 ```Makefile
 # ./Makefile
@@ -94,7 +95,7 @@ email-queue: #~~ lists queued emails
 	$(call run_in,worker) bin/console acme:email:queue
 ```
 
-The starter installs JavaScript in `JS_SERVICE`, which is `APP_SERVICE` unless you set it. Leave it empty
+The starter installs JavaScript in `JS_SERVICE`, which is the tools' service unless you set it. Leave it empty
 when your JavaScript tools run on your machine.
 
 `$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.

@@ -20,7 +20,7 @@ final class ContainerTest extends TestCase
 {
     use ContainerTrait;
 
-    private const string SERVICE       = 'app';
+    private const string SERVICE       = 'php-app';
     private const string OTHER_SERVICE = 'alt';
     private const string BUN_DIRECTORY = __DIR__ . '/../Fixtures/Make/Bun';
 
@@ -257,6 +257,17 @@ final class ContainerTest extends TestCase
 
         self::assertStringContainsString('123', $shell);
         self::assertMatchesRegularExpression('/^' . self::SERVICE . '$/m', $exec);
+    }
+
+    public function testToolsFallBackToTheCliService(): void
+    {
+        $exec = $this->runMakeIn(
+            self::MODE_EXEC,
+            ['exec', '--', 'printenv', 'STUB_SERVICE'],
+            ['APP_SERVICE' => 'web', 'CLI_SERVICE' => self::OTHER_SERVICE],
+        );
+
+        self::assertMatchesRegularExpression('/^' . self::OTHER_SERVICE . '$/m', $exec);
     }
 
     public function testExecHandsATargetNameToTheCommandRatherThanRunningIt(): void

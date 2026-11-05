@@ -299,17 +299,38 @@ TR              ?= tr#~~ path to `tr` binary
 UPDATE_CA_CERTS ?= update-ca-certificates#~~ path to `update-ca-certificates` binary
 WSLPATH         ?= wslpath#~~ path to `wslpath` binary
 
+_COMMA := ,
+_QUOTE := '
+_SPACE := $(subst ,, )
+
+#**
+#* Joins a list the way `Str::joinAsQuotedList()` and its JavaScript twin do, so the three read alike.
+#*
+#* parameters:
+#*   items: list<string>
+#*   type?: OneOf<conjunction | disjunction> = conjunction
+#*
+#* returns: string
+#*
+define _join_as_quoted_list
+$(if $(word 2,$1),$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(foreach \
+	ITEM,$(filter-out $(lastword $1),$1),`$(ITEM)`)) $(if \
+	$(filter disjunction,$2),or,and) `$(lastword $1)`,$(if \
+	$1,`$1`))
+endef
+
 #---v container
 
 COMPOSE_FILE       ?= $(_DOTENV_COMPOSE_FILE)#~~ Compose files, colon-separated, instead of this project's
-APP_SERVICE        ?= app#~~ Compose service the tools run in, empty for this machine
+APP_SERVICE        ?= php-app bun-app#~~ Compose services the tools run in, the first one the Compose files define, empty for this machine
+CLI_SERVICE        ?= cli#~~ Compose service the tools run in where the project defines none of `APP_SERVICE`
 APP_SERVICE_MODE   ?= exec#~~ `run` starts a throwaway container instead of entering one
 ACTIONLINT_SERVICE ?= actionlint#~~ Compose service `actionlint` runs in, where the project has one
 HADOLINT_SERVICE   ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
 NODE_SERVICE       ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
 SEMGREP_SERVICE    ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
 IS_IN_CONTAINER    ?= $(if $(wildcard $(_CONTAINER_MARKERS)),1)#~~ whether the tools already run in a container
-RUN                ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
+RUN                ?= $(call run_in,$(_TOOL_SERVICE))#~~ command the tools run through, empty on this machine
 APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
 HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
 HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
@@ -358,16 +379,17 @@ _SERVE_FLAGS   = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
 /^[^[:space:]]/ { in_services = 0 }
-in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service); services = services " " service }
-in_services && service == _SERVICE && /^    working_dir:/ { directory = $$2; gsub(/["'"'"']/, "", directory) }
-in_services && service == _SERVICE && /^    image:/ { image = $$2; gsub(/["'"'"']/, "", image) }
-END { if (directory != "") print directory, (image == "" ? "-" : image) services }
+in_services && /^  [^[:space:]]/ { service = $$1; sub(/:$$/, "", service); services = services " " service; listed_services[service] = 1 }
+in_services && /^    working_dir:/ { directory_by_service[service] = $$2; gsub(/["'"'"']/, "", directory_by_service[service]) }
+in_services && /^    image:/ { image_by_service[service] = $$2; gsub(/["'"'"']/, "", image_by_service[service]) }
+END { candidate_count = split(_SERVICE " " _FALLBACK_SERVICE, candidates, " "); for (index_ = 1; index_ <= candidate_count && tool_service == ""; index_ += 1) if (candidates[index_] in listed_services) tool_service = candidates[index_]; directory = directory_by_service[tool_service]; image = image_by_service[tool_service]; if (directory != "") print tool_service, directory, (image == "" ? "-" : image) services }
 endef
 
 _CONTAINER_KEYS := ACTIONLINT_SERVICE \
 	APP_DIR \
 	APP_SERVICE \
 	APP_SERVICE_MODE \
+	CLI_SERVICE \
 	COMPOSE_FILE \
 	DOCKER \
 	DOCKER_COMPOSE \
@@ -635,12 +657,14 @@ export HOST_GID
 export HOST_APP_DIR
 export FORGE_REPOSITORY
 
-_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
-	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null | $(AWK) -v _SERVICE='$(APP_SERVICE)' '$(_SERVICE_AWK)'))
+_SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_TOOL_SERVICE) $(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
+	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null \
+	| $(AWK) -v _SERVICE='$(APP_SERVICE)' -v _FALLBACK_SERVICE='$(CLI_SERVICE)' '$(_SERVICE_AWK)'))
 
-_SERVICE_DIRECTORY := $(word 1,$(_SERVICE_CONFIG))
-_SERVICE_IMAGE     := $(word 2,$(_SERVICE_CONFIG))
-_COMPOSE_SERVICES  := $(wordlist 3,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
+_TOOL_SERVICE      := $(word 1,$(_SERVICE_CONFIG))
+_SERVICE_DIRECTORY := $(word 2,$(_SERVICE_CONFIG))
+_SERVICE_IMAGE     := $(word 3,$(_SERVICE_CONFIG))
+_COMPOSE_SERVICES  := $(wordlist 4,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
@@ -650,7 +674,7 @@ ifneq ($(_COMPOSE_REFUSAL),)
 $(error [$(_LABEL)] $(_COMPOSE_REFUSAL))
 endif
 
-$(error [$(_LABEL)] `$(APP_SERVICE)` has no `working_dir`, so fix the Compose file or empty `APP_SERVICE`)
+$(error [$(_LABEL)] None of $(call _join_as_quoted_list,$(APP_SERVICE) $(CLI_SERVICE),disjunction) has a `working_dir`, so fix the Compose file or empty `APP_SERVICE`)
 endif
 endif # /container
 
@@ -1004,6 +1028,7 @@ export _HAS_HADOLINT
 export _HAS_SEMGREP
 export _SERVICE_DIRECTORY
 export _SERVICE_IMAGE
+export _TOOL_SERVICE
 
 _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(VARIABLE)),$(VARIABLE)))
 
@@ -1377,10 +1402,6 @@ _MISTYPED_VALUE   = $(firstword $(_UNKNOWN_VALUES))
 _SUGGESTED_VALUES = $(call _suggestions,$(sort $(_ARG_VALUES) $(_ARG_FILES)),$(_MISTYPED_VALUE))
 
 #--- common
-
-_COMMA := ,
-_QUOTE := '
-_SPACE := $(subst ,, )
 
 _PACKAGE_CONF_DIRS = $(APP_DIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf \
 	$(APP_DIR)/node_modules/@brnshkr/config/conf
@@ -2360,10 +2381,10 @@ $(call _target,down): #~~ stops the services
 $(call _target,ps): #~~ lists what is running
 	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
 
-$(call _target,shell): $(_TARGET_PREFIX)$(APP_SERVICE)-shell #~~ opens a shell in `APP_SERVICE`
+$(call _target,shell): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-shell #~~ opens a shell in the service the tools run in
 $(call _target,shell): _GOAL := $(call _target,shell)
 
-$(call _target,exec): $(_TARGET_PREFIX)$(APP_SERVICE)-exec #~~ runs a command in `APP_SERVICE`, flags after `--`, quoted words through `ARGS`
+$(call _target,exec): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-exec #~~ runs a command in the service the tools run in, flags after `--`, quoted words through `ARGS`
 $(call _target,exec): _GOAL := $(call _target,exec)
 
 _SERVICE_ARGS = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
@@ -2766,7 +2787,7 @@ $(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKA
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
-NODE_MODULES_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_SERVICE),$(NODE_MODULES_INSPECTOR_PORT)) bun,$(BUN)) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
+NODE_MODULES_INSPECTOR       ?= $(if $(_HAS_CONTAINER),$(call _serve_in,$(_TOOL_SERVICE),$(NODE_MODULES_INSPECTOR_PORT)) bun,$(BUN)) $(BUN_FLAGS) x node-modules-inspector#v #~~ command that runs `node-modules-inspector`
 NODE_MODULES_INSPECTOR_PORT  ?= 9999#v #~~ port `node-modules-inspector` serves on
 NODE_MODULES_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `node-modules-inspector`
 
@@ -4190,22 +4211,6 @@ endef
 #*
 define _unmasked
 $(subst $(_MASKED_SPACE),$(_SPACE),$(subst $(_MASKED_NEWLINE),$(_NEWLINE),$1))
-endef
-
-#**
-#* Joins a list the way `Str::joinAsQuotedList()` and its JavaScript twin do, so the three read alike.
-#*
-#* parameters:
-#*   items: list<string>
-#*   type?: OneOf<conjunction | disjunction> = conjunction
-#*
-#* returns: string
-#*
-define _join_as_quoted_list
-$(if $(word 2,$1),$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(foreach \
-	ITEM,$(filter-out $(lastword $1),$1),`$(ITEM)`)) $(if \
-	$(filter disjunction,$2),or,and) `$(lastword $1)`,$(if \
-	$1,`$1`))
 endef
 
 #**

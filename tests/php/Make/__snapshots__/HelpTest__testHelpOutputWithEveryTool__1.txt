@@ -202,14 +202,15 @@ Variables:
     PACKAGE                       ?=  $(or $(lastword $(subst /, ,$(_MANIFEST_NAME)))… (package name, from the manifest or directory when unset)
   container
    COMPOSE_FILE                   ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
-   APP_SERVICE                    ?=  app                                              (Compose service the tools run in, empty for this machine)
+   APP_SERVICE                    ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
+   CLI_SERVICE                    ?=  cli                                              (Compose service the tools run in where the project defines none of APP_SERVICE)
    APP_SERVICE_MODE               ?=  exec                                             (run starts a throwaway container instead of entering one)
    ACTIONLINT_SERVICE             ?=  actionlint                                       (Compose service actionlint runs in, where the project has one)
    HADOLINT_SERVICE               ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                   ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
-   RUN                            ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
+   RUN                            ?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)
    APP_DIR                        ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
    COMPOSE_FILES                   =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
   output
@@ -266,7 +267,7 @@ Variables:
   bun
    BUN                            ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                      ?=  --bun                                            (flags passed to bun before the command)
-   NODE_MODULES_INSPECTOR         ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR         ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(_TOOL… (command that runs node-modules-inspector)
    NODE_MODULES_INSPECTOR_PORT    ?=  9999                                             (port node-modules-inspector serves on)
    NODE_MODULES_INSPECTOR_FLAGS   ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
@@ -447,14 +448,15 @@ Variables:
     VERSION                        ?=  0.0.0-dev                                        (package version)
   container
    COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
-   APP_SERVICE                     ?=  app                                              (Compose service the tools run in, empty for this machine)
+   APP_SERVICE                     ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
+   CLI_SERVICE                     ?=  cli                                              (Compose service the tools run in where the project defines none of APP_SERVICE)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering one)
    ACTIONLINT_SERVICE              ?=  actionlint                                       (Compose service actionlint runs in, where the project has one)
    HADOLINT_SERVICE                ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                    ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                 ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
    IS_IN_CONTAINER                 ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
-   RUN                             ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
+   RUN                             ?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)
    APP_DIR                         ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
    HOST_UID                        ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
    HOST_GID                        ?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)
@@ -583,7 +585,7 @@ Variables:
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
    BUN_AUDIT_FLAGS                 ?=                                                   (additional flags passed to bun audit)
-   NODE_MODULES_INSPECTOR          ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs node-modules-inspector)
+   NODE_MODULES_INSPECTOR          ?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(_TOOL… (command that runs node-modules-inspector)
    NODE_MODULES_INSPECTOR_PORT     ?=  9999                                             (port node-modules-inspector serves on)
    NODE_MODULES_INSPECTOR_FLAGS    ?=                                                   (additional flags passed to node-modules-inspector)
   commitlint
@@ -826,7 +828,7 @@ Available commands:
 +    WSLPATH                        ?=  wslpath                                          (path to wslpath binary)
    container
     COMPOSE_FILE                    ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
-    APP_SERVICE                     ?=  app                                              (Compose service the tools run in, empty for this machine)
+    APP_SERVICE                     ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
 @@ @@
     COMPOSE_FILES                    =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
    output
@@ -1500,14 +1502,15 @@ Available commands:
     [36mWSLPATH                      [0m  [90m?=  wslpath                                          (path to [35mwslpath[0m[90m binary)[0m
   [35mcontainer[0m
    [36mCOMPOSE_FILE                  [0m  [90m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
-   [36mAPP_SERVICE                   [0m  [90m?=  app                                              (Compose service the tools run in, empty for this machine)[0m
+   [36mAPP_SERVICE                   [0m  [90m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m
+   [36mCLI_SERVICE                   [0m  [90m?=  cli                                              (Compose service the tools run in where the project defines none of [35mAPP_SERVICE[0m[90m)[0m
    [36mAPP_SERVICE_MODE              [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
    [36mACTIONLINT_SERVICE            [0m  [90m?=  actionlint                                       (Compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
    [36mHADOLINT_SERVICE              [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE                  [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE               [0m  [90m?=  semgrep                                          (Compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER               [0m  [90m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
-   [36mRUN                           [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
+   [36mRUN                           [0m  [90m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                       [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
    [36mHOST_UID                      [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [36mHOST_GID                      [0m  [90m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
@@ -1653,7 +1656,7 @@ Available commands:
    [36mBUN                           [0m  [90m?=  $(RUN) bun                                       (command that runs [35mbun[0m[90m)[0m
    [36mBUN_FLAGS                     [0m  [90m?=  --bun                                            (flags passed to [35mbun[0m[90m before the command)[0m
    [36mBUN_AUDIT_FLAGS               [0m  [90m?=                                                   (additional flags passed to [35mbun audit[0m[90m)[0m
-   [36mNODE_MODULES_INSPECTOR        [0m  [90m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs [35mnode-modules-inspector[0m[90m)[0m
+   [36mNODE_MODULES_INSPECTOR        [0m  [90m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(_TOOL… (command that runs [35mnode-modules-inspector[0m[90m)[0m
    [36mNODE_MODULES_INSPECTOR_PORT   [0m  [90m?=  9999                                             (port [35mnode-modules-inspector[0m[90m serves on)[0m
    [36mNODE_MODULES_INSPECTOR_FLAGS  [0m  [90m?=                                                   (additional flags passed to [35mnode-modules-inspector[0m[90m)[0m
   [35mcommitlint[0m
@@ -1973,14 +1976,15 @@ Available commands:
     [32mWSLPATH                      [0m  [0m?=  wslpath                                          (path to [33mwslpath[0m[0m binary)[0m
   [33mcontainer[0m
    [32mCOMPOSE_FILE                  [0m  [0m?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)[0m
-   [32mAPP_SERVICE                   [0m  [0m?=  app                                              (Compose service the tools run in, empty for this machine)[0m
+   [32mAPP_SERVICE                   [0m  [0m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m
+   [32mCLI_SERVICE                   [0m  [0m?=  cli                                              (Compose service the tools run in where the project defines none of [33mAPP_SERVICE[0m[0m)[0m
    [32mAPP_SERVICE_MODE              [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
    [32mACTIONLINT_SERVICE            [0m  [0m?=  actionlint                                       (Compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
    [32mHADOLINT_SERVICE              [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE                  [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE               [0m  [0m?=  semgrep                                          (Compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER               [0m  [0m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
-   [32mRUN                           [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
+   [32mRUN                           [0m  [0m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                       [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
    [32mHOST_UID                      [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
    [32mHOST_GID                      [0m  [0m?=  $(or $(word 2,$(_HOST_IDS)),1000)                (group a container writes the bind mount as)[0m
@@ -2126,7 +2130,7 @@ Available commands:
    [32mBUN                           [0m  [0m?=  $(RUN) bun                                       (command that runs [33mbun[0m[0m)[0m
    [32mBUN_FLAGS                     [0m  [0m?=  --bun                                            (flags passed to [33mbun[0m[0m before the command)[0m
    [32mBUN_AUDIT_FLAGS               [0m  [0m?=                                                   (additional flags passed to [33mbun audit[0m[0m)[0m
-   [32mNODE_MODULES_INSPECTOR        [0m  [0m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(APP_S… (command that runs [33mnode-modules-inspector[0m[0m)[0m
+   [32mNODE_MODULES_INSPECTOR        [0m  [0m?=  $(if $(_HAS_CONTAINER),$(call _serve_in,$(_TOOL… (command that runs [33mnode-modules-inspector[0m[0m)[0m
    [32mNODE_MODULES_INSPECTOR_PORT   [0m  [0m?=  9999                                             (port [33mnode-modules-inspector[0m[0m serves on)[0m
    [32mNODE_MODULES_INSPECTOR_FLAGS  [0m  [0m?=                                                   (additional flags passed to [33mnode-modules-inspector[0m[0m)[0m
   [33mcommitlint[0m

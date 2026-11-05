@@ -95,7 +95,7 @@ final class StartupTest extends TestCase
         $inService     = $this->runMake([], $environment, self::STARTER_DIRECTORY, doExpectFailure: true);
         $onThisMachine = $this->runMake(['JS_SERVICE='], $environment, self::STARTER_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString(' run --rm app yarn install', $inService);
+        self::assertStringContainsString(' run --rm php-app yarn install', $inService);
         self::assertStringContainsString('yarn install', $onThisMachine);
         self::assertStringNotContainsString('docker', $onThisMachine);
     }

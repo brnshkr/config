@@ -215,7 +215,7 @@ final class ToolsTest extends TestCase
             'forge image' => ['COMPOSE_FIXTURE_IMAGE' => 'ghcr.io/brnshkr/forge:1'],
             'own service' => ['COMPOSE_FIXTURE_IMAGE' => 'acme/app:1', 'COMPOSE_FIXTURE_SERVICE' => 'hadolint'],
         ] as $name => $environment) {
-            $listings[$name] = $this->runMake(['help', 'vv', 'APP_SERVICE=app'], [
+            $listings[$name] = $this->runMake(['help', 'vv', 'APP_SERVICE=php-app'], [
                 'DOCKER'          => $lintersDirectory . '/bin/docker',
                 'IS_IN_CONTAINER' => '',
                 ...$environment,
@@ -332,7 +332,7 @@ final class ToolsTest extends TestCase
 
         $output = $this->runMakeIn(self::MODE_RUN, [
             'semgrep',
-            'APP_SERVICE=app',
+            'APP_SERVICE=php-app',
             'SEMGREP_RULESETS=default',
             'SEMGREP_CONFIG=conf/shipped.yaml',
             'CURL=bin/curl',
