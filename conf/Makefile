@@ -677,6 +677,7 @@ _TOOL_SERVICE      := $(word 1,$(_SERVICE_CONFIG))
 _SERVICE_DIRECTORY := $(word 2,$(_SERVICE_CONFIG))
 _SERVICE_IMAGE     := $(word 3,$(_SERVICE_CONFIG))
 _COMPOSE_SERVICES  := $(wordlist 4,$(words $(_SERVICE_CONFIG)),$(_SERVICE_CONFIG))
+_SERVICE_TAG       := $(lastword $(subst :, ,$(firstword $(subst @, ,$(_SERVICE_IMAGE)))))
 
 ifeq ($(_SERVICE_DIRECTORY),)
 _COMPOSE_REFUSAL := $(shell $(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config --quiet 2>&1 >/dev/null \
@@ -839,8 +840,7 @@ _TRACKED_FILES           := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(
 _HADOLINT_FILES          := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
 _ACTIONLINT_FILES        := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
 
-_LINTER_IMAGES := ghcr.io/brnshkr/forge:% \
-	ghcr.io/brnshkr/forge@%
+_LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
 
 #**
 #* Whether a tool this project does not install can run here.
@@ -853,7 +853,7 @@ _LINTER_IMAGES := ghcr.io/brnshkr/forge:% \
 #* returns: string
 #*
 define _is_tool_available
-$(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE))),$(call _is_on_path,$1))
+$(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(and $(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE)),$(filter %-cli %-cli-chromium,$(_SERVICE_TAG)))),$(call _is_on_path,$1))
 endef
 
 define _COMPOSER_DIRECTORIES_AWK
@@ -1629,7 +1629,7 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 endif
 
 TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-matrix` runs
-TEST_MATRIX_IMAGE_KEY ?= FORGE_IMAGE#vv #~~ variable naming the image the Compose file runs
+TEST_MATRIX_IMAGE_KEY ?= $(if $(filter %-cli-chromium,$(_SERVICE_TAG)),FORGE_CLI_CHROMIUM_IMAGE,$(if $(filter $(CLI_SERVICE),$(_TOOL_SERVICE)),FORGE_CLI_IMAGE,FORGE_APP_DEV_IMAGE))#vv #~~ variable naming the image the Compose file runs
 
 _MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
 _MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
