@@ -159,6 +159,33 @@ final class ConfigsTest extends TestCase
         self::assertStringEndsWith("###< brnshkr/config ###\n\n*.png binary\n", $gitattributes);
     }
 
+    public function testConfigsWritesTheMinimumReleaseAge(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($configsDirectory . '/package.json', '{}');
+        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=\n");
+        $this->runMake(['configs', 'bunfig.toml', 'composer.json'], directory: $configsDirectory);
+
+        $emptyBunfig   = $filesystem->readFile($configsDirectory . '/bunfig.toml');
+        $emptyManifest = $filesystem->readFile($configsDirectory . '/composer.json');
+
+        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=1209600\n");
+        $this->runMake(['configs', 'bunfig.toml', 'composer.json'], directory: $configsDirectory);
+
+        $changedBunfig = $filesystem->readFile($configsDirectory . '/bunfig.toml');
+
+        $filesystem->remove($configsDirectory . '/.env');
+        $this->runMake(['configs', 'bunfig.toml', 'composer.json'], directory: $configsDirectory);
+
+        self::assertStringNotContainsString('minimumReleaseAge', $emptyBunfig);
+        self::assertStringEndsWith("  \"name\": \"acme/configs\"\n}\n", $emptyManifest);
+        self::assertStringContainsString("\nminimumReleaseAge = 1209600\n", $changedBunfig);
+        self::assertStringContainsString("\nminimumReleaseAge = 604800\n", $filesystem->readFile($configsDirectory . '/bunfig.toml'));
+        self::assertFileEquals(self::CONFIGS_DIRECTORY . '/composer.json', $configsDirectory . '/composer.json');
+    }
+
     public function testTheTypescriptProjectFallsBackToAFileWhereLinkingFails(): void
     {
         $typescriptDirectory = $this->getFixtureCopy(self::TSCONFIG_DIRECTORY);

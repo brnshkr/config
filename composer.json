@@ -23,7 +23,7 @@
     "php": ">=8.5",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "composer-plugin-api": "^2.0.0"
+    "composer-plugin-api": "^2.11.0"
   },
   "require-dev": {
     "ext-ctype": "*",
@@ -159,6 +159,11 @@
       "php-http/discovery": false,
       "phpstan/extension-installer": true,
       "symfony/ai-mate-composer-plugin": false
+    },
+    "policy": {
+      "cooldown": {
+        "period": 604800
+      }
     }
   },
   "keywords": [

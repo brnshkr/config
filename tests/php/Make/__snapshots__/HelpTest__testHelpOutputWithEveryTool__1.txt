@@ -236,6 +236,8 @@ Variables:
   release
    CHANGELOG_RANGE                ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL                  ?=                                                   (base URL a commit hash links to)
+  dependencies
+   MINIMUM_RELEASE_AGE            ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
   composer
    COMPOSER                       ?=  $(RUN) composer                                  (command that runs composer)
    COMPOSER_FLAGS                 ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_TRA… (additional flags passed to composer)
@@ -549,6 +551,8 @@ Variables:
    CHANGELOG_SKIPPED_TYPES         ?=  test style build                                 (commit types left out of the changelog)
    CHANGELOG_GROUPS                ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
    CHANGELOG_NAMES                 ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
+  dependencies
+   MINIMUM_RELEASE_AGE             ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
   php
    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
   composer
@@ -870,9 +874,9 @@ Available commands:
 +   SEMVER_PRERELEASE_STRICT        ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
 +   SEMVER_BUILD                    ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
 +   SEMVER_REGEX                    ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
+   dependencies
+    MINIMUM_RELEASE_AGE             ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
    php
-    PHP_EXTENSIONS                  ?=  php                                              (extensions the PHP tools read)
-   composer
 @@ @@
     COMPOSER_FLAGS                  ?=  $(if $(_IS_CI),--no-interaction) $(if $(_IS_TRA… (additional flags passed to composer)
     COMPOSER_AUDIT_FLAGS            ?=  --locked                                         (additional flags passed to composer audit)
@@ -1257,6 +1261,7 @@ brnshkr.config.directories
 brnshkr.config.package
 brnshkr.config.targets
 brnshkr.container
+brnshkr.dependencies
 brnshkr.dotenv
 brnshkr.eslint
 brnshkr.hadolint
@@ -1625,6 +1630,8 @@ Available commands:
    [36mSEMVER_PRERELEASE_STRICT      [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [36mSEMVER_BUILD                  [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [36mSEMVER_REGEX                  [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [35mdependencies[0m
+   [36mMINIMUM_RELEASE_AGE           [0m  [90m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [35mphp[0m
    [36mPHP_EXTENSIONS                [0m  [90m?=  php                                              (extensions the PHP tools read)[0m
   [35mcomposer[0m
@@ -2104,6 +2111,8 @@ Available commands:
    [32mSEMVER_PRERELEASE_STRICT      [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [32mSEMVER_BUILD                  [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [32mSEMVER_REGEX                  [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [33mdependencies[0m
+   [32mMINIMUM_RELEASE_AGE           [0m  [0m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [33mphp[0m
    [32mPHP_EXTENSIONS                [0m  [0m?=  php                                              (extensions the PHP tools read)[0m
   [33mcomposer[0m

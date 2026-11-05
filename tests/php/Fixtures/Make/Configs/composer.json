@@ -4,5 +4,12 @@
       "name": "Some Person"
     }
   ],
-  "name": "acme/configs"
+  "name": "acme/configs",
+  "config": {
+    "policy": {
+      "cooldown": {
+        "period": 604800
+      }
+    }
+  }
 }

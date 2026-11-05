@@ -4,6 +4,7 @@ self-hosted-runner:
   labels: []
 
 config-variables:
+  - MINIMUM_RELEASE_AGE
   - RUNNER_IMAGE
 
 paths:

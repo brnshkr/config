@@ -1448,6 +1448,7 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
 	$(_CSS_DATA_CONFIGS) \
 	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_JS_CONFIG_DIR)/bunfig.dist.toml)) \
+	$(if $(wildcard $(CURDIR)/composer.json),$(CURDIR)/composer.json|) \
 	$(CURDIR)/Makefile|$(_BRNSHKR_CONFIG_DIR)/Makefile.dist
 
 _STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
@@ -1994,6 +1995,7 @@ $(call _target,configs): export _GITATTRIBUTES_PROGRAM     = $(_GITATTRIBUTES_PR
 $(call _target,configs): export _LAYOUT_AWK                = $(_LAYOUT_AWK_SOURCE)
 $(call _target,configs): export _MANAGED_BLOCK_AWK         = $(_MANAGED_BLOCK_AWK_SOURCE)
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
+$(call _target,configs): export _RELEASE_AGE_PROGRAM       = $(_RELEASE_AGE_PROGRAM_SOURCE)
 $(call _target,configs): #~~ writes the files this project is missing
 	$(TRACE_PREFIX)$(call _require_known_value,config)
 	$(TRACE_PREFIX)for config_path in $(call _host_path,$(call _selected_configs,$(_CONFIGS))); do \
@@ -2041,6 +2043,11 @@ $(call _target,configs): #~~ writes the files this project is missing
 			included_config_path=""; \
 		fi; \
 	done
+	$(TRACE_PREFIX)minimum_release_age='$(MINIMUM_RELEASE_AGE)'; \
+	case "$$minimum_release_age" in 0?*|*[!0-9]*) \
+		$(call log,`MINIMUM_RELEASE_AGE` is a number of seconds or empty$(_COMMA) not `%s`.,$(COLOR_ERROR),"$$minimum_release_age") >&2; \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+	esac
 	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	trap '$(RM) -f "$$body_path"' EXIT; \
 	for managed_config_pair in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(_MANAGED_CONFIGS)),'$(MANAGED_CONFIG)'); do \
@@ -2534,6 +2541,10 @@ unexport COMPOSE_FILE
 endif
 
 _TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(DOTENV_STAGES))))
+
+#--- dependencies
+
+MINIMUM_RELEASE_AGE ?= 604800#v #~~ seconds a version must be out before Bun or Composer installs it, empty for no wait
 
 ifneq ($(_HAS_PHP),) # php
 
@@ -3744,7 +3755,13 @@ case "$$config_path" in \
 	*/.gitattributes) $(CAT) "$$template_path" >"$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
 		printf '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
 	} >>"$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" >"$$body_path"; deduplication_mode=sections;; \
+	*/.editorconfig) $(CAT) "$$template_path" >"$$body_path"; deduplication_mode=sections;; \
+	*/bunfig.toml) $(AWK) -v minimum_release_age='$(MINIMUM_RELEASE_AGE)' \
+		'/^minimumReleaseAge = / { if (minimum_release_age == "") next; $$0 = "minimumReleaseAge = " minimum_release_age } { print }' \
+		"$$template_path" >"$$body_path"; deduplication_mode=sections;; \
+	*/composer.json) $(PHP) -r "$$_RELEASE_AGE_PROGRAM" '$(APP_DIR)/composer.json' '$(MINIMUM_RELEASE_AGE)' \
+		>"$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		template_path="$$body_path"; is_whole_file=1;; \
 	*/settings.json) $(call _append_stack_entries,1); \
 		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" >"$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
 		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),printf '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >>"$$body_path";) \
@@ -3763,6 +3780,11 @@ if [ -n "$$is_whole_file" ]; then \
 	$(CMP) -s "$$template_path" "$$config_path" 2>/dev/null || { \
 		$(CP) "$$template_path" "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
+		case "$$config_path" in */composer.json) [ ! -f '$(CURDIR)/composer.lock' ] || { \
+			$(COMPOSER) update --lock --no-install --no-scripts --no-plugins --no-interaction --quiet \
+				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Updated `%s`.,$(COLOR_SUCCESS),'./composer.lock'); \
+		};; esac; \
 	}; \
 else \
 	[ -f "$$config_path" ] || : >"$$config_path"; \
@@ -4824,6 +4846,78 @@ $$namespace      = ComposerJson::forProjectUsingThisLibrary()->getRootNamespace(
 $$configContents = (string) \file_get_contents($$path);
 
 \file_put_contents($$path, \preg_replace('/@internal(?: \S+)?$$/m', '@internal ' . $$namespace, $$configContents, 1));
+endef
+
+define _RELEASE_AGE_PROGRAM_SOURCE
+declare(strict_types=1);
+
+$$contents   = (string) \file_get_contents($$argv[1]);
+$$minimumAge = ($$argv[2] ?? '') === '' ? null : (int) $$argv[2];
+
+/**
+ * @var array<string, mixed> $$manifest
+ */
+$$manifest = (array) \json_decode($$contents, flags: \JSON_THROW_ON_ERROR);
+
+/**
+ * @var array<string, mixed> $$config
+ */
+$$config = (array) ($$manifest['config'] ?? []);
+
+if (\is_bool($$config['policy'] ?? null) || \is_bool(((array) ($$config['policy'] ?? []))['cooldown'] ?? null)) {
+    echo $$contents;
+
+    exit(0);
+}
+
+/**
+ * @var array<string, mixed> $$policy
+ */
+$$policy = (array) ($$config['policy'] ?? []);
+
+/**
+ * @var array<string, mixed> $$cooldown
+ */
+$$cooldown = (array) ($$policy['cooldown'] ?? []);
+
+if ($$minimumAge === null) {
+    unset($$cooldown['period']);
+} else {
+    $$cooldown['period'] = $$minimumAge;
+}
+
+if ($$cooldown === []) {
+    unset($$policy['cooldown']);
+} else {
+    $$policy['cooldown'] = (object) $$cooldown;
+}
+
+if ($$policy === []) {
+    unset($$config['policy']);
+} else {
+    $$config['policy'] = (object) $$policy;
+}
+
+if ($$config === []) {
+    unset($$manifest['config']);
+} else {
+    $$manifest['config'] = (object) $$config;
+}
+
+if (\json_encode((object) $$manifest) === \json_encode(\json_decode($$contents))) {
+    echo $$contents;
+
+    exit(0);
+}
+
+$$indentation = \preg_match('/^([ \t]+)"/m', $$contents, $$matches) === 1 ? $$matches[1] : '    ';
+$$encoded     = \json_encode((object) $$manifest, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
+
+echo \preg_replace_callback(
+    '/^(?: {4})+/m',
+    static fn (array $$spaces): string => \str_repeat($$indentation, \intdiv(\mb_strlen($$spaces[0]), 4)),
+    $$encoded,
+), "\n";
 endef
 
 define _LAYOUT_AWK_SOURCE

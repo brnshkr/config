@@ -234,6 +234,8 @@ Variables:
   release
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+  dependencies
+   MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
   hadolint
    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
   actionlint
@@ -424,9 +426,9 @@ Available commands:
 +   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
 +   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
 +   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
+   dependencies
+    MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
    hadolint
-    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
-   actionlint
 @@ @@
    variables
     BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -594,9 +596,9 @@ Available commands:
 +   SEMVER_PRERELEASE_STRICT    ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
 +   SEMVER_BUILD                ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
 +   SEMVER_REGEX                ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
+   dependencies
+    MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
    hadolint
-    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
-   actionlint
 @@ @@
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
@@ -821,6 +823,7 @@ brnshkr.config.directories
 brnshkr.config.package
 brnshkr.config.targets
 brnshkr.container
+brnshkr.dependencies
 brnshkr.dotenv
 brnshkr.hadolint
 brnshkr.helpers
@@ -1277,6 +1280,8 @@ Available commands:
    [36mSEMVER_PRERELEASE_STRICT  [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [36mSEMVER_BUILD              [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [36mSEMVER_REGEX              [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [35mdependencies[0m
+   [36mMINIMUM_RELEASE_AGE       [0m  [90m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [35mhadolint[0m
    [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
   [35mactionlint[0m
@@ -1626,6 +1631,8 @@ Available commands:
    [32mSEMVER_PRERELEASE_STRICT  [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [32mSEMVER_BUILD              [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [32mSEMVER_REGEX              [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [33mdependencies[0m
+   [32mMINIMUM_RELEASE_AGE       [0m  [0m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [33mhadolint[0m
    [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
   [33mactionlint[0m
