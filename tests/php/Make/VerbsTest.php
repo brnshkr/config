@@ -134,6 +134,7 @@ final class VerbsTest extends TestCase
         $this->runMake(
             ['check'],
             [
+                'CI_JOB_ID'         => '2',
                 'CI_SUMMARY_FILE'   => $summaryPath,
                 'GITHUB_REPOSITORY' => 'acme/verbs',
                 'GITHUB_RUN_ID'     => '1',

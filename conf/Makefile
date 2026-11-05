@@ -1827,7 +1827,8 @@ _CI_TARGETS = $(if $(_HAS_FIX),$(call _target,fix)) \
 
 CI_TARGETS        ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
 CI_SUMMARY_FILE   ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit`, `test` and `test-matrix` add their rows to
-_CI_LOG_URL        = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID))
+CI_JOB_ID         ?= #vv #~~ ID of the CI job whose log a failed summary row links, e.g. GitHub's `job.check_run_id`
+_CI_LOG_URL        = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID)$(if $(CI_JOB_ID),/job/$(CI_JOB_ID)))
 _CI_FAILED_RESULT  = ❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))
 
 #**
