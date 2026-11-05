@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function array_map;
 use function array_unique;
+use function mb_substr_count;
 
 /**
  * @internal
@@ -139,6 +140,42 @@ final class DotenvTest extends TestCase
 
         self::assertStringContainsString('APP_ENV=dev dotenv-show', $known);
         self::assertStringNotContainsString('APP_ENV=dev nosuchtarget', $unknown);
+    }
+
+    public function testAServiceNamedLikeAStageKeepsItsGoals(): void
+    {
+        $directory  = $this->getFixtureCopy(__DIR__ . '/../Fixtures/Make/ComposeEnvironment');
+        $filesystem = new Filesystem();
+
+        $environment = [
+            'APP_SERVICE'     => 'app',
+            'DOCKER'          => $directory . '/bin/docker',
+            'IS_IN_CONTAINER' => '',
+        ];
+
+        $filesystem->touch([$directory . '/.env.app', $directory . '/.env.email']);
+        $filesystem->dumpFile($directory . '/bin/docker', "#!/bin/sh\nprintf 'services:\\n  app:\\n    working_dir: %s\\n  email:\\n  mailer:\\n' \"\$COMPOSE_FIXTURE_DIRECTORY\"\n");
+        $filesystem->chmod($directory . '/bin/docker', 0o755);
+
+        $stageGoal   = $this->runMake(['-n', 'app-shell'], $environment, $directory);
+        $serviceGoal = $this->runMake(['-n', 'email-email-shell'], $environment, $directory);
+        $stageRerun  = $this->runMake(['-n', '_IS_IN_STAGE=1', 'APP_ENV=email', 'email-shell'], $environment, $directory);
+        $ownService  = $this->runMake(['-n', 'mailer-shell'], $environment, $directory);
+        $otherStage  = $this->runMake(['-n', 'test-app-dir'], $environment, $directory);
+        $unknownGoal = $this->runMake(['nosuch-build'], $environment, $directory, doExpectFailure: true);
+
+        self::assertStringContainsString('is both a stage and a service', $stageGoal);
+        self::assertStringContainsString('_IS_IN_STAGE=1 APP_ENV=app shell', $stageGoal);
+        self::assertStringContainsString('_IS_IN_STAGE=1 APP_ENV=email email-shell', $serviceGoal);
+        self::assertSame(1, mb_substr_count($serviceGoal, '_IS_IN_STAGE=1'));
+        self::assertMatchesRegularExpression('/ exec .*\bemail +sh$/m', $stageRerun);
+        self::assertStringNotContainsString('-e _IS_IN_STAGE', $stageRerun);
+        self::assertMatchesRegularExpression('/ exec .*\bmailer +sh$/m', $ownService);
+        self::assertStringNotContainsString('_IS_IN_STAGE=1', $ownService);
+        self::assertStringContainsString('APP_ENV=test app-dir', $otherStage);
+        self::assertStringNotContainsString('is both a stage and a service', $otherStage);
+        self::assertStringContainsString('Unknown command', $unknownGoal);
+        self::assertStringContainsString('nosuch-build', $unknownGoal);
     }
 
     #[Group('tty')]

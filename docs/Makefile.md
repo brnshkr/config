@@ -152,6 +152,8 @@ Later files win, and a real environment variable beats all of them.
 Before this package is installed, the starter reads them as plain `KEY=value` lines: quotes are stripped,
 and neither `${KEY:-default}` nor a `#` inside a value is understood.
 Every tracked `.env.<stage>` also gives you `<stage>-<target>`, so `make prod-check` runs `check` with `APP_ENV=prod`.
+With a stage and a service both named `worker`, `make worker-build` runs `build` in the stage
+and `make worker-worker-build` builds the service.
 With a `.env.test`, the tests always run with `APP_ENV=test`, whether you type `make test`, `make ci` or `make phpunit`.
 
 ## Changelog

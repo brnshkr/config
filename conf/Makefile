@@ -414,7 +414,7 @@ _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 
 _COMMAND_LINE_KEYS       = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
 _NON_EMPTY_TERMINAL_KEYS = $(foreach KEY,$(_TERMINAL_KEYS),$(if $(call _forwarded_value,$(KEY)),$(KEY)))
-_FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(_COMMAND_LINE_KEYS)))
+_FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS))))
 _DECLARED_KEYS           = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
 #--- output
@@ -2362,6 +2362,53 @@ $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_
 $(call _target,pack): $(_PACKS) #~~ packs every stack's package to `./.local` #vvv
 	$(TRACE_PREFIX)$(if $(_PACKS),:,$(call log,No package to pack.,$(COLOR_NOTICE)))
 
+_SERVICE_STAGES       = $(filter $(DOTENV_STAGES),$(_COMPOSE_SERVICES))
+_STAGE_COLLISION_GOAL = $(firstword $(filter $(addsuffix -%,$(_SERVICE_STAGES)),$(MAKECMDGOALS)))
+
+#**
+#* Runs a goal again with the environment key set to a stage, handing on the arguments this run collected.
+#*
+#* parameters:
+#*   stage: string
+#*   goal: string
+#*
+#* returns: string
+#*
+define _run_in_stage
+$(_DOTENV_RESET)$(MAKE) $(_MAKE_FLAGS) $(_INHERITED_FLAGS) _IS_IN_STAGE=1 $(DOTENV_ENV_KEY)=$1 $2 $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS))
+endef
+
+#**
+#* The Compose service goal a name reaches, empty where it names none.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _get_service_goal
+$(filter $(foreach SERVICE,$(_COMPOSE_SERVICES),$(addprefix $(_TARGET_PREFIX)$(SERVICE)-,build exec logs shell)),$1)
+endef
+
+#**
+#* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.
+#*
+#* parameters:
+#*   stage: string
+#*
+#* returns: void
+#*
+define _stage_rule
+$1-%: _SUGGESTED_FOR = $$*
+$1-%:
+	$$(TRACE_PREFIX)$$(if $$(filter $$@,$$(_STAGE_COLLISION_GOAL)),$$(call log,`%s` is both a stage and a service. `%s-<target>` runs the stage and `%s-%s-<target>` the service.,$$(COLOR_WARNING),'$1' '$1' '$1' '$1') >&2,:)
+	$$(TRACE_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
+		$$(call _suggest,$1-))
+	$$(DEBUG_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),$$(call _run_in_stage,$1,$$*),:)
+endef
+
+$(foreach STAGE,$(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(eval $(call _stage_rule,$(STAGE))))
+
 #---v container
 
 ifneq ($(_HAS_CONTAINER),) # container
@@ -2387,23 +2434,40 @@ $(call _target,shell): _GOAL := $(call _target,shell)
 $(call _target,exec): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-exec #~~ runs a command in the service the tools run in, flags after `--`, quoted words through `ARGS`
 $(call _target,exec): _GOAL := $(call _target,exec)
 
-_SERVICE_ARGS = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+_SERVICE_ARGS       = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+_TARGETED_SERVICES := $(filter-out $(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(_COMPOSE_SERVICES))
 
-$(_TARGET_PREFIX)%-shell:
+#**
+#* The goals one verb gives every service that has targets, `<service>-<verb>` each.
+#*
+#* parameters:
+#*   verb: string
+#*
+#* returns: list<string>
+#*
+define _service_targets
+$(patsubst %,$(_TARGET_PREFIX)%-$1,$(_TARGETED_SERVICES))
+endef
+
+ifneq ($(_TARGETED_SERVICES),) # services
+
+$(call _service_targets,shell): $(_TARGET_PREFIX)%-shell:
 	$(DEBUG_PREFIX)$(call _enter_service,$*) $(or $(_SERVICE_ARGS),$(SERVICE_SHELL))
 
-$(_TARGET_PREFIX)%-logs:
+$(call _service_targets,logs): $(_TARGET_PREFIX)%-logs:
 	$(DEBUG_PREFIX)$(_COMPOSE) logs $(COMPOSE_LOGS_FLAGS) $* $(_SERVICE_ARGS)
 
-$(_TARGET_PREFIX)%-exec:
+$(call _service_targets,exec): $(_TARGET_PREFIX)%-exec:
 	$(TRACE_PREFIX)$(if $(_SERVICE_ARGS),:,{ \
 		$(call log,`%s` needs a command$(_COMMA) pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	})
 	$(DEBUG_PREFIX)$(call run_in,$*) $(_SERVICE_ARGS)
 
-$(_TARGET_PREFIX)%-build:
+$(call _service_targets,build): $(_TARGET_PREFIX)%-build:
 	$(DEBUG_PREFIX)$(_COMPOSE) build $(COMPOSE_BUILD_FLAGS) $(_SERVICE_ARGS) $*
+
+endif # /services
 
 endif # /container
 
@@ -2428,37 +2492,6 @@ unexport COMPOSE_FILE
 endif
 
 _TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(DOTENV_STAGES))))
-
-#**
-#* Runs a goal again with the environment key set to a stage, handing on the arguments this run collected.
-#*
-#* parameters:
-#*   stage: string
-#*   goal: string
-#*
-#* returns: string
-#*
-define _run_in_stage
-$(_DOTENV_RESET)$(MAKE) $(_MAKE_FLAGS) $(_INHERITED_FLAGS) $(DOTENV_ENV_KEY)=$1 $2 $(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS))
-endef
-
-#**
-#* Defines `<stage>-<target>`, which runs that target with the environment key set to that stage.
-#*
-#* parameters:
-#*   stage: string
-#*
-#* returns: void
-#*
-define _stage_rule
-$1-%: _SUGGESTED_FOR = $$*
-$1-%:
-	$$(TRACE_PREFIX)$$(if $$(call _get_goal,$$*),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
-		$$(call _suggest,$1-))
-	$$(DEBUG_PREFIX)$$(if $$(call _get_goal,$$*),$$(call _run_in_stage,$1,$$*),:)
-endef
-
-$(foreach STAGE,$(DOTENV_STAGES),$(eval $(call _stage_rule,$(STAGE))))
 
 ifneq ($(_HAS_PHP),) # php
 
