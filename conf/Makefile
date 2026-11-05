@@ -1847,7 +1847,7 @@ _CI_FAILED_RESULT  = ❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))
 #*
 define _add_summary_header
 $(AWK) '/^\| Target \|/ { is_found = 1 } END { exit !is_found }' '$(CI_SUMMARY_FILE)' 2>/dev/null \
-	|| printf '| Target | Result | Time |\n| --- | --- | --- |\n' >> '$(CI_SUMMARY_FILE)'
+	|| printf '| Target | Result | Time |\n| --- | --- | --- |\n' >>'$(CI_SUMMARY_FILE)'
 endef
 
 #**
@@ -1859,7 +1859,7 @@ endef
 #* returns: string
 #*
 define _add_summary_row
-printf '| `%s` | %s | %ss |\n' $1 "$$result" "$$(($$($(DATE) +%s) - start))" >> '$(CI_SUMMARY_FILE)'
+printf '| `%s` | %s | %ss |\n' $1 "$$result" "$$(($$($(DATE) +%s) - start))" >>'$(CI_SUMMARY_FILE)'
 endef
 
 #**
@@ -2026,10 +2026,10 @@ $(call _target,configs): #~~ writes the files this project is missing
 		else \
 			included_config_path="$${config_path%/*}/$${config_name%.*}.dist.$${config_name##*.}"; \
 			case "$$config_name" in \
-				*.mjs) printf '%s\n' "export { default } from './$${included_config_path##*/}';" > "$$config_path" \
+				*.mjs) printf '%s\n' "export { default } from './$${included_config_path##*/}';" >"$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 				*.php) printf '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
-					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' 'return $$config;' > "$$config_path" \
+					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' 'return $$config;' >"$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 				*) included_config_path=""; continue;; \
 			esac; \
@@ -2060,7 +2060,7 @@ $(call _target,configs): #~~ writes the files this project is missing
 		if $(LN) -sfn "$$relative_linked_path" "$$link_path" 2>/dev/null; then \
 			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}" "./$$relative_linked_path"); \
 		else \
-			printf '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' > "$$link_path" \
+			printf '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' >"$$link_path" \
 				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}"); \
 		fi; \
@@ -3659,10 +3659,10 @@ define _append_stack_entries
 template_name="$${template_path##*/}"; \
 for shipped_part in "$$template_path" $(foreach SUFFIX,$(_STACK_SUFFIXES),"$(if $(filter js,$(SUFFIX)),$(_JS_CONFIG_DIR),$(_PHP_CONFIG_DIR))/$${template_name%.dist.*}.$(SUFFIX).dist.$${template_name##*.}"); do \
 	[ -r "$$shipped_part" ] || continue; \
-	[ ! -s "$$body_path" ] || printf '\n' >> "$$body_path"; \
+	[ ! -s "$$body_path" ] || printf '\n' >>"$$body_path"; \
 	$(AWK) -v outer_line_count=$1 '{ part_lines[NR] = $$0 } \
 		END { for (line_index = outer_line_count + 1; line_index <= NR - outer_line_count; line_index += 1) print part_lines[line_index] }' \
-		"$$shipped_part" >> "$$body_path"; \
+		"$$shipped_part" >>"$$body_path"; \
 done
 endef
 
@@ -3706,7 +3706,7 @@ endef
 #*
 define _write_for_layout
 $(AWK) -v project_path='$(CURDIR)' -v config_path=$2 -v cache_directory='$(_CACHE_DIR)' \
-	-v vendor_directory='$(_COMPOSER_VENDOR_DIR)' "$$_LAYOUT_AWK" $1 > $2
+	-v vendor_directory='$(_COMPOSER_VENDOR_DIR)' "$$_LAYOUT_AWK" $1 >$2
 endef
 
 #**
@@ -3735,28 +3735,28 @@ define _write_managed_config
 case "$$config_path" in */Makefile) $(AWK) '/^###> brnshkr\/config ###$$/ { is_marked = 1 } END { exit !is_marked }' "$$config_path" 2>/dev/null || continue;; esac; \
 [ -z "$$template_path" ] || [ -r "$$template_path" ] || continue; \
 $(call _refuse_links,"$$config_path" "$${config_path%/*}" "$$template_path"); \
-: > "$$body_path"; \
+: >"$$body_path"; \
 block_anchor=; block_indent=; comment_prefix=; deduplication_mode=lines; is_whole_file=; written_verb=Updated; \
 [ -f "$$config_path" ] || written_verb=Created; \
 case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
 case "$$config_path" in \
-	*/.gitignore) printf '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) > "$$body_path";; \
-	*/.gitattributes) $(CAT) "$$template_path" > "$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
+	*/.gitignore) printf '%s\n' $(call _shell_quoted,$(_GITIGNORED_PATHS)) >"$$body_path";; \
+	*/.gitattributes) $(CAT) "$$template_path" >"$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
 		printf '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
-	} >> "$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" > "$$body_path"; deduplication_mode=sections;; \
+	} >>"$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+	*/.editorconfig|*/bunfig.toml) $(CAT) "$$template_path" >"$$body_path"; deduplication_mode=sections;; \
 	*/settings.json) $(call _append_stack_entries,1); \
-		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" > "$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
-		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),printf '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >> "$$body_path";) \
-		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),printf '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >> "$$body_path";) \
+		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" >"$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
+		$(if $(strip $(_EDITOR_BINARY_SETTINGS)),printf '%s\n' '' '  // Binaries' $(_EDITOR_BINARY_SETTINGS) >>"$$body_path";) \
+		$(if $(strip $(_EDITOR_CONFIG_SETTINGS)),printf '%s\n' '' '  // Configs' $(_EDITOR_CONFIG_SETTINGS) >>"$$body_path";) \
 		block_anchor='^[{]'; block_indent='  '; comment_prefix='// '; deduplication_mode=keys; \
-		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || printf '%s\n' '{' '}' > "$$config_path";; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' <"$$config_path")" ] || printf '%s\n' '{' '}' >"$$config_path";; \
 	*/extensions.json) $(call _append_stack_entries,2); \
-		$(if $(strip $(_EDITOR_EXTENSIONS)),printf '%s\n' '' '    // Frameworks' $(_EDITOR_EXTENSIONS) >> "$$body_path";) \
+		$(if $(strip $(_EDITOR_EXTENSIONS)),printf '%s\n' '' '    // Frameworks' $(_EDITOR_EXTENSIONS) >>"$$body_path";) \
 		block_anchor='"recommendations"'; block_indent='    '; comment_prefix='// '; \
-		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' < "$$config_path")" ] || printf '%s\n' '{' '  "recommendations": [' '  ]' '}' > "$$config_path";; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' <"$$config_path")" ] || printf '%s\n' '{' '  "recommendations": [' '  ]' '}' >"$$config_path";; \
 	*/Makefile) $(AWK) '/^###< brnshkr\/config ###$$/ { is_inside = 0; print } is_inside { print } /^###> brnshkr\/config ###$$/ { is_inside = 1 }' \
-		"$$template_path" > "$$body_path"; deduplication_mode=;; \
+		"$$template_path" >"$$body_path"; deduplication_mode=;; \
 	*) is_whole_file=1;; \
 esac; \
 if [ -n "$$is_whole_file" ]; then \
@@ -3765,7 +3765,7 @@ if [ -n "$$is_whole_file" ]; then \
 		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
 	}; \
 else \
-	[ -f "$$config_path" ] || : > "$$config_path"; \
+	[ -f "$$config_path" ] || : >"$$config_path"; \
 	updated_contents="$$(_MANAGED_BLOCK_OPEN="$${comment_prefix}###> brnshkr/config ###" \
 		_MANAGED_BLOCK_CLOSE="$${comment_prefix}###< brnshkr/config ###" \
 		_MANAGED_BLOCK_ANCHOR="$$block_anchor" \
@@ -3777,7 +3777,7 @@ else \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
 	[ "$$updated_contents" = "$$($(CAT) "$$config_path")" ] || { \
-		printf '%s\n' "$$updated_contents" > "$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		printf '%s\n' "$$updated_contents" >"$$config_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		$(call log,%s `%s`.,$(COLOR_SUCCESS),"$$written_verb" "./$${config_path#$(CURDIR)/}"); \
 	}; \
 fi
@@ -4040,7 +4040,7 @@ $(MKDIR) -p "$$hooks_directory"; \
 for hook_pair in $(GIT_HOOKS); do \
 	hook="$${hook_pair%%=*}"; \
 	$(if $(filter yes,$1),,[ ! -f "$$hooks_directory/$$hook" ] || continue;) \
-	printf '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${hook_pair#*=}" > "$$hooks_directory/$$hook"; \
+	printf '#!/bin/sh\nexec %s %s\n' '$(MAKE)' "$${hook_pair#*=}" >"$$hooks_directory/$$hook"; \
 	$(CHMOD) +x "$$hooks_directory/$$hook"; \
 	$(call log,Installed `%s`.,$(COLOR_SUCCESS),"$$hook"); \
 done
@@ -4162,7 +4162,7 @@ if [ -z "$$has_spinner" ]; then \
 else \
 	_SPIN_STATUS="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	export _SPIN_STATUS; \
-	script_command='trap "printf $(_INTERRUPT_EXIT_CODE) > \"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); printf "%s" $$? > "$$_SPIN_STATUS"'; \
+	script_command='trap "printf $(_INTERRUPT_EXIT_CODE) >\"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); printf "%s" $$? >"$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
 		set -- -qfc "$$script_command" /dev/null; \
 	else \
@@ -4879,7 +4879,7 @@ if [ '$(_CHANGELOG_MAJOR)' = '0' ] \
 	$(call log,Nothing written.,$(COLOR_NOTICE)); \
 else \
 	$(MKDIR) -p '$(CHANGELOG_DIR)'; \
-	$(CAT) > '$(_CHANGELOG_FILE).added'; \
+	$(CAT) >'$(_CHANGELOG_FILE).added'; \
 	{ \
 		$(AWK) 'NR == 1 { has_title = $$0 == "$(CHANGELOG_TITLE)" } END { exit !has_title }' \
 			'$(_CHANGELOG_FILE)' 2>/dev/null \
@@ -4889,7 +4889,7 @@ else \
 			$(AWK) "$$_CHANGELOG_MERGE_AWK" \
 			'$(_CHANGELOG_FILE).added' \
 			$$([ -r '$(_CHANGELOG_FILE)' ] && printf '%s' '$(_CHANGELOG_FILE)'); \
-	} > '$(_CHANGELOG_FILE).new'; \
+	} >'$(_CHANGELOG_FILE).new'; \
 	$(RM) -f '$(_CHANGELOG_FILE).added'; \
 	if [ ! -r '$(_CHANGELOG_FILE)' ]; then \
 		$(MV) '$(_CHANGELOG_FILE).new' '$(_CHANGELOG_FILE)' \
