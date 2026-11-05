@@ -321,21 +321,23 @@ endef
 
 #---v container
 
-COMPOSE_FILE       ?= $(_DOTENV_COMPOSE_FILE)#~~ Compose files, colon-separated, instead of this project's
-APP_SERVICE        ?= php-app bun-app#~~ Compose services the tools run in, the first one the Compose files define, empty for this machine
-CLI_SERVICE        ?= cli#~~ Compose service the tools run in where the project defines none of `APP_SERVICE`
-APP_SERVICE_MODE   ?= exec#~~ `run` starts a throwaway container instead of entering one
-ACTIONLINT_SERVICE ?= actionlint#~~ Compose service `actionlint` runs in, where the project has one
-HADOLINT_SERVICE   ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
-NODE_SERVICE       ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
-SEMGREP_SERVICE    ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
-IS_IN_CONTAINER    ?= $(if $(wildcard $(_CONTAINER_MARKERS)),1)#~~ whether the tools already run in a container
-RUN                ?= $(call run_in,$(_TOOL_SERVICE))#~~ command the tools run through, empty on this machine
-APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
-HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
-HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
-HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by Compose
-FORGE_REPOSITORY   ?= $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshkr/forge)#vv #~~ where forge's images and Compose fragments are published
+COMPOSE_FILE             ?= $(_DOTENV_COMPOSE_FILE)#~~ Compose files, colon-separated, instead of this project's
+APP_SERVICE              ?= php-app bun-app#~~ Compose services the tools run in, the first one the Compose files define, empty for this machine
+CLI_SERVICE              ?= cli#~~ Compose service the tools run in where the project defines none of `APP_SERVICE`
+APP_SERVICE_MODE         ?= exec#~~ `run` starts a throwaway container instead of entering one
+ACTIONLINT_SERVICE       ?= actionlint#~~ Compose service `actionlint` runs in, where the project has one
+HADOLINT_SERVICE         ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
+NODE_SERVICE             ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
+SEMGREP_SERVICE          ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
+IS_IN_CONTAINER          ?= $(if $(wildcard $(_CONTAINER_MARKERS)),1)#~~ whether the tools already run in a container
+RUN                      ?= $(call run_in,$(_TOOL_SERVICE))#~~ command the tools run through, empty on this machine
+APP_DIR                  ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
+HOST_UID                 ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
+HOST_GID                 ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container writes the bind mount as
+HOST_APP_DIR             ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by Compose
+FORGE_NAMESPACE          ?= $(or $(_DOTENV_FORGE_NAMESPACE),docker.io/brnshkr)#vv #~~ where forge's images and Compose fragments are published
+FORGE_IMAGE_NAMESPACE    ?= $(or $(_DOTENV_FORGE_IMAGE_NAMESPACE),$(FORGE_NAMESPACE))#vv #~~ where forge's images are published
+FORGE_FRAGMENT_NAMESPACE ?= $(or $(_DOTENV_FORGE_FRAGMENT_NAMESPACE),$(FORGE_NAMESPACE))#vv #~~ where forge's Compose fragments are published
 
 _CONTAINER_MARKERS := /.dockerenv /run/.containerenv
 _HOST_IDS           = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
@@ -344,7 +346,9 @@ _HOST_ENVIRONMENT = $(_DOTENV_DEFAULT_ENVIRONMENT) \
 	HOST_UID='$(HOST_UID)' \
 	HOST_GID='$(HOST_GID)' \
 	HOST_APP_DIR='$(HOST_APP_DIR)' \
-	FORGE_REPOSITORY='$(FORGE_REPOSITORY)'
+	FORGE_NAMESPACE='$(FORGE_NAMESPACE)' \
+	FORGE_IMAGE_NAMESPACE='$(FORGE_IMAGE_NAMESPACE)' \
+	FORGE_FRAGMENT_NAMESPACE='$(FORGE_FRAGMENT_NAMESPACE)'
 
 #**
 #* Whether a command is on `PATH`, or exists where it names a path, looked up without starting a shell.
@@ -642,8 +646,14 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 _DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
 	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=COMPOSE_FILE '$(_DOTENV_AWK)'))
 
-_DOTENV_FORGE_REPOSITORY := $(if $(and $(filter file,$(origin FORGE_REPOSITORY)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_REPOSITORY '$(_DOTENV_AWK)'))
+_DOTENV_FORGE_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_NAMESPACE '$(_DOTENV_AWK)'))
+
+_DOTENV_FORGE_IMAGE_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_IMAGE_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_IMAGE_NAMESPACE '$(_DOTENV_AWK)'))
+
+_DOTENV_FORGE_FRAGMENT_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_FRAGMENT_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_FRAGMENT_NAMESPACE '$(_DOTENV_AWK)'))
 
 _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
@@ -655,7 +665,9 @@ ifneq ($(_HAS_CONTAINER),) # container
 export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
-export FORGE_REPOSITORY
+export FORGE_NAMESPACE
+export FORGE_IMAGE_NAMESPACE
+export FORGE_FRAGMENT_NAMESPACE
 
 _SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_TOOL_SERVICE) $(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
 	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null \
