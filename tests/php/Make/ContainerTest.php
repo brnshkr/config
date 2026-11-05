@@ -7,8 +7,8 @@ namespace Brnshkr\Config\Tests\Make;
 use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 use function sprintf;
 
@@ -16,7 +16,6 @@ use function sprintf;
  * @internal
  */
 #[CoversNothing]
-#[Group('container')]
 final class ContainerTest extends TestCase
 {
     use ContainerTrait;
@@ -71,15 +70,15 @@ final class ContainerTest extends TestCase
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideEveryModeCases')]
-    public function testAToolSeesTheDirectoryTheProjectIsMountedAt(string $mode): void
+    public function testMakeKnowsWhereTheToolsSeeTheProject(string $mode): void
     {
         $output = $this->runMakeIn($mode, ['show']);
 
-        $mountPath = $mode === self::MODE_NATIVE
-            ? self::getRealPath(self::CONTAINER_DIRECTORY)
-            : self::getContainerPath();
+        $projectPathTheToolsSee = $mode === self::MODE_EXEC || $mode === self::MODE_RUN
+            ? self::getContainerPath()
+            : self::getRealPath(self::CONTAINER_DIRECTORY);
 
-        self::assertStringContainsString('where=' . $mountPath, $output);
+        self::assertStringContainsString('app-dir=' . $projectPathTheToolsSee, $output);
     }
 
     /**
@@ -198,13 +197,25 @@ final class ContainerTest extends TestCase
 
     public function testDockerAndPodmanMarkersAreBothDetected(): void
     {
-        $docker = $this->runMakeIn(self::MODE_INSIDE, ['detect']);
-        $host   = $this->runMakeIn(self::MODE_NATIVE, ['detect']);
+        $markerDirectory = $this->createFixtureRoot();
+        $dockerMarker    = $markerDirectory . '/.dockerenv';
+        $podmanMarker    = $markerDirectory . '/run/.containerenv';
+        $markerArguments = ['detect', '_CONTAINER_MARKERS=' . $dockerMarker . ' ' . $podmanMarker];
+        $environment     = self::getContainerEnvironment();
+        $filesystem      = new Filesystem();
 
-        $podman = $this->runInContainer(
-            ['sh', '-c', 'rm /.dockerenv && touch /run/.containerenv && make --no-print-directory detect'],
-            userAndGroup: '0:0',
-        );
+        unset($environment['IS_IN_CONTAINER']);
+
+        $host = $this->runMake($markerArguments, $environment, self::CONTAINER_DIRECTORY);
+
+        $filesystem->dumpFile($dockerMarker, '');
+
+        $docker = $this->runMake($markerArguments, $environment, self::CONTAINER_DIRECTORY);
+
+        $filesystem->remove($dockerMarker);
+        $filesystem->dumpFile($podmanMarker, '');
+
+        $podman = $this->runMake($markerArguments, $environment, self::CONTAINER_DIRECTORY);
 
         self::assertStringContainsString('in-container=1', $docker);
         self::assertStringContainsString('in-container=1', $podman);
@@ -213,18 +224,26 @@ final class ContainerTest extends TestCase
 
     public function testAnExplicitSettingOverridesTheDetection(): void
     {
-        $inside = $this->runInContainer(['make', '--no-print-directory', 'detect', 'IS_IN_CONTAINER=']);
+        $markerPath = $this->createFixtureRoot() . '/.dockerenv';
+
+        new Filesystem()->dumpFile($markerPath, '');
+
+        $inside = $this->runMake(
+            ['detect', 'IS_IN_CONTAINER=', '_CONTAINER_MARKERS=' . $markerPath],
+            self::getContainerEnvironment(),
+            self::CONTAINER_DIRECTORY,
+        );
 
         self::assertStringNotContainsString('in-container=1', $inside);
     }
 
     public function testATargetPerServiceRunsInThatService(): void
     {
-        $service = $this->runMakeIn(self::MODE_EXEC, [self::SERVICE . '-exec', '--', 'pwd']);
-        $other   = $this->runMakeIn(self::MODE_EXEC, [self::OTHER_SERVICE . '-exec', '--', 'pwd']);
+        $service = $this->runMakeIn(self::MODE_EXEC, [self::SERVICE . '-exec', '--', 'printenv', 'STUB_SERVICE']);
+        $other   = $this->runMakeIn(self::MODE_EXEC, [self::OTHER_SERVICE . '-exec', '--', 'printenv', 'STUB_SERVICE']);
 
-        self::assertStringContainsString(self::getContainerPath(), $service);
-        self::assertStringContainsString(self::getContainerPath(), $other);
+        self::assertMatchesRegularExpression('/^' . self::SERVICE . '$/m', $service);
+        self::assertMatchesRegularExpression('/^' . self::OTHER_SERVICE . '$/m', $other);
     }
 
     /**
@@ -234,10 +253,10 @@ final class ContainerTest extends TestCase
     public function testTheAppServiceTargetsEnterItTheWayTheModeSays(string $mode): void
     {
         $shell = $this->runMakeIn($mode, ['shell', '--', 'printenv', 'COLUMNS'], ['COLUMNS' => '123']);
-        $exec  = $this->runMakeIn($mode, ['exec', '--', 'pwd']);
+        $exec  = $this->runMakeIn($mode, ['exec', '--', 'printenv', 'STUB_SERVICE']);
 
         self::assertStringContainsString('123', $shell);
-        self::assertStringContainsString(self::getContainerPath(), $exec);
+        self::assertMatchesRegularExpression('/^' . self::SERVICE . '$/m', $exec);
     }
 
     public function testExecHandsATargetNameToTheCommandRatherThanRunningIt(): void

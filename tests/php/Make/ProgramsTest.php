@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\Make;
 
 use Brnshkr\Config\Str;
-use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
+use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -24,7 +24,7 @@ use function sprintf;
 #[CoversNothing]
 final class ProgramsTest extends TestCase
 {
-    use ContainerTrait;
+    use MakeTrait;
 
     private const string PYTHON_PROGRAM_VARIABLE    = '_SEMGREP_RULES_PROGRAM_SOURCE';
     private const string PHP_PROGRAM_SUFFIX         = '_PROGRAM_SOURCE';
@@ -122,19 +122,12 @@ final class ProgramsTest extends TestCase
         self::assertStringContainsString('[OK] Rector is done!', $this->runOverEveryPhpProgram('rector-dry-run'));
     }
 
-    #[Group('container')]
     #[Group('make4')]
-    #[Group('semgrep')]
+    #[Group('python')]
     public function testThePythonProgramParses(): void
     {
         $process = new Process([
-            'docker',
-            'run',
-            '--rm',
-            '-i',
-            '--entrypoint',
             'python3',
-            self::getSemgrepImage(),
             '-I',
             '-c',
             'import sys; compile(sys.stdin.read(), "program", "exec")',
@@ -145,8 +138,8 @@ final class ProgramsTest extends TestCase
         self::assertTrue($process->isSuccessful(), $process->getErrorOutput());
     }
 
-    #[Group('container')]
     #[Group('make4')]
+    #[Group('shellcheck')]
     public function testEveryDryRunRecipePassesShellcheck(): void
     {
         $targets       = Str::split(Str::trim($this->dumpVariable('_ALL_TARGETS', self::TOOLS_DIRECTORY)), ' ');
@@ -187,16 +180,7 @@ final class ProgramsTest extends TestCase
         }
 
         $process = new Process([
-            'docker',
-            'run',
-            '--rm',
-            '-v',
-            $recipesPath . ':/recipes:ro',
-            '-w',
-            '/recipes',
-            '--entrypoint',
             'shellcheck',
-            self::getImage(),
             '-s',
             'sh',
             '-S',
@@ -204,7 +188,7 @@ final class ProgramsTest extends TestCase
             '-e',
             Str::join(self::DRY_RUN_ARTIFACT_CODES, ','),
             ...$recipeScripts,
-        ]);
+        ], $recipesPath);
 
         $process->run();
 

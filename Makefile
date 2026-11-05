@@ -31,16 +31,6 @@ ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/vscode-settings.dist.jsonc \
 	./conf/vscode-settings.php.dist.jsonc#vvv
 
-#--- forge
-
-FORGE_IMAGE   ?= ghcr.io/brnshkr/forge:dev#~~ image the container tests run in
-SEMGREP_IMAGE ?= semgrep/semgrep:1.177.0-nonroot#~~ image the semgrep tests run in
-
-export FORGE_IMAGE
-export SEMGREP_IMAGE
-
-TEST_MATRIX_IMAGE_KEY := FORGE_IMAGE
-
 #---vvv changelog
 
 CHANGELOG_NAMES += editor-url=EditorUrl \
@@ -56,20 +46,11 @@ VITEST_MIN_COVERAGE_FUNCTIONS  := 88.48
 VITEST_MIN_COVERAGE_LINES      := 87.20
 VITEST_MIN_COVERAGE_STATEMENTS := 86.83
 
-_HAS_FORGE_IMAGE    = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && printf 1))$(_HAS_FORGE_IMAGE)
-_HAS_SEMGREP_IMAGE  = $(eval _HAS_SEMGREP_IMAGE := $$(shell $$(DOCKER) image inspect $$(SEMGREP_IMAGE) >/dev/null 2>&1 && printf 1))$(_HAS_SEMGREP_IMAGE)
-_HAS_SCRIPT        := $(call _is_on_path,$(SCRIPT))
-
-ifneq ($(filter 3.%,$(MAKE_VERSION)),)
-_HAS_FORGE_IMAGE   = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && printf 1)
-_HAS_SEMGREP_IMAGE = $(shell $(DOCKER) image inspect $(SEMGREP_IMAGE) >/dev/null 2>&1 && printf 1)
-endif
-
 PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
-	$(if $(_HAS_FORGE_IMAGE),,container) \
 	$(if $(filter 3.%,$(MAKE_VERSION)),make4) \
-	$(if $(_HAS_SEMGREP_IMAGE),,semgrep) \
-	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
+	$(patsubst python3,python,$(patsubst script,tty,$(filter-out $(notdir $(shell \
+		export $(_HOST_ENVIRONMENT); $(RUN) sh -c 'for program in python3 script shellcheck; do command -v "$$program" || :; done' 2>/dev/null \
+	)),python3 script shellcheck))))#vv #~~ test groups where the tools run cannot run, left out of this project's own runs
 
 PHP_UNIT_FLAGS += --parallel --processes=2
 

@@ -321,8 +321,7 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
     }
 
-    #[Group('container')]
-    #[Group('semgrep')]
+    #[Group('python')]
     public function testSemgrepSaysWhenARefetchChangedARuleset(): void
     {
         $cachedPath = self::LINTERS_DIRECTORY . '/.cache/semgrep/default.json';

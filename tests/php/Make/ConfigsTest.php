@@ -11,7 +11,6 @@ use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -521,7 +520,6 @@ final class ConfigsTest extends TestCase
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideContainerModeCases')]
-    #[Group('container')]
     public function testConfigsWritesTheSameFilesAsANativeRun(string $mode): void
     {
         $this->assertWritesTheSameFilesAsANativeRun($mode, self::CONFIGS_DIRECTORY, ['configs', 'local']);
@@ -531,7 +529,6 @@ final class ConfigsTest extends TestCase
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideContainerModeCases')]
-    #[Group('container')]
     public function testTheTypescriptProjectIsLinkedTheSameAsANativeRun(string $mode): void
     {
         $this->assertWritesTheSameFilesAsANativeRun($mode, self::TSCONFIG_DIRECTORY, ['configs']);

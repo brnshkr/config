@@ -308,7 +308,7 @@ ACTIONLINT_SERVICE ?= actionlint#~~ Compose service `actionlint` runs in, where 
 HADOLINT_SERVICE   ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
 NODE_SERVICE       ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
 SEMGREP_SERVICE    ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
-IS_IN_CONTAINER    ?= $(if $(wildcard /.dockerenv /run/.containerenv),1)#~~ whether the tools already run in a container
+IS_IN_CONTAINER    ?= $(if $(wildcard $(_CONTAINER_MARKERS)),1)#~~ whether the tools already run in a container
 RUN                ?= $(call run_in,$(APP_SERVICE))#~~ command the tools run through, empty on this machine
 APP_DIR            ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
 HOST_UID           ?= $(or $(word 1,$(_HOST_IDS)),1000)#vv #~~ user a container writes the bind mount as
@@ -316,7 +316,8 @@ HOST_GID           ?= $(or $(word 2,$(_HOST_IDS)),1000)#vv #~~ group a container
 HOST_APP_DIR       ?= $(CURDIR)#vv #~~ where this project sits on this machine, bound by Compose
 FORGE_REPOSITORY   ?= $(or $(_DOTENV_FORGE_REPOSITORY),ghcr.io/brnshkr/forge)#vv #~~ where forge's images and Compose fragments are published
 
-_HOST_IDS = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
+_CONTAINER_MARKERS := /.dockerenv /run/.containerenv
+_HOST_IDS           = $(eval _HOST_IDS := $$(shell $(ID) -u 2>/dev/null; $(ID) -g 2>/dev/null))$(_HOST_IDS)
 
 _HOST_ENVIRONMENT = $(_DOTENV_DEFAULT_ENVIRONMENT) \
 	HOST_UID='$(HOST_UID)' \

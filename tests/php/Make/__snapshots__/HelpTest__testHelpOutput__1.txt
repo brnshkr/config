@@ -205,7 +205,7 @@ Variables:
    HADOLINT_SERVICE            ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE             ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
-   IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+   IS_IN_CONTAINER             ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
    COMPOSE_FILES                =  $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CA… (Compose files the container targets use)
@@ -330,7 +330,7 @@ Available commands:
     COMPOSE_FILE                ?=  $(_DOTENV_COMPOSE_FILE)                          (Compose files, colon-separated, instead of this project's)
     APP_SERVICE                 ?=  app                                              (Compose service the tools run in, empty for this machine)
 @@ @@
-    IS_IN_CONTAINER             ?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)
+    IS_IN_CONTAINER             ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
     RUN                         ?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)
     APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
 +   HOST_UID                    ?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)
@@ -1153,7 +1153,7 @@ Available commands:
    [36mHADOLINT_SERVICE          [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE              [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (Compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
-   [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
+   [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [36mRUN                       [0m  [90m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
    [36mHOST_UID                  [0m  [90m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m
@@ -1495,7 +1495,7 @@ Available commands:
    [32mHADOLINT_SERVICE          [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE              [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (Compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
-   [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard /.dockerenv /run/.containerenv)… (whether the tools already run in a container)[0m
+   [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [32mRUN                       [0m  [0m?=  $(call run_in,$(APP_SERVICE))                    (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
    [32mHOST_UID                  [0m  [0m?=  $(or $(word 1,$(_HOST_IDS)),1000)                (user a container writes the bind mount as)[0m

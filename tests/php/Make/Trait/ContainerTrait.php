@@ -5,25 +5,10 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\Make\Trait;
 
 use Brnshkr\Config\Str;
-use PHPUnit\Framework\Attributes\AfterClass;
-use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
-use Symfony\Component\Process\Process;
 
-use function array_unique;
 use function basename;
 use function is_readable;
-use function pcntl_async_signals;
-use function pcntl_signal;
-use function posix_getgid;
-use function posix_getpid;
-use function posix_getuid;
-
-use const SIG_IGN;
-use const SIGHUP;
-use const SIGINT;
-use const SIGTERM;
 
 /**
  * @internal
@@ -43,89 +28,13 @@ trait ContainerTrait
     private const string CONTAINER_DIRECTORY = __DIR__ . '/../../Fixtures/Make/Container';
     private const string PROJECT_NAME        = 'brnshkr-config-container-test';
     private const string MOUNT_ROOT          = '/app';
+    private const string FORGE_IMAGE         = 'brnshkr/forge:dev';
+    private const string SEMGREP_IMAGE       = 'semgrep/semgrep:1.0.0-nonroot';
 
     private const string MODE_NATIVE = 'native';
     private const string MODE_EXEC   = 'host, exec';
     private const string MODE_RUN    = 'host, run --rm';
     private const string MODE_INSIDE = 'inside the container';
-
-    private const array STOP_SIGNALS = [
-        SIGHUP,
-        SIGINT,
-        SIGTERM,
-    ];
-
-    /**
-     * @var list<string>
-     */
-    private static array $startedFixtureDirectories = [];
-
-    #[BeforeClass]
-    public static function stopTheContainerFixturesOnInterrupt(): void
-    {
-        pcntl_async_signals(true);
-
-        foreach (self::STOP_SIGNALS as $stopSignal) {
-            pcntl_signal($stopSignal, static function (int $signal): never {
-                foreach (self::STOP_SIGNALS as $ignoredSignal) {
-                    pcntl_signal($ignoredSignal, SIG_IGN);
-                }
-
-                self::removeWhatTheContainerFixturesStarted();
-
-                // @phpstan-ignore symplify.forbiddenNode (A signal handler ends the run with the signal's exit code)
-                exit(128 + $signal);
-            });
-        }
-    }
-
-    #[AfterClass]
-    public static function removeWhatTheContainerFixturesStarted(): void
-    {
-        foreach (array_unique(self::$startedFixtureDirectories) as $fixtureDirectory) {
-            $environment = self::getContainerEnvironment($fixtureDirectory);
-
-            $projectNames = [
-                $environment['COMPOSE_PROJECT_NAME'],
-                Str::toLowerCase(basename($fixtureDirectory)),
-            ];
-
-            foreach ($projectNames as $projectName) {
-                new Process([
-                    'docker',
-                    'compose',
-                    '--project-name',
-                    $projectName,
-                    'down',
-                    '--timeout',
-                    '1',
-                ], cwd: $fixtureDirectory, env: [
-                    ...$environment,
-                    'HOST_UID' => (string) posix_getuid(),
-                    'HOST_GID' => (string) posix_getgid(),
-                ])->run();
-            }
-        }
-
-        self::$startedFixtureDirectories = [];
-
-        $process = new Process([
-            'docker',
-            'ps',
-            '--all',
-            '--quiet',
-            '--filter',
-            'label=' . self::getContainerLabel(),
-        ]);
-
-        $process->run();
-
-        $labeledContainerIds = Str::trim($process->getOutput());
-
-        if ($labeledContainerIds !== '') {
-            new Process(['docker', 'rm', '--force', ...Str::split($labeledContainerIds, "\n")])->run();
-        }
-    }
 
     /**
      * @param self::MODE_* $mode
@@ -142,20 +51,8 @@ trait ContainerTrait
             self::MODE_NATIVE => ['APP_SERVICE' => ''],
             self::MODE_EXEC   => [],
             self::MODE_RUN    => ['APP_SERVICE_MODE' => 'run'],
-            self::MODE_INSIDE => [],
+            self::MODE_INSIDE => ['IS_IN_CONTAINER' => '1'],
         };
-
-        if ($mode === self::MODE_INSIDE) {
-            return $this->runInContainer(
-                ['make', '--no-print-directory', ...$makeArguments],
-                $environment,
-                fixtureDirectory: $fixtureDirectory,
-            );
-        }
-
-        if ($mode !== self::MODE_NATIVE) {
-            self::$startedFixtureDirectories[] = $fixtureDirectory;
-        }
 
         return $this->runMake(
             $makeArguments,
@@ -169,52 +66,11 @@ trait ContainerTrait
     }
 
     /**
-     * @param list<string> $command
-     * @param array<string, string> $environment
-     */
-    private function runInContainer(
-        array $command,
-        array $environment = [],
-        ?string $userAndGroup = null,
-        string $fixtureDirectory = self::CONTAINER_DIRECTORY,
-    ): string {
-        $environmentFlags = [];
-
-        foreach ([...self::BASELINE_ENV, ...$environment] as $name => $value) {
-            $environmentFlags = [...$environmentFlags, '-e', $name . '=' . $value];
-        }
-
-        $process = new Process([
-            'docker',
-            'run',
-            '--rm',
-            '--label',
-            self::getContainerLabel(),
-            '-u',
-            $userAndGroup ?? self::getHostUserAndGroup(),
-            '-v',
-            self::getRealPath(self::PROJECT_DIRECTORY) . ':' . self::MOUNT_ROOT,
-            '-w',
-            self::getContainerPath($fixtureDirectory),
-            ...$environmentFlags,
-            self::getImage(),
-            ...$command,
-        ], env: self::getBaselineEnvironment());
-
-        $process->run();
-
-        return $this->normalizeOutput($process->getOutput() . $process->getErrorOutput());
-    }
-
-    private static function getContainerLabel(): string
-    {
-        return self::PROJECT_NAME . '=' . posix_getpid();
-    }
-
-    /**
      * @return array{
      *     COMPOSE_PROJECT_NAME: string,
+     *     DOCKER: string,
      *     FORGE_IMAGE: string,
+     *     IS_IN_CONTAINER: string,
      *     SEMGREP_IMAGE: string,
      *     COMPOSE_FILE?: string,
      * }
@@ -225,8 +81,10 @@ trait ContainerTrait
 
         return [
             'COMPOSE_PROJECT_NAME' => self::PROJECT_NAME . '-' . Str::toLowerCase(basename($fixtureDirectory)),
-            'FORGE_IMAGE'          => self::getImage(),
-            'SEMGREP_IMAGE'        => self::getSemgrepImage(),
+            'DOCKER'               => self::getRealPath(self::CONTAINER_DIRECTORY) . '/bin/docker',
+            'FORGE_IMAGE'          => self::FORGE_IMAGE,
+            'IS_IN_CONTAINER'      => '',
+            'SEMGREP_IMAGE'        => self::SEMGREP_IMAGE,
             ...(is_readable($ownComposeFile) ? ['COMPOSE_FILE' => $ownComposeFile] : []),
         ];
     }
@@ -234,22 +92,5 @@ trait ContainerTrait
     private static function getContainerPath(string $fixtureDirectory = self::CONTAINER_DIRECTORY): string
     {
         return self::MOUNT_ROOT . '/' . self::getProjectRelativePath($fixtureDirectory);
-    }
-
-    private static function getHostUserAndGroup(): string
-    {
-        return posix_getuid() . ':' . posix_getgid();
-    }
-
-    private static function getImage(): string
-    {
-        return Str::fromEnvironment('FORGE_IMAGE')
-            ?: throw new RuntimeException('`FORGE_IMAGE` is unset, run through make.');
-    }
-
-    private static function getSemgrepImage(): string
-    {
-        return Str::fromEnvironment('SEMGREP_IMAGE')
-            ?: throw new RuntimeException('`SEMGREP_IMAGE` is unset, run through make.');
     }
 }

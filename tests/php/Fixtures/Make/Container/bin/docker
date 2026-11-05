@@ -1,0 +1,191 @@
+#!/bin/sh
+NEWLINE='
+'
+
+read_service_setting() {
+  compose_file=$1
+  service=$2
+  setting=$3
+
+  awk -v _SERVICE="$service" -v _SETTING="$setting" '
+    /^  [^[:space:]]/ { current = $1; sub(/:$/, "", current); next }
+    current != _SERVICE { next }
+    /^    [^[:space:]]/ { key = $1 }
+    _SETTING == "working_dir" && key == "working_dir:" { print $2; exit }
+    _SETTING == "volume" && key == "volumes:" && /^      - / { print $2; exit }
+  ' "$compose_file"
+}
+
+map_mounted_path() {
+  text=$1
+  mapped=
+
+  if [ "$text" = "$MOUNT_TARGET" ]; then
+    printf '%s' "$MOUNT_SOURCE"
+
+    return 0
+  fi
+
+  while :; do
+    case "$text" in
+      *"$MOUNT_TARGET/"*)
+        mapped="$mapped${text%%"$MOUNT_TARGET/"*}$MOUNT_SOURCE/"
+        text=${text#*"$MOUNT_TARGET/"}
+      ;;
+
+      *)
+        break
+      ;;
+    esac
+  done
+
+  printf '%s' "$mapped$text"
+
+  return 0
+}
+
+find_compose_file() {
+  service=$1
+
+  for compose_file in $COMPOSE_FILES; do
+    if grep -q "^  $service:" "$compose_file"; then
+      printf '%s\n' "$compose_file"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if [ "$1" != compose ]; then
+  echo "docker $* is not stubbed" >&2
+  exit 1
+fi
+
+shift
+COMPOSE_FILES=
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -f)
+      COMPOSE_FILES="$COMPOSE_FILES $2"
+      shift 2
+    ;;
+
+    --profile|--progress|--project-name)
+      shift 2
+    ;;
+
+    *)
+      break
+    ;;
+  esac
+done
+
+COMMAND=$1
+
+shift
+
+case "$COMMAND" in
+  config)
+    [ "$1" = --quiet ] && exit 0
+
+    for compose_file in $COMPOSE_FILES; do
+      awk '{
+        while (match($0, /\$\{[A-Z_]+(:[?-][^}]*)?\}/)) {
+          name = substr($0, RSTART + 2, RLENGTH - 3)
+          sub(/:.*/, "", name)
+          $0 = substr($0, 1, RSTART - 1) ENVIRON[name] substr($0, RSTART + RLENGTH)
+        }
+        print
+      }' "$compose_file"
+    done
+
+    exit 0
+  ;;
+
+  ps)
+    echo stub
+    exit 0
+  ;;
+
+  up|down)
+    exit 0
+  ;;
+
+  run|exec)
+  ;;
+
+  *)
+    echo "docker compose $COMMAND is not stubbed" >&2
+    exit 1
+  ;;
+esac
+
+ENVIRONMENT=
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -e)
+      case "$2" in
+        *=*)
+          ENVIRONMENT="$ENVIRONMENT$2$NEWLINE"
+        ;;
+
+        *)
+          if eval "[ -n \"\${$2+set}\" ]"; then
+            eval "ENVIRONMENT=\"\${ENVIRONMENT}$2=\${$2}\${NEWLINE}\""
+          fi
+        ;;
+      esac
+
+      shift 2
+    ;;
+
+    --publish|--user|-u|-w)
+      shift 2
+    ;;
+
+    -*)
+      shift
+    ;;
+
+    *)
+      break
+    ;;
+  esac
+done
+
+SERVICE=$1
+
+shift
+
+if ! COMPOSE_FILE_PATH=$(find_compose_file "$SERVICE"); then
+  echo "no compose file defines $SERVICE" >&2
+  exit 1
+fi
+
+WORKING_DIRECTORY=$(read_service_setting "$COMPOSE_FILE_PATH" "$SERVICE" working_dir)
+VOLUME=$(read_service_setting "$COMPOSE_FILE_PATH" "$SERVICE" volume)
+MOUNT_SOURCE=$(cd "$(dirname "$COMPOSE_FILE_PATH")" && cd "${VOLUME%%:*}" && pwd)
+MOUNT_TARGET=${VOLUME#*:}
+ARGUMENT_COUNT=$#
+
+for argument in "$@"; do
+  set -- "$@" "$(map_mounted_path "$argument")"
+done
+
+shift "$ARGUMENT_COUNT"
+set -- IS_IN_CONTAINER=1 STUB_SERVICE="$SERVICE" "$@"
+
+OLD_IFS=$IFS
+IFS=$NEWLINE
+
+for entry in $ENVIRONMENT; do
+  set -- "$(map_mounted_path "$entry")" "$@"
+done
+
+IFS=$OLD_IFS
+
+cd "$MOUNT_SOURCE${WORKING_DIRECTORY#"$MOUNT_TARGET"}" || exit 1
+exec env -i PATH="$PATH" HOME="$HOME" "$@"
