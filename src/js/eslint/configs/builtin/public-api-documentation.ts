@@ -77,7 +77,7 @@ const isDocumentedByAncestor = (
   node: TSESTree.ClassDeclaration | TSESTree.TSInterfaceDeclaration,
   memberName: string,
 ): boolean => {
-  const program = <ts.Program | null | undefined>services?.program;
+  const program = <Maybe<ts.Program | null>>services?.program;
 
   const declaration = <Maybe<ts.ClassLikeDeclaration | ts.InterfaceDeclaration>>services
     ?.esTreeNodeToTSNodeMap

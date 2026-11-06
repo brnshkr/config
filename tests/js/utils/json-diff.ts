@@ -1,5 +1,7 @@
 import { objectEntries, readOwnValue, writeOwnValue } from '#shared/utils/object.ts';
 
+import type { Maybe } from '#shared/types/core.ts';
+
 export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 
 export interface JsonObject {
@@ -19,7 +21,7 @@ export type ConfigDiff = Record<string, JsonValue | ObjectDiff>;
  */
 const isEqual = (value1: JsonValue, value2: JsonValue): boolean => JSON.stringify(value1) === JSON.stringify(value2);
 
-const isPlainObject = (value: JsonValue | undefined): value is JsonObject => typeof value === 'object'
+const isPlainObject = (value: Maybe<JsonValue>): value is JsonObject => typeof value === 'object'
   && (value ?? undefined) !== undefined
   && !Array.isArray(value);
 

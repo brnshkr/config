@@ -13,6 +13,7 @@ import { packageOrganization } from '#shared/utils/package-json.ts';
 
 import type { Linter } from 'eslint';
 import type { Config } from '#eslint/types/config.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 interface SourcePosition {
   line: number;
@@ -159,7 +160,7 @@ const translateToken = (
     );
 };
 
-const isInsideClass = (character: string | undefined, wasInClass: boolean): boolean => character === '['
+const isInsideClass = (character: Maybe<string>, wasInClass: boolean): boolean => character === '['
   || (wasInClass && character !== ']');
 
 const translatePattern = (body: string, delimiter: string, pcreFlags: string): TranslatedPattern => {
@@ -213,7 +214,7 @@ const createRegexpBlock = (
   literalStart: number,
   raw: string,
   rangeDirective: string,
-): PhpBlock | undefined => {
+): Maybe<PhpBlock> => {
   const { value, rawOffsets } = decodeSingleQuoted(raw);
   const { delimiter = '', body, flags = '' } = createRegexpShapePattern().exec(value)?.groups ?? {};
 
