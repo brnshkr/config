@@ -46,7 +46,7 @@ return PhpStan::getBuilder()
 ;
 ```
 
-Presets, single rules and lists of either are all accepted, at any nesting.
+Presets, single rules, and lists of either are all accepted, at any nesting.
 
 Registering the same rule class twice with different arguments is an error rather than a silent loss:
 PHPat keeps one instance per test class and would drop the second. A rule that applies to several namespaces

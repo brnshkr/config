@@ -2,7 +2,7 @@
 
 `./conf/phpunit.dist.xml` is the @brnshkr PHPUnit configuration, ready to copy into a project.
 It runs the tests in random order, requires coverage metadata,
-and fails on every deprecation, notice, warning and risky, skipped or incomplete test.
+and fails on every deprecation, notice, warning, and risky, skipped, or incomplete test.
 
 ## Usage
 

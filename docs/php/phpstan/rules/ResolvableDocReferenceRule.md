@@ -29,7 +29,7 @@ final class Registration {}
 
 A member is named after a double colon, and how it is written picks the kind: `Acme\User::hash()` a method,
 `Acme\User::$hash` a property, `Acme\User::HASH` a constant. Without a class, a target ending in `()` names a global
-function; anything else names a class, interface, trait, enum or global constant.
+function; anything else names a class, interface, trait, enum, or global constant.
 
 `self` and `parent` must match where the member is declared — the surrounding class and its parent. `static` is allowed
 only for an abstract member, where it means the subclass's implementation.

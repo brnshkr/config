@@ -37,8 +37,8 @@ An argument with a space in it has to go through `ARGS`: `make phpunit ARGS="--f
 
 ## Customizing
 
-Every tool has three variables: its command, its config and its flags,
-e.g. `PHP_STAN`, `PHP_STAN_CONFIG` and `PHP_STAN_FLAGS`.
+Every tool has three variables: its command, its config, and its flags,
+e.g. `PHP_STAN`, `PHP_STAN_CONFIG`, and `PHP_STAN_FLAGS`.
 `make help vvv` lists all variables and `make help resolve` shows their values.
 
 Set your own values above the `include` and append to the shipped ones below it:
@@ -99,7 +99,7 @@ The starter installs JavaScript in `JS_SERVICE`, which is the tools' service unl
 when your JavaScript tools run on your machine.
 
 `$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.
-`make up`, `make down`, `make shell` and `make <service>-logs` manage the services.
+`make up`, `make down`, `make shell`, and `make <service>-logs` manage the services.
 
 ## Test matrix
 
@@ -154,7 +154,7 @@ and neither `${KEY:-default}` nor a `#` inside a value is understood.
 Every tracked `.env.<stage>` also gives you `<stage>-<target>`, so `make prod-check` runs `check` with `APP_ENV=prod`.
 With a stage and a service both named `worker`, `make worker-build` runs `build` in the stage
 and `make worker-worker-build` builds the service.
-With a `.env.test`, the tests always run with `APP_ENV=test`, whether you type `make test`, `make ci` or `make phpunit`.
+With a `.env.test`, the tests always run with `APP_ENV=test`, whether you type `make test`, `make ci`, or `make phpunit`.
 
 ## Changelog
 

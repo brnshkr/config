@@ -36,7 +36,7 @@ only through `autoload.files` is not covered at all: its functions are global, a
 
 ## `Architecture::kindPlacement()`
 
-Opt-in: enums, interfaces and traits each sit in a namespace named for their kind, at any depth.
+Opt-in: enums, interfaces, and traits each sit in a namespace named for their kind, at any depth.
 It carries no baseline, so add it beside another preset.
 
 ```php

@@ -48,7 +48,7 @@ Anything a consumer has to write, or catch, to use the symbol:
 | Members inherited from an `@internal` class | The signature reaches them through the public leaf |
 | `@method`, `@property`, `@property-read`, `@mixin` | The tag promises a member they will call |
 
-`@see`, `@link` and `@uses` point at code rather than promise it, so they may name anything.
+`@see`, `@link`, and `@uses` point at code rather than promise it, so they may name anything.
 
 ## Extending an internal class is allowed
 

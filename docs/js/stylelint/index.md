@@ -11,7 +11,7 @@ export { default } from '@brnshkr/config/stylelint';
 
 Install `stylelint` next to the package. The base rules extend `stylelint-config-standard` when it is installed.
 
-Modules for dialects, plugins and frameworks — e.g. `scss`, `order`, `tailwind`
+Modules for dialects, plugins, and frameworks — e.g. `scss`, `order`, `tailwind`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
 
 ## Customizing
@@ -37,7 +37,7 @@ export default getConfig({
 
 Set a module to `false` to keep it off even when its packages are there.
 
-Physical properties, units and keywords are fixed to their logical forms for left-to-right, top-to-bottom text.
+Physical properties, units, and keywords are fixed to their logical forms for left-to-right, top-to-bottom text.
 A right-to-left project passes its own direction:
 
 ```js

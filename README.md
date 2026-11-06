@@ -92,7 +92,7 @@ bun a -D -E @brnshkr/config
 ```
 
 Any other JavaScript package manager works the same way,
-e.g. `yarn add -D -E @brnshkr/config`, `pnpm add -D -E @brnshkr/config` or `npm i -D -E @brnshkr/config`.
+e.g. `yarn add -D -E @brnshkr/config`, `pnpm add -D -E @brnshkr/config`, or `npm i -D -E @brnshkr/config`.
 
 Take a look at the `peerDependencies` in the [package.json](./package.json) file
 and install the ones you need for the modules you want to use.
@@ -339,14 +339,14 @@ so a version change does not necessarily indicate a change in a specific package
 <!-- omit in toc -->
 ### Changes Considered as Breaking Changes
 
-- Version requirement changes of Node.js, Bun, PHP or Composer
+- Version requirement changes of Node.js, Bun, PHP, or Composer
 - Changes that might break existing userland configs
 
 <!-- omit in toc -->
 ### Changes Considered as Non-Breaking Changes
 
 - Changes regarding used rules and their options
-- Version updates, introduction or removal of dependencies
+- Version updates, introduction, or removal of dependencies
 - Updates of minimum required versions of optional dependencies
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>

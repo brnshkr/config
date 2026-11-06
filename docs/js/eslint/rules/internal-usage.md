@@ -5,7 +5,7 @@ of truth for the subtree rule, the explicit target, the bare vendor form, and wh
 A symbol marked `@internal` may only be used from inside its own namespace or a sub-namespace of it.
 
 A module's namespace is the `name` of its nearest `package.json` followed by the module's directory relative
-to that package root, with leading `dist`, `js`, `lib` and `src` segments dropped so that the namespace
+to that package root, with leading `dist`, `js`, `lib`, and `src` segments dropped so that the namespace
 reads like the specifier a consumer writes. So `./src/internal/hasher.ts` in the package `@acme/user`
 declares into `@acme/user/internal`, and the module itself is `@acme/user/internal/hasher`.
 `package.json#exports` play no part: the modules this rule protects are the ones `exports` does not name.

@@ -31,7 +31,7 @@ final readonly class Mailer
 }
 ```
 
-The configuration builder enables it with a replacement for `$_SERVER`, `$_ENV` and `$GLOBALS`,
+The configuration builder enables it with a replacement for `$_SERVER`, `$_ENV`, and `$GLOBALS`,
 and for the request superglobals, such as `$_GET`, once `symfony/http-foundation` is installed.
 The `autoload-dev` directories may still use them.
 

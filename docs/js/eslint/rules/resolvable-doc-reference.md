@@ -26,7 +26,7 @@ export const send = (): void => {};
 
 Members are checked as well, through either separator, so a typo in `{@link Mailer.send}` or `{@link Mailer#send}`
 is reported. Link text is ignored. Whether a member exists is all that is checked
-— unlike PHP, TypeScript writes methods, properties and constants alike, so the rule cannot tell which kind you meant.
+— unlike PHP, TypeScript writes methods, properties, and constants alike, so the rule cannot tell which kind you meant.
 
 `@see` also takes free text and URLs, so a lowercase target under it is left alone.
 `{@link}` accepts only a namepath, and is checked whatever the case.

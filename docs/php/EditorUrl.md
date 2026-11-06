@@ -21,7 +21,7 @@ Auto-detection covers VS Code and PhpStorm. To override it, pass `EditorUrl::EDI
 or `EditorUrl::EDITOR_PHPSTORM` as the first argument, or set one of these:
 
 - `EDITOR` — the name of a supported editor
-- `EDITOR_URL` — a template of your own, in `{cwd}`, `{file}`, `{line}` and `{wslDistro}`
+- `EDITOR_URL` — a template of your own, in `{cwd}`, `{file}`, `{line}`, and `{wslDistro}`
   placeholders, for an editor that is not supported
 
 An explicit argument wins over `EDITOR_URL`, which wins over `EDITOR`, which wins over detection.

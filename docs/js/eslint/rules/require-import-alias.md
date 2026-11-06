@@ -3,7 +3,7 @@
 A relative import that resolves into an alias must use the alias, which stays short and survives file moves;
 the autofix rewrites it. Aliases come from `compilerOptions.paths` in the `tsconfig.json` and from the `imports`
 of the `package.json` nearest the linted file. A conditional `imports` entry resolves the way TypeScript's bundler
-mode does, through `types`, `import`, `default` and the tsconfig's `customConditions`.
+mode does, through `types`, `import`, `default`, and the tsconfig's `customConditions`.
 
 ```jsonc
 // ./tsconfig.json

@@ -28,7 +28,7 @@ return Rector::getBuilder()
 ;
 ```
 
-Rules, paths and skips each take `add*`, `set*` and `remove*`.
+Rules, paths, and skips each take `add*`, `set*`, and `remove*`.
 `removeRules()` skips instead of subtracting, because the baseline's rules arrive through prepared sets.
 Anything not wrapped here is reachable on the `RectorConfigBuilder` that `build()` returns.
 

@@ -11,7 +11,7 @@ $phpFiles = FileFinder::get();
 ```
 
 It collects the PHP files below the working directory, `./bin/console` included, and leaves out what no tool
-should read — e.g. dependencies, caches, build output and fixtures.
+should read — e.g. dependencies, caches, build output, and fixtures.
 `getFilePaths()` returns the same selection as plain paths instead of a `Finder`.
 
 ## Customizing

@@ -1,6 +1,6 @@
 # 🔤 Spelling
 
-Prose, docblocks and identifiers are written in American English across the organization,
+Prose, docblocks, and identifiers are written in American English across the organization,
 and this check reports every British spelling with the American form to replace it.
 The word list is shipped by **@brnshkr/config**, so a repository never carries a copy of it.
 
@@ -55,7 +55,7 @@ so a repository adds to any of them and restates none. Every key is optional.
 | `stemSuffixes` | the suffixes a stem takes |
 | `allowlist` | words allowed in a path, keyed by that path |
 
-Both stacks read a delimited pattern, so keep to the flags both engines know: `i`, `m`, `s` and `u`.
+Both stacks read a delimited pattern, so keep to the flags both engines know: `i`, `m`, `s`, and `u`.
 On JavaScript, a pattern added to `ignorePatterns` is rejected when it can backtrack super-linearly.
 That check needs `scslre` and `@eslint-community/regexpp` installed.
 
