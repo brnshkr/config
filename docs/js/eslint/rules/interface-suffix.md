@@ -1,4 +1,4 @@
-# `brnshkr/interface-suffix` [🔍](../../../../src/js/eslint/configs/builtin/interface-suffix.ts 'Go to source')
+# 🟣 `brnshkr/interface-suffix` [🔍](../../../../src/js/eslint/configs/builtin/interface-suffix.ts 'Go to source')
 
 JavaScript mirror of the PHP [`InterfaceSuffixRule`](../../../php/phpstan/rules/InterfaceSuffixRule.md),
 which is the source of truth for the convention. A class implementing a single `*Interface` must end

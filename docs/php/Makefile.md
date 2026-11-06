@@ -1,4 +1,4 @@
-# Makefile [🔍](../../conf/Makefile 'Go to source')
+# 🛠️ Makefile [🔍](../../conf/Makefile 'Go to source')
 
 The PHP targets of the shared [`Makefile`](../Makefile.md).
 Each one shows up once your project has a `composer.json` and the tool is installed,

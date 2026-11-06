@@ -1,4 +1,4 @@
-# PHPStan [🔍](../../../src/php/PhpStan.php 'Go to source')
+# 🔬 PHPStan [🔍](../../../src/php/PhpStan.php 'Go to source')
 
 `Brnshkr\Config\PhpStan` is the @brnshkr analysis configuration, ready to return from a config file.
 

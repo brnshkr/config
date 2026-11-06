@@ -1,4 +1,4 @@
-# `brnshkr/require-throws` [🔍](../../../../src/js/eslint/configs/builtin/require-throws.ts 'Go to source')
+# 🟣 `brnshkr/require-throws` [🔍](../../../../src/js/eslint/configs/builtin/require-throws.ts 'Go to source')
 
 JavaScript mirror of PHPStan's [checked exceptions](https://phpstan.org/blog/bring-your-exceptions-under-control).
 A function declares every error it can raise, its callees' included, so a caller learns them from the docblock

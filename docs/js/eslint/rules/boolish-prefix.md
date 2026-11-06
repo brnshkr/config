@@ -1,4 +1,4 @@
-# `brnshkr/boolish-prefix` [🔍](../../../../src/js/eslint/configs/builtin/boolish-prefix.ts 'Go to source')
+# 🟣 `brnshkr/boolish-prefix` [🔍](../../../../src/js/eslint/configs/builtin/boolish-prefix.ts 'Go to source')
 
 JavaScript mirror of the PHP [`BoolishPrefixRule`](../../../php/phpstan/rules/BoolishPrefixRule.md),
 which is the source of truth for the prefix families, the reverse check, the exemptions, and the whole-word rule.

@@ -1,4 +1,4 @@
-# `brnshkr/resolvable-doc-reference` [🔍](../../../../src/js/eslint/configs/builtin/resolvable-doc-reference.ts 'Go to source')
+# 🟣 `brnshkr/resolvable-doc-reference` [🔍](../../../../src/js/eslint/configs/builtin/resolvable-doc-reference.ts 'Go to source')
 
 JavaScript mirror of the PHP [`ResolvableDocReferenceRule`](../../../php/phpstan/rules/ResolvableDocReferenceRule.md),
 which is the source of truth for the convention. A `@see` or `@link` target must name a symbol that exists,

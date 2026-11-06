@@ -1,4 +1,4 @@
-# `TagDescriptionRule` [🔍](../../../../src/php/PhpStan/Rule/TagDescriptionRule.php 'Go to source')
+# 🔬 `TagDescriptionRule` [🔍](../../../../src/php/PhpStan/Rule/TagDescriptionRule.php 'Go to source')
 
 Every tag description must take one shape, on `@api` and `@internal` symbols alike.
 `@param`, `@property` and `@template` put a dash between the declaration and the description,

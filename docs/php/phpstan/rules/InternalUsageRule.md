@@ -1,4 +1,4 @@
-# `InternalUsageRule` [🔍](../../../../src/php/PhpStan/Rule/InternalUsageRule.php 'Go to source')
+# 🔬 `InternalUsageRule` [🔍](../../../../src/php/PhpStan/Rule/InternalUsageRule.php 'Go to source')
 
 Symbols marked as `@internal` may only be used from within their own declaring namespace or a sub-namespace of it.
 Any attempt to reach into another package's internals is reported as a violation.

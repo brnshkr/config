@@ -1,4 +1,4 @@
-# `InternalExposureRule` [🔍](../../../../src/php/PhpStan/Rule/InternalExposureRule.php 'Go to source')
+# 🔬 `InternalExposureRule` [🔍](../../../../src/php/PhpStan/Rule/InternalExposureRule.php 'Go to source')
 
 An `@api` symbol must name only `@api` types. Naming an `@internal` one hands a consumer a type
 the rules forbid them to use, and freezes it by accident: changing it now breaks whoever read

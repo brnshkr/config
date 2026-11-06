@@ -1,4 +1,4 @@
-# `NamedArgumentsUsageRule` [🔍](../../../../src/php/PhpStan/Rule/NamedArgumentsUsageRule.php 'Go to source')
+# 🔬 `NamedArgumentsUsageRule` [🔍](../../../../src/php/PhpStan/Rule/NamedArgumentsUsageRule.php 'Go to source')
 
 A call to a symbol tagged `@named-arguments` must name every argument it passes.
 PHPStan already reports the opposite mistake — naming an argument of a `@no-named-arguments` symbol.

@@ -1,4 +1,4 @@
-# `BoolishPrefixRule` [🔍](../../../../src/php/PhpStan/Rule/BoolishPrefixRule.php 'Go to source')
+# 🔬 `BoolishPrefixRule` [🔍](../../../../src/php/PhpStan/Rule/BoolishPrefixRule.php 'Go to source')
 
 Every boolean-typed symbol must start with a recognized boolish prefix (`is`, `has`, `can`, and so on),
 and — in reverse — a non-boolean symbol must not. The aim is that boolean-ness is obvious from the name alone,

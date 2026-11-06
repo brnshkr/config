@@ -1,4 +1,4 @@
-# Invariants, libraries and packages
+# 📐 Invariants, libraries, and packages [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 ## `Architecture::baseline()`
 

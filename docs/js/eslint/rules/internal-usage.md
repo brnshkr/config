@@ -1,4 +1,4 @@
-# `brnshkr/internal-usage` [🔍](../../../../src/js/eslint/configs/builtin/internal-usage.ts 'Go to source')
+# 🟣 `brnshkr/internal-usage` [🔍](../../../../src/js/eslint/configs/builtin/internal-usage.ts 'Go to source')
 
 JavaScript mirror of the PHP [`InternalUsageRule`](../../../php/phpstan/rules/InternalUsageRule.md), which is the source
 of truth for the subtree rule, the explicit target, the bare vendor form, and what each option matches.

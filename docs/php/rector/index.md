@@ -1,4 +1,4 @@
-# Rector [🔍](../../../src/php/Rector.php 'Go to source')
+# 🔧 Rector [🔍](../../../src/php/Rector.php 'Go to source')
 
 `Brnshkr\Config\Rector` is the @brnshkr Rector configuration, ready to return from a config file.
 

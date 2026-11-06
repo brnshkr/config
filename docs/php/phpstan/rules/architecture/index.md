@@ -1,4 +1,4 @@
-# Architecture presets
+# 📐 Architecture presets [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 The architecture presets are built on [PHPat](https://github.com/carlosas/phpat) and ship as factory methods
 on the `Architecture` class. Each returns a list of rule services for `addArchitecture()`, which also accepts

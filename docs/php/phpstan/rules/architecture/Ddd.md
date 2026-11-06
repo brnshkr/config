@@ -1,4 +1,4 @@
-# `Architecture::ddd()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
+# 📐 `Architecture::ddd()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 A full Domain-Driven Design preset. Composes `layered()` and adds per-module `Domain` and `Application` isolation,
 an optional `Interface` layer (entry points such as HTTP controllers and CLI commands),

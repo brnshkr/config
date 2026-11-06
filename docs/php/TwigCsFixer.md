@@ -1,4 +1,4 @@
-# Twig-CS-Fixer [🔍](../../src/php/TwigCsFixer.php 'Go to source')
+# 🌿 Twig-CS-Fixer [🔍](../../src/php/TwigCsFixer.php 'Go to source')
 
 `Brnshkr\Config\TwigCsFixer` is the @brnshkr template-style configuration, ready to return from a config file.
 

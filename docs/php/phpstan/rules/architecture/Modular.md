@@ -1,4 +1,4 @@
-# `Architecture::modular()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
+# 📐 `Architecture::modular()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 A lightweight modular preset that enforces only sibling-module isolation, without any opinion on role folders.
 Each configured module is forbidden from depending on its siblings.

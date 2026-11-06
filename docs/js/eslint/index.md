@@ -1,4 +1,4 @@
-# ESLint [🔍](../../../src/js/eslint/index.ts 'Go to source')
+# 🟣 ESLint [🔍](../../../src/js/eslint/index.ts 'Go to source')
 
 `@brnshkr/config/eslint` is the @brnshkr lint configuration, ready to export from a flat-config file.
 

@@ -1,4 +1,4 @@
-# `brnshkr/api-or-internal-tag` [🔍](../../../../src/js/eslint/configs/builtin/api-or-internal-tag.ts 'Go to source')
+# 🟣 `brnshkr/api-or-internal-tag` [🔍](../../../../src/js/eslint/configs/builtin/api-or-internal-tag.ts 'Go to source')
 
 JavaScript mirror of the PHP [`ApiOrInternalTagRule`](../../../php/phpstan/rules/ApiOrInternalTagRule.md),
 which is the source of truth for the rationale and the tagging rules. Every exported declaration in a public-API

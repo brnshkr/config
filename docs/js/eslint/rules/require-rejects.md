@@ -1,4 +1,4 @@
-# `brnshkr/require-rejects` [🔍](../../../../src/js/eslint/configs/builtin/require-rejects.ts 'Go to source')
+# 🟣 `brnshkr/require-rejects` [🔍](../../../../src/js/eslint/configs/builtin/require-rejects.ts 'Go to source')
 
 The promise counterpart of [`brnshkr/require-throws`](./require-throws.md).
 A function declares every error its promise can reject with under `@rejects`: a throw inside an async function,

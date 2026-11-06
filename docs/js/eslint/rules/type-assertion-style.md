@@ -1,4 +1,4 @@
-# `brnshkr/type-assertion-style` [🔍](../../../../src/js/eslint/configs/builtin/type-assertion-style.ts 'Go to source')
+# 🟣 `brnshkr/type-assertion-style` [🔍](../../../../src/js/eslint/configs/builtin/type-assertion-style.ts 'Go to source')
 
 An operand that begins with a keyword must be parenthesized,
 and every other operand must sit against the closing angle bracket with no space,

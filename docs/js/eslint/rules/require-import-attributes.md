@@ -1,4 +1,4 @@
-# `brnshkr/require-import-attributes` [🔍](../../../../src/js/eslint/configs/builtin/require-import-attributes.ts 'Go to source')
+# 🟣 `brnshkr/require-import-attributes` [🔍](../../../../src/js/eslint/configs/builtin/require-import-attributes.ts 'Go to source')
 
 Imports of non-JavaScript files (such as `.json` or `.css`) must declare a matching `with { type: '...' }`
 import attribute. This makes the runtime contract explicit and keeps the build tooling, the runtime,

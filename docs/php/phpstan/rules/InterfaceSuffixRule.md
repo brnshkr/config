@@ -1,4 +1,4 @@
-# `InterfaceSuffixRule` [🔍](../../../../src/php/PhpStan/Rule/InterfaceSuffixRule.php 'Go to source')
+# 🔬 `InterfaceSuffixRule` [🔍](../../../../src/php/PhpStan/Rule/InterfaceSuffixRule.php 'Go to source')
 
 Classes that implement a single `*Interface` must end with the matching suffix.
 Pairs the contract and the implementation visibly at the call site and keeps grep-able naming consistent

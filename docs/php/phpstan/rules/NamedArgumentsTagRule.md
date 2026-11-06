@@ -1,4 +1,4 @@
-# `NamedArgumentsTagRule` [🔍](../../../../src/php/PhpStan/Rule/NamedArgumentsTagRule.php 'Go to source')
+# 🔬 `NamedArgumentsTagRule` [🔍](../../../../src/php/PhpStan/Rule/NamedArgumentsTagRule.php 'Go to source')
 
 Every declaration that exposes parameters must state where it stands on named arguments,
 with `@named-arguments` or `@no-named-arguments`.

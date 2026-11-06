@@ -1,4 +1,4 @@
-# PHP-CS-Fixer [🔍](../../../src/php/PhpCsFixer.php 'Go to source')
+# 🎨 PHP-CS-Fixer [🔍](../../../src/php/PhpCsFixer.php 'Go to source')
 
 `Brnshkr\Config\PhpCsFixer` is the @brnshkr coding-style configuration, ready to return from a config file.
 

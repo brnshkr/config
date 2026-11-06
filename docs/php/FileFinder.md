@@ -1,4 +1,4 @@
-# FileFinder [🔍](../../src/php/FileFinder.php 'Go to source')
+# 🗂️ FileFinder [🔍](../../src/php/FileFinder.php 'Go to source')
 
 `Brnshkr\Config\FileFinder` is the file discovery every PHP tool configuration in this package runs on.
 

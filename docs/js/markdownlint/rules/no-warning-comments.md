@@ -1,4 +1,4 @@
-# `brnshkr/no-warning-comments` [🔍](../../../../src/js/markdownlint/configs/builtin/no-warning-comments.ts 'Go to source')
+# 📝 `brnshkr/no-warning-comments` [🔍](../../../../src/js/markdownlint/configs/builtin/no-warning-comments.ts 'Go to source')
 
 Markdown mirror of ESLint's `no-warning-comments`. Open work belongs in a backlog,
 so a `TODO`, `FIXME`, `XXX` or `HACK` fails the page wherever it stands: in prose, in an HTML comment

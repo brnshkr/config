@@ -1,4 +1,4 @@
-# `FencedCodeRule` [🔍](../../../../src/php/PhpStan/Rule/FencedCodeRule.php 'Go to source')
+# 🔬 `FencedCodeRule` [🔍](../../../../src/php/PhpStan/Rule/FencedCodeRule.php 'Go to source')
 
 Code blocks in docblocks and Markdown pages are checked like code, so an example cannot drift from what it documents.
 A code block preceded by `<!-- brnshkr-skip -->` is left alone, for an example that is wrong on purpose:

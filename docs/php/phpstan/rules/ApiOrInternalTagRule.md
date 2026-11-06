@@ -1,4 +1,4 @@
-# `ApiOrInternalTagRule` [🔍](../../../../src/php/PhpStan/Rule/ApiOrInternalTagRule.php 'Go to source')
+# 🔬 `ApiOrInternalTagRule` [🔍](../../../../src/php/PhpStan/Rule/ApiOrInternalTagRule.php 'Go to source')
 
 Every class, interface, trait, enum, top-level function, and global constant must declare its intended visibility
 by carrying either an `@api` or an `@internal` tag in its docblock. The aim is to make the public surface

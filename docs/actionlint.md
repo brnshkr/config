@@ -1,4 +1,4 @@
-# actionlint [🔍](../conf/actionlint.dist.yaml 'Go to source')
+# 🎬 actionlint [🔍](../conf/actionlint.dist.yaml 'Go to source')
 
 `./conf/actionlint.dist.yaml` is the @brnshkr actionlint configuration, ready to copy into a project.
 It accepts `RUNNER_IMAGE` as the only `vars.` name and no self-hosted runner label.

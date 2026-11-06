@@ -1,4 +1,4 @@
-# semgrep [🔍](../conf/semgrep.dist.yaml 'Go to source')
+# 🛡️ semgrep [🔍](../conf/semgrep.dist.yaml 'Go to source')
 
 `./conf/semgrep.dist.yaml` is the @brnshkr semgrep configuration, ready to copy into a project.
 Its `rules` are the project's own, run beside rulesets from the Semgrep registry.

@@ -1,4 +1,4 @@
-# EditorUrl [🔍](../../src/php/EditorUrl.php 'Go to source')
+# 🔗 EditorUrl [🔍](../../src/php/EditorUrl.php 'Go to source')
 
 `Brnshkr\Config\EditorUrl` builds the URL template a tool turns into a clickable "jump to IDE" link beside every error.
 [`PhpStan`](./phpstan/index.md) and [`Rector`](./rector/index.md) call it for you.

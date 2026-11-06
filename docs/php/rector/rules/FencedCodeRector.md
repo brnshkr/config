@@ -1,4 +1,4 @@
-# `FencedCodeRector` [🔍](../../../../src/php/Rector/Rule/FencedCodeRector.php 'Go to source')
+# 🔧 `FencedCodeRector` [🔍](../../../../src/php/Rector/Rule/FencedCodeRector.php 'Go to source')
 
 PHP code blocks in docblocks and Markdown pages are refactored with the configured rules,
 except rules that only fit a whole file or would change what an example shows.

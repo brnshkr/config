@@ -1,4 +1,4 @@
-# Makefile [🔍](../conf/Makefile 'Go to source')
+# 🛠️ Makefile [🔍](../conf/Makefile 'Go to source')
 
 A shared `Makefile` for both stacks. Include it and you get a target for every tool your project uses,
 a `make help` that lists them, and anything you type after a target is passed on to the tool.

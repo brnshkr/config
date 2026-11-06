@@ -1,4 +1,4 @@
-# `brnshkr/public-api-documentation` [🔍](../../../../src/js/eslint/configs/builtin/public-api-documentation.ts 'Go to source')
+# 🟣 `brnshkr/public-api-documentation` [🔍](../../../../src/js/eslint/configs/builtin/public-api-documentation.ts 'Go to source')
 
 JavaScript mirror of the PHP [`PublicApiDocumentationRule`](../../../php/phpstan/rules/PublicApiDocumentationRule.md),
 which is the source of truth for the documentation standard and its exemptions.

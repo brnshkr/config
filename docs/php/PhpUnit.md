@@ -1,4 +1,4 @@
-# PHPUnit [🔍](../../conf/phpunit.dist.xml 'Go to source')
+# ✅ PHPUnit [🔍](../../conf/phpunit.dist.xml 'Go to source')
 
 `./conf/phpunit.dist.xml` is the @brnshkr PHPUnit configuration, ready to copy into a project.
 It runs the tests in random order, requires coverage metadata,

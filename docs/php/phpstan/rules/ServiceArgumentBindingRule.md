@@ -1,4 +1,4 @@
-# `ServiceArgumentBindingRule` [🔍](../../../../src/php/PhpStan/Rule/ServiceArgumentBindingRule.php 'Go to source')
+# 🔬 `ServiceArgumentBindingRule` [🔍](../../../../src/php/PhpStan/Rule/ServiceArgumentBindingRule.php 'Go to source')
 
 Every service argument bound by name must name a parameter that exists.
 Binding by name makes that name part of the contract, and nothing checks it. The container is the first to object,

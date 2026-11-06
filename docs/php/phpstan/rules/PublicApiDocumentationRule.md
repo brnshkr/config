@@ -1,4 +1,4 @@
-# `PublicApiDocumentationRule` [🔍](../../../../src/php/PhpStan/Rule/PublicApiDocumentationRule.php 'Go to source')
+# 🔬 `PublicApiDocumentationRule` [🔍](../../../../src/php/PhpStan/Rule/PublicApiDocumentationRule.php 'Go to source')
 
 Symbols marked as `@api` must carry a docblock that explains them in prose. Every class, interface, trait, enum,
 top-level function, and non-private method on an `@api` class has to have a real description before the first PHPDoc tag,

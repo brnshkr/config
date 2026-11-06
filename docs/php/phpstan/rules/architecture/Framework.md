@@ -1,4 +1,4 @@
-# `Architecture::symfony()` / `laravel()` / `tempest()` / `doctrine()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
+# 📐 `Architecture::symfony()` / `laravel()` / `tempest()` / `doctrine()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 The framework presets enforce the role-folder placement and isolation conventions typical for each framework:
 Symfony Controllers must live in `Acme\Controller\*`, Doctrine `EntityManagerInterface` is forbidden from Controllers,

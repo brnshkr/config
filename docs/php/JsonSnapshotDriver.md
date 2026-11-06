@@ -1,4 +1,4 @@
-# JsonSnapshotDriver [🔍](../../src/php/Testing/JsonSnapshotDriver.php 'Go to source')
+# 📸 JsonSnapshotDriver [🔍](../../src/php/Testing/JsonSnapshotDriver.php 'Go to source')
 
 `Brnshkr\Config\Testing\JsonSnapshotDriver` is the snapshot driver a JSON snapshot test passes to
 [spatie/phpunit-snapshot-assertions](https://github.com/spatie/phpunit-snapshot-assertions),

@@ -1,4 +1,4 @@
-# hadolint [🔍](../conf/hadolint.dist.yaml 'Go to source')
+# 🐋 hadolint [🔍](../conf/hadolint.dist.yaml 'Go to source')
 
 `./conf/hadolint.dist.yaml` is the @brnshkr hadolint configuration, ready to copy into a project.
 It requires the eight static OCI labels on every image and ignores `DL3008`,

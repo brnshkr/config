@@ -1,4 +1,4 @@
-# Stylelint [🔍](../../../src/js/stylelint/index.ts 'Go to source')
+# 💅 Stylelint [🔍](../../../src/js/stylelint/index.ts 'Go to source')
 
 `@brnshkr/config/stylelint` is the @brnshkr stylesheet configuration, ready to export from a config file.
 

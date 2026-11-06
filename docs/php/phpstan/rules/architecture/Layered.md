@@ -1,4 +1,4 @@
-# `Architecture::layered()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
+# 📐 `Architecture::layered()` [🔍](../../../../../src/php/PhpStan/Rule/Architecture/Architecture.php 'Go to source')
 
 A classic three-layer separation: the `Domain` layer may not depend on either `Application` or `Infrastructure`,
 and the `Application` layer may not depend on `Infrastructure`. Serves both as the foundation that `ddd()`

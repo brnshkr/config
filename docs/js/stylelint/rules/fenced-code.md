@@ -1,4 +1,4 @@
-# `brnshkr/fenced-code` [🔍](../../../../src/js/stylelint/configs/builtin/fenced-code.ts 'Go to source')
+# 💅 `brnshkr/fenced-code` [🔍](../../../../src/js/stylelint/configs/builtin/fenced-code.ts 'Go to source')
 
 Stylesheet code blocks in Markdown pages and in the docblocks of scripts and PHP files are linted with the project's
 Stylelint config, each as a file of its dialect, so a `scss` block gets the SCSS rules.

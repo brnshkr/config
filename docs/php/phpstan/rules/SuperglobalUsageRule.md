@@ -1,4 +1,4 @@
-# `SuperglobalUsageRule` [🔍](../../../../src/php/PhpStan/Rule/SuperglobalUsageRule.php 'Go to source')
+# 🔬 `SuperglobalUsageRule` [🔍](../../../../src/php/PhpStan/Rule/SuperglobalUsageRule.php 'Go to source')
 
 Production code must not read or write a superglobal.
 The configuration already bans `getenv()` and the native functions it has a replacement for,

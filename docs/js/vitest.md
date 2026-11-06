@@ -1,4 +1,4 @@
-# Vitest [🔍](../../src/js/vitest/index.ts 'Go to source')
+# ⚡ Vitest [🔍](../../src/js/vitest/index.ts 'Go to source')
 
 `@brnshkr/config/vitest` is the @brnshkr test configuration, ready to export from a config file.
 

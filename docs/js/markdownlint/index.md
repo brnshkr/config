@@ -1,4 +1,4 @@
-# markdownlint [🔍](../../../src/js/markdownlint/index.ts 'Go to source')
+# 📝 markdownlint [🔍](../../../src/js/markdownlint/index.ts 'Go to source')
 
 `@brnshkr/config/markdownlint` is the @brnshkr Markdown configuration, ready to export from a config file.
 It is the shape `markdownlint-cli2` reads, so a project needs a config file of its own

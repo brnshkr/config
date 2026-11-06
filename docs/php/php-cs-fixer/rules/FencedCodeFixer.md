@@ -1,4 +1,4 @@
-# `Brnshkr/fenced_code` [🔍](../../../../src/php/PhpCsFixer/Fixer/FencedCodeFixer.php 'Go to source')
+# 🎨 `Brnshkr/fenced_code` [🔍](../../../../src/php/PhpCsFixer/Fixer/FencedCodeFixer.php 'Go to source')
 
 PHP code blocks in docblocks and Markdown pages are formatted with the configured rules,
 except those that only fit a whole file.

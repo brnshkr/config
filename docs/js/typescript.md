@@ -1,4 +1,4 @@
-# TypeScript [🔍](../../conf/tsconfig.json 'Go to source')
+# 🔷 TypeScript [🔍](../../conf/tsconfig.json 'Go to source')
 
 The shipped `tsconfig.json` is the @brnshkr compiler baseline: strict beyond `strict`, bundler-first,
 type-checking only. Unlike the other modules it is a plain config file rather than a builder.

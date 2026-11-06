@@ -1,4 +1,4 @@
-# commitlint [🔍](../../src/js/commitlint/index.ts 'Go to source')
+# 💬 commitlint [🔍](../../src/js/commitlint/index.ts 'Go to source')
 
 `@brnshkr/config/commitlint` is the @brnshkr commit-message configuration, ready to export from a config file.
 It belongs on the `commit-msg` hook, where a bad message is rejected while it is still cheap to rewrite.

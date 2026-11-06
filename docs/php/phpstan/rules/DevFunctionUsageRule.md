@@ -1,4 +1,4 @@
-# `DevFunctionUsageRule` [🔍](../../../../src/php/PhpStan/Rule/DevFunctionUsageRule.php 'Go to source')
+# 🔬 `DevFunctionUsageRule` [🔍](../../../../src/php/PhpStan/Rule/DevFunctionUsageRule.php 'Go to source')
 
 Production code must not call a function that only a development-only package declares.
 A package autoloading functions through `autoload.files` puts them in the global namespace,

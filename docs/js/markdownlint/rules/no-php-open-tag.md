@@ -1,4 +1,4 @@
-# `brnshkr/no-php-open-tag` [🔍](../../../../src/js/markdownlint/configs/builtin/no-php-open-tag.ts 'Go to source')
+# 📝 `brnshkr/no-php-open-tag` [🔍](../../../../src/js/markdownlint/configs/builtin/no-php-open-tag.ts 'Go to source')
 
 The PHP configs of this package read a Markdown page as HTML, until a `<?` turns the rest of it into PHP.
 PHP's default `short_open_tag` reads `<?xml` as one too.
