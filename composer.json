@@ -170,10 +170,10 @@
     "dev",
     "brnshkr",
     "config",
+    "php-cs-fixer",
+    "phpcsfixer",
     "phpstan",
     "rector",
-    "phpcsfixer",
-    "php-cs-fixer",
     "static analysis",
     "twig",
     "twig-cs-fixer"

@@ -446,8 +446,13 @@
     "dev",
     "brnshkr",
     "config",
+    "commitlint",
     "eslint",
     "lint",
-    "linting"
+    "linting",
+    "markdownlint",
+    "stylelint",
+    "typescript",
+    "vitest"
   ]
 }
