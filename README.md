@@ -46,8 +46,8 @@ _[☄️ Bug Reports / Feature Requests »][issues-url]_
 
 **@brnshkr/config** is a centralized, opinionated collection of shared configuration files,
 tooling, and workflows for JavaScript and PHP projects.
-It helps standardizing linting, formatting, static analysis, and development workflows across repositories
-— reducing setup time, preventing config drift, and improving code quality and consistency.
+It standardizes linting, formatting, static analysis, and development workflows across repositories.
+It reduces setup time, prevents config drift, and improves code quality and consistency.
 
 > ❗ **Note** ❗  
 > While you're more than welcome to use this in your own projects, the configurations are tailored specifically
@@ -57,9 +57,10 @@ It helps standardizing linting, formatting, static analysis, and development wor
 
 ## 📚 Documentation
 
-This README covers installation and usage. The full reference — custom rules, config builders, the Composer plugin,
-the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md), and the development setup
-— lives in [`./docs`](https://github.com/brnshkr/config/blob/master/docs), organized by stack and tool.
+This README covers installation and usage.
+The [docs](https://github.com/brnshkr/config/blob/master/docs) cover custom rules, config builders, the Composer plugin,
+the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md), and the development setup,
+organized by stack and tool.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -68,14 +69,14 @@ the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makef
 <!-- omit in toc -->
 ### JS
 
-- Node.js >= v24.15 or Bun >= v1.4 (Older versions may work, but are untested)
+- Node.js >= v24.15 or Bun >= v1.4 (older versions may work, but are untested)
 - Any JavaScript package manager (Bun, Yarn, PNPM, NPM)
 
 <!-- omit in toc -->
 ### PHP
 
-- PHP >= 8.5 (Older versions may work, but are untested)
-- Composer >= 2.9 (Older versions may work, but are untested)
+- PHP >= 8.5 (older versions may work, but are untested)
+- Composer >= 2.9 (older versions may work, but are untested)
 - PHP Extensions:
   - `json`
   - `mbstring`
