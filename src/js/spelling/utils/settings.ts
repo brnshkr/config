@@ -31,7 +31,7 @@ const findShippedDirectory = (): string => {
   const packageJsonPath = findNearestPackageJson(import.meta.dirname);
 
   if (packageJsonPath === undefined) {
-    throw new Error(`Unable to locate the shipped defaults of "${packageFullName}".`);
+    throw new Error(`Shipped defaults of "${packageFullName}" not found.`);
   }
 
   return path.join(path.dirname(packageJsonPath), 'conf', 'spelling');
@@ -44,7 +44,7 @@ const readSettingsFile = (filePath: string): Record<string, unknown> => {
   const settings = readJsonObjectFile(filePath);
 
   if (settings === undefined) {
-    throw new Error(`Unable to read "${filePath}".`);
+    throw new Error(`Unable to read file "${filePath}".`);
   }
 
   return settings;

@@ -156,7 +156,7 @@ final class ComposerJsonTest extends TestCase
         self::assertNull($composerJson->getPackageFullName());
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Failed to read package name from composer.json file.');
+        $this->expectExceptionMessageIsOrContains('Package name not found in "composer.json".');
 
         $composerJson->getPackageName();
     }
@@ -171,7 +171,7 @@ final class ComposerJsonTest extends TestCase
     public function testAManifestWithoutAVersionRefusesToNameOne(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Failed to read package version from composer.json file.');
+        $this->expectExceptionMessageIsOrContains('Package version not found in "composer.json".');
 
         self::fixture('plain')->getPackageVersion();
     }

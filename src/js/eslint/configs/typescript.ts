@@ -64,7 +64,7 @@ const extractRelevantRules = (configs: TsEslintConfigArray, key: string): NonNul
     }
   }
 
-  throw new Error(`Expected key "${key}" to be contained in given config.`);
+  throw new Error(`Key "${key}" not found in config.`);
 };
 
 const getNamingConvention = (): NonNullable<Config['rules']>['ts/naming-convention'] => [

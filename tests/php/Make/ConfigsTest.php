@@ -637,7 +637,7 @@ final class ConfigsTest extends TestCase
 
     private static function getPackageFullName(): string
     {
-        return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('composer.json names no package.');
+        return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('Package name not found in "composer.json".');
     }
 
     /**

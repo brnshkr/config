@@ -92,7 +92,7 @@ const extractRelevantConfig = (configs: Config[], key: string): Config => {
     }
   }
 
-  throw new Error(`Expected key "${key}" to be contained in given config.`);
+  throw new Error(`Key "${key}" not found in config.`);
 };
 
 /**

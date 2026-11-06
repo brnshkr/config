@@ -31,7 +31,7 @@ const extractRelevantValues = <
     }
   }
 
-  throw new Error(`Expected key "${key}" to be contained in given config.`);
+  throw new Error(`Key "${key}" not found in config.`);
 };
 
 /**

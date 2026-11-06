@@ -15,7 +15,7 @@ export const packageOrganizationInternal = <Maybe<'brnshkr'>>manifest.name
   ?.replace(/^@/v, '');
 
 if (packageOrganizationInternal === undefined || packageOrganizationInternal.length === 0) {
-  throw new Error('Failed to read package organization from package.json file.');
+  throw new Error('Package organization not found in "package.json".');
 }
 
 export const packageOrganization = packageOrganizationInternal;

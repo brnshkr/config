@@ -223,7 +223,7 @@ final class ComposerJson
     public function getPackageName(): string
     {
         return (Str::split($this->getPackageFullName() ?? '', '/')[1] ?? '')
-            ?: throw new RuntimeException('Failed to read package name from composer.json file.');
+            ?: throw new RuntimeException('Package name not found in "composer.json".');
     }
 
     /**
@@ -234,7 +234,7 @@ final class ComposerJson
     public function getPackageOrganization(): string
     {
         return Str::split($this->getPackageFullName() ?? '', '/')[0]
-            ?: throw new RuntimeException('Failed to read package organization from composer.json file.');
+            ?: throw new RuntimeException('Package organization not found in "composer.json".');
     }
 
     /**
@@ -248,7 +248,7 @@ final class ComposerJson
 
         return isset($data['version']) && is_string($data['version']) && !Str::isEmpty($data['version'])
             ? $data['version']
-            : throw new RuntimeException('Failed to read package version from composer.json file.');
+            : throw new RuntimeException('Package version not found in "composer.json".');
     }
 
     /**
@@ -512,7 +512,7 @@ final class ComposerJson
         }
 
         if (array_any($conflicts, static fn (mixed $package, mixed $version): bool => !is_string($package) || Str::isEmpty($package) || !is_string($version) || Str::isEmpty($version))) {
-            throw new RuntimeException('Expected conflicts to be an array of non-empty strings to non-empty strings.');
+            throw new RuntimeException('The conflicts must map non-empty strings to non-empty strings.');
         }
 
         /**

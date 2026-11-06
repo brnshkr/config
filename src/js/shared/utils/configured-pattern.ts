@@ -55,7 +55,7 @@ const assertLinearBacktracking = ({ source, flags }: PatternParts): void => {
   }, 'requiredAll');
 
   if (!regexpp || !scslre) {
-    throw new Error(`Unable to check the configured pattern "${source}" for super-linear backtracking.`);
+    throw new Error(`Unable to check pattern "${source}" for super-linear backtracking.`);
   }
 
   const parser = new regexpp.RegExpParser();

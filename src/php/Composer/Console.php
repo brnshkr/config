@@ -255,7 +255,7 @@ final readonly class Console
                 $aliases = $command->getAliases();
 
                 if (array_any($aliases, static fn (mixed $aliases): bool => !is_string($aliases))) {
-                    throw new RuntimeException('Expected alias values to be an array of strings.');
+                    throw new RuntimeException('The alias values must be an array of strings.');
                 }
 
                 /**
