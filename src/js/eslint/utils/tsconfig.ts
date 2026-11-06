@@ -24,12 +24,10 @@ interface ParsedTsConfig {
 }
 
 const DEFAULT_TSCONFIG_FILENAME = 'tsconfig.json';
-const JSONC_TOKEN_PATTERN = /"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//gv;
-const TRAILING_COMMA_PATTERN = /,(?=\s*[\]\}])/gv;
 
 const stripJsonc = (input: string): string => input
-  .replaceAll(JSONC_TOKEN_PATTERN, (match) => (match.startsWith('"') ? match : ''))
-  .replaceAll(TRAILING_COMMA_PATTERN, '');
+  .replaceAll(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//gv, (match) => (match.startsWith('"') ? match : ''))
+  .replaceAll(/,(?=\s*[\]\}])/gv, '');
 
 const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
   const content = readTextFile(filePath);
