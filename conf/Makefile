@@ -4699,6 +4699,11 @@ endef
 
 define _SEMGREP_RULES_PROGRAM_SOURCE
 import json, os, sys, tempfile
+try:
+    from ruamel.yaml import YAML
+    load_ruleset = YAML(typ='safe', pure=True).load
+except ImportError:
+    load_ruleset = json.load
 arguments = sys.argv[1:]
 separator = arguments.index('--')
 target, sources, ignores = arguments[0], arguments[1:separator], arguments[separator + 1:]
@@ -4711,7 +4716,7 @@ for ignore in ignores:
 rules = {}
 for source in sources:
     with open(source) as handle:
-        for rule in json.load(handle).get('rules', []):
+        for rule in load_ruleset(handle).get('rules', []):
             rules.setdefault(rule['id'], rule)
 for rule_id, globs in globs_by_rule.items():
     if rule_id in rules:
