@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
+use function sprintf;
 use function Symfony\Component\String\s;
 
 use const PHP_BINARY;
@@ -24,7 +25,10 @@ final class DotenvParityTest extends TestCase
 {
     use MakeTrait;
 
-    private const string PARITY_DIRECTORY = __DIR__ . '/../Fixtures/Make/DotenvParity';
+    private const array PARITY_DIRECTORY_BY_MAKEFILE = [
+        'shared Makefile' => __DIR__ . '/../Fixtures/Make/DotenvParity',
+        'starter'         => __DIR__ . '/../Fixtures/Make/DotenvStarterParity',
+    ];
 
     private const string SYMFONY_PROGRAM = <<<'PHP'
         require $argv[2];
@@ -53,9 +57,12 @@ final class DotenvParityTest extends TestCase
      * @param array<string, string> $environment
      */
     #[DataProvider('provideMakeReadsEnvironmentFilesLikeSymfonyCases')]
-    public function testMakeReadsEnvironmentFilesLikeSymfony(array $files, array $environment = []): void
-    {
-        $directory  = $this->getFixtureCopy(self::PARITY_DIRECTORY);
+    public function testMakeReadsEnvironmentFilesLikeSymfony(
+        string $parityDirectory,
+        array $files,
+        array $environment = [],
+    ): void {
+        $directory  = $this->getFixtureCopy($parityDirectory);
         $filesystem = new Filesystem();
 
         foreach ($files as $fileName => $content) {
@@ -79,10 +86,7 @@ final class DotenvParityTest extends TestCase
         if (Str::startsWith($symfonyOutput, 'ERROR: ')) {
             $makeOutput = $this->runMake(['values'], $environment, $directory, doExpectFailure: true);
 
-            self::assertStringContainsString(
-                '] ' . Str::trimPrefix($symfonyOutput, 'ERROR: ') . '  Stop.',
-                $makeOutput,
-            );
+            self::assertStringContainsString(Str::trimPrefix($symfonyOutput, 'ERROR: ') . '  Stop.', $makeOutput);
 
             return;
         }
@@ -95,11 +99,27 @@ final class DotenvParityTest extends TestCase
 
     /**
      * @return iterable<string, array{
+     *     0: string,
+     *     1: array<string, string>,
+     *     2?: array<string, string>,
+     * }>
+     */
+    public static function provideMakeReadsEnvironmentFilesLikeSymfonyCases(): iterable
+    {
+        foreach (self::PARITY_DIRECTORY_BY_MAKEFILE as $makefile => $parityDirectory) {
+            foreach (self::getEnvironmentFileCases() as $caseName => $case) {
+                yield sprintf('%s × %s', $makefile, $caseName) => [$parityDirectory, ...$case];
+            }
+        }
+    }
+
+    /**
+     * @return iterable<string, array{
      *     0: array<string, string>,
      *     1?: array<string, string>,
      * }>
      */
-    public static function provideMakeReadsEnvironmentFilesLikeSymfonyCases(): iterable
+    private static function getEnvironmentFileCases(): iterable
     {
         yield 'plain' => [['.env' => "ACME_NAME=shop\nACME_TAG=1.0.0\n"]];
 
