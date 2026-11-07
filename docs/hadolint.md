@@ -13,7 +13,7 @@ strict-labels: true
 ```
 
 `hadolint --config ./conf/hadolint.dist.yaml` reads the whole copy, which `make configs tools` writes.
-The shared Makefile passes it over every tracked Dockerfile.
+The shared Makefile passes it over every Dockerfile Git does not ignore.
 
 If your app image has no hadolint, add a `hadolint` service:
 

@@ -12,7 +12,7 @@ config-variables:
 ```
 
 `actionlint -config-file ./conf/actionlint.dist.yaml` reads the whole copy, which `make configs tools` writes.
-The shared Makefile passes it over every tracked workflow.
+The shared Makefile passes it over every workflow Git does not ignore.
 
 If your app image has no actionlint, add an `actionlint` service, its entrypoint cleared:
 

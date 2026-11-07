@@ -170,6 +170,25 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString('docker/it\'s dé jà.Dockerfile', $result);
     }
 
+    public function testALintTakesAnUntrackedFileGitKeeps(): void
+    {
+        $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($lintersDirectory . '/.gitignore', "/docker/ignored.Dockerfile\n");
+        $filesystem->dumpFile($lintersDirectory . '/docker/ignored.Dockerfile', '');
+        $filesystem->dumpFile($lintersDirectory . '/docker/untracked.Dockerfile', '');
+
+        $result = $this->runMake(
+            ['hadolint-list'],
+            ['PATH' => $lintersDirectory . '/bin:' . Str::fromEnvironment('PATH')],
+            $lintersDirectory,
+        );
+
+        self::assertStringContainsString('docker/untracked.Dockerfile', $result);
+        self::assertStringNotContainsString('docker/ignored.Dockerfile', $result);
+    }
+
     public function testActionlintResolvesItsWorkflows(): void
     {
         $this->assertMatchesSnapshot($this->runLinter(['actionlint-list']));

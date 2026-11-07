@@ -836,15 +836,28 @@ MODIFIER_REVERSE   := reverse
 
 #---vvv features
 
-_MASKS_AND_TRACKED_FILES := $(shell printf '\037 \036 '; $(GIT) ls-files -z 2>/dev/null \
+#**
+#* The command listing the existing files `git ls-files` names, masked for a make list.
+#*
+#* parameters:
+#*   flags: string
+#*
+#* returns: string
+#*
+define _list_files
+$(GIT) ls-files -z $1 2>/dev/null \
 	| $(XARGS) -0 $(SHELL) -c 'for file do [ ! -e "$$file" ] && [ ! -L "$$file" ] || printf "%s\0" "$$file"; done' sh \
-	| $(TR) ' \n\000' '\037\036 ')
+	| $(TR) ' \n\000' '\037\036 '
+endef
 
-_MASKED_SPACE     := $(word 1,$(_MASKS_AND_TRACKED_FILES))
-_MASKED_NEWLINE   := $(word 2,$(_MASKS_AND_TRACKED_FILES))
-_TRACKED_FILES    := $(wordlist 3,$(words $(_MASKS_AND_TRACKED_FILES)),$(_MASKS_AND_TRACKED_FILES))
-_HADOLINT_FILES   := $(strip $(foreach FILE,$(_TRACKED_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
-_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_TRACKED_FILES))
+_MASKS_AND_PROJECT_FILES := $(shell printf '\037 \036 '; $(call _list_files,--cached --others --exclude-standard))
+
+_MASKED_SPACE     := $(word 1,$(_MASKS_AND_PROJECT_FILES))
+_MASKED_NEWLINE   := $(word 2,$(_MASKS_AND_PROJECT_FILES))
+_PROJECT_FILES    := $(wordlist 3,$(words $(_MASKS_AND_PROJECT_FILES)),$(_MASKS_AND_PROJECT_FILES))
+_TRACKED_FILES    := $(shell $(call _list_files,--cached))
+_HADOLINT_FILES   := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
+_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_PROJECT_FILES))
 
 _LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
 
@@ -913,11 +926,11 @@ _HAS_SEMGREP := $(strip $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SEMGREP),$(if $(_H
 	$(filter $(SEMGREP_SERVICE),$(_COMPOSE_SERVICES)), \
 	$(call _is_on_path,semgrep))))
 
-_TRACKED_EXTENSIONS := $(sort $(suffix $(_TRACKED_FILES)))
+_PROJECT_EXTENSIONS := $(sort $(suffix $(_PROJECT_FILES)))
 _TESTS_DIRECTORY    := $(wildcard $(CURDIR)/tests)
 
 #**
-#* The value it is given when this project tracks a file the extensions name, or when git cannot say.
+#* The value it is given when this project holds a file the extensions name, or when git cannot say.
 #*
 #* parameters:
 #*   value: list<string>
@@ -925,8 +938,8 @@ _TESTS_DIRECTORY    := $(wildcard $(CURDIR)/tests)
 #*
 #* returns: list<string>
 #*
-define _when_tracked
-$(if $(_TRACKED_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_TRACKED_EXTENSIONS)),$1),$1)
+define _when_in_project
+$(if $(_PROJECT_EXTENSIONS),$(if $(filter $(addprefix .,$2),$(_PROJECT_EXTENSIONS)),$1),$1)
 endef
 
 #**
@@ -953,7 +966,7 @@ endef
 #* returns: string
 #*
 define _get_tracked_tool
-$(if $2,$(call _when_tracked,$1,$(or $($3),$(_$3))))
+$(if $2,$(call _when_in_project,$1,$(or $($3),$(_$3))))
 endef
 
 _PHP_EXTENSIONS           := php
@@ -1436,7 +1449,7 @@ _CSS_DATA_CONFIGS = $(call _when_installed,$(CURDIR)/.vscode/tailwind.css-data.j
 
 _CSS_DATA_FILES = $(sort \
 	$(foreach CONFIG,$(_CSS_DATA_CONFIGS),$(call _get_file_name,$(CONFIG))) \
-	$(foreach FILE,$(patsubst .vscode/%,%,$(filter .vscode/%.css-data.json,$(_TRACKED_FILES))),$(if \
+	$(foreach FILE,$(patsubst .vscode/%,%,$(filter .vscode/%.css-data.json,$(_PROJECT_FILES))),$(if \
 		$(findstring /,$(FILE))$(findstring ",$(FILE))$(findstring \,$(FILE)) \
 		$(findstring $(_MASKED_NEWLINE),$(FILE)),,$(FILE))) \
 )
@@ -2125,7 +2138,7 @@ _FRESH_UNTRACKED = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --e
 _FRESH_KEPT      = LC_ALL=C $(GIT) -c core.quotePath=false ls-files --others --ignored --directory $(_FRESH_EXCLUDES)
 
 _FRESH_DIST_FILES = $(foreach \
-	FILE,$(_TRACKED_FILES),$(if $(or $(filter %.dist,$(FILE)),$(findstring .dist.,$(notdir $(FILE)))),$(FILE)))
+	FILE,$(_PROJECT_FILES),$(if $(or $(filter %.dist,$(FILE)),$(findstring .dist.,$(notdir $(FILE)))),$(FILE)))
 
 _FRESH_DIST_SIBLINGS = $(foreach \
 	FILE,$(_FRESH_DIST_FILES),/$(patsubst ./%,%,$(dir $(FILE)))$(patsubst %.dist,%,$(subst .dist.,.,$(notdir $(FILE)))))
@@ -2621,7 +2634,7 @@ _PHP_UNIT_WRITE_FALLBACK = $(if $(_IS_PHP_UNIT_FALLBACK),$(MKDIR) -p '$(call _ho
 	&& $(call _write_for_layout,'$(call _host_path,$(PHP_UNIT_CONFIG))','$(call _host_path,$(_PHP_UNIT_RUN_CONFIG))') \
 	|| exit $(BRNSHKR_CONFIG_ERROR_CODE),:)
 
-_LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
+_LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_in_project,$(call _layered,$(PHP_UNIT_CONFIG),xml),$(PHP_EXTENSIONS)))
 
 _$(_TARGET_PREFIX)assert-pest:
 	$(TRACE_PREFIX)test -x '$(call _host_path,$(_PEST_BINARY))' || { \
@@ -2703,7 +2716,7 @@ PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN)
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,phpstan): _COMMAND = analyze
 $(call _target,phpstan): #~~ analyzes the PHP code
@@ -2739,7 +2752,7 @@ PHP_CS_FIXER        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer#v #~~
 PHP_CS_FIXER_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.php $(APP_DIR)/$(_CONFIG_DIR)/php-cs-fixer.dist.php,php)#v #~~ path to `php-cs-fixer` config
 PHP_CS_FIXER_FLAGS  ?= --show-progress=$(if $(_IS_PROGRESS_HIDDEN),none,dots) $(_ANSI_OPTION) $(if $(_IS_DEBUG),-vvv,-v)#v #~~ additional flags passed to `php-cs-fixer`
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(PHP_CS_FIXER_CONFIG),php),$(PHP_EXTENSIONS))
 
 ifneq ($(_HAS_TWIG_CS_FIXER),) # twig-cs-fixer
 $(call _target,php-cs-fixer) $(call _target,php-cs-fixer-group): _FORWARDED_KEYS                     += BRNSHKR_TWIG_CS_FIXER_CONFIG
@@ -2775,7 +2788,7 @@ RECTOR        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/rector#v #~~ command tha
 RECTOR_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/rector.php $(APP_DIR)/$(_CONFIG_DIR)/rector.dist.php,php)#v #~~ path to `rector` config
 RECTOR_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress-bar)#v #~~ additional flags passed to `rector`
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(RECTOR_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,rector): _COMMAND = process
 $(call _target,rector): #~~ refactors the PHP code
@@ -2812,7 +2825,7 @@ TWIG_CS_FIXER_CONFIG     ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-cs-fix
 TWIG_CS_FIXER_FLAGS      ?= $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTION)#v #~~ additional flags passed to `twig-cs-fixer`
 TWIG_CS_FIXER_EXTENSIONS ?= $(_TWIG_CS_FIXER_EXTENSIONS)#vv #~~ extensions `twig-cs-fixer` reads
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(TWIG_CS_FIXER_CONFIG),php),$(TWIG_CS_FIXER_EXTENSIONS))
 
 $(call _target,twig-cs-fixer): #~~ fixes the Twig coding style
 	$(TRACE_PREFIX)$(call _require_file,$(TWIG_CS_FIXER_CONFIG),TWIG_CS_FIXER_CONFIG)
@@ -2929,7 +2942,7 @@ _ESLINT_OUTPUT := $(APP_DIR)/$(_CACHE_DIR)/eslint.output
 
 ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, set by its config's modules
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(ESLINT_CONFIG),mjs),$(ESLINT_EXTENSIONS))
 
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
 $(call _target,eslint): #~~ lints and fixes the code
@@ -2985,7 +2998,7 @@ MARKDOWNLINT_EXTENSIONS ?= $(_MARKDOWNLINT_EXTENSIONS)#vv #~~ extensions `markdo
 _MARKDOWNLINT_VALUE_FLAGS := --config \
 	--configPointer
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(MARKDOWNLINT_CONFIG),mjs),$(MARKDOWNLINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(MARKDOWNLINT_CONFIG),mjs),$(MARKDOWNLINT_EXTENSIONS))
 
 $(call _target,markdownlint): #~~ lints and fixes the Markdown
 	$(TRACE_PREFIX)$(call _require_file,$(MARKDOWNLINT_CONFIG),MARKDOWNLINT_CONFIG)
@@ -3038,7 +3051,7 @@ _STYLELINT_VALUE_FLAGS := --cache-location \
 
 STYLELINT_EXTENSIONS ?= $(_STYLELINT_EXTENSIONS)#vv #~~ extensions `stylelint` parses, set by its config's syntaxes
 
-_LAYERED_CONFIGS += $(call _when_tracked,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
+_LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(STYLELINT_CONFIG),mjs),$(STYLELINT_EXTENSIONS))
 
 $(call _target,stylelint) $(call _target,stylelint-group): _FORWARDED_KEYS                 += BRNSHKR_STYLELINT_CONFIG
 $(call _target,stylelint) $(call _target,stylelint-group): export BRNSHKR_STYLELINT_CONFIG  = $(STYLELINT_CONFIG)
@@ -3075,8 +3088,8 @@ TYPESCRIPT_EXTENSIONS ?= $(_TYPESCRIPT_EXTENSIONS)#vv #~~ extensions `tsc` type 
 
 _TYPESCRIPT_PROJECT := $(APP_DIR)/$(_CONFIG_DIR)/tsconfig.json
 
-_PLAIN_CONFIGS  += $(call _when_tracked,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
-_LINKED_CONFIGS += $(call _when_tracked,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
+_PLAIN_CONFIGS  += $(call _when_in_project,$(_TYPESCRIPT_PROJECT),$(TYPESCRIPT_EXTENSIONS))
+_LINKED_CONFIGS += $(call _when_in_project,$(call _host_path,$(TYPESCRIPT_CONFIG))|$(call _host_path,$(_TYPESCRIPT_PROJECT)),$(TYPESCRIPT_EXTENSIONS))
 
 $(call _target,typescript): #~~ checks the types
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
@@ -3122,7 +3135,7 @@ VITEST_COVERAGE_FLAGS?= --coverage \
 	--coverage.thresholds.lines=$(VITEST_MIN_COVERAGE_LINES) \
 	--coverage.thresholds.statements=$(VITEST_MIN_COVERAGE_STATEMENTS)#v #~~ additional flags passed when collecting coverage
 
-_LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_tracked,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
+_LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_in_project,$(call _layered,$(VITEST_CONFIG),mjs),$(VITEST_EXTENSIONS)))
 
 $(call _target,vitest): #~~ runs the JavaScript tests
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
@@ -3288,10 +3301,10 @@ _SEMGREP_DETECTED_RULESETS = default \
 	$(call _when_installed,headless-browser,node_modules/playwright node_modules/playwright-core node_modules/puppeteer) \
 	$(if $(_HADOLINT_FILES),dockerfile) \
 	$(if $(_ACTIONLINT_FILES),github-actions) \
-	$(if $(findstring compose,$(filter %.yaml %.yml,$(_TRACKED_FILES))),docker-compose) \
-	$(if $(filter %Chart.yaml k8s/% kubernetes/% helm/%,$(_TRACKED_FILES)),kubernetes) \
-	$(if $(or $(findstring nginx,$(filter %.conf,$(_TRACKED_FILES))),$(filter nginx/%,$(_TRACKED_FILES))),nginx) \
-	$(if $(filter %.tf,$(_TRACKED_FILES)),terraform) \
+	$(if $(findstring compose,$(filter %.yaml %.yml,$(_PROJECT_FILES))),docker-compose) \
+	$(if $(filter %Chart.yaml k8s/% kubernetes/% helm/%,$(_PROJECT_FILES)),kubernetes) \
+	$(if $(or $(findstring nginx,$(filter %.conf,$(_PROJECT_FILES))),$(filter nginx/%,$(_PROJECT_FILES))),nginx) \
+	$(if $(filter %.tf,$(_PROJECT_FILES)),terraform) \
 	$(if $(_HAS_SEMGREP_RULES),semgrep-rule-lints)
 
 _HAS_SEMGREP_RULES = $(eval _HAS_SEMGREP_RULES := $$(shell $$(AWK) '/^  - id:/ { found = 1; exit } END { exit !found }' \
