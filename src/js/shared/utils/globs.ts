@@ -42,8 +42,7 @@ export const GLOB_BENCHMARK_FILES = <const>[
 export const GLOB_IGNORES = <const>[
   getDirectoryGlob(getCacheDirectory()),
   '**/.changeset/**',
-  '**/.git/objects/**',
-  '**/.git/subtree-cache/**',
+  '**/.git/**',
   '**/.hg/store/**',
   '**/.history/**',
   '**/.idea/**',

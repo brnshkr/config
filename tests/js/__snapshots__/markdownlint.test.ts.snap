@@ -245,8 +245,7 @@ exports[`expected markdownlint config 1`] = `
   "ignores": [
     "**/.cache/**",
     "**/.changeset/**",
-    "**/.git/objects/**",
-    "**/.git/subtree-cache/**",
+    "**/.git/**",
     "**/.hg/store/**",
     "**/.history/**",
     "**/.idea/**",

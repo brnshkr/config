@@ -4,8 +4,7 @@
   "exclude": [
     "${configDir}/**/.cache/**",
     "${configDir}/**/.changeset/**",
-    "${configDir}/**/.git/objects/**",
-    "${configDir}/**/.git/subtree-cache/**",
+    "${configDir}/**/.git/**",
     "${configDir}/**/.hg/store/**",
     "${configDir}/**/.history/**",
     "${configDir}/**/.idea/**",

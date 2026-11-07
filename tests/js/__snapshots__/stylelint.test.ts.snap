@@ -6,8 +6,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
   "ignoreFiles": [
     "<root>/**/.cache/**",
     "<root>/**/.changeset/**",
-    "<root>/**/.git/objects/**",
-    "<root>/**/.git/subtree-cache/**",
+    "<root>/**/.git/**",
     "<root>/**/.hg/store/**",
     "<root>/**/.history/**",
     "<root>/**/.idea/**",

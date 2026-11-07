@@ -9,8 +9,7 @@ exports[`expected vitest config 1`] = `
     "exclude": [
       "**/.cache/**",
       "**/.changeset/**",
-      "**/.git/objects/**",
-      "**/.git/subtree-cache/**",
+      "**/.git/**",
       "**/.hg/store/**",
       "**/.history/**",
       "**/.idea/**",
