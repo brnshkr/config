@@ -61,10 +61,8 @@ DOTENV_FIXTURE_READS_ASSIGNED=assigned
 DOTENV_FIXTURE_SECRET=local-secret
 DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
 DOTENV_FIXTURE_SINGLE_MULTILINE=single line one\nsingle line two
-DOTENV_FIXTURE_SPACED=padded around the equals sign
 DOTENV_FIXTURE_TRAILING=trimmed
 DOTENV_FIXTURE_UNBRACED=one without braces
-DOTENV_FIXTURE_UNCLOSED=${DOTENV_FIXTURE_PLAIN
 DOTENV_FIXTURE_UNSEEN=seen after the reference above
 
 === diff: test-environment from default ===
@@ -102,7 +100,7 @@ DOTENV_FIXTURE_UNSEEN=seen after the reference above
 +DOTENV_FIXTURE_SECRET=test-secret
  DOTENV_FIXTURE_SINGLE=no $interpolation and ${DOTENV_FIXTURE_PLAIN}
  DOTENV_FIXTURE_SINGLE_MULTILINE=single line one\nsingle line two
- DOTENV_FIXTURE_SPACED=padded around the equals sign
+ DOTENV_FIXTURE_TRAILING=trimmed
 
 === diff: local-environment from default ===
 @@ @@
@@ -157,8 +155,8 @@ DOTENV_FIXTURE_DIST=from-dist
  DOTENV_FIXTURE_ADJACENT=onelater
  DOTENV_FIXTURE_AMBIENT_INTERPOLATED=-tail
 @@ @@
+ DOTENV_FIXTURE_TRAILING=trimmed
  DOTENV_FIXTURE_UNBRACED=one without braces
- DOTENV_FIXTURE_UNCLOSED=${DOTENV_FIXTURE_PLAIN
  DOTENV_FIXTURE_UNSEEN=seen after the reference above
 +FIXTURE_ENV=dev
 

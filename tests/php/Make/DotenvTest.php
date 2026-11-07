@@ -98,16 +98,11 @@ final class DotenvTest extends TestCase
         ))));
     }
 
-    public function testDotenvRefusesCommandSubstitution(): void
+    public function testDotenvRunsACommand(): void
     {
-        $result = $this->runMake(
-            ['dotenv-show', 'DOTENV=command.env'],
-            directory: self::DOTENV_DIRECTORY,
-            doExpectFailure: true,
-        );
+        $result = $this->runMake(['dotenv-show', 'DOTENV=command.env'], directory: self::DOTENV_DIRECTORY);
 
-        self::assertStringContainsString('`$(...)`', $result);
-        self::assertStringContainsString('use `${VAR}`', $result);
+        self::assertStringContainsString("DOTENV_FIXTURE_COMMAND=ran\n", $result);
     }
 
     public function testDotenvReportsAnUnterminatedQuote(): void
@@ -118,8 +113,7 @@ final class DotenvTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('unterminated quote', $result);
-        self::assertStringContainsString('unterminated.env', $result);
+        self::assertStringContainsString('Missing quote to end the value in "unterminated.env" at line 1.  Stop.', $result);
     }
 
     public function testDotenvRefusesAStageNameMakeWouldReadAsARule(): void
@@ -269,7 +263,7 @@ final class DotenvTest extends TestCase
         );
 
         self::assertStringContainsString("acme://open/Makefile#13\e\\FIXTURE_MAKEFILE_EXPORT", $outputWithEditorLinks);
-        self::assertStringContainsString("acme://open/.env#4\e\\DOTENV_FIXTURE_PLAIN", $outputWithEditorLinks);
+        self::assertStringContainsString("acme://open/.env#3\e\\DOTENV_FIXTURE_PLAIN", $outputWithEditorLinks);
     }
 
     public function testResolveListsAValueOnlyADotenvFileProvides(): void

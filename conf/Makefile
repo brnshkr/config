@@ -498,139 +498,291 @@ endif
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),$(ENV_BIN) $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
 
 define _DOTENV_AWK
-function fail(message) { if (_KEY != "") exit 1; if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
-function quote_for_shell(text,    quoted_text, position) {
-	quoted_text = ""
-	while ((position = index(text, SQ))) { quoted_text = quoted_text substr(text, 1, position - 1) SQ "\\" SQ SQ; text = substr(text, position + 1) }
-	return SQ quoted_text text SQ
+function fail(message) { if (_KEY != "") exit 1; if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } sub(/\.$$/, "", message); gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
+function fail_format(message) { fail(message " in \"" display_path "\" at line " line_number ".") }
+function quote_for_shell(text) { return SQ replace_all(text, SQ, SQ "\\" SQ SQ) SQ }
+function replace_all(text, search, replacement,    out, position) {
+	out = ""
+	while ((position = index(text, search))) { out = out substr(text, 1, position - 1) replacement; text = substr(text, position + length(search)) }
+	return out text
 }
-function unquote(value,    quote) {
-	quote = substr(value, 1, 1)
-	if ((quote == "\"" || quote == SQ) && length(value) > 1 && substr(value, length(value), 1) == quote) return substr(value, 2, length(value) - 2)
+function count_newlines(text) { return gsub(/\n/, "", text) }
+function character_at(position) { return position >= 1 ? substr(data, position, 1) : "" }
+function skip_empty_lines(    start) {
+	do {
+		start = cursor
+		while (cursor < end && index(" \t\n\r\f\013", character_at(cursor))) { if (character_at(cursor) == "\n") line_number += 1; cursor += 1 }
+		if (character_at(cursor) == "#") while (cursor < end && character_at(cursor) != "\n") cursor += 1
+	} while (cursor != start)
+}
+function lex_name(    rest, export_length, name_start, name, character) {
+	rest = substr(data, cursor)
+	export_length = match(rest, /^export[ \t]+/) ? RLENGTH : 0
+	if (export_length && match(substr(rest, export_length + 1), /^_*[A-Za-z][A-Za-z0-9_]*/)) name_start = export_length + 1
+	else if (match(rest, /^_*[A-Za-z][A-Za-z0-9_]*/)) { name_start = 1; export_length = 0 }
+	else fail_format("Invalid character in variable name")
+	name = substr(rest, name_start, RLENGTH)
+	cursor += name_start - 1 + RLENGTH
+	character = character_at(cursor)
+	if (cursor == end || character == "\n" || character == "#") fail_format(export_length ? "Unable to unset an environment variable" : "Missing = in the environment variable declaration")
+	if (character == " " || character == "\t") fail_format("Whitespace characters are not supported after the variable name")
+	if (character != "=") fail_format("Missing = in the environment variable declaration")
+	cursor += 1
+	return name
+}
+function lex_nested_expression(    expression, character) {
+	cursor += 1
+	while (cursor < end && (character = character_at(cursor)) != "\n" && character != ")") {
+		expression = expression character
+		if (character == "(") expression = expression lex_nested_expression() ")"
+		cursor += 1
+	}
+	if (cursor >= end || character_at(cursor) == "\n") fail_format("Missing closing parenthesis.")
+	return expression
+}
+function protect_escaped_dollars(text,    out, position, backslash_count) {
+	while ((position = index(text, "$$"))) {
+		backslash_count = 0
+		while (backslash_count < position - 1 && substr(text, position - backslash_count - 1, 1) == "\\") backslash_count += 1
+		out = out (backslash_count % 2 ? substr(text, 1, position - 2) MARK : substr(text, 1, position))
+		text = substr(text, position + 1)
+	}
+	return out text
+}
+function lex_value(    rest, value, segment, length_to_quote, previous_character, character, protected_segment) {
+	rest = substr(data, cursor)
+	match(rest, /^[ \t]*(#[^\n]*)?/)
+	if (substr(rest, RLENGTH + 1, 1) == "\n" || RLENGTH == length(rest)) { cursor += RLENGTH; skip_empty_lines(); return "" }
+	if (character_at(cursor) == " " || character_at(cursor) == "\t") fail_format("Whitespace are not supported before the value")
+	do {
+		character = character_at(cursor)
+		if (character == SQ) {
+			if (!(length_to_quote = index(substr(data, cursor + 1), SQ))) { cursor = end; fail_format("Missing quote to end the value") }
+			value = value replace_all(replace_all(substr(data, cursor + 1, length_to_quote - 1), "\\", "\\\\"), "$$", MARK)
+			cursor += length_to_quote + 1
+		} else if (character == "\"") {
+			if (++cursor == end) fail_format("Missing quote to end the value")
+			segment = ""
+			while (character_at(cursor) != "\"" || (character_at(cursor - 1) == "\\" && character_at(cursor - 2) != "\\")) {
+				segment = segment character_at(cursor)
+				if (++cursor == end) fail_format("Missing quote to end the value")
+			}
+			cursor += 1
+			value = value protect_escaped_dollars(replace_all(replace_all(replace_all(segment, "\\\"", "\""), "\\r", "\r"), "\\n", "\n"))
+		} else {
+			segment = ""
+			previous_character = character_at(cursor - 1)
+			while (cursor < end && (character = character_at(cursor)) != "\n" && character != "\"" && character != SQ && !((previous_character == " " || previous_character == "\t") && character == "#")) {
+				if (character == "\\" && (character_at(cursor + 1) == "\"" || character_at(cursor + 1) == SQ)) character = character_at(++cursor)
+				segment = segment character
+				previous_character = character
+				if (character == "$$" && character_at(cursor + 1) == "(") { cursor += 1; segment = segment "(" lex_nested_expression() ")" }
+				cursor += 1
+			}
+			sub(/[ \t\n\r\013]+$$/, "", segment)
+			protected_segment = protect_escaped_dollars(segment)
+			if (protected_segment == segment && segment ~ /[ \t\n\r\f\013]/ && !index(segment, "$$")) fail_format("A value containing spaces must be surrounded by quotes")
+			value = value protected_segment
+			if (cursor < end && character_at(cursor) == "#") break
+		}
+	} while (cursor < end && character_at(cursor) != "\n")
+	skip_empty_lines()
 	return value
 }
-function add_definition(key, value, is_single_quoted, path) {
-	if (!(key in definition_count_by_key)) order[++count] = key
-	definition_count_by_key[key] += 1
-	raw_value_by_definition[key, definition_count_by_key[key]] = value
-	path_by_definition[key, definition_count_by_key[key]] = path
-	if (is_single_quoted) single_quoted_definitions[key, definition_count_by_key[key]] = 1
+function is_self_referencing(name, value,    position) {
+	while ((position = index(value, "$$"))) {
+		value = substr(value, position + 1)
+		if (substr(value, 1, 1) == "{") value = substr(value, 2)
+		if (substr(value, 1, length(name)) == name && substr(value, length(name) + 1, 1) !~ /[A-Za-z0-9_]/) return 1
+	}
+	return 0
 }
-function resolve(key, definition, depth) {
-	if (depth > 32) fail("`" key "` refers back to itself in `" path_by_definition[key, definition] "`")
-	if ((key, definition) in single_quoted_definitions) return raw_value_by_definition[key, definition]
-	return interpolate(raw_value_by_definition[key, definition], key, definition, depth)
+function populate(name, value, is_overriding) {
+	if (!is_overriding && !(name in is_loaded) && (name in value_by_name)) return
+	value_by_name[name] = value
+	is_loaded[name] = 1
 }
-function get_value(name, key, definition, depth) {
-	if (name == key) return definition > 1 ? resolve(name, definition - 1, depth + 1) : (name in ENVIRON) ? ENVIRON[name] : ""
-	if (name in ENVIRON) return ENVIRON[name]
-	if (name in definition_count_by_key) return resolve(name, definition_count_by_key[name], depth + 1)
-	return (name in assigned_value_by_key) ? assigned_value_by_key[name] : ""
-}
-function interpolate(value, key, definition, depth,    out, position, backslash_count, rest, name, name_length, closing, operator, default_value, resolved_value) {
-	out = ""
-	while ((position = index(value, "$$")) > 0) {
-		backslash_count = 0
-		while (backslash_count < position - 1 && substr(value, position - backslash_count - 1, 1) == "\\") backslash_count += 1
-		rest = substr(value, position + 1)
-		if (backslash_count % 2) { out = out substr(value, 1, position - 2) "$$"; value = rest; continue }
-		out = out substr(value, 1, position - 1)
-		if (match(rest, /^[{]_?[A-Za-z][A-Za-z0-9_]*/)) {
-			name_length = RLENGTH - 1
-			name = substr(rest, 2, name_length)
-			closing = index(rest, "}")
-			operator = (closing > name_length + 3) ? substr(rest, name_length + 2, 2) : ""
-			if (closing == name_length + 2 || operator == ":-" || operator == ":=") {
-				default_value = (operator == "") ? "" : substr(rest, name_length + 4, closing - name_length - 4)
-				if (index(default_value, "$$")) fail("`$$` in the default of `$${" name "}` in `" path_by_definition[key, definition] "` is not supported")
-				resolved_value = get_value(name, key, definition, depth)
-				if (resolved_value == "" && operator == ":=") assigned_value_by_key[name] = default_value
-				if (resolved_value == "" && operator != "") resolved_value = default_value
-				out = out resolved_value
-				value = substr(rest, closing + 1)
-				continue
-			}
-		} else if (match(rest, /^_?[A-Za-z][A-Za-z0-9_]*/)) {
-			name_length = RLENGTH
-			out = out get_value(substr(rest, 1, name_length), key, definition, depth)
-			value = substr(rest, name_length + 1)
-			continue
+function load(path,    line, status, name, value, file_name_count, file_names, value_in_file, record_line_number, name_index) {
+	if ((status = (getline line < path)) < 0) return 0
+	data = status ? line : ""
+	while ((getline line < path) > 0) data = data "\n" line
+	close(path)
+	display_path = index(path, _CURDIR "/") == 1 ? substr(path, length(_CURDIR) + 2) : path
+	line_number = 1
+	if (substr(data, 1, 3) == "\357\273\277") fail_format("Loading files starting with a byte-order-mark (BOM) is not supported.")
+	data = replace_all(replace_all(data, "\r\n", "\n"), "\r", "\n")
+	cursor = 1
+	end = length(data) + 1
+	skip_empty_lines()
+	while (cursor < end) {
+		record_line_number = 1 + count_newlines(substr(data, 1, cursor - 1))
+		name = lex_name()
+		value = cursor < end ? lex_value() : ""
+		if (!(name in value_in_file)) file_names[++file_name_count] = name
+		value_in_file[name] = value
+		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = name; record_value[record_count] = value; record_line[record_count] = record_line_number; last_record_of_key[name] = record_count }
+	}
+	for (name_index = 1; name_index <= file_name_count; name_index += 1) {
+		name = file_names[name_index]
+		value = value_in_file[name]
+		if (!(name in order_index)) order[order_index[name] = ++order_count] = name
+		if (!(name in overridden_value)) {
+			if (name in value_by_name) overridden_value[name] = value_by_name[name]
+			else if (is_self_referencing(name, value) && (name in ENVIRON)) overridden_value[name] = ENVIRON[name]
 		}
-		out = out "$$"
-		value = rest
+		if (((name in is_loaded) || !(name in value_by_name)) && !(name in raw_index)) raw_names[raw_index[name] = ++raw_count] = name
+	}
+	for (name_index = 1; name_index <= file_name_count; name_index += 1) populate(file_names[name_index], value_in_file[file_names[name_index]], 0)
+	return 1
+}
+function run_command(command,    exports, name, shell_command, output, line, line_count) {
+	for (name in is_loaded) exports = exports "export " name "=" quote_for_shell(replace_all(value_by_name[name], MARK, "$$")) "; "
+	shell_command = "sh -c " quote_for_shell(exports "{ echo " command "; } 2>/dev/null; printf " SQ "\\001" SQ) " 2>&1"
+	output = ""
+	while ((shell_command | getline line) > 0) output = output (line_count++ ? "\n" : "") line
+	close(shell_command)
+	if (substr(output, length(output)) != MARK) fail_format("Issue expanding a command (" output ")")
+	output = substr(output, 1, length(output) - 1)
+	sub(/[\n\r]+$$/, "", output)
+	return output
+}
+function resolve_commands(value,    out, position, depth, scan, command) {
+	while ((position = index(value, "$$("))) {
+		depth = 0
+		for (scan = position + 1; scan <= length(value); scan += 1) {
+			if (substr(value, scan, 1) == "(") depth += 1
+			else if (substr(value, scan, 1) == ")" && !--depth) break
+		}
+		if (scan > length(value) || scan == position + 2) { out = out substr(value, 1, position + 1); value = substr(value, position + 2); continue }
+		command = substr(value, position, scan - position + 1)
+		out = out (position > 1 && substr(value, position - 1, 1) == "\\" ? substr(value, 1, position - 2) command : substr(value, 1, position - 1) run_command(command))
+		value = substr(value, scan + 1)
 	}
 	return out value
 }
-function load(path,    line, key, value, quote, continued_line, line_number, key_line_number) {
-	if ((getline line < path) < 0) return 0
-	do {
-		key_line_number = ++line_number
-		sub(/\r$$/, "", line)
-		if (line ~ /^[ \t]*($$|#)/) continue
-		sub(/^[ \t]*export[ \t]+/, "", line)
-		if (line !~ /^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/) continue
-		key = line
-		sub(/[ \t]*=.*$$/, "", key)
-		value = substr(line, index(line, "=") + 1)
-		sub(/^[ \t]+/, "", value)
-		quote = substr(value, 1, 1)
-		if (quote == "\"" || quote == SQ) {
-			while (!(length(value) > 1 && substr(value, length(value), 1) == quote)) {
-				if ((getline continued_line < path) <= 0) fail("unterminated quote in `" path "`")
-				line_number += 1
-				sub(/\r$$/, "", continued_line)
-				value = value "\n" continued_line
-			}
-		} else {
-			sub(/[ \t]+#.*$$/, "", value)
-			sub(/[ \t]+$$/, "", value)
+function resolve_variables(value,    out, position, backslash_count, rest, has_brace, name, default_value, has_closing_brace, matched_length, matched_text, prefix, resolved_value, is_external) {
+	while ((position = index(value, "$$"))) {
+		backslash_count = 0
+		while (backslash_count < position - 1 && substr(value, position - backslash_count - 1, 1) == "\\") backslash_count += 1
+		rest = substr(value, position + 1)
+		if (substr(rest, 1, 1) == "(") { out = out substr(value, 1, position); value = rest; continue }
+		has_brace = substr(rest, 1, 1) == "{"
+		name = match(substr(rest, has_brace + 1), /^_*[A-Za-z][A-Za-z0-9_]*/) ? substr(rest, has_brace + 1, RLENGTH) : ""
+		default_value = match(substr(rest, has_brace + length(name) + 1), /^:[-=][^}]*/) ? substr(rest, has_brace + length(name) + 1, RLENGTH) : ""
+		matched_length = has_brace + length(name) + length(default_value)
+		has_closing_brace = substr(rest, matched_length + 1, 1) == "}"
+		matched_length += has_closing_brace
+		prefix = substr(value, 1, position - 1 - backslash_count)
+		matched_text = substr(value, position - backslash_count, backslash_count + 1 + matched_length)
+		value = substr(rest, matched_length + 1)
+		if (backslash_count % 2) { out = out prefix substr(matched_text, 2); continue }
+		if (name == "") { out = out prefix matched_text; continue }
+		if (has_brace && !has_closing_brace) fail_format("Unclosed braces on variable expansion")
+		is_external = 0
+		if ((name in is_loaded) && (name in assigned_value)) resolved_value = assigned_value[name]
+		else if (name in value_by_name) { resolved_value = value_by_name[name]; is_external = 1 }
+		else if (name in assigned_value) resolved_value = assigned_value[name]
+		else { resolved_value = (name in ENVIRON) && !(name in hidden_names) ? ENVIRON[name] : ""; is_external = 1 }
+		if (resolved_value != "" && !(name in is_loaded)) resolved_value = replace_all(is_external ? replace_all(resolved_value, "\\", "\\\\") : resolved_value, "$$", MARK)
+		if (resolved_value == "" && default_value != "") {
+			if (match(default_value, "[" SQ "\"{$$]")) fail_format("Unsupported character \"" substr(default_value, RSTART, 1) "\" found in the default value of variable \"$$" name "\".")
+			resolved_value = substr(default_value, 3)
+			if (substr(default_value, 2, 1) == "=") assigned_value[name] = resolved_value
 		}
-		if (quote != SQ && value ~ /\$$\(/) fail("`$$(...)` in `" path "` is not supported, use `$${VAR}`")
-		add_definition(key, unquote(value), quote == SQ, path)
-		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = key; record_definition[record_count] = definition_count_by_key[key]; record_line[record_count] = key_line_number; last_record_of_key[key] = record_count }
-	} while ((getline line < path) > 0)
-	close(path)
-	return 1
+		out = out prefix substr(matched_text, 1, backslash_count) resolved_value (!has_brace && has_closing_brace ? "}" : "")
+	}
+	return out value
 }
-function get_environment(fallback,    value) { value = _ENV_VALUE != "" ? _ENV_VALUE : (_ENV_KEY in definition_count_by_key) ? resolve(_ENV_KEY, definition_count_by_key[_ENV_KEY], 0) : ""; return value != "" ? value : fallback }
+function unescape(value) { return replace_all(replace_all(value, MARK, "$$"), "\\\\", "\\") }
+function hide_own_value(name) {
+	if (name in value_by_name) { hidden_value = value_by_name[name]; is_value_hidden = 1 } else is_value_hidden = 0
+	if (name in overridden_value) value_by_name[name] = replace_all(replace_all(overridden_value[name], "\\\\", "\\\\\\\\"), "$$", MARK)
+	else { delete value_by_name[name]; hidden_names[name] = 1 }
+}
+function reveal_value(name) { delete hidden_names[name]; if (is_value_hidden) value_by_name[name] = hidden_value; else delete value_by_name[name] }
+function hide_value(name) { if (name in value_by_name) { hidden_value = value_by_name[name]; is_value_hidden = 1 } else is_value_hidden = 0; delete value_by_name[name]; hidden_names[name] = 1 }
+function resolve_environment_key(value,    resolved_value) {
+	if (!index(value, "$$") && !index(value, MARK) && !index(value, "\\")) return value
+	split("", assigned_value)
+	display_path = ""
+	line_number = 0
+	hide_value(_ENV_KEY)
+	resolved_value = unescape(resolve_variables(resolve_commands(value)))
+	reveal_value(_ENV_KEY)
+	split("", assigned_value)
+	return resolved_value
+}
+function resolve_loaded_values(    name_index, name, value, pass, changed_count, changed_names, changed_values, resolved_value, is_self_referencing_by_name, changed_list) {
+	split("", assigned_value)
+	display_path = ""
+	line_number = 0
+	for (name_index = 1; name_index <= raw_count; name_index += 1) if (is_self_referencing(raw_names[name_index], value_by_name[raw_names[name_index]] "")) is_self_referencing_by_name[raw_names[name_index]] = 1
+	for (pass = 0; pass < 5; pass += 1) {
+		changed_count = 0
+		for (name_index = 1; name_index <= raw_count; name_index += 1) {
+			name = raw_names[name_index]
+			if (!index(value = (name in value_by_name) ? value_by_name[name] : "", "$$")) continue
+			if (name in is_self_referencing_by_name) hide_own_value(name)
+			resolved_value = resolve_variables(resolve_commands(value))
+			if (name in is_self_referencing_by_name) reveal_value(name)
+			if (resolved_value != value) { changed_names[++changed_count] = name; changed_values[changed_count] = resolved_value }
+		}
+		if (!changed_count) break
+		for (name_index = 1; name_index <= changed_count; name_index += 1) populate(changed_names[name_index], changed_values[name_index], 1)
+	}
+	if (pass == 5 && changed_count) {
+		for (name_index = 1; name_index <= changed_count; name_index += 1) changed_list = changed_list (name_index > 1 ? ", " : "") changed_names[name_index]
+		fail("Too many levels of variable indirection in env vars: " changed_list ".")
+	}
+	for (name_index = 1; name_index <= raw_count; name_index += 1) value_by_name[raw_names[name_index]] = unescape(value_by_name[raw_names[name_index]] "")
+}
+function is_test_environment(environment,    test_count, tests, test_index) {
+	test_count = split(_TEST_ENVS, tests, /[ \t]+/)
+	for (test_index = 1; test_index <= test_count; test_index += 1) if (tests[test_index] == environment) return 1
+	return 0
+}
 BEGIN {
 	SQ = sprintf("%c", 39)
+	MARK = sprintf("%c", 1)
+	for (name in ENVIRON) if (name !~ /^HTTP_/) value_by_name[name] = ENVIRON[name]
+	if (_ENV_VALUE != "") value_by_name[_ENV_KEY] = _ENV_VALUE
 	if (!load(_BASE)) load(_BASE ".dist")
-	env = get_environment(_DEFAULT_ENV)
-	split(_TEST_ENVS, tests, /[ \t]+/)
-	for (i in tests) if (tests[i] == env) is_test = 1
-	if (!is_test) { load(_BASE ".local"); env = get_environment(env) }
-	if (env != "local") { load(_BASE "." env); load(_BASE "." env ".local") }
-	add_definition(_ENV_KEY, env, 1, "")
+	if (!(_ENV_KEY in value_by_name)) populate(_ENV_KEY, _DEFAULT_ENV, 0)
+	environment = resolve_environment_key(value_by_name[_ENV_KEY])
+	if (!is_test_environment(environment) && load(_BASE ".local")) environment = resolve_environment_key(value_by_name[_ENV_KEY])
+	if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }
+	resolve_loaded_values()
+	if (!(_ENV_KEY in order_index)) order[order_index[_ENV_KEY] = ++order_count] = _ENV_KEY
 	if (_KEY != "") {
-		if ((_KEY in definition_count_by_key) && !(_KEY in ENVIRON)) printf "%s", resolve(_KEY, definition_count_by_key[_KEY], 0)
+		if ((_KEY in order_index) && (_KEY in is_loaded)) printf "%s", value_by_name[_KEY]
 		exit
 	}
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
-			key = record_key[record_index]
-			value = resolve(key, record_definition[record_index], 0)
+			name = record_key[record_index]
+			value = last_record_of_key[name] == record_index && (name in is_loaded) ? value_by_name[name] : unescape(record_value[record_index])
 			gsub(/\n/, " ", value)
-			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], key, value, (key in ENVIRON) ? "environment" : (last_record_of_key[key] != record_index) ? record_file[last_record_of_key[key]] : "", record_line[record_index]
+			overriding_path = !(name in is_loaded) ? "environment" : last_record_of_key[name] != record_index ? record_file[last_record_of_key[name]] : ""
+			printf "%s\037%s\037%s\037%s\037%s\n", record_file[record_index], name, value, overriding_path, record_line[record_index]
 		}
 		exit
 	}
 	if (_ENVIRONMENT) {
-		for (i = 1; i <= count; i += 1) if (!(order[i] in ENVIRON)) printf "%s=%s ", order[i], quote_for_shell(resolve(order[i], definition_count_by_key[order[i]], 0))
+		for (name_index = 1; name_index <= order_count; name_index += 1) if (order[name_index] in is_loaded || order[name_index] == _ENV_KEY) printf "%s=%s ", order[name_index], quote_for_shell(value_by_name[order[name_index]])
 		exit
 	}
-	for (i = 1; i <= count; i += 1) {
-		key = order[i]
-		value = resolve(key, definition_count_by_key[key], 0)
+	for (name_index = 1; name_index <= order_count; name_index += 1) {
+		name = order[name_index]
+		value = value_by_name[name]
 		gsub(/\$$/, "$$$$", value)
 		gsub(/#/, "\\#", value)
 		gsub(/\n/, "$$(_NEWLINE)", value)
 		sub(/^[ \t]/, "$$()&", value)
 		sub(/\\$$/, "&$$()", value)
-		printf "%s ?= %s%s", key, value, _SEPARATOR
-		printf "export %s%s", key, _SEPARATOR
-		printf "_DOTENV_KEYS += %s%s", key, _SEPARATOR
-		if (!(key in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", key, _SEPARATOR
+		printf "%s ?= %s%s", name, value, _SEPARATOR
+		printf "export %s%s", name, _SEPARATOR
+		printf "_DOTENV_KEYS += %s%s", name, _SEPARATOR
+		if (!(name in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", name, _SEPARATOR
 	}
 }
 endef
@@ -638,6 +790,7 @@ endef
 _DOTENV_ENV_VALUE := $($(DOTENV_ENV_KEY))
 
 _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
+	-v _CURDIR='$(CURDIR)' \
 	-v _ENV_KEY='$(DOTENV_ENV_KEY)' \
 	-v _ENV_VALUE='$(_DOTENV_ENV_VALUE)' \
 	-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \

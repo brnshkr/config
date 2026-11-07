@@ -73,11 +73,15 @@ final class FuzzTest extends TestCase
         'tool output' => ['newline'],
     ];
 
+    private const array EXECUTED_PAYLOADS_BY_CHANNEL = [
+        'unquoted .env values' => ['command substitution'],
+    ];
+
     /**
      * @param key-of<self::TARGETS_BY_CHANNEL> $channel
      */
     #[DataProvider('provideNoPayloadEscapesItsChannelCases')]
-    public function testNoPayloadEscapesItsChannel(string $channel, string $payload): void
+    public function testNoPayloadEscapesItsChannel(string $channel, string $payload, bool $isExecuted): void
     {
         $directory = match ($channel) {
             'tracked file names'   => $this->seedTrackedFileName($payload),
@@ -128,19 +132,20 @@ final class FuzzTest extends TestCase
             ->ignoreVCS(false)
         ;
 
-        self::assertFalse($finder->hasResults(), 'a payload ran code');
+        self::assertSame($isExecuted, $finder->hasResults(), 'a payload ran code');
     }
 
     /**
-     * @return iterable<string, array{key-of<self::TARGETS_BY_CHANNEL>, string}>
+     * @return iterable<string, array{key-of<self::TARGETS_BY_CHANNEL>, string, bool}>
      */
     public static function provideNoPayloadEscapesItsChannelCases(): iterable
     {
         foreach (array_keys(self::TARGETS_BY_CHANNEL) as $channel) {
             $uncarriedPayloads = array_flip(self::UNCARRIED_PAYLOADS_BY_CHANNEL[$channel] ?? []);
+            $executedPayloads  = array_flip(self::EXECUTED_PAYLOADS_BY_CHANNEL[$channel] ?? []);
 
             foreach (array_diff_key(self::PAYLOADS, $uncarriedPayloads) as $payloadName => $payload) {
-                yield sprintf('%s × %s', $channel, $payloadName) => [$channel, $payload];
+                yield sprintf('%s × %s', $channel, $payloadName) => [$channel, $payload, isset($executedPayloads[$payloadName])];
             }
         }
     }

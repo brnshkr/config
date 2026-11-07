@@ -165,13 +165,13 @@ final class ConfigsTest extends TestCase
         $filesystem       = new Filesystem();
 
         $filesystem->dumpFile($configsDirectory . '/package.json', '{}');
-        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=\n");
+        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=\"\"\n");
         $this->runMake(['configs', 'bunfig.toml', 'composer.json'], directory: $configsDirectory);
 
         $emptyBunfig   = $filesystem->readFile($configsDirectory . '/bunfig.toml');
         $emptyManifest = $filesystem->readFile($configsDirectory . '/composer.json');
 
-        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=1209600\n");
+        $filesystem->dumpFile($configsDirectory . '/.env', "MINIMUM_RELEASE_AGE=\"1209600\"\n");
         $this->runMake(['configs', 'bunfig.toml', 'composer.json'], directory: $configsDirectory);
 
         $changedBunfig = $filesystem->readFile($configsDirectory . '/bunfig.toml');
