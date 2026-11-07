@@ -498,7 +498,7 @@ endif
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),$(ENV_BIN) $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
 
 define _DOTENV_AWK
-function fail(message) { if (_KEY != "") exit 1; if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } sub(/\.$$/, "", message); gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
+function fail(message) { if (_ENVIRONMENT) { print "[" _PREFIX "] " message > "/dev/stderr"; exit 1 } sub(/\.$$/, "", message); gsub(/\$$/, "$$$$", message); printf "$$(error [%s] %s)\n", _PREFIX, message; exit 1 }
 function fail_format(message) { fail(message " in \"" display_path "\" at line " line_number ".") }
 function quote_for_shell(text) { return SQ replace_all(text, SQ, SQ "\\" SQ SQ) SQ }
 function replace_all(text, search, replacement,    out, position) {
@@ -736,6 +736,14 @@ function resolve_loaded_values(    name_index, name, value, pass, changed_count,
 	}
 	for (name_index = 1; name_index <= raw_count; name_index += 1) value_by_name[raw_names[name_index]] = unescape(value_by_name[raw_names[name_index]] "")
 }
+function escape_for_make(value) {
+	gsub(/\$$/, "$$$$", value)
+	gsub(/#/, "\\#", value)
+	gsub(/\n/, "$$(_NEWLINE)", value)
+	sub(/^[ \t]/, "$$()&", value)
+	sub(/\\$$/, "&$$()", value)
+	return value
+}
 function is_test_environment(environment,    test_count, tests, test_index) {
 	test_count = split(_TEST_ENVS, tests, /[ \t]+/)
 	for (test_index = 1; test_index <= test_count; test_index += 1) if (tests[test_index] == environment) return 1
@@ -753,10 +761,6 @@ BEGIN {
 	if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }
 	resolve_loaded_values()
 	if (!(_ENV_KEY in order_index)) order[order_index[_ENV_KEY] = ++order_count] = _ENV_KEY
-	if (_KEY != "") {
-		if ((_KEY in order_index) && (_KEY in is_loaded)) printf "%s", value_by_name[_KEY]
-		exit
-	}
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
 			name = record_key[record_index]
@@ -771,19 +775,21 @@ BEGIN {
 		for (name_index = 1; name_index <= order_count; name_index += 1) if (order[name_index] in is_loaded || order[name_index] == _ENV_KEY) printf "%s=%s ", order[name_index], quote_for_shell(value_by_name[order[name_index]])
 		exit
 	}
+	printf "_DOTENV_STAGE := %s%s", escape_for_make(environment), _SEPARATOR
+	lookup_count = split(_LOOKUP_KEYS, lookup_keys, " ")
+	for (name_index = 1; name_index <= lookup_count; name_index += 1) if ((lookup_keys[name_index] in order_index) && (lookup_keys[name_index] in is_loaded)) printf "_DOTENV_LOOKUP_%s := %s%s", lookup_keys[name_index], escape_for_make(value_by_name[lookup_keys[name_index]]), _SEPARATOR
+	for (name_index = 1; name_index <= order_count; name_index += 1) if (order[name_index] in is_loaded || order[name_index] == _ENV_KEY) environment_text = environment_text order[name_index] "=" quote_for_shell(value_by_name[order[name_index]]) " "
+	gsub(/\n/, " ", environment_text)
+	printf "_DOTENV_ENVIRONMENT := %s%s", escape_for_make(environment_text), _SEPARATOR
+	printf "define _DOTENV_ASSIGNMENTS%s", _SEPARATOR
 	for (name_index = 1; name_index <= order_count; name_index += 1) {
 		name = order[name_index]
-		value = value_by_name[name]
-		gsub(/\$$/, "$$$$", value)
-		gsub(/#/, "\\#", value)
-		gsub(/\n/, "$$(_NEWLINE)", value)
-		sub(/^[ \t]/, "$$()&", value)
-		sub(/\\$$/, "&$$()", value)
-		printf "%s ?= %s%s", name, value, _SEPARATOR
+		printf "%s ?= %s%s", name, escape_for_make(value_by_name[name]), _SEPARATOR
 		printf "export %s%s", name, _SEPARATOR
 		printf "_DOTENV_KEYS += %s%s", name, _SEPARATOR
 		if (!(name in ENVIRON)) printf "_DOTENV_FILE_KEYS += %s%s", name, _SEPARATOR
 	}
+	printf "endef%s", _SEPARATOR
 }
 endef
 
@@ -798,22 +804,21 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 	-v _PREFIX='$(_LABEL)' \
 	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
 
-_DOTENV_COMPOSE_FILE := $(if $(and $(filter file,$(origin COMPOSE_FILE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=COMPOSE_FILE '$(_DOTENV_AWK)'))
+_DOTENV_OUTPUT := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell \
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _LOOKUP_KEYS='COMPOSE_FILE FORGE_NAMESPACE FORGE_IMAGE_NAMESPACE FORGE_FRAGMENT_NAMESPACE' '$(_DOTENV_AWK)'))
 
-_DOTENV_FORGE_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_NAMESPACE '$(_DOTENV_AWK)'))
+$(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_OUTPUT)))
 
-_DOTENV_FORGE_IMAGE_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_IMAGE_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_IMAGE_NAMESPACE '$(_DOTENV_AWK)'))
-
-_DOTENV_FORGE_FRAGMENT_NAMESPACE := $(if $(and $(filter file,$(origin FORGE_FRAGMENT_NAMESPACE)),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _KEY=FORGE_FRAGMENT_NAMESPACE '$(_DOTENV_AWK)'))
+_DOTENV_COMPOSE_FILE             := $(if $(filter file,$(origin COMPOSE_FILE)),$(_DOTENV_LOOKUP_COMPOSE_FILE))
+_DOTENV_FORGE_NAMESPACE          := $(if $(filter file,$(origin FORGE_NAMESPACE)),$(_DOTENV_LOOKUP_FORGE_NAMESPACE))
+_DOTENV_FORGE_IMAGE_NAMESPACE    := $(if $(filter file,$(origin FORGE_IMAGE_NAMESPACE)),$(_DOTENV_LOOKUP_FORGE_IMAGE_NAMESPACE))
+_DOTENV_FORGE_FRAGMENT_NAMESPACE := $(if $(filter file,$(origin FORGE_FRAGMENT_NAMESPACE)),$(_DOTENV_LOOKUP_FORGE_FRAGMENT_NAMESPACE))
 
 _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
-_DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)), \
-	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)'))
+_DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(if \
+	$(filter $(DOTENV_DEFAULT_ENV),$(_DOTENV_STAGE)),$(_DOTENV_ENVIRONMENT), \
+	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)')))
 
 ifneq ($(_HAS_CONTAINER),) # container
 
@@ -2696,10 +2701,9 @@ SEMVER_PRERELEASE_STRICT ?= (alpha|beta|rc)(\.(0|[1-9][0-9]*))?#~~ the narrower 
 SEMVER_BUILD             ?= [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*#~~ build metadata, which neither registry publishes
 SEMVER_REGEX             ?= $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NUMBER)(-$(SEMVER_PRERELEASE))?(\+$(SEMVER_BUILD))?#~~ the semver grammar, as a POSIX extended regular expression
 
-_DOTENV_FILE_KEYS   := $(if $(_IS_DETECTED_BY_PARENT),$(_DOTENV_FILE_KEYS))
-_DOTENV_ASSIGNMENTS := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell $(AWK) $(_DOTENV_AWK_FLAGS) '$(_DOTENV_AWK)'))
+_DOTENV_FILE_KEYS := $(if $(_IS_DETECTED_BY_PARENT),$(_DOTENV_FILE_KEYS))
 
-$(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_ASSIGNMENTS)))
+$(eval $(value _DOTENV_ASSIGNMENTS))
 
 export _DOTENV_FILE_KEYS
 
