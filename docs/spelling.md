@@ -35,9 +35,9 @@ exports nothing — importing it registers the test — and the `export` form is
 
 ## What is scanned
 
-Every tracked file the shipped defaults name, by extension or by file name
+Every file the shipped defaults name, by extension or by file name
 — see [`./conf/spelling/defaults.json`](../conf/spelling/defaults.json) for the exact set.
-The list comes from `git ls-files`, so anything gitignored is already out,
+The list comes from `git ls-files`, untracked files included, so anything gitignored is already out,
 and snapshots and test fixtures are excluded on top of that.
 
 ## Customizing

@@ -11,16 +11,22 @@ import type { SpellingSettings } from '#spelling/types/options.ts';
 
 const COMMAND_TIMEOUT_MILLISECONDS = 60_000;
 
-const listTrackedFiles = (rootDirectory: string): string[] => {
+const listProjectFiles = (rootDirectory: string): string[] => {
   // eslint-disable-next-line node/no-sync -- Synchronous listing keeps both scanners on one surface
-  const trackedFiles = execFileSync('git', ['ls-files', '-z'], {
+  const projectFiles = execFileSync('git', [
+    'ls-files',
+    '-z',
+    '--cached',
+    '--others',
+    '--exclude-standard',
+  ], {
     cwd: rootDirectory,
     encoding: 'utf-8',
     maxBuffer: Infinity,
     timeout: COMMAND_TIMEOUT_MILLISECONDS,
   });
 
-  return trackedFiles.split('\0').filter((filePath) => filePath !== '');
+  return projectFiles.split('\0').filter((filePath) => filePath !== '');
 };
 
 const isScannedPath = (
@@ -40,7 +46,7 @@ export const collectFilePaths = (rootDirectory: string, settings: SpellingSettin
   const scannedExtensions = new Set(settings.fileExtensions);
   const scannedNames = new Set(settings.fileNames);
 
-  return listTrackedFiles(rootDirectory)
+  return listProjectFiles(rootDirectory)
     .filter((filePath) => isScannedPath(
       filePath,
       scannedExtensions,
