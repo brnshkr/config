@@ -133,6 +133,21 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('`.env.stage:;false;#` does not name a stage', $result);
     }
 
+    public function testACustomBaseNamesTheStages(): void
+    {
+        $dotenvDirectory = $this->getFixtureCopy(self::DOTENV_DIRECTORY);
+        $filesystem      = new Filesystem();
+
+        $filesystem->dumpFile($dotenvDirectory . '/conf/.env', '');
+        $filesystem->touch([$dotenvDirectory . '/conf/.env.staging', $dotenvDirectory . '/.env.stage:;false;#']);
+
+        $staging = $this->runMake(['-n', 'staging-dotenv-show', 'DOTENV=conf/.env'], directory: $dotenvDirectory);
+        $root    = $this->runMake(['-n', 'dev-dotenv-show', 'DOTENV=conf/.env'], directory: $dotenvDirectory, doExpectFailure: true);
+
+        self::assertStringContainsString('APP_ENV=staging dotenv-show', $staging);
+        self::assertStringNotContainsString('APP_ENV=dev dotenv-show', $root);
+    }
+
     public function testAStageGoalRunsNothingWhenTheTargetItNamesIsUnknown(): void
     {
         $known   = $this->runMake(['-n', 'dev-dotenv-show'], directory: self::DOTENV_DIRECTORY);

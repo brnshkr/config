@@ -400,8 +400,14 @@ final class ConfigsTest extends TestCase
         $filesystem->touch($configsDirectory . '/.env.test');
         $this->runMake(['configs', 'gitignore'], directory: $configsDirectory);
 
+        $withEnvironmentFiles = $filesystem->readFile($configsDirectory . '/.gitignore');
+
+        $filesystem->dumpFile($configsDirectory . '/conf/.env', '');
+        $this->runMake(['configs', 'gitignore', 'DOTENV=conf/.env'], directory: $configsDirectory);
+
         self::assertStringNotContainsString('/.env', $withoutEnvironmentFiles);
-        self::assertStringContainsString("/.env.*.local\n/.env.local\n", $filesystem->readFile($configsDirectory . '/.gitignore'));
+        self::assertStringContainsString("/.env.*.local\n/.env.local\n", $withEnvironmentFiles);
+        self::assertStringContainsString("/conf/.env.*.local\n/conf/.env.local\n", $filesystem->readFile($configsDirectory . '/.gitignore'));
     }
 
     public function testConfigsWritesWhenThereIsNoRepositoryToAsk(): void

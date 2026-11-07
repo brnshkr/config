@@ -301,6 +301,7 @@ WSLPATH         ?= wslpath#~~ path to `wslpath` binary
 XARGS           ?= xargs#~~ path to `xargs` binary
 
 _COMMA := ,
+_HASH  := \#
 _QUOTE := '
 _SPACE := $(subst ,, )
 
@@ -480,14 +481,14 @@ DOTENV             ?= 1#~~ base path of the environment files, `1` for `.env`, `
 DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
 DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
 DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.env.local` file
-DOTENV_STAGES      := $(filter-out local %.local %.example,$(patsubst .env.%,%,$(notdir $(wildcard $(CURDIR)/.env.*))))#~~ stages the `.env.<stage>` files name
-_CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
+DOTENV_STAGES      := $(if $(_DOTENV_BASE),$(filter-out local %.local %.example,$(patsubst $(_DOTENV_BASE).%,%,$(wildcard $(_DOTENV_BASE).*))))#~~ stages the `.env.<stage>` files name
+_CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _CONFIG_STAGES      = $(sort $(DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
 
-_DOTENV_REFUSED_STAGES := $(if $(wildcard $(CURDIR)/.env.*),$(shell for file in .env.*; do \
-	case "$$file" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || printf '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
+_DOTENV_REFUSED_STAGES := $(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE).*)),$(shell for file in '$(patsubst $(CURDIR)/%,%,$(_DOTENV_BASE))'.*; do \
+	case "$${file$(_HASH)$(_HASH)*/}" in (*[!A-Za-z0-9._-]*) [ ! -e "$$file" ] || printf '%s ' "$$file" | $(TR) '[:cntrl:]' '?';; esac; \
 done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
@@ -1483,7 +1484,7 @@ _EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(fore
 _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	/$(_CACHE_DIR)/ \
 	/$(_LOCAL_DIR)/ \
-	$(if $(wildcard $(CURDIR)/.env $(CURDIR)/.env.*),/.env.local /.env.*.local) \
+	$(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).*)),$(patsubst $(CURDIR)/%,/%,$(addprefix $(_DOTENV_BASE),.local .*.local))) \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
