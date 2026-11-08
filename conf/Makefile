@@ -1110,7 +1110,7 @@ _LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr loca
 #* returns: string
 #*
 define _is_tool_available
-$(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(and $(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE)),$(filter %-cli %-cli-chromium,$(_SERVICE_TAG)))),$(call _is_on_path,$1))
+$(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(and $(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE)),$(filter cli cli-chromium %-cli %-cli-chromium,$(_SERVICE_TAG)))),$(call _is_on_path,$1))
 endef
 
 _COMPOSER_DIRECTORIES := $(wordlist 1,2,$(_MANIFEST_FACTS))
@@ -1877,7 +1877,7 @@ $(call _target,coverage): #~~ runs the tests and fails below the minimum coverag
 endif
 
 TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-matrix` runs
-TEST_MATRIX_IMAGE_KEY ?= $(if $(filter %-cli-chromium,$(_SERVICE_TAG)),FORGE_CLI_CHROMIUM_IMAGE,$(if $(filter $(CLI_SERVICE),$(_TOOL_SERVICE)),FORGE_CLI_IMAGE,FORGE_APP_DEV_IMAGE))#vv #~~ variable naming the image the Compose file runs
+TEST_MATRIX_IMAGE_KEY ?= $(if $(filter cli-chromium %-cli-chromium,$(_SERVICE_TAG)),FORGE_CLI_CHROMIUM_IMAGE,$(if $(filter $(CLI_SERVICE),$(_TOOL_SERVICE)),FORGE_CLI_IMAGE,FORGE_APP_DEV_IMAGE))#vv #~~ variable naming the image the Compose file runs
 
 _MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
 _MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
