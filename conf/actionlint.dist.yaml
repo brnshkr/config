@@ -12,3 +12,5 @@ paths:
     ignore:
       - property "workflow_repository" is not defined
       - property "workflow_sha" is not defined
+      - reusable workflow call "\$/
+      - specifying action "\$/
