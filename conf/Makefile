@@ -221,19 +221,31 @@ PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 
 #---- package
 
-define _MANIFEST_NAME_AWK
-/^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
+define _MANIFEST_AWK
+FILENAME == _MANIFEST && /^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
 	match($$0, /^[ \t]*/)
-	if (found_name == "" || RLENGTH < indent) { \
-		indent = RLENGTH; split($$0, parts, "\""); \
-		found_name = parts[4] \
-	}
+	if (found_name == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found_name = parts[4] }
 }
-END { print found_name }
+FILENAME ~ /composer[.]json$$/ && match($$0, /"vendor-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) {
+	vendor_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", vendor_directory); sub(/"$$/, "", vendor_directory)
+}
+FILENAME ~ /composer[.]json$$/ && match($$0, /"bin-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) {
+	bin_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", bin_directory); sub(/"$$/, "", bin_directory)
+}
+END {
+	if (vendor_directory == "") vendor_directory = "vendor"
+	if (bin_directory == "") bin_directory = vendor_directory "/bin"
+	sub(/\{\$$vendor-dir\}/, vendor_directory, bin_directory)
+	print vendor_directory, bin_directory, found_name
+}
 endef
 
-_MANIFEST      = $(eval _MANIFEST := $$(firstword $$(wildcard $$(CURDIR)/package.json $$(CURDIR)/composer.json)))$(_MANIFEST)
-_MANIFEST_NAME = $(eval _MANIFEST_NAME := $$(if $$(_MANIFEST),$$(shell $$(AWK) '$$(_MANIFEST_NAME_AWK)' $$(_MANIFEST))))$(_MANIFEST_NAME)
+_MANIFEST = $(eval _MANIFEST := $$(firstword $$(wildcard $$(CURDIR)/package.json $$(CURDIR)/composer.json)))$(_MANIFEST)
+
+_MANIFEST_FACTS = $(eval _MANIFEST_FACTS := $$(if $$(_MANIFEST),$$(shell $$(AWK) -v _MANIFEST='$$(_MANIFEST)' '$$(_MANIFEST_AWK)' \
+	$$(_MANIFEST) $$(filter-out $$(_MANIFEST),$$(wildcard $$(CURDIR)/composer.json))),vendor vendor/bin))$(_MANIFEST_FACTS)
+
+_MANIFEST_NAME = $(word 3,$(_MANIFEST_FACTS))
 
 _CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
 
@@ -1064,22 +1076,7 @@ define _is_tool_available
 $(if $(_HAS_CONTAINER),$(or $(filter $2,$(_COMPOSE_SERVICES)),$(and $(filter $(_LINTER_IMAGES),$(_SERVICE_IMAGE)),$(filter %-cli %-cli-chromium,$(_SERVICE_TAG)))),$(call _is_on_path,$1))
 endef
 
-define _COMPOSER_DIRECTORIES_AWK
-match($$0, /"vendor-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) { \
-	vendor_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", vendor_directory); sub(/"$$/, "", vendor_directory) \
-} \
-match($$0, /"bin-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) { \
-	bin_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", bin_directory); sub(/"$$/, "", bin_directory) \
-} \
-END { \
-	if (vendor_directory == "") vendor_directory = "vendor"; \
-	if (bin_directory == "") bin_directory = vendor_directory "/bin"; \
-	sub(/\{\$$vendor-dir\}/, vendor_directory, bin_directory); \
-	print vendor_directory, bin_directory \
-}
-endef
-
-_COMPOSER_DIRECTORIES := $(if $(wildcard $(CURDIR)/composer.json),$(shell $(AWK) '$(_COMPOSER_DIRECTORIES_AWK)' $(CURDIR)/composer.json),vendor vendor/bin)
+_COMPOSER_DIRECTORIES := $(wordlist 1,2,$(_MANIFEST_FACTS))
 _COMPOSER_VENDOR_DIR  := $(word 1,$(_COMPOSER_DIRECTORIES))
 _COMPOSER_BIN_DIR     := $(word 2,$(_COMPOSER_DIRECTORIES))
 
