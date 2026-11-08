@@ -419,6 +419,8 @@ _COMPOSE_CANDIDATES := compose.yaml \
 _COMPOSE_CANDIDATE = $(firstword $(wildcard \
 	$(addprefix $(CURDIR)/,$(_COMPOSE_CANDIDATES)) \
 	$(addprefix $(CURDIR)/$(_CONFIG_DIR)/,$(_COMPOSE_CANDIDATES)) \
+	$(addprefix $(CURDIR)/$(_CONFIG_DIR)/docker/,$(_COMPOSE_CANDIDATES)) \
+	$(addprefix $(CURDIR)/docker/,$(_COMPOSE_CANDIDATES)) \
 ))
 
 COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ Compose files the container targets use

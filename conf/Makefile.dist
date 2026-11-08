@@ -34,6 +34,8 @@ _BRNSHKR_COMPOSE_FILES = $(or \
 	$(firstword $(wildcard \
 		$(addprefix $(CURDIR)/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
 		$(addprefix $(CURDIR)/$(or $(CONFIG_DIR),conf)/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/$(or $(CONFIG_DIR),conf)/docker/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
+		$(addprefix $(CURDIR)/docker/,$(_BRNSHKR_COMPOSE_CANDIDATES)) \
 	)) \
 )
 

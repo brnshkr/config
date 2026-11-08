@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 
 use function sprintf;
 
@@ -20,9 +21,10 @@ final class ContainerTest extends TestCase
 {
     use ContainerTrait;
 
-    private const string SERVICE       = 'php-app';
-    private const string OTHER_SERVICE = 'alt';
-    private const string BUN_DIRECTORY = __DIR__ . '/../Fixtures/Make/Bun';
+    private const string SERVICE                  = 'php-app';
+    private const string OTHER_SERVICE            = 'alt';
+    private const string BUN_DIRECTORY            = __DIR__ . '/../Fixtures/Make/Bun';
+    private const string COMPOSE_SEARCH_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposeSearch';
 
     private const array EXPECTED_LOCATIONS_BY_MODE = [
         self::MODE_NATIVE => [
@@ -158,6 +160,29 @@ final class ContainerTest extends TestCase
 
         self::assertStringContainsString('-e CONTAINER_FIXTURE_DECLARED', $output);
         self::assertStringNotContainsString('from-the-file', $output);
+    }
+
+    public function testTheComposeFileNearestTheRootWins(): void
+    {
+        $directory  = $this->getFixtureCopy(self::COMPOSE_SEARCH_DIRECTORY);
+        $filesystem = new Filesystem();
+        $found      = [];
+
+        foreach (['docker', 'conf/docker', 'conf', ''] as $composeDirectory) {
+            $filesystem->dumpFile(Path::join($directory, $composeDirectory, 'compose.yaml'), "services: {}\n");
+
+            $found[] = $this->runMake(['compose-files'], directory: $directory);
+        }
+
+        self::assertSame(
+            [
+                "compose-files=docker/compose.yaml\n",
+                "compose-files=conf/docker/compose.yaml\n",
+                "compose-files=conf/compose.yaml\n",
+                "compose-files=compose.yaml\n",
+            ],
+            $found,
+        );
     }
 
     /**
