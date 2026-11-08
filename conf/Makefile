@@ -3957,6 +3957,9 @@ interrupt() {
 
 trap 'interrupt; exit 130' INT TERM
 "$$@"
+status=$$?
+[ "$$status" -ne 130 ] || { trap - INT TERM; kill -INT 0; }
+exit "$$status"
 endef
 
 #**
@@ -4630,6 +4633,7 @@ else \
 	code=$$($(CAT) "$$_SPIN_STATUS"); \
 	$(RM) -f "$$_SPIN_STATUS"; \
 	[ -n "$$code" ] || { spin_command; exit $$?; }; \
+	[ "$$code" -ne $(_INTERRUPT_EXIT_CODE) ] || { trap - $(_SPINNER_SIGNALS); kill -$(_SIGNAL_INTERRUPT) 0; }; \
 	exit $$code; \
 fi
 endef

@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Process\Process;
 
 use function sprintf;
 
@@ -384,5 +385,55 @@ final class ContainerTest extends TestCase
         foreach ([self::MODE_EXEC, self::MODE_RUN] as $mode) {
             yield $mode => [$mode];
         }
+    }
+
+    public function testAToolInterruptedInsideTheContainerStopsMake(): void
+    {
+        $process = new Process([
+            'setsid',
+            '--fork',
+            '--wait',
+            'make',
+            '--no-print-directory',
+            '-C',
+            self::CONTAINER_DIRECTORY,
+            '--keep-going',
+            'interrupted',
+            'after-interrupted',
+        ], env: [
+            ...self::getBaselineEnvironment(),
+            ...self::getContainerEnvironment(),
+        ]);
+
+        $process->run();
+
+        self::assertStringContainsString('Interrupt', $process->getErrorOutput());
+        self::assertStringNotContainsString('after-interrupted=ran', $process->getOutput());
+    }
+
+    public function testAToolInterruptedUnderTheSpinnerStopsMake(): void
+    {
+        $process = new Process([
+            'setsid',
+            '--fork',
+            '--wait',
+            'make',
+            '--no-print-directory',
+            '-C',
+            self::CONTAINER_DIRECTORY,
+            '--keep-going',
+            'interrupted-spinner',
+            'after-interrupted',
+        ], env: [
+            ...self::getBaselineEnvironment(),
+            ...self::getContainerEnvironment(),
+            'NO_COLOR' => '',
+        ]);
+
+        $process->setPty(true);
+        $process->run();
+
+        self::assertStringContainsString('Running…', $process->getOutput());
+        self::assertStringNotContainsString('after-interrupted=ran', $process->getOutput());
     }
 }
