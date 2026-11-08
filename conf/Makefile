@@ -1686,6 +1686,8 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 _STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
 	$(if $(wildcard $(CURDIR)/composer.json),php)
 
+_CADDYFILES = $(filter Caddyfile %/Caddyfile %.caddyfile,$(_PROJECT_FILES))
+
 _EDITOR_EXTENSIONS = $(call _when_installed,'    "svelte.svelte-vscode"',node_modules/svelte)
 
 _EDITOR_BINARY_SETTINGS = $(if $(_PHP_CS_FIXER_NAME),'  "php-cs-fixer.executablePath": "$${workspaceFolder}/$(_COMPOSER_BIN_DIR)/php-cs-fixer"' \
@@ -4151,7 +4153,7 @@ case "$$config_path" in \
 	*/.gitattributes) $(CAT) "$$template_path" >"$$body_path" $(if $(wildcard $(CURDIR)/composer.json),&& { \
 		printf '\n'; $(PHP) -r "$$_GITATTRIBUTES_PROGRAM" '$(APP_DIR)/composer.json' '$(strip $(ARCHIVE_EXTRA_PATHS))'; \
 	} >>"$$body_path") || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-	*/.editorconfig) $(CAT) "$$template_path" >"$$body_path"; deduplication_mode=sections;; \
+	*/.editorconfig) $(CAT) "$$template_path" >"$$body_path" $(if $(_CADDYFILES),&& printf '%s\n' '' '[{Caddyfile$(_COMMA)*.caddyfile}]' 'indent_style = tab' >>"$$body_path"); deduplication_mode=sections;; \
 	*/bunfig.toml) $(AWK) -v minimum_release_age='$(MINIMUM_RELEASE_AGE)' \
 		'/^minimumReleaseAge = / { if (minimum_release_age == "") next; $$0 = "minimumReleaseAge = " minimum_release_age } { print }' \
 		"$$template_path" >"$$body_path"; deduplication_mode=sections;; \
