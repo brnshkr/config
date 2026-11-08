@@ -149,10 +149,10 @@ _HAS_ENV_ARGUMENT          = $(if $(filter env e,$(_ARG_WORDS)),1)
 
 _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
-#--- config
+#---v config
 
-CONFIG              ?= #v #~~ `local`/`dist` to pin the config, else the first found
-ARCHIVE_EXTRA_PATHS ?= #v #~~ extra paths an archive ships, a trailing `/` for a directory
+CONFIG              ?= #~~ `local`/`dist` to pin the config, else the first found
+ARCHIVE_EXTRA_PATHS ?= #~~ extra paths an archive ships, a trailing `/` for a directory
 
 FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
 	*.local \
@@ -167,15 +167,15 @@ FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
 	/.cursor/ \
 	/.aider* \
 	/.continue/ \
-	/.windsurf/#v #~~ patterns `fresh` keeps, unless `--all` is passed
+	/.windsurf/#~~ patterns `fresh` keeps, unless `--all` is passed
 
-GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#v #~~ git hooks this project installs, as `<hook>=<target>` pairs
+GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#~~ git hooks this project installs, as `<hook>=<target>` pairs
 
 #---- directories
 
-CONFIG_DIR                ?= ./conf#v #~~ directory holding the project's own tool configs
-LOCAL_DIR                 ?= ./.local#v #~~ directory holding a developer's private files
-CACHE_DIR                 ?= ./.cache#v #~~ directory the tools keep their caches in
+CONFIG_DIR                ?= ./conf#~~ directory holding the project's own tool configs
+LOCAL_DIR                 ?= ./.local#~~ directory holding a developer's private files
+CACHE_DIR                 ?= ./.cache#~~ directory the tools keep their caches in
 _CONFIG_DIR                = $(patsubst ./%,%,$(CONFIG_DIR))
 _LOCAL_DIR                 = $(patsubst ./%,%,$(LOCAL_DIR))
 _CACHE_DIR                 = $(patsubst ./%,%,$(CACHE_DIR))
@@ -206,10 +206,10 @@ _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST)
 
 #---- targets
 
-TARGET_PREFIX  ?= #v #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
+TARGET_PREFIX  ?= #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
 _TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
 
-COLLISION_PREFIX  ?= brnshkr#v #~~ namespace for a shared target whose name this project uses
+COLLISION_PREFIX  ?= brnshkr#~~ namespace for a shared target whose name this project uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
 
 TARGET_ALIASES ?= h=help \
@@ -218,7 +218,7 @@ TARGET_ALIASES ?= h=help \
 	$(if $(call _get_goal,fix),f=fix) \
 	$(if $(call _get_goal,group),g=group)#vv #~~ short names for targets, as `<alias>=<target>` pairs
 
-PHONY ?= 1#v #~~ targets marked `.PHONY`, `shared` ones only, or `0` none
+PHONY ?= 1#~~ targets marked `.PHONY`, `shared` ones only, or `0` none
 
 #---- package
 
@@ -294,8 +294,8 @@ define _get_variable_names
 $(foreach KEY,$1,$(if $(call _remove_characters,$(KEY),$(_VARIABLE_NAME_CHARACTERS))$(filter $(addsuffix %,$(_DIGITS)),$(KEY)),,$(KEY)))
 endef
 
-VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
-PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
+VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#~~ vendor name, taken from the manifest when unset
+PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#~~ package name, from the manifest or directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
 _LABEL   = $(VENDOR)$(if $(and $(VENDOR),$(PACKAGE)),/)$(PACKAGE)
 
@@ -2439,10 +2439,10 @@ $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 $(call _target,fresh-dry-run): _GOAL := $(call _target,fresh-dry-run)
 $(call _target,fresh-dry-run): $(call _target,fresh) #~~ lists what `fresh` would remove and keep #vv
 
-#--- release
+#---v release
 
-CHANGELOG_RANGE   ?= #v #~~ commit range the changelog covers
-CHANGELOG_URL     ?= #v #~~ base URL a commit hash links to
+CHANGELOG_RANGE   ?= #~~ commit range the changelog covers
+CHANGELOG_URL     ?= #~~ base URL a commit hash links to
 CHANGELOG_DIR     ?= $(CURDIR)/changelog#vv #~~ directory the release notes are written to
 CHANGELOG_TITLE   ?= \# Changelog#vv #~~ heading a new changelog file starts with
 CHANGELOG_INITIAL ?= Initial release#vv #~~ text the first release carries instead of its commits, empty to list them
@@ -2644,7 +2644,7 @@ _CHANGELOG_ODD_TAG = $(shell { $(GIT) describe --tags --abbrev=0; $(GIT) describ
 $(call _target,changelog): export _CHANGELOG_AWK         = $(_CHANGELOG_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK   = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
-$(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
+$(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR`
 	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+`, and `/`))
 	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
 		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
@@ -2937,16 +2937,16 @@ $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's
 			sh $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(IMAGE_NAME)) $(call _quoted,$(IMAGE_TARGET)); \
 		fi
 
-#--- dependencies
+#---v dependencies
 
-MINIMUM_RELEASE_AGE ?= 604800#v #~~ seconds a version must be out before Bun or Composer installs it, empty for no wait
+MINIMUM_RELEASE_AGE ?= 604800#~~ seconds a version must be out before Bun or Composer installs it, empty for no wait
 
 ifneq ($(_HAS_PHP),) # php
 
-#--- php
+#---v php
 
 PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
-CONSOLE        ?= $(PHP) ./bin/console#v #~~ command that runs Symfony's console
+CONSOLE        ?= $(PHP) ./bin/console#~~ command that runs Symfony's console
 
 ifneq ($(_HAS_ASSET_MAPPER),)
 $(call _target,asset-map-compile): #~~ compiles the assets AssetMapper serves #vv

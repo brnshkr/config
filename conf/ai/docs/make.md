@@ -18,7 +18,8 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
   `$(TR) '[:cntrl:]' '?'` in a shell, `_mask_control_characters` at parse time.
 - awk is POSIX only and must print the same under gawk, mawk and busybox awk.
 - Verbosity: 0 is the everyday targets, 1 their extras, 2 lists and prints, 3 internals.
-  A variable sits with the target it configures, and a level every entry of a scope shares goes on the scope.
+  A variable sits with the target it configures. The lowest level every entry of a scope and its sub-scopes shares
+  goes on the scope header (`#---v image`) and off the entries, counted across every `ifeq`/`ifneq` branch.
 
 ## Testing it
 
