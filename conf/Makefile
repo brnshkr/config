@@ -3947,7 +3947,7 @@ endef
 #* returns: string
 #*
 define _forwarded_environment
-$(foreach KEY,$(_FORWARDED_KEYS),-e $(KEY)$(if $(filter EDITOR_URL,$(KEY)),=$(call _quoted,$(_EDITOR_URL))) )
+$(foreach KEY,$(_FORWARDED_KEYS),-e $(KEY)$(if $(filter EDITOR_URL,$(KEY)),=$(call _quoted,$(_EDITOR_URL))))$(if $(_FORWARDED_KEYS), )
 endef
 
 #**
@@ -4004,11 +4004,10 @@ endif
 #*
 define _enter_service
 $(if $(_HAS_CONTAINER) \
-	,$(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
+	,$(strip $(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
 		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
 		$(call _start_service,$1) $(if $(findstring _INTERRUPT_SCRIPT,$(value .SHELLFLAGS)),,$(SHELL) -c "$$_EXEC_SCRIPT" sh )$(_COMPOSE) exec -e BRNSHKR_EXEC_ID $2 \
-	) $(addprefix -e ,$(_DECLARED_KEYS)) $(_forwarded_environment)$1 \
-)
+	) $(addprefix -e ,$(_DECLARED_KEYS))) $(_forwarded_environment)$1)
 endef
 
 #**

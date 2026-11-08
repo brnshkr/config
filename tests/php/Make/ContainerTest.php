@@ -392,7 +392,7 @@ final class ContainerTest extends TestCase
         $wrapped  = $this->runMakeIn(self::MODE_EXEC, ['-n', 'show']);
         $fallback = $this->runMakeIn(self::MODE_EXEC, ['-n', 'show', '.SHELLFLAGS=-c']);
 
-        self::assertMatchesRegularExpression('/^\S+ -c \'\[ -n "\$\(\S+ ps --quiet .+ \|\| \S+ compose -f \S+ up --detach --wait php-app .+; exec "\$@"\' sh \S+ compose -f \S+ exec -e BRNSHKR_EXEC_ID .* php-app +sh -c /m', $wrapped);
+        self::assertMatchesRegularExpression('/^\S+ -c \'\[ -n "\$\(\S+ ps --quiet .+ \|\| \S+ compose -f \S+ up --detach --wait php-app .+; exec "\$@"\' sh \S+ compose -f \S+ exec -e BRNSHKR_EXEC_ID -e (?:\S+ -e )*\S+ php-app sh -c /m', $wrapped);
         self::assertStringContainsString('"$_EXEC_SCRIPT" sh ', $fallback);
     }
 
