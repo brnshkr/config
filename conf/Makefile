@@ -151,8 +151,16 @@ _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
 #---v config
 
-CONFIG              ?= #~~ `local`/`dist` to pin the config, else the first found
-ARCHIVE_EXTRA_PATHS ?= #~~ extra paths an archive ships, a trailing `/` for a directory
+CONFIG ?= #~~ `local`/`dist` to pin the config, else the first found
+
+ARCHIVE_EXTRA_PATHS ?= $(if $(_HAS_SYMFONY),assets/ \
+	bin/console \
+	config/ \
+	importmap.php \
+	migrations/ \
+	public/ \
+	templates/ \
+	translations/)#~~ extra paths an archive ships, a trailing `/` for a directory
 
 FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
 	*.local \
@@ -1156,6 +1164,7 @@ _HAS_COMPOSER_AUDIT  = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/composer.lock))
 _HAS_BUN_AUDIT       = $(and $(_HAS_JS),$(wildcard $(CURDIR)/bun.lock))
 _HAS_BUN_BUILD       = $(and $(_HAS_JS),$(filter 1,$(word 3,$(_MANIFEST_FACTS))))
 _HAS_ASSET_MAPPER    = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/symfony/asset-mapper))
+_HAS_SYMFONY         = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/symfony/http-kernel))
 _HAS_AUDIT           = $(or $(_HAS_COMPOSER_AUDIT),$(_HAS_BUN_AUDIT))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \

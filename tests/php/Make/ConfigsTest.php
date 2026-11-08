@@ -159,6 +159,26 @@ final class ConfigsTest extends TestCase
         self::assertStringEndsWith("###< brnshkr/config ###\n\n*.png binary\n", $gitattributes);
     }
 
+    public function testASymfonyProjectShipsWhatTheFrameworkReads(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->mkdir([
+            $configsDirectory . '/config',
+            $configsDirectory . '/vendor/symfony/http-kernel',
+        ]);
+
+        $filesystem->dumpFile($configsDirectory . '/bin/console', '');
+        $this->runMake(['configs'], directory: $configsDirectory);
+
+        $gitattributes = $filesystem->readFile($configsDirectory . '/.gitattributes');
+
+        self::assertMatchesRegularExpression('/^\/bin\/console\s+-export-ignore$/m', $gitattributes);
+        self::assertMatchesRegularExpression('/^\/config\/\*\*\s+-export-ignore$/m', $gitattributes);
+        self::assertStringNotContainsString('/public', $gitattributes);
+    }
+
     public function testConfigsWritesTheMinimumReleaseAge(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
