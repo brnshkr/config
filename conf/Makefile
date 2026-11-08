@@ -4512,14 +4512,18 @@ $(AWK) -v _OPEN='$(if $(_IS_NO_COLOR),`,$(call _ansi,$(COLOR_HIGHLIGHT)))' \
 	-v _PREFIX='$(_TARGET_PREFIX)' \
 	-v _STAGES=' $(DOTENV_STAGES) ' \
 	-v _TARGETS=' $(if $(filter yes,$2),$(_TARGET_LINKS)) ' ' \
-	function render_url(url, path, line,    placeholder_position) { \
-		if (index(url, "{cwd}") && substr(path, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); path = substr(path, 2) } \
-		else gsub(/\{cwd\}/, _CWD, url); \
-		placeholder_position = index(url, "{file}"); \
-		url = substr(url, 1, placeholder_position - 1) path substr(url, placeholder_position + 6); \
-		placeholder_position = index(url, "{line}"); \
-		if (placeholder_position) url = substr(url, 1, placeholder_position - 1) line substr(url, placeholder_position + 6); \
-		return url \
+	function replace_placeholder(template, placeholder, value,    position, rendered_template) { \
+		rendered_template = ""; \
+		while ((position = index(template, placeholder))) { \
+			rendered_template = rendered_template substr(template, 1, position - 1) value; \
+			template = substr(template, position + length(placeholder)) \
+		} \
+		return rendered_template template \
+	} \
+	function render_url(template, path, line) { \
+		if (index(template, "{cwd}") && substr(path, 1, 1) == "/") { template = replace_placeholder(template, "{cwd}", ""); path = substr(path, 2) } \
+		else template = replace_placeholder(template, "{cwd}", _CWD); \
+		return replace_placeholder(replace_placeholder(template, "{file}", path), "{line}", line == "" ? 1 : line) \
 	} \
 	function get_target_definition(name,    key, position, definition, dash) { \
 		key = name; \
@@ -5764,6 +5768,20 @@ function truncate(text, width_limit,    position, byte_count, character, taken_w
 	}
 	return truncated_text "…"
 }
+function replace_placeholder(template, placeholder, value,    position, rendered_template) {
+	rendered_template = ""
+	while ((position = index(template, placeholder))) {
+		rendered_template = rendered_template substr(template, 1, position - 1) value
+		template = substr(template, position + length(placeholder))
+	}
+	return rendered_template template
+}
+function render_url(template, path, line) {
+	if (template == "") return ""
+	if (index(template, "{cwd}") && substr(path, 1, 1) == "/") { template = replace_placeholder(template, "{cwd}", ""); path = substr(path, 2) }
+	else template = replace_placeholder(template, "{cwd}", ENVIRON["_CURDIR"])
+	return replace_placeholder(replace_placeholder(template, "{file}", path), "{line}", line == "" ? 1 : line)
+}
 endef
 
 define _GROUP_AWK_SOURCE
@@ -5817,17 +5835,9 @@ function get_location_text(file, line) {
 	file = strip_directory(get_project_path(file), ENVIRON["_CURDIR"])
 	return (file ~ /^\// ? file : "./" file) (line != "" ? ":" line : "")
 }
-function render_link(text, file, line,    url, position) {
-	url = ENVIRON["_EDITOR_URL_TEMPLATE"]
-	if (url == "" || file == "" || _IS_NO_COLOR != "") return text
-	file = get_project_path(file)
-	if (index(url, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", url); file = substr(file, 2) }
-	else gsub(/\{cwd\}/, ENVIRON["_CURDIR"], url)
-	position = index(url, "{file}")
-	if (position) url = substr(url, 1, position - 1) file substr(url, position + 6)
-	position = index(url, "{line}")
-	if (position) url = substr(url, 1, position - 1) (line == "" ? 1 : line) substr(url, position + 6)
-	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
+function render_link(text, file, line) {
+	if (ENVIRON["_EDITOR_URL_TEMPLATE"] == "" || file == "" || _IS_NO_COLOR != "") return text
+	return "\033]8;;" render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], get_project_path(file), line) "\033\\" text "\033]8;;\033\\"
 }
 function add(identifier, message, file, line) {
 	if (identifier == "" || identifier == "null") return
@@ -5947,15 +5957,6 @@ $(_TEXT_AWK_SOURCE)
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function get_leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
-function render_url(template, file, line) {
-	if (template == "") return ""
-	if (index(template, "{cwd}") && substr(file, 1, 1) == "/") { gsub(/\{cwd\}/, "", template); file = substr(file, 2) }
-	else gsub(/\{cwd\}/, ENVIRON["_CURDIR"], template)
-	gsub(/\{wslDistro\}/, ENVIRON["WSL_DISTRO_NAME"], template)
-	gsub(/\{file\}/, file, template)
-	gsub(/\{line\}/, line, template)
-	return template
-}
 function render_link(text, path, line_number,    url) {
 	if (index(path, ENVIRON["_APP_DIR"] "/") == 1) path = substr(path, length(ENVIRON["_APP_DIR"]) + 2)
 	if (index(path, ENVIRON["_CURDIR"] "/") == 1) path = substr(path, length(ENVIRON["_CURDIR"]) + 2)
