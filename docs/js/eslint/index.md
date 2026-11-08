@@ -10,7 +10,7 @@ export { default } from '@brnshkr/config/eslint';
 ```
 
 Install `eslint` and `eslint-flat-config-utils` next to the package. The base JavaScript rules also take
-`@eslint/js`, `globals` and `confusing-browser-globals` when they are installed, and leave out what each supplies otherwise.
+`@eslint/js`, `globals`, and `confusing-browser-globals` when they are installed, and leave out what each supplies otherwise.
 
 Modules for languages and plugins — e.g. `typescript`, `svelte`, `yaml`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
@@ -43,7 +43,7 @@ Set a module to `false` to keep it off even when its packages are there.
 `ignores` takes globs and ignore files alike: an entry named like `.prettierignore` is read the way the
 project's `.gitignore` always is.
 What comes back is a [`FlatConfigComposer`](https://github.com/antfu/eslint-flat-config-utils),
-so `.append()`, `.prepend()` and `.override()` are available where a config is assembled in steps.
+so `.append()`, `.prepend()`, and `.override()` are available where a config is assembled in steps.
 
 Code blocks in Markdown pages are linted too;
 one preceded by `<!-- brnshkr-skip -->` or `<!-- eslint-skip -->` is left alone.

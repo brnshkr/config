@@ -14,7 +14,7 @@ Code blocks are read with `league/commonmark`; without it, none are checked.
 
 ## PHP
 
-The classes, methods and constants a block uses must exist, and every call must pass arguments its target accepts.
+The classes, methods, and constants a block uses must exist, and every call must pass arguments its target accepts.
 Names resolve through the `use` lines and the namespace of the block, then of the file.
 Placeholder classes are skipped, `Acme\…` by default.
 A finding carries the identifier PHPStan gives the same mistake in code, e.g. `method.notFound`.

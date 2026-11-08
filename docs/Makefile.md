@@ -20,13 +20,13 @@ In CI, where `CI` is set, an install fails on a lock file that no longer matches
 ## Usage
 
 ```sh
-make help                               # everything you can run, add v, vv or vvv for more
+make help                               # everything you can run, add v, vv, or vvv for more
 make help phpstan                       # only what belongs to phpstan
 make check                              # every linter and analyzer, without changing files
 make fix                                # every fixer, writing its fixes
 make test                               # every stack's tests
 make test-matrix                        # the tests once per TEST_MATRIX row
-make ci                                 # fix, then check, audit and test, failing at the end
+make ci                                 # fix, then check, audit, and test, failing at the end
 make phpstan src/User                   # anything after a target goes to the tool
 make phpunit -- --filter 'User|Email'   # flags go after --
 make -j check                           # runs the tools in parallel
@@ -73,7 +73,7 @@ Each tool reads `./conf/<tool>.dist.<ext>` if you have one, and the package's de
 which git ignores and which is read first.
 
 `make configs` also keeps a block between `###> brnshkr/config ###` markers up to date in files like
-`.gitignore`, `.editorconfig` and the VS Code settings. Everything outside that block is yours.
+`.gitignore`, `.editorconfig`, and the VS Code settings. Everything outside that block is yours.
 
 ## Containers
 
@@ -147,7 +147,7 @@ For a CI job per row, `make -s test-matrix-rows` prints the rows as a JSON list,
 
 ## Environment files
 
-Loaded the same way `symfony/dotenv` does: `.env`, `.env.local`, `.env.<APP_ENV>` and `.env.<APP_ENV>.local`.
+Loaded the same way `symfony/dotenv` does: `.env`, `.env.local`, `.env.<APP_ENV>`, and `.env.<APP_ENV>.local`.
 Later files win, and a real environment variable beats all of them.
 Every `.env.<stage>` also gives you `<stage>-<target>`, so `make prod-check` runs `check` with `APP_ENV=prod`.
 With a stage and a service both named `worker`, `make worker-build` runs `build` in the stage

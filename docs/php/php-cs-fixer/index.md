@@ -27,7 +27,7 @@ return PhpCsFixer::getBuilder()
 ;
 ```
 
-Rules take `addRules()`, `setRules()` and `removeRules()`. Reach for those rather than the returned config's
+Rules take `addRules()`, `setRules()`, and `removeRules()`. Reach for those rather than the returned config's
 own `setRules()`, which replaces the baseline instead of merging into it.
 
 A private `./conf/php-cs-fixer.php` starts from the tracked config rather than from the defaults, so what

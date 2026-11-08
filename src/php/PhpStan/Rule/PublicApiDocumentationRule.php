@@ -38,7 +38,7 @@ use function sprintf;
  * Holds every `@api` symbol to a consistent docblock standard.
  *
  * A description in prose, one `@param` per parameter, an `@return` that says what the value is,
- * a description on every `@throws`, `@property` and `@template` tag, and an `@example` wherever
+ * a description on every `@throws`, `@property`, and `@template` tag, and an `@example` wherever
  * calling the symbol takes arguments. A file-level `@api` or `@internal` sets the default for
  * everything in the file, and a per-symbol tag overrides it.
  *

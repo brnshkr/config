@@ -3,7 +3,7 @@
 ## Layout
 
 - `conf/ai/` holds the mate tool source in `mate/`, Claude Code settings in `claude/` and these docs.
-- `AGENTS.md`, `CLAUDE.md` and the `.claude` symlink stay at the root, where clients look.
+- `AGENTS.md`, `CLAUDE.md`, and the `.claude` symlink stay at the root, where clients look.
   `CLAUDE.md` only imports `AGENTS.md`, which imports the rules in `conf/ai/mate/INSTRUCTIONS.md`.
 - Root `mate/` is generated. Only `mate/extensions.php` is committed; enable or disable an extension there.
 

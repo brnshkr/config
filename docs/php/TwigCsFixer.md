@@ -28,7 +28,7 @@ return TwigCsFixer::getBuilder()
 ;
 ```
 
-Rules take `addRules()`, `setRules()` and `removeRules()`, plus `overrideRules()` to swap one for another of the same
+Rules take `addRules()`, `setRules()`, and `removeRules()`, plus `overrideRules()` to swap one for another of the same
 class. Reach for those rather than the ruleset's own `setRuleset()`, which replaces the whole set.
 
 A private `./conf/twig-cs-fixer.php` starts from the tracked config rather than from the defaults, so what

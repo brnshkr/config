@@ -244,7 +244,7 @@ cp -v ./node_modules/@brnshkr/config/conf/Makefile.dist ./Makefile \
 
 When installed through Composer, the starter lives in `./vendor/brnshkr/config/conf/Makefile.dist` instead.  
 A target appears once the tool it runs is installed, so `make help` lists what your repository actually has,
-`make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes` and editor files you are still missing.
+`make ci` runs all of it, and `make startup` writes the `.gitignore`, `.gitattributes`, and editor files you are still missing.
 The full reference is [`./docs/Makefile.md`](https://github.com/brnshkr/config/blob/master/docs/Makefile.md).
 
 These targets look for your configuration files in the `./conf` directory

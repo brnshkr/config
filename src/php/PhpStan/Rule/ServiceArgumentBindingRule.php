@@ -45,7 +45,7 @@ use function sprintf;
  * and nothing checks it: rename the parameter and the definition still says the old name.
  * The container is the first to object, at compile time, in whichever application installs the package.
  *
- * `->args()`, `->bind()` and `->call()` bind by name as well.
+ * `->args()`, `->bind()`, and `->call()` bind by name as well.
  * A `->call()` binds to the method it names, and a `->factory()` or `->constructor()`
  * replaces the constructor with the callable it names.
  *

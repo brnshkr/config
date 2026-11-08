@@ -95,7 +95,7 @@ const findInFile = (
  *
  * @param options - where to scan, which settings to read, and which files to look at
  *
- * @returns every finding, sorted by path, line and word
+ * @returns every finding, sorted by path, line, and word
  *
  * @throws {Error} when the shipped spelling defaults cannot be found
  * @throws {Error} when a settings file cannot be read

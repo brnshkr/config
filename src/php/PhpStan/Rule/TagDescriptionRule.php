@@ -26,7 +26,7 @@ use function sprintf;
 /**
  * Requires every tag description to take one shape, on `@api` and `@internal` symbols alike.
  *
- * `@param`, `@property` and `@template` put a dash between the declaration and the description,
+ * `@param`, `@property`, and `@template` put a dash between the declaration and the description,
  * `@return` and `@throws` take none, and a description is a lowercase fragment without a closing period.
  * A `@throws` description names the condition, opening with `when` or `unless`.
  *

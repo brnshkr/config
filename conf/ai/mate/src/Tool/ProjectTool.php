@@ -76,7 +76,7 @@ final class ProjectTool
 
     #[MateTool(
         name: 'project-rule-docs-audit',
-        description: 'Cross-checks the custom PHPStan and ESLint rules against their doc pages and against each other, reporting rules without docs, docs without rules and rules that exist on only one of the two stacks.',
+        description: 'Cross-checks the custom PHPStan and ESLint rules against their doc pages and against each other, reporting rules without docs, docs without rules, and rules that exist on only one of the two stacks.',
     )]
     public function auditRuleDocs(): string
     {

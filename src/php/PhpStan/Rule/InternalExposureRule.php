@@ -43,7 +43,7 @@ use function sprintf;
  * class by accident: changing it becomes a breaking change for whoever read the signature.
  *
  * Types are read as the analysis resolves them, so a docblock type counts like a native one, and
- * `@throws` counts too. Inherited members and `@method`, `@property` and `@mixin` tags count the same
+ * `@throws` counts too. Inherited members and `@method`, `@property`, and `@mixin` tags count the same
  * way. Extending an `@internal` class is not itself a leak — only the surface reaching the consumer
  * through the leaf is checked.
  *

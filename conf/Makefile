@@ -29,7 +29,7 @@
 #   Examples of what the above-mentioned looks like:
 #     make a               -> runs target a
 #     make a b             -> runs targets a and b
-#     make a a1 a2 b b1 b2 -> runs target a with arguments a1 and a2 and target b with arguments b1 and b2 (assuming a1, a2, b1 and b2 are not targets by themselves)
+#     make a a1 a2 b b1 b2 -> runs target a with arguments a1 and a2 and target b with arguments b1 and b2 (assuming a1, a2, b1, and b2 are not targets by themselves)
 #     make ab1 ab2 a a1 b  -> runs target a with arguments ab1, ab2 and a1 and target b with arguments ab1 and ab2 (assuming ab1, ab2 and a1 are not targets by themselves)
 #     make no arg exists   -> throws error defined in .DEFAULT target
 #

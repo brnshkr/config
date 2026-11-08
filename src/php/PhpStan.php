@@ -197,7 +197,7 @@ final class PhpStan
      *
      * Pre-configures level=max, strict exception checking, every custom rule this package ships
      * (see `docs/php/phpstan/rules/`), the {@see FileFinderThrowTypeExtension} dynamic throw-type
-     * extension, and editor-URL handling. Conditionally enables strict rules, type-perfect and
+     * extension, and editor-URL handling. Conditionally enables strict rules, type-perfect, and
      * Symplify rules when their packages are installed.
      *
      * @param ?Finder $finder - pre-configured Finder to extend, or null for project defaults

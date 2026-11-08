@@ -1,7 +1,7 @@
 # 🧩 Custom ESLint rules
 
 All rules ship in the `brnshkr` plugin and are enabled by the default configuration.
-**Import hygiene**, **naming**, **style**, **encapsulation** and **documentation** rules apply everywhere;
+**Import hygiene**, **naming**, **style**, **encapsulation**, and **documentation** rules apply everywhere;
 **public-API** rules only run on the source files a package re-exports through its `package.json#exports`,
 apart from the check for a docblock declaring two visibilities at once, which applies everywhere.
 

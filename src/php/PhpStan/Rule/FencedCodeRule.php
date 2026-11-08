@@ -46,7 +46,7 @@ use function max;
 use function sprintf;
 
 /**
- * Reports code blocks in docblocks and Markdown pages that do not parse, call missing code or pass wrong arguments.
+ * Reports code blocks in docblocks and Markdown pages that do not parse, call missing code, or pass wrong arguments.
  *
  * No test runs an example, so a renamed method or a dropped parameter leaves it wrong without anyone noticing.
  * Each PHP block is checked like code of its own: names resolve through its own `use` and `namespace` lines,

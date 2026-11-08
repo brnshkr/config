@@ -48,7 +48,7 @@ final class Spelling
     private const string EVERY_PATH = '*';
 
     /**
-     * Scan a repository and return every finding, sorted by path, line and word.
+     * Scan a repository and return every finding, sorted by path, line, and word.
      *
      * @param non-empty-string $rootDirectory - repository root the scan runs against
      * @param ?string $configPath - config path relative to the root, the config directory's `spelling.json` when null
@@ -59,7 +59,7 @@ final class Spelling
      *     line: int,
      *     word: string,
      *     suggestion: string,
-     * }> every finding, sorted by path, line and word
+     * }> every finding, sorted by path, line, and word
      *
      * @throws JsonException when the settings file is not valid JSON
      * @throws RuntimeException when a setting is malformed

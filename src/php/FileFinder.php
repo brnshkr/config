@@ -24,7 +24,7 @@ use function sprintf;
  * Shared file-discovery helper that every tool config in this package delegates to.
  *
  * Filters by PHP, Twig and/or Markdown extensions with project-wide noise (dependencies, caches, build
- * artifacts, generated files and test fixtures) excluded, and also picks up `bin/console` when PHP
+ * artifacts, generated files, and test fixtures) excluded, and also picks up `bin/console` when PHP
  * files are requested. Callers may pass a pre-configured Symfony Finder to narrow the scope
  * further, otherwise the current working directory is scanned.
  *

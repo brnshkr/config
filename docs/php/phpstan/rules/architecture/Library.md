@@ -74,7 +74,7 @@ Each parameter is optional; omitting one drops its rule.
 
 ## Package variants of the framework presets
 
-`symfonyBundle()`, `laravelPackage()` and `tempestPackage()` are the framework presets for code that ships
+`symfonyBundle()`, `laravelPackage()`, and `tempestPackage()` are the framework presets for code that ships
 to somebody else's application. They carry the baseline, the framework's placement rules,
 and one more: a package may not depend on the namespace of the application installing it.
 

@@ -28,7 +28,7 @@ A double assertion is reported on the inner one, which is the assertion holding 
 
 The keywords are `await`, `typeof`, `void`, `delete`, `new`, `this`, `super`, `function`, `class`, and `async function`.
 `new.target` is excluded, because it is a property access that `keyword-spacing` does not report.
-Calls, members, literals, `import()` and punctuation unaries such as `!value` are excluded for the same reason.
+Calls, members, literals, `import()`, and punctuation unaries such as `!value` are excluded for the same reason.
 
 `<Type>` binds tighter than every operator and takes only the unary expression to its right,
 so an identifier operand is left alone — all three forms below are valid, and each casts a different expression.
