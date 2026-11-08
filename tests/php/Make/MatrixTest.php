@@ -233,7 +233,7 @@ final class MatrixTest extends TestCase
 
         yield 'broken later row' => [
             ['TEST_MATRIX=composer[*:lowest] pip[acme:1.0]'],
-            '`pip[…]` is no matrix field, use `image`, `tag`, `composer` or `bun`.',
+            '`pip[…]` is no matrix field, use `image`, `tag`, `composer`, or `bun`.',
         ];
 
         yield 'no brackets' => [['TEST_MATRIX=acme'], '`acme` is no field, write `name[value]`.'];
@@ -271,7 +271,7 @@ final class MatrixTest extends TestCase
             '`@acme/ui` is moved twice in one row.',
         ];
 
-        yield 'tag with a separator' => [['TEST_MATRIX=tag[php8.5:dev]'], '`php8.5:dev` is no tag, drop its `:`, `/` or `@`.'];
+        yield 'tag with a separator' => [['TEST_MATRIX=tag[php8.5:dev]'], '`php8.5:dev` is no tag, drop its `:`, `/`, or `@`.'];
 
         yield 'tag next to a full image' => [
             ['TEST_MATRIX=image[registry.acme.test/user:2];tag[php8.5-bun1.4]'],

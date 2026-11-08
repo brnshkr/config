@@ -300,7 +300,7 @@ final class StrTest extends TestCase
 
         yield 'two' => ['"user" and "email"', ['user', 'email'], 'conjunction', '"'];
 
-        yield 'three as alternatives' => ['"user", "email" or "acme"', ['user', 'email', 'acme'], 'disjunction', '"'];
+        yield 'three as alternatives' => ['"user", "email", or "acme"', ['user', 'email', 'acme'], 'disjunction', '"'];
 
         yield 'backticks' => ['`when` or `unless`', ['when', 'unless'], 'disjunction', '`'];
     }

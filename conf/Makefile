@@ -38,7 +38,7 @@
 #   - make DEBUG=1 phpstan
 #   - DEBUG=1 make phpstan
 #
-# A flag is off when it is empty or one of '0', 'false', 'off' and 'no', and on for any other value.
+# A flag is off when it is empty or one of '0', 'false', 'off', or 'no', and on for any other value.
 #
 # Output is colored on a terminal or in CI. NO_COLOR (https://no-color.org) turns it off,
 # FORCE_COLOR (https://force-color.org) turns it on:
@@ -357,7 +357,7 @@ _SPACE := $(subst ,, )
 #*
 define _join_as_quoted_list
 $(if $(word 2,$1),$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(foreach \
-	ITEM,$(filter-out $(lastword $1),$1),`$(ITEM)`)) $(if \
+	ITEM,$(filter-out $(lastword $1),$1),`$(ITEM)`))$(if $(word 3,$1),$(_COMMA)) $(if \
 	$(filter disjunction,$2),or,and) `$(lastword $1)`,$(if \
 	$1,`$1`))
 endef
@@ -535,7 +535,7 @@ _DOTENV_REFUSED_STAGES := $(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE).
 done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
-$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_` and `-`)
+$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_`, and `-`)
 endif
 
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),$(ENV_BIN) $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
@@ -1919,7 +1919,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 				tag) \
 					case "$$value" in \
 						*[:/@]*) \
-							refuse_row '`%s` is no tag, drop its `:`, `/` or `@`.' "$$value" \
+							refuse_row '`%s` is no tag, drop its `:`, `/`, or `@`.' "$$value" \
 						;; \
 					esac; \
 					tag_field="$$value" \
@@ -1931,7 +1931,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 					bun_entries="$$value" \
 				;; \
 				*) \
-					refuse_row '`%s[…]` is no matrix field, use `image`, `tag`, `composer` or `bun`.' "$$name" \
+					refuse_row '`%s[…]` is no matrix field, use `image`, `tag`, `composer`, or `bun`.' "$$name" \
 				;; \
 			esac; \
 		done; \
@@ -2063,7 +2063,7 @@ _CI_TARGETS = $(if $(_HAS_FIX),$(call _target,fix)) \
 	$(if $(and $(_HAS_TEST),$(TEST_MATRIX)),$(call _target,test-matrix))
 
 CI_TARGETS        ?= $(_CI_TARGETS)#vv #~~ targets `ci` runs in order
-CI_SUMMARY_FILE   ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit`, `test` and `test-matrix` add their rows to
+CI_SUMMARY_FILE   ?= $(GITHUB_STEP_SUMMARY)#vv #~~ markdown file `check`, `audit`, `test`, and `test-matrix` add their rows to
 CI_JOB_ID         ?= #vv #~~ ID of the CI job whose log a failed summary row links, e.g. GitHub's `job.check_run_id`
 _CI_LOG_URL        = $(and $(GITHUB_RUN_ID),$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID)$(if $(CI_JOB_ID),/job/$(CI_JOB_ID)))
 _CI_FAILED_RESULT  = ❌$(if $(_CI_LOG_URL), [log]($(_CI_LOG_URL)))
@@ -2621,7 +2621,7 @@ $(call _target,changelog): export _CHANGELOG_AWK         = $(_CHANGELOG_AWK_SOUR
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK   = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR` #v
-	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+` and `/`))
+	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+`, and `/`))
 	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
 		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
 			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
@@ -4713,7 +4713,7 @@ $(foreach VARIABLE,$1,$(if $(filter simple recursive,$(flavor $(VARIABLE))), \
 endef
 
 #**
-#* What a `semgrep` config's `x-brnshkr` key sets: `+<ruleset>`, `-<ruleset>`, `=<rule>` and `~<rule>@<glob>`.
+#* What a `semgrep` config's `x-brnshkr` key sets: `+<ruleset>`, `-<ruleset>`, `=<rule>`, and `~<rule>@<glob>`.
 #*
 #* parameters:
 #*   config: string
@@ -6756,7 +6756,7 @@ END {
 	if (unknown_filter_count > 0) {
 		unknown_message = ""
 		for (filter_idx = 1; filter_idx <= unknown_filter_count; filter_idx += 1) {
-			separator = (filter_idx == 1 ? "" : (filter_idx == unknown_filter_count ? " and " : ", "))
+			separator = (filter_idx == 1 ? "" : (filter_idx < unknown_filter_count ? ", " : (unknown_filter_count > 2 ? ", and " : " and ")))
 			unknown_message = unknown_message separator sprintf("`%s`", unknown_filters[filter_idx])
 		}
 		unknown_label = (unknown_filter_count == 1 ? "scope" : "scopes")

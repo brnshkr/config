@@ -166,7 +166,7 @@ final class CommandTest extends TestCase
         self::assertSame(1, $result['exitCode']);
 
         self::assertStringContainsString(
-            'Unknown module "acme". Allowed modules are: "phpcsfixer", "phpstan", "rector" and "twigcsfixer".',
+            'Unknown module "acme". Allowed modules are: "phpcsfixer", "phpstan", "rector", and "twigcsfixer".',
             $result['output'],
         );
     }

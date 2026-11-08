@@ -114,8 +114,8 @@ final class CachesTest extends TestCase
         $listed  = $this->runMake(['cc'], directory: $cachesDirectory);
         $refused = $this->runMake(['cc', 'nope'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('`$(id)`, `it\'s` or `x?]0;title?y`', $listed);
-        self::assertStringContainsString('Try `$(id)`, `it\'s` or `x?]0;title?y`', $refused);
+        self::assertStringContainsString('`$(id)`, `it\'s`, or `x?]0;title?y`', $listed);
+        self::assertStringContainsString('Try `$(id)`, `it\'s`, or `x?]0;title?y`', $refused);
     }
 
     public function testALinkedPathIsCheckedWithoutRunningIt(): void

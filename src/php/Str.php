@@ -307,8 +307,9 @@ final readonly class Str
 
         return count($quotedStrings) > 1
             ? sprintf(
-                '%s %s %s',
+                '%s%s %s %s',
                 self::join(array_slice($quotedStrings, 0, -1), ', '),
+                count($quotedStrings) > 2 ? ',' : '',
                 $type === 'conjunction' ? 'and' : 'or',
                 array_last($quotedStrings),
             )
