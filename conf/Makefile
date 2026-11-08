@@ -227,6 +227,9 @@ FILENAME == _MANIFEST && /^[ \t]*[{]?[ \t]*"name"[ \t]*:/ {
 	match($$0, /^[ \t]*/)
 	if (found_name == "" || RLENGTH < indent) { indent = RLENGTH; split($$0, parts, "\""); found_name = parts[4] }
 }
+FILENAME ~ /package[.]json$$/ && /"scripts"[ \t]*:/ { is_in_scripts = 1 }
+is_in_scripts && /"build"[ \t]*:/ { has_build_script = 1 }
+is_in_scripts && /^[ \t]*}|}[ \t]*,?[ \t]*$$/ { is_in_scripts = 0 }
 FILENAME ~ /composer[.]json$$/ && match($$0, /"vendor-dir"[[:space:]]*:[[:space:]]*"[^"]*"/) {
 	vendor_directory = substr($$0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", vendor_directory); sub(/"$$/, "", vendor_directory)
 }
@@ -237,7 +240,7 @@ END {
 	if (vendor_directory == "") vendor_directory = "vendor"
 	if (bin_directory == "") bin_directory = vendor_directory "/bin"
 	sub(/\{\$$vendor-dir\}/, vendor_directory, bin_directory)
-	print vendor_directory, bin_directory, found_name
+	print vendor_directory, bin_directory, has_build_script + 0, found_name
 }
 endef
 
@@ -246,7 +249,7 @@ _MANIFEST = $(eval _MANIFEST := $$(firstword $$(wildcard $$(CURDIR)/package.json
 _MANIFEST_FACTS = $(eval _MANIFEST_FACTS := $$(if $$(_MANIFEST),$$(shell $$(AWK) -v _MANIFEST='$$(_MANIFEST)' '$$(_MANIFEST_AWK)' \
 	$$(_MANIFEST) $$(filter-out $$(_MANIFEST),$$(wildcard $$(CURDIR)/composer.json))),vendor vendor/bin))$(_MANIFEST_FACTS)
 
-_MANIFEST_NAME = $(word 3,$(_MANIFEST_FACTS))
+_MANIFEST_NAME = $(word 4,$(_MANIFEST_FACTS))
 
 _CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \016 \017 \020 \021 \022 \023 \024 \025 \026 \027 \030 \031 \032 \033 \034 \035 \036 \037 \177')
 
@@ -1134,6 +1137,8 @@ _HAS_HADOLINT       := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_
 _HAS_ACTIONLINT     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint,$(ACTIONLINT_SERVICE))))
 _HAS_COMPOSER_AUDIT  = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/composer.lock))
 _HAS_BUN_AUDIT       = $(and $(_HAS_JS),$(wildcard $(CURDIR)/bun.lock))
+_HAS_BUN_BUILD       = $(and $(_HAS_JS),$(filter 1,$(word 3,$(_MANIFEST_FACTS))))
+_HAS_ASSET_MAPPER    = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/symfony/asset-mapper))
 _HAS_AUDIT           = $(or $(_HAS_COMPOSER_AUDIT),$(_HAS_BUN_AUDIT))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
@@ -1268,6 +1273,7 @@ _HAS_TEST        := $(or $(_TEST_NAMES),$(TEST_TARGETS))
 _HAS_TEST_UPDATE := $(_TEST_NAMES)
 _HAS_COVERAGE    := $(_COVERAGE_NAMES)
 _HAS_CI          := $(or $(_HAS_CHECK),$(_HAS_AUDIT),$(_HAS_TEST),$(CI_TARGETS))
+_HAS_DIST        := $(or $(_HAS_ASSET_MAPPER),$(_HAS_BUN_BUILD),$(DIST_TARGETS))
 
 export _BRNSHKR_DETECTED_IN := $(CURDIR)
 export _COMPOSE_SERVICES
@@ -2117,6 +2123,16 @@ $(call _target,ci): #~~ runs `CI_TARGETS`, failing at the end if any of them fai
 	) [ -z "$$is_failed" ]
 endif
 
+_DIST_TARGETS = $(if $(_HAS_ASSET_MAPPER),$(call _target,asset-map-compile)) \
+	$(if $(_HAS_BUN_BUILD),$(call _target,bun-build))
+
+DIST_TARGETS ?= $(_DIST_TARGETS)#vv #~~ targets `dist` runs in order
+
+ifneq ($(_HAS_DIST),)
+$(call _target,dist): #~~ builds what this project ships by running `DIST_TARGETS`
+	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(DIST_TARGETS)
+endif
+
 FIXTURE_TARGETS ?= #v #~~ this project's own targets, run by `fixtures` for its tests
 
 $(call _target,fixtures): #~~ builds the fixtures this project's tests read #v
@@ -2769,6 +2785,150 @@ endif
 
 _TEST_STAGE_TO_ENTER := $(if $(filter $(DOTENV_TEST_ENVS),$(_CURRENT_ENV)),,$(firstword $(filter $(DOTENV_TEST_ENVS),$(DOTENV_STAGES))))
 
+#---v image
+
+IMAGE_NAME       ?= #~~ image `image` builds, set in a stage's environment file
+IMAGE_TARGET     ?= #~~ Dockerfile stage `image` builds, empty for the last one
+IMAGE_DOCKERFILE ?= #~~ Dockerfile `image` builds from, empty for `<IMAGE_NAME>.Dockerfile`, `Dockerfile`, or forge's generic one
+IMAGE_CONTEXT    ?= #~~ directory `image` builds from, empty for the files Git tracks
+IMAGE_REFERENCE  ?= $(_IMAGE_REFERENCE)#~~ reference `image` tags the build with
+IMAGE_FLAGS      ?= --load#~~ flags passed to `docker buildx build`
+
+_IMAGE_CONTEXT_DIR         = $(_CACHE_DIR)/image.context
+_IMAGE_GENERIC_DOCKERFILE  = $(_CACHE_DIR)/image.Dockerfile
+_IMAGE_PROJECT_DOCKERFILE  = $(firstword $(wildcard $(addprefix $(CURDIR)/,$(_CONFIG_DIR)/docker/$(IMAGE_NAME).Dockerfile docker/$(IMAGE_NAME).Dockerfile $(IMAGE_NAME).Dockerfile Dockerfile)))
+_IMAGE_DOCKERFILE          = $(or $(IMAGE_DOCKERFILE),$(patsubst $(CURDIR)/%,./%,$(_IMAGE_PROJECT_DOCKERFILE)),./$(_IMAGE_GENERIC_DOCKERFILE))
+_IS_GENERIC_DOCKERFILE     = $(filter ./$(_IMAGE_GENERIC_DOCKERFILE),$(_IMAGE_DOCKERFILE))
+_IMAGE_REFERENCE           = localhost/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(IMAGE_NAME):$(or $(IMAGE_TARGET),latest)
+_IMAGE_ARGUMENTS           = $(shell $(AWK) '$(_DOCKERFILE_ARGUMENTS_AWK)' $(call _quoted,$(_IMAGE_DOCKERFILE)))
+_FORGE_TAG_SUFFIX_BY_ROLE := FORGE_APP_DEV:-app-dev FORGE_APP:-app FORGE_CLI_CHROMIUM:-cli-chromium FORGE_CLI:-cli
+
+_AUTOMATIC_ARGUMENTS := BUILDARCH \
+	BUILDOS \
+	BUILDPLATFORM \
+	BUILDVARIANT \
+	TARGETARCH \
+	TARGETOS \
+	TARGETPLATFORM \
+	TARGETVARIANT
+
+define _DOCKERFILE_ARGUMENTS_AWK
+/^ARG[\t ]+[A-Z_a-z]/ { \
+	sub(/^ARG[\t ]+/, ""); \
+	match($$0, /^[A-Z_a-z][0-9A-Z_a-z]*/); \
+	name = substr($$0, 1, RLENGTH); \
+	if (!(name in is_seen)) { is_seen[name] = 1; names[++name_count] = name } \
+	if (substr($$0, RLENGTH + 1, 1) == "=") has_default[name] = 1 \
+} \
+END { for (name_index = 1; name_index <= name_count; name_index += 1) { marker = has_default[names[name_index]] ? "=" : ""; printf "%s%s ", names[name_index], marker } }
+endef
+
+#**
+#* Whether a variable has a value of its own rather than only one this machine's environment hands every make.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _is_assigned
+$(or $(filter-out undefined environment,$(origin $1)),$(filter $1,$(_DOTENV_KEYS)))
+endef
+
+#**
+#* The forge image a build argument takes from its digest, empty where it names no forge role or is set in full.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _get_pinned_forge_image
+$(foreach ROLE,$(if $(filter %_IMAGE,$1),$(filter $(1:_IMAGE=):%,$(_FORGE_TAG_SUFFIX_BY_ROLE))),$(if $(and \
+	$(call _is_assigned,$(1:_IMAGE=)_IMAGE_DIGEST),$(if $(call _is_assigned,$1),,1)),$(call \
+	_get_forge_image_reference,$(1:_IMAGE=),$(patsubst $(1:_IMAGE=):%,%,$(ROLE)))))
+endef
+
+#**
+#* The reference of a forge image a role's digest pins, refusing a digest without `FORGE_TAG`.
+#*
+#* parameters:
+#*   prefix: string
+#*   suffix: string
+#*
+#* returns: string
+#*
+define _get_forge_image_reference
+$(if $(FORGE_TAG),,$(error [$(_LABEL)] `$1_IMAGE_DIGEST` needs `FORGE_TAG`, so set it beside the digest))$(FORGE_IMAGE_NAMESPACE)/$(or \
+	$($1_IMAGE_NAME),$(FORGE_IMAGE_NAME),forge):$(FORGE_TAG)$2@$($1_IMAGE_DIGEST)
+endef
+
+#**
+#* The value a build argument takes, empty where nothing sets it.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _get_image_argument_value
+$(or $(call _get_pinned_forge_image,$1),$($1))
+endef
+
+#**
+#* A declared build argument as a `NAME=value` record, refusing one with neither a default nor a value.
+#*
+#* parameters:
+#*   name: string
+#*   has_default: string
+#*
+#* returns: string
+#*
+define _format_build_argument
+$(if $(or $(call _get_pinned_forge_image,$1),$(call _is_assigned,$1)),$1=$(subst \
+	$(_NEWLINE),$(_MASKED_NEWLINE),$(call _get_image_argument_value,$1))$(_MASKED_SPACE),$(if \
+	$(or $2,$(filter $1,$(_AUTOMATIC_ARGUMENTS))),,$(error [$(_LABEL)] Build argument `$1` has no default and no value)))
+endef
+
+_$(_TARGET_PREFIX)image-dockerfile:
+	$(if $(IMAGE_NAME),,$(error [$(_LABEL)] `IMAGE_NAME` is empty, so run `image` in a stage that names one, e.g. `make production-image`))
+	$(if $(and $(IMAGE_DOCKERFILE),$(if $(wildcard $(CURDIR)/$(IMAGE_DOCKERFILE)),,1)),$(error [$(_LABEL)] `$(IMAGE_DOCKERFILE)` does not exist, so fix `IMAGE_DOCKERFILE`))
+	$(if $(and $(_IS_GENERIC_DOCKERFILE),$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,1)),$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
+	$(DEBUG_PREFIX)$(if $(_IS_GENERIC_DOCKERFILE),$(MKDIR) -p '$(_CACHE_DIR)' \
+		&& $(DOCKER) run --rm --entrypoint cat $(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) \
+			/usr/local/share/forge/app.Dockerfile >'$(_IMAGE_GENERIC_DOCKERFILE)',:)
+
+$(call _target,image): export _GIT_REMOTE_AWK      = $(_GIT_REMOTE_AWK_SOURCE)
+$(call _target,image): export _IMAGE_ARGUMENTS_AWK = $(_IMAGE_ARGUMENTS_AWK_SOURCE)
+$(call _target,image): export _IMAGE_LABELS_AWK    = $(_IMAGE_LABELS_AWK_SOURCE)
+$(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's `IMAGE_NAME`
+	$(DEBUG_PREFIX)$(if $(IMAGE_CONTEXT),:,$(RM) -rf '$(_IMAGE_CONTEXT_DIR)' && $(MKDIR) -p '$(_IMAGE_CONTEXT_DIR)' \
+		&& $(GIT) ls-files -z --cached --deduplicate | $(TAR) -c --null -T - -f - 2>/dev/null | $(TAR) -x -f - -C '$(_IMAGE_CONTEXT_DIR)' \
+		&& $(GIT) ls-files -z | $(GIT) check-attr --stdin -z export-ignore | $(TR) '\000' '\n' \
+			| $(AWK) 'NR % 3 == 1 { path = $$0 } NR % 3 == 0 && $$0 == "set" { print path }' >'$(_IMAGE_CONTEXT_DIR)/.forge-export-ignored') \
+		&& remote=$$($(GIT) remote get-url origin 2>/dev/null | $(AWK) "$$_GIT_REMOTE_AWK") \
+		&& server_url=$${GITHUB_SERVER_URL:-$${remote% *}} \
+		&& repository=$${GITHUB_REPOSITORY:-$${remote#* }} \
+		&& set -f \
+		&& set -- --label "org.opencontainers.image.created=$$($(GIT) log -1 --format=%cI)" --label "org.opencontainers.image.revision=$$($(GIT) rev-parse HEAD)" \
+		&& build_arguments=$$(printf '%s' $(call _quoted,$(foreach ARGUMENT,$(_IMAGE_ARGUMENTS),$(call \
+			_format_build_argument,$(patsubst %=,%,$(ARGUMENT)),$(findstring =,$(ARGUMENT))))) | $(AWK) "$$_IMAGE_ARGUMENTS_AWK") \
+		&& newline=$$(printf '\n_') && IFS=$${newline%_} \
+		&& set -- "$$@" $$build_arguments \
+		$(if $(_IS_GENERIC_DOCKERFILE),&& labels=$$($(AWK) -v _GITHUB_OWNER="$${GITHUB_REPOSITORY_OWNER:-$${repository%%/*}}" "$$_IMAGE_LABELS_AWK" \
+			$(or $(firstword $(wildcard $(CURDIR)/composer.json $(CURDIR)/package.json)),/dev/null)) \
+			&& for label in 'org.opencontainers.image.title=$(IMAGE_NAME)' $$labels; do set -- "$$@" --label "$$label"; done \
+			&& if [ -n "$$server_url" ] && [ -n "$$repository" ]; then \
+				set -- "$$@" --label "org.opencontainers.image.source=$$server_url/$$repository" \
+					--label "org.opencontainers.image.url=$$server_url/$$repository"; \
+			fi) \
+		&& unset IFS \
+		&& $(DOCKER) buildx build $(IMAGE_FLAGS) -f $(call _quoted,$(_IMAGE_DOCKERFILE)) $(if $(IMAGE_TARGET),--target $(call _quoted,$(IMAGE_TARGET))) \
+			"$$@" -t $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(or $(IMAGE_CONTEXT),$(_IMAGE_CONTEXT_DIR))) \
+		&& if [ -f $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) ]; then \
+			sh $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(IMAGE_NAME)) $(call _quoted,$(IMAGE_TARGET)); \
+		fi
+
 #--- dependencies
 
 MINIMUM_RELEASE_AGE ?= 604800#v #~~ seconds a version must be out before Bun or Composer installs it, empty for no wait
@@ -2778,6 +2938,12 @@ ifneq ($(_HAS_PHP),) # php
 #--- php
 
 PHP_EXTENSIONS ?= $(_PHP_EXTENSIONS)#vv #~~ extensions the PHP tools read
+CONSOLE        ?= $(PHP) ./bin/console#v #~~ command that runs Symfony's console
+
+ifneq ($(_HAS_ASSET_MAPPER),)
+$(call _target,asset-map-compile): #~~ compiles the assets AssetMapper serves #vv
+	$(DEBUG_PREFIX)$(CONSOLE) asset-map:compile $(ARGS)
+endif
 
 #--- composer
 
@@ -3081,6 +3247,11 @@ $(call _target,bun): #~~ runs `bun`
 ifneq ($(_HAS_BUN_AUDIT),)
 $(call _target,bun-audit): #~~ checks the Bun lock file for known vulnerabilities #vv
 	$(TRACE_PREFIX)$(call _spinner,$(BUN) audit $(BUN_AUDIT_FLAGS) $(ARGS))
+endif
+
+ifneq ($(_HAS_BUN_BUILD),)
+$(call _target,bun-build): #~~ runs the `build` script of `package.json` #vv
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) run build $(ARGS)
 endif
 
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
@@ -5314,6 +5485,109 @@ if ($$skippedRuleNames !== []) {
 }
 
 \printf('Loaded %d rules%s', \count($$ruleNames), \PHP_EOL);
+endef
+
+define _IMAGE_ARGUMENTS_AWK_SOURCE
+BEGIN { RS = "\037" }
+{
+	sub(/^ +/, "")
+	if ($$0 == "") next
+	position = index($$0, "=")
+	line_count = split(substr($$0, position + 1), lines, "\036")
+	value = ""
+	for (line_index = 1; line_index <= line_count; line_index += 1) {
+		line = lines[line_index]
+		gsub(/^[ \t\r\f\013]+|[ \t\r\f\013]+$$/, "", line)
+		if (line != "") value = value (value == "" ? "" : " ") line
+	}
+	print "--build-arg"
+	print substr($$0, 1, position) value
+}
+endef
+
+define _GIT_REMOTE_AWK_SOURCE
+{
+	url = $$0
+	sub(/[.]git$$/, "", url)
+	sub(/^[a-z+]+:\/\//, "", url)
+	sub(/^[^@\/]*@/, "", url)
+	if (match(url, /[\/:]/)) print "https://" substr(url, 1, RSTART - 1) " " substr(url, RSTART + 1)
+}
+endef
+
+define _IMAGE_LABELS_AWK_SOURCE
+function read_string(    value, character) {
+	value = ""
+	while (position <= text_length) {
+		character = substr(text, position, 1)
+		position += 1
+		if (character == "\"") return value
+		if (character == "\\") {
+			character = substr(text, position, 1)
+			position += 1
+			if (character == "n") character = "\n"
+			else if (character == "t") character = "\t"
+		}
+		value = value character
+	}
+	return value
+}
+function read_token(    character) {
+	while (position <= text_length && index(" \t\r\n", substr(text, position, 1))) position += 1
+	character = substr(text, position, 1)
+	position += 1
+	if (character == "\"") { token_value = read_string(); return "string" }
+	if (index("{}[]:,", character)) return character
+	while (position <= text_length && !index(" \t\r\n{}[]:,", substr(text, position, 1))) position += 1
+	return "literal"
+}
+function read_names(token, is_nested,    key, value_token, value, names) {
+	if (token == "string") return token_value
+	names = ""
+	if (token == "{") {
+		while (read_token() == "string") {
+			key = token_value
+			read_token()
+			value_token = read_token()
+			value = read_names(value_token, 1)
+			if (key == "name" && value_token == "string") names = value
+			if (read_token() != ",") break
+		}
+	} else if (token == "[") {
+		while ((token = read_token()) != "]" && token != "") {
+			value = read_names(token, 1)
+			if (!is_nested && value != "") names = names (names == "" ? "" : "\037") value
+			if (read_token() != ",") break
+		}
+	}
+	return names
+}
+function join(names, separator) { gsub(/\037/, separator, names); return names }
+{ text = text $$0 "\n" }
+END {
+	text_length = length(text)
+	position = 1
+	if (read_token() == "{") {
+		while (read_token() == "string") {
+			key = token_value
+			read_token()
+			token = read_token()
+			value_by_key[key] = read_names(token, 0)
+			if (key == "authors" && token != "literal") has_authors = 1
+			if (read_token() != ",") break
+		}
+	}
+	vendor = value_by_key["name"]
+	sub(/^@/, "", vendor)
+	vendor = index(vendor, "/") ? substr(vendor, 1, index(vendor, "/") - 1) : _GITHUB_OWNER
+	authors = join(has_authors ? value_by_key["authors"] : value_by_key["author"], ", ")
+	if (authors == "") authors = _GITHUB_OWNER
+	print "org.opencontainers.image.vendor=" vendor
+	print "org.opencontainers.image.authors=" authors
+	if (value_by_key["description"] != "") print "org.opencontainers.image.description=" value_by_key["description"]
+	if (value_by_key["license"] != "") print "org.opencontainers.image.licenses=" join(value_by_key["license"], " OR ")
+	if (value_by_key["homepage"] != "") print "org.opencontainers.image.documentation=" value_by_key["homepage"]
+}
 endef
 
 define _CHANGELOG_SECTION_AWK_SOURCE

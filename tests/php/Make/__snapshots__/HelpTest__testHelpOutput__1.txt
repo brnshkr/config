@@ -235,6 +235,13 @@ Variables:
   release
    CHANGELOG_RANGE             ?=                                                   (commit range the changelog covers)
    CHANGELOG_URL               ?=                                                   (base URL a commit hash links to)
+  image
+   IMAGE_NAME                  ?=                                                   (image image builds, set in a stage's environment file)
+   IMAGE_TARGET                ?=                                                   (Dockerfile stage image builds, empty for the last one)
+   IMAGE_DOCKERFILE            ?=                                                   (Dockerfile image builds from, empty for <IMAGE_NAME>.Dockerfile, Dockerfile, or forge's generic one)
+   IMAGE_CONTEXT               ?=                                                   (directory image builds from, empty for the files Git tracks)
+   IMAGE_REFERENCE             ?=  $(_IMAGE_REFERENCE)                              (reference image tags the build with)
+   IMAGE_FLAGS                 ?=  --load                                           (flags passed to docker buildx build)
   dependencies
    MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
   hadolint
@@ -299,6 +306,8 @@ Available commands:
    fresh                       deletes ignored files and runs startup again
   release
    changelog                   prints the changelog, or writes it to CHANGELOG_DIR
+  image
+   image                       builds the stage's IMAGE_NAME
  app
   commands
    root-makefile-command       command from root Makefile auto-include
@@ -413,6 +422,7 @@ Available commands:
 +   CI_TARGETS                  ?=  $(_CI_TARGETS)                                   (targets ci runs in order)
 +   CI_SUMMARY_FILE             ?=  $(GITHUB_STEP_SUMMARY)                           (markdown file check, audit, test, and test-matrix add their rows to)
 +   CI_JOB_ID                   ?=                                                   (ID of the CI job whose log a failed summary row links, e.g. GitHub's job.check_run_id)
++   DIST_TARGETS                ?=  $(_DIST_TARGETS)                                 (targets dist runs in order)
     FIXTURE_TARGETS             ?=                                                   (this project's own targets, run by fixtures for its tests)
    setup
     STARTUP_TARGETS             ?=                                                   (this project's own targets, run by startup after installs)
@@ -427,9 +437,9 @@ Available commands:
 +   CHANGELOG_SKIPPED_TYPES     ?=  test style build                                 (commit types left out of the changelog)
 +   CHANGELOG_GROUPS            ?=  dependencies=📦_Dependencies a11y=♿_Accessibil… (headings per root, as <root>=<heading> pairs, _ a space)
 +   CHANGELOG_NAMES             ?=  a11y=a11y acl=ACL apcu=APCu api=API aws=AWS bdd… (title-casing fixes, as <scope>=<name> pairs, _ a space)
-   dependencies
-    MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
-   hadolint
+   image
+    IMAGE_NAME                  ?=                                                   (image image builds, set in a stage's environment file)
+    IMAGE_TARGET                ?=                                                   (Dockerfile stage image builds, empty for the last one)
 @@ @@
    variables
     BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -496,7 +506,7 @@ Available commands:
 +   fresh-dry-run               lists what fresh would remove and keep
    release
     changelog                   prints the changelog, or writes it to CHANGELOG_DIR
-  app
+   image
 @@ @@
     no-desc-command             
    verbose-group
@@ -597,9 +607,9 @@ Available commands:
 +   SEMVER_PRERELEASE_STRICT    ?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)
 +   SEMVER_BUILD                ?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)
 +   SEMVER_REGEX                ?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)
-   dependencies
-    MINIMUM_RELEASE_AGE         ?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)
-   hadolint
+   image
+    IMAGE_NAME                  ?=                                                   (image image builds, set in a stage's environment file)
+    IMAGE_TARGET                ?=                                                   (Dockerfile stage image builds, empty for the last one)
 @@ @@
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
@@ -669,9 +679,9 @@ Available commands:
    release
     changelog                   prints the changelog, or writes it to CHANGELOG_DIR
 +   pack                        packs every stack's package to ./.local
+   image
+    image                       builds the stage's IMAGE_NAME
   app
-   commands
-    root-makefile-command       command from root Makefile auto-include
 @@ @@
     verbose-hidden-command      shown at verbosity >= 2
    very-verbose-group
@@ -736,6 +746,9 @@ Available commands:
 -   pack                        packs every stack's package to ./.local
 +   changelog                                prints the changelog, or writes it to CHANGELOG_DIR
 +   pack                                     packs every stack's package to ./.local
+   image
+-   image                       builds the stage's IMAGE_NAME
++   image                                    builds the stage's IMAGE_NAME
   app
    commands
 -   root-makefile-command       command from root Makefile auto-include
@@ -828,6 +841,7 @@ brnshkr.dependencies
 brnshkr.dotenv
 brnshkr.hadolint
 brnshkr.helpers
+brnshkr.image
 brnshkr.output
 brnshkr.release
 brnshkr.semver
@@ -1261,6 +1275,7 @@ Available commands:
    [36mCI_TARGETS                [0m  [90m?=  $(_CI_TARGETS)                                   (targets [35mci[0m[90m runs in order)[0m
    [36mCI_SUMMARY_FILE           [0m  [90m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [35mcheck[0m[90m, [35maudit[0m[90m, [35mtest[0m[90m, and [35mtest-matrix[0m[90m add their rows to)[0m
    [36mCI_JOB_ID                 [0m  [90m?=                                                   (ID of the CI job whose log a failed summary row links, e.g. GitHub's [35mjob.check_run_id[0m[90m)[0m
+   [36mDIST_TARGETS              [0m  [90m?=  $(_DIST_TARGETS)                                 (targets [35mdist[0m[90m runs in order)[0m
    [36mFIXTURE_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mfixtures[0m[90m for its tests)[0m
   [35msetup[0m
    [36mSTARTUP_TARGETS           [0m  [90m?=                                                   (this project's own targets, run by [35mstartup[0m[90m after installs)[0m
@@ -1282,6 +1297,13 @@ Available commands:
    [36mSEMVER_PRERELEASE_STRICT  [0m  [90m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [36mSEMVER_BUILD              [0m  [90m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [36mSEMVER_REGEX              [0m  [90m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [35mimage[0m
+   [36mIMAGE_NAME                [0m  [90m?=                                                   (image [35mimage[0m[90m builds, set in a stage's environment file)[0m
+   [36mIMAGE_TARGET              [0m  [90m?=                                                   (Dockerfile stage [35mimage[0m[90m builds, empty for the last one)[0m
+   [36mIMAGE_DOCKERFILE          [0m  [90m?=                                                   (Dockerfile [35mimage[0m[90m builds from, empty for [35m<IMAGE_NAME>.Dockerfile[0m[90m, [35mDockerfile[0m[90m, or forge's generic one)[0m
+   [36mIMAGE_CONTEXT             [0m  [90m?=                                                   (directory [35mimage[0m[90m builds from, empty for the files Git tracks)[0m
+   [36mIMAGE_REFERENCE           [0m  [90m?=  $(_IMAGE_REFERENCE)                              (reference [35mimage[0m[90m tags the build with)[0m
+   [36mIMAGE_FLAGS               [0m  [90m?=  --load                                           (flags passed to [35mdocker buildx build[0m[90m)[0m
   [35mdependencies[0m
    [36mMINIMUM_RELEASE_AGE       [0m  [90m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [35mhadolint[0m
@@ -1407,6 +1429,8 @@ Available commands:
   [35mrelease[0m
    [36mchangelog                 [0m  [90mprints the changelog, or writes it to [35mCHANGELOG_DIR[0m[90m[0m
    [36mpack                      [0m  [90mpacks every stack's package to [35m./.local[0m[90m[0m
+  [35mimage[0m
+   [36mimage                     [0m  [90mbuilds the stage's [35mIMAGE_NAME[0m[90m[0m
  [35mapp[0m
   [35mcommands[0m
    [36mroot-makefile-command     [0m  [90mcommand from root Makefile auto-include[0m
@@ -1613,6 +1637,7 @@ Available commands:
    [32mCI_TARGETS                [0m  [0m?=  $(_CI_TARGETS)                                   (targets [33mci[0m[0m runs in order)[0m
    [32mCI_SUMMARY_FILE           [0m  [0m?=  $(GITHUB_STEP_SUMMARY)                           (markdown file [33mcheck[0m[0m, [33maudit[0m[0m, [33mtest[0m[0m, and [33mtest-matrix[0m[0m add their rows to)[0m
    [32mCI_JOB_ID                 [0m  [0m?=                                                   (ID of the CI job whose log a failed summary row links, e.g. GitHub's [33mjob.check_run_id[0m[0m)[0m
+   [32mDIST_TARGETS              [0m  [0m?=  $(_DIST_TARGETS)                                 (targets [33mdist[0m[0m runs in order)[0m
    [32mFIXTURE_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mfixtures[0m[0m for its tests)[0m
   [33msetup[0m
    [32mSTARTUP_TARGETS           [0m  [0m?=                                                   (this project's own targets, run by [33mstartup[0m[0m after installs)[0m
@@ -1634,6 +1659,13 @@ Available commands:
    [32mSEMVER_PRERELEASE_STRICT  [0m  [0m?=  (alpha|beta|rc)(\.(0|[1-9][0-9]*))?              (the narrower one npm and Composer share, spelled npm's way)[0m
    [32mSEMVER_BUILD              [0m  [0m?=  [0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*                  (build metadata, which neither registry publishes)[0m
    [32mSEMVER_REGEX              [0m  [0m?=  $(SEMVER_NUMBER)\.$(SEMVER_NUMBER)\.$(SEMVER_NU… (the semver grammar, as a POSIX extended regular expression)[0m
+  [33mimage[0m
+   [32mIMAGE_NAME                [0m  [0m?=                                                   (image [33mimage[0m[0m builds, set in a stage's environment file)[0m
+   [32mIMAGE_TARGET              [0m  [0m?=                                                   (Dockerfile stage [33mimage[0m[0m builds, empty for the last one)[0m
+   [32mIMAGE_DOCKERFILE          [0m  [0m?=                                                   (Dockerfile [33mimage[0m[0m builds from, empty for [33m<IMAGE_NAME>.Dockerfile[0m[0m, [33mDockerfile[0m[0m, or forge's generic one)[0m
+   [32mIMAGE_CONTEXT             [0m  [0m?=                                                   (directory [33mimage[0m[0m builds from, empty for the files Git tracks)[0m
+   [32mIMAGE_REFERENCE           [0m  [0m?=  $(_IMAGE_REFERENCE)                              (reference [33mimage[0m[0m tags the build with)[0m
+   [32mIMAGE_FLAGS               [0m  [0m?=  --load                                           (flags passed to [33mdocker buildx build[0m[0m)[0m
   [33mdependencies[0m
    [32mMINIMUM_RELEASE_AGE       [0m  [0m?=  604800                                           (seconds a version must be out before Bun or Composer installs it, empty for no wait)[0m
   [33mhadolint[0m
@@ -1759,6 +1791,8 @@ Available commands:
   [33mrelease[0m
    [32mchangelog                 [0m  [0mprints the changelog, or writes it to [33mCHANGELOG_DIR[0m[0m[0m
    [32mpack                      [0m  [0mpacks every stack's package to [33m./.local[0m[0m[0m
+  [33mimage[0m
+   [32mimage                     [0m  [0mbuilds the stage's [33mIMAGE_NAME[0m[0m[0m
  [33mapp[0m
   [33mcommands[0m
    [32mroot-makefile-command     [0m  [0mcommand from root Makefile auto-include[0m

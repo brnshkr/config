@@ -371,6 +371,30 @@ final class ToolsTest extends TestCase
         self::assertFileDoesNotExist($lintersDirectory . '/positional-ran');
     }
 
+    public function testImageTakesTheProjectsBuildSettings(): void
+    {
+        $default = $this->runLinter(['-n', 'image', 'IMAGE_NAME=app']);
+        $unnamed = $this->runLinter(['-n', 'image', 'IMAGE_NAME=shop']);
+
+        $configured = $this->runLinter([
+            '-n',
+            'image',
+            'IMAGE_NAME=app',
+            'IMAGE_CONTEXT=docker',
+            'IMAGE_REFERENCE=registry.acme.internal/shop:1.0.0',
+            'IMAGE_FLAGS=--platform=linux/arm64 --push',
+        ]);
+
+        self::assertStringContainsString('ls-files -z --cached --deduplicate', $default);
+        self::assertStringContainsString('buildx build --load -f \'./docker/app.Dockerfile\'', $default);
+        self::assertStringContainsString('-t \'localhost/app:latest\' \'.cache/image.context\'', $default);
+        self::assertStringContainsString('-f \'./Dockerfile\'', $unnamed);
+
+        self::assertStringNotContainsString('ls-files -z --cached --deduplicate', $configured);
+        self::assertStringContainsString('buildx build --platform=linux/arm64 --push -f \'./docker/app.Dockerfile\'', $configured);
+        self::assertStringContainsString('-t \'registry.acme.internal/shop:1.0.0\' \'docker\'', $configured);
+    }
+
     public function testSemgrepResolvesItsRulesets(): void
     {
         $scenarios = [];
