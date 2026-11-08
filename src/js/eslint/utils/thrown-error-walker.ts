@@ -58,7 +58,6 @@ const DOCUMENTED_PARENT_TYPES = new Set([
 ]);
 
 const thrownErrorsByFunction = new WeakMap<FunctionNode, ThrownError[]>();
-const createJavaScriptFilePattern = (): RegExp => /\.[cm]?jsx?$/v;
 const isFunctionNode = (node: TSESTree.Node): node is FunctionNode => FUNCTION_TYPES.has(node.type);
 
 /* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum throughout this module */
@@ -264,7 +263,7 @@ export const collectThrownErrors = (context: RuleContext, node: FunctionNode): T
     sourceCode: context.sourceCode,
     services: program === undefined ? undefined : services,
     checker: program?.getTypeChecker(),
-    isJavaScript: createJavaScriptFilePattern().test(context.filename),
+    isJavaScript: /\.[cm]?jsx?$/v.test(context.filename),
     thrownErrors: <ThrownError[]>[],
     walk: walkNode,
   } satisfies WalkContext;

@@ -7,9 +7,6 @@ import { packageOrganization } from '#shared/utils/package-json.ts';
 import type { MicromarkToken, RuleOnError } from 'markdownlint';
 import type { BuiltinRule } from '#markdownlint/types/rules.ts';
 
-const createOpenTagPattern = (): RegExp => /<\?[\w=]*/gv;
-const createStrictTypesPattern = (): RegExp => /\bdeclare\s*\(\s*strict_types\s*=\s*1\s*\)\s*;/gv;
-
 const reportMatches = (text: string, firstLineNumber: number, pattern: RegExp, onError: RuleOnError): void => {
   for (const match of text.matchAll(pattern)) {
     const precedingLines = text.slice(0, match.index).split('\n');
@@ -32,7 +29,7 @@ const walkPhpFences = (tokens: MicromarkToken[], onError: RuleOnError): void => 
       reportMatches(
         token.text,
         token.startLine,
-        createStrictTypesPattern(),
+        /\bdeclare\s*\(\s*strict_types\s*=\s*1\s*\)\s*;/gv,
         onError,
       );
     } else {
@@ -54,7 +51,7 @@ export const noPhpOpenTagRule: BuiltinRule = {
     reportMatches(
       parameters.lines.join('\n'),
       1,
-      createOpenTagPattern(),
+      /<\?[\w=]*/gv,
       onError,
     );
 

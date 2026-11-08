@@ -24,8 +24,6 @@ const NAMED_TAGS = new Set([
   'template',
 ]);
 
-const createTagLinePattern = (): RegExp => /^@(?<tag>[^\s\/]+)(?=\s|$)/v;
-
 const findClosingIndex = (text: string, brackets: RegExp, opening: string): Maybe<number> => {
   let depth = 0;
 
@@ -81,7 +79,7 @@ export const parseJsdocTags = (comment: string): JsdocTag[] => {
 
   for (const line of comment.replaceAll(/^\/\*\*|\*\/$/gv, '').split('\n')) {
     const content = line.replace(/^\s*\*?\s?/v, '');
-    const tagName = isFenced ? undefined : createTagLinePattern().exec(content)?.groups?.['tag'];
+    const tagName = isFenced ? undefined : /^@(?<tag>[^\s\/]+)(?=\s|$)/v.exec(content)?.groups?.['tag'];
 
     if (tagName === undefined) {
       tagBodies.at(-1)?.lines.push(content);
