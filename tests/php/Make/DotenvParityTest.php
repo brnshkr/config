@@ -34,7 +34,7 @@ final class DotenvParityTest extends TestCase
         require $argv[2];
 
         try {
-            (new Symfony\Component\Dotenv\Dotenv())->loadEnv($argv[1] . '/.env');
+            (new Symfony\Component\Dotenv\Dotenv())->bootEnv($argv[1] . '/.env');
         } catch (Throwable $exception) {
             echo 'ERROR: ', str_replace($argv[1] . '/', '', strtok($exception->getMessage(), "\n"));
 
@@ -235,6 +235,28 @@ final class DotenvParityTest extends TestCase
         ];
 
         yield 'dist file' => [['.env.dist' => "ACME_NAME=dist\n"]];
+
+        yield 'dump' => [
+            [
+                '.env'           => "ACME_NAME=file\n",
+                '.env.local.php' => "<?php return ['APP_ENV' => 'prod', 'ACME_NAME' => 'dump', 'ACME_TEXT' => 'it\\'s \$HOME'];\n",
+            ],
+        ];
+
+        yield 'dump for another environment' => [
+            [
+                '.env'           => "ACME_NAME=file\n",
+                '.env.local.php' => "<?php return ['APP_ENV' => 'prod', 'ACME_NAME' => 'dump'];\n",
+            ],
+            ['APP_ENV' => 'dev'],
+        ];
+
+        yield 'dump without an array' => [
+            [
+                '.env'           => "ACME_NAME=file\n",
+                '.env.local.php' => "<?php return 1;\n",
+            ],
+        ];
 
         yield 'environment wins' => [
             ['.env' => "ACME_NAME=file\nACME_IMAGE=acme/\${ACME_NAME}\n"],

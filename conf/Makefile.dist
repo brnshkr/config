@@ -106,8 +106,14 @@ function is_self_referencing(name, value,    position) {
 function populate(name, value, is_overriding) {
 	if (!is_overriding && !(name in is_loaded) && (name in value_by_name)) return; value_by_name[name] = value; is_loaded[name] = 1
 }
-function load(path,    line, status, name, value, file_name_count, file_names, value_in_file, name_index) {
-	if ((status = (getline line < path)) < 0) return 0; data = status ? line : ""; while ((getline line < path) > 0) data = data "\n" line; close(path); display_path = index(path, _CURDIR "/") == 1 ? substr(path, length(_CURDIR) + 2) : path; line_number = 1; if (substr(data, 1, 3) == "\357\273\277") fail_format("Loading files starting with a byte-order-mark (BOM) is not supported."); data = replace_all(replace_all(data, "\r\n", "\n"), "\r", "\n"); cursor = 1; end = length(data) + 1; skip_empty_lines()
+function load(path,    line, status) {
+	if ((status = (getline line < path)) < 0) return 0; data = status ? line : ""; while ((getline line < path) > 0) data = data "\n" line; close(path); return parse(path)
+}
+function load_dump(path,    command, status, line) {
+	command = "php -d display_errors=stderr -r " quote_for_shell(DUMP_PROGRAM) " " quote_for_shell(path) " " quote_for_shell(_ENV_KEY) ((_ENV_KEY in value_by_name) ? " " quote_for_shell(value_by_name[_ENV_KEY]) : ""); status = (command | getline line) > 0 ? line : ""; data = ""; while ((command | getline line) > 0) data = data line "\n"; close(command); return status == "#use" && parse(path)
+}
+function parse(path,    name, value, file_name_count, file_names, value_in_file, name_index) {
+	display_path = index(path, _CURDIR "/") == 1 ? substr(path, length(_CURDIR) + 2) : path; line_number = 1; if (substr(data, 1, 3) == "\357\273\277") fail_format("Loading files starting with a byte-order-mark (BOM) is not supported."); data = replace_all(replace_all(data, "\r\n", "\n"), "\r", "\n"); cursor = 1; end = length(data) + 1; skip_empty_lines()
 	while (cursor < end) {
 		name = lex_name(); value = cursor < end ? lex_value() : ""; if (!(name in value_in_file)) file_names[++file_name_count] = name; value_in_file[name] = value
 	}
@@ -177,7 +183,12 @@ function is_test_environment(environment,    test_count, tests, test_index) {
 	test_count = split(_TEST_ENVS, tests, /[ \t]+/); for (test_index = 1; test_index <= test_count; test_index += 1) if (tests[test_index] == environment) return 1; return 0
 }
 BEGIN {
-	SQ = sprintf("%c", 39); MARK = sprintf("%c", 1); for (name in ENVIRON) if (name !~ /^HTTP_/) value_by_name[name] = ENVIRON[name]; if (_ENV_VALUE != "") value_by_name[_ENV_KEY] = _ENV_VALUE; if (!load(_BASE)) load(_BASE ".dist"); if (!(_ENV_KEY in value_by_name)) populate(_ENV_KEY, _DEFAULT_ENV, 0); environment = resolve_environment_key(value_by_name[_ENV_KEY]); if (!is_test_environment(environment) && load(_BASE ".local")) environment = resolve_environment_key(value_by_name[_ENV_KEY]); if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }; resolve_loaded_values(); if (!(_ENV_KEY in order_index)) order[order_index[_ENV_KEY] = ++order_count] = _ENV_KEY
+	SQ = sprintf("%c", 39); MARK = sprintf("%c", 1); for (name in ENVIRON) if (name !~ /^HTTP_/) value_by_name[name] = ENVIRON[name]; if (_ENV_VALUE != "") value_by_name[_ENV_KEY] = _ENV_VALUE
+	DUMP_PROGRAM = "$$dump = include $$argv[1]; if (!is_array($$dump)) exit; if (isset($$dump[$$argv[2]], $$argv[3]) && $$argv[3] !== $$dump[$$argv[2]]) exit(\"#other\\n\"); echo \"#use\\n\"; foreach ($$dump as $$name => $$value) echo $$name, \"=\", chr(39), str_replace(chr(39), chr(39) . chr(92) . chr(39) . chr(39), $$value), chr(39), \"\\n\";"
+	if (!(_DUMP != "" && load_dump(_DUMP))) {
+		if (!load(_BASE)) load(_BASE ".dist"); if (!(_ENV_KEY in value_by_name)) populate(_ENV_KEY, _DEFAULT_ENV, 0); environment = resolve_environment_key(value_by_name[_ENV_KEY]); if (!is_test_environment(environment) && load(_BASE ".local")) environment = resolve_environment_key(value_by_name[_ENV_KEY]); if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }
+	}
+	resolve_loaded_values(); if (!(_ENV_KEY in order_index)) order[order_index[_ENV_KEY] = ++order_count] = _ENV_KEY
 	for (name_index = 1; name_index <= order_count; name_index += 1) {
 		value = value_by_name[order[name_index]]; gsub(/\$$/, "$$$$", value); gsub(/#/, "\\#", value); gsub(/\n/, "$$(_BRNSHKR_NEWLINE)", value); sub(/^[ \t]/, "$$()&", value); sub(/\\$$/, "&$$()", value); printf "%s ?= %s@@brnshkr-dotenv-newline@@export %s@@brnshkr-dotenv-newline@@", order[name_index], value, order[name_index]
 	}
@@ -186,15 +197,21 @@ endef
 
 _BRNSHKR_DOTENV_BASE    := $(if $(filter 0 false off no,$(DOTENV)),,$(CURDIR)/$(or $(filter-out 1 true on yes,$(DOTENV)),.env))
 _BRNSHKR_DOTENV_ENV_KEY := $(or $(DOTENV_ENV_KEY),APP_ENV)
+_BRNSHKR_DOTENV_DUMP    := $(and $(_BRNSHKR_DOTENV_BASE),$(wildcard $(_BRNSHKR_DOTENV_BASE).local.php))
+
+ifneq ($(and $(_BRNSHKR_DOTENV_DUMP),$(if $(wildcard $(addsuffix /php,$(subst :, ,$(PATH)))),,1)),)
+$(error `$(patsubst $(CURDIR)/%,%,$(_BRNSHKR_DOTENV_DUMP))` needs `php` to load, so install PHP or delete the file)
+endif
 
 $(eval $(subst @@brnshkr-dotenv-newline@@,$(_BRNSHKR_NEWLINE),$(if $(and $(_BRNSHKR_DOTENV_BASE),$(wildcard \
-	$(_BRNSHKR_DOTENV_BASE) $(_BRNSHKR_DOTENV_BASE).dist)),$(shell awk \
+	$(_BRNSHKR_DOTENV_BASE) $(_BRNSHKR_DOTENV_BASE).dist $(_BRNSHKR_DOTENV_DUMP))),$(shell awk \
 	-v _BASE='$(_BRNSHKR_DOTENV_BASE)' \
 	-v _CURDIR='$(CURDIR)' \
 	-v _ENV_KEY='$(_BRNSHKR_DOTENV_ENV_KEY)' \
 	-v _ENV_VALUE='$($(_BRNSHKR_DOTENV_ENV_KEY))' \
 	-v _DEFAULT_ENV='$(or $(DOTENV_DEFAULT_ENV),dev)' \
 	-v _TEST_ENVS='$(if $(filter undefined,$(origin DOTENV_TEST_ENVS)),test,$(DOTENV_TEST_ENVS))' \
+	-v _DUMP='$(_BRNSHKR_DOTENV_DUMP)' \
 	'$(_BRNSHKR_DOTENV_AWK)'))))
 endif
 

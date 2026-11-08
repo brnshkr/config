@@ -112,11 +112,12 @@
 #     make help resolve
 #     make help r
 #
-#   Printing what the Makefiles export, then what each environment file set:
+#   Printing what the Makefiles export, then each environment file in load order and what it set:
 #     make help env
 #     make help e
 #     make help -- --env
 #     make help env vvv  —  private exports as well
+#     make help env acme —  only names starting with `acme`, any case
 #
 #   Header overrides (LOGO, PACKAGE, VERSION, EDITOR):
 #     <VAR> = <unset>  —  fall back to the default (built-in logo, auto-detected editor)
@@ -524,7 +525,7 @@ DOTENV_ENV_KEY     ?= APP_ENV#~~ variable naming the current environment
 DOTENV_DEFAULT_ENV ?= dev#~~ environment assumed when the variable is unset
 DOTENV_TEST_ENVS   ?= test#~~ environments that skip the `.env.local` file
 _DOTENV_BASE       := $(if $(filter-out $(_FALSE),$(DOTENV)),$(CURDIR)/$(or $(filter-out $(_TRUE),$(DOTENV)),.env))
-DOTENV_STAGES      := $(if $(_DOTENV_BASE),$(filter-out local %.local %.example,$(patsubst $(_DOTENV_BASE).%,%,$(wildcard $(_DOTENV_BASE).*))))#~~ stages the `.env.<stage>` files name
+DOTENV_STAGES      := $(if $(_DOTENV_BASE),$(filter-out local local.php %.local %.example,$(patsubst $(_DOTENV_BASE).%,%,$(wildcard $(_DOTENV_BASE).*))))#~~ stages the `.env.<stage>` files name
 _CURRENT_ENV        = $(or $($(DOTENV_ENV_KEY)),$(DOTENV_DEFAULT_ENV))
 _DOTENV_SEPARATOR  := @@brnshkr-dotenv-newline@@
 _CONFIG_STAGES      = $(sort $(DOTENV_STAGES) $(DOTENV_DEFAULT_ENV))
@@ -644,11 +645,28 @@ function populate(name, value, is_overriding) {
 	value_by_name[name] = value
 	is_loaded[name] = 1
 }
-function load(path,    line, status, name, value, file_name_count, file_names, value_in_file, record_line_number, name_index) {
-	if ((status = (getline line < path)) < 0) return 0
+function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist }
+function report_file(path, status, detail) {
+	if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = ""; record_value[record_count] = status; record_line[record_count] = detail }
+}
+function load(path,    line, status) {
+	if ((status = (getline line < path)) < 0) { report_file(path, "missing", ""); return 0 }
 	data = status ? line : ""
 	while ((getline line < path) > 0) data = data "\n" line
 	close(path)
+	report_file(path, "present", "")
+	return parse(path, 1)
+}
+function load_dump(path,    command, status, line) {
+	command = "php -d display_errors=stderr -r " quote_for_shell(DUMP_PROGRAM) " " quote_for_shell(path) " " quote_for_shell(_ENV_KEY) ((_ENV_KEY in value_by_name) ? " " quote_for_shell(value_by_name[_ENV_KEY]) : "")
+	status = (command | getline line) > 0 ? line : ""
+	data = ""
+	while ((command | getline line) > 0) data = data line "\n"
+	close(command)
+	report_file(path, status == "#use" ? "dump" : (status == "#other" ? "dump-for-other-environment" : "dump-without-array"), _ENV_KEY)
+	return status == "#use" && parse(path, 0)
+}
+function parse(path, has_line_numbers,    name, value, file_name_count, file_names, value_in_file, record_line_number, name_index) {
 	display_path = index(path, _CURDIR "/") == 1 ? substr(path, length(_CURDIR) + 2) : path
 	line_number = 1
 	if (substr(data, 1, 3) == "\357\273\277") fail_format("Loading files starting with a byte-order-mark (BOM) is not supported.")
@@ -662,7 +680,7 @@ function load(path,    line, status, name, value, file_name_count, file_names, v
 		value = cursor < end ? lex_value() : ""
 		if (!(name in value_in_file)) file_names[++file_name_count] = name
 		value_in_file[name] = value
-		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = name; record_value[record_count] = value; record_line[record_count] = record_line_number; last_record_of_key[name] = record_count }
+		if (_REPORT) { record_file[++record_count] = path; record_key[record_count] = name; record_value[record_count] = value; record_line[record_count] = has_line_numbers ? record_line_number : ""; last_record_of_key[name] = record_count }
 	}
 	for (name_index = 1; name_index <= file_name_count; name_index += 1) {
 		name = file_names[name_index]
@@ -795,17 +813,24 @@ BEGIN {
 	SQ = sprintf("%c", 39)
 	MARK = sprintf("%c", 1)
 	for (name in ENVIRON) if (name !~ /^HTTP_/) value_by_name[name] = ENVIRON[name]
+	DUMP_PROGRAM = "$$dump = include $$argv[1]; if (!is_array($$dump)) exit; if (isset($$dump[$$argv[2]], $$argv[3]) && $$argv[3] !== $$dump[$$argv[2]]) exit(\"#other\\n\"); echo \"#use\\n\"; foreach ($$dump as $$name => $$value) echo $$name, \"=\", chr(39), str_replace(chr(39), chr(39) . chr(92) . chr(39) . chr(39), $$value), chr(39), \"\\n\";"
 	if (_ENV_VALUE != "") value_by_name[_ENV_KEY] = _ENV_VALUE
-	if (!load(_BASE)) load(_BASE ".dist")
-	if (!(_ENV_KEY in value_by_name)) populate(_ENV_KEY, _DEFAULT_ENV, 0)
-	environment = resolve_environment_key(value_by_name[_ENV_KEY])
-	if (!is_test_environment(environment) && load(_BASE ".local")) environment = resolve_environment_key(value_by_name[_ENV_KEY])
-	if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }
+	if (_DUMP == "") report_file(_BASE ".local.php", "missing", "")
+	if (_DUMP != "" && load_dump(_DUMP)) environment =(_ENV_KEY in value_by_name) ? value_by_name[_ENV_KEY] : _DEFAULT_ENV
+	else {
+		if (!load(_BASE)) load(_BASE ".dist")
+		else if (_REPORT && does_path_exist(_BASE ".dist")) report_file(_BASE ".dist", "skipped", _BASE)
+		if (!(_ENV_KEY in value_by_name)) populate(_ENV_KEY, _DEFAULT_ENV, 0)
+		environment = resolve_environment_key(value_by_name[_ENV_KEY])
+		if (!is_test_environment(environment) && load(_BASE ".local")) environment = resolve_environment_key(value_by_name[_ENV_KEY])
+		if (environment != "local") { load(_BASE "." environment); load(_BASE "." environment ".local") }
+	}
 	resolve_loaded_values()
 	if (!(_ENV_KEY in order_index)) order[order_index[_ENV_KEY] = ++order_count] = _ENV_KEY
 	if (_REPORT) {
 		for (record_index = 1; record_index <= record_count; record_index += 1) {
 			name = record_key[record_index]
+			if (name == "") { printf "%s\037\037%s\037%s\n", record_file[record_index], record_value[record_index], record_line[record_index]; continue }
 			value = last_record_of_key[name] == record_index && (name in is_loaded) ? value_by_name[name] : unescape(record_value[record_index])
 			gsub(/\n/, " ", value)
 			overriding_path = !(name in is_loaded) ? "environment" : last_record_of_key[name] != record_index ? record_file[last_record_of_key[name]] : ""
@@ -836,6 +861,13 @@ BEGIN {
 endef
 
 _DOTENV_ENV_VALUE := $($(DOTENV_ENV_KEY))
+_DOTENV_DUMP      := $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE).local.php))
+
+ifneq ($(_DOTENV_DUMP),)
+ifeq ($(call _is_on_path,php),)
+$(error [$(_LABEL)] `$(patsubst $(CURDIR)/%,%,$(_DOTENV_DUMP))` needs `php` to load, so install PHP or delete the file)
+endif
+endif
 
 _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 	-v _CURDIR='$(CURDIR)' \
@@ -843,10 +875,11 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 	-v _ENV_VALUE='$(_DOTENV_ENV_VALUE)' \
 	-v _DEFAULT_ENV='$(DOTENV_DEFAULT_ENV)' \
 	-v _TEST_ENVS='$(DOTENV_TEST_ENVS)' \
+	-v _DUMP='$(_DOTENV_DUMP)' \
 	-v _PREFIX='$(_LABEL)' \
 	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
 
-_DOTENV_OUTPUT := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist),$(shell \
+_DOTENV_OUTPUT := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist $(_DOTENV_DUMP)),$(shell \
 	$(AWK) $(_DOTENV_AWK_FLAGS) -v _LOOKUP_KEYS='COMPOSE_FILE FORGE_NAMESPACE FORGE_IMAGE_NAMESPACE FORGE_FRAGMENT_NAMESPACE' '$(_DOTENV_AWK)'))
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_OUTPUT)))
@@ -858,7 +891,7 @@ _DOTENV_FORGE_FRAGMENT_NAMESPACE := $(if $(filter file,$(origin FORGE_FRAGMENT_N
 
 _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILES),$(call _is_on_path,$(firstword $(DOCKER)))))
 
-_DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist)),$(if \
+_DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist $(_DOTENV_DUMP))),$(if \
 	$(filter $(DOTENV_DEFAULT_ENV),$(_DOTENV_STAGE)),$(_DOTENV_ENVIRONMENT), \
 	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)')))
 
@@ -1663,7 +1696,7 @@ _EDITOR_CONFIG_SETTINGS = $(if $(_CSS_DATA_FILES),'  "css.customData": [' $(fore
 _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	/$(_CACHE_DIR)/ \
 	/$(_LOCAL_DIR)/ \
-	$(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).*)),$(patsubst $(CURDIR)/%,/%,$(addprefix $(_DOTENV_BASE),.local .*.local))) \
+	$(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).*)),$(patsubst $(CURDIR)/%,/%,$(addprefix $(_DOTENV_BASE),.local .local.php .*.local))) \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
 	$(if $(_HAS_VITEST),/.vitest/) \
@@ -1711,7 +1744,8 @@ endef
 
 _HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
 	_HIDDEN_NAMES="_HELP_AWK _DOTENV_REPORT_AWK OLDPWD PWD SHLVL $(foreach VARIABLE_NAME,$(.VARIABLES),$(if $(filter environment,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)))" \
-	_COMMAND_LINE_NAMES="$(_COMMAND_LINE_KEYS)"
+	_COMMAND_LINE_NAMES="$(_COMMAND_LINE_KEYS)" \
+	_ENV_FILTERS="$(_HELP_SCOPES)"
 
 _HELP_RESOLVE_INPUTS = _VARIABLE_SOURCES="$(foreach VARIABLE_NAME,$(sort $(_RESOLVED_VARIABLES)),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=cli,$(if $(filter environment%,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=env)))"
 _HELP_DOTENV_INPUTS  = _DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
@@ -1734,7 +1768,7 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		_HEADER_TITLE="$(if $(or $(PACKAGE),$(VERSION)),$$(printf '%b' '$(call text,$(if $(PACKAGE),@@brnshkr-package@@)$(if $(and $(PACKAGE),$(VERSION)), )$(if $(VERSION),($(strip $(VERSION)))),$(COLOR_TITLE))'),)" \
 		_HEADER_PACKAGE="$(PACKAGE)" \
 		_HEADER_USAGE="$$(printf '%b' '$(call text,Usage:,$(COLOR_SECTION_LABEL))\n  $(call text,make,$(COLOR_USAGE_PROGRAM)) $(call text,<command> [--] [arguments],$(COLOR_USAGE_ARGUMENTS))')" \
-		_SCOPES="$(subst .,/,$(_HELP_SCOPES))" \
+		_SCOPES="$(if $(_HAS_ENV_ARGUMENT),,$(subst .,/,$(_HELP_SCOPES)))" \
 		_HAS_LIST_SCOPES_ARGUMENT="$(_HAS_LIST_SCOPES_ARGUMENT)" \
 		_HAS_RESOLVE_ARGUMENT="$(_HAS_RESOLVE_ARGUMENT)" \
 		_HAS_ENV_ARGUMENT="$(_HAS_ENV_ARGUMENT)" \
@@ -6491,7 +6525,24 @@ function print_environment_row(name, path, line_number, value, replacement_note,
 	if (replacement_note == "") printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", indentation, linked_name, value
 	else printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s  (%s),$(COLOR_DESCRIPTION))\n", indentation, linked_name, value repeat(" ", environment_value_width - get_display_width(value)), render_inline_code(replacement_note)
 }
-function print_environment(    listed_names, name_index, exported_name, exported_names, exported_name_count, sort_index, compare_index, held_name, record_fields, record_index, record_path, previous_record_path, replacement_note) {
+function is_listed_name(name,    filter_index) {
+	if (!env_filter_count) return 1
+	for (filter_index = 1; filter_index <= env_filter_count; filter_index += 1) if (index(tolower(name), tolower(env_filters[filter_index])) == 1) return 1
+	return 0
+}
+function print_environment_file(path, status, detail,    indentation, mark, note) {
+	indentation = repeat(" ", ENVIRON["INDENT"])
+	mark = status == "missing" ? "⨯" : "✓"
+	if (status == "skipped") note = "skipped since `" get_named_path(detail) "` exists"
+	else if (status == "dump") note = "replaces every other environment file"
+	else if (status == "dump-for-other-environment") note = "skipped since `" detail "` differs"
+	else if (status == "dump-without-array") note = "skipped since it returns no array"
+	if (status == "missing") printf "%s$(call text,%s %s,$(COLOR_DESCRIPTION))\n", indentation, mark, get_named_path(path)
+	else if (note == "") printf "%s$(call text,%s %s,$(COLOR_SCOPE))\n", indentation, mark, get_named_path(path)
+	else printf "%s$(call text,%s %s,$(COLOR_SCOPE))  $(call text,(%s),$(COLOR_DESCRIPTION))\n", indentation, mark, get_named_path(path), render_inline_code(note)
+}
+function print_environment(    listed_names, name_index, exported_name, exported_names, exported_name_count, sort_index, compare_index, held_name, record_fields, record_field_count, record_index, has_file_label, replacement_note) {
+	env_filter_count = split(ENVIRON["_ENV_FILTERS"], env_filters, /[[:space:]]+/)
 	split(ENVIRON["_HIDDEN_NAMES"], listed_names, /[[:space:]]+/)
 	for (name_index in listed_names) if (listed_names[name_index] != "") is_hidden_name[listed_names[name_index]] = 1
 	split(ENVIRON["_COMMAND_LINE_NAMES"], listed_names, /[[:space:]]+/)
@@ -6500,13 +6551,14 @@ function print_environment(    listed_names, name_index, exported_name, exported
 	for (record_index = 1; record_index <= dotenv_record_count; record_index += 1) {
 		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
 		is_dotenv_name[record_fields[2]] = 1
+		if (!is_listed_name(record_fields[2])) continue
 		if (length(record_fields[2]) > environment_name_width) environment_name_width = length(record_fields[2])
 		if (get_display_width(render_environment_value(record_fields[3])) > environment_value_width) environment_value_width = get_display_width(render_environment_value(record_fields[3]))
 	}
 	split(ENVIRON["_EXPORTED_NAMES"], listed_names, /[[:space:]]+/)
 	for (name_index in listed_names) {
 		exported_name = listed_names[name_index]
-		if (exported_name == "" || exported_name in is_hidden_name || exported_name in is_dotenv_name || !(exported_name in ENVIRON)) continue
+		if (exported_name == "" || exported_name in is_hidden_name || exported_name in is_dotenv_name || !(exported_name in ENVIRON) || !is_listed_name(exported_name)) continue
 		if (verbosity < 3 && (exported_name ~ /^_/ || exported_name == "MAKEFLAGS" || exported_name == "SHELL")) continue
 		exported_names[++exported_name_count] = exported_name
 		if (length(exported_name) > environment_name_width) environment_name_width = length(exported_name)
@@ -6522,11 +6574,10 @@ function print_environment(    listed_names, name_index, exported_name, exported
 		print_environment_row(exported_name, variable_definition_file[exported_name], variable_definition_line[exported_name], render_environment_value(ENVIRON[exported_name]), "")
 	}
 	for (record_index = 1; record_index <= dotenv_record_count; record_index += 1) {
-		if (split(dotenv_records[record_index], record_fields, "\037") < 5) continue
-		record_path = get_named_path(record_fields[1])
-		if (previous_record_path == "") printf "\n$(call text,Environment files:,$(COLOR_SECTION_LABEL))\n"
-		if (record_path != previous_record_path) printf "%s$(call text,%s,$(COLOR_SCOPE))\n", repeat(" ", ENVIRON["INDENT"]), record_path
-		previous_record_path = record_path
+		record_field_count = split(dotenv_records[record_index], record_fields, "\037")
+		if (record_field_count == 4 && !has_file_label++) printf "\n$(call text,Environment files:,$(COLOR_SECTION_LABEL))\n"
+		if (record_field_count == 4) print_environment_file(record_fields[1], record_fields[3], record_fields[4])
+		if (record_field_count < 5 || !is_listed_name(record_fields[2])) continue
 		replacement_note = ""
 		if (record_fields[2] in is_command_line_name) replacement_note = "replaced by the command line"
 		else if (record_fields[4] == "environment") replacement_note = "replaced by the environment"

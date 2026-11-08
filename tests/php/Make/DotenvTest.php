@@ -227,6 +227,8 @@ final class DotenvTest extends TestCase
             self::DOTENV_DIRECTORY,
         );
 
+        $filteredOutput = $this->runMake(['help', 'env', 'dotenv_fixture_l'], directory: self::DOTENV_DIRECTORY);
+
         [$exportedSection, $environmentFileSection] = Str::split($plainOutput, 'Environment files:', 2) + ['', ''];
 
         self::assertCount(1, array_unique($outputOfEachForm));
@@ -243,7 +245,7 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('_HAS_DOCKER', $outputWithPrivateExports);
 
         self::assertMatchesRegularExpression(
-            '/^[\t ]+\.\/\.env\n[\t ]+DOTENV_FIXTURE_PLAIN[\t ]+one[\t ]+\(replaced by the environment\)$/m',
+            '/^[\t ]+✓ \.\/\.env\n[\t ]+DOTENV_FIXTURE_PLAIN[\t ]+one[\t ]+\(replaced by the environment\)$/m',
             $environmentFileSection,
         );
 
@@ -253,7 +255,7 @@ final class DotenvTest extends TestCase
         );
 
         self::assertMatchesRegularExpression(
-            '/^[\t ]+\.\/\.env\.dev\.local\n[\t ]+DOTENV_FIXTURE_LAYER[\t ]+dev-local$/m',
+            '/^[\t ]+✓ \.\/\.env\.dev\.local\n[\t ]+DOTENV_FIXTURE_LAYER[\t ]+dev-local$/m',
             $environmentFileSection,
         );
 
@@ -262,6 +264,11 @@ final class DotenvTest extends TestCase
             $outputWithACommandLineValue,
         );
 
+        self::assertMatchesRegularExpression('/^[\t ]+⨯ \.\/\.env\.local\.php$/m', $environmentFileSection);
+        self::assertStringContainsString('DOTENV_FIXTURE_LAYER', $filteredOutput);
+        self::assertStringContainsString('DOTENV_FIXTURE_LATER', $filteredOutput);
+        self::assertStringNotContainsString('DOTENV_FIXTURE_PLAIN', $filteredOutput);
+        self::assertStringNotContainsString('FIXTURE_MAKEFILE_EXPORT', $filteredOutput);
         self::assertStringContainsString("acme://open/Makefile#13\e\\FIXTURE_MAKEFILE_EXPORT", $outputWithEditorLinks);
         self::assertStringContainsString("acme://open/.env#3\e\\DOTENV_FIXTURE_PLAIN", $outputWithEditorLinks);
     }
