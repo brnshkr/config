@@ -1257,9 +1257,33 @@ _ENABLED_FEATURES = $(foreach VARIABLE,$(filter _HAS_%,$(.VARIABLES)),$(if $($(V
 _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(CURDIR)' \
 	-v _ENABLED_FEATURES=' $(_ENABLED_FEATURES) ' \
 	'function does_path_exist(path,    line, does_exist) { does_exist = (getline line < path) >= 0; close(path); return does_exist } \
+	function get_environments(text) { \
+		if (!match(text, /\043(v+&)?env=[A-Za-z0-9_.|-]+/)) return ""; \
+		text = substr(text, RSTART, RLENGTH); \
+		sub(/^[^=]*=/, "", text); \
+		return text \
+	} \
+	FNR == 1 { scope_depth = -1 } \
 	/^define[[:space:]]/ { is_in_define = 1; next } \
 	/^endef([[:space:]]|$$)/ { is_in_define = 0; next } \
-	is_in_define { next } \
+	is_in_define || /^\t/ || !NF { next } \
+	/^\043--+v*!/ { next } \
+	/^\043--+/ { \
+		match($$0, /^\043-+/); \
+		scope_depth = RLENGTH - 3; \
+		scope_environments[scope_depth] = substr($$0, RLENGTH + 1) ~ /^(v+&)?env=/ ? get_environments("\043" substr($$0, RLENGTH + 1)) : ""; \
+		if (scope_environments[scope_depth] == "" && scope_depth > 0) scope_environments[scope_depth] = scope_environments[scope_depth - 1]; \
+		next \
+	} \
+	/^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ { \
+		environments = get_environments($$0); \
+		if (environments == "" && scope_depth >= 0) environments = scope_environments[scope_depth]; \
+		if (environments != "") { \
+			count = split(substr($$0, 1, index($$0, ":") - 1), names, /[ \t]+/); \
+			for (i = 1; i <= count; i += 1) \
+				if (names[i] != "" && names[i] !~ /^[._]/ && !(names[i] in seen_names)) { seen_names[names[i]] = 1; printf "!env|%s=%s ", names[i], environments } \
+		} \
+	} \
 	/^ifneq/ && index($$0, "wildcard") { \
 		depth += 1; \
 		if (!skip) { \
@@ -1302,45 +1326,15 @@ _TARGET_SOURCES := $(shell $(AWK) -v _PREFIX='$(_TARGET_PREFIX)' -v _CURDIR='$(C
 	$(MAKEFILE_LIST) \
 )
 
-_BARE_EXPORTS   := $(patsubst !export|%,%,$(filter !export|%,$(_TARGET_SOURCES)))
-_TARGET_SOURCES := $(filter-out !export|%,$(_TARGET_SOURCES))
+_BARE_EXPORTS        := $(patsubst !export|%,%,$(filter !export|%,$(_TARGET_SOURCES)))
+_ENVIRONMENT_TARGETS := $(patsubst !env|%,%,$(filter !env|%,$(_TARGET_SOURCES)))
+_TARGET_SOURCES      := $(filter-out !export|% !env|%,$(_TARGET_SOURCES))
 
 ifneq ($(_BARE_EXPORTS),)
 $(error [$(_LABEL)] `$(call _mask_control_characters,$(firstword $(_BARE_EXPORTS)),$(_CONTROL_CHARACTERS))` exports every variable. Export each one by name instead)
 endif
 
 _TARGET_FILES := $(foreach SOURCE,$(_TARGET_SOURCES),$(firstword $(subst :, ,$(SOURCE))))
-
-define _ENVIRONMENT_TARGETS_AWK
-function get_environments(text) { \
-	if (!match(text, /\043(v+&)?env=[A-Za-z0-9_.|-]+/)) return ""; \
-	text = substr(text, RSTART, RLENGTH); \
-	sub(/^[^=]*=/, "", text); \
-	return text \
-} \
-FNR == 1 { scope_depth = -1 } \
-/^define[[:space:]]/ { is_in_define = 1; next } \
-/^endef([[:space:]]|$$)/ { is_in_define = 0; next } \
-is_in_define { next } \
-/^\043--+v*!/ { next } \
-/^\043--+/ { \
-	match($$0, /^\043-+/); \
-	scope_depth = RLENGTH - 3; \
-	scope_environments[scope_depth] = substr($$0, RLENGTH + 1) ~ /^(v+&)?env=/ ? get_environments("\043" substr($$0, RLENGTH + 1)) : ""; \
-	if (scope_environments[scope_depth] == "" && scope_depth > 0) scope_environments[scope_depth] = scope_environments[scope_depth - 1]; \
-	next \
-} \
-/^[A-Za-z0-9_.-]+([ \t]+[A-Za-z0-9_.-]+)*:([^=]|$$)/ { \
-	environments = get_environments($$0); \
-	if (environments == "" && scope_depth >= 0) environments = scope_environments[scope_depth]; \
-	if (environments == "") next; \
-	count = split(substr($$0, 1, index($$0, ":") - 1), names, /[ \t]+/); \
-	for (i = 1; i <= count; i += 1) \
-		if (names[i] != "" && names[i] !~ /^[._]/ && !(names[i] in seen_names)) { seen_names[names[i]] = 1; printf "%s=%s ", names[i], environments } \
-}
-endef
-
-_ENVIRONMENT_TARGETS := $(shell $(AWK) '$(_ENVIRONMENT_TARGETS_AWK)' $(MAKEFILE_LIST))
 
 #**
 #* Refuses a target outside the environments its help marker names.
