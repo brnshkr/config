@@ -414,6 +414,37 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->renderScenarios($scenarios));
     }
 
+    public function testSemgrepLeavesRegexDosToTheRegexpPlugin(): void
+    {
+        $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);
+        $filesystem       = new Filesystem();
+        $regexDosIgnore   = '\'=ajinabraham.njsscan.dos.regex_dos.regex_dos\'';
+
+        $semgrepDryRunArguments = [
+            '-n',
+            'semgrep',
+            'SEMGREP_RULESETS=default',
+            'SEMGREP_CONFIG=conf/shipped.yaml',
+        ];
+
+        $filesystem->dumpFile($lintersDirectory . '/node_modules/eslint-plugin-regexp/package.json', '{}');
+
+        $outputWithoutEslint = $this->runLinter($semgrepDryRunArguments);
+
+        $filesystem->dumpFile($lintersDirectory . '/node_modules/.bin/eslint', '');
+        $filesystem->dumpFile($lintersDirectory . '/index.js', '');
+
+        $outputWithEslint = $this->runLinter($semgrepDryRunArguments);
+
+        $filesystem->remove($lintersDirectory . '/node_modules/eslint-plugin-regexp');
+
+        $outputWithoutPlugin = $this->runLinter($semgrepDryRunArguments);
+
+        self::assertStringNotContainsString($regexDosIgnore, $outputWithoutEslint);
+        self::assertStringContainsString($regexDosIgnore, $outputWithEslint);
+        self::assertStringNotContainsString($regexDosIgnore, $outputWithoutPlugin);
+    }
+
     #[Group('python')]
     public function testSemgrepSaysWhenARefetchChangedARuleset(): void
     {

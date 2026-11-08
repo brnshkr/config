@@ -3705,7 +3705,10 @@ _SEMGREP_OVERRIDES = $(eval _SEMGREP_OVERRIDES := $$(call _semgrep_overrides,$$(
 _SEMGREP_RULESETS = $(sort $(filter-out $(patsubst -%,%,$(filter -%,$(_SEMGREP_OVERRIDES))), \
 	$(_SEMGREP_DETECTED_RULESETS) $(patsubst +%,%,$(filter +%,$(_SEMGREP_OVERRIDES)))))
 
-_SEMGREP_IGNORES = $(filter =% ~%,$(_SEMGREP_OVERRIDES))
+_SEMGREP_IGNORES = $(filter =% ~%,$(_SEMGREP_OVERRIDES)) $(and \
+	$(_ESLINT_NAME), \
+	$(call _when_installed,=ajinabraham.njsscan.dos.regex_dos.regex_dos,node_modules/eslint-plugin-regexp))
+
 _SEMGREP_CONFIGS = --config $(SEMGREP_CACHE)/rules.json --config $(SEMGREP_CONFIG)
 
 _SEMGREP_VALUE_FLAGS := --config \
