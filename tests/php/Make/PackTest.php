@@ -7,6 +7,7 @@ namespace Brnshkr\Config\Tests\Make;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Spatie\Snapshots\MatchesSnapshots;
@@ -37,12 +38,26 @@ final class PackTest extends TestCase
         '_PHP'     => ['composer'],
     ];
 
-    public function testAManifestOpeningOnTheNameLineStillNamesThePackage(): void
+    /**
+     * @param list<string> $shellArguments
+     */
+    #[DataProvider('provideAManifestOpeningOnTheNameLineStillNamesThePackageCases')]
+    public function testAManifestOpeningOnTheNameLineStillNamesThePackage(array $shellArguments): void
     {
-        $resolved = $this->runMake(['help', 'resolve', 'vv'], directory: self::MANIFEST_DIRECTORY);
+        $resolved = $this->runMake([...$shellArguments, 'help', 'resolve', 'vv'], directory: self::MANIFEST_DIRECTORY);
 
         self::assertMatchesRegularExpression('/PACKAGE\s+\?=\s+one-line-manifest/', $resolved);
         self::assertMatchesRegularExpression('/VENDOR\s+\?=\s+@acme/', $resolved);
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function provideAManifestOpeningOnTheNameLineStillNamesThePackageCases(): iterable
+    {
+        yield 'default shell' => [[]];
+
+        yield 'another shell' => [['--eval=SHELL := /bin/bash']];
     }
 
     public function testTheListTargetsNameWhatEachPackageShips(): void

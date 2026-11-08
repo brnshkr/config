@@ -246,7 +246,7 @@ endef
 
 _MANIFEST = $(eval _MANIFEST := $$(firstword $$(wildcard $$(CURDIR)/package.json $$(CURDIR)/composer.json)))$(_MANIFEST)
 
-_MANIFEST_FACTS = $(eval _MANIFEST_FACTS := $$(if $$(_MANIFEST),$$(shell $$(AWK) -v _MANIFEST='$$(_MANIFEST)' '$$(_MANIFEST_AWK)' \
+_MANIFEST_FACTS = $(eval _MANIFEST_FACTS := $$(if $$(_MANIFEST),$$(shell $$(AWK) -v _MANIFEST='$$(_MANIFEST)' $$(call _quote_program,$$(_MANIFEST_AWK)) \
 	$$(_MANIFEST) $$(filter-out $$(_MANIFEST),$$(wildcard $$(CURDIR)/composer.json))),vendor vendor/bin))$(_MANIFEST_FACTS)
 
 _MANIFEST_NAME = $(word 4,$(_MANIFEST_FACTS))
@@ -264,6 +264,18 @@ _CONTROL_CHARACTERS := $(shell printf '\001 \002 \003 \004 \005 \006 \007 \010 \
 #*
 define _mask_control_characters
 $(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
+endef
+
+#**
+#* Quotes an embedded program for `$(shell)`, keeping the newlines make drops under another `SHELL` or `.SHELLFLAGS`.
+#*
+#* parameters:
+#*   program: string
+#*
+#* returns: string
+#*
+define _quote_program
+"$$(printf '%b' '$(subst $(_NEWLINE),\n,$(subst \,\\,$1))')"
 endef
 
 _DIGITS                   := 0 1 2 3 4 5 6 7 8 9
@@ -887,7 +899,7 @@ _DOTENV_AWK_FLAGS = -v _BASE='$(_DOTENV_BASE)' \
 	-v _SEPARATOR='$(_DOTENV_SEPARATOR)'
 
 _DOTENV_OUTPUT := $(if $(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist $(_DOTENV_DUMP)),$(shell \
-	$(AWK) $(_DOTENV_AWK_FLAGS) -v _LOOKUP_KEYS='COMPOSE_FILE FORGE_NAMESPACE FORGE_IMAGE_NAMESPACE FORGE_FRAGMENT_NAMESPACE' '$(_DOTENV_AWK)'))
+	$(AWK) $(_DOTENV_AWK_FLAGS) -v _LOOKUP_KEYS='COMPOSE_FILE FORGE_NAMESPACE FORGE_IMAGE_NAMESPACE FORGE_FRAGMENT_NAMESPACE' $(call _quote_program,$(_DOTENV_AWK))))
 
 $(eval $(subst $(_DOTENV_SEPARATOR),$(_NEWLINE),$(_DOTENV_OUTPUT)))
 
@@ -900,7 +912,7 @@ _HAS_DOCKER := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_DOCKER),$(if $(COMPOSE_FILE
 
 _DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_BY_PARENT),,1),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).dist $(_DOTENV_DUMP))),$(if \
 	$(filter $(DOTENV_DEFAULT_ENV),$(_DOTENV_STAGE)),$(_DOTENV_ENVIRONMENT), \
-	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 '$(_DOTENV_AWK)')))
+	$(shell $(AWK) $(_DOTENV_AWK_FLAGS) -v _ENV_VALUE='$(DOTENV_DEFAULT_ENV)' -v _ENVIRONMENT=1 $(call _quote_program,$(_DOTENV_AWK)))))
 
 ifneq ($(_HAS_CONTAINER),) # container
 
@@ -914,7 +926,7 @@ export FORGE_FRAGMENT_NAMESPACE
 
 _SERVICE_CONFIG := $(if $(_IS_DETECTED_BY_PARENT),$(_TOOL_SERVICE) $(_SERVICE_DIRECTORY) $(_SERVICE_IMAGE) $(_COMPOSE_SERVICES),$(shell \
 	$(_HOST_ENVIRONMENT) $(_COMPOSE) --profile '*' config 2>/dev/null \
-	| $(AWK) -v _SERVICE='$(APP_SERVICE)' -v _FALLBACK_SERVICE='$(CLI_SERVICE)' '$(_SERVICE_AWK)'))
+	| $(AWK) -v _SERVICE='$(APP_SERVICE)' -v _FALLBACK_SERVICE='$(CLI_SERVICE)' $(call _quote_program,$(_SERVICE_AWK))))
 
 _TOOL_SERVICE      := $(word 1,$(_SERVICE_CONFIG))
 _SERVICE_DIRECTORY := $(word 2,$(_SERVICE_CONFIG))
@@ -1765,9 +1777,9 @@ _HELP_ENV_INPUTS = _EXPORTED_NAMES="$$exported_names" \
 _HELP_RESOLVE_INPUTS = _VARIABLE_SOURCES="$(foreach VARIABLE_NAME,$(sort $(_RESOLVED_VARIABLES)),$(if $(filter command line,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=cli,$(if $(filter environment%,$(origin $(VARIABLE_NAME))),$(VARIABLE_NAME)=env)))"
 _HELP_DOTENV_INPUTS  = _DOTENV_REPORT="$$($(_DOTENV_RESET)$(AWK) -v _REPORT=1 $(_DOTENV_AWK_FLAGS) "$$_DOTENV_REPORT_AWK")"
 
-_RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS)),$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" '$(_VARIABLE_NAMES_AWK)'))
-_ASSIGNED_VARIABLES  = $(shell $(AWK) '$(_ASSIGNED_VARIABLES_AWK)' $(MAKEFILE_LIST))
-_CONDITION_VARIABLES = $(shell $(AWK) '$(_CONDITION_VARIABLES_AWK)' $(MAKEFILE_LIST))
+_RESOLVED_VARIABLES  = $(filter $(_ASSIGNED_VARIABLES) $(_DOTENV_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS)),$(shell $(AWK) -v _VAR_NAMES="$(.VARIABLES)" $(call _quote_program,$(_VARIABLE_NAMES_AWK))))
+_ASSIGNED_VARIABLES  = $(shell $(AWK) $(call _quote_program,$(_ASSIGNED_VARIABLES_AWK)) $(MAKEFILE_LIST))
+_CONDITION_VARIABLES = $(shell $(AWK) $(call _quote_program,$(_CONDITION_VARIABLES_AWK)) $(MAKEFILE_LIST))
 
 $(call _target,help): export _HELP_AWK          = $(_HELP_AWK_SOURCE)
 $(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
@@ -2809,7 +2821,7 @@ _IMAGE_PROJECT_DOCKERFILE  = $(firstword $(wildcard $(addprefix $(CURDIR)/,$(_CO
 _IMAGE_DOCKERFILE          = $(or $(IMAGE_DOCKERFILE),$(patsubst $(CURDIR)/%,./%,$(_IMAGE_PROJECT_DOCKERFILE)),./$(_IMAGE_GENERIC_DOCKERFILE))
 _IS_GENERIC_DOCKERFILE     = $(filter ./$(_IMAGE_GENERIC_DOCKERFILE),$(_IMAGE_DOCKERFILE))
 _IMAGE_REFERENCE           = localhost/$(if $(VENDOR),$(patsubst @%,%,$(VENDOR))/)$(IMAGE_NAME):$(or $(IMAGE_TARGET),latest)
-_IMAGE_ARGUMENTS           = $(shell $(AWK) '$(_DOCKERFILE_ARGUMENTS_AWK)' $(call _quoted,$(_IMAGE_DOCKERFILE)))
+_IMAGE_ARGUMENTS           = $(shell $(AWK) $(call _quote_program,$(_DOCKERFILE_ARGUMENTS_AWK)) $(call _quoted,$(_IMAGE_DOCKERFILE)))
 _FORGE_TAG_SUFFIX_BY_ROLE := FORGE_APP_DEV:-app-dev FORGE_APP:-app FORGE_CLI_CHROMIUM:-cli-chromium FORGE_CLI:-cli
 
 _AUTOMATIC_ARGUMENTS := BUILDARCH \
@@ -4935,7 +4947,7 @@ endef
 #* returns: list<string>
 #*
 define _semgrep_overrides
-$(foreach WORD,$(shell $(AWK) '$(_SEMGREP_OVERRIDES_AWK)' '$1' 2>/dev/null),$(if $(filter !%,$(WORD)),$(error \
+$(foreach WORD,$(shell $(AWK) $(call _quote_program,$(_SEMGREP_OVERRIDES_AWK)) '$1' 2>/dev/null),$(if $(filter !%,$(WORD)),$(error \
 	[$(_LABEL)] `$1` line $(patsubst !%,%,$(WORD)) is not a shape `x-brnshkr` takes),$(WORD)))
 endef
 

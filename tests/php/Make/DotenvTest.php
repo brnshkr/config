@@ -98,6 +98,13 @@ final class DotenvTest extends TestCase
         ))));
     }
 
+    public function testAnotherShellLoadsTheSameValues(): void
+    {
+        $result = $this->runMake(['--eval=SHELL := /bin/bash', 'dotenv-show'], directory: self::DOTENV_DIRECTORY);
+
+        self::assertSame($this->runMake(['dotenv-show'], directory: self::DOTENV_DIRECTORY), $result);
+    }
+
     public function testDotenvRunsACommand(): void
     {
         $result = $this->runMake(['dotenv-show', 'DOTENV=command.env'], directory: self::DOTENV_DIRECTORY);

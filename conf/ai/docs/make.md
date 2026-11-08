@@ -11,6 +11,8 @@ Usage is [`docs/Makefile.md`](../../../docs/Makefile.md); make and awk traps are
 - `$(ARGS)` goes before a trailing flag, and is quoted for the shell; a `$(filter)` or a macro reads `$(_ARGS)`.
 - A sub-make re-reads every Makefile from disk, so `fresh` reinstalls before it recurses — the clean can
   take the included one with it — and passes `_IS_INSTALLING=1` so `startup` skips the install it just did.
+- A `define`d program reaches `$(shell)` through `_quote_program`,
+  since make drops its newlines under another `SHELL` or `.SHELLFLAGS`.
 - A piped tool runs through `_capture`, so a crash fails the recipe.
 - A tool that can be slow runs through `_spinner`, which needs the whole command as one `$(call)` argument.
 - A `log` message is a `printf` format; pass values as arguments.
