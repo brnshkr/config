@@ -5722,6 +5722,24 @@ END {
 endef
 
 define _FRESH_ESCAPE_AWK_SOURCE
+function unquote(quoted,    unquoted, character, escapes, position) {
+	escapes = "a\007b\010t\011n\012v\013f\014r\015\"\"\\\\"
+	unquoted = ""
+	quoted = substr(quoted, 2, length(quoted) - 2)
+	while ((position = index(quoted, "\\"))) {
+		unquoted = unquoted substr(quoted, 1, position - 1)
+		character = substr(quoted, position + 1, 1)
+		if (character ~ /[0-7]/) {
+			unquoted = unquoted sprintf("%c", substr(quoted, position + 1, 1) * 64 + substr(quoted, position + 2, 1) * 8 + substr(quoted, position + 3, 1))
+			quoted = substr(quoted, position + 4)
+		} else {
+			unquoted = unquoted (index(escapes, character) % 2 ? substr(escapes, index(escapes, character) + 1, 1) : character)
+			quoted = substr(quoted, position + 2)
+		}
+	}
+	return unquoted quoted
+}
+/^".*"$$/ { $$0 = unquote($$0) }
 {
 	escaped_line = ""
 	while (match($$0, /[][*?\\]/)) {
