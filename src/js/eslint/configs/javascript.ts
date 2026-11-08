@@ -93,6 +93,7 @@ export const javascript = async (): Promise<Config[]> => {
         'capitalized-comments': ['error', 'always', {
           block: {
             ignoreInlineComments: true,
+            ignorePattern: 'v8',
           },
           line: {
             ignorePattern: '.*',
