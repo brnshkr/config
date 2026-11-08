@@ -3821,12 +3821,9 @@ endef
 #* returns: string
 #*
 define _has_positional_arg
-$(strip $(shell printf '%s\n' $(call _shell_quoted,$1) | $(AWK) -v _VALUE_FLAGS=' $(strip $2) ' '\
-	{ \
-		if (skip) { skip = 0; next } \
-		if (index(_VALUE_FLAGS, " " $$0 " ") > 0) { skip = 1; next } \
-		if ($$0 != "" && substr($$0, 1, 1) != "-") { print 1; exit } \
-	}'))
+$(eval _IS_OPTION_VALUE_NEXT :=)$(eval _HAS_POSITIONAL_ARG :=)$(strip $(foreach WORD,$1,$(if \
+	$(_IS_OPTION_VALUE_NEXT),$(eval _IS_OPTION_VALUE_NEXT :=),$(if \
+	$(filter $2,$(WORD)),$(eval _IS_OPTION_VALUE_NEXT := 1),$(if $(filter-out -%,$(WORD)),$(eval _HAS_POSITIONAL_ARG := 1)))))$(_HAS_POSITIONAL_ARG))
 endef
 
 #**
