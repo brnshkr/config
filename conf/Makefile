@@ -901,6 +901,7 @@ _DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_
 
 ifneq ($(_HAS_CONTAINER),) # container
 
+export _EXEC_SCRIPT = $(_EXEC_SCRIPT_SOURCE)
 export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
@@ -2115,7 +2116,7 @@ $(if $(if $(_IS_JUST_PRINT),,$(CI_SUMMARY_FILE)),is_failed=; \
 	for target in $1; do \
 		start=$$($(DATE) +%s); \
 		result='✅'; \
-		$(MAKE) $(_VERB_FLAGS) "$$target" || { result='$(_CI_FAILED_RESULT)'; is_failed=1; }; \
+		$(MAKE) $(_VERB_FLAGS) "$$target" || { status=$$?; [ "$$status" -lt 128 ] || exit "$$status"; result='$(_CI_FAILED_RESULT)'; is_failed=1; }; \
 		$(call _add_summary_row,"$$target"); \
 	done; \
 	[ -z "$$is_failed" ],$(MAKE) $(_VERB_FLAGS) $1)
@@ -2124,7 +2125,7 @@ endef
 ifneq ($(_HAS_CI),)
 $(call _target,ci): #~~ runs `CI_TARGETS`, failing at the end if any of them failed
 	$(DEBUG_PREFIX)is_failed=; $(foreach TARGET,$(CI_TARGETS), \
-		$(MAKE) $(_VERB_FLAGS) $(TARGET) || is_failed=1; \
+		$(MAKE) $(_VERB_FLAGS) $(TARGET) || { status=$$?; [ "$$status" -lt 128 ] || exit "$$status"; is_failed=1; }; \
 	) [ -z "$$is_failed" ]
 endif
 
@@ -3934,6 +3935,25 @@ define _forwarded_value
 $(if $(filter EDITOR_URL,$1),$(_EDITOR_URL),$($1))
 endef
 
+define _EXEC_SCRIPT_SOURCE
+compose=$$1
+service=$$2
+shift 2
+export BRNSHKR_EXEC_ID=$$$$
+
+interrupt() {
+  $$compose exec -T "$$service" sh -c 'for environment in /proc/[0-9]*/environ; do
+    if grep -qs "BRNSHKR_EXEC_ID=$$1" "$$environment"; then
+      process=$${environment#/proc/}
+      kill -INT "$${process%/environ}" 2>/dev/null
+    fi
+  done' sh "$$BRNSHKR_EXEC_ID"
+}
+
+trap 'interrupt; exit 130' INT TERM
+"$$@"
+endef
+
 #**
 #* Enters a Compose service, starting it when it is not running.
 #*
@@ -3948,7 +3968,7 @@ define _enter_service
 $(if $(_HAS_CONTAINER) \
 	,$(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
 		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
-		$(call _start_service,$1)$(_COMPOSE) exec $2 \
+		$(call _start_service,$1)$(SHELL) -c "$$_EXEC_SCRIPT" sh $(call _quoted,$(_COMPOSE)) $1 $(_COMPOSE) exec -e BRNSHKR_EXEC_ID $2 \
 	) $(addprefix -e ,$(_DECLARED_KEYS)) $(_forwarded_environment)$1 \
 )
 endef
