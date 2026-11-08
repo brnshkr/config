@@ -387,7 +387,40 @@ final class ContainerTest extends TestCase
         }
     }
 
-    public function testAToolInterruptedInsideTheContainerStopsMake(): void
+    public function testAContainerCommandEchoesAsTheCommandItRuns(): void
+    {
+        $wrapped  = $this->runMakeIn(self::MODE_EXEC, ['-n', 'show']);
+        $fallback = $this->runMakeIn(self::MODE_EXEC, ['-n', 'show', '.SHELLFLAGS=-c']);
+
+        self::assertMatchesRegularExpression('/^\S+ -c \'\[ -n "\$\(\S+ ps --quiet .+ \|\| \S+ compose -f \S+ up --detach --wait php-app .+; exec "\$@"\' sh \S+ compose -f \S+ exec -e BRNSHKR_EXEC_ID .* php-app +sh -c /m', $wrapped);
+        self::assertStringContainsString('"$_EXEC_SCRIPT" sh ', $fallback);
+    }
+
+    public function testTheProjectsShellFlagsStillApply(): void
+    {
+        $plain = $this->runMakeIn(self::MODE_EXEC, ['strict']);
+        $login = $this->runMakeIn(self::MODE_EXEC, ['--eval=.SHELLFLAGS := -l -c', 'strict']);
+
+        $strict = $this->runMake(
+            [
+                '--eval=.SHELLFLAGS := -ec',
+                'strict',
+            ],
+            self::getContainerEnvironment(),
+            self::CONTAINER_DIRECTORY,
+            doExpectFailure: true,
+        );
+
+        self::assertStringContainsString('strict=continued', $plain);
+        self::assertStringContainsString('strict=continued', $login);
+        self::assertStringNotContainsString('strict=continued', $strict);
+    }
+
+    /**
+     * @param list<string> $shellFlagsArguments
+     */
+    #[DataProvider('provideAToolInterruptedInsideTheContainerStopsMakeCases')]
+    public function testAToolInterruptedInsideTheContainerStopsMake(array $shellFlagsArguments): void
     {
         $process = new Process([
             'setsid',
@@ -398,6 +431,7 @@ final class ContainerTest extends TestCase
             '-C',
             self::CONTAINER_DIRECTORY,
             '--keep-going',
+            ...$shellFlagsArguments,
             'interrupted',
             'after-interrupted',
         ], env: [
@@ -409,6 +443,16 @@ final class ContainerTest extends TestCase
 
         self::assertStringContainsString('Interrupt', $process->getErrorOutput());
         self::assertStringNotContainsString('after-interrupted=ran', $process->getOutput());
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function provideAToolInterruptedInsideTheContainerStopsMakeCases(): iterable
+    {
+        yield 'shell flags' => [[]];
+
+        yield 'inline fallback' => [['.SHELLFLAGS=-c']];
     }
 
     public function testAToolInterruptedUnderTheSpinnerStopsMake(): void

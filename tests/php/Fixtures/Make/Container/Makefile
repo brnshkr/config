@@ -11,6 +11,9 @@ where: #~~ says where make runs and where a tool runs
 terminal: #~~ says whether a tool writes to a terminal
 	@$(RUN) sh -c '[ -t 1 ] && echo tool=terminal || echo tool=pipe'
 
+strict: #~~ says whether a recipe goes on after a failing command
+	@false; echo strict=continued
+
 interrupted: #~~ ends its tool the way Ctrl+C does inside the container
 	@$(RUN) sh -c 'kill -INT $$$$'
 

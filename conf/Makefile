@@ -425,9 +425,10 @@ _COMPOSE_CANDIDATE = $(firstword $(wildcard \
 
 COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ Compose files the container targets use
 
-_COMPOSE       = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
-_HAS_CONTAINER = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
-_SERVE_FLAGS   = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
+_COMPOSE            = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
+_COMPOSE_CONTAINERS = --filter status=running --filter label=com.docker.compose.project.config_files=$(subst $(_SPACE),$(_COMMA),$(strip $(COMPOSE_FILES)))
+_HAS_CONTAINER      = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
+_SERVE_FLAGS        = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 
 define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
@@ -903,7 +904,7 @@ _DOTENV_DEFAULT_ENVIRONMENT := $(if $(and $(_HAS_CONTAINER),$(if $(_IS_DETECTED_
 
 ifneq ($(_HAS_CONTAINER),) # container
 
-export _EXEC_SCRIPT = $(_EXEC_SCRIPT_SOURCE)
+export _EXEC_SCRIPT = $(_INTERRUPT_SCRIPT)
 export HOST_UID
 export HOST_GID
 export HOST_APP_DIR
@@ -3940,27 +3941,35 @@ define _forwarded_value
 $(if $(filter EDITOR_URL,$1),$(_EDITOR_URL),$($1))
 endef
 
-define _EXEC_SCRIPT_SOURCE
-compose=$$1
-service=$$2
-shift 2
-export BRNSHKR_EXEC_ID=$$$$
-
+define _INTERRUPT_SCRIPT_SOURCE
+export BRNSHKR_EXEC_ID=$$$$;
 interrupt() {
-  $$compose exec -T "$$service" sh -c 'for environment in /proc/[0-9]*/environ; do
-    if grep -qs "BRNSHKR_EXEC_ID=$$1" "$$environment"; then
-      process=$${environment#/proc/}
-      kill -INT "$${process%/environ}" 2>/dev/null
-    fi
-  done' sh "$$BRNSHKR_EXEC_ID"
-}
-
-trap 'interrupt; exit 130' INT TERM
-"$$@"
-status=$$?
-[ "$$status" -ne 130 ] || { trap - INT TERM; kill -INT 0; }
+  for service in $$($(_COMPOSE) ps --services --status running 2>/dev/null); do
+    $(_COMPOSE) exec -T "$$service" sh -c "for environment in /proc/[0-9]*/environ; do
+      if grep -qs BRNSHKR_EXEC_ID=$$BRNSHKR_EXEC_ID \"\$$environment\"; then
+        process=\$${environment#/proc/};
+        kill -INT \"\$${process%/environ}\" 2>/dev/null;
+      fi;
+    done";
+  done;
+};
+trap "interrupt; exit 130" INT TERM;
+if [ "$$#" -gt 1 ]; then
+  "$$@";
+else
+  $(SHELL) $(_PROJECT_SHELLFLAGS) "$$1";
+fi;
+status=$$?;
+[ "$$status" -ne 130 ] || { trap - INT TERM; kill -INT 0; };
 exit "$$status"
 endef
+
+_INTERRUPT_SCRIPT = $(subst $(_NEWLINE), ,$(_INTERRUPT_SCRIPT_SOURCE))
+
+ifneq ($(and $(_HAS_CONTAINER),$(filter-out undefined,$(origin .SHELLFLAGS))),)
+_PROJECT_SHELLFLAGS := $(value .SHELLFLAGS)
+.SHELLFLAGS          = -c '$(_INTERRUPT_SCRIPT)' sh
+endif
 
 #**
 #* Enters a Compose service, starting it when it is not running.
@@ -3976,7 +3985,7 @@ define _enter_service
 $(if $(_HAS_CONTAINER) \
 	,$(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
 		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
-		$(call _start_service,$1)$(SHELL) -c "$$_EXEC_SCRIPT" sh $(call _quoted,$(_COMPOSE)) $1 $(_COMPOSE) exec -e BRNSHKR_EXEC_ID $2 \
+		$(call _start_service,$1) $(if $(findstring _INTERRUPT_SCRIPT,$(value .SHELLFLAGS)),,$(SHELL) -c "$$_EXEC_SCRIPT" sh )$(_COMPOSE) exec -e BRNSHKR_EXEC_ID $2 \
 	) $(addprefix -e ,$(_DECLARED_KEYS)) $(_forwarded_environment)$1 \
 )
 endef
@@ -3990,7 +3999,7 @@ endef
 #* returns: string
 #*
 define _start_service
-[ -n "$$($(_COMPOSE) ps --status running --quiet $1 2>/dev/null)" ] || $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1;
+$(SHELL) -c '[ -n "$$($(DOCKER) ps --quiet $(_COMPOSE_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null)" ] || $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1; exec "$$@"' sh
 endef
 
 #**
