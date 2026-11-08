@@ -1,12 +1,11 @@
 import path from 'node:path';
 
 import { readTextFile } from '#shared/utils/filesystem.ts';
-import { readOwnValue } from '#shared/utils/object.ts';
 import { createPattern } from '#shared/utils/pattern.ts';
 import { getConfigDirectory } from '#shared/utils/project-directory.ts';
 import { collectFilePaths } from '#spelling/utils/files.ts';
 import { buildPatterns } from '#spelling/utils/patterns.ts';
-import { readAllowlist, readSettings } from '#spelling/utils/settings.ts';
+import { getLiteralsAllowedIn, readAllowlist, readSettings } from '#spelling/utils/settings.ts';
 
 import type {
   AllowedLiteral,
@@ -15,8 +14,6 @@ import type {
   SpellingOptions,
   SpellingPattern,
 } from '#spelling/types/options.ts';
-
-const EVERY_PATH = '*';
 
 const maskAllowedLiterals = (
   line: string,
@@ -66,7 +63,7 @@ const findInFile = (
   patterns: SpellingPattern[],
   allowlist: Allowlist,
 ): SpellingFinding[] => {
-  const allowedLiterals = [...readOwnValue(allowlist, EVERY_PATH) ?? [], ...readOwnValue(allowlist, filePath) ?? []];
+  const allowedLiterals = getLiteralsAllowedIn(allowlist, filePath);
   const findings: SpellingFinding[] = [];
 
   for (const [index, line] of fileContents.split('\n').entries()) {

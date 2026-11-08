@@ -21,6 +21,7 @@ use function is_readable;
 use function is_string;
 use function max;
 use function mb_substr;
+use function range;
 use function sprintf;
 use function usort;
 
@@ -141,12 +142,8 @@ final class Spelling
         array $patterns,
         array $allowlist,
     ): array {
-        $findings = [];
-
-        $allowedLiterals = [
-            ...$allowlist[self::EVERY_PATH] ?? [],
-            ...$allowlist[$filePath] ?? [],
-        ];
+        $findings        = [];
+        $allowedLiterals = self::getLiteralsAllowedIn($allowlist, $filePath);
 
         foreach (Str::split($fileContents, "\n") as $index => $line) {
             $lineNumber = $index + 1;
@@ -259,11 +256,10 @@ final class Spelling
      */
     private static function rejectCoveredLiterals(array $allowlist): void
     {
-        $literalsAllowedEverywhere = $allowlist[self::EVERY_PATH] ?? [];
-
         foreach ($allowlist as $allowedPath => $allowedLiterals) {
+            $broaderLiterals = self::getLiteralsAllowedIn($allowlist, (string) $allowedPath, (string) $allowedPath);
+
             foreach ($allowedLiterals as $index => $allowedLiteral) {
-                $broaderLiterals   = $allowedPath === self::EVERY_PATH ? [] : $literalsAllowedEverywhere;
                 $precedingLiterals = self::getPrecedingLiterals($allowedLiterals, $index);
 
                 foreach ([...$broaderLiterals, ...$precedingLiterals] as $coveringCandidate) {
@@ -278,6 +274,56 @@ final class Spelling
                 }
             }
         }
+    }
+
+    /**
+     * @param array<array-key, list<array{
+     *     text: string,
+     *     lineNumbers: ?list<int>,
+     * }>> $allowlist
+     *
+     * @return list<array{
+     *     text: string,
+     *     lineNumbers: ?list<int>,
+     * }>
+     */
+    private static function getLiteralsAllowedIn(array $allowlist, string $filePath, ?string $skippedPath = null): array
+    {
+        $literals = [];
+
+        foreach ($allowlist as $allowedPath => $allowedLiterals) {
+            if ((string) $allowedPath !== $skippedPath
+                && ((string) $allowedPath === self::EVERY_PATH || self::doesGlobMatch((string) $allowedPath, $filePath))) {
+                $literals = [...$literals, ...$allowedLiterals];
+            }
+        }
+
+        return $literals;
+    }
+
+    private static function doesGlobMatch(string $glob, string $filePath): bool
+    {
+        if (!Str::startsWith($glob, '*')) {
+            return $glob === ''
+                ? $filePath === ''
+                : (Str::slice($glob, 0, 1) === Str::slice($filePath, 0, 1)
+                    && self::doesGlobMatch(Str::slice($glob, 1), Str::slice($filePath, 1)));
+        }
+
+        $isCrossingDirectories = Str::startsWith($glob, '**');
+        $remainingGlob         = Str::slice($glob, Str::length($isCrossingDirectories ? '**' : '*'));
+
+        foreach (range(0, Str::length($filePath)) as $offset) {
+            if (!$isCrossingDirectories && Str::contains(Str::slice($filePath, 0, $offset), '/')) {
+                return false;
+            }
+
+            if (self::doesGlobMatch($remainingGlob, Str::slice($filePath, $offset))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

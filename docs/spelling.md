@@ -50,10 +50,10 @@ so a repository adds to any of them and restates none. Every key is optional.
 | `fileExtensions` | the scanned file extensions |
 | `fileNames` | the scanned file names |
 | `ignorePatterns` | expressions matched against a path to skip it, bare or delimited as `/…/i` |
+| `allowlist` | words allowed in a path, keyed by that path or a glob |
 | `britishSpellings` | the spelling-to-correction map |
 | `britishStems` | the `-ise`/`-isation` stems |
 | `stemSuffixes` | the suffixes a stem takes |
-| `allowlist` | words allowed in a path, keyed by that path |
 
 Both stacks read a delimited pattern, so keep to the flags both engines know: `i`, `m`, `s`, and `u`.
 On JavaScript, a pattern added to `ignorePatterns` is rejected when it can backtrack super-linearly.
@@ -68,7 +68,7 @@ That check needs `scslre` and `@eslint-community/regexpp` installed.
 }
 ```
 
-A key is the exact path the literals are allowed in; `*` is every path.
+A key is the exact path the literals are allowed in, a glob like `src/**/*.php`, or `*` for every path.
 A literal matches case-insensitively and **covers** what it contains,
 so `phpstan-analyse` allows the `analyse` in it.
 Prefer the longest literal that still names the one place — the quoted form, the array key,

@@ -28,6 +28,11 @@
     "(^|/)__snapshots__/",
     "(^|/)tests/(.*/)?[Ff]ixtures?/"
   ],
+  "allowlist": {
+    ".github/**": [
+      "cancelled()"
+    ]
+  },
   "britishSpellings": {
     "acknowledgement": "acknowledgment",
     "ageing": "aging",

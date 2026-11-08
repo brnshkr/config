@@ -178,16 +178,46 @@ const formatAllowedLiteral = ({ text, lineNumbers }: AllowedLiteral): string => 
   ? text
   : `${text}:${lineNumbers.join(',')}`);
 
+const doesGlobMatch = (glob: string, filePath: string): boolean => {
+  if (!glob.startsWith('*')) {
+    return glob === ''
+      ? filePath === ''
+      : (glob.slice(0, 1) === filePath.slice(0, 1) && doesGlobMatch(glob.slice(1), filePath.slice(1)));
+  }
+
+  const isCrossingDirectories = glob.startsWith('**');
+  const remainingGlob = glob.slice(isCrossingDirectories ? '**'.length : '*'.length);
+
+  for (let offset = 0; offset <= filePath.length; offset += 1) {
+    if (!isCrossingDirectories && filePath.slice(0, offset).includes('/')) {
+      return false;
+    }
+
+    if (doesGlobMatch(remainingGlob, filePath.slice(offset))) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+export const getLiteralsAllowedIn = (
+  allowlist: Allowlist,
+  filePath: string,
+  skippedPath?: string,
+): AllowedLiteral[] => objectEntries(allowlist)
+  .filter(([allowedPath]) => allowedPath !== skippedPath
+    && (allowedPath === EVERY_PATH || doesGlobMatch(allowedPath, filePath)))
+  .flatMap(([, allowedLiterals]) => allowedLiterals);
+
 /**
  * @throws {Error}
  */
 const rejectCoveredLiterals = (allowlist: Allowlist): void => {
-  const literalsAllowedEverywhere = readOwnValue(allowlist, EVERY_PATH) ?? [];
-
   for (const [allowedPath, allowedLiterals] of objectEntries(allowlist)) {
-    for (const [index, allowedLiteral] of allowedLiterals.entries()) {
-      const broaderLiterals = allowedPath === EVERY_PATH ? [] : literalsAllowedEverywhere;
+    const broaderLiterals = getLiteralsAllowedIn(allowlist, allowedPath, allowedPath);
 
+    for (const [index, allowedLiteral] of allowedLiterals.entries()) {
       const coveringLiteral = [...broaderLiterals, ...allowedLiterals.slice(0, index)]
         .find((coveringCandidate) => isCoveredBy(coveringCandidate, allowedLiteral));
 

@@ -5,6 +5,12 @@
     ],
     "tests/php/Fixtures/Spelling/prose.md": [
       "analyse:9"
+    ],
+    "tests/**/*.md": [
+      "catalogue"
+    ],
+    "tests/*.md": [
+      "metre"
     ]
   }
 }

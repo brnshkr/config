@@ -39,8 +39,10 @@
       "\"analyse",
       "phpstan-analyse",
       "'behaviour'",
+      "'catalogue'",
+      "'metre'",
       "'normalises'",
-      "\"colour\\n\":160"
+      "\"colour\\n\":180"
     ]
   }
 }

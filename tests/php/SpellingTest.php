@@ -119,6 +119,26 @@ final class SpellingTest extends TestCase
         );
     }
 
+    public function testAGlobKeyAllowsAWordInTheFilesItMatches(): void
+    {
+        $words = array_column($this->scanCorpus(), 'word');
+
+        self::assertNotContains('catalogue', $words, '"tests/**/*.md" reaches into every directory below');
+        self::assertContains('metre', $words, '"tests/*.md" must not reach below "tests/"');
+    }
+
+    public function testRejectsAnAllowedWordAGlobKeyAlreadyAllows(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('under "tests/php/Fixtures/Spelling/prose.md" is already covered by "analyse"');
+
+        Spelling::scan(
+            $this->getRepositoryRoot(),
+            'tests/php/Fixtures/Spelling/covered-by-glob.json',
+            self::CORPUS_PATHS,
+        );
+    }
+
     public function testRejectsALineSuppressionTheWholeFileAlreadyAllows(): void
     {
         $this->expectException(RuntimeException::class);
