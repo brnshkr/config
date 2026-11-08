@@ -1097,7 +1097,7 @@ _TRACKED_FILES    := $(shell $(call _list_files,--cached))
 _HADOLINT_FILES   := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
 _ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_PROJECT_FILES))
 
-_LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
+_LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr localhost/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
 
 #**
 #* Whether a tool this project does not install can run here.

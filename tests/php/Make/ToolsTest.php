@@ -250,6 +250,7 @@ final class ToolsTest extends TestCase
             'other image' => ['COMPOSE_FIXTURE_IMAGE' => 'acme/app:1'],
             'forge image' => ['COMPOSE_FIXTURE_IMAGE' => 'docker.io/brnshkr/forge-php:1.0.0-cli'],
             'forge app'   => ['COMPOSE_FIXTURE_IMAGE' => 'docker.io/brnshkr/forge-php:1.0.0-app-dev'],
+            'local forge' => ['COMPOSE_FIXTURE_IMAGE' => 'localhost/brnshkr/forge:1.0.0-cli'],
             'own service' => ['COMPOSE_FIXTURE_IMAGE' => 'acme/app:1', 'COMPOSE_FIXTURE_SERVICE' => 'hadolint'],
         ] as $name => $environment) {
             $listings[$name] = $this->runMake(['help', 'vv', 'APP_SERVICE=php-app'], [
@@ -263,6 +264,7 @@ final class ToolsTest extends TestCase
         self::assertDoesNotContainSymbol('actionlint-list', $listings['other image']);
         self::assertContainsSymbol('hadolint-list', $listings['forge image']);
         self::assertDoesNotContainSymbol('hadolint-list', $listings['forge app']);
+        self::assertContainsSymbol('hadolint-list', $listings['local forge']);
         self::assertContainsSymbol('actionlint-list', $listings['forge image']);
         self::assertContainsSymbol('hadolint-list', $listings['own service']);
         self::assertDoesNotContainSymbol('actionlint-list', $listings['own service']);
