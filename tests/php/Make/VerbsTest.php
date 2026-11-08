@@ -92,6 +92,7 @@ final class VerbsTest extends TestCase
         $fix       = $this->runMake(['fix'], directory: $directory);
         $ci        = $this->runMake(['ci'], directory: $directory);
         $single    = $this->runMake(['rector-dry-run'], directory: $directory);
+        $aggregate = $this->runMake(['ci', 'CI_TARGETS=aggregate'], directory: $directory);
 
         self::assertStringContainsString("[acme/verbs] Running `rector-dry-run`\nrector process", $check);
         self::assertStringContainsString("[acme/verbs] Running `phpstan`\nphpstan analyze", $check);
@@ -101,6 +102,9 @@ final class VerbsTest extends TestCase
         self::assertStringContainsString("[acme/verbs] Running `check`\n", $ci);
         self::assertStringContainsString("[acme/verbs] Running `test`\n", $ci);
         self::assertStringNotContainsString('Running', $single);
+        self::assertStringContainsString("[acme/verbs] Running `aggregate`\nphpstan analyze", $aggregate);
+        self::assertStringNotContainsString('Running `phpstan`', $aggregate);
+        self::assertStringNotContainsString('Running `rector-dry-run`', $aggregate);
     }
 
     public function testAnAnnouncementCanBeRewordedOrSilenced(): void

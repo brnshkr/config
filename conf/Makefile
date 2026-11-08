@@ -501,10 +501,11 @@ TRACE_PREFIX ?= $(if $(_IS_TRACE),,@)$(_ANNOUNCE_IN_SHELL)#vvv #~~ prefix for a 
 _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 
 ANNOUNCEMENT       ?= Running `%s`#v #~~ message before each target a verb runs, `%s` the target
-_IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_GOAL)))
-_ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
-_ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_GOAL))$(_ANNOUNCEMENT_LOG);)
-_ANNOUNCEMENT_LOG   = $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$(_GOAL)))
+_ANNOUNCED_GOAL     = $(_GOAL)
+_IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_ANNOUNCED_GOAL)))
+_ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_ANNOUNCED_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
+_ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_ANNOUNCED_GOAL))$(_ANNOUNCEMENT_LOG);)
+_ANNOUNCEMENT_LOG   = $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$(_ANNOUNCED_GOAL)))
 
 _FALSE := 0 false off no
 _TRUE  := 1 true on yes
@@ -1532,6 +1533,8 @@ _PASSTHROUGH_GOAL  := $(if $(call _is_passthrough_goal,$(lastword $(_PASSTHROUGH
 _NAME_GOALS        := $(if $(_NAMING_GOAL),$(filter-out $(_FIRST_GOAL),$(MAKECMDGOALS)),$(if $(_PASSTHROUGH_GOAL),$(call _get_passthrough_words,$(MAKECMDGOALS))))
 _NAMED_TARGETS     := $(filter $(foreach PAIR,$(_TARGET_NAMES),$(lastword $(subst =, ,$(PAIR)))),$(_NAME_GOALS))
 _NAMED_OWN_TARGETS := $(strip $(foreach GOAL,$(_NAME_GOALS),$(filter $(_CONSUMER_TARGETS),$(GOAL))))
+
+$(if $(_IS_ANNOUNCING),$(foreach GOAL,$(filter $(_ALL_TARGETS),$(MAKECMDGOALS)),$(eval $(GOAL): _ANNOUNCED_GOAL := $(GOAL))))
 
 TARGET := $(firstword $(filter $(_ALL_TARGETS),$(if $(_NAMING_GOAL),$(_FIRST_GOAL),$(_PASSTHROUGH_LEAD))))#~~ the first target of this run
 ARG1    = $(call _shell_quoted,$(word 1,$(_ARGS)))#~~ the running target's first argument, and so on to `ARG9`
