@@ -107,6 +107,38 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString('Running `rector-dry-run`', $aggregate);
     }
 
+    public function testAVerbRunsItsTargetsInParallelUnderJobs(): void
+    {
+        $directory       = __DIR__ . '/../Fixtures/Make/Verbs';
+        $stagedDirectory = $this->getFixtureCopy($directory);
+        $filesystem      = new Filesystem();
+
+        $filesystem->dumpFile($stagedDirectory . '/.env', "APP_ENV=dev\n");
+        $filesystem->dumpFile($stagedDirectory . '/.env.production', '');
+
+        $check = $this->runMake(['-j2', 'check'], directory: $directory);
+        $test  = $this->runMake(['-j2', 'test'], directory: $directory);
+        $stage = $this->runMake(['-j2', 'production-check'], directory: $stagedDirectory);
+
+        self::assertStringNotContainsString('jobserver unavailable', $check);
+        self::assertStringNotContainsString('jobserver unavailable', $test);
+        self::assertStringNotContainsString('jobserver unavailable', $stage);
+    }
+
+    public function testADryRunAddsNoSummaryRow(): void
+    {
+        $directory   = $this->getFixtureCopy(__DIR__ . '/../Fixtures/Make/Verbs');
+        $summaryPath = $directory . '/summary.md';
+
+        $this->runMake(['-n', 'check', 'CI_SUMMARY_FILE=' . $summaryPath], directory: $directory);
+
+        self::assertFileDoesNotExist($summaryPath);
+
+        $this->runMake(['check', 'CI_SUMMARY_FILE=' . $summaryPath], directory: $directory);
+
+        self::assertStringContainsString('| `phpstan` | ✅ |', new Filesystem()->readFile($summaryPath));
+    }
+
     public function testAnAnnouncementCanBeRewordedOrSilenced(): void
     {
         $directory = __DIR__ . '/../Fixtures/Make/Verbs';

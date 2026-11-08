@@ -1818,7 +1818,7 @@ CHECK_TARGETS ?= #v #~~ this project's own targets, run by `check`
 
 ifneq ($(_HAS_CHECK),)
 $(call _target,check): #~~ lints and analyzes everything without writing
-	$(DEBUG_PREFIX)$(call _run_summarized,$(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS))
+	+$(DEBUG_PREFIX)$(call _run_summarized,$(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS))
 endif
 
 _FIX_ORDER := rector+php-cs-fixer \
@@ -1856,14 +1856,14 @@ endif
 
 ifneq ($(_HAS_AUDIT),)
 $(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
-	$(DEBUG_PREFIX)$(call _run_summarized,$(_AUDITS))
+	+$(DEBUG_PREFIX)$(call _run_summarized,$(_AUDITS))
 endif
 
 TEST_TARGETS ?= #v #~~ this project's own targets, run by `test`
 
 ifneq ($(_HAS_TEST),)
 $(call _target,test): #~~ runs the tests of every stack this project has
-	$(DEBUG_PREFIX)$(call _run_summarized,$(_TESTS) $(TEST_TARGETS))
+	+$(DEBUG_PREFIX)$(call _run_summarized,$(_TESTS) $(TEST_TARGETS))
 endif
 
 ifneq ($(_HAS_TEST_UPDATE),)
@@ -2110,7 +2110,7 @@ endef
 #* returns: void
 #*
 define _run_summarized
-$(if $(CI_SUMMARY_FILE),is_failed=; \
+$(if $(if $(_IS_JUST_PRINT),,$(CI_SUMMARY_FILE)),is_failed=; \
 	$(_add_summary_header); \
 	for target in $1; do \
 		start=$$($(DATE) +%s); \
@@ -2170,7 +2170,7 @@ ifeq ($(TARGET),) # unknown
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}),:)
 	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),$(call _quoted,$@)),:))
-	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
+	+$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(if $(_IS_JUST_PRINT),:,$(call _suggest)),:))
 else
 	$(TRACE_PREFIX):
 endif # /unknown
@@ -2702,7 +2702,7 @@ $1-%:
 	$$(TRACE_PREFIX)$$(if $$(filter $$@,$$(_STAGE_COLLISION_GOAL)),$$(call log,`%s` is both a stage and a service. `%s-<target>` runs the stage and `%s-%s-<target>` the service.,$$(COLOR_WARNING),'$1' '$1' '$1' '$1') >&2,:)
 	$$(TRACE_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
 		$$(call _suggest,$1-))
-	$$(DEBUG_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),$$(call _run_in_stage,$1,$$*),:)
+	+$$(DEBUG_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),$$(call _run_in_stage,$1,$$*),:)
 endef
 
 $(foreach STAGE,$(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(eval $(call _stage_rule,$(STAGE))))
@@ -3051,7 +3051,7 @@ $(call _target,pest-update): _$(_TARGET_PREFIX)assert-pest $(call _target,phpuni
 $(foreach GOAL,phpunit phpunit-coverage phpunit-list phpunit-update,$(call _target,$(GOAL))): export _LAYOUT_AWK = $(_LAYOUT_AWK_SOURCE)
 $(call _target,phpunit): #~~ runs the PHP tests
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
@@ -3061,7 +3061,7 @@ endif # /test stage
 
 $(call _target,phpunit-coverage): #~~ runs the PHP tests and reports how much source they reach #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
@@ -3082,7 +3082,7 @@ $(call _target,phpunit-update): _FORWARDED_KEYS         += UPDATE_SNAPSHOTS
 $(call _target,phpunit-update): export UPDATE_SNAPSHOTS  = true
 $(call _target,phpunit-update): #~~ runs the PHP tests and updates their snapshots #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
@@ -3529,7 +3529,7 @@ _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_in_project,$(c
 
 $(call _target,vitest): #~~ runs the JavaScript tests
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS))
@@ -3539,7 +3539,7 @@ ifneq ($(_HAS_VITEST_COVERAGE),) # vitest-coverage
 
 $(call _target,vitest-coverage): #~~ runs `vitest` and reports how much of the source it reaches #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(VITEST_COVERAGE_FLAGS) $(ARGS))
@@ -3553,7 +3553,7 @@ $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
-	$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
+	+$(DEBUG_PREFIX)$(call _run_in_stage,$(_TEST_STAGE_TO_ENTER),$(_GOAL))
 else
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
 	$(TRACE_PREFIX)$(call _spinner,$(VITEST) --config $(VITEST_CONFIG) $(VITEST_FLAGS) $(ARGS) --update)
