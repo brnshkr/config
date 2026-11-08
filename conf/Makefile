@@ -2329,10 +2329,11 @@ _FRESH_EXCLUDES = $(if $(_IS_FRESH_ALL),,$(foreach \
 _FRESH_OPTIONS = set -f; \
 	set -- -xdf$(if $(_IS_FRESH_ALL),f) $(_FRESH_EXCLUDES); \
 	$(if $(_IS_FRESH_ALL),:,untracked_paths=$$($(_FRESH_UNTRACKED)) || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	escaped_paths=$$(printf '%s\n' "$$untracked_paths" | $(AWK) "$$_FRESH_ESCAPE_AWK"); \
 	newline=$$(printf '\n_'); \
 	IFS=$${newline%_}; \
-	for path in $$untracked_paths; do \
-		set -- "$$@" --exclude="/$$(printf '%s' "$$path" | $(AWK) "$$_FRESH_ESCAPE_AWK")"; \
+	for path in $$escaped_paths; do \
+		set -- "$$@" --exclude="/$$path"; \
 	done; \
 	unset IFS)
 
