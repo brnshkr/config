@@ -250,6 +250,34 @@ define _mask_control_characters
 $(if $2,$(call _mask_control_characters,$(subst $(firstword $2),?,$1),$(wordlist 2,$(words $2),$2)),$(subst $(_NEWLINE),?,$1))
 endef
 
+_DIGITS                   := 0 1 2 3 4 5 6 7 8 9
+_VARIABLE_NAME_CHARACTERS := _ a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z $(_DIGITS)
+
+#**
+#* A text with each of the given characters removed.
+#*
+#* parameters:
+#*   text: string
+#*   characters: list<string>
+#*
+#* returns: string
+#*
+define _remove_characters
+$(if $2,$(call _remove_characters,$(subst $(firstword $2),,$1),$(wordlist 2,$(words $2),$2)),$1)
+endef
+
+#**
+#* The names a shell variable can take: letters, digits, and `_`, without a leading digit.
+#*
+#* parameters:
+#*   names: list<string>
+#*
+#* returns: list<string>
+#*
+define _get_variable_names
+$(foreach KEY,$1,$(if $(call _remove_characters,$(KEY),$(_VARIABLE_NAME_CHARACTERS))$(filter $(addsuffix %,$(_DIGITS)),$(KEY)),,$(KEY)))
+endef
+
 VENDOR  ?= $(if $(findstring /,$(_MANIFEST_NAME)),$(firstword $(subst /, ,$(_MANIFEST_NAME))))#v #~~ vendor name, taken from the manifest when unset
 PACKAGE ?= $(or $(lastword $(subst /, ,$(_MANIFEST_NAME))),$(call _mask_control_characters,$(notdir $(CURDIR)),$(_CONTROL_CHARACTERS)))#v #~~ package name, from the manifest or directory when unset
 VERSION ?= 0.0.0-dev#vv #~~ package version
@@ -327,6 +355,7 @@ COMPOSE_FILE             ?= $(_DOTENV_COMPOSE_FILE)#~~ Compose files, colon-sepa
 APP_SERVICE              ?= php-app bun-app#~~ Compose services the tools run in, the first one the Compose files define, empty for this machine
 CLI_SERVICE              ?= cli#~~ Compose service the tools run in where the project defines none of `APP_SERVICE`
 APP_SERVICE_MODE         ?= exec#~~ `run` starts a throwaway container instead of entering one
+CONTAINER_KEYS           ?= #~~ more variables a target hands to its container tool, read from the environment
 ACTIONLINT_SERVICE       ?= actionlint#~~ Compose service `actionlint` runs in, where the project has one
 HADOLINT_SERVICE         ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
 NODE_SERVICE             ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
@@ -397,6 +426,7 @@ _CONTAINER_KEYS := ACTIONLINT_SERVICE \
 	APP_SERVICE_MODE \
 	CLI_SERVICE \
 	COMPOSE_FILE \
+	CONTAINER_KEYS \
 	DOCKER \
 	DOCKER_COMPOSE \
 	HADOLINT_SERVICE \
@@ -420,7 +450,7 @@ _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 
 _COMMAND_LINE_KEYS       = $(foreach VARIABLE,$(.VARIABLES),$(if $(filter command line,$(origin $(VARIABLE))),$(VARIABLE)))
 _NON_EMPTY_TERMINAL_KEYS = $(foreach KEY,$(_TERMINAL_KEYS),$(if $(call _forwarded_value,$(KEY)),$(KEY)))
-_FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS))))
+_FORWARDED_KEYS          = $(filter-out $(_CONTAINER_KEYS) $(_DOTENV_KEYS),$(sort $(_NON_EMPTY_TERMINAL_KEYS) $(call _get_variable_names,$(CONTAINER_KEYS) $(filter-out _%,$(_COMMAND_LINE_KEYS)))))
 _DECLARED_KEYS           = $(filter-out $(_CONTAINER_KEYS),$(_DOTENV_KEYS))
 
 #--- output
@@ -3682,11 +3712,12 @@ endef
 
 #**
 #* The `-e` flags giving the tools inside the container what the files cannot carry themselves.
+#* Each passes only a name. The editor URL passes the value this machine resolved.
 #*
 #* returns: string
 #*
 define _forwarded_environment
-$(foreach KEY,$(_FORWARDED_KEYS),-e $(KEY)=$(call _quoted,$(call _forwarded_value,$(KEY))) )
+$(foreach KEY,$(_FORWARDED_KEYS),-e $(KEY)$(if $(filter EDITOR_URL,$(KEY)),=$(call _quoted,$(_EDITOR_URL))) )
 endef
 
 #**

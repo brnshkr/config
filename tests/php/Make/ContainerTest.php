@@ -164,6 +164,32 @@ final class ContainerTest extends TestCase
      * @param self::MODE_* $mode
      */
     #[DataProvider('provideHostModeCases')]
+    public function testAForwardedValueStaysOffTheCommandLine(string $mode): void
+    {
+        $output = $this->runMakeIn(
+            $mode,
+            [
+                '-n',
+                'show',
+                'CONTAINER_FIXTURE_UNDECLARED=from-the-command-line',
+                'CONTAINER_KEYS=CONTAINER_FIXTURE_TOKEN',
+                '--',
+                '--format=tsv',
+            ],
+            ['CONTAINER_FIXTURE_TOKEN' => 'from-the-host'],
+        );
+
+        self::assertStringContainsString('-e CONTAINER_FIXTURE_UNDECLARED ', $output);
+        self::assertStringContainsString('-e CONTAINER_FIXTURE_TOKEN ', $output);
+        self::assertStringNotContainsString('from-the-command-line', $output);
+        self::assertStringNotContainsString('from-the-host', $output);
+        self::assertStringNotContainsString('-e --format', $output);
+    }
+
+    /**
+     * @param self::MODE_* $mode
+     */
+    #[DataProvider('provideHostModeCases')]
     public function testTheEditorUrlAToolSeesPointsAtTheHostCheckout(string $mode): void
     {
         $output = $this->runMakeIn($mode, ['show'], ['EDITOR_URL' => 'editor://{cwd}/{file}']);

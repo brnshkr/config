@@ -205,6 +205,7 @@ Variables:
    APP_SERVICE                    ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
    CLI_SERVICE                    ?=  cli                                              (Compose service the tools run in where the project defines none of APP_SERVICE)
    APP_SERVICE_MODE               ?=  exec                                             (run starts a throwaway container instead of entering one)
+   CONTAINER_KEYS                 ?=                                                   (more variables a target hands to its container tool, read from the environment)
    ACTIONLINT_SERVICE             ?=  actionlint                                       (Compose service actionlint runs in, where the project has one)
    HADOLINT_SERVICE               ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                   ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
@@ -453,6 +454,7 @@ Variables:
    APP_SERVICE                     ?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)
    CLI_SERVICE                     ?=  cli                                              (Compose service the tools run in where the project defines none of APP_SERVICE)
    APP_SERVICE_MODE                ?=  exec                                             (run starts a throwaway container instead of entering one)
+   CONTAINER_KEYS                  ?=                                                   (more variables a target hands to its container tool, read from the environment)
    ACTIONLINT_SERVICE              ?=  actionlint                                       (Compose service actionlint runs in, where the project has one)
    HADOLINT_SERVICE                ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                    ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
@@ -1516,6 +1518,7 @@ Available commands:
    [36mAPP_SERVICE                   [0m  [90m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m
    [36mCLI_SERVICE                   [0m  [90m?=  cli                                              (Compose service the tools run in where the project defines none of [35mAPP_SERVICE[0m[90m)[0m
    [36mAPP_SERVICE_MODE              [0m  [90m?=  exec                                             ([35mrun[0m[90m starts a throwaway container instead of entering one)[0m
+   [36mCONTAINER_KEYS                [0m  [90m?=                                                   (more variables a target hands to its container tool, read from the environment)[0m
    [36mACTIONLINT_SERVICE            [0m  [90m?=  actionlint                                       (Compose service [35mactionlint[0m[90m runs in, where the project has one)[0m
    [36mHADOLINT_SERVICE              [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE                  [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
@@ -1997,6 +2000,7 @@ Available commands:
    [32mAPP_SERVICE                   [0m  [0m?=  php-app bun-app                                  (Compose services the tools run in, the first one the Compose files define, empty for this machine)[0m
    [32mCLI_SERVICE                   [0m  [0m?=  cli                                              (Compose service the tools run in where the project defines none of [33mAPP_SERVICE[0m[0m)[0m
    [32mAPP_SERVICE_MODE              [0m  [0m?=  exec                                             ([33mrun[0m[0m starts a throwaway container instead of entering one)[0m
+   [32mCONTAINER_KEYS                [0m  [0m?=                                                   (more variables a target hands to its container tool, read from the environment)[0m
    [32mACTIONLINT_SERVICE            [0m  [0m?=  actionlint                                       (Compose service [33mactionlint[0m[0m runs in, where the project has one)[0m
    [32mHADOLINT_SERVICE              [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE                  [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
