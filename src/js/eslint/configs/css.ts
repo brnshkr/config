@@ -12,7 +12,8 @@ import {
   resolvePackages,
 } from '#eslint/utils/module.ts';
 
-import { getScopingRootAtRules, mergeDialects } from '#shared/utils/dialect.ts';
+import { filterRuleReports } from '#eslint/utils/rule-filter.ts';
+import { getAnyDescriptorAtRules, getScopingRootAtRules, mergeDialects } from '#shared/utils/dialect.ts';
 import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
 import { TAILWIND_DIALECT } from '#shared/utils/tailwind.ts';
 
@@ -120,12 +121,26 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
   const isTailwindEnabled = isModuleEnabled(MODULES.tailwind);
   const dialect = buildDialect(isTailwindEnabled, options);
   const customSyntax = buildCustomSyntax(options?.customSyntax, dialect);
+  const anyDescriptorAtRules = new Set(getAnyDescriptorAtRules(dialect));
 
   return [
     {
       name: buildConfigName(MAIN_SCOPES.CSS, SUB_SCOPES.SETUP),
       plugins: {
-        css: pluginCss,
+        css: anyDescriptorAtRules.size === 0
+          ? pluginCss
+          : {
+            ...pluginCss,
+            rules: {
+              ...pluginCss.rules,
+              'no-invalid-at-rules': filterRuleReports(
+                pluginCss.rules['no-invalid-at-rules'],
+                (descriptor) => !('messageId' in descriptor
+                  && descriptor.messageId === 'unknownDescriptor'
+                  && anyDescriptorAtRules.has(String(descriptor.data?.['name']).toLowerCase())),
+              ),
+            },
+          },
       },
     },
     {

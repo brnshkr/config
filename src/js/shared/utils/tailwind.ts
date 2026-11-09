@@ -18,6 +18,7 @@ export const TAILWIND_DIALECT = <const>{
     },
     plugin: {
       prelude: '<string>',
+      hasAnyDescriptor: true,
     },
     reference: {
       prelude: '<string>',

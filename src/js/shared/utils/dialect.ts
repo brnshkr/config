@@ -18,6 +18,11 @@ export interface CssDialectAtRule {
   descriptors?: Record<string, string>;
 
   /**
+   * Accepts any descriptor in its block.
+   */
+  hasAnyDescriptor?: boolean;
+
+  /**
    * Enables every property as a declaration in its block.
    */
   isDeclarationBlock?: boolean;
@@ -56,6 +61,12 @@ export const mergeDialects = (dialects: Partial<CssDialect>[]): CssDialect => ({
   functions: objectFromEntries(dialects.flatMap(({ functions }) => objectEntries(functions ?? {}))),
   types: objectFromEntries(dialects.flatMap(({ types }) => objectEntries(types ?? {}))),
 });
+
+export const getAnyDescriptorAtRules = (
+  dialect: Maybe<CssDialect>,
+): string[] => objectEntries(dialect?.atRules ?? {})
+  .filter(([, { hasAnyDescriptor }]) => hasAnyDescriptor === true)
+  .map(([name]) => name);
 
 export const getScopingRootAtRules = (
   dialect: Maybe<CssDialect>,
