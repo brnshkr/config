@@ -453,6 +453,8 @@ final class ContainerTest extends TestCase
         yield 'shell flags' => [[]];
 
         yield 'inline fallback' => [['.SHELLFLAGS=-c']];
+
+        yield 'run mode inline fallback' => [['APP_SERVICE_MODE=run', '.SHELLFLAGS=-c']];
     }
 
     public function testAToolInterruptedUnderTheSpinnerStopsMake(): void

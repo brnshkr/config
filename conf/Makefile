@@ -4004,10 +4004,12 @@ endif
 #*
 define _enter_service
 $(if $(_HAS_CONTAINER) \
-	,$(strip $(if $(filter run,$(or $3,$(APP_SERVICE_MODE))) \
-		,$(_COMPOSE) --progress quiet run --rm --no-deps $2, \
-		$(call _start_service,$1) $(if $(findstring _INTERRUPT_SCRIPT,$(value .SHELLFLAGS)),,$(SHELL) -c "$$_EXEC_SCRIPT" sh )$(_COMPOSE) exec -e BRNSHKR_EXEC_ID $2 \
-	) $(addprefix -e ,$(_DECLARED_KEYS))) $(_forwarded_environment)$1)
+	,$(strip $(if $(filter run,$(or $3,$(APP_SERVICE_MODE))),,$(call _start_service,$1)) $(if \
+		$(findstring _INTERRUPT_SCRIPT,$(value .SHELLFLAGS)),,$(SHELL) -c "$$_EXEC_SCRIPT" sh) $(if \
+		$(filter run,$(or $3,$(APP_SERVICE_MODE))) \
+		,$(_COMPOSE) --progress quiet run --rm --no-deps, \
+		$(_COMPOSE) exec \
+	) -e BRNSHKR_EXEC_ID $2 $(addprefix -e ,$(_DECLARED_KEYS))) $(_forwarded_environment)$1)
 endef
 
 #**
