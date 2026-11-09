@@ -6,13 +6,31 @@ import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
 import { GLOB_CSS, GLOB_HTML_FILES, GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { findTailwindEntryPoint } from '#eslint/utils/tailwind-entry-point.ts';
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 import { INDENT, MAX_LEN } from '#shared/utils/constants.ts';
 import { isPlainObject, objectEntries } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 import type { TailwindOptions, TypescriptOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
+/**
+ * @rejects {Error}
+ */
+const buildEntryPointSettings = async (entryPoint: Maybe<string>): Promise<Partial<TailwindOptions>> => {
+  const resolvedEntryPoint = entryPoint ?? await findTailwindEntryPoint(process.cwd());
+
+  return resolvedEntryPoint === undefined
+    ? {}
+    : {
+      entryPoint: resolvedEntryPoint,
+    };
+};
+
+/**
+ * @rejects {Error}
+ */
 export const tailwind = async (
   options?: Partial<TailwindOptions>,
   typescriptOptions?: boolean | Partial<TypescriptOptions>,
@@ -26,6 +44,7 @@ export const tailwind = async (
     return [];
   }
 
+  const entryPointSettings = await buildEntryPointSettings(options?.entryPoint);
   const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined);
 
   const paletteNames = objectEntries(tailwindColors ?? {})
@@ -41,6 +60,7 @@ export const tailwind = async (
       settings: {
         'better-tailwindcss': {
           detectComponentClasses: true,
+          ...entryPointSettings,
           rootFontSize: 16,
           ...((isModuleEnabled(MODULES.typescript) && doesTsConfigExist(tsConfigPath))
             ? {

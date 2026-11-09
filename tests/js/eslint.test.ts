@@ -13,7 +13,11 @@ import type { JsonObject } from '#tests/utils/json-diff.ts';
 const FIXTURES_DIRECTORY = path.join(process.cwd(), 'tests/js/fixtures/eslint');
 
 test('expected eslint config', async () => {
-  const packageConfigs = await getConfig().toConfigs();
+  const packageConfigs = await getConfig({
+    tailwind: {
+      entryPoint: './conf/tailwind.css',
+    },
+  }).toConfigs();
 
   const eslint = new ESLint({
     overrideConfigFile: true,

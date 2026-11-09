@@ -13012,6 +13012,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
   "settings": {
     "better-tailwindcss": {
       "detectComponentClasses": true,
+      "entryPoint": "./conf/tailwind.css",
       "rootFontSize": 16,
       "tsconfig": "<root>/tsconfig.json",
     },

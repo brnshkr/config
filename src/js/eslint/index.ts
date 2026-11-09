@@ -228,10 +228,28 @@ export const getConfig = (
   return composer;
 };
 
+const defaultConfig = {
+  get composer(): FlatConfigComposer<Config, ConfigNames> {
+    const composer = getConfig();
+
+    Object.defineProperty(defaultConfig, 'composer', {
+      value: composer,
+    });
+
+    return composer;
+  },
+};
+
 /**
- * Default-exported pre-built composer for direct re-export from an ESLint flat-config file.
+ * Default-exported composer for direct re-export from an ESLint flat-config file, built on first use.
  *
  * @api
  */
 // eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting
-export default getConfig();
+export default new Proxy(<FlatConfigComposer<Config, ConfigNames>>Object.create(FlatConfigComposer.prototype), {
+  get: (_target, key): unknown => {
+    const value: unknown = Reflect.get(defaultConfig.composer, key);
+
+    return typeof value === 'function' ? <unknown>value.bind(defaultConfig.composer) : value;
+  },
+});
