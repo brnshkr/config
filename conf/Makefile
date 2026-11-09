@@ -3411,7 +3411,7 @@ _LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(ESLINT_CONFIG),mjs
 # NOTICE: ESLint writes through `--output-file` since Bun truncates its piped output
 $(call _target,eslint): #~~ lints and fixes the code
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
-	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'; \
+	$(TRACE_PREFIX)$(call _spinner,$(RM) -f '$(call _host_path,$(_ESLINT_OUTPUT))'$(if $(_IS_DRY_RUN), '$(call _host_path,$(ESLINT_CACHE))'); \
 		$(ESLINT) --config $(ESLINT_CONFIG) --cache --cache-location $(ESLINT_CACHE) $(ESLINT_FLAGS) --output-file $(_ESLINT_OUTPUT) $(_FIXER_ARGS) $(if $(_IS_DRY_RUN),,--fix); \
 		status=$$?; \
 		[ ! -r '$(call _host_path,$(_ESLINT_OUTPUT))' ] || $(CAT) '$(call _host_path,$(_ESLINT_OUTPUT))'; \
