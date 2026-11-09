@@ -128,8 +128,18 @@ const translateFlags = (pcreFlags: string, inlineFlags: string): string => [...n
   .toSorted((first, second) => first.localeCompare(second))
   .join('');
 
+const translateIdentityEscape = (
+  escaped: string,
+  isInClass: boolean,
+): string => ((/[\p{Letter}\p{Number}]/v.test(escaped)
+  || JAVASCRIPT_SYNTAX_CHARACTERS.has(escaped)
+  || (isInClass && escaped === '-'))
+  ? `\\${escaped}`
+  : escaped);
+
 const translateEscape = (escaped: string, delimiter: string, isInClass: boolean, flags: string): string => {
-  if (escaped === delimiter && (isInClass || delimiter === '/' || !JAVASCRIPT_SYNTAX_CHARACTERS.has(delimiter))) {
+  if (escaped === delimiter
+    && (isInClass || delimiter === '/' || !JAVASCRIPT_SYNTAX_CHARACTERS.has(delimiter))) {
     return delimiter;
   }
 
@@ -137,7 +147,9 @@ const translateEscape = (escaped: string, delimiter: string, isInClass: boolean,
     return '^';
   }
 
-  return (!isInClass && escaped === 'z' && !flags.includes('m')) ? '$' : `\\${escaped}`;
+  return (!isInClass && escaped === 'z' && !flags.includes('m'))
+    ? '$'
+    : translateIdentityEscape(escaped, isInClass);
 };
 
 const translateToken = (
