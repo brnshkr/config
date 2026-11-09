@@ -171,6 +171,14 @@ final class SpellingTest extends TestCase
         self::assertContains('normalises', $words, 'A declared suffix must not replace the shipped ones');
     }
 
+    public function testKeepsTheShippedAllowedWordsBesideTheDeclaredOnesOfTheSameKey(): void
+    {
+        $words = array_column($this->scanCorpus(), 'word');
+
+        self::assertContains('labelled', $words, '"labelledby" must not allow the word it contains');
+        self::assertNotContains('labelledby', $words, 'The declared "*" entry must not replace the shipped one');
+    }
+
     public function testScansOnlyTheTrackedFilesTheSettingsName(): void
     {
         $repositoryRoot = $this->createTemporaryRoot();

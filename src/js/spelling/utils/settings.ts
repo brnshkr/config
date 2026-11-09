@@ -118,6 +118,23 @@ const mergeLists = (shippedEntries: string[], declaredEntries: string[]): string
   ...new Set([...shippedEntries, ...declaredEntries]),
 ];
 
+const mergeAllowlists = (
+  shippedAllowlist: Record<string, string[]> = {},
+  declaredAllowlist: Record<string, string[]> = {},
+): Record<string, string[]> => {
+  const mergedAllowlist = { ...shippedAllowlist };
+
+  for (const [allowedPath, declaredLiterals] of objectEntries(declaredAllowlist)) {
+    writeOwnValue(
+      mergedAllowlist,
+      allowedPath,
+      mergeLists(readOwnValue(mergedAllowlist, allowedPath) ?? [], declaredLiterals),
+    );
+  }
+
+  return mergedAllowlist;
+};
+
 const mergeSettings = (
   shippedSettings: SpellingSettings,
   declaredSettings: SpellingSettings,
@@ -128,7 +145,7 @@ const mergeSettings = (
   britishSpellings: { ...shippedSettings.britishSpellings, ...declaredSettings.britishSpellings },
   britishStems: mergeLists(shippedSettings.britishStems, declaredSettings.britishStems),
   stemSuffixes: mergeLists(shippedSettings.stemSuffixes, declaredSettings.stemSuffixes),
-  allowlist: { ...shippedSettings.allowlist, ...declaredSettings.allowlist },
+  allowlist: mergeAllowlists(shippedSettings.allowlist, declaredSettings.allowlist),
 });
 
 /**

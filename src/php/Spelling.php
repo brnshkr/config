@@ -587,7 +587,13 @@ final class Spelling
         }
 
         if (!array_is_list($shippedSetting) || !array_is_list($declaredSetting)) {
-            return [...$shippedSetting, ...$declaredSetting];
+            $mergedSetting = $shippedSetting;
+
+            foreach ($declaredSetting as $settingKey => $declaredEntry) {
+                $mergedSetting[$settingKey] = self::mergeSetting($shippedSetting[$settingKey] ?? null, $declaredEntry);
+            }
+
+            return $mergedSetting;
         }
 
         $mergedSetting = $shippedSetting;
