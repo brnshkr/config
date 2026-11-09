@@ -89,6 +89,16 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
         );
     }
 
+    public function testATraitReferencingTheClassUsingItIsNoForeignUse(): void
+    {
+        $this->assertIssuesReported(
+            self::FIXTURE_DIRECTORY . '/Internal/InternalClass.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/InternalParentOfTraitUser.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/InternalClassUsingTrait.php',
+            self::FIXTURE_DIRECTORY . '/InternalUsage/ConsumeOwnClassFromTrait.php',
+        );
+    }
+
     public function testRuleAllowsTheWholeOrganizationForAVendorTarget(): void
     {
         $this->assertIssuesReported(

@@ -28,6 +28,7 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
@@ -219,7 +220,7 @@ final readonly class InternalUsageRule implements Rule
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classNamespace,
-            $callerNamespace,
+            self::resolveCallerNamespaceFor($classReflection, $scope, $callerNamespace),
             self::getKindForClassReflection($classReflection),
             $resolvedName,
             $line,
@@ -295,7 +296,7 @@ final readonly class InternalUsageRule implements Rule
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classReflection->getNativeReflection()->getNamespaceName(),
-            $callerNamespace,
+            self::resolveCallerNamespaceFor($classReflection, $scope, $callerNamespace),
             self::KIND_METHOD,
             $resolvedName . '::' . $methodName . '()',
             $line,
@@ -325,7 +326,7 @@ final readonly class InternalUsageRule implements Rule
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classNamespace,
-            $callerNamespace,
+            self::resolveCallerNamespaceFor($classReflection, $scope, $callerNamespace),
             self::KIND_METHOD,
             $classReflection->getName() . '::' . $method->getName() . '()',
             $line,
@@ -355,7 +356,7 @@ final readonly class InternalUsageRule implements Rule
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classNamespace,
-            $callerNamespace,
+            self::resolveCallerNamespaceFor($classReflection, $scope, $callerNamespace),
             self::KIND_PROPERTY,
             $classReflection->getName() . '::$' . $propertyFetch->name->toString(),
             $line,
@@ -371,11 +372,11 @@ final readonly class InternalUsageRule implements Rule
         $constName = $classConstFetch->name->toString();
 
         if ($classConstFetch->class instanceof Name) {
-            return $this->processClassAndConst($scope->resolveName($classConstFetch->class), $constName, $callerNamespace, $line);
+            return $this->processClassAndConst($scope->resolveName($classConstFetch->class), $constName, $scope, $callerNamespace, $line);
         }
 
         foreach ($scope->getType($classConstFetch->class)->getObjectClassNames() as $className) {
-            $error = $this->processClassAndConst($className, $constName, $callerNamespace, $line);
+            $error = $this->processClassAndConst($className, $constName, $scope, $callerNamespace, $line);
 
             if ($error instanceof IdentifierRuleError) {
                 return $error;
@@ -385,7 +386,7 @@ final readonly class InternalUsageRule implements Rule
         return null;
     }
 
-    private function processClassAndConst(string $className, string $constName, string $callerNamespace, int $line): ?IdentifierRuleError
+    private function processClassAndConst(string $className, string $constName, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$this->reflectionProvider->hasClass($className)) {
             return null;
@@ -405,11 +406,23 @@ final readonly class InternalUsageRule implements Rule
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classReflection->getNativeReflection()->getNamespaceName(),
-            $callerNamespace,
+            self::resolveCallerNamespaceFor($classReflection, $scope, $callerNamespace),
             self::KIND_CONSTANT,
             $className . '::' . $constName,
             $line,
         );
+    }
+
+    private static function resolveCallerNamespaceFor(ClassReflection $classReflection, Scope $scope, string $callerNamespace): string
+    {
+        $usingClass = $scope->isInTrait() ? $scope->getClassReflection() : null;
+
+        if (!$usingClass instanceof ClassReflection
+            || ($usingClass->getName() !== $classReflection->getName() && !$usingClass->isSubclassOfClass($classReflection))) {
+            return $callerNamespace;
+        }
+
+        return $usingClass->getNativeReflection()->getNamespaceName();
     }
 
     private static function resolveInternalTarget(string|false|null $docComment): ?string
