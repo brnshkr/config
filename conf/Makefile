@@ -399,6 +399,7 @@ ACTIONLINT_SERVICE       ?= actionlint#~~ Compose service `actionlint` runs in, 
 HADOLINT_SERVICE         ?= hadolint#~~ Compose service `hadolint` runs in, where the project has one
 NODE_SERVICE             ?= node#~~ Compose service `node` runs in, where the project has one, empty to run it on the host
 SEMGREP_SERVICE          ?= semgrep#~~ Compose service `semgrep` runs in, where the project has one
+SHELLCHECK_SERVICE       ?= shellcheck#~~ Compose service `shellcheck` runs in, where the project has one
 IS_IN_CONTAINER          ?= $(if $(wildcard $(_CONTAINER_MARKERS)),1)#~~ whether the tools already run in a container
 RUN                      ?= $(call run_in,$(_TOOL_SERVICE))#~~ command the tools run through, empty on this machine
 APP_DIR                  ?= $(or $(_SERVICE_DIRECTORY),$(CURDIR))#~~ where the tools see the sources, not `CURDIR` in a container
@@ -475,7 +476,8 @@ _CONTAINER_KEYS := ACTIONLINT_SERVICE \
 	IS_IN_CONTAINER \
 	NODE_SERVICE \
 	RUN \
-	SEMGREP_SERVICE
+	SEMGREP_SERVICE \
+	SHELLCHECK_SERVICE
 
 _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 	BRNSHKR_CONFIG_DIR \
@@ -1123,14 +1125,45 @@ $(GIT) ls-files -z $1 2>/dev/null \
 	| $(TR) ' \n\000' '\037\036 '
 endef
 
+#**
+#* A list of words, each quoted so the shell reads it as one argument.
+#*
+#* parameters:
+#*   words: list<string>
+#*
+#* returns: list<string>
+#*
+define _shell_quoted
+$(foreach WORD,$1,'$(call _unmasked,$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(WORD)))')
+endef
+
+#**
+#* A tracked file name with the space and newline that make cannot hold in a list put back.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _unmasked
+$(subst $(_MASKED_SPACE),$(_SPACE),$(subst $(_MASKED_NEWLINE),$(_NEWLINE),$1))
+endef
+
 _MASKS_AND_PROJECT_FILES := $(shell printf '\037 \036 '; $(call _list_files,--cached --others --exclude-standard))
 
-_MASKED_SPACE     := $(word 1,$(_MASKS_AND_PROJECT_FILES))
-_MASKED_NEWLINE   := $(word 2,$(_MASKS_AND_PROJECT_FILES))
-_PROJECT_FILES    := $(wordlist 3,$(words $(_MASKS_AND_PROJECT_FILES)),$(_MASKS_AND_PROJECT_FILES))
-_TRACKED_FILES    := $(shell $(call _list_files,--cached))
-_HADOLINT_FILES   := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
-_ACTIONLINT_FILES := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_PROJECT_FILES))
+_MASKED_SPACE        := $(word 1,$(_MASKS_AND_PROJECT_FILES))
+_MASKED_NEWLINE      := $(word 2,$(_MASKS_AND_PROJECT_FILES))
+_PROJECT_FILES       := $(wordlist 3,$(words $(_MASKS_AND_PROJECT_FILES)),$(_MASKS_AND_PROJECT_FILES))
+_TRACKED_FILES       := $(shell $(call _list_files,--cached))
+_HADOLINT_FILES      := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(or $(filter %Dockerfile,$(FILE)),$(findstring Dockerfile.,$(FILE))),$(FILE))))
+_ACTIONLINT_FILES    := $(filter .github/workflows/%.yaml .github/workflows/%.yml,$(_PROJECT_FILES))
+_SHELLCHECK_PAGES    := $(filter %.md,$(_PROJECT_FILES))
+_SHELL_NAMED_FILES   := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(filter %.sh %.bash %.dash %.ksh .bashrc .bash_profile .profile,$(notdir $(FILE))),$(FILE))))
+_EXTENSIONLESS_FILES := $(strip $(foreach FILE,$(_PROJECT_FILES),$(if $(findstring .,$(notdir $(FILE))),,$(FILE))))
+
+_SHELLCHECK_FILES = $(strip $(_SHELL_NAMED_FILES) $(if $(_EXTENSIONLESS_FILES),$(foreach POSITION,$(shell $(AWK) \
+	'FNR == 1 { if (/^\043![ \t]*\/([^ \t]*\/)?(env[ \t]+)?(ba|da|k)?sh([ \t]|$$)/) for (position = 1; position < ARGC; position += 1) if (ARGV[position] == FILENAME) print position; nextfile }' \
+	$(call _shell_quoted,$(_EXTENSIONLESS_FILES)) 2>/dev/null),$(word $(POSITION),$(_EXTENSIONLESS_FILES)))))
 
 _LINTER_IMAGES := $(foreach OWNER,brnshkr docker.io/brnshkr ghcr.io/brnshkr localhost/brnshkr,$(foreach NAME,forge forge-php forge-bun,$(OWNER)/$(NAME):%))
 
@@ -1171,6 +1204,7 @@ _HAS_TYPESCRIPT      = $(wildcard $(CURDIR)/node_modules/.bin/tsc)
 _HAS_VITEST          = $(and $(wildcard $(CURDIR)/node_modules/.bin/vitest),$(wildcard $(CURDIR)/node_modules/vite/package.json))
 _HAS_HADOLINT       := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_HADOLINT),$(and $(_HADOLINT_FILES),$(call _is_tool_available,hadolint,$(HADOLINT_SERVICE))))
 _HAS_ACTIONLINT     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_ACTIONLINT),$(and $(_ACTIONLINT_FILES),$(call _is_tool_available,actionlint,$(ACTIONLINT_SERVICE))))
+_HAS_SHELLCHECK     := $(if $(_IS_DETECTED_BY_PARENT),$(_HAS_SHELLCHECK),$(and $(call _is_tool_available,shellcheck,$(SHELLCHECK_SERVICE)),$(if $(or $(_SHELL_NAMED_FILES),$(_SHELLCHECK_PAGES),$(_SHELLCHECK_FILES)),1)))
 _HAS_COMPOSER_AUDIT  = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/composer.lock))
 _HAS_BUN_AUDIT       = $(and $(_HAS_JS),$(wildcard $(CURDIR)/bun.lock))
 _HAS_BUN_BUILD       = $(and $(_HAS_JS),$(filter 1,$(word 3,$(_MANIFEST_FACTS))))
@@ -1266,6 +1300,7 @@ _TYPESCRIPT_NAME    := $(call _get_tracked_tool,typescript,$(and $(_HAS_JS),$(_H
 _VITEST_NAME        := $(if $(_TESTS_DIRECTORY),$(call _get_tracked_tool,vitest,$(and $(_HAS_JS),$(_HAS_VITEST)),VITEST_EXTENSIONS))
 _HADOLINT_NAME      := $(if $(_HAS_HADOLINT),hadolint)
 _ACTIONLINT_NAME    := $(if $(_HAS_ACTIONLINT),actionlint)
+_SHELLCHECK_NAME    := $(if $(_HAS_SHELLCHECK),shellcheck)
 _SEMGREP_NAME       := $(if $(_HAS_SEMGREP),semgrep)
 
 _FIXER_NAMES := $(strip \
@@ -1283,6 +1318,7 @@ _ANALYZER_NAMES := $(strip \
 	$(_TYPESCRIPT_NAME) \
 	$(_HADOLINT_NAME) \
 	$(_ACTIONLINT_NAME) \
+	$(_SHELLCHECK_NAME) \
 	$(_SEMGREP_NAME) \
 )
 
@@ -1297,6 +1333,7 @@ _GROUP_NAMES := $(strip \
 	$(_TYPESCRIPT_NAME) \
 	$(_HADOLINT_NAME) \
 	$(_ACTIONLINT_NAME) \
+	$(_SHELLCHECK_NAME) \
 	$(_SEMGREP_NAME) \
 )
 
@@ -1319,6 +1356,7 @@ export _HAS_ACTIONLINT
 export _HAS_DOCKER
 export _HAS_HADOLINT
 export _HAS_SEMGREP
+export _HAS_SHELLCHECK
 export _SERVICE_DIRECTORY
 export _SERVICE_IMAGE
 export _TOOL_SERVICE
@@ -3672,6 +3710,85 @@ $(call _target,actionlint-list): #~~ lists the workflows `actionlint` reads #vv
 
 endif # /actionlint
 
+#--- shellcheck
+
+SHELLCHECK_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellcheckrc $(APP_DIR)/$(_CONFIG_DIR)/shellcheckrc.dist,)#v #~~ path to `shellcheck` config
+_LAYERED_CONFIGS  += $(if $(or $(_SHELLCHECK_FILES),$(_SHELLCHECK_PAGES)),$(call _layered,$(SHELLCHECK_CONFIG),))
+
+ifneq ($(_HAS_SHELLCHECK),) # shellcheck
+
+SHELLCHECK       ?= $(call _run_in_own_service,$(SHELLCHECK_SERVICE)) shellcheck#v #~~ command that runs `shellcheck`
+SHELLCHECK_FILES ?= $(_SHELLCHECK_FILES)#vv #~~ shell scripts `shellcheck` reads
+SHELLCHECK_PAGES ?= $(_SHELLCHECK_PAGES)#vv #~~ pages whose shell code blocks `shellcheck` reads
+SHELLCHECK_FLAGS ?= $(if $(_IS_NO_COLOR),--color=never)#v #~~ additional flags passed to `shellcheck`
+
+_QUOTED_SHELLCHECK_FILES    = $(call _shell_quoted,$(SHELLCHECK_FILES))
+_SHELLCHECK_CACHE_DIR       = $(_CACHE_DIR)/shellcheck.cache
+_SHELLCHECK_COMMAND         = $(SHELLCHECK) --rcfile $(SHELLCHECK_CONFIG) $(SHELLCHECK_FLAGS)
+_SHELLCHECK_ARGUMENTS       = $(if $(call _has_positional_arg,$(_ARGS),$(_SHELLCHECK_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_SHELLCHECK_FILES) $$fences)
+_SHELLCHECK_GROUP_ARGUMENTS = $(if $(call _has_positional_arg,$(ARGS),$(_SHELLCHECK_VALUE_FLAGS)),$(ARGS),$(ARGS) $(_QUOTED_SHELLCHECK_FILES) $$fences)
+
+_SHELLCHECK_VALUE_FLAGS := --color \
+	--enable \
+	--exclude \
+	--format \
+	--include \
+	--rcfile \
+	--severity \
+	--shell \
+	--source-path \
+	--wiki-link-count \
+	-P \
+	-S \
+	-W \
+	-e \
+	-f \
+	-i \
+	-o \
+	-s
+
+_READ_SHELLCHECK_FENCES = newline=$$(printf '\n_') && IFS=$${newline%_} && set -f \
+	&& fences=$(if $(SHELLCHECK_PAGES),$$($(CAT) '$(_SHELLCHECK_CACHE_DIR)/fences'))
+
+_HAS_SHELLCHECK_INPUT = $(if $(or $(SHELLCHECK_FILES),$(ARGS)),1)
+
+_$(_TARGET_PREFIX)shellcheck-fences: export _SHELLCHECK_FENCES_AWK = $(_SHELLCHECK_FENCES_AWK_SOURCE)
+_$(_TARGET_PREFIX)shellcheck-fences:
+	$(TRACE_PREFIX)$(if $(SHELLCHECK_PAGES),$(RM) -rf '$(_SHELLCHECK_CACHE_DIR)' && $(MKDIR) -p '$(_SHELLCHECK_CACHE_DIR)' \
+		&& $(AWK) -v _DIRECTORY='$(_SHELLCHECK_CACHE_DIR)' "$$_SHELLCHECK_FENCES_AWK" $(call _shell_quoted,$(SHELLCHECK_PAGES)) </dev/null \
+		>'$(_SHELLCHECK_CACHE_DIR)/fences',:)
+
+$(foreach GOAL,shellcheck shellcheck-group,$(call _target,$(GOAL))): export _SHELLCHECK_PAGE_PATHS_AWK = $(_SHELLCHECK_PAGE_PATHS_AWK_SOURCE)
+$(call _target,shellcheck): _$(_TARGET_PREFIX)shellcheck-fences #~~ lints the shell scripts and the shell code blocks in pages
+	$(TRACE_PREFIX)$(call _require_file,$(SHELLCHECK_CONFIG),SHELLCHECK_CONFIG)
+	$(TRACE_PREFIX)$(_READ_SHELLCHECK_FENCES) && input='$(_HAS_SHELLCHECK_INPUT)' && if [ -z "$$input$$fences" ]; then \
+		$(call log,No shell script to lint.,$(COLOR_NOTICE)); \
+	else \
+		$(call _spinner,$(call _run_shellcheck,$(_SHELLCHECK_COMMAND) $(_SHELLCHECK_ARGUMENTS)),$(_SHELLCHECK_COMMAND) $(_SHELLCHECK_ARGUMENTS)); \
+	fi
+
+$(call _target,shellcheck-group): _$(_TARGET_PREFIX)shellcheck-fences #~~ counts the `shellcheck` findings by rule #v
+	$(TRACE_PREFIX)$(call _require_file,$(SHELLCHECK_CONFIG),SHELLCHECK_CONFIG)
+	$(TRACE_PREFIX)$(_READ_SHELLCHECK_FENCES) && input='$(_HAS_SHELLCHECK_INPUT)' && if [ -z "$$input$$fences" ]; then \
+		$(call log,No shell script to lint.,$(COLOR_NOTICE)); \
+	else \
+		$(call _group,$(call _run_shellcheck,$(_SHELLCHECK_COMMAND) --format json1 $(_SHELLCHECK_GROUP_ARGUMENTS)),code,message,file,$(_SHELLCHECK_COMMAND) --format json1 $(_SHELLCHECK_GROUP_ARGUMENTS)); \
+	fi
+
+$(call _target,shellcheck-list): _$(_TARGET_PREFIX)shellcheck-fences #~~ lists the shell scripts and code blocks `shellcheck` reads #vv
+	$(TRACE_PREFIX)$(_READ_SHELLCHECK_FENCES) && input='$(if $(SHELLCHECK_FILES),1)' && if [ -z "$$input$$fences" ]; then \
+		$(call log,No shell script to lint.,$(COLOR_NOTICE)); \
+	else \
+		$(if $(SHELLCHECK_FILES),printf '%s\n' $(_QUOTED_SHELLCHECK_FILES);) \
+		for copy_path in $$fences; do \
+			page_path=$${copy_path#'$(_SHELLCHECK_CACHE_DIR)/'}; \
+			copy_name=$${page_path##*/}; \
+			printf '%s:%s\n' "$${page_path%/*}" "$${copy_name%.sh}"; \
+		done; \
+	fi
+
+endif # /shellcheck
+
 #--- semgrep
 
 ifneq ($(_HAS_SEMGREP),) # semgrep
@@ -4297,7 +4414,7 @@ endef
 #* returns: string
 #*
 define _tracked
-$(if $(findstring .dist.,$1),$1,$(basename $1).dist$(suffix $1))
+$(if $(or $(findstring .dist.,$1),$(filter %.dist,$1)),$1,$(basename $1).dist$(suffix $1))
 endef
 
 #**
@@ -4312,7 +4429,7 @@ endef
 #* returns: string
 #*
 define _layered
-$(if $(filter %.$2 %.dist.$2,$1),$(subst .dist.,.,$1))
+$(if $2,$(if $(filter %.$2 %.dist.$2,$1),$(subst .dist.,.,$1)),$(patsubst %.dist,%,$1))
 endef
 
 #**
@@ -4394,7 +4511,7 @@ endef
 #* returns: list<string>
 #*
 define _shipped_names
-$(foreach NAME,$(notdir $1),$(if $(findstring .dist.,$(NAME)),$(NAME)))
+$(foreach NAME,$(notdir $1),$(if $(or $(findstring .dist.,$(NAME)),$(filter %.dist,$(NAME))),$(NAME)))
 endef
 
 #**
@@ -4602,17 +4719,19 @@ endef
 #**
 #* Runs a tool and prints its findings grouped by identifier, failing only when it reported nothing.
 #* The file key names each finding's file, `@` the object key its messages sit under.
+#* Under `DEBUG` it prints the shown command in place of the one that runs.
 #*
 #* parameters:
 #*   command: string
 #*   identifier: string
 #*   message?: string
 #*   file_key?: string
+#*   shown_command?: string = command
 #*
 #* returns: void
 #*
 define _group
-$(call _echo_command,$1)label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
+$(call _echo_command,$(or $5,$1))label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
@@ -4638,14 +4757,16 @@ endef
 
 #**
 #* Runs a tool behind a spinner, which clears as soon as the tool prints anything.
+#* Under `DEBUG` it prints the shown command in place of the one that runs.
 #*
 #* parameters:
 #*   command: string
+#*   shown_command?: string = command
 #*
 #* returns: void
 #*
 define _spinner
-$(call _echo_command,$1)spin_command() { $1; }; \
+$(call _echo_command,$(or $2,$1))spin_command() { $1; }; \
 has_spinner=; $(if $(or $(_IS_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] \
 	&& [ -n '$(SCRIPT)' ] \
 	&& command -v $(SCRIPT) >/dev/null 2>&1 \
@@ -4708,6 +4829,21 @@ $(call _echo_command,$1)output=$$($1) || { printf '%s\n' "$$output" >&2; exit $(
 endef
 
 #**
+#* Runs a `shellcheck` command and names each code block by its page in what it prints.
+#* It reads `$$fences` in its own shell and keeps both the terminal's colors and the exit status of `shellcheck`.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: void
+#*
+define _run_shellcheck
+$(_READ_SHELLCHECK_FENCES); shellcheck_color=; $(if $(or $(_IS_NO_COLOR),$(findstring --color,$1)),,[ ! -t 1 ] || shellcheck_color=--color=always;) \
+shellcheck_output=$$($1 $$shellcheck_color 2>&1); shellcheck_status=$$?; \
+printf '%s' "$$shellcheck_output" | $(AWK) -v _DIRECTORY='$(_SHELLCHECK_CACHE_DIR)/' -v _STATUS="$$shellcheck_status" "$$_SHELLCHECK_PAGE_PATHS_AWK"
+endef
+
+#**
 #* Fails the recipe when one metric of a text coverage report falls short, as every runner but Pest needs.
 #*
 #* parameters:
@@ -4748,30 +4884,6 @@ endef
 #*
 define _echo_command
 $(if $(and $(_IS_DEBUG),$(if $(_IS_TRACE),,1)),printf '%s\n' '$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(strip $1))' >&2; )
-endef
-
-#**
-#* A list of words, each quoted so the shell reads it as one argument.
-#*
-#* parameters:
-#*   words: list<string>
-#*
-#* returns: list<string>
-#*
-define _shell_quoted
-$(foreach WORD,$1,'$(call _unmasked,$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(WORD)))')
-endef
-
-#**
-#* A tracked file name with the space and newline that make cannot hold in a list put back.
-#*
-#* parameters:
-#*   name: string
-#*
-#* returns: string
-#*
-define _unmasked
-$(subst $(_MASKED_SPACE),$(_SPACE),$(subst $(_MASKED_NEWLINE),$(_NEWLINE),$1))
 endef
 
 #**
@@ -5201,6 +5313,70 @@ descriptor, part = tempfile.mkstemp(dir=os.path.dirname(target))
 with os.fdopen(descriptor, 'w') as handle:
     json.dump({'rules': [rule for rule_id, rule in rules.items() if rule_id not in everywhere]}, handle)
 os.replace(part, target)
+endef
+
+define _SHELLCHECK_FENCES_AWK_SOURCE
+function quote_for_shell(text,    quoted_text, position) {
+	quoted_text = ""
+	while ((position = index(text, "\047"))) { quoted_text = quoted_text substr(text, 1, position - 1) "\047\\\047\047"; text = substr(text, position + 1) }
+	return "\047" quoted_text text "\047"
+}
+function mask_placeholders(line,    masked_line) {
+	masked_line = ""
+	while (match(line, /<[A-Za-z][A-Za-z0-9_-]*>/)) {
+		masked_line = masked_line substr(line, 1, RSTART - 1) "_" substr(line, RSTART + 1, RLENGTH - 2) "_"
+		line = substr(line, RSTART + RLENGTH)
+	}
+	return masked_line line
+}
+FNR == 1 { fence_marker = ""; previous_block = "" }
+fence_marker != "" {
+	closing_line = $$0
+	sub(/^[ \t]+/, "", closing_line)
+	sub(/[ \t]+$$/, "", closing_line)
+	if (closing_line ~ /^```+$$/ && length(closing_line) >= length(fence_marker)) {
+		fence_marker = ""
+		previous_block = closing_line
+		if (copy_path != "") { close(copy_path); print copy_path; copy_path = "" }
+	} else if (copy_path != "") print mask_placeholders($$0) > copy_path
+	next
+}
+/^[ \t]*```+/ {
+	language = $$0
+	sub(/^[ \t]+/, "", language)
+	fence_marker = language
+	sub(/[^`].*/, "", fence_marker)
+	sub(/^`+[ \t]*/, "", language)
+	sub(/[ \t].*/, "", language)
+	is_skipped = previous_block == "<!-- brnshkr-skip -->"
+	previous_block = $$0
+	if (is_skipped || (language != "sh" && language != "bash" && language != "shell")) next
+	directory = _DIRECTORY "/" FILENAME
+	system("mkdir -p " quote_for_shell(directory))
+	copy_path = directory "/" (FNR + 1) ".sh"
+	shell_name = language == "bash" ? "bash" : "sh"
+	printf "# shellcheck shell=%s\n", shell_name > copy_path
+	for (padding = 2; padding <= FNR; padding += 1) print "" > copy_path
+	next
+}
+NF { previous_block = $$0; sub(/^[ \t]+/, "", previous_block); sub(/[ \t]+$$/, "", previous_block) }
+endef
+
+define _SHELLCHECK_PAGE_PATHS_AWK_SOURCE
+{
+	line = $$0
+	named_line = ""
+	while ((position = index(line, _DIRECTORY))) {
+		named_line = named_line substr(line, 1, position - 1)
+		line = substr(line, position + length(_DIRECTORY))
+		if (match(line, /\/[0-9]+\.sh/)) {
+			named_line = named_line substr(line, 1, RSTART - 1)
+			line = substr(line, RSTART + RLENGTH)
+		}
+	}
+	print named_line line
+}
+END { exit _STATUS }
 endef
 
 define _SEMGREP_OVERRIDES_AWK
@@ -6296,6 +6472,7 @@ _IDENTIFIER != "" && _MESSAGE != "" {
 	record_file = get_file(pending)
 	if (record_file != "") current_file = record_file
 	record_identifier = get_value(pending, _IDENTIFIER)
+	if (record_identifier == "") record_identifier = get_number(pending, _IDENTIFIER)
 	if (!is_in_suppressed_messages && record_identifier != "" && record_identifier != "null") {
 		add(record_identifier, get_value(pending, _MESSAGE), current_file, get_line(pending))
 		is_location_file_carried = (record_file == "")

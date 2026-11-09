@@ -1,0 +1,4 @@
+In docker/it's dé jà.sh line 1:
+In docs/usage.md line 1:
+In docs/usage.md line 1:
+make: *** [../../../../../conf/Makefile:<line>: shellcheck] Error 1

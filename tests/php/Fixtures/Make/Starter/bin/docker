@@ -5,6 +5,6 @@ case " $* " in
   ;;
 
   *)
-    echo "docker $* ACME_IMAGE=$ACME_IMAGE ACME_TITLE=$ACME_TITLE"
+    echo "docker $* ACME_IMAGE=${ACME_IMAGE:?} ACME_TITLE=${ACME_TITLE:?}"
   ;;
 esac

@@ -17,6 +17,7 @@ conf/phpstan/unchecked-exceptions.php
 conf/phpunit.dist.xml
 conf/rector.dist.php
 conf/semgrep.dist.yaml
+conf/shellcheckrc.dist
 conf/spelling/defaults.json
 conf/twig-cs-fixer.dist.php
 conf/vscode-extensions.dist.jsonc
@@ -163,6 +164,7 @@ conf/hadolint.dist.yaml
 conf/launch.dist.json
 conf/markdownlint.dist.mjs
 conf/semgrep.dist.yaml
+conf/shellcheckrc.dist
 conf/spelling/defaults.json
 conf/stylelint.dist.mjs
 conf/tsconfig.dist.json

@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "value=$TEST_STAGE_FIXTURE_VALUE"
+echo "value=${TEST_STAGE_FIXTURE_VALUE:?}"

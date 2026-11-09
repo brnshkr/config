@@ -1,0 +1,17 @@
+#!/bin/sh
+if [ -z "${SHELLCHECK_FIXTURE_FINDINGS-}" ]; then
+  exit 0
+fi
+
+for file in "$@"; do
+  case "${file}" in
+    *.sh)
+      printf 'In %s line 1:\n' "${file}"
+      ;;
+
+    *)
+      ;;
+  esac
+done
+
+exit 1

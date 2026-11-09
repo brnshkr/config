@@ -88,6 +88,7 @@
         "./docs/php/rector/rules/index.md",
         "./docs/php/TwigCsFixer.md",
         "./docs/semgrep.md",
+        "./docs/shellcheck.md",
         "./docs/spelling.md",
         "./mate/extensions.php",
         "./README.md",

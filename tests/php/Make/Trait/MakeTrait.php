@@ -48,6 +48,7 @@ trait MakeTrait
     private const string MAKEFILE_PATH       = self::PROJECT_DIRECTORY . '/conf/Makefile';
     private const string FIXTURES_DIRECTORY  = __DIR__ . '/../../Fixtures/Make/Help';
     private const string FIXTURE_ROOT_PREFIX = 'brnshkr-make-fixture-';
+    private const string STUBS_DIRECTORY     = __DIR__ . '/../../Fixtures/Make/Stubs';
     private const int CONCURRENT_RUNS        = 2;
 
     private const array UNLINKED_PROJECT_ENTRIES = [
@@ -282,7 +283,7 @@ trait MakeTrait
         return [
             ...array_map(static fn (): false => false, getenv()),
             'HOME' => Str::fromEnvironment('HOME'),
-            'PATH' => Str::fromEnvironment('PATH') ?: throw new RuntimeException('`PATH` is not set.'),
+            'PATH' => self::STUBS_DIRECTORY . '/bin:' . (Str::fromEnvironment('PATH') ?: throw new RuntimeException('`PATH` is not set.')),
             ...self::BASELINE_ENV,
         ];
     }

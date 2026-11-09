@@ -357,6 +357,18 @@ final class ConfigsTest extends TestCase
         self::assertMatchesRegularExpression(self::getInstalledPhpStanConfigPattern(), $resolved);
     }
 
+    public function testThePackageFallbackFindsAConfigWithoutExtension(): void
+    {
+        $resolved = $this->runMake(['help', 'resolve', 'vv'], ['VALUE_WIDTH' => '200'], self::VENDOR_DIRECTORY);
+
+        $shippedConfigPattern = sprintf(
+            '/SHELLCHECK_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/shellcheckrc\.dist/',
+            Str::quoteRegex(self::getPackageFullName()),
+        );
+
+        self::assertMatchesRegularExpression($shippedConfigPattern, $resolved);
+    }
+
     public function testTheConfigAToolReadsIsTheFirstOneThatIsThere(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);

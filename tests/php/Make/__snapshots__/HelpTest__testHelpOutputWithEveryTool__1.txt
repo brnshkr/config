@@ -158,6 +158,8 @@ Available commands:
    hadolint       lints the Dockerfiles
   actionlint
    actionlint     lints the workflows
+  shellcheck
+   shellcheck     lints the shell scripts and the shell code blocks in pages
   semgrep
    semgrep        scans the code for known security issues
 
@@ -210,6 +212,7 @@ Variables:
    HADOLINT_SERVICE               ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                   ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
+   SHELLCHECK_SERVICE             ?=  shellcheck                                       (Compose service shellcheck runs in, where the project has one)
    IS_IN_CONTAINER                ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
    RUN                            ?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)
    APP_DIR                        ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -322,6 +325,10 @@ Variables:
    ACTIONLINT_CONFIG              ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
    ACTIONLINT                     ?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs actionlint)
    ACTIONLINT_FLAGS               ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
+  shellcheck
+   SHELLCHECK_CONFIG              ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to shellcheck config)
+   SHELLCHECK                     ?=  $(call _run_in_own_service,$(SHELLCHECK_SERVICE… (command that runs shellcheck)
+   SHELLCHECK_FLAGS               ?=  $(if $(_IS_NO_COLOR),--color=never)              (additional flags passed to shellcheck)
   semgrep
    SEMGREP                        ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
@@ -415,6 +422,9 @@ Available commands:
   actionlint
    actionlint             lints the workflows
    actionlint-group       counts the actionlint findings by rule
+  shellcheck
+   shellcheck             lints the shell scripts and the shell code blocks in pages
+   shellcheck-group       counts the shellcheck findings by rule
   semgrep
    semgrep                scans the code for known security issues
    semgrep-group          counts the semgrep findings by rule
@@ -470,6 +480,7 @@ Variables:
    HADOLINT_SERVICE                ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                    ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE                 ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
+   SHELLCHECK_SERVICE              ?=  shellcheck                                       (Compose service shellcheck runs in, where the project has one)
    IS_IN_CONTAINER                 ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
    RUN                             ?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)
    APP_DIR                         ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -674,6 +685,12 @@ Variables:
    ACTIONLINT                      ?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs actionlint)
    ACTIONLINT_FILES                ?=  $(_ACTIONLINT_FILES)                             (workflows actionlint reads)
    ACTIONLINT_FLAGS                ?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to actionlint)
+  shellcheck
+   SHELLCHECK_CONFIG               ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to shellcheck config)
+   SHELLCHECK                      ?=  $(call _run_in_own_service,$(SHELLCHECK_SERVICE… (command that runs shellcheck)
+   SHELLCHECK_FILES                ?=  $(_SHELLCHECK_FILES)                             (shell scripts shellcheck reads)
+   SHELLCHECK_PAGES                ?=  $(_SHELLCHECK_PAGES)                             (pages whose shell code blocks shellcheck reads)
+   SHELLCHECK_FLAGS                ?=  $(if $(_IS_NO_COLOR),--color=never)              (additional flags passed to shellcheck)
   semgrep
    SEMGREP                         ?=  $(_SEMGREP_RUN) semgrep                          (command that runs semgrep)
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
@@ -809,6 +826,10 @@ Available commands:
    actionlint             lints the workflows
    actionlint-group       counts the actionlint findings by rule
    actionlint-list        lists the workflows actionlint reads
+  shellcheck
+   shellcheck             lints the shell scripts and the shell code blocks in pages
+   shellcheck-group       counts the shellcheck findings by rule
+   shellcheck-list        lists the shell scripts and code blocks shellcheck reads
   semgrep
    semgrep                scans the code for known security issues
    semgrep-group          counts the semgrep findings by rule
@@ -1239,6 +1260,13 @@ Available commands:
 +   actionlint                               lints the workflows
 +   actionlint-group                         counts the actionlint findings by rule
 +   actionlint-list                          lists the workflows actionlint reads
+   shellcheck
+-   shellcheck             lints the shell scripts and the shell code blocks in pages
+-   shellcheck-group       counts the shellcheck findings by rule
+-   shellcheck-list        lists the shell scripts and code blocks shellcheck reads
++   shellcheck                               lints the shell scripts and the shell code blocks in pages
++   shellcheck-group                         counts the shellcheck findings by rule
++   shellcheck-list                          lists the shell scripts and code blocks shellcheck reads
    semgrep
 -   semgrep                scans the code for known security issues
 -   semgrep-group          counts the semgrep findings by rule
@@ -1269,6 +1297,7 @@ brnshkr.phpunit
 brnshkr.rector
 brnshkr.semgrep
 brnshkr.setup
+brnshkr.shellcheck
 brnshkr.stylelint
 brnshkr.twig-cs-fixer
 brnshkr.typescript
@@ -1308,6 +1337,7 @@ brnshkr.release
 brnshkr.semgrep
 brnshkr.semver
 brnshkr.setup
+brnshkr.shellcheck
 brnshkr.stylelint
 brnshkr.theming
 brnshkr.theming.colors
@@ -1552,6 +1582,7 @@ Available commands:
    [36mHADOLINT_SERVICE              [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE                  [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE               [0m  [90m?=  semgrep                                          (Compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
+   [36mSHELLCHECK_SERVICE            [0m  [90m?=  shellcheck                                       (Compose service [35mshellcheck[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER               [0m  [90m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [36mRUN                           [0m  [90m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                       [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
@@ -1773,6 +1804,12 @@ Available commands:
    [36mACTIONLINT                    [0m  [90m?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs [35mactionlint[0m[90m)[0m
    [36mACTIONLINT_FILES              [0m  [90m?=  $(_ACTIONLINT_FILES)                             (workflows [35mactionlint[0m[90m reads)[0m
    [36mACTIONLINT_FLAGS              [0m  [90m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [35mactionlint[0m[90m)[0m
+  [35mshellcheck[0m
+   [36mSHELLCHECK_CONFIG             [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to [35mshellcheck[0m[90m config)[0m
+   [36mSHELLCHECK                    [0m  [90m?=  $(call _run_in_own_service,$(SHELLCHECK_SERVICE… (command that runs [35mshellcheck[0m[90m)[0m
+   [36mSHELLCHECK_FILES              [0m  [90m?=  $(_SHELLCHECK_FILES)                             (shell scripts [35mshellcheck[0m[90m reads)[0m
+   [36mSHELLCHECK_PAGES              [0m  [90m?=  $(_SHELLCHECK_PAGES)                             (pages whose shell code blocks [35mshellcheck[0m[90m reads)[0m
+   [36mSHELLCHECK_FLAGS              [0m  [90m?=  $(if $(_IS_NO_COLOR),--color=never)              (additional flags passed to [35mshellcheck[0m[90m)[0m
   [35msemgrep[0m
    [36mSEMGREP                       [0m  [90m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [35msemgrep[0m[90m)[0m
    [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [35msemgrep[0m[90m config)[0m
@@ -1949,6 +1986,10 @@ Available commands:
    [36mactionlint           [0m  [90mlints the workflows[0m
    [36mactionlint-group     [0m  [90mcounts the [35mactionlint[0m[90m findings by rule[0m
    [36mactionlint-list      [0m  [90mlists the workflows [35mactionlint[0m[90m reads[0m
+  [35mshellcheck[0m
+   [36mshellcheck           [0m  [90mlints the shell scripts and the shell code blocks in pages[0m
+   [36mshellcheck-group     [0m  [90mcounts the [35mshellcheck[0m[90m findings by rule[0m
+   [36mshellcheck-list      [0m  [90mlists the shell scripts and code blocks [35mshellcheck[0m[90m reads[0m
   [35msemgrep[0m
    [36msemgrep              [0m  [90mscans the code for known security issues[0m
    [36msemgrep-group        [0m  [90mcounts the [35msemgrep[0m[90m findings by rule[0m
@@ -2046,6 +2087,7 @@ Available commands:
    [32mHADOLINT_SERVICE              [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE                  [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE               [0m  [0m?=  semgrep                                          (Compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
+   [32mSHELLCHECK_SERVICE            [0m  [0m?=  shellcheck                                       (Compose service [33mshellcheck[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER               [0m  [0m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [32mRUN                           [0m  [0m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                       [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
@@ -2267,6 +2309,12 @@ Available commands:
    [32mACTIONLINT                    [0m  [0m?=  $(call _run_in_own_service,$(ACTIONLINT_SERVICE… (command that runs [33mactionlint[0m[0m)[0m
    [32mACTIONLINT_FILES              [0m  [0m?=  $(_ACTIONLINT_FILES)                             (workflows [33mactionlint[0m[0m reads)[0m
    [32mACTIONLINT_FLAGS              [0m  [0m?=  $(if $(_IS_DEBUG),-verbose) $(if $(_IS_NO_COLOR… (additional flags passed to [33mactionlint[0m[0m)[0m
+  [33mshellcheck[0m
+   [32mSHELLCHECK_CONFIG             [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to [33mshellcheck[0m[0m config)[0m
+   [32mSHELLCHECK                    [0m  [0m?=  $(call _run_in_own_service,$(SHELLCHECK_SERVICE… (command that runs [33mshellcheck[0m[0m)[0m
+   [32mSHELLCHECK_FILES              [0m  [0m?=  $(_SHELLCHECK_FILES)                             (shell scripts [33mshellcheck[0m[0m reads)[0m
+   [32mSHELLCHECK_PAGES              [0m  [0m?=  $(_SHELLCHECK_PAGES)                             (pages whose shell code blocks [33mshellcheck[0m[0m reads)[0m
+   [32mSHELLCHECK_FLAGS              [0m  [0m?=  $(if $(_IS_NO_COLOR),--color=never)              (additional flags passed to [33mshellcheck[0m[0m)[0m
   [33msemgrep[0m
    [32mSEMGREP                       [0m  [0m?=  $(_SEMGREP_RUN) semgrep                          (command that runs [33msemgrep[0m[0m)[0m
    [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [33msemgrep[0m[0m config)[0m
@@ -2443,6 +2491,10 @@ Available commands:
    [32mactionlint           [0m  [0mlints the workflows[0m
    [32mactionlint-group     [0m  [0mcounts the [33mactionlint[0m[0m findings by rule[0m
    [32mactionlint-list      [0m  [0mlists the workflows [33mactionlint[0m[0m reads[0m
+  [33mshellcheck[0m
+   [32mshellcheck           [0m  [0mlints the shell scripts and the shell code blocks in pages[0m
+   [32mshellcheck-group     [0m  [0mcounts the [33mshellcheck[0m[0m findings by rule[0m
+   [32mshellcheck-list      [0m  [0mlists the shell scripts and code blocks [33mshellcheck[0m[0m reads[0m
   [33msemgrep[0m
    [32msemgrep              [0m  [0mscans the code for known security issues[0m
    [32msemgrep-group        [0m  [0mcounts the [33msemgrep[0m[0m findings by rule[0m

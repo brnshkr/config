@@ -16,6 +16,8 @@
 /conf/phpunit.dev.xml
 /conf/rector.dev.php
 /conf/rector.php
+/conf/shellcheckrc
+/conf/shellcheckrc.dev
 /conf/stylelint.dev.mjs
 /conf/twig-cs-fixer.dev.php
 /conf/twig-cs-fixer.php

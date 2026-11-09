@@ -229,6 +229,9 @@ hadolint --config ./conf/hadolint.dist.yaml ./Dockerfile
 
 # actionlint
 actionlint -config-file ./conf/actionlint.dist.yaml
+
+# ShellCheck
+shellcheck --rcfile ./conf/shellcheckrc.dist ./script.sh
 ```
 
 <!-- omit in toc -->
@@ -267,6 +270,7 @@ and use the defaults of this package without one.
 | semgrep | — | `make semgrep` | `./conf/semgrep.dist.yaml` |
 | hadolint | — | `make hadolint` | `./conf/hadolint.dist.yaml` |
 | actionlint | — | `make actionlint` | `./conf/actionlint.dist.yaml` |
+| ShellCheck | — | `make shellcheck` | `./conf/shellcheckrc.dist` |
 
 When using the `./conf` directory it might be necessary to instruct your IDE to read these files correctly.  
 If you need a VS Code setup and have the specific [`extensions`](https://github.com/brnshkr/config/blob/master/.vscode/extensions.json)

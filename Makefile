@@ -24,6 +24,7 @@ ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/phpunit.dist.xml \
 	./conf/rector.dist.php \
 	./conf/semgrep.dist.yaml \
+	./conf/shellcheckrc.dist \
 	./conf/spelling/ \
 	./conf/twig-cs-fixer.dist.php \
 	./conf/vscode-extensions.dist.jsonc \

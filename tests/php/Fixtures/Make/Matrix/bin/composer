@@ -2,17 +2,20 @@
 case " $* " in
   *" show "*)
     for argument in "$@"; do
-      pattern="$argument"
+      pattern="${argument}"
     done
 
-    case "$pattern" in
+    case "${pattern}" in
       "acme/*")
         echo acme/email
         echo acme/user
       ;;
 
       acme/email|acme/user)
-        echo "$pattern"
+        echo "${pattern}"
+      ;;
+
+      *)
       ;;
     esac
 
@@ -25,6 +28,9 @@ case " $* " in
 
   *" update "*)
     echo "{\"updated\": true}" > composer.lock
+  ;;
+
+  *)
   ;;
 esac
 

@@ -1,0 +1,16 @@
+# shellcheck shell=bash
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  [[ -n "${ACME_NAME}" ]] && echo "${ACME_NAME}"

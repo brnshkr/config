@@ -208,6 +208,7 @@ Variables:
    HADOLINT_SERVICE            ?=  hadolint                                         (Compose service hadolint runs in, where the project has one)
    NODE_SERVICE                ?=  node                                             (Compose service node runs in, where the project has one, empty to run it on the host)
    SEMGREP_SERVICE             ?=  semgrep                                          (Compose service semgrep runs in, where the project has one)
+   SHELLCHECK_SERVICE          ?=  shellcheck                                       (Compose service shellcheck runs in, where the project has one)
    IS_IN_CONTAINER             ?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)
    RUN                         ?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)
    APP_DIR                     ?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not CURDIR in a container)
@@ -248,6 +249,8 @@ Variables:
    HADOLINT_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to hadolint config)
   actionlint
    ACTIONLINT_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to actionlint config)
+  shellcheck
+   SHELLCHECK_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to shellcheck config)
  app
   variables
    BASE_URL                    ?=  https://example.com                              (base URL for the application)
@@ -847,6 +850,7 @@ brnshkr.output
 brnshkr.release
 brnshkr.semver
 brnshkr.setup
+brnshkr.shellcheck
 brnshkr.theming
 brnshkr.theming.colors
 brnshkr.theming.modifiers
@@ -1187,6 +1191,7 @@ Available commands:
    [36mHADOLINT_SERVICE          [0m  [90m?=  hadolint                                         (Compose service [35mhadolint[0m[90m runs in, where the project has one)[0m
    [36mNODE_SERVICE              [0m  [90m?=  node                                             (Compose service [35mnode[0m[90m runs in, where the project has one, empty to run it on the host)[0m
    [36mSEMGREP_SERVICE           [0m  [90m?=  semgrep                                          (Compose service [35msemgrep[0m[90m runs in, where the project has one)[0m
+   [36mSHELLCHECK_SERVICE        [0m  [90m?=  shellcheck                                       (Compose service [35mshellcheck[0m[90m runs in, where the project has one)[0m
    [36mIS_IN_CONTAINER           [0m  [90m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [36mRUN                       [0m  [90m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [36mAPP_DIR                   [0m  [90m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [35mCURDIR[0m[90m in a container)[0m
@@ -1312,6 +1317,8 @@ Available commands:
    [36mHADOLINT_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [35mhadolint[0m[90m config)[0m
   [35mactionlint[0m
    [36mACTIONLINT_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [35mactionlint[0m[90m config)[0m
+  [35mshellcheck[0m
+   [36mSHELLCHECK_CONFIG         [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to [35mshellcheck[0m[90m config)[0m
  [35mapp[0m
   [35mvariables[0m
    [36mBASE_URL                  [0m  [90m?=  https://example.com                              (base URL for the application)[0m
@@ -1550,6 +1557,7 @@ Available commands:
    [32mHADOLINT_SERVICE          [0m  [0m?=  hadolint                                         (Compose service [33mhadolint[0m[0m runs in, where the project has one)[0m
    [32mNODE_SERVICE              [0m  [0m?=  node                                             (Compose service [33mnode[0m[0m runs in, where the project has one, empty to run it on the host)[0m
    [32mSEMGREP_SERVICE           [0m  [0m?=  semgrep                                          (Compose service [33msemgrep[0m[0m runs in, where the project has one)[0m
+   [32mSHELLCHECK_SERVICE        [0m  [0m?=  shellcheck                                       (Compose service [33mshellcheck[0m[0m runs in, where the project has one)[0m
    [32mIS_IN_CONTAINER           [0m  [0m?=  $(if $(wildcard $(_CONTAINER_MARKERS)),1)        (whether the tools already run in a container)[0m
    [32mRUN                       [0m  [0m?=  $(call run_in,$(_TOOL_SERVICE))                  (command the tools run through, empty on this machine)[0m
    [32mAPP_DIR                   [0m  [0m?=  $(or $(_SERVICE_DIRECTORY),$(CURDIR))            (where the tools see the sources, not [33mCURDIR[0m[0m in a container)[0m
@@ -1675,6 +1683,8 @@ Available commands:
    [32mHADOLINT_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/hadoli… (path to [33mhadolint[0m[0m config)[0m
   [33mactionlint[0m
    [32mACTIONLINT_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/action… (path to [33mactionlint[0m[0m config)[0m
+  [33mshellcheck[0m
+   [32mSHELLCHECK_CONFIG         [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/shellc… (path to [33mshellcheck[0m[0m config)[0m
  [33mapp[0m
   [33mvariables[0m
    [32mBASE_URL                  [0m  [0m?=  https://example.com                              (base URL for the application)[0m

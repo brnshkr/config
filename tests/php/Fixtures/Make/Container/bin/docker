@@ -7,30 +7,30 @@ read_service_setting() {
   service=$2
   setting=$3
 
-  awk -v _SERVICE="$service" -v _SETTING="$setting" '
+  awk -v _SERVICE="${service}" -v _SETTING="${setting}" '
     /^  [^[:space:]]/ { current = $1; sub(/:$/, "", current); next }
     current != _SERVICE { next }
     /^    [^[:space:]]/ { key = $1 }
     _SETTING == "working_dir" && key == "working_dir:" { print $2; exit }
     _SETTING == "volume" && key == "volumes:" && /^      - / { print $2; exit }
-  ' "$compose_file"
+  ' "${compose_file}"
 }
 
 map_mounted_path() {
   text=$1
   mapped=
 
-  if [ "$text" = "$MOUNT_TARGET" ]; then
-    printf '%s' "$MOUNT_SOURCE"
+  if [ "${text}" = "${MOUNT_TARGET}" ]; then
+    printf '%s' "${MOUNT_SOURCE}"
 
     return 0
   fi
 
   while :; do
-    case "$text" in
-      *"$MOUNT_TARGET/"*)
-        mapped="$mapped${text%%"$MOUNT_TARGET/"*}$MOUNT_SOURCE/"
-        text=${text#*"$MOUNT_TARGET/"}
+    case "${text}" in
+      *"${MOUNT_TARGET}/"*)
+        mapped="${mapped}${text%%"${MOUNT_TARGET}/"*}${MOUNT_SOURCE}/"
+        text=${text#*"${MOUNT_TARGET}/"}
       ;;
 
       *)
@@ -39,7 +39,7 @@ map_mounted_path() {
     esac
   done
 
-  printf '%s' "$mapped$text"
+  printf '%s' "${mapped}${text}"
 
   return 0
 }
@@ -47,9 +47,9 @@ map_mounted_path() {
 find_compose_file() {
   service=$1
 
-  for compose_file in $COMPOSE_FILES; do
-    if grep -q "^  $service:" "$compose_file"; then
-      printf '%s\n' "$compose_file"
+  for compose_file in ${COMPOSE_FILES}; do
+    if grep -q "^  ${service}:" "${compose_file}"; then
+      printf '%s\n' "${compose_file}"
       return 0
     fi
   done
@@ -68,7 +68,7 @@ COMPOSE_FILES=
 while [ $# -gt 0 ]; do
   case "$1" in
     -f)
-      COMPOSE_FILES="$COMPOSE_FILES $2"
+      COMPOSE_FILES="${COMPOSE_FILES} $2"
       shift 2
     ;;
 
@@ -86,11 +86,11 @@ COMMAND=$1
 
 shift
 
-case "$COMMAND" in
+case "${COMMAND}" in
   config)
     [ "$1" = --quiet ] && exit 0
 
-    for compose_file in $COMPOSE_FILES; do
+    for compose_file in ${COMPOSE_FILES}; do
       awk '{
         while (match($0, /\$\{[A-Z_]+(:[?-][^}]*)?\}/)) {
           name = substr($0, RSTART + 2, RLENGTH - 3)
@@ -98,7 +98,7 @@ case "$COMMAND" in
           $0 = substr($0, 1, RSTART - 1) ENVIRON[name] substr($0, RSTART + RLENGTH)
         }
         print
-      }' "$compose_file"
+      }' "${compose_file}"
     done
 
     exit 0
@@ -117,7 +117,7 @@ case "$COMMAND" in
   ;;
 
   *)
-    echo "docker compose $COMMAND is not stubbed" >&2
+    echo "docker compose ${COMMAND} is not stubbed" >&2
     exit 1
   ;;
 esac
@@ -129,7 +129,7 @@ while [ $# -gt 0 ]; do
     -e)
       case "$2" in
         *=*)
-          ENVIRONMENT="$ENVIRONMENT$2$NEWLINE"
+          ENVIRONMENT="${ENVIRONMENT}$2${NEWLINE}"
         ;;
 
         *)
@@ -160,32 +160,34 @@ SERVICE=$1
 
 shift
 
-if ! COMPOSE_FILE_PATH=$(find_compose_file "$SERVICE"); then
-  echo "no compose file defines $SERVICE" >&2
+if ! COMPOSE_FILE_PATH=$(find_compose_file "${SERVICE}"); then
+  echo "no compose file defines ${SERVICE}" >&2
   exit 1
 fi
 
-WORKING_DIRECTORY=$(read_service_setting "$COMPOSE_FILE_PATH" "$SERVICE" working_dir)
-VOLUME=$(read_service_setting "$COMPOSE_FILE_PATH" "$SERVICE" volume)
-MOUNT_SOURCE=$(cd "$(dirname "$COMPOSE_FILE_PATH")" && cd "${VOLUME%%:*}" && pwd)
+WORKING_DIRECTORY=$(read_service_setting "${COMPOSE_FILE_PATH}" "${SERVICE}" working_dir)
+VOLUME=$(read_service_setting "${COMPOSE_FILE_PATH}" "${SERVICE}" volume)
+MOUNT_SOURCE=$(cd "$(dirname "${COMPOSE_FILE_PATH}")" && cd "${VOLUME%%:*}" && pwd)
 MOUNT_TARGET=${VOLUME#*:}
 ARGUMENT_COUNT=$#
 
 for argument in "$@"; do
-  set -- "$@" "$(map_mounted_path "$argument")"
+  mapped_argument=$(map_mounted_path "${argument}")
+  set -- "$@" "${mapped_argument}"
 done
 
-shift "$ARGUMENT_COUNT"
-set -- IS_IN_CONTAINER=1 STUB_SERVICE="$SERVICE" "$@"
+shift "${ARGUMENT_COUNT}"
+set -- IS_IN_CONTAINER=1 STUB_SERVICE="${SERVICE}" "$@"
 
-OLD_IFS=$IFS
-IFS=$NEWLINE
+OLD_IFS=${IFS}
+IFS=${NEWLINE}
 
-for entry in $ENVIRONMENT; do
-  set -- "$(map_mounted_path "$entry")" "$@"
+for entry in ${ENVIRONMENT}; do
+  mapped_entry=$(map_mounted_path "${entry}")
+  set -- "${mapped_entry}" "$@"
 done
 
-IFS=$OLD_IFS
+IFS=${OLD_IFS}
 
-cd "$MOUNT_SOURCE${WORKING_DIRECTORY#"$MOUNT_TARGET"}" || exit 1
-exec env -i PATH="$PATH" HOME="$HOME" "$@"
+cd "${MOUNT_SOURCE}${WORKING_DIRECTORY#"${MOUNT_TARGET}"}" || exit 1
+exec env -i PATH="${PATH}" HOME="${HOME}" "$@"

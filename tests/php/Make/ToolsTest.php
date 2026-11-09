@@ -153,6 +153,32 @@ final class ToolsTest extends TestCase
         $this->assertMatchesSnapshot($this->runLinter(['hadolint-list']));
     }
 
+    public function testShellcheckResolvesItsScriptsAndCodeBlocks(): void
+    {
+        $this->assertMatchesSnapshot($this->runLinter(['shellcheck-list']));
+    }
+
+    public function testAShellCodeBlockKeepsTheLinesOfItsPage(): void
+    {
+        $this->runLinter(['shellcheck-list']);
+
+        $codeBlocksDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY) . '/.cache/shellcheck.cache/docs/usage.md';
+
+        $this->assertMatchesSnapshot(new Filesystem()->readFile($codeBlocksDirectory . '/4.sh'));
+        $this->assertMatchesSnapshot(new Filesystem()->readFile($codeBlocksDirectory . '/16.sh'));
+        self::assertFileDoesNotExist($codeBlocksDirectory . '/10.sh');
+        self::assertFileDoesNotExist($codeBlocksDirectory . '/21.sh');
+    }
+
+    public function testAShellcheckFindingNamesThePageOfItsCodeBlock(): void
+    {
+        $this->assertMatchesSnapshot(Str::replaceMatches(
+            $this->runLinter(['shellcheck', 'SHELLCHECK_FIXTURE_FINDINGS=1'], doExpectFailure: true),
+            '/Makefile:\d+/',
+            static fn (): string => 'Makefile:<line>',
+        ));
+    }
+
     public function testALintSkipsADeletedTrackedFile(): void
     {
         $lintersDirectory = $this->getFixtureCopy(self::LINTERS_DIRECTORY);

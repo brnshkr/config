@@ -1,0 +1,9 @@
+docker/it's dé jà.sh
+bin/actionlint
+bin/curl
+bin/docker
+bin/hadolint
+bin/semgrep
+bin/shellcheck
+docs/usage.md:4
+docs/usage.md:16

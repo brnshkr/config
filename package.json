@@ -49,6 +49,7 @@
     "./conf/launch.dist.json",
     "./conf/markdownlint.dist.mjs",
     "./conf/semgrep.dist.yaml",
+    "./conf/shellcheckrc.dist",
     "./conf/spelling",
     "./conf/stylelint.dist.mjs",
     "./conf/tsconfig.dist.json",

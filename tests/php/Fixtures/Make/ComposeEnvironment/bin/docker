@@ -1,2 +1,2 @@
 #!/bin/sh
-printf 'services:\n  php-app:\n    working_dir: %s\n' "$COMPOSE_FIXTURE_DIRECTORY"
+printf 'services:\n  php-app:\n    working_dir: %s\n' "${COMPOSE_FIXTURE_DIRECTORY:?}"
