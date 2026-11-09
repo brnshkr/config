@@ -16,11 +16,22 @@ import {
 } from '#eslint/utils/globs.ts';
 
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { filterRuleReports } from '#eslint/utils/rule-filter.ts';
 import { INDENT, MAX_EMPTY_LINES, MAX_LEN } from '#shared/utils/constants.ts';
 import { GLOB_BLADE, GLOB_HTML_PHP, GLOB_PHTML } from '#shared/utils/globs.ts';
-import { objectEntries, objectFromEntries, readOwnValue } from '#shared/utils/object.ts';
 
+import {
+  objectEntries,
+  objectFromEntries,
+  readOwnValue,
+  writeOwnValue,
+} from '#shared/utils/object.ts';
+
+import type { Rule } from 'eslint';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { Config } from '#eslint/types/config.ts';
+import type { ReportFilter } from '#eslint/utils/rule-filter.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 const TEMPLATE_ENGINES = <const>{
   blade: {
@@ -596,6 +607,70 @@ const HTML_EXTENSIONS = <const>[
   '.twig',
 ] satisfies string[];
 
+interface HtmlNode {
+  type?: string;
+  name?: string;
+  parent?: HtmlNode;
+  attributes?: {
+    key?: {
+      parts?: {
+        type?: string;
+      }[];
+    };
+  }[];
+}
+
+const ATTRIBUTE_PRESENCE_RULES = <const>[
+  'require-attrs',
+  'require-button-type',
+  'require-content',
+  'require-explicit-size',
+  'require-input-label',
+  'require-lang',
+];
+
+const findTag = (node: Maybe<HtmlNode>): Maybe<HtmlNode> => ((node === undefined || node.type === 'Tag')
+  ? node
+  : findTag(node.parent));
+
+const findReportedTag = (descriptor: Rule.ReportDescriptor, context: Rule.RuleContext): Maybe<HtmlNode> => {
+  if ('node' in descriptor) {
+    return findTag(descriptor.node);
+  }
+
+  const index = context.sourceCode.getIndexFromLoc('start' in descriptor.loc ? descriptor.loc.start : descriptor.loc);
+
+  return findTag(<Maybe<HtmlNode>><unknown>context.sourceCode.getNodeByRangeIndex(index) ?? undefined);
+};
+
+const isOutsideTemplatedTag: ReportFilter = (descriptor, context) => findReportedTag(descriptor, context)
+  ?.attributes
+  ?.some((attribute) => attribute.key?.parts?.some((part) => part.type === 'Template') === true) !== true;
+
+const isOutsideSelect: ReportFilter = (descriptor, context) => findReportedTag(descriptor, context)?.name !== 'select';
+
+const REPORT_FILTERS = {
+  ...objectFromEntries(ATTRIBUTE_PRESENCE_RULES.map((ruleName) => <const>[ruleName, isOutsideTemplatedTag])),
+  'no-restricted-attr-values': isOutsideSelect,
+};
+
+const FILTERED_RULES = new WeakSet<object>();
+
+const filterPluginRuleReports = (rules: Record<string, RuleDefinition>): void => {
+  for (const [ruleName, isKept] of objectEntries(REPORT_FILTERS)) {
+    const rule = readOwnValue(rules, ruleName);
+
+    if (rule === undefined || FILTERED_RULES.has(rule)) {
+      continue;
+    }
+
+    const filteredRule = filterRuleReports(rule, isKept);
+
+    FILTERED_RULES.add(filteredRule);
+    writeOwnValue(rules, ruleName, filteredRule);
+  }
+};
+
 export const html = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginHtml],
@@ -607,6 +682,8 @@ export const html = async (): Promise<Config[]> => {
   }
 
   const { languageOptions } = pluginHtml.configs['flat/recommended'];
+
+  filterPluginRuleReports(pluginHtml.rules);
 
   return [
     {

@@ -14,6 +14,7 @@ import {
   GLOB_DTS,
   GLOB_EXAMPLES,
   GLOB_HTML_FILES,
+  GLOB_HTML_TWIG,
   GLOB_JSDOC_EXPRESSION_FILES,
   GLOB_MD_CODE_BLOCKS,
   GLOB_SCRIPT_FILES,
@@ -203,6 +204,24 @@ const buildUnicornOverrides = (): Config[] => (isModuleEnabled(MODULES.unicorn)
       },
     },
     {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/template-bundles`),
+      files: [`**/templates/bundles/${GLOB_HTML_TWIG}`],
+      rules: {
+        'unicorn/filename-case': 'off',
+      },
+    },
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/template-components`),
+      files: [`**/templates/components/${GLOB_HTML_TWIG}`],
+      rules: {
+        'unicorn/filename-case': ['error', {
+          case: 'pascalCase',
+          directoryRoots: ['templates/components'],
+          ignore: FILE_NAMES_TO_IGNORE,
+        }],
+      },
+    },
+    {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/stylelint`),
       files: [GLOB_STYLELINT_CONFIG],
       rules: {
@@ -364,15 +383,32 @@ const buildYamlOverrides = (): Config[] => (isModuleEnabled(MODULES.yaml)
 const buildHtmlOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
   ? [
     {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/template-bundles`),
+      ignores: [`**/templates/bundles/*/*/${GLOB_HTML_TWIG}`],
+    },
+    {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/templates`),
       files: GLOB_TEMPLATE_FILES,
       rules: {
         'html/indent': 'off',
+        'html/require-closing-tags': 'off',
+        'html/require-li-container': 'off',
         'html/require-meta-charset': 'off',
         'html/require-meta-description': 'off',
         'html/require-meta-viewport': 'off',
         'html/require-open-graph-protocol': 'off',
         'html/require-title': 'off',
+      },
+    },
+    {
+      name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/mails`),
+      files: GLOB_TEMPLATE_FILES.map((glob) => `**/{email,emails,mail,mails}/${glob}`),
+      rules: {
+        'html/head-order': 'off',
+        'html/no-inline-styles': 'off',
+        'html/no-obsolete-attrs': 'off',
+        'html/no-obsolete-tags': 'off',
+        'html/use-baseline': 'off',
       },
     },
     ...((isModuleEnabled(MODULES.tailwind) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS]))

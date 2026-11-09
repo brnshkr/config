@@ -13142,6 +13142,7 @@ exports[`expected eslint config > config-groups 1`] = `
   ],
   "34.inc.php": [
     "34.inc.php",
+    "emails/a.inc.php",
   ],
   "36.blade.php": [
     "36.blade.php",
@@ -13223,6 +13224,23 @@ exports[`expected eslint config > config-groups 1`] = `
   "composer.json": [
     "composer.json",
   ],
+  "emails/a.blade.php": [
+    "emails/a.blade.php",
+  ],
+  "emails/a.hbs": [
+    "emails/a.hbs",
+  ],
+  "emails/a.html.erb": [
+    "emails/a.html.erb",
+  ],
+  "emails/a.html.php": [
+    "emails/a.html.php",
+    "emails/a.phtml",
+  ],
+  "emails/a.html.twig": [
+    "emails/a.html.twig",
+    "emails/a.njk",
+  ],
   "package.json": [
     "package.json",
   ],
@@ -13231,6 +13249,12 @@ exports[`expected eslint config > config-groups 1`] = `
   ],
   "stylelint.config.mjs": [
     "stylelint.config.mjs",
+  ],
+  "templates/bundles/AcmeUserBundle/a.html.twig": [
+    "templates/bundles/AcmeUserBundle/a.html.twig",
+  ],
+  "templates/components/A.html.twig": [
+    "templates/components/A.html.twig",
   ],
   "tsconfig.build.json": [
     "tsconfig.build.json",
@@ -25304,6 +25328,12 @@ exports[`expected eslint config > diff: 33.html.php (from 32.html) 1`] = `
         0,
         2,
       ],
+      "html/require-closing-tags": [
+        0,
+      ],
+      "html/require-li-container": [
+        0,
+      ],
       "html/require-meta-charset": [
         0,
       ],
@@ -26733,6 +26763,136 @@ exports[`expected eslint config > diff: composer.json (from 15.json) 1`] = `
 }
 `;
 
+exports[`expected eslint config > diff: emails/a.blade.php (from 36.blade.php) 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "html/head-order": [
+        0,
+      ],
+      "html/no-inline-styles": [
+        0,
+        {
+          "allowExpressions": true,
+        },
+      ],
+      "html/no-obsolete-attrs": [
+        0,
+      ],
+      "html/no-obsolete-tags": [
+        0,
+      ],
+      "html/use-baseline": [
+        0,
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: emails/a.hbs (from 39.hbs) 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "html/head-order": [
+        0,
+      ],
+      "html/no-inline-styles": [
+        0,
+        {
+          "allowExpressions": true,
+        },
+      ],
+      "html/no-obsolete-attrs": [
+        0,
+      ],
+      "html/no-obsolete-tags": [
+        0,
+      ],
+      "html/use-baseline": [
+        0,
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: emails/a.html.erb (from emails/a.blade.php) 1`] = `
+{
+  "languageOptions": {
+    "addedValues": {},
+    "changedValues": {
+      "parserOptions": {
+        "ecmaFeatures": {
+          "jsx": true,
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "templateEngineSyntax": {
+          "<%": "%>",
+        },
+      },
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: emails/a.html.php (from emails/a.blade.php) 1`] = `
+{
+  "languageOptions": {
+    "addedValues": {},
+    "changedValues": {
+      "parserOptions": {
+        "ecmaFeatures": {
+          "jsx": true,
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "templateEngineSyntax": {
+          "<?=": "?>",
+          "<?php": "?>",
+        },
+      },
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: emails/a.html.twig (from 37.html.twig) 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "html/head-order": [
+        0,
+      ],
+      "html/no-inline-styles": [
+        0,
+        {
+          "allowExpressions": true,
+        },
+      ],
+      "html/no-obsolete-attrs": [
+        0,
+      ],
+      "html/no-obsolete-tags": [
+        0,
+      ],
+      "html/use-baseline": [
+        0,
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
 exports[`expected eslint config > diff: package.json (from composer.json) 1`] = `
 {
   "rules": {
@@ -26969,6 +27129,179 @@ exports[`expected eslint config > diff: stylelint.config.mjs (from 1.js) 1`] = `
         {
           "checkArguments": true,
           "checkStrictEquality": true,
+        },
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: templates/bundles/AcmeUserBundle/a.html.twig (from 37.html.twig) 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "unicorn/filename-case": [
+        0,
+        {
+          "case": "kebabCase",
+          "ignore": [
+            "__mocks__",
+            "__tests__",
+            "ACKNOWLEDGMENTS.md",
+            "ADOPTERS.md",
+            "AGENT_INSTRUCTIONS.md",
+            "AGENTS.md",
+            "API_REFERENCE.md",
+            "ARCHITECTURE.md",
+            "AUTHORS.md",
+            "BUILD.md",
+            "CHANGELOG.md",
+            "CLAUDE.md",
+            "CODE_OF_CONDUCT.md",
+            "CODEOWNERS.md",
+            "CODING_STANDARDS.md",
+            "COMMUNITY_GUIDELINES.md",
+            "CONFIGURATION.md",
+            "CONTRIBUTING.md",
+            "CONTRIBUTORS.md",
+            "DATA_CARD.md",
+            "DATA_MODEL.md",
+            "DATA_PRIVACY.md",
+            "DEPENDENCIES.md",
+            "DESIGN.md",
+            "DEVELOPMENT.md",
+            "ETHICS.md",
+            "EVALUATION.md",
+            "FAQ.md",
+            "GOVERNANCE.md",
+            "INSTALL.md",
+            "INSTRUCTIONS.md",
+            "ISSUE_TEMPLATE.md",
+            "LICENSE.md",
+            "LLMS.md",
+            "LOCALIZATION.md",
+            "MAINTAINERS.md",
+            "MEETING_NOTES.md",
+            "MIGRATIONS.md",
+            "ML_LIFECYCLE.md",
+            "ML_PIPELINE.md",
+            "MLOPS.md",
+            "MODEL_CARD.md",
+            "MODEL_MONITORING.md",
+            "NFR.md",
+            "OVERVIEW.md",
+            "PERFORMANCE.md",
+            "PROJECT_METADATA.md",
+            "PULL_REQUEST_TEMPLATE.md",
+            "README.md",
+            "REFERENCES.md",
+            "RELEASE_PROCESS.md",
+            "RELEASING.md",
+            "RESEARCH.md",
+            "ROADMAP.md",
+            "SECURITY_POLICY.md",
+            "SECURITY.md",
+            "SKILL.md",
+            "SPEC.md",
+            "STYLE_GUIDE.md",
+            "SUPPORT.md",
+            "TESTING.md",
+            "THIRD_PARTY.md",
+            "THREAT_MODEL.md",
+            "TROUBLESHOOTING.md",
+            "UPGRADE_NOTES.md",
+            "VERSIONING.md",
+          ],
+        },
+      ],
+    },
+    "removedKeys": [],
+  },
+}
+`;
+
+exports[`expected eslint config > diff: templates/components/A.html.twig (from 37.html.twig) 1`] = `
+{
+  "rules": {
+    "addedValues": {},
+    "changedValues": {
+      "unicorn/filename-case": [
+        2,
+        {
+          "case": "pascalCase",
+          "directoryRoots": [
+            "templates/components",
+          ],
+          "ignore": [
+            "__mocks__",
+            "__tests__",
+            "ACKNOWLEDGMENTS.md",
+            "ADOPTERS.md",
+            "AGENT_INSTRUCTIONS.md",
+            "AGENTS.md",
+            "API_REFERENCE.md",
+            "ARCHITECTURE.md",
+            "AUTHORS.md",
+            "BUILD.md",
+            "CHANGELOG.md",
+            "CLAUDE.md",
+            "CODE_OF_CONDUCT.md",
+            "CODEOWNERS.md",
+            "CODING_STANDARDS.md",
+            "COMMUNITY_GUIDELINES.md",
+            "CONFIGURATION.md",
+            "CONTRIBUTING.md",
+            "CONTRIBUTORS.md",
+            "DATA_CARD.md",
+            "DATA_MODEL.md",
+            "DATA_PRIVACY.md",
+            "DEPENDENCIES.md",
+            "DESIGN.md",
+            "DEVELOPMENT.md",
+            "ETHICS.md",
+            "EVALUATION.md",
+            "FAQ.md",
+            "GOVERNANCE.md",
+            "INSTALL.md",
+            "INSTRUCTIONS.md",
+            "ISSUE_TEMPLATE.md",
+            "LICENSE.md",
+            "LLMS.md",
+            "LOCALIZATION.md",
+            "MAINTAINERS.md",
+            "MEETING_NOTES.md",
+            "MIGRATIONS.md",
+            "ML_LIFECYCLE.md",
+            "ML_PIPELINE.md",
+            "MLOPS.md",
+            "MODEL_CARD.md",
+            "MODEL_MONITORING.md",
+            "NFR.md",
+            "OVERVIEW.md",
+            "PERFORMANCE.md",
+            "PROJECT_METADATA.md",
+            "PULL_REQUEST_TEMPLATE.md",
+            "README.md",
+            "REFERENCES.md",
+            "RELEASE_PROCESS.md",
+            "RELEASING.md",
+            "RESEARCH.md",
+            "ROADMAP.md",
+            "SECURITY_POLICY.md",
+            "SECURITY.md",
+            "SKILL.md",
+            "SPEC.md",
+            "STYLE_GUIDE.md",
+            "SUPPORT.md",
+            "TESTING.md",
+            "THIRD_PARTY.md",
+            "THREAT_MODEL.md",
+            "TROUBLESHOOTING.md",
+            "UPGRADE_NOTES.md",
+            "VERSIONING.md",
+          ],
         },
       ],
     },
