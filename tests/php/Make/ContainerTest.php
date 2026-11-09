@@ -131,6 +131,19 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @param self::MODE_* $mode
+     */
+    #[DataProvider('provideEveryModeCases')]
+    public function testAToolIsAskedNotToTrackUnlessAFalseValueSaysOtherwise(string $mode): void
+    {
+        $defaultOutput  = $this->runMakeIn($mode, ['show']);
+        $trackingOutput = $this->runMakeIn($mode, ['show', 'DO_NOT_TRACK=0']);
+
+        self::assertStringContainsString("do-not-track=1\n", $defaultOutput);
+        self::assertStringContainsString("do-not-track=unset\n", $trackingOutput);
+    }
+
+    /**
      * @return iterable<string, array{self::MODE_*}>
      */
     public static function provideEveryModeCases(): iterable

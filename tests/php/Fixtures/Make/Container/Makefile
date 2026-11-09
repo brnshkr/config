@@ -30,7 +30,7 @@ show: #~~ prints what a tool sees of the environment
 	@echo "app-dir=$(APP_DIR)"
 	@$(RUN) sh -c 'echo "stage=$$APP_ENV"; echo "stage-file=$$CONTAINER_FIXTURE_STAGE_FILE"; \
 		echo "declared=$$CONTAINER_FIXTURE_DECLARED"; echo "undeclared=$$CONTAINER_FIXTURE_UNDECLARED"; \
-		echo "editor=$$EDITOR_URL"'
+		echo "editor=$$EDITOR_URL"; echo "do-not-track=$${DO_NOT_TRACK-unset}"'
 
 detect: #~~ prints whether make believes it runs in a container
 	@echo "in-container=$(IS_IN_CONTAINER)"

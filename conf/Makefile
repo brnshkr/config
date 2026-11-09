@@ -45,6 +45,9 @@
 #   - make NO_COLOR=1 help
 #   - FORCE_COLOR=1 make help | less -R
 #
+# Telemetry is off. DO_NOT_TRACK (https://donottrack.sh) reaches every tool unless set to a false value:
+#   - make DO_NOT_TRACK=0 audit
+#
 # The `make help` command automatically generates documentation based on specially formatted comments:
 #   Scope headers (control grouping and nesting in the help output):
 #     #-- name      —  top-level group (depth 0); all subsequent symbols belong to this group
@@ -482,6 +485,7 @@ _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 	CLICOLOR \
 	CLICOLOR_FORCE \
 	COLUMNS \
+	DO_NOT_TRACK \
 	EDITOR_URL \
 	FORCE_COLOR \
 	NO_COLOR \
@@ -960,6 +964,7 @@ INDENT      ?= 1#~~ indent used in `make help` output
 VALUE_WIDTH ?= 48#~~ widest value column in `make help` outside a terminal
 
 NO_COLOR            ?= #~~ whether color is off, on for any value per no-color.org
+DO_NOT_TRACK        ?= 1#~~ whether tools skip their telemetry, off for a false value per donottrack.sh
 _IS_COLOR_FORCED     = $(or $(filter-out $(_FALSE),$(FORCE_COLOR)),$(filter-out $(_FALSE),$(CLICOLOR_FORCE)))
 _CAN_SHOW_COLOR      = $(or $(_IS_CI),$(MAKE_TERMOUT),$(filter 3.% 4.0%,$(MAKE_VERSION)))
 _ANSI_OPTION         = $(if $(_IS_NO_COLOR),--no-ansi,$(if $(_IS_PARALLEL),--ansi))
@@ -974,6 +979,12 @@ ifneq ($(_IS_NO_COLOR),)
 export NO_COLOR := 1
 else
 unexport NO_COLOR
+endif
+
+ifneq ($(filter-out $(_FALSE),$(DO_NOT_TRACK)),)
+export DO_NOT_TRACK := 1
+else
+unexport DO_NOT_TRACK
 endif
 
 THEME         ?= #~~ the theme to use
