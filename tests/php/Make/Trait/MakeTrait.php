@@ -23,7 +23,6 @@ use function bin2hex;
 use function getenv;
 use function md5;
 use function random_bytes;
-use function realpath;
 use function sprintf;
 use function Symfony\Component\String\s;
 use function sys_get_temp_dir;
@@ -290,7 +289,7 @@ trait MakeTrait
 
     private static function getRealPath(string $path): string
     {
-        return realpath($path) ?: throw new RuntimeException(sprintf('`%s` does not exist.', $path));
+        return new Filesystem()->readlink($path, true) ?? throw new RuntimeException(sprintf('`%s` does not exist.', $path));
     }
 
     private static function assertContainsSymbol(string $symbol, string $output): void

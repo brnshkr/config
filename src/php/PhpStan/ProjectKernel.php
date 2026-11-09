@@ -19,7 +19,6 @@ use function getcwd;
 use function is_file;
 use function is_readable;
 use function iterator_to_array;
-use function realpath;
 use function sprintf;
 use function uksort;
 
@@ -75,7 +74,7 @@ final readonly class ProjectKernel
             return getcwd() ?: '.';
         }
 
-        return realpath($projectPath) ?: (getcwd() ?: '.');
+        return new Filesystem()->readlink($projectPath, true) ?: (getcwd() ?: '.');
     }
 
     /**
@@ -104,7 +103,7 @@ final readonly class ProjectKernel
             );
 
             if ($filesystem->exists($path)) {
-                return realpath($path) ?: $path;
+                return $filesystem->readlink($path, true) ?: $path;
             }
         }
 
@@ -165,7 +164,7 @@ final readonly class ProjectKernel
 
         $path = sprintf('%s/../../../%s/%s/%s.php', __DIR__, ProjectDirectory::DEFAULT_CONFIG_DIRECTORY, self::LOADER_DIRECTORY, $name);
 
-        return realpath($path) ?: $path;
+        return new Filesystem()->readlink($path, true) ?: $path;
     }
 
     /**

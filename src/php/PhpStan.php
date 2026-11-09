@@ -2056,35 +2056,46 @@ final class PhpStan
     private static function getForbiddenFunctions(): array
     {
         $forbiddenFunctions = [
-            'eval'                  => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'compact'               => 'Explicitly assign to keys in the array.',
-            'extract'               => 'Explicitly define variables for the entries of the array.',
-            'define'                => 'Declare the constant with "const" instead.',
-            'assert'                => 'Throw a "LogicException" or a domain exception instead.',
-            'method_exists'         => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'property_exists'       => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload'          => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'spl_autoload_*'        => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
-            'call_user_func'        => 'Call the callable directly instead.',
-            'call_user_func_array'  => 'Call the callable directly, spreading the arguments, instead.',
-            'func_get_args'         => 'Use a variadic parameter instead.',
-            'gettype'               => 'Use "get_debug_type()" instead.',
-            'settype'               => 'Use a cast instead.',
-            'getenv'                => 'Read the environment in one place and inject the value instead.',
-            'putenv'                => 'Pass the environment to the process that needs it instead.',
-            'ini_set'               => 'Configure the runtime in php.ini instead.',
-            'set_time_limit'        => 'Configure the runtime in php.ini instead.',
-            'error_reporting'       => 'Configure the runtime in php.ini instead.',
-            'rand'                  => 'Use "random_int()" instead.',
-            'mt_rand'               => 'Use "random_int()" instead.',
-            'lcg_value'             => sprintf('Use "%s::nextFloat()" instead.', Randomizer::class),
-            'array_rand'            => sprintf('Use "%s::pickArrayKeys()" instead.', Randomizer::class),
-            'shuffle'               => sprintf('Use "%s::shuffleArray()" instead.', Randomizer::class),
-            'str_shuffle'           => sprintf('Use "%s::shuffleBytes()" instead.', Randomizer::class),
-            'var_dump'              => 'Please remove all debug functions. Use a logger if needed.',
-            'print_r'               => 'Please remove all debug functions. Use a logger if needed.',
-            'debug_backtrace'       => 'Please remove all debug functions. Use a logger if needed.',
-            'debug_print_backtrace' => 'Please remove all debug functions. Use a logger if needed.',
+            'eval'                      => 'Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'compact'                   => 'Explicitly assign to keys in the array.',
+            'extract'                   => 'Explicitly define variables for the entries of the array.',
+            'define'                    => 'Declare the constant with "const" instead.',
+            'assert'                    => 'Throw a "LogicException" or a domain exception instead.',
+            'method_exists'             => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'property_exists'           => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload'              => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'spl_autoload_*'            => 'Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.',
+            'call_user_func'            => 'Call the callable directly instead.',
+            'call_user_func_array'      => 'Call the callable directly, spreading the arguments, instead.',
+            'forward_static_call'       => 'Call the callable directly instead.',
+            'forward_static_call_array' => 'Call the callable directly, spreading the arguments, instead.',
+            'func_get_args'             => 'Use a variadic parameter instead.',
+            'func_get_arg'              => 'Use a variadic parameter instead.',
+            'func_num_args'             => 'Use a variadic parameter instead.',
+            'gettype'                   => 'Use "get_debug_type()" instead.',
+            'settype'                   => 'Use a cast instead.',
+            'getenv'                    => 'Read the environment in one place and inject the value instead.',
+            'putenv'                    => 'Pass the environment to the process that needs it instead.',
+            'ini_set'                   => 'Configure the runtime in php.ini instead.',
+            'ini_alter'                 => 'Configure the runtime in php.ini instead.',
+            'ini_restore'               => 'Configure the runtime in php.ini instead.',
+            'set_include_path'          => 'Configure the runtime in php.ini instead.',
+            'date_default_timezone_set' => 'Configure the runtime in php.ini instead.',
+            'set_time_limit'            => 'Configure the runtime in php.ini instead.',
+            'error_reporting'           => 'Configure the runtime in php.ini instead.',
+            'rand'                      => 'Use "random_int()" instead.',
+            'mt_rand'                   => 'Use "random_int()" instead.',
+            'srand'                     => sprintf('Use "%s" with a seeded engine instead.', Randomizer::class),
+            'mt_srand'                  => sprintf('Use "%s" with a seeded engine instead.', Randomizer::class),
+            'lcg_value'                 => sprintf('Use "%s::nextFloat()" instead.', Randomizer::class),
+            'array_rand'                => sprintf('Use "%s::pickArrayKeys()" instead.', Randomizer::class),
+            'shuffle'                   => sprintf('Use "%s::shuffleArray()" instead.', Randomizer::class),
+            'str_shuffle'               => sprintf('Use "%s::shuffleBytes()" instead.', Randomizer::class),
+            'var_dump'                  => 'Please remove all debug functions. Use a logger if needed.',
+            'print_r'                   => 'Please remove all debug functions. Use a logger if needed.',
+            'phpinfo'                   => 'Please remove all debug functions. Use a logger if needed.',
+            'debug_backtrace'           => 'Please remove all debug functions. Use a logger if needed.',
+            'debug_print_backtrace'     => 'Please remove all debug functions. Use a logger if needed.',
         ];
 
         /** @disregard P1009 symfony/var-dumper and tempest/debug are not dependencies of brnshkr/config */
@@ -2111,25 +2122,44 @@ final class PhpStan
 
         /** @disregard P1009 psr/log is not a dependency of brnshkr/config */
         if (interface_exists(LoggerInterface::class)) {
-            $forbiddenFunctions['error_log'] = sprintf('Use "%s" instead.', LoggerInterface::class);
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'error_log' => sprintf('Use "%s" instead.', LoggerInterface::class),
+                'openlog'   => sprintf('Use "%s" instead.', LoggerInterface::class),
+                'syslog'    => sprintf('Use "%s" instead.', LoggerInterface::class),
+            ];
         }
 
         /** @disregard P1009 symfony/clock is not a dependency of brnshkr/config */
         if (interface_exists(ClockInterface::class)) {
             $forbiddenFunctions = [
                 ...$forbiddenFunctions,
-                'date'      => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
-                'microtime' => sprintf('Use "%s::now()" instead.', ClockInterface::class),
-                'sleep'     => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
-                'time'      => sprintf('Use "%s::now()" instead.', ClockInterface::class),
-                'usleep'    => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+                'date'             => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'getdate'          => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'gettimeofday'     => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'gmdate'           => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'hrtime'           => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'idate'            => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'localtime'        => sprintf('Use "%s::now()->format()" instead.', ClockInterface::class),
+                'microtime'        => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'sleep'            => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+                'time'             => sprintf('Use "%s::now()" instead.', ClockInterface::class),
+                'time_nanosleep'   => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+                'time_sleep_until' => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
+                'usleep'           => sprintf('Use "%s::sleep()" instead.', ClockInterface::class),
             ];
         }
 
         /** @disregard P1009 symfony/clock is not a dependency of brnshkr/config */
         if (class_exists(DatePoint::class)) {
-            $forbiddenFunctions['mktime']    = sprintf('Use "%s" instead.', DatePoint::class);
-            $forbiddenFunctions['strtotime'] = sprintf('Use "%s" instead.', DatePoint::class);
+            $forbiddenFunctions = [
+                ...$forbiddenFunctions,
+                'date_create'           => sprintf('Use "%s" instead.', DatePoint::class),
+                'date_create_immutable' => sprintf('Use "%s" instead.', DatePoint::class),
+                'gmmktime'              => sprintf('Use "%s" instead.', DatePoint::class),
+                'mktime'                => sprintf('Use "%s" instead.', DatePoint::class),
+                'strtotime'             => sprintf('Use "%s" instead.', DatePoint::class),
+            ];
         }
 
         if (class_exists(Filesystem::class)) {
@@ -2139,11 +2169,14 @@ final class PhpStan
                 'chmod'             => sprintf('Use "%s::chmod()" instead.', Filesystem::class),
                 'chown'             => sprintf('Use "%s::chown()" instead.', Filesystem::class),
                 'copy'              => sprintf('Use "%s::copy()" instead.', Filesystem::class),
+                'file'              => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
+                'file_exists'       => sprintf('Use "%s::exists()" instead.', Filesystem::class),
                 'file_get_contents' => sprintf('Use "%s::readFile()" instead.', Filesystem::class),
                 'file_put_contents' => sprintf('Use "%1$s::dumpFile()" or "%1$s::appendToFile()" instead.', Filesystem::class),
                 'link'              => sprintf('Use "%s::hardlink()" instead.', Filesystem::class),
                 'mkdir'             => sprintf('Use "%s::mkdir()" instead.', Filesystem::class),
                 'readlink'          => sprintf('Use "%s::readlink()" instead.', Filesystem::class),
+                'realpath'          => sprintf('Use "%s::readlink()" with "$canonicalize" instead.', Filesystem::class),
                 'rename'            => sprintf('Use "%s::rename()" instead.', Filesystem::class),
                 'rmdir'             => sprintf('Use "%s::remove()" instead.', Filesystem::class),
                 'symlink'           => sprintf('Use "%s::symlink()" instead.', Filesystem::class),
@@ -2177,8 +2210,10 @@ final class PhpStan
             $forbiddenFunctions = [
                 ...$forbiddenFunctions,
                 'header'             => sprintf('Use "%s" instead.', Response::class),
+                'header_remove'      => sprintf('Use "%s" instead.', Response::class),
                 'http_response_code' => sprintf('Use "%s::setStatusCode()" instead.', Response::class),
                 'setcookie'          => sprintf('Use "%s::headers->setCookie()" instead.', Response::class),
+                'setrawcookie'       => sprintf('Use "%s::headers->setCookie()" instead.', Response::class),
             ];
         }
 
@@ -2195,7 +2230,8 @@ final class PhpStan
 
         /** @disregard P1009 symfony/mailer is not a dependency of brnshkr/config */
         if (interface_exists(MailerInterface::class)) {
-            $forbiddenFunctions['mail'] = sprintf('Use "%s::send()" instead.', MailerInterface::class);
+            $forbiddenFunctions['mail']         = sprintf('Use "%s::send()" instead.', MailerInterface::class);
+            $forbiddenFunctions['mb_send_mail'] = sprintf('Use "%s::send()" instead.', MailerInterface::class);
         }
 
         /** @disregard P1009 symfony/mime is not a dependency of brnshkr/config */
@@ -2224,6 +2260,7 @@ final class PhpStan
 
         /** @disregard P1009 symfony/serializer is not a dependency of brnshkr/config */
         if (interface_exists(SerializerInterface::class)) {
+            $forbiddenFunctions['serialize']   = sprintf('Use "%s::serialize()" instead.', SerializerInterface::class);
             $forbiddenFunctions['unserialize'] = sprintf('Use "%s::deserialize()" instead.', SerializerInterface::class);
         }
 
@@ -2232,62 +2269,74 @@ final class PhpStan
 
             $forbiddenFunctions = [
                 ...$forbiddenFunctions,
-                'ucfirst'               => sprintf('Use "%s::title()" instead.', $stringFunction),
-                'mb_ucfirst'            => sprintf('Use "%s::title()" instead.', $stringFunction),
-                'ucwords'               => sprintf('Use "%s::title()" instead.', $stringFunction),
-                'str_pad'               => sprintf('Use "%s::{padBoth,padEnd,padStart}()" instead.', $stringFunction),
-                'mb_str_pad'            => sprintf('Use "%s::{padBoth,padEnd,padStart}()" instead.', $stringFunction),
-                'trim'                  => sprintf('Use "%s::trim()" instead.', $stringFunction),
-                'mb_trim'               => sprintf('Use "%s::trim()" instead.', $stringFunction),
-                'ltrim'                 => sprintf('Use "%s::trimStart()" instead.', $stringFunction),
-                'mb_ltrim'              => sprintf('Use "%s::trimStart()" instead.', $stringFunction),
-                'rtrim'                 => sprintf('Use "%s::trimEnd()" instead.', $stringFunction),
-                'mb_rtrim'              => sprintf('Use "%s::trimEnd()" instead.', $stringFunction),
-                'str_split'             => sprintf('Use "%s::chunk()" instead.', $stringFunction),
-                'mb_str_split'          => sprintf('Use "%s::chunk()" instead.', $stringFunction),
-                'mb_split'              => sprintf('Use "%s::split()" instead.', $stringFunction),
-                'explode'               => sprintf('Use "%s::split()" instead.', $stringFunction),
-                'implode'               => sprintf('Use "%s::join()" instead.', $stringFunction),
-                'join'                  => sprintf('Use "%s::join()" instead.', $stringFunction),
-                'preg_split'            => sprintf('Use "%s::split()" with a "PREG_SPLIT_*" flag instead.', $stringFunction),
-                'strlen'                => sprintf('Use "%s::length()" instead.', $stringFunction),
-                'mb_strlen'             => sprintf('Use "%s::length()" instead.', $stringFunction),
-                'strtolower'            => sprintf('Use "%s::lower()" instead.', $stringFunction),
-                'mb_strtolower'         => sprintf('Use "%s::lower()" instead.', $stringFunction),
-                'strtoupper'            => sprintf('Use "%s::upper()" instead.', $stringFunction),
-                'mb_strtoupper'         => sprintf('Use "%s::upper()" instead.', $stringFunction),
-                'substr'                => sprintf('Use "%s::slice()" instead.', $stringFunction),
-                'mb_substr'             => sprintf('Use "%s::slice()" instead.', $stringFunction),
-                'str_contains'          => sprintf('Use "%s::containsAny()" instead.', $stringFunction),
-                'str_starts_with'       => sprintf('Use "%s::startsWith()" instead.', $stringFunction),
-                'str_ends_with'         => sprintf('Use "%s::endsWith()" instead.', $stringFunction),
-                'str_replace'           => sprintf('Use "%s::replace()" instead.', $stringFunction),
-                'str_ireplace'          => sprintf('Use "%s::replace()" instead.', $stringFunction),
-                'substr_replace'        => sprintf('Use "%s::replace()" instead.', $stringFunction),
-                'str_repeat'            => sprintf('Use "%s::repeat()" instead.', $stringFunction),
-                'strpos'                => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
-                'mb_strpos'             => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
-                'stripos'               => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
-                'mb_stripos'            => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
-                'strrpos'               => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
-                'mb_strrpos'            => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
-                'strripos'              => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
-                'mb_strripos'           => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
-                'strstr'                => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
-                'mb_strstr'             => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
-                'stristr'               => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
-                'mb_stristr'            => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
-                'strrchr'               => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
-                'mb_strrchr'            => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
-                'strrev'                => sprintf('Use "%s::reverse()" instead.', $stringFunction),
-                'strtr'                 => sprintf('Use "%s::replace()" instead.', $stringFunction),
-                'wordwrap'              => sprintf('Use "%s::wordwrap()" instead.', $stringFunction),
-                'mb_strwidth'           => sprintf('Use "%s::width()" instead.', $stringFunction),
-                'mb_strimwidth'         => sprintf('Use "%s::truncate()" instead.', $stringFunction),
-                'preg_match_all'        => sprintf('Use "%s::match()" instead.', $stringFunction),
-                'preg_match'            => sprintf('Use "%s::match()" instead.', $stringFunction),
-                'preg_replace_callback' => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
-                'preg_replace'          => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
+                'ucfirst'                     => sprintf('Use "%s::title()" instead.', $stringFunction),
+                'mb_ucfirst'                  => sprintf('Use "%s::title()" instead.', $stringFunction),
+                'ucwords'                     => sprintf('Use "%s::title()" instead.', $stringFunction),
+                'str_pad'                     => sprintf('Use "%s::{padBoth,padEnd,padStart}()" instead.', $stringFunction),
+                'mb_str_pad'                  => sprintf('Use "%s::{padBoth,padEnd,padStart}()" instead.', $stringFunction),
+                'trim'                        => sprintf('Use "%s::trim()" instead.', $stringFunction),
+                'mb_trim'                     => sprintf('Use "%s::trim()" instead.', $stringFunction),
+                'ltrim'                       => sprintf('Use "%s::trimStart()" instead.', $stringFunction),
+                'mb_ltrim'                    => sprintf('Use "%s::trimStart()" instead.', $stringFunction),
+                'rtrim'                       => sprintf('Use "%s::trimEnd()" instead.', $stringFunction),
+                'mb_rtrim'                    => sprintf('Use "%s::trimEnd()" instead.', $stringFunction),
+                'chop'                        => sprintf('Use "%s::trimEnd()" instead.', $stringFunction),
+                'str_split'                   => sprintf('Use "%s::chunk()" instead.', $stringFunction),
+                'mb_str_split'                => sprintf('Use "%s::chunk()" instead.', $stringFunction),
+                'chunk_split'                 => sprintf('Use "%s::chunk()" instead.', $stringFunction),
+                'mb_split'                    => sprintf('Use "%s::split()" instead.', $stringFunction),
+                'explode'                     => sprintf('Use "%s::split()" instead.', $stringFunction),
+                'implode'                     => sprintf('Use "%s::join()" instead.', $stringFunction),
+                'join'                        => sprintf('Use "%s::join()" instead.', $stringFunction),
+                'preg_split'                  => sprintf('Use "%s::split()" with a "PREG_SPLIT_*" flag instead.', $stringFunction),
+                'strlen'                      => sprintf('Use "%s::length()" instead.', $stringFunction),
+                'mb_strlen'                   => sprintf('Use "%s::length()" instead.', $stringFunction),
+                'iconv_strlen'                => sprintf('Use "%s::length()" instead.', $stringFunction),
+                'strtolower'                  => sprintf('Use "%s::lower()" instead.', $stringFunction),
+                'mb_strtolower'               => sprintf('Use "%s::lower()" instead.', $stringFunction),
+                'strtoupper'                  => sprintf('Use "%s::upper()" instead.', $stringFunction),
+                'mb_strtoupper'               => sprintf('Use "%s::upper()" instead.', $stringFunction),
+                'substr'                      => sprintf('Use "%s::slice()" instead.', $stringFunction),
+                'mb_substr'                   => sprintf('Use "%s::slice()" instead.', $stringFunction),
+                'iconv_substr'                => sprintf('Use "%s::slice()" instead.', $stringFunction),
+                'str_contains'                => sprintf('Use "%s::containsAny()" instead.', $stringFunction),
+                'str_starts_with'             => sprintf('Use "%s::startsWith()" instead.', $stringFunction),
+                'str_ends_with'               => sprintf('Use "%s::endsWith()" instead.', $stringFunction),
+                'str_replace'                 => sprintf('Use "%s::replace()" instead.', $stringFunction),
+                'str_ireplace'                => sprintf('Use "%s::replace()" instead.', $stringFunction),
+                'substr_replace'              => sprintf('Use "%s::replace()" instead.', $stringFunction),
+                'str_repeat'                  => sprintf('Use "%s::repeat()" instead.', $stringFunction),
+                'strpos'                      => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
+                'mb_strpos'                   => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
+                'iconv_strpos'                => sprintf('Use "%s::indexOf()" instead.', $stringFunction),
+                'stripos'                     => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
+                'mb_stripos'                  => sprintf('Use "%s::ignoreCase()->indexOf()" instead.', $stringFunction),
+                'strrpos'                     => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
+                'mb_strrpos'                  => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
+                'iconv_strrpos'               => sprintf('Use "%s::indexOfLast()" instead.', $stringFunction),
+                'strripos'                    => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
+                'mb_strripos'                 => sprintf('Use "%s::ignoreCase()->indexOfLast()" instead.', $stringFunction),
+                'strstr'                      => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
+                'mb_strstr'                   => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
+                'strchr'                      => sprintf('Use "%s::{after,before}()" instead.', $stringFunction),
+                'stristr'                     => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
+                'mb_stristr'                  => sprintf('Use "%s::ignoreCase()->{after,before}()" instead.', $stringFunction),
+                'strrchr'                     => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
+                'mb_strrchr'                  => sprintf('Use "%s::afterLast()" instead.', $stringFunction),
+                'strrev'                      => sprintf('Use "%s::reverse()" instead.', $stringFunction),
+                'strtr'                       => sprintf('Use "%s::replace()" instead.', $stringFunction),
+                'wordwrap'                    => sprintf('Use "%s::wordwrap()" instead.', $stringFunction),
+                'mb_strwidth'                 => sprintf('Use "%s::width()" instead.', $stringFunction),
+                'mb_strimwidth'               => sprintf('Use "%s::truncate()" instead.', $stringFunction),
+                'preg_match_all'              => sprintf('Use "%s::match()" instead.', $stringFunction),
+                'preg_match'                  => sprintf('Use "%s::match()" instead.', $stringFunction),
+                'preg_replace_callback'       => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
+                'preg_replace'                => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
+                'preg_replace_callback_array' => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
+                'preg_filter'                 => sprintf('Use "%s::replaceMatches()" instead.', $stringFunction),
+                'preg_grep'                   => sprintf('Use "array_filter()" with "%s::match()" instead.', $stringFunction),
+                'mb_ereg*'                    => sprintf('Use "%s::{match,replaceMatches}()" instead.', $stringFunction),
+                'grapheme_*'                  => sprintf('Use "%s" instead.', $stringFunction),
             ];
         }
 
@@ -2688,6 +2737,7 @@ final class PhpStan
         $uniqueEntries = [];
 
         foreach ([...array_values($existingEntries), ...array_values($additionalEntries)] as $entry) {
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/serializer here to keep package as lightweight as possible)
             $uniqueEntries[serialize($entry)] ??= $entry;
         }
 
@@ -2705,6 +2755,7 @@ final class PhpStan
 
         ksort($arguments);
 
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/serializer here to keep package as lightweight as possible)
         return $service['class'] . '|' . serialize($arguments);
     }
 

@@ -352,6 +352,7 @@ final class ComposerJson
         $directories = [];
 
         foreach ($this->readNamespaceMap('autoload-dev') as $relative) {
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem since this class is shared by all modules and not all of them rely on it)
             $absolute = realpath($this->getDirectory() . '/' . Str::trimSuffix($relative, '/'));
 
             if ($absolute !== false && is_dir($absolute)) {
@@ -471,6 +472,7 @@ final class ComposerJson
 
             $directory = $vendorDirectory . '/' . $package;
 
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem since this class is shared by all modules and not all of them rely on it)
             $directories[$package] = realpath($directory) ?: $directory;
         }
 

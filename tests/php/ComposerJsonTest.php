@@ -17,7 +17,6 @@ use Symfony\Component\Filesystem\Path;
 
 use function chdir;
 use function getcwd;
-use function realpath;
 use function sys_get_temp_dir;
 
 /**
@@ -97,7 +96,7 @@ final class ComposerJsonTest extends TestCase
 
     public function testADevelopmentOnlyPackageIsFoundInTheVendorDirectory(): void
     {
-        $vendorDirectory = realpath(__DIR__ . '/Fixtures/ComposerJson/transitive') . '/vendor';
+        $vendorDirectory = new Filesystem()->readlink(__DIR__ . '/Fixtures/ComposerJson/transitive', true) . '/vendor';
 
         self::assertSame([
             'acme/direct-dev'     => $vendorDirectory . '/acme/direct-dev',
@@ -119,7 +118,7 @@ final class ComposerJsonTest extends TestCase
     {
         $directory = __DIR__ . '/Fixtures/ComposerJson/renamed';
 
-        self::assertSame([realpath($directory)], ComposerJson::forPath($directory . '/acme.json')->getDevelopmentDirectories());
+        self::assertSame([new Filesystem()->readlink($directory, true)], ComposerJson::forPath($directory . '/acme.json')->getDevelopmentDirectories());
     }
 
     public function testAnAbsoluteVendorDirectoryIsTakenAsIs(): void

@@ -14,8 +14,7 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-
-use function realpath;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -44,8 +43,8 @@ final class DevFunctionUsageRuleTest extends AbstractRuleTestCase
     {
         return new DevFunctionUsageRule(
             self::getContainer()->getByType(ReflectionProvider::class),
-            ['acme/dumper' => (string) realpath(self::FIXTURE_DIRECTORY . '/packages/acme/dumper')],
-            [(string) realpath(self::FIXTURE_DIRECTORY . '/tests')],
+            ['acme/dumper' => (string) new Filesystem()->readlink(self::FIXTURE_DIRECTORY . '/packages/acme/dumper', true)],
+            [(string) new Filesystem()->readlink(self::FIXTURE_DIRECTORY . '/tests', true)],
         );
     }
 }
