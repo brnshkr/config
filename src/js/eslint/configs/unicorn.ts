@@ -22,6 +22,7 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'ADOPTERS.md',
   'AGENT_INSTRUCTIONS.md',
   'AGENTS.md',
+  'AI_POLICY.md',
   'API_REFERENCE.md',
   'ARCHITECTURE.md',
   'AUTHORS.md',
