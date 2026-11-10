@@ -2,7 +2,8 @@
 
 ## Writing code
 
-- `conf/*.php` are gitignored private halves that `make configs local` writes as an `include` of the tracked `*.dist.php`.
+- `conf/*.php` are gitignored private halves that `make configs local` writes as an `include` of the tracked `*.dist.php`,
+  or as a copy of the package's dist where the project tracks none. `local` writes nothing else.
 - Native functions such as `trim`, `json_decode`, `mkdir`, or `shell_exec` are forbidden wherever the component
   replacing them is installed. PHPStan names the replacement, usually in `Str`, `Json`, Symfony String,
   Filesystem, Finder, or Process.

@@ -248,22 +248,49 @@ final class ConfigsTest extends TestCase
         self::assertFileDoesNotExist($configsDirectory . '/.gitignore');
     }
 
-    public function testThePrivateHalfIsWrittenFromATemplateWhenTheProjectHasNone(): void
+    public function testThePrivateHalfIsTheShippedDistWhenTheProjectHasNone(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
 
         $this->runMake(['configs', 'local'], directory: $configsDirectory);
 
-        $shim = new Filesystem()->readFile($configsDirectory . '/conf/php-cs-fixer.php');
+        $privateHalf = new Filesystem()->readFile($configsDirectory . '/conf/php-cs-fixer.php');
 
-        self::assertStringContainsString('$config = include __DIR__ . \'/php-cs-fixer.dist.php\';', $shim);
-        self::assertStringContainsString('@internal App', $shim);
+        self::assertStringContainsString("/**\n * @internal App\n */\nreturn PhpCsFixer::getConfig();", $privateHalf);
+        self::assertFileDoesNotExist($configsDirectory . '/conf/php-cs-fixer.dist.php');
+    }
+
+    public function testThePrivateHalfIncludesTheTrackedDistBelowItsTag(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($configsDirectory . '/conf/php-cs-fixer.dist.php', "<?php\n\nreturn [];\n");
+        $this->runMake(['configs', 'local'], directory: $configsDirectory);
+
+        self::assertStringContainsString(
+            "\$config = include __DIR__ . '/php-cs-fixer.dist.php';\n\n/**\n * @internal App\n */\nreturn \$config;",
+            $filesystem->readFile($configsDirectory . '/conf/php-cs-fixer.php'),
+        );
+    }
+
+    public function testLocalWritesOnlyThePrivateHalves(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($configsDirectory . '/conf/phpstan.dist.php', "<?php\n\n// Acme\nreturn [];\n");
+        $this->runMake(['configs', 'local', 'force'], directory: $configsDirectory);
+
+        self::assertSame("<?php\n\n// Acme\nreturn [];\n", $filesystem->readFile($configsDirectory . '/conf/phpstan.dist.php'));
+        self::assertFileDoesNotExist($configsDirectory . '/.gitignore');
     }
 
     public function testAPrivateHalfThatCannotIncludeIsACopy(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
 
+        $this->runMake(['configs', 'tools'], directory: $configsDirectory);
         $this->runMake(['configs', 'local'], directory: $configsDirectory);
 
         self::assertFileEquals(
@@ -342,7 +369,7 @@ final class ConfigsTest extends TestCase
 
         $this->runMake(['configs', 'local'], directory: $vendorDirectory);
 
-        self::assertFileExists($vendorDirectory . '/conf/phpstan.dist.php');
+        self::assertFileExists($vendorDirectory . '/conf/phpstan.php');
         self::assertFileDoesNotExist($vendorDirectory . '/vendor/' . self::getPackageFullName() . '/conf/phpstan.php');
     }
 

@@ -2302,13 +2302,13 @@ _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wi
 _NAMED_CONFIGS        = $(filter-out tools t local l force f,$(_ARG_WORDS))
 _IS_FORCED_CONFIG     = $(filter force f,$(_ARG_WORDS))
 _IS_PRIVATE_CONFIG    = $(filter local l,$(_ARG_WORDS))
-_IS_TOOL_CONFIG       = $(or $(filter tools t,$(_ARG_WORDS)),$(_IS_PRIVATE_CONFIG),$(_NAMED_CONFIGS))
+_IS_TOOL_CONFIG       = $(or $(filter tools t,$(_ARG_WORDS)),$(_NAMED_CONFIGS))
 _TRACKED_TOOL_CONFIGS = $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG)))
 _PRIVATE_TOOL_CONFIGS = $(subst .dist.,.,$(_LAYERED_CONFIGS))
 _CONFIG_NAMES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_MANAGED_CONFIGS) $(_LINKED_CONFIGS),$(call _get_short_name,$(CONFIG))))
 _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOOL_CONFIGS) $(_PRIVATE_TOOL_CONFIGS) $(_MANAGED_CONFIGS) $(_LINKED_CONFIGS),$(call _get_file_name,$(CONFIG))))
 
-_CONFIGS = $(call _in_project,$(_PLAIN_CONFIGS) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
+_CONFIGS = $(call _in_project,$(if $(_IS_PRIVATE_CONFIG),,$(_PLAIN_CONFIGS)) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
 $(call _target,configs): _ARG_VALUES                       = $(_CONFIG_NAMES) tools t local l force f
@@ -2330,7 +2330,8 @@ $(call _target,configs): #~~ writes the files this project is missing
 		template_path="$${config_path}.example"; \
 		case "$$config_name" in \
 			*.dist.*) shipped_template_name="$$config_name"; tracked_template_name="";; \
-			*.mjs|*.php) shipped_template_name=""; tracked_template_name="";; \
+			*.mjs|*.php) shipped_template_name=""; tracked_template_name="$${config_name%.*}.dist.$${config_name##*.}"; \
+				[ ! -r "$${config_path%/*}/$$tracked_template_name" ] || tracked_template_name="";; \
 			?*.?*) shipped_template_name=""; tracked_template_name="$${config_name%.*}.dist.$${config_name##*.}";; \
 			*) shipped_template_name=""; tracked_template_name="$${config_name}.dist";; \
 		esac; \
@@ -2352,8 +2353,9 @@ $(call _target,configs): #~~ writes the files this project is missing
 			case "$$config_name" in \
 				*.mjs) printf '%s\n' "export { default } from './$${included_config_path##*/}';" >"$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
-				*.php) printf '%s\n' '<?php' '' 'declare(strict_types=1);' '' '/**' ' * @internal' ' */' \
-					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' 'return $$config;' >"$$config_path" \
+				*.php) printf '%s\n' '<?php' '' 'declare(strict_types=1);' '' \
+					"\$$config = include __DIR__ . '/$${included_config_path##*/}';" '' '/**' ' * @internal' ' */' 'return $$config;' \
+					>"$$config_path" \
 					|| exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 				*) included_config_path=""; continue;; \
 			esac; \
@@ -2372,12 +2374,12 @@ $(call _target,configs): #~~ writes the files this project is missing
 	esac
 	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	trap '$(RM) -f "$$body_path"' EXIT; \
-	for managed_config_pair in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(_MANAGED_CONFIGS)),'$(MANAGED_CONFIG)'); do \
+	for managed_config_pair in $(foreach MANAGED_CONFIG,$(call _selected_configs,$(if $(_IS_PRIVATE_CONFIG),,$(_MANAGED_CONFIGS))),'$(MANAGED_CONFIG)'); do \
 		config_path="$${managed_config_pair%%|*}"; \
 		template_path="$${managed_config_pair#*|}"; \
 		$(call _write_managed_config); \
 	done
-	$(TRACE_PREFIX)for linked_config_pair in $(foreach LINKED_CONFIG,$(call _selected_configs,$(_LINKED_CONFIGS)),'$(LINKED_CONFIG)'); do \
+	$(TRACE_PREFIX)for linked_config_pair in $(foreach LINKED_CONFIG,$(call _selected_configs,$(if $(_IS_PRIVATE_CONFIG),,$(_LINKED_CONFIGS))),'$(LINKED_CONFIG)'); do \
 		link_path="$${linked_config_pair%%|*}"; \
 		linked_path="$${linked_config_pair#*|}"; \
 		relative_linked_path="$${linked_path#$(CURDIR)/}"; \

@@ -18,6 +18,6 @@ the linters only when there are files for them to read.
 which is the quickest way to check what [FileFinder](./FileFinder.md) picked up.
 
 Each tool reads `./conf/<tool>.dist.php` if you have one, and the package's default otherwise.
-For settings only you want, `make configs local` writes a `./conf/<tool>.php` that includes the tracked one,
-so you only add what differs. PHPUnit can't include another config, so a private `./conf/phpunit.xml`
-has to be a complete one.
+For settings only you want, `make configs local` writes a `./conf/<tool>.php` that includes your tracked one,
+so you only add what differs. Without a tracked one, it starts as a copy of the package's default.
+PHPUnit can't include another config, so a private `./conf/phpunit.xml` has to be a complete one.
