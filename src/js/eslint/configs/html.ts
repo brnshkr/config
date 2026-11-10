@@ -16,7 +16,7 @@ import {
 } from '#eslint/utils/globs.ts';
 
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
-import { filterRuleReports } from '#eslint/utils/rule-filter.ts';
+import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
 import { INDENT, MAX_EMPTY_LINES, MAX_LEN } from '#shared/utils/constants.ts';
 import { GLOB_BLADE, GLOB_HTML_PHP, GLOB_PHTML } from '#shared/utils/globs.ts';
 
@@ -30,7 +30,7 @@ import {
 import type { Rule } from 'eslint';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { Config } from '#eslint/types/config.ts';
-import type { ReportFilter } from '#eslint/utils/rule-filter.ts';
+import type { ReportRewrite } from '#eslint/utils/rule-reports.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 const TEMPLATE_ENGINES = <const>{
@@ -607,18 +607,41 @@ const HTML_EXTENSIONS = <const>[
   '.twig',
 ] satisfies string[];
 
+interface HtmlTemplatePart {
+  type?: string;
+  range: [number, number];
+  loc: unknown;
+}
+
 interface HtmlNode {
   type?: string;
   name?: string;
   parent?: HtmlNode;
   attributes?: {
     key?: {
-      parts?: {
-        type?: string;
-      }[];
+      parts?: HtmlTemplatePart[];
     };
   }[];
 }
+
+interface HtmlToken {
+  value: string;
+  range: [number, number];
+}
+
+interface HtmlTag {
+  openStart: HtmlToken;
+  openEnd: HtmlToken;
+  attributes: {
+    range: [number, number];
+  }[];
+}
+
+type NodeVisitor = (node: Rule.Node) => void;
+
+type RenderedAttributes = 'any'
+  | 'unknown'
+  | ReadonlyMap<string, Maybe<string>>;
 
 const ATTRIBUTE_PRESENCE_RULES = <const>[
   'require-attrs',
@@ -628,6 +651,8 @@ const ATTRIBUTE_PRESENCE_RULES = <const>[
   'require-input-label',
   'require-lang',
 ];
+
+const createObjectEntryPattern = (): RegExp => /(?:^|,)\s*(?:'(?<singleQuotedKey>[^']*)'|"(?<doubleQuotedKey>[^"]*)"|(?<bareKey>[\w\-]+))\s*:\s*(?:(?:'(?<singleQuotedValue>[^']*)'|"(?<doubleQuotedValue>[^"]*)")(?=\s*(?:,|$)))?/gv;
 
 const findTag = (node: Maybe<HtmlNode>): Maybe<HtmlNode> => ((node === undefined || node.type === 'Tag')
   ? node
@@ -643,31 +668,165 @@ const findReportedTag = (descriptor: Rule.ReportDescriptor, context: Rule.RuleCo
   return findTag(<Maybe<HtmlNode>><unknown>context.sourceCode.getNodeByRangeIndex(index) ?? undefined);
 };
 
-const isOutsideTemplatedTag: ReportFilter = (descriptor, context) => findReportedTag(descriptor, context)
+const findTemplateParts = (tag: Maybe<HtmlNode>): HtmlTemplatePart[] => tag
   ?.attributes
-  ?.some((attribute) => attribute.key?.parts?.some((part) => part.type === 'Template') === true) !== true;
+  ?.flatMap((attribute) => attribute.key?.parts?.filter((part) => part.type === 'Template') ?? []) ?? [];
 
-const isOutsideSelect: ReportFilter = (descriptor, context) => findReportedTag(descriptor, context)?.name !== 'select';
+const readRenderedAttributes = (template: string): RenderedAttributes => {
+  if (/^\{\{[\-~]?\s*attributes\s*[\-~]?\}\}$/v.test(template)) {
+    return 'any';
+  }
 
-const REPORT_FILTERS = {
-  ...objectFromEntries(ATTRIBUTE_PRESENCE_RULES.map((ruleName) => <const>[ruleName, isOutsideTemplatedTag])),
-  'no-restricted-attr-values': isOutsideSelect,
+  const callObjects = template
+    .matchAll(/\b(?:attrs|attributes\.defaults)\(\s*\{(?<object>[^\}]*)\}/gv)
+    .map((call) => call.groups?.['object'] ?? '')
+    .toArray();
+
+  if (callObjects.length === 0) {
+    return 'unknown';
+  }
+
+  return new Map(callObjects.flatMap((callObject) => callObject
+    .matchAll(createObjectEntryPattern())
+    .map((entry) => {
+      const {
+        singleQuotedKey,
+        doubleQuotedKey,
+        bareKey = '',
+        singleQuotedValue,
+        doubleQuotedValue,
+      } = entry.groups ?? {};
+
+      return <const>[singleQuotedKey ?? doubleQuotedKey ?? bareKey, singleQuotedValue ?? doubleQuotedValue];
+    })
+    .toArray()));
 };
 
-const FILTERED_RULES = new WeakSet<object>();
+const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
+  const tag = <HtmlNode><unknown>node;
 
-const filterPluginRuleReports = (rules: Record<string, RuleDefinition>): void => {
-  for (const [ruleName, isKept] of objectEntries(REPORT_FILTERS)) {
+  const templateAttributes = findTemplateParts(tag.type === 'Tag' ? tag : undefined).flatMap((part) => {
+    const template = text.slice(...part.range);
+    const renderedAttributes = readRenderedAttributes(template);
+
+    return typeof renderedAttributes === 'string'
+      ? []
+      : renderedAttributes
+        .entries()
+        .map(([name, literalValue]) => ({
+          type: 'Attribute',
+          key: {
+            type: 'AttributeKey',
+            value: name,
+            parts: <HtmlTemplatePart[]>[],
+            range: part.range,
+            loc: part.loc,
+          },
+          value: {
+            type: 'AttributeValue',
+            value: literalValue ?? template,
+            parts: literalValue === undefined ? [part] : <HtmlTemplatePart[]>[],
+            range: part.range,
+            loc: part.loc,
+          },
+          range: part.range,
+          loc: part.loc,
+        }))
+        .toArray();
+  });
+
+  return templateAttributes.length === 0
+    ? node
+    : <Rule.Node>Object.create(node, {
+      attributes: {
+        value: [
+          ...tag.attributes ?? [],
+          ...templateAttributes,
+        ],
+      },
+    });
+};
+
+const withTemplateAttributes = (rule: RuleDefinition): RuleDefinition => ({
+  ...rule,
+  create: (context: Rule.RuleContext): Rule.RuleListener => objectFromEntries(objectEntries(rule.create(context))
+    .map(([selector, visit]) => <const>[
+      selector,
+      (node: Rule.Node): void => {
+        (<NodeVisitor>visit)(addTemplateAttributes(node, context.sourceCode.text));
+      },
+    ])),
+});
+
+const skipUnresolvedTemplates: ReportRewrite = (descriptor, context) => {
+  const renderedAttributes = new Set(findTemplateParts(findReportedTag(descriptor, context))
+    .map((part) => readRenderedAttributes(context.sourceCode.text.slice(...part.range))));
+
+  if (renderedAttributes.has('any') || !renderedAttributes.has('unknown')) {
+    return renderedAttributes.has('any') ? undefined : descriptor;
+  }
+
+  return {
+    ...descriptor,
+    fix: undefined,
+  };
+};
+
+const skipSelectTag: ReportRewrite = (descriptor, context) => (findReportedTag(descriptor, context)?.name === 'select'
+  ? undefined
+  : descriptor);
+
+const indentAttributes: ReportRewrite = (descriptor, context) => {
+  const tag = <Maybe<HtmlTag>><unknown>findReportedTag(descriptor, context);
+
+  if (tag === undefined) {
+    return descriptor;
+  }
+
+  const { text } = context.sourceCode;
+  const options: unknown = context.options.at(0);
+  const [tagStart] = tag.openStart.range;
+  const linePrefix = text.slice(text.lastIndexOf('\n', tagStart - 1) + 1, tagStart);
+  const tagIndentation = linePrefix.slice(0, linePrefix.length - linePrefix.trimStart().length);
+  const attributeIndentation = `${tagIndentation}${' '.repeat(INDENT)}`;
+  const isClosingOnSameLine = options instanceof Object && 'closeStyle' in options && options.closeStyle === 'sameline';
+
+  const openingTag = [
+    tag.openStart.value,
+    ...tag.attributes.map((attribute) => `\n${attributeIndentation}${text.slice(...attribute.range)}`),
+    isClosingOnSameLine ? (tag.openEnd.value === '/>' ? ' ' : '') : `\n${tagIndentation}`,
+    tag.openEnd.value,
+  ].join('');
+
+  return {
+    ...descriptor,
+    fix: (fixer) => fixer.replaceTextRange([tagStart, tag.openEnd.range[1]], openingTag),
+  };
+};
+
+const RULE_PATCHES = <const>{
+  ...objectFromEntries(ATTRIBUTE_PRESENCE_RULES.map((ruleName) => <const>[
+    ruleName,
+    (rule: RuleDefinition): RuleDefinition => rewriteRuleReports(withTemplateAttributes(rule), skipUnresolvedTemplates),
+  ])),
+  'attrs-newline': (rule) => rewriteRuleReports(rule, indentAttributes),
+  'no-restricted-attr-values': (rule) => rewriteRuleReports(rule, skipSelectTag),
+} satisfies Record<string, (rule: RuleDefinition) => RuleDefinition>;
+
+const PATCHED_RULES = new WeakSet<object>();
+
+const patchPluginRules = (rules: Record<string, RuleDefinition>): void => {
+  for (const [ruleName, patch] of objectEntries(RULE_PATCHES)) {
     const rule = readOwnValue(rules, ruleName);
 
-    if (rule === undefined || FILTERED_RULES.has(rule)) {
+    if (rule === undefined || PATCHED_RULES.has(rule)) {
       continue;
     }
 
-    const filteredRule = filterRuleReports(rule, isKept);
+    const patchedRule = patch(rule);
 
-    FILTERED_RULES.add(filteredRule);
-    writeOwnValue(rules, ruleName, filteredRule);
+    PATCHED_RULES.add(patchedRule);
+    writeOwnValue(rules, ruleName, patchedRule);
   }
 };
 
@@ -683,7 +842,7 @@ export const html = async (): Promise<Config[]> => {
 
   const { languageOptions } = pluginHtml.configs['flat/recommended'];
 
-  filterPluginRuleReports(pluginHtml.rules);
+  patchPluginRules(pluginHtml.rules);
 
   return [
     {
