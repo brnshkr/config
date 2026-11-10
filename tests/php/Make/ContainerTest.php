@@ -22,10 +22,11 @@ final class ContainerTest extends TestCase
 {
     use ContainerTrait;
 
-    private const string SERVICE                  = 'php-app';
-    private const string OTHER_SERVICE            = 'alt';
-    private const string BUN_DIRECTORY            = __DIR__ . '/../Fixtures/Make/Bun';
-    private const string COMPOSE_SEARCH_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposeSearch';
+    private const string SERVICE                       = 'php-app';
+    private const string OTHER_SERVICE                 = 'alt';
+    private const string BUN_DIRECTORY                 = __DIR__ . '/../Fixtures/Make/Bun';
+    private const string COMPOSE_SEARCH_DIRECTORY      = __DIR__ . '/../Fixtures/Make/ComposeSearch';
+    private const string COMPOSE_ENVIRONMENT_DIRECTORY = __DIR__ . '/../Fixtures/Make/ComposeEnvironment';
 
     private const array EXPECTED_LOCATIONS_BY_MODE = [
         self::MODE_NATIVE => [
@@ -309,6 +310,36 @@ final class ContainerTest extends TestCase
 
         self::assertMatchesRegularExpression('/^' . self::SERVICE . '$/m', $service);
         self::assertMatchesRegularExpression('/^' . self::OTHER_SERVICE . '$/m', $other);
+    }
+
+    public function testAToolServiceRunsCommandsInAThrowawayContainerAndOpensNoShell(): void
+    {
+        $directory  = $this->getFixtureCopy(self::COMPOSE_ENVIRONMENT_DIRECTORY);
+        $filesystem = new Filesystem();
+
+        $environment = [
+            'APP_SERVICE'     => 'app',
+            'DOCKER'          => $directory . '/bin/docker',
+            'IS_IN_CONTAINER' => '',
+        ];
+
+        $filesystem->dumpFile($directory . '/bin/docker', "#!/bin/sh\nprintf 'services:\\n  app:\\n    working_dir: %s\\n  shellcheck:\\n' \"\$COMPOSE_FIXTURE_DIRECTORY\"\n");
+        $filesystem->chmod($directory . '/bin/docker', 0o755);
+
+        $toolExec = $this->runMake(['-n', 'shellcheck-exec', '--', 'shellcheck', '--version'], $environment, $directory);
+        $appExec  = $this->runMake(['-n', 'app-exec', '--', 'true'], $environment, $directory);
+        $appShell = $this->runMake(['-n', 'app-shell'], $environment, $directory);
+
+        self::assertMatchesRegularExpression('/ run --rm --no-deps .*\bshellcheck \'shellcheck\' \'--version\'$/m', $toolExec);
+        self::assertMatchesRegularExpression('/ exec .*\bapp \'true\'$/m', $appExec);
+        self::assertMatchesRegularExpression('/ exec .*\bapp +sh$/m', $appShell);
+
+        foreach (['shellcheck-shell', 'shellcheck-logs'] as $target) {
+            self::assertStringContainsString(
+                'Unknown command',
+                $this->runMake([$target], $environment, $directory, doExpectFailure: true),
+            );
+        }
     }
 
     /**

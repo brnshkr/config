@@ -2808,37 +2808,44 @@ $(call _target,shell): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-sh
 $(call _target,exec): _GOAL := $(call _target,exec)
 $(call _target,exec): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-exec #~~ runs a command in the service the tools run in, flags after `--`, quoted words through `ARGS`
 
-_SERVICE_ARGS       = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
-_TARGETED_SERVICES := $(filter-out $(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(_COMPOSE_SERVICES))
+_SERVICE_ARGS        = $(call _shell_quoted,$(filter-out $@,$(_ARGS)))
+_TARGETED_SERVICES  := $(filter-out $(if $(_IS_IN_STAGE),,$(DOTENV_STAGES)),$(_COMPOSE_SERVICES))
+_THROWAWAY_SERVICES := $(filter-out $(_TOOL_SERVICE),$(filter $(ACTIONLINT_SERVICE) $(HADOLINT_SERVICE) $(NODE_SERVICE) $(SEMGREP_SERVICE) $(SHELLCHECK_SERVICE),$(_TARGETED_SERVICES)))
+_ENTERED_SERVICES   := $(filter-out $(_THROWAWAY_SERVICES),$(_TARGETED_SERVICES))
 
 #**
-#* The goals one verb gives every service that has targets, `<service>-<verb>` each.
+#* The goals one verb gives each service, `<service>-<verb>` each.
 #*
 #* parameters:
 #*   verb: string
+#*   services: list<string>
 #*
 #* returns: list<string>
 #*
 define _service_targets
-$(patsubst %,$(_TARGET_PREFIX)%-$1,$(_TARGETED_SERVICES))
+$(patsubst %,$(_TARGET_PREFIX)%-$1,$2)
 endef
+
+ifneq ($(_ENTERED_SERVICES),) # entered services
+
+$(call _service_targets,shell,$(_ENTERED_SERVICES)): $(_TARGET_PREFIX)%-shell:
+	$(DEBUG_PREFIX)$(call _enter_service,$*) $(or $(_SERVICE_ARGS),$(SERVICE_SHELL))
+
+$(call _service_targets,logs,$(_ENTERED_SERVICES)): $(_TARGET_PREFIX)%-logs:
+	$(DEBUG_PREFIX)$(_COMPOSE) logs $(COMPOSE_LOGS_FLAGS) $* $(_SERVICE_ARGS)
+
+endif # /entered services
 
 ifneq ($(_TARGETED_SERVICES),) # services
 
-$(call _service_targets,shell): $(_TARGET_PREFIX)%-shell:
-	$(DEBUG_PREFIX)$(call _enter_service,$*) $(or $(_SERVICE_ARGS),$(SERVICE_SHELL))
-
-$(call _service_targets,logs): $(_TARGET_PREFIX)%-logs:
-	$(DEBUG_PREFIX)$(_COMPOSE) logs $(COMPOSE_LOGS_FLAGS) $* $(_SERVICE_ARGS)
-
-$(call _service_targets,exec): $(_TARGET_PREFIX)%-exec:
+$(call _service_targets,exec,$(_TARGETED_SERVICES)): $(_TARGET_PREFIX)%-exec:
 	$(TRACE_PREFIX)$(if $(_SERVICE_ARGS),:,{ \
 		$(call log,`%s` needs a command$(_COMMA) pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	})
-	$(DEBUG_PREFIX)$(call run_in,$*) $(_SERVICE_ARGS)
+	$(DEBUG_PREFIX)$(call _enter_service,$*,,$(if $(filter $*,$(_THROWAWAY_SERVICES)),run)) $(_SERVICE_ARGS)
 
-$(call _service_targets,build): $(_TARGET_PREFIX)%-build:
+$(call _service_targets,build,$(_TARGETED_SERVICES)): $(_TARGET_PREFIX)%-build:
 	$(DEBUG_PREFIX)$(_COMPOSE) build $(COMPOSE_BUILD_FLAGS) $(_SERVICE_ARGS) $*
 
 endif # /services

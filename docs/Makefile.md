@@ -100,6 +100,7 @@ when your JavaScript tools run on your machine.
 
 `$(RUN)` runs a command where the tools run, `$(call run_in,<service>)` in another service.
 `make up`, `make down`, `make shell`, and `make <service>-logs` manage the services.
+A tool's own service, e.g. `SHELLCHECK_SERVICE`, gets no `-shell` or `-logs`. Its `-exec` runs a throwaway container.
 
 ## Test matrix
 
