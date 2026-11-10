@@ -2,12 +2,18 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { createRequire } from 'node:module';
+import path from 'node:path';
+
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
 import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
-import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
+import { doesFileExist } from '#shared/utils/filesystem.ts';
 
 import type { Config } from '#eslint/types/config.ts';
+import type { ReportRewrite } from '#eslint/utils/rule-reports.ts';
 
 export const FILE_NAMES_TO_IGNORE = <const>[
   '__mocks__',
@@ -94,6 +100,23 @@ const COMMENT_TERMS = <const>[
   'Vitest',
 ];
 
+const skipInstalledPackageImports: ReportRewrite = (descriptor, context) => {
+  if (!('node' in descriptor) || (<{ type: string }><unknown>descriptor.node).type !== 'String') {
+    return descriptor;
+  }
+
+  const resource = String(descriptor.data?.['resource']);
+  const packageName = /^(?:@[^\/]+\/)?[^\/]+/v.exec(resource)?.[0] ?? resource;
+  const requireFromFile = createRequire(path.resolve(context.cwd, context.filename));
+  const packageDirectories = requireFromFile.resolve.paths(packageName) ?? [];
+
+  const isInstalledPackage = !resource.startsWith('.') && packageDirectories.some(
+    (directory) => doesFileExist(path.join(directory, packageName, 'package.json')),
+  );
+
+  return isInstalledPackage ? undefined : descriptor;
+};
+
 export const unicorn = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginUnicorn],
@@ -103,11 +126,21 @@ export const unicorn = async (): Promise<Config[]> => {
     return [];
   }
 
+  const missingLocalResourceRule = pluginUnicorn.rules?.['no-missing-local-resource'];
+
   return [
     {
       name: buildConfigName(MAIN_SCOPES.UNICORN, SUB_SCOPES.SETUP),
       plugins: {
-        unicorn: pluginUnicorn,
+        unicorn: (missingLocalResourceRule !== undefined && isModuleEnabled(MODULES.tailwind))
+          ? {
+            ...pluginUnicorn,
+            rules: {
+              ...pluginUnicorn.rules,
+              'no-missing-local-resource': rewriteRuleReports(missingLocalResourceRule, skipInstalledPackageImports),
+            },
+          }
+          : pluginUnicorn,
       },
     },
     {
