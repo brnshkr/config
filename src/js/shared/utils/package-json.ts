@@ -3,11 +3,14 @@
  */
 
 import manifest from '#package.json' with { type: 'json' };
+import { readOwnValue } from '#shared/utils/object.ts';
 
 import type { Maybe } from '#shared/types/core.ts';
 
+const manifestVersion = readOwnValue(<Readonly<Record<string, unknown>>>manifest, 'version');
+
 export const packageFullName = manifest.name;
-export const packageVersion = manifest.version;
+export const packageVersion = typeof manifestVersion === 'string' ? manifestVersion : '0.0.0-dev';
 
 export const packageOrganizationInternal = <Maybe<'brnshkr'>>manifest.name
   .split('/', 1)

@@ -167,12 +167,17 @@ final class ComposerJsonTest extends TestCase
         self::assertNull(self::fixture('plain')->getPackageType());
     }
 
-    public function testAManifestWithoutAVersionRefusesToNameOne(): void
+    public function testAManifestWithoutAVersionTakesTheInstalledOne(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Package version not found in "composer.json".');
+        self::assertSame(
+            InstalledVersions::getPrettyVersion('symfony/console'),
+            self::fixture('installed')->getPackageVersion(),
+        );
+    }
 
-        self::fixture('plain')->getPackageVersion();
+    public function testAManifestWithoutAVersionThatNothingInstalledIsADevelopmentVersion(): void
+    {
+        self::assertSame('0.0.0-dev', self::fixture('plain')->getPackageVersion());
     }
 
     public function testEachRequirementListReadsItsOwnSection(): void

@@ -246,9 +246,19 @@ final class ComposerJson
     {
         $data = $this->read();
 
-        return isset($data['version']) && is_string($data['version']) && !Str::isEmpty($data['version'])
-            ? $data['version']
-            : throw new RuntimeException('Package version not found in "composer.json".');
+        if (isset($data['version']) && is_string($data['version']) && !Str::isEmpty($data['version'])) {
+            return $data['version'];
+        }
+
+        $packageFullName = $this->getPackageFullName();
+
+        $installedVersion = $packageFullName !== null && InstalledVersions::isInstalled($packageFullName)
+            ? InstalledVersions::getPrettyVersion($packageFullName)
+            : null;
+
+        return $installedVersion === null || Str::isEmpty($installedVersion)
+            ? '0.0.0-dev'
+            : $installedVersion;
     }
 
     /**

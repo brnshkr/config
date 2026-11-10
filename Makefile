@@ -9,8 +9,6 @@ include ./conf/Makefile
 
 #--- release
 
-VERSION := 0.0.1-beta.10
-
 ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/Makefile.dist \
 	./conf/actionlint.dist.yaml \

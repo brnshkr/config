@@ -17,7 +17,6 @@ Stale guidance is worse than none.
   dry-run by default, `--isDryRun=false` writes),
   `project-tests-run --suite=php|js` (Pest or Vitest; `--filter`, `--doesUpdateSnapshots`, reports changed snapshots),
   `project-modules-list`/`project-module-config --module=<module>`,
-  `project-version-sync-check`,
   `project-rule-docs-audit`,
   `project-commitlint-check --message=<draft>`.
 - `phpstan-*`/`rector-*`: always pass `--configuration=conf/<tool>.dist.php`.
@@ -95,4 +94,4 @@ The rules `commitlint` enforces (`conf/commitlint.mjs`):
   (strip the `v` prefix); runtime (`require`, `dependencies`, `peerDependencies`) keep caret ranges.
 - A bumped tool raises its floor in the same change: the `peerDependencies` caret and the composer `conflict` range
   (`<new || >=next-major`).
-- Version in `package.json` ⇄ `composer.json` ⇄ `conf/Makefile` (`VERSION`) must match — `project-version-sync-check`.
+- Neither manifest names a version: the `release/*` branch names the release, and `make pack` stamps `VERSION` for its run.

@@ -4,22 +4,15 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Mate\Tool;
 
-use Brnshkr\Config\Json;
 use Brnshkr\Config\Mate\Support\Project;
-use JsonException;
-use RuntimeException;
 use Symfony\AI\Mate\Attribute\MateTool;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 use function array_diff;
 use function array_filter;
 use function array_values;
 use function in_array;
-use function is_string;
 use function sort;
-use function sprintf;
 use function Symfony\Component\String\s;
 
 /**
@@ -52,27 +45,6 @@ final class ProjectTool
         'require-rejects',
         'require-throws',
     ];
-
-    /**
-     * @throws IOException
-     * @throws JsonException
-     * @throws RuntimeException
-     */
-    #[MateTool(
-        name: 'project-version-sync-check',
-        description: 'Compares the version declared in package.json and composer.json, which must stay in sync (CI validates this).',
-    )]
-    public function checkVersionSync(): string
-    {
-        $packageVersion  = $this->getVersionOf('package.json');
-        $composerVersion = $this->getVersionOf('composer.json');
-
-        return Project::encode([
-            'packageJson'  => $packageVersion,
-            'composerJson' => $composerVersion,
-            'isInSync'     => $packageVersion === $composerVersion,
-        ]);
-    }
 
     #[MateTool(
         name: 'project-rule-docs-audit',
@@ -175,28 +147,6 @@ final class ProjectTool
             $this->getBasenames($directory, $namePattern, $extension),
             static fn (string $name): bool => $name !== '' && $name !== 'index',
         ));
-    }
-
-    /**
-     * @param non-empty-string $file
-     *
-     * @return non-empty-string
-     *
-     * @throws IOException
-     * @throws JsonException
-     * @throws RuntimeException
-     */
-    private function getVersionOf(string $file): string
-    {
-        $contents = new Filesystem()->readFile(sprintf('%s/%s', Project::getRootDirectory(), $file));
-        $manifest = Json::decode($contents);
-        $version  = $manifest['version'] ?? null;
-
-        if (!is_string($version) || $version === '') {
-            throw new RuntimeException(sprintf('Failed reading the version from "%s".', $file));
-        }
-
-        return $version;
     }
 
     /**

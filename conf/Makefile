@@ -3343,12 +3343,12 @@ $(call _target,bun-build): #~~ runs the `build` script of `package.json` #vv
 endif
 
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
-	$(TRACE_PREFIX)$(call _capture,NO_COLOR=1 $(BUN) pm pack --dry-run) | $(AWK) '/^packed /{ print $$3 }'
+	$(TRACE_PREFIX)$(call _capture,$(call _with_package_version,NO_COLOR=1 $(BUN) pm pack --dry-run)) | $(AWK) '/^packed /{ print $$3 }'
 
 $(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKAGE>` #vvv
 	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_BUN_PACKAGE_DIR)' \
-		&& $(BUN) pm pack --quiet --filename "$$app_scratch_directory/package.tgz" >/dev/null \
+		&& ($(call _with_package_version,$(BUN) pm pack --quiet --filename "$$app_scratch_directory/package.tgz" >/dev/null)) \
 		&& $(TAR) -xzf "$$scratch_directory/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1)
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
@@ -4823,6 +4823,24 @@ define _in_scratch_directory
 $(MKDIR) -p '$(CURDIR)/$(_CACHE_DIR)' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/$(_CACHE_DIR)/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 app_scratch_directory='$(APP_DIR)/$(_CACHE_DIR)/'"$${scratch_directory##*/}"; \
 { $1; }; status=$$?; $(RM) -rf "$$scratch_directory"; exit $$status
+endef
+
+#**
+#* Runs a command with `VERSION` stamped into a versionless `package.json`.
+#*
+#* parameters:
+#*   command: string
+#*
+#* returns: void
+#*
+define _with_package_version
+if [ "$$($(BUN) pm pkg get version)" != '{}' ]; then $1; else \
+	package_backup="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	$(CP) package.json "$$package_backup" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	trap '$(CP) "$$package_backup" package.json; $(RM) -f "$$package_backup"' EXIT; \
+	trap 'exit $(_INTERRUPT_EXIT_CODE)' $(_SIGNAL_INTERRUPT); \
+	$(BUN) pm pkg set version='$(VERSION)' && $1; \
+fi
 endef
 
 #**
