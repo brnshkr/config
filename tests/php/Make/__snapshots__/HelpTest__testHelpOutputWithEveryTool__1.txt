@@ -266,7 +266,7 @@ Variables:
   phpstan
    PHP_STAN                       ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs phpstan)
    PHP_STAN_CONFIG                ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
-   PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
+   PHP_STAN_FLAGS                 ?=  --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(M… (additional flags passed to phpstan)
   php-cs-fixer
    PHP_CS_FIXER                   ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs php-cs-fixer)
    PHP_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
@@ -609,7 +609,7 @@ Variables:
   phpstan
    PHP_STAN                        ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs phpstan)
    PHP_STAN_CONFIG                 ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to phpstan config)
-   PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to phpstan)
+   PHP_STAN_FLAGS                  ?=  --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(M… (additional flags passed to phpstan)
   php-cs-fixer
    PHP_CS_FIXER                    ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs php-cs-fixer)
    PHP_CS_FIXER_CONFIG             ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to php-cs-fixer config)
@@ -1728,7 +1728,7 @@ Available commands:
   [35mphpstan[0m
    [36mPHP_STAN                      [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs [35mphpstan[0m[90m)[0m
    [36mPHP_STAN_CONFIG               [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [35mphpstan[0m[90m config)[0m
-   [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [35mphpstan[0m[90m)[0m
+   [36mPHP_STAN_FLAGS                [0m  [90m?=  --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(M… (additional flags passed to [35mphpstan[0m[90m)[0m
   [35mphp-cs-fixer[0m
    [36mPHP_CS_FIXER                  [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs [35mphp-cs-fixer[0m[90m)[0m
    [36mPHP_CS_FIXER_CONFIG           [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [35mphp-cs-fixer[0m[90m config)[0m
@@ -2233,7 +2233,7 @@ Available commands:
   [33mphpstan[0m
    [32mPHP_STAN                      [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan   (command that runs [33mphpstan[0m[0m)[0m
    [32mPHP_STAN_CONFIG               [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpsta… (path to [33mphpstan[0m[0m config)[0m
-   [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PR… (additional flags passed to [33mphpstan[0m[0m)[0m
+   [32mPHP_STAN_FLAGS                [0m  [0m?=  --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(M… (additional flags passed to [33mphpstan[0m[0m)[0m
   [33mphp-cs-fixer[0m
    [32mPHP_CS_FIXER                  [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/php-cs-f… (command that runs [33mphp-cs-fixer[0m[0m)[0m
    [32mPHP_CS_FIXER_CONFIG           [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/php-cs… (path to [33mphp-cs-fixer[0m[0m config)[0m

@@ -3173,7 +3173,7 @@ ifneq ($(_HAS_PHPSTAN),) # phpstan
 
 PHP_STAN        ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/phpstan#v #~~ command that runs `phpstan`
 PHP_STAN_CONFIG ?= $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/phpstan.php $(APP_DIR)/$(_CONFIG_DIR)/phpstan.dist.php,php)#v #~~ path to `phpstan` config
-PHP_STAN_FLAGS  ?= --memory-limit=-1 $(_ANSI_OPTION) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
+PHP_STAN_FLAGS  ?= --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(MAKE_TERMOUT),--ansi)) $(if $(_IS_PROGRESS_HIDDEN),--no-progress) $(if $(_IS_DEBUG),-vvv,-vv)#v #~~ additional flags passed to `phpstan`
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
