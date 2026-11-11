@@ -1642,8 +1642,8 @@ _FIXER_ARGS = $(call _shell_quoted,$(call _without_dry_run,$(_ARGS)))
 _IS_DRY_RUN = $(or $(filter %-dry-run,$(_GOAL)),$(call _is_dry_run,$(_ARGS)))
 _DEBUG_FLAG = $(if $(filter %-debug,$(_GOAL)),--debug)
 
-_OPTION_VARIABLES = $(strip $(foreach NAME,$(filter -%,$(.VARIABLES)),$(if $(filter command line,$(origin $(NAME))),$(NAME))))
-_MAKE_ARGV        = $(eval _MAKE_ARGV := $$(shell { $$(TR) '\000' ' ' </proc/$$$$PPID/cmdline || $$(PS) -ww -o args= -p $$$$PPID; } 2>/dev/null))$(_MAKE_ARGV)
+_OPTION_VARIABLES  = $(strip $(foreach NAME,$(filter -%,$(.VARIABLES)),$(if $(filter command line,$(origin $(NAME))),$(NAME))))
+_MAKE_ARGV        := $(if $(_OPTION_VARIABLES),$(shell { $(TR) '\000' ' ' </proc/$$PPID/cmdline || $(PS) -ww -o args= -p $$PPID; } 2>/dev/null))
 
 _GOAL_WORDS = $(if $(and $(_OPTION_VARIABLES),$(_MAKE_ARGV)),$(foreach WORD,$(_MAKE_ARGV),$(if $(or \
 	$(filter $(WORD),$(MAKECMDGOALS)), \

@@ -32,5 +32,8 @@ show: #~~ prints what a tool sees of the environment
 		echo "declared=$$CONTAINER_FIXTURE_DECLARED"; echo "undeclared=$$CONTAINER_FIXTURE_UNDECLARED"; \
 		echo "editor=$$EDITOR_URL"; echo "do-not-track=$${DO_NOT_TRACK-unset}"'
 
+arguments: #~~ prints each argument it got on a line of its own
+	@printf '%s\n' $(ARGS)
+
 detect: #~~ prints whether make believes it runs in a container
 	@echo "in-container=$(IS_IN_CONTAINER)"

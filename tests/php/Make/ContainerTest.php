@@ -312,6 +312,13 @@ final class ContainerTest extends TestCase
         self::assertMatchesRegularExpression('/^' . self::OTHER_SERVICE . '$/m', $other);
     }
 
+    public function testAValueFlagAfterTheSeparatorKeepsEveryArgument(): void
+    {
+        $output = $this->runMakeIn(self::MODE_EXEC, ['arguments', '--', 'tools:call', 'acme', '--tool=user']);
+
+        self::assertSame("tools:call\nacme\n--tool=user\n", $output);
+    }
+
     public function testAToolServiceRunsCommandsInAThrowawayContainerAndOpensNoShell(): void
     {
         $directory  = $this->getFixtureCopy(self::COMPOSE_ENVIRONMENT_DIRECTORY);
