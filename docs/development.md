@@ -5,38 +5,16 @@ If you only consume the package, you want the [README](../README.md) and the per
 
 ## Setup
 
-With PHP 8.5 and Bun on this machine, one command installs everything:
+With Docker and Make installed, run this on a fresh clone:
 
 ```sh
 make startup
 ```
 
-`startup` installs each stack, writes the tool configs this repository does not track,
-builds `./dist/` and installs the git hooks.
-
-## ☕ JS
-
-Everything runs through `make`; `make help` lists what this checkout can actually run,
-and [`./docs/Makefile.md`](./Makefile.md) is the reference.
-Frequently used:
-
-- `make fix` — every fixer, writing its fixes
-- `make check` — every fixer and analyzer, writing nothing
-- `make ci` — `make fix`, `make check`, `make audit`, then `make test`
-- `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
-- `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
-- `make eslint-inspect` — inspect the ESLint configuration (needs Node),
-  `make eslint-inspect-stats` to also time every rule
-
-## 🐘 PHP
-
-The same `make` as above; [`./docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
-Frequently used:
-
-- `make phpstan` — static analysis, `make phpstan-list` for the files it reads
-- `make rector` — automated refactorings, `make rector-dry-run` to preview them
-- `make php-cs-fixer` — coding style, `make php-cs-fixer-dry-run` to preview
-- `make phpunit` — the PHP tests, `make phpunit-update` to update their snapshots
+It starts [Forge's `cli` container](https://github.com/brnshkr/forge/blob/HEAD/docs/compose/cli.md),
+installs the dependencies inside it, writes the tool configs this repository does not track,
+builds `./dist/`, and installs the Git hooks.
+`make help` lists every target. The [Makefile docs](./Makefile.md) explain the shared ones.
 
 ## 🤖 AI tooling
 

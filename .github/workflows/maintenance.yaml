@@ -1,0 +1,25 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: 20 16 * * 2,5
+
+  repository_dispatch:
+    types:
+      - brnshkr-release
+
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  maintenance:
+    name: Maintenance
+    permissions:
+      contents: read
+      security-events: write
+    uses: brnshkr/forge/.github/workflows/maintenance.yaml@876b158ac263123cc0830dbe4751034d07e27a57 # v0.0.1-alpha.1
+    secrets:
+      BOT_CLIENT_ID: ${{ secrets.BOT_CLIENT_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}

@@ -1,3 +1,5 @@
+env = false
+
 ###> brnshkr/config ###
 telemetry = false
 

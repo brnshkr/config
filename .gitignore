@@ -1,5 +1,8 @@
 ###> brnshkr/config ###
 /.cache/
+/.env.*.local
+/.env.local
+/.env.local.php
 /.local/
 /.vitest/
 /build/

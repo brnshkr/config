@@ -66,20 +66,14 @@ organized by stack and tool.
 
 ## 🧰 Prerequisites
 
-<!-- omit in toc -->
-### JS
+The PHP side needs PHP and Composer, with the version and extensions [`composer.json`](./composer.json) requires.
+The JS side runs on Bun or Node.js with any package manager.
 
-- Node.js >= v24.15 or Bun >= v1.4 (older versions may work, but are untested)
-- Any JavaScript package manager (Bun, Yarn, PNPM, NPM)
-
-<!-- omit in toc -->
-### PHP
-
-- PHP >= 8.5 (older versions may work, but are untested)
-- Composer >= 2.9 (older versions may work, but are untested)
-- PHP Extensions:
-  - `json`
-  - `mbstring`
+[@brnshkr/forge][forge-url] is optional.
+Its Docker images bring PHP, Composer, Bun, and every tool this package configures.
+The CI of @brnshkr/config runs on the same images, with the versions pinned in forge's [`.env`](https://github.com/brnshkr/forge/blob/HEAD/.env).
+To set up a library, a PHP app, or a Bun app, follow one of the
+[forge guides](https://github.com/brnshkr/forge/blob/HEAD/docs/guides).
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -324,7 +318,7 @@ Further details can be found in the [commitlint configuration](https://github.co
 
 ### ⚙️ Workflows
 
-See [./.github/workflows](https://github.com/brnshkr/config/blob/master/.github/workflows) for more information.
+See the [@brnshkr/forge workflows](https://github.com/brnshkr/forge/blob/HEAD/docs/github/index.md) for more information.
 
 <p align="right"><a href="#top" title="Back to top">&nbsp;&nbsp;&nbsp;⬆&nbsp;&nbsp;&nbsp;</a></p>
 
@@ -392,6 +386,7 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for more information
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [@brnshkr-organization-url]: https://github.com/brnshkr
+[forge-url]: https://github.com/brnshkr/forge
 
 [semver-2.0.0-url]: https://semver.org/#semantic-versioning-200
 [semver-2.0.0-shield-url]: https://img.shields.io/badge/semver-2.0.0-blue?label=🔖%20semver&style=flat-square&labelColor=%237f399d&color=%23a5097e
