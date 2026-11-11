@@ -7,7 +7,7 @@ import { MODULES, PACKAGES, resolvePackages } from '#markdownlint/utils/module.t
 
 import type { Config } from '#markdownlint/types/config.ts';
 
-// NOTICE: the package declares no entry point at all, so only its rule file can be imported
+// NOTICE: The package declares no entry point at all, so only its rule file can be imported
 const NO_TRAILING_SLASH_IN_LINKS_RULE = `${
   PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS
 }/src/no-trailing-slash-in-links.js`;

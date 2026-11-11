@@ -33,7 +33,7 @@ beforeEach(() => {
   clearPublicApiResolutionCache();
 });
 
-// NOTICE: the trait also declares the named-argument tags, which back rules that exist only in PHP
+// NOTICE: The trait also declares the named-argument tags, which back rules that exist only in PHP
 // because named arguments have no JavaScript equivalent. They are excluded by name rather than by
 // weakening the assertion, so a tag added on the PHP side still fails here until someone decides.
 const PHP_ONLY_TAGS = new Set<string>(['named-arguments', 'no-named-arguments']);

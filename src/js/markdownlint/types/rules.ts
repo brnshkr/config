@@ -29,7 +29,7 @@ export interface SearchReplaceRule {
   searchScope?: SearchScope;
 }
 
-// NOTICE: no plugin ships a JSON Schema, so none of these can be generated the way the built-in rules are
+// NOTICE: No plugin ships a JSON Schema, so none of these can be generated the way the built-in rules are
 export interface CustomRules {
   'fenced-code-fence-length': boolean | FencedCodeFenceLengthConfig;
   'heading-sentence-case': boolean | HeadingSentenceCaseConfig;

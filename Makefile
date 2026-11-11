@@ -62,7 +62,7 @@ MV       := mv#vvv #~~ path to `mv` binary
 # https://github.com/advisories/GHSA-vfj7-8cjw-p6xm, https://github.com/micromatch/braces/issues/70
 BUN_AUDIT_FLAGS += --ignore GHSA-vfj7-8cjw-p6xm
 
-# NOTICE: only `minimatch` 11 fixes it, a major ESLint's dependencies do not accept yet:
+# NOTICE: Only `minimatch` 11 fixes it, a major ESLint's dependencies do not accept yet:
 # https://github.com/advisories/GHSA-g3hv-75wg-m249
 BUN_AUDIT_FLAGS += --ignore GHSA-g3hv-75wg-m249
 

@@ -520,7 +520,7 @@ $(error [$(_LABEL)] `$(_LABEL)` cannot name a package, so fix the manifest's `na
 endif
 
 DEBUG               ?= #~~ whether each command is echoed
-unexport DEBUG       # NOTICE: the `debug` package reads this from the environment
+unexport DEBUG       # NOTICE: The `debug` package reads this from the environment
 DEBUG_PREFIX        ?= $(_ANNOUNCE)$(if $(or $(_IS_DEBUG),$(_IS_TRACE)),,@)#vvv #~~ prefix for a command
 _IS_DEBUG            = $(filter-out $(_FALSE),$(DEBUG))
 export BRNSHKR_DEBUG = $(if $(_IS_DEBUG),1)
@@ -3441,7 +3441,7 @@ $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file
 
 ifneq ($(_HAS_ESLINT_INSPECT),) # eslint-inspect
 
-# NOTICE: runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
+# NOTICE: Runs on node since bun has no `module.registerHooks` (https://github.com/oven-sh/bun/issues/27369)
 ESLINT_CONFIG_INSPECTOR       ?= $(if $(_IS_ESLINT_INSPECT_SERVED),$(call _serve_in,$(NODE_SERVICE),$(ESLINT_CONFIG_INSPECTOR_PORT)) node $(APP_DIR),$(NODE) $(CURDIR))/node_modules/.bin/eslint-config-inspector#v #~~ command that runs `eslint-config-inspector`
 ESLINT_CONFIG_INSPECTOR_PORT  ?= 7777#v #~~ port `eslint-config-inspector` serves on
 ESLINT_CONFIG_INSPECTOR_FLAGS ?= #v #~~ additional flags passed to `eslint-config-inspector`
