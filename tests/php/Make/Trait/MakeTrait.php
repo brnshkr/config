@@ -6,7 +6,7 @@ namespace Brnshkr\Config\Tests\Make\Trait;
 
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
-use PHPUnit\Framework\Attributes\After;
+use Brnshkr\Config\Tests\Trait\TemporaryRootTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SebastianBergmann\Diff\Differ;
@@ -19,13 +19,10 @@ use function array_chunk;
 use function array_first;
 use function array_key_first;
 use function array_map;
-use function bin2hex;
 use function getenv;
 use function md5;
-use function random_bytes;
 use function sprintf;
 use function Symfony\Component\String\s;
-use function sys_get_temp_dir;
 use function uasort;
 
 /**
@@ -35,6 +32,8 @@ use function uasort;
  */
 trait MakeTrait
 {
+    use TemporaryRootTrait;
+
     protected const array COLORED_ENV = [
         'NO_COLOR'    => '',
         'FORCE_COLOR' => '1',
@@ -72,23 +71,6 @@ trait MakeTrait
      */
     private array $fixtureCopies = [];
 
-    /**
-     * @var list<string>
-     */
-    private array $fixtureRoots = [];
-
-    #[After]
-    public function removeTheFixtureRoots(): void
-    {
-        foreach ($this->fixtureRoots as $fixtureRoot) {
-            if (!Str::startsWith($fixtureRoot, sys_get_temp_dir() . '/' . self::FIXTURE_ROOT_PREFIX)) {
-                throw new RuntimeException(sprintf('`%s` is no fixture root, so it is not removed.', $fixtureRoot));
-            }
-        }
-
-        new Filesystem()->remove($this->fixtureRoots);
-    }
-
     private function getFixtureCopy(string $fixtureDirectory): string
     {
         return $this->fixtureCopies[$fixtureDirectory] ??= $this->createFixtureCopy($fixtureDirectory);
@@ -107,10 +89,8 @@ trait MakeTrait
 
     private function createFixtureRoot(): string
     {
-        $fixtureRoot = sys_get_temp_dir() . '/' . self::FIXTURE_ROOT_PREFIX . bin2hex(random_bytes(6));
+        $fixtureRoot = $this->createTemporaryRoot(self::FIXTURE_ROOT_PREFIX);
         $filesystem  = new Filesystem();
-
-        $this->fixtureRoots[] = $fixtureRoot;
 
         $finder = new Finder()
             ->in(self::getRealPath(self::PROJECT_DIRECTORY))
@@ -281,8 +261,9 @@ trait MakeTrait
     {
         return [
             ...array_map(static fn (): false => false, getenv()),
-            'HOME' => Str::fromEnvironment('HOME'),
-            'PATH' => self::STUBS_DIRECTORY . '/bin:' . (Str::fromEnvironment('PATH') ?: throw new RuntimeException('`PATH` is not set.')),
+            'GIT_CEILING_DIRECTORIES' => self::getTemporaryDirectory(),
+            'HOME'                    => Str::fromEnvironment('HOME'),
+            'PATH'                    => self::STUBS_DIRECTORY . '/bin:' . (Str::fromEnvironment('PATH') ?: throw new RuntimeException('`PATH` is not set.')),
             ...self::BASELINE_ENV,
         ];
     }

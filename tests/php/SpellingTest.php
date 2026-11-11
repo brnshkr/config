@@ -9,7 +9,7 @@ use Brnshkr\Config\Process;
 use Brnshkr\Config\ProjectDirectory;
 use Brnshkr\Config\Spelling;
 use Brnshkr\Config\Str;
-use PHPUnit\Framework\Attributes\After;
+use Brnshkr\Config\Tests\Trait\TemporaryRootTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -21,10 +21,7 @@ use Symfony\Component\Process\Process as SymfonyProcess;
 use function array_column;
 use function array_unique;
 use function array_values;
-use function bin2hex;
-use function random_bytes;
 use function sprintf;
-use function sys_get_temp_dir;
 
 /**
  * @internal
@@ -36,6 +33,8 @@ use function sys_get_temp_dir;
 #[UsesClass(Str::class)]
 final class SpellingTest extends TestCase
 {
+    use TemporaryRootTrait;
+
     private const string CORPUS_CONFIG = 'tests/php/Fixtures/Spelling/spelling.json';
 
     private const string EXTRA_SUFFIX_CONFIG = 'tests/php/Fixtures/Spelling/extra-suffix.json';
@@ -46,23 +45,6 @@ final class SpellingTest extends TestCase
     ];
 
     private const string TEMPORARY_ROOT_PREFIX = 'brnshkr-spelling-';
-
-    /**
-     * @var list<non-empty-string>
-     */
-    private array $temporaryRoots = [];
-
-    #[After]
-    public function removeTheTemporaryRoots(): void
-    {
-        foreach ($this->temporaryRoots as $temporaryRoot) {
-            if (!Str::startsWith($temporaryRoot, sys_get_temp_dir() . '/' . self::TEMPORARY_ROOT_PREFIX)) {
-                throw new RuntimeException(sprintf('`%s` is no temporary root, so it is not removed.', $temporaryRoot));
-            }
-        }
-
-        new Filesystem()->remove($this->temporaryRoots);
-    }
 
     public function testReportsBritishSpellingsWithTheirCorrection(): void
     {
@@ -181,7 +163,7 @@ final class SpellingTest extends TestCase
 
     public function testScansOnlyTheTrackedFilesTheSettingsName(): void
     {
-        $repositoryRoot = $this->createTemporaryRoot();
+        $repositoryRoot = $this->createTemporaryRoot(self::TEMPORARY_ROOT_PREFIX);
         $filesystem     = new Filesystem();
 
         foreach (['notes.md', 'Makefile', 'notes.txt', 'tests/fixtures/notes.md', 'gone.md', 'untracked.md'] as $filePath) {
@@ -216,9 +198,9 @@ final class SpellingTest extends TestCase
 
     public function testFailsNamingTheDirectoryGitCannotList(): void
     {
-        $directory = $this->createTemporaryRoot();
+        $directory = $this->createTemporaryRoot(self::TEMPORARY_ROOT_PREFIX);
 
-        new Filesystem()->mkdir($directory);
+        new Filesystem()->dumpFile($directory . '/.git', 'no repository');
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIsOrContains(sprintf('"git ls-files -z" failed in "%s" with exit code 128.', $directory));
@@ -274,18 +256,6 @@ final class SpellingTest extends TestCase
     private function scanCorpus(string $configPath = self::CORPUS_CONFIG): array
     {
         return Spelling::scan($this->getRepositoryRoot(), $configPath, self::CORPUS_PATHS);
-    }
-
-    /**
-     * @return non-empty-string
-     */
-    private function createTemporaryRoot(): string
-    {
-        $temporaryRoot = sys_get_temp_dir() . '/' . self::TEMPORARY_ROOT_PREFIX . bin2hex(random_bytes(6));
-
-        $this->temporaryRoots[] = $temporaryRoot;
-
-        return $temporaryRoot;
     }
 
     /**

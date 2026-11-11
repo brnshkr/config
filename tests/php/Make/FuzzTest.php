@@ -126,7 +126,7 @@ final class FuzzTest extends TestCase
         }
 
         $finder = new Finder()
-            ->in($this->fixtureRoots)
+            ->in($this->temporaryRoots)
             ->name(self::SENTINEL)
             ->ignoreDotFiles(false)
             ->ignoreVCS(false)
