@@ -4099,8 +4099,8 @@ endef
 define _INTERRUPT_SCRIPT_SOURCE
 export BRNSHKR_EXEC_ID=$$$$;
 interrupt() {
-  for service in $$($(_COMPOSE) ps --services --status running 2>/dev/null); do
-    $(_COMPOSE) exec -T "$$service" sh -c "for environment in /proc/[0-9]*/environ; do
+  for container in $$($(DOCKER) ps $(_COMPOSE_CONTAINERS) --format {{.Names}} 2>/dev/null); do
+    $(DOCKER) exec "$$container" sh -c "for environment in /proc/[0-9]*/environ; do
       if grep -qs BRNSHKR_EXEC_ID=$$BRNSHKR_EXEC_ID \"\$$environment\"; then
         process=\$${environment#/proc/};
         kill -INT \"\$${process%/environ}\" 2>/dev/null;
