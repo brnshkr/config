@@ -11,6 +11,7 @@ import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
 import { doesFileExist } from '#shared/utils/filesystem.ts';
+import { TERMS } from '#shared/utils/terms.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 import type { ReportRewrite } from '#eslint/utils/rule-reports.ts';
@@ -85,22 +86,6 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'VERSIONING.md',
 ] satisfies string[];
 
-const COMMENT_TERMS = <const>[
-  'commitlint',
-  'JSDoc',
-  'PHP',
-  'PHPStan',
-  'PHPUnit',
-  'pnpm',
-  'PostCSS',
-  'SCSS',
-  'Stylelint',
-  'Symfony',
-  'TOML',
-  'TSDoc',
-  'Vitest',
-];
-
 const skipInstalledPackageImports: ReportRewrite = (descriptor, context) => {
   if (!('node' in descriptor) || (<{ type: string }><unknown>descriptor.node).type !== 'String') {
     return descriptor;
@@ -163,8 +148,8 @@ export const unicorn = async (): Promise<Config[]> => {
                 replacement: 'HTML',
                 caseSensitive: false,
               },
-              ...Object.fromEntries(COMMENT_TERMS.map((term) => [
-                String.raw`\b${term}\b`,
+              ...Object.fromEntries(TERMS.map((term) => [
+                String.raw`\b${term.replaceAll('.', String.raw`\.`)}\b`,
                 {
                   replacement: term,
                   caseSensitive: false,

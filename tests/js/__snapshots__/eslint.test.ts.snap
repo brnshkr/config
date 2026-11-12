@@ -11515,9 +11515,89 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
             "caseSensitive": false,
             "replacement": "HTML",
           },
+          "\\bBun\\b": {
+            "caseSensitive": false,
+            "replacement": "Bun",
+          },
+          "\\bCaddy\\b": {
+            "caseSensitive": false,
+            "replacement": "Caddy",
+          },
+          "\\bCommonMark\\b": {
+            "caseSensitive": false,
+            "replacement": "CommonMark",
+          },
+          "\\bDependabot\\b": {
+            "caseSensitive": false,
+            "replacement": "Dependabot",
+          },
+          "\\bDoctrine\\b": {
+            "caseSensitive": false,
+            "replacement": "Doctrine",
+          },
+          "\\bESLint\\b": {
+            "caseSensitive": false,
+            "replacement": "ESLint",
+          },
+          "\\bFrankenPHP\\b": {
+            "caseSensitive": false,
+            "replacement": "FrankenPHP",
+          },
+          "\\bGitHub Actions\\b": {
+            "caseSensitive": false,
+            "replacement": "GitHub Actions",
+          },
+          "\\bGitHub\\b": {
+            "caseSensitive": false,
+            "replacement": "GitHub",
+          },
+          "\\bGitLab\\b": {
+            "caseSensitive": false,
+            "replacement": "GitLab",
+          },
+          "\\bGitleaks\\b": {
+            "caseSensitive": false,
+            "replacement": "Gitleaks",
+          },
+          "\\bICU\\b": {
+            "caseSensitive": false,
+            "replacement": "ICU",
+          },
           "\\bJSDoc\\b": {
             "caseSensitive": false,
             "replacement": "JSDoc",
+          },
+          "\\bJSONC\\b": {
+            "caseSensitive": false,
+            "replacement": "JSONC",
+          },
+          "\\bJavaScript\\b": {
+            "caseSensitive": false,
+            "replacement": "JavaScript",
+          },
+          "\\bLaravel\\b": {
+            "caseSensitive": false,
+            "replacement": "Laravel",
+          },
+          "\\bMarkdown\\b": {
+            "caseSensitive": false,
+            "replacement": "Markdown",
+          },
+          "\\bNode\\.js\\b": {
+            "caseSensitive": false,
+            "replacement": "Node.js",
+          },
+          "\\bOCI\\b": {
+            "caseSensitive": false,
+            "replacement": "OCI",
+          },
+          "\\bPCRE\\b": {
+            "caseSensitive": false,
+            "replacement": "PCRE",
+          },
+          "\\bPHP-CS-Fixer\\b": {
+            "caseSensitive": false,
+            "replacement": "PHP-CS-Fixer",
           },
           "\\bPHPStan\\b": {
             "caseSensitive": false,
@@ -11531,17 +11611,57 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
             "caseSensitive": false,
             "replacement": "PHP",
           },
+          "\\bPHPat\\b": {
+            "caseSensitive": false,
+            "replacement": "PHPat",
+          },
+          "\\bPSR\\b": {
+            "caseSensitive": false,
+            "replacement": "PSR",
+          },
+          "\\bPackagist\\b": {
+            "caseSensitive": false,
+            "replacement": "Packagist",
+          },
           "\\bPostCSS\\b": {
             "caseSensitive": false,
             "replacement": "PostCSS",
+          },
+          "\\bRector\\b": {
+            "caseSensitive": false,
+            "replacement": "Rector",
+          },
+          "\\bSARIF\\b": {
+            "caseSensitive": false,
+            "replacement": "SARIF",
           },
           "\\bSCSS\\b": {
             "caseSensitive": false,
             "replacement": "SCSS",
           },
+          "\\bSass\\b": {
+            "caseSensitive": false,
+            "replacement": "Sass",
+          },
+          "\\bSemVer\\b": {
+            "caseSensitive": false,
+            "replacement": "SemVer",
+          },
+          "\\bSemgrep\\b": {
+            "caseSensitive": false,
+            "replacement": "Semgrep",
+          },
+          "\\bShellCheck\\b": {
+            "caseSensitive": false,
+            "replacement": "ShellCheck",
+          },
           "\\bStylelint\\b": {
             "caseSensitive": false,
             "replacement": "Stylelint",
+          },
+          "\\bSvelteKit\\b": {
+            "caseSensitive": false,
+            "replacement": "SvelteKit",
           },
           "\\bSymfony\\b": {
             "caseSensitive": false,
@@ -11555,9 +11675,53 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
             "caseSensitive": false,
             "replacement": "TSDoc",
           },
+          "\\bTailwind CSS\\b": {
+            "caseSensitive": false,
+            "replacement": "Tailwind CSS",
+          },
+          "\\bTrivy\\b": {
+            "caseSensitive": false,
+            "replacement": "Trivy",
+          },
+          "\\bTwig\\b": {
+            "caseSensitive": false,
+            "replacement": "Twig",
+          },
+          "\\bTypeScript\\b": {
+            "caseSensitive": false,
+            "replacement": "TypeScript",
+          },
+          "\\bVS Code\\b": {
+            "caseSensitive": false,
+            "replacement": "VS Code",
+          },
+          "\\bValkey\\b": {
+            "caseSensitive": false,
+            "replacement": "Valkey",
+          },
           "\\bVitest\\b": {
             "caseSensitive": false,
             "replacement": "Vitest",
+          },
+          "\\bWCAG\\b": {
+            "caseSensitive": false,
+            "replacement": "WCAG",
+          },
+          "\\bWSL\\b": {
+            "caseSensitive": false,
+            "replacement": "WSL",
+          },
+          "\\bXdebug\\b": {
+            "caseSensitive": false,
+            "replacement": "Xdebug",
+          },
+          "\\bYarn\\b": {
+            "caseSensitive": false,
+            "replacement": "Yarn",
+          },
+          "\\bactionlint\\b": {
+            "caseSensitive": false,
+            "replacement": "actionlint",
           },
           "\\bapplication\\b(?!/)": false,
           "\\bapplications\\b": false,
@@ -11565,10 +11729,26 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
             "caseSensitive": false,
             "replacement": "commitlint",
           },
+          "\\bhadolint\\b": {
+            "caseSensitive": false,
+            "replacement": "hadolint",
+          },
           "\\bhtml\\b": false,
+          "\\bmarkdownlint\\b": {
+            "caseSensitive": false,
+            "replacement": "markdownlint",
+          },
           "\\bpnpm\\b": {
             "caseSensitive": false,
             "replacement": "pnpm",
+          },
+          "\\btsdown\\b": {
+            "caseSensitive": false,
+            "replacement": "tsdown",
+          },
+          "\\btypescript-eslint\\b": {
+            "caseSensitive": false,
+            "replacement": "typescript-eslint",
           },
         },
       },

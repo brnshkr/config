@@ -49,14 +49,14 @@ export interface NodeOptions {
 
 export interface MarkdownOptions {
   /**
-   * The language to use for parsing markdown files.
+   * The language to use for parsing Markdown files.
    *
    * @default 'markdown/commonmark'
    */
   language: `markdown/${'commonmark' | 'gfm'}`;
 
   /**
-   * Enables parsing of frontmatter in markdown files.
+   * Enables parsing of frontmatter in Markdown files.
    *
    * @default false
    */

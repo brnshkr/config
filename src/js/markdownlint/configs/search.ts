@@ -6,9 +6,16 @@ import { resolveCustomRule } from '#markdownlint/utils/config.ts';
 import { MODULES, PACKAGES, resolvePackages } from '#markdownlint/utils/module.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 import { createPattern } from '#shared/utils/pattern.ts';
+import { TERMS } from '#shared/utils/terms.ts';
 
 import type { Config } from '#markdownlint/types/config.ts';
 import type { SearchReplaceRule } from '#markdownlint/types/rules.ts';
+
+const SEPARATOR_PATTERNS = new Map([
+  ['-', '-?'],
+  ['.', String.raw`\.?`],
+  [' ', ' ?'],
+]);
 
 const RULES = <const>[
   {
@@ -76,41 +83,21 @@ const RULES = <const>[
   },
   {
     name: 'tool-names',
-    message: 'Spell a tool the way its own project spells it.',
-    search: [
-      'Javascript',
-      'Typescript',
-      'Github',
-      'Gitlab',
-      'Eslint',
-      'StyleLint',
-      'Markdownlint',
-      'Commitlint',
-      'Phpstan',
-      'PHPstan',
-      'Phpunit',
-      'PHPunit',
-      'VSCode',
-      'Vscode',
-      'Nodejs',
-    ],
-    replace: [
-      'JavaScript',
-      'TypeScript',
-      'GitHub',
-      'GitLab',
-      'ESLint',
-      'Stylelint',
-      'markdownlint',
-      'commitlint',
-      'PHPStan',
-      'PHPStan',
-      'PHPUnit',
-      'PHPUnit',
-      'VS Code',
-      'VS Code',
-      'Node.js',
-    ],
+    message: 'Spell a name the way its own project spells it.',
+    searchPattern: TERMS.map((term) => {
+      const exactPatterns = [
+        term,
+        term.toLowerCase(),
+      ].map((spelling) => spelling.replaceAll('.', String.raw`\.`));
+
+      const anyCasingPattern = term.replaceAll(
+        /[\p{Letter} \-.]/gv,
+        (character) => SEPARATOR_PATTERNS.get(character) ?? `[${character.toUpperCase()}${character.toLowerCase()}]`,
+      );
+
+      return String.raw`/(?<![\w./@-])(?!(?:${exactPatterns.join('|')})(?![\w-]))${anyCasingPattern}(?![\w-])/gu`;
+    }),
+    replace: [...TERMS],
     searchScope: 'text',
   },
 ] satisfies SearchReplaceRule[];

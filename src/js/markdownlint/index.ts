@@ -103,7 +103,7 @@ export const getConfig = (
 };
 
 /**
- * Default-exported pre-built config for direct re-export from a Markdownlint config file.
+ * Default-exported pre-built config for direct re-export from a markdownlint config file.
  *
  * @api
  */
