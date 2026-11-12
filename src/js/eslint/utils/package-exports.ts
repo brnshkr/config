@@ -147,7 +147,9 @@ const resolveImportSpecifier = (
   const candidates = buildSourceCandidates(absoluteBase, sourceExtensions);
 
   return findFirstExistingFile(
-    path.extname(absoluteBase) === '' ? candidates : [absoluteBase, ...candidates],
+    path.extname(absoluteBase) === ''
+      ? candidates
+      : [absoluteBase, ...candidates],
   );
 };
 
@@ -251,7 +253,11 @@ export const resolvePackageApiSources = (
   const packageRoot = path.dirname(packageJsonPath);
   const distributionRoot = options.distRoot ?? DEFAULT_DIST_ROOT;
   const sourceExtensions = options.srcExtensions ?? DEFAULT_SRC_EXTENSIONS;
-  const sourceRoots = options.srcRoot === undefined ? SRC_ROOT_CANDIDATES : [options.srcRoot];
+
+  const sourceRoots = options.srcRoot === undefined
+    ? SRC_ROOT_CANDIDATES
+    : [options.srcRoot];
+
   const normalizedDistribution = `${normalizeRoot(distributionRoot)}/`;
   const exportEntries: string[] = [];
 

@@ -58,81 +58,103 @@ export const style = async (): Promise<Config[]> => {
         ...renameRules(styleConfig.rules, { '@stylistic': 'style' }),
         'style/array-bracket-newline': ['error', 'consistent'],
         'style/array-element-newline': ['error', 'consistent'],
-        'style/exp-jsx-props-style': ['error', {
-          singleLine: {
-            maxItems: 3,
+        'style/exp-jsx-props-style': [
+          'error',
+          {
+            singleLine: {
+              maxItems: 3,
+            },
+            multiLine: {
+              minItems: 2,
+              maxItemsPerLine: 1,
+            },
           },
-          multiLine: {
-            minItems: 2,
-            maxItemsPerLine: 1,
+        ],
+        'style/exp-list-style': [
+          'error',
+          {
+            singleLine: {
+              spacing: 'never',
+              maxItems: 3,
+            },
+            multiLine: {
+              minItems: 1,
+            },
           },
-        }],
-        'style/exp-list-style': ['error', {
-          singleLine: {
-            spacing: 'never',
-            maxItems: 3,
-          },
-          multiLine: {
-            minItems: 1,
-          },
-        }],
+        ],
         'style/function-call-argument-newline': ['error', 'consistent'],
         'style/function-call-spacing': 'error',
         'style/function-paren-newline': ['error', 'multiline-arguments'],
-        'style/generator-star-spacing': ['error', {
-          before: false,
-          after: true,
-          method: 'before',
-          shorthand: 'neither',
-        }],
+        'style/generator-star-spacing': [
+          'error',
+          {
+            before: false,
+            after: true,
+            method: 'before',
+            shorthand: 'neither',
+          },
+        ],
         'style/implicit-arrow-linebreak': 'error',
-        'style/indent': ['error', INDENT, {
-          ...indentRuleConfig,
-          offsetTernaryExpressions: false,
-        }],
+        'style/indent': [
+          'error',
+          INDENT,
+          {
+            ...indentRuleConfig,
+            offsetTernaryExpressions: false,
+          },
+        ],
         'style/jsx-child-element-spacing': 'error',
         'style/jsx-pascal-case': 'error',
         'style/jsx-self-closing-comp': 'error',
-        'style/jsx-newline': ['error', {
-          prevent: true,
-          allowMultilines: true,
-        }],
+        'style/jsx-newline': [
+          'error',
+          {
+            prevent: true,
+            allowMultilines: true,
+          },
+        ],
         'style/line-comment-position': 'error',
         'style/linebreak-style': 'error',
-        'style/lines-around-comment': ['error', {
-          // eslint-disable-next-line no-warning-comments -- (style)
-          // TODO: Change `beforeBlockComment` back to true eventually
-          //
-          // Problematic case (conflict with padding-line-between-statements):
-          //
-          // const a = 1;
-          //
-          // /**
-          //  * @returns {number}
-          //  */
-          // const b = () => 2;
-          //
-          // @see https://github.com/eslint-stylistic/eslint-stylistic/issues/417
-          // @see https://github.com/eslint-stylistic/eslint-stylistic/issues/989
-          beforeBlockComment: false,
-          afterHashbangComment: true,
-          allowBlockStart: true,
-          allowObjectStart: true,
-          allowArrayStart: true,
-          allowClassStart: true,
-          allowEnumStart: true,
-          allowInterfaceStart: true,
-          allowModuleStart: true,
-          allowTypeStart: true,
-        }],
-        'style/max-len': ['error', {
-          code: MAX_LEN,
-          tabWidth: INDENT,
-          ignoreUrls: true,
-          ignoreStrings: true,
-          ignoreComments: true,
-          ignoreRegExpLiterals: true,
-        }],
+        'style/lines-around-comment': [
+          'error',
+          {
+            // eslint-disable-next-line no-warning-comments -- (style)
+            // TODO: Change `beforeBlockComment` back to true eventually
+            //
+            // Problematic case (conflict with padding-line-between-statements):
+            //
+            // const a = 1;
+            //
+            // /**
+            //  * @returns {number}
+            //  */
+            // const b = () => 2;
+            //
+            // @see https://github.com/eslint-stylistic/eslint-stylistic/issues/417
+            // @see https://github.com/eslint-stylistic/eslint-stylistic/issues/989
+            beforeBlockComment: false,
+            afterHashbangComment: true,
+            allowBlockStart: true,
+            allowObjectStart: true,
+            allowArrayStart: true,
+            allowClassStart: true,
+            allowEnumStart: true,
+            allowInterfaceStart: true,
+            allowModuleStart: true,
+            allowTypeStart: true,
+          },
+        ],
+        'style/max-len': [
+          'error',
+          {
+            code: MAX_LEN,
+            tabWidth: INDENT,
+            ignoreUrls: true,
+            ignoreStrings: true,
+            ignoreComments: true,
+            ignoreRegExpLiterals: true,
+          },
+        ],
         'style/newline-per-chained-call': 'error',
         'style/no-confusing-arrow': 'error',
         'style/no-extra-parens': [
@@ -151,93 +173,109 @@ export const style = async (): Promise<Config[]> => {
           },
         ],
         'style/no-extra-semi': 'error',
-        'style/no-mixed-operators': ['error', {
-          allowSamePrecedence: false,
-          groups: [
-            [
-              '+',
-              '-',
-              '*',
-              '/',
-              '%',
-              '**',
-              '??',
+        'style/no-mixed-operators': [
+          'error',
+          {
+            allowSamePrecedence: false,
+            groups: [
+              [
+                '+',
+                '-',
+                '*',
+                '/',
+                '%',
+                '**',
+                '??',
+              ],
+              [
+                '&',
+                '|',
+                '^',
+                '~',
+                '<<',
+                '>>',
+                '>>>',
+                '??',
+              ],
+              [
+                '==',
+                '!=',
+                '===',
+                '!==',
+                '>',
+                '>=',
+                '<',
+                '<=',
+                '??',
+              ],
+              [
+                '&&',
+                '||',
+                '?:',
+                '??',
+              ],
+              [
+                'in',
+                'instanceof',
+                '??',
+              ],
             ],
-            [
-              '&',
-              '|',
-              '^',
-              '~',
-              '<<',
-              '>>',
-              '>>>',
-              '??',
-            ],
-            [
-              '==',
-              '!=',
-              '===',
-              '!==',
-              '>',
-              '>=',
-              '<',
-              '<=',
-              '??',
-            ],
-            [
-              '&&',
-              '||',
-              '?:',
-              '??',
-            ],
-            [
-              'in',
-              'instanceof',
-              '??',
-            ],
-          ],
-        }],
-        'style/no-multiple-empty-lines': ['error', {
-          max: MAX_EMPTY_LINES,
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          maxBOF: 0,
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          maxEOF: 0,
-        }],
+          },
+        ],
+        'style/no-multiple-empty-lines': [
+          'error',
+          {
+            max: MAX_EMPTY_LINES,
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            maxBOF: 0,
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            maxEOF: 0,
+          },
+        ],
         'style/nonblock-statement-body-position': ['error', 'below'],
-        'style/object-curly-newline': ['error', {
-          /* eslint-disable ts/naming-convention -- Options need to be cased like this */
-          ObjectExpression: {
-            minProperties: 4,
-            multiline: true,
-            consistent: true,
+        'style/object-curly-newline': [
+          'error',
+          {
+            /* eslint-disable ts/naming-convention -- Options need to be cased like this */
+            ObjectExpression: {
+              minProperties: 4,
+              multiline: true,
+              consistent: true,
+            },
+            ObjectPattern: {
+              minProperties: 4,
+              multiline: true,
+              consistent: true,
+            },
+            ImportDeclaration: {
+              minProperties: 4,
+              multiline: true,
+              consistent: true,
+            },
+            ExportDeclaration: {
+              minProperties: 4,
+              multiline: true,
+              consistent: true,
+            },
+            /* eslint-enable ts/naming-convention */
           },
-          ObjectPattern: {
-            minProperties: 4,
-            multiline: true,
-            consistent: true,
+        ],
+        'style/object-property-newline': [
+          'error',
+          {
+            allowAllPropertiesOnSameLine: true,
           },
-          ImportDeclaration: {
-            minProperties: 4,
-            multiline: true,
-            consistent: true,
-          },
-          ExportDeclaration: {
-            minProperties: 4,
-            multiline: true,
-            consistent: true,
-          },
-          /* eslint-enable ts/naming-convention */
-        }],
-        'style/object-property-newline': ['error', {
-          allowAllPropertiesOnSameLine: true,
-        }],
+        ],
         'style/one-var-declaration-per-line': ['error', 'always'],
-        'style/operator-linebreak': ['error', 'before', {
-          overrides: {
-            '=': 'none',
+        'style/operator-linebreak': [
+          'error',
+          'before',
+          {
+            overrides: {
+              '=': 'none',
+            },
           },
-        }],
+        ],
         'style/padding-line-between-statements': [
           'error',
           {
@@ -363,10 +401,13 @@ export const style = async (): Promise<Config[]> => {
         ],
         'style/semi-style': 'error',
         'style/switch-colon-spacing': 'error',
-        'style/yield-star-spacing': ['error', {
-          before: false,
-          after: true,
-        }],
+        'style/yield-star-spacing': [
+          'error',
+          {
+            before: false,
+            after: true,
+          },
+        ],
       },
     },
   ];

@@ -150,7 +150,9 @@ const unwrapPromiseType = (checker: ts.TypeChecker, type: ts.Type): ts.Type => (
 export const resolveReturnType = (checker: ts.TypeChecker, type: ts.Type): Maybe<ts.Type> => {
   const [signature] = type.getCallSignatures();
 
-  return signature === undefined ? undefined : unwrapPromiseType(checker, signature.getReturnType());
+  return signature === undefined
+    ? undefined
+    : unwrapPromiseType(checker, signature.getReturnType());
 };
 
 const isExternalSymbol = (symbol: ts.Symbol): boolean => symbol.declarations?.some(
@@ -164,7 +166,9 @@ export const hasExternalUpstreamMember = (
   enclosingClass: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
   name: string,
 ): boolean => [
-  ...(enclosingClass.superClass ? [enclosingClass.superClass] : []),
+  ...(enclosingClass.superClass
+    ? [enclosingClass.superClass]
+    : []),
   ...enclosingClass.implements,
 ].some((heritageNode) => {
   const member = resolveInstanceType(services.getTypeAtLocation(heritageNode)).getProperty(name);
@@ -198,7 +202,9 @@ export const classifyTypeAnnotation = (node: TSESTree.TypeNode): TypeClassificat
 
 const classifyBooleanOperator = (node: TSESTree.Expression): Maybe<TypeClassification> => {
   if (node.type === 'UnaryExpression') {
-    return node.operator === '!' ? TYPE_CLASSIFICATIONS.BOOL : TYPE_CLASSIFICATIONS.NON_BOOL;
+    return node.operator === '!'
+      ? TYPE_CLASSIFICATIONS.BOOL
+      : TYPE_CLASSIFICATIONS.NON_BOOL;
   }
 
   if (node.type === 'BinaryExpression') {
@@ -208,7 +214,9 @@ const classifyBooleanOperator = (node: TSESTree.Expression): Maybe<TypeClassific
   }
 
   if (node.type === 'CallExpression' && node.callee.type === 'Identifier') {
-    return node.callee.name === BOOLEAN_CONSTRUCTOR_NAME ? TYPE_CLASSIFICATIONS.BOOL : undefined;
+    return node.callee.name === BOOLEAN_CONSTRUCTOR_NAME
+      ? TYPE_CLASSIFICATIONS.BOOL
+      : undefined;
   }
 
   return undefined;
@@ -216,7 +224,9 @@ const classifyBooleanOperator = (node: TSESTree.Expression): Maybe<TypeClassific
 
 export const classifyExpression = (node: TSESTree.Expression): TypeClassification => {
   if (node.type === 'Literal') {
-    return typeof node.value === 'boolean' ? TYPE_CLASSIFICATIONS.BOOL : TYPE_CLASSIFICATIONS.NON_BOOL;
+    return typeof node.value === 'boolean'
+      ? TYPE_CLASSIFICATIONS.BOOL
+      : TYPE_CLASSIFICATIONS.NON_BOOL;
   }
 
   if (UNWRAPPED_EXPRESSIONS.has(node.type)) {

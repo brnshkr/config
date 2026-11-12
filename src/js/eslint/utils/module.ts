@@ -30,6 +30,9 @@ export const MODULES = <const>{
       requiredAll: [
         ESLINT_PACKAGES.ESLINT_CSS,
       ],
+      optional: [
+        ESLINT_PACKAGES.ESLINT_CSSICORN,
+      ],
     },
   },
   html: {

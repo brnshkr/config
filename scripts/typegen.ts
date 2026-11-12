@@ -75,15 +75,20 @@ const prepareSchema = (node: JsonValue): JSONSchema => {
     };
   }
 
-  // NOTICE: a minimum item count compiles to a tuple, which no config section can be merged into
   const prepared: JsonRecord = objectFromEntries(
-    entries.filter(([key]) => key !== 'minItems').map(([key, value]) => [key, prepareSchema(value)]),
+    entries.filter(([key]) => key !== 'minItems').map(([key, value]) => [
+      key,
+      prepareSchema(value),
+    ]),
   );
 
   if (prepared['pattern'] === 'merge|replace') {
     return objectFromEntries([
       ...omitEntry(prepared, 'pattern'),
-      ['enum', [...COMBINE_STRATEGIES]],
+      [
+        'enum',
+        COMBINE_STRATEGIES,
+      ],
     ]);
   }
 
@@ -92,7 +97,10 @@ const prepareSchema = (node: JsonValue): JSONSchema => {
   if (Array.isArray(required)) {
     return objectFromEntries([
       ...omitEntry(prepared, 'required'),
-      ['required', required.filter((name) => name !== 'combine')],
+      [
+        'required',
+        required.filter((name) => name !== 'combine'),
+      ],
     ]);
   }
 

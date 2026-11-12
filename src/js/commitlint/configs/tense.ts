@@ -64,15 +64,19 @@ export const tense = (options?: Partial<TenseOptions>): Config[] => {
         },
       ],
       rules: {
-        'tense/subject-tense': [ERROR, 'always', {
-          allowedTenses: ['present-imperative'],
-          firstOnly: true,
-          ...tenseOptions,
-          allowlist: [
-            ...ALLOWLIST,
-            ...allowlist,
-          ],
-        }],
+        'tense/subject-tense': [
+          ERROR,
+          'always',
+          {
+            allowedTenses: ['present-imperative'],
+            firstOnly: true,
+            ...tenseOptions,
+            allowlist: [
+              ...ALLOWLIST,
+              ...allowlist,
+            ],
+          },
+        ],
       },
     },
   ];

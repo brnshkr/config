@@ -24,7 +24,9 @@ const getLinePrefix = (lines: readonly string[], firstLineIndex: number, codeLin
   const sampleIndex = codeLines.findIndex((codeLine) => codeLine !== '');
   const sourceLine = lines.at(firstLineIndex + sampleIndex) ?? '';
 
-  return sampleIndex === -1 ? '' : sourceLine.slice(0, sourceLine.length - (codeLines.at(sampleIndex) ?? '').length);
+  return sampleIndex === -1
+    ? ''
+    : sourceLine.slice(0, sourceLine.length - (codeLines.at(sampleIndex) ?? '').length);
 };
 
 const isSkipMarker = (node: Maybe<MarkdownNode>): boolean => node?.type === 'html'
@@ -38,7 +40,10 @@ const collectFencedCodes = (node: MarkdownNode, lines: readonly string[], fenced
   for (const [index, child] of node.children.entries()) {
     const { position } = child;
     const isFencedCode = child.type === 'code' && position !== undefined && !isSkipMarker(node.children[index - 1]);
-    const language = isFencedCode ? (child.lang ?? '').toLowerCase() : '';
+
+    const language = isFencedCode
+      ? (child.lang ?? '').toLowerCase()
+      : '';
 
     if (isFencedCode && language !== '') {
       const codeLines = child.value.split('\n');
@@ -87,7 +92,10 @@ export const findDocblockFencedCodes = (markdownLanguage: MarkdownLanguage, sour
     for (const line of docblockLines) {
       const unindentedLine = line.replace(/^[\t ]*/v, '').replace(/^\/\*\*/v, '');
       const starlessLine = unindentedLine.replace(/^\*/v, '').replace(/^ /v, '');
-      const content = unindentedLine.startsWith('*/') ? '' : starlessLine;
+
+      const content = unindentedLine.startsWith('*/')
+        ? ''
+        : starlessLine;
 
       decorations.push(line.slice(0, line.length - content.length));
       contents.push(content);
@@ -112,7 +120,9 @@ export const replaceFencedCode = (text: string, fencedCode: FencedCode, code: st
 
   const prefixedCodeLines = code
     .split('\n')
-    .map((codeLine) => (codeLine === '' ? fencedCode.linePrefix.trimEnd() : fencedCode.linePrefix + codeLine));
+    .map((codeLine) => (codeLine === ''
+      ? fencedCode.linePrefix.trimEnd()
+      : fencedCode.linePrefix + codeLine));
 
   lines.splice(fencedCode.firstLineIndex, fencedCode.lineCount, ...prefixedCodeLines);
 

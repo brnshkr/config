@@ -24,11 +24,14 @@ export const defensive = (): Config[] => {
       extends: `${PACKAGES.STYLELINT_PLUGIN_DEFENSIVE_CSS}/configs/strict`,
       rules: {
         'defensive-css/require-custom-property-fallback': true,
-        'defensive-css/require-pure-selectors': [true, {
-          ignoreElements: ['*', 'html', 'body'],
-          ignoreAttributeSelectors: true,
-          strict: true,
-        }],
+        'defensive-css/require-pure-selectors': [
+          true,
+          {
+            ignoreElements: ['*', 'html', 'body'],
+            ignoreAttributeSelectors: true,
+            strict: true,
+          },
+        ],
       },
       overrides: [
         {

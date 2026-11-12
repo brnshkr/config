@@ -9,8 +9,8 @@ import type { ResolvedOptions, UserOptions } from '#commitlint/types/options.ts'
 /**
  * Build the `@brnshkr` commitlint config object.
  *
- * Every preset is optional and enabled only when it is installed, so a project gets the organization's rules
- * whether or not it has the conventional preset.
+ * Every preset is optional and enabled only when it is installed.
+ * A project gets the organization's rules whether or not it has the conventional preset.
  *
  * @api
  *
@@ -30,7 +30,13 @@ import type { ResolvedOptions, UserOptions } from '#commitlint/types/options.ts'
  *
  * getConfig({
  *   conventional: false,
- *   rules: { 'scope-min-length': [2, 'always', 3] },
+ *   rules: {
+ *     'scope-min-length': [
+ *       2,
+ *       'always',
+ *       3,
+ *     ],
+ *   },
  * });
  * ```
  */

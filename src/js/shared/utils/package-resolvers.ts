@@ -16,6 +16,7 @@ const requireModule = createRequire(import.meta.url);
 export const ESLINT_PACKAGES = <const>{
   CONFUSING_BROWSER_GLOBALS: 'confusing-browser-globals',
   ESLINT_CSS: '@eslint/css',
+  ESLINT_CSSICORN: 'eslint-cssicorn',
   ESLINT_IMPORT_RESOLVER_TYPESCRIPT: 'eslint-import-resolver-typescript',
   ESLINT_JS: '@eslint/js',
   ESLINT_JSON: '@eslint/json',
@@ -59,6 +60,9 @@ export const ESLINT_PACKAGE_RESOLVERS = <const>{
   ),
   [ESLINT_PACKAGES.ESLINT_CSS]: async () => interopImport(
     import('@eslint/css'),
+  ),
+  [ESLINT_PACKAGES.ESLINT_CSSICORN]: async () => interopImport(
+    import('eslint-cssicorn'),
   ),
   [ESLINT_PACKAGES.ESLINT_JS]: async () => interopImport(
     import('@eslint/js'),

@@ -86,10 +86,13 @@ import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({
   rules: {
-    'brnshkr/internal-usage': ['error', {
-      allowedCallers: ['@acme/user/tests'],
-      allowedInternals: [/^@acme\/shared/v, '@acme/user/internal/hasher#PasswordHasher'],
-    }],
+    'brnshkr/internal-usage': [
+      'error',
+      {
+        allowedCallers: ['@acme/user/tests'],
+        allowedInternals: [/^@acme\/shared/v, '@acme/user/internal/hasher#PasswordHasher'],
+      },
+    ],
   },
 });
 ```

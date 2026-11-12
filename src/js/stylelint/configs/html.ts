@@ -31,11 +31,14 @@ export const html = (): Config[] => {
                 message: (name: string): string => `Expected keyframe name "${name}" to be kebab-case`,
               },
             ],
-            'selector-pseudo-class-no-unknown': [true, {
-              ignorePseudoClasses: [
-                'global',
-              ],
-            }],
+            'selector-pseudo-class-no-unknown': [
+              true,
+              {
+                ignorePseudoClasses: [
+                  'global',
+                ],
+              },
+            ],
           },
         },
         // eslint-disable-next-line no-warning-comments -- (vue-support)

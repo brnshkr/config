@@ -16,9 +16,7 @@ use Rector\CodingStyle\Rector\String_\SimplifyQuoteEscapeRector;
 use Rector\Config\RectorConfig;
 use Rector\Configuration\RectorConfigBuilder;
 use Rector\Contract\Rector\RectorInterface;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
-use Rector\TypeDeclaration\Rector\FunctionLike\AddParamTypeSplFixedArrayRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\AddParamTypeToRefactorMethodRector;
 use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
@@ -161,7 +159,6 @@ final class Rector
                 codingStyle: true,
                 typeDeclarations: true,
                 privatization: true,
-                naming: true,
                 rectorPreset: true,
                 phpunitCodeQuality: true,
                 phpunitNarrowAsserts: true,
@@ -176,10 +173,6 @@ final class Rector
                 phpunit: true,
                 symfony: true,
             )
-            ->withConfiguredRule(AddOverrideAttributeToOverriddenMethodsRector::class, [
-                AddOverrideAttributeToOverriddenMethodsRector::ADD_TO_INTERFACE_METHODS    => true,
-                AddOverrideAttributeToOverriddenMethodsRector::ALLOW_OVERRIDE_EMPTY_METHOD => true,
-            ])
         ;
 
         $editorUrl = EditorUrl::forRector();
@@ -190,7 +183,6 @@ final class Rector
 
         /** @disregard P1009 Some skipped classes come bundled with rector and are not picked up by intelephense */
         return new self($rectorConfigBuilder, FileFinder::getFilePaths($finder, self::PROCESSED_FILE_EXTENSIONS), [
-            AddParamTypeSplFixedArrayRector::class,
             AddParamTypeToRefactorMethodRector::class,
             LocallyCalledStaticMethodToNonStaticRector::class,
             NewlineBeforeNewAssignSetRector::class,
@@ -274,7 +266,9 @@ final class Rector
      *
      * @example
      * ```php
-     * Rector::getBuilder()->removeRules([AddOverrideAttributeToOverriddenMethodsRector::class]);
+     * use Rector\CodingStyle\Rector\Catch_\CatchExceptionNameMatchingTypeRector;
+     *
+     * Rector::getBuilder()->removeRules([CatchExceptionNameMatchingTypeRector::class]);
      * ```
      */
     public function removeRules(array $rules): self

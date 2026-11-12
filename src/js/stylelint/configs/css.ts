@@ -22,7 +22,9 @@ export const css = (projectDialect: Partial<CssDialect>): Config[] => {
   } = resolvePackages(MODULES.css);
 
   const dialect = mergeDialects([
-    ...(isModuleEnabled(MODULES.tailwind) ? [TAILWIND_DIALECT] : []),
+    ...(isModuleEnabled(MODULES.tailwind)
+      ? [TAILWIND_DIALECT]
+      : []),
     projectDialect,
   ]);
 
@@ -50,10 +52,17 @@ export const css = (projectDialect: Partial<CssDialect>): Config[] => {
         },
         syntax: {
           atRules: objectFromEntries(objectEntries(dialect.atRules).map(
-            ([name, { prelude, descriptors }]) => <const>[name, {
-              ...(prelude === undefined ? undefined : { prelude }),
-              ...(descriptors === undefined ? undefined : { descriptors }),
-            }],
+            ([name, { prelude, descriptors }]) => <const>[
+              name,
+              {
+                ...(prelude === undefined
+                  ? undefined
+                  : { prelude }),
+                ...(descriptors === undefined
+                  ? undefined
+                  : { descriptors }),
+              },
+            ],
           )),
           properties: dialect.properties,
           types: {
@@ -78,8 +87,10 @@ export const css = (projectDialect: Partial<CssDialect>): Config[] => {
         'color-hex-length': 'long',
         'color-named': 'never',
         'color-no-invalid-hex': true,
-        // eslint-disable-next-line security/detect-non-literal-regexp -- Split so that a project-wide search for the marker skips this line
-        'comment-word-disallowed-list': [new RegExp(`^${['TO', 'DO'].join('')}`, 'v')],
+        'comment-word-disallowed-list': [
+          // eslint-disable-next-line security/detect-non-literal-regexp -- Split so that a project-wide search for the marker skips this line
+          new RegExp(`^${['TO', 'DO'].join('')}`, 'v'),
+        ],
         'declaration-no-important': true,
         'declaration-property-value-disallowed-list': {
           border: ['none'],
@@ -97,20 +108,28 @@ export const css = (projectDialect: Partial<CssDialect>): Config[] => {
         'font-family-name-quotes': 'always-unless-keyword',
         'font-weight-notation': 'numeric',
         'function-linear-gradient-no-nonstandard-direction': true,
-        'function-no-unknown': [true, {
-          ignoreFunctions: functionNames,
-        }],
+        'function-no-unknown': [
+          true,
+          {
+            ignoreFunctions: functionNames,
+          },
+        ],
         'function-url-no-scheme-relative': true,
         'function-url-scheme-allowed-list': ['data', 'https'],
         'max-nesting-depth': 3,
         ...((hasConfigStandard && scopingRootAtRules.length > 0)
           ? {
-            'nesting-selector-no-missing-scoping-root': [true, {
-              ignoreAtRules: [
-                ...scopingRootAtRules,
-                ...(isModuleEnabled(MODULES.scss) ? ['mixin'] : []),
-              ],
-            }],
+            'nesting-selector-no-missing-scoping-root': [
+              true,
+              {
+                ignoreAtRules: [
+                  ...scopingRootAtRules,
+                  ...(isModuleEnabled(MODULES.scss)
+                    ? ['mixin']
+                    : []),
+                ],
+              },
+            ],
           }
           : undefined),
         'no-unknown-animations': true,
@@ -131,10 +150,13 @@ export const css = (projectDialect: Partial<CssDialect>): Config[] => {
         'string-no-newline': true,
         'unit-layout-mappings': 'flow-relative',
         'unit-no-unknown': true,
-        'value-keyword-case': ['lower', {
-          camelCaseSvgKeywords: true,
-          ignoreKeywords: [/^geometricPrecision$/v],
-        }],
+        'value-keyword-case': [
+          'lower',
+          {
+            camelCaseSvgKeywords: true,
+            ignoreKeywords: [/^geometricPrecision$/v],
+          },
+        ],
         'value-keyword-layout-mappings': 'flow-relative',
       },
     },

@@ -28,7 +28,9 @@ const findClosingIndex = (text: string, brackets: RegExp, opening: string): Mayb
   let depth = 0;
 
   for (const bracket of text.matchAll(brackets)) {
-    depth += bracket[0] === opening ? 1 : -1;
+    depth += bracket[0] === opening
+      ? 1
+      : -1;
 
     if (depth === 0) {
       return bracket.index;
@@ -45,7 +47,9 @@ const skipType = (text: string): Maybe<string> => {
 
   const closingIndex = findClosingIndex(text, /[\{\}]/gv, '{');
 
-  return closingIndex === undefined ? undefined : text.slice(closingIndex + 1);
+  return closingIndex === undefined
+    ? undefined
+    : text.slice(closingIndex + 1);
 };
 
 const readName = (text: string, tag: string): string => {
@@ -54,13 +58,18 @@ const readName = (text: string, tag: string): string => {
   }
 
   return /^"[^"]*"/v.exec(text)?.[0]
-    ?? (tag === 'template' ? /^[^\s,]+(?:\s*,\s*[^\s,]+)*/v : /^\S+/v).exec(text)?.[0]
-    ?? '';
+    ?? (tag === 'template'
+      ? /^[^\s,]+(?:\s*,\s*[^\s,]+)*/v
+      : /^\S+/v).exec(text)?.[0]
+      ?? '';
 };
 
 const splitTag = (tag: string, body: string): JsdocTag => {
   const textAfterType = skipType(body.trimStart())?.trimStart() ?? '';
-  const name = NAMED_TAGS.has(tag) ? readName(textAfterType, tag) : '';
+
+  const name = NAMED_TAGS.has(tag)
+    ? readName(textAfterType, tag)
+    : '';
 
   return {
     tag,
@@ -79,14 +88,19 @@ export const parseJsdocTags = (comment: string): JsdocTag[] => {
 
   for (const line of comment.replaceAll(/^\/\*\*|\*\/$/gv, '').split('\n')) {
     const content = line.replace(/^\s*\*?\s?/v, '');
-    const tagName = isFenced ? undefined : /^@(?<tag>[^\s\/]+)(?=\s|$)/v.exec(content)?.groups?.['tag'];
+
+    const tagName = isFenced
+      ? undefined
+      : /^@(?<tag>[^\s\/]+)(?=\s|$)/v.exec(content)?.groups?.['tag'];
 
     if (tagName === undefined) {
       tagBodies.at(-1)?.lines.push(content);
     } else {
       tagBodies.push({
         tag: tagName,
-        lines: [content.slice(tagName.length + 1)],
+        lines: [
+          content.slice(tagName.length + 1),
+        ],
       });
     }
 
@@ -201,13 +215,17 @@ export const findFileLevelComment = (sourceCode: TSESLint.SourceCode): Maybe<TSE
     return fileComment;
   }
 
-  return firstStatement.loc.start.line - fileComment.loc.end.line > 1 ? fileComment : undefined;
+  return firstStatement.loc.start.line - fileComment.loc.end.line > 1
+    ? fileComment
+    : undefined;
 };
 
 export const getFileLevelBlockComment = (sourceCode: TSESLint.SourceCode): Maybe<string> => {
   const comment = findFileLevelComment(sourceCode);
 
-  return comment === undefined ? undefined : `/*${comment.value}*/`;
+  return comment === undefined
+    ? undefined
+    : `/*${comment.value}*/`;
 };
 
 export const getEffectiveVisibilityTag = (

@@ -27,7 +27,9 @@ test('expected eslint config', async () => {
 
   await snapshotConfigs({
     fixturesDirectory: FIXTURES_DIRECTORY,
-    globs: [...new Set(packageConfigs.flatMap(({ files }) => (files ?? []).flat()))]
+    globs: [
+      ...new Set(packageConfigs.flatMap(({ files }) => (files ?? []).flat())),
+    ]
       .filter((glob) => typeof glob === 'string'),
     virtualFiles: [
       'README.md/0_0.mjs',

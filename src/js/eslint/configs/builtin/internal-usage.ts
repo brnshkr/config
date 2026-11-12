@@ -181,7 +181,9 @@ const resolveInternalTarget = (comment: string): Maybe<string> => {
 
   const trimmedTarget = target.replace(/\*\/\s*$/v, '').trim();
 
-  return /^[\w\-.\/@]+$/v.test(trimmedTarget) ? trimSeparators(trimmedTarget) : PLAIN_INTERNAL;
+  return /^[\w\-.\/@]+$/v.test(trimmedTarget)
+    ? trimSeparators(trimmedTarget)
+    : PLAIN_INTERNAL;
 };
 
 const findPackageJsonPath = (directory: string): Maybe<string> => {
@@ -212,7 +214,10 @@ const loadPackageIdentity = (directory: string): Maybe<PackageIdentity> => {
 
   const manifest = readJsonObjectFile(packageJsonPath);
   const declaredName = manifest?.['name'];
-  const packageName = typeof declaredName === 'string' ? declaredName : '';
+
+  const packageName = typeof declaredName === 'string'
+    ? declaredName
+    : '';
 
   const identity = packageName.length === 0
     ? undefined
@@ -245,12 +250,16 @@ const stripLayoutSegments = (modulePath: string): string => {
 const toNamespace = (moduleId: string): string => {
   const lastSeparator = moduleId.lastIndexOf('/');
 
-  return lastSeparator === -1 ? moduleId : moduleId.slice(0, lastSeparator);
+  return lastSeparator === -1
+    ? moduleId
+    : moduleId.slice(0, lastSeparator);
 };
 
 const toAliasModuleId = (pattern: string, target: string, absolutePath: string): Maybe<string> => {
   if (!pattern.endsWith(WILDCARD_SUFFIX) || !target.endsWith(WILDCARD_SUFFIX)) {
-    return dropModuleExtension(target) === dropModuleExtension(absolutePath) ? pattern : undefined;
+    return dropModuleExtension(target) === dropModuleExtension(absolutePath)
+      ? pattern
+      : undefined;
   }
 
   const targetRoot = target.slice(0, -WILDCARD_SUFFIX.length);
@@ -296,7 +305,10 @@ const buildModuleIdentity = (filePath: string, aliasPaths: Maybe<TsConfigPaths>)
   return {
     moduleId,
     namespace,
-    namespaces: [namespace, ...buildAliasNamespaces(absolutePath, aliasPaths)],
+    namespaces: [
+      namespace,
+      ...buildAliasNamespaces(absolutePath, aliasPaths),
+    ],
   };
 };
 
@@ -309,7 +321,9 @@ const readExportName = (following: string): Maybe<string> => {
     return undefined;
   }
 
-  return match.groups?.['defaultKeyword'] === undefined ? match.groups?.['name'] : 'default';
+  return match.groups?.['defaultKeyword'] === undefined
+    ? match.groups?.['name']
+    : 'default';
 };
 
 const hasInternalMarker = (sourceFile: SourceFileNode): boolean => {
@@ -325,7 +339,9 @@ const hasInternalMarker = (sourceFile: SourceFileNode): boolean => {
 };
 
 const resolveVisibility = (comment: string): Maybe<string> => resolveInternalTarget(comment)
-  ?? (hasTag(comment, TAG_API) ? PUBLIC_API : undefined);
+  ?? (hasTag(comment, TAG_API)
+    ? PUBLIC_API
+    : undefined);
 
 const isCallableExport = (following: string): boolean => createExportPattern()
   .exec(following)
@@ -408,12 +424,16 @@ const resolveModulePath = (
   aliasPaths: Maybe<TsConfigPaths>,
 ): Maybe<string> => {
   const basePaths = specifier.startsWith('.')
-    ? [path.resolve(path.dirname(fromFilePath), specifier)]
+    ? [
+      path.resolve(path.dirname(fromFilePath), specifier),
+    ]
     : objectEntries(aliasPaths ?? {}).flatMap(([pattern, targets]) => {
       const wildcardIndex = pattern.indexOf('*');
 
       if (wildcardIndex === -1) {
-        return pattern === specifier ? targets : [];
+        return pattern === specifier
+          ? targets
+          : [];
       }
 
       const patternPrefix = pattern.slice(0, wildcardIndex);
@@ -432,7 +452,9 @@ const resolveModulePath = (
 
   return basePaths
     .flatMap((basePath) => [
-      ...MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension)) ? [basePath] : [],
+      ...MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension))
+        ? [basePath]
+        : [],
       ...MODULE_EXTENSIONS.map((extension) => `${basePath}${extension}`),
       ...MODULE_EXTENSIONS.map((extension) => path.join(basePath, `index${extension}`)),
     ])
@@ -606,7 +628,10 @@ const findFileVisibility = (sourceFile: SourceFileNode): Maybe<string> => {
   }
 
   const fileComment = findFileLevelComment(sourceFile);
-  const visibility = fileComment === undefined ? undefined : resolveVisibility(fileComment);
+
+  const visibility = fileComment === undefined
+    ? undefined
+    : resolveVisibility(fileComment);
 
   fileVisibilityCache.set(sourceFile, visibility);
 
@@ -631,7 +656,9 @@ const buildSymbolId = (moduleId: string, symbolName: string, declaration: Declar
     current = current.parent;
   }
 
-  return `${moduleId}#${names.toReversed().join('.')}${declaration.parameters === undefined ? '' : '()'}`;
+  return `${moduleId}#${names.toReversed().join('.')}${declaration.parameters === undefined
+    ? ''
+    : '()'}`;
 };
 
 const isPublicExportName = (node: TSESTree.Identifier): boolean => 'exported' in node.parent
@@ -639,11 +666,15 @@ const isPublicExportName = (node: TSESTree.Identifier): boolean => 'exported' in
 
 const getImportedName = (specifier: TSESTree.ImportClause): Maybe<string> => {
   if ('imported' in specifier) {
-    return 'name' in specifier.imported ? specifier.imported.name : undefined;
+    return 'name' in specifier.imported
+      ? specifier.imported.name
+      : undefined;
   }
 
   // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
-  return specifier.type === 'ImportDefaultSpecifier' ? 'default' : undefined;
+  return specifier.type === 'ImportDefaultSpecifier'
+    ? 'default'
+    : undefined;
 };
 
 /**
@@ -698,9 +729,13 @@ export const internalUsageRule = <const>{
     const aliasPaths = {
       ...loadPackageImports(
         path.dirname(context.filename),
-        options.tsConfigPath === undefined ? [] : loadTsConfigCustomConditions(options.tsConfigPath),
+        options.tsConfigPath === undefined
+          ? []
+          : loadTsConfigCustomConditions(options.tsConfigPath),
       ),
-      ...options.tsConfigPath === undefined ? {} : loadTsConfigPaths(options.tsConfigPath),
+      ...options.tsConfigPath === undefined
+        ? {}
+        : loadTsConfigPaths(options.tsConfigPath),
     };
 
     const resolveIdentity = (filePath: string): Maybe<ModuleIdentity> => buildModuleIdentity(filePath, aliasPaths);
@@ -714,7 +749,9 @@ export const internalUsageRule = <const>{
     const callerNamespaces = callerIdentity.namespaces;
 
     const isReachable = (internal: InternalSymbol): boolean => {
-      const roots = internal.target === PLAIN_INTERNAL ? internal.namespaces : [internal.target];
+      const roots = internal.target === PLAIN_INTERNAL
+        ? internal.namespaces
+        : [internal.target];
 
       return callerNamespaces.some((namespace) => roots.some((root) => isInSubtree(namespace, root)));
     };
@@ -780,7 +817,10 @@ export const internalUsageRule = <const>{
       }
 
       const target = toInternalTarget(findDeclaredVisibility(declaration) ?? findFileVisibility(sourceFile));
-      const identity = target === undefined ? undefined : resolveIdentity(sourceFile.fileName);
+
+      const identity = target === undefined
+        ? undefined
+        : resolveIdentity(sourceFile.fileName);
 
       if (identity === undefined || target === undefined) {
         return;
@@ -796,7 +836,11 @@ export const internalUsageRule = <const>{
 
     const checkTypedIdentifier = (node: TSESTree.Identifier, checker: ts.TypeChecker): void => {
       const tsNode = services?.esTreeNodeToTSNodeMap.get(node);
-      const symbol = tsNode === undefined ? undefined : checker.getSymbolAtLocation(tsNode);
+
+      const symbol = tsNode === undefined
+        ? undefined
+        : checker.getSymbolAtLocation(tsNode);
+
       const declaration = <Maybe<DeclarationNode>>symbol?.declarations?.[0];
 
       if (tsNode === undefined || symbol === undefined || declaration === undefined) {
@@ -805,14 +849,21 @@ export const internalUsageRule = <const>{
 
       checkResolvedSymbol(
         node,
-        hasModuleSpecifierAbove(declaration) ? checker.getAliasedSymbol(symbol) : symbol,
+        hasModuleSpecifierAbove(declaration)
+          ? checker.getAliasedSymbol(symbol)
+          : symbol,
         tsNode.getSourceFile(),
       );
     };
 
+    // eslint-disable-next-line unicorn/no-unnecessary-parameters -- Passes the narrowed checker
     const checkTypedModule = (node: TSESTree.Node, checker: ts.TypeChecker): void => {
       const tsNode = services?.esTreeNodeToTSNodeMap.get(node);
-      const symbol = tsNode === undefined ? undefined : checker.getSymbolAtLocation(tsNode);
+
+      const symbol = tsNode === undefined
+        ? undefined
+        : checker.getSymbolAtLocation(tsNode);
+
       const sourceFile = <Maybe<SourceFileNode>>symbol?.declarations?.[0];
 
       if (sourceFile === undefined || !hasInternalMarker(sourceFile)) {
@@ -832,7 +883,10 @@ export const internalUsageRule = <const>{
 
     const resolveScannedSymbol = (specifier: string, importedName?: string): Maybe<InternalSymbol> => {
       const modulePath = resolveModulePath(context.filename, specifier, aliasPaths);
-      const identity = modulePath === undefined ? undefined : resolveIdentity(modulePath);
+
+      const identity = modulePath === undefined
+        ? undefined
+        : resolveIdentity(modulePath);
 
       if (modulePath === undefined || identity === undefined) {
         return undefined;
@@ -844,7 +898,9 @@ export const internalUsageRule = <const>{
         identity,
         importedName === undefined
           ? identity.moduleId
-          : `${identity.moduleId}#${importedName}${moduleVisibility.callableExportNames.has(importedName) ? '()' : ''}`,
+          : `${identity.moduleId}#${importedName}${moduleVisibility.callableExportNames.has(importedName)
+            ? '()'
+            : ''}`,
         (importedName === undefined
           ? undefined
           : moduleVisibility.visibilityByExportName.get(importedName)) ?? moduleVisibility.fileVisibility,
@@ -872,8 +928,13 @@ export const internalUsageRule = <const>{
 
     const checkScannedReexport = (node: TSESTree.ExportNamedDeclaration): void => {
       for (const specifier of node.specifiers) {
-        const localName = 'name' in specifier.local ? specifier.local.name : undefined;
-        const internal = node.source ? resolveScannedSymbol(node.source.value, localName) : undefined;
+        const localName = 'name' in specifier.local
+          ? specifier.local.name
+          : undefined;
+
+        const internal = node.source
+          ? resolveScannedSymbol(node.source.value, localName)
+          : undefined;
 
         if (internal !== undefined) {
           reportUsage(specifier, internal);
@@ -901,7 +962,9 @@ export const internalUsageRule = <const>{
             ? node.source.value
             : undefined;
 
-          const internal = specifier === undefined ? undefined : resolveScannedSymbol(specifier);
+          const internal = specifier === undefined
+            ? undefined
+            : resolveScannedSymbol(specifier);
 
           if (internal !== undefined) {
             reportUsage(node, internal);

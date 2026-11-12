@@ -65,42 +65,55 @@ export const imports = async (): Promise<Config[]> => {
     pluginImportRules = {
       ...renameRules(pluginImport.flatConfigs.recommended.rules, { 'import-x': 'import' }),
       'import/consistent-type-specifier-style': 'error',
-      'import/extensions': ['error', 'ignorePackages', {
-        checkTypeImports: true,
-        pattern: {
-          js: 'never',
-          ts: 'never',
-          cts: 'never',
-          mts: 'never',
-        },
-        pathGroupOverrides: [
-          {
-            pattern: '{{.,..,../..,../../..,../../../..,../../../../..}/**/declarations,$types/declarations,$declarations}{,/**}',
-            action: 'ignore',
+      'import/extensions': [
+        'error',
+        'ignorePackages',
+        {
+          checkTypeImports: true,
+          pattern: {
+            js: 'never',
+            ts: 'never',
+            cts: 'never',
+            mts: 'never',
           },
-        ],
-      }],
+          pathGroupOverrides: [
+            {
+              pattern: '{{.,..,../..,../../..,../../../..,../../../../..}/**/declarations,$types/declarations,$declarations}{,/**}',
+              action: 'ignore',
+            },
+          ],
+        },
+      ],
       'import/first': 'error',
-      'import/max-dependencies': ['error', {
-        max: 15,
-      }],
+      'import/max-dependencies': [
+        'error',
+        {
+          max: 15,
+        },
+      ],
       'import/namespace': 'off',
       'import/newline-after-import': 'error',
       'import/no-absolute-path': 'error',
       'import/no-amd': 'error',
-      'import/no-cycle': ['error', {
-        ignoreExternal: true,
-        maxDepth: 3,
-      }],
+      'import/no-cycle': [
+        'error',
+        {
+          ignoreExternal: true,
+          maxDepth: 3,
+        },
+      ],
       'import/no-default-export': 'error',
       'import/no-deprecated': 'error',
       'import/no-duplicates': 'error',
       'import/no-dynamic-require': 'error',
       'import/no-empty-named-blocks': 'error',
-      'import/no-extraneous-dependencies': ['error', {
-        devDependencies: GLOB_DEVELOPMENT_FILES,
-        includeTypes: true,
-      }],
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: GLOB_DEVELOPMENT_FILES,
+          includeTypes: true,
+        },
+      ],
       'import/no-import-module-exports': 'error',
       'import/no-mutable-exports': 'error',
       'import/no-named-as-default-member': 'error',
@@ -110,18 +123,27 @@ export const imports = async (): Promise<Config[]> => {
       'import/no-relative-packages': 'error',
       'import/no-rename-default': 'error',
       'import/no-self-import': 'error',
-      'import/no-unassigned-import': ['error', {
-        allow: [
-          '**/*.{css,scss}',
-        ],
-      }],
-      'import/no-useless-path-segments': ['error', {
-        noUselessIndex: true,
-      }],
-      'import/no-unresolved': ['error', {
-        commonjs: true,
-        caseSensitiveStrict: true,
-      }],
+      'import/no-unassigned-import': [
+        'error',
+        {
+          allow: [
+            '**/*.{css,scss}',
+          ],
+        },
+      ],
+      'import/no-useless-path-segments': [
+        'error',
+        {
+          noUselessIndex: true,
+        },
+      ],
+      'import/no-unresolved': [
+        'error',
+        {
+          commonjs: true,
+          caseSensitiveStrict: true,
+        },
+      ],
       'import/no-webpack-loader-syntax': 'error',
       'import/order': [
         'error',
@@ -150,10 +172,12 @@ export const imports = async (): Promise<Config[]> => {
             'object',
             'type',
           ],
-          pathGroups: [{
-            pattern: '**/*.{css,scss}',
-            group: 'object',
-          }],
+          pathGroups: [
+            {
+              pattern: '**/*.{css,scss}',
+              group: 'object',
+            },
+          ],
         },
       ],
       'import/unambiguous': 'error',
@@ -194,11 +218,13 @@ export const imports = async (): Promise<Config[]> => {
       },
     },
     ...(isModuleEnabled(MODULES.typescript)
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.IMPORT, `${SUB_SCOPES.RULES}-typescript`),
-        files: [GLOB_TS],
-        rules: pluginImportTsRules,
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.IMPORT, `${SUB_SCOPES.RULES}-typescript`),
+          files: [GLOB_TS],
+          rules: pluginImportTsRules,
+        } satisfies Config,
+      ]
       : []),
   ];
 };

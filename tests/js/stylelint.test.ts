@@ -14,7 +14,7 @@ test('expected stylelint config', async () => {
   await snapshotConfigs({
     fixturesDirectory: path.join(process.cwd(), 'tests/js/fixtures/stylelint'),
     globs: (config.overrides ?? [])
-      .flatMap(({ files }) => (Array.isArray(files) ? files : [files]))
+      .flatMap(({ files }) => files)
       .filter((glob) => typeof glob === 'string'),
     virtualFiles: [
       '6.md/0.fenced.css',

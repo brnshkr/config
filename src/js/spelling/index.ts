@@ -39,10 +39,14 @@ const compareCaseInsensitively = (firstValue: string, secondValue: string): numb
   const secondLowercased = secondValue.toLowerCase();
 
   if (firstLowercased !== secondLowercased) {
-    return firstLowercased < secondLowercased ? -1 : 1;
+    return firstLowercased < secondLowercased
+      ? -1
+      : 1;
   }
 
-  return firstValue < secondValue ? -1 : Number(firstValue > secondValue);
+  return firstValue < secondValue
+    ? -1
+    : Number(firstValue > secondValue);
 };
 
 const compareFindings = (firstFinding: SpellingFinding, secondFinding: SpellingFinding): number => {
@@ -102,7 +106,9 @@ const findInFile = (
  *
  * @example
  * ```js
- * scan({ rootDirectory: process.cwd() });
+ * scan({
+ *   rootDirectory: process.cwd(),
+ * });
  * ```
  */
 export const scan = (options?: Partial<SpellingOptions>): SpellingFinding[] => {

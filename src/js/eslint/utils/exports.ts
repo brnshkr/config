@@ -38,13 +38,6 @@ type ConstantDeclarationNode = TSESTree.CallExpression
   | TSESTree.ObjectExpression
   | TSESTree.VariableDeclarator;
 
-type NamedDeclarationWithOptionalId = TSESTree.ClassDeclaration
-  | TSESTree.FunctionDeclaration
-  | TSESTree.TSDeclareFunction
-  | TSESTree.TSEnumDeclaration
-  | TSESTree.TSInterfaceDeclaration
-  | TSESTree.TSTypeAliasDeclaration;
-
 export type ExportedSymbol = BaseSymbol<'Class', TSESTree.ClassDeclaration>
   | BaseSymbol<'Interface', TSESTree.TSInterfaceDeclaration>
   | BaseSymbol<'Type', TSESTree.TSTypeAliasDeclaration>
@@ -80,6 +73,13 @@ const collectAtomicNamedDeclaration = (
   anchor: TSESTree.Node,
   comment: Maybe<string>,
 ): Maybe<ExportedSymbol> => {
+  type NamedDeclarationWithOptionalId = TSESTree.ClassDeclaration
+    | TSESTree.FunctionDeclaration
+    | TSESTree.TSDeclareFunction
+    | TSESTree.TSEnumDeclaration
+    | TSESTree.TSInterfaceDeclaration
+    | TSESTree.TSTypeAliasDeclaration;
+
   const kind = ATOMIC_NAMED_KIND_MAP[declaration.type];
 
   if (kind === undefined) {
@@ -108,7 +108,9 @@ const collectVariableDeclaration = (
     anchor,
     declaration: declarator,
     comment,
-    kind: isFunctionInitializer(declarator.init) ? 'Function' : 'Constant',
+    kind: isFunctionInitializer(declarator.init)
+      ? 'Function'
+      : 'Constant',
     name: (<TSESTree.Identifier>declarator.id).name,
   }));
 
@@ -145,15 +147,19 @@ const collectDefaultDeclaration = (
     return [];
   }
 
-  const name = declaration.type === 'Identifier' ? declaration.name : DEFAULT_NAME;
+  const name = declaration.type === 'Identifier'
+    ? declaration.name
+    : DEFAULT_NAME;
 
-  return [<ExportedSymbol>{
-    anchor,
-    declaration,
-    comment,
-    kind,
-    name,
-  }];
+  return [
+    <ExportedSymbol>{
+      anchor,
+      declaration,
+      comment,
+      kind,
+      name,
+    },
+  ];
 };
 /* eslint-enable ts/no-unsafe-enum-comparison */
 

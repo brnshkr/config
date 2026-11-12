@@ -81,7 +81,9 @@ const createHtmlBlock = (text: string, position: SourcePosition, indent: number)
   extension: 'html',
   mapPosition: (line, column) => ({
     line: position.line + (line - 1),
-    column: column + (line === 1 ? position.column - 1 : indent),
+    column: column + (line === 1
+      ? position.column - 1
+      : indent),
   }),
 });
 
@@ -123,7 +125,9 @@ const decodeSingleQuoted = (raw: string): { value: string; rawOffsets: number[] 
   };
 };
 
-const translateFlags = (pcreFlags: string, inlineFlags: string): string => [...new Set(`${pcreFlags}${inlineFlags}u`)]
+const translateFlags = (pcreFlags: string, inlineFlags: string): string => [
+  ...new Set(`${pcreFlags}${inlineFlags}u`),
+]
   .filter((flag) => flag === 'u' || !NO_OP_FLAGS.has(flag))
   .toSorted((first, second) => first.localeCompare(second))
   .join('');
@@ -216,8 +220,12 @@ const getDirectiveComments = (lines: string[], lineIndex: number): { above: stri
   const after = createSameLineDirectivePattern().exec(lines.at(lineIndex) ?? '')?.groups?.['directive'];
 
   return {
-    above: above === undefined ? '' : `// ${stripBlockCommentEnd(above)}\n`,
-    after: after === undefined ? '' : ` // ${stripBlockCommentEnd(after)}`,
+    above: above === undefined
+      ? ''
+      : `// ${stripBlockCommentEnd(above)}\n`,
+    after: after === undefined
+      ? ''
+      : ` // ${stripBlockCommentEnd(after)}`,
   };
 };
 
@@ -279,7 +287,9 @@ const updateDisabledRules = (disabledRules: Set<string>, token: string): void =>
     disabledRules.clear();
   }
 
-  const updatedRuleNames = ruleNames.length === 0 ? [ALL_RULES] : ruleNames;
+  const updatedRuleNames = ruleNames.length === 0
+    ? [ALL_RULES]
+    : ruleNames;
 
   for (const ruleName of updatedRuleNames) {
     if (directive['kind'] === 'disable') {
@@ -295,7 +305,9 @@ const getRangeDirective = (disabledRules: Set<string>): string => {
     return '';
   }
 
-  return disabledRules.has(ALL_RULES) ? '/* eslint-disable */\n' : `/* eslint-disable ${[...disabledRules].join(', ')} */\n`;
+  return disabledRules.has(ALL_RULES)
+    ? '/* eslint-disable */\n'
+    : `/* eslint-disable ${[...disabledRules].join(', ')} */\n`;
 };
 
 const findPhpRegexpBlocks = (text: string): PhpBlock[] => {
@@ -344,8 +356,12 @@ const createPhpProcessor = (blockKinds: PhpBlockKinds): Linter.Processor => {
     supportsAutofix: false,
     preprocess: (text, filePath): ReturnType<NonNullable<Linter.Processor['preprocess']>> => {
       const blocks = [
-        ...(blockKinds.hasHtmlBlocks ? findPhpHtmlBlocks(text) : []),
-        ...(blockKinds.hasRegexpBlocks ? findPhpRegexpBlocks(text) : []),
+        ...(blockKinds.hasHtmlBlocks
+          ? findPhpHtmlBlocks(text)
+          : []),
+        ...(blockKinds.hasRegexpBlocks
+          ? findPhpRegexpBlocks(text)
+          : []),
       ];
 
       blocksByFilePath.set(filePath, blocks);
@@ -363,7 +379,9 @@ const createPhpProcessor = (blockKinds: PhpBlockKinds): Linter.Processor => {
       return blockMessages.flatMap((messages, index) => {
         const block = blocks.at(index);
 
-        return block === undefined ? [] : messages.map((message) => mapMessage(block, message));
+        return block === undefined
+          ? []
+          : messages.map((message) => mapMessage(block, message));
       });
     },
   };
@@ -386,39 +404,46 @@ export const php = (): Config[] => {
       }),
     },
     ...(hasHtmlBlocks
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.PHP, `${SUB_SCOPES.RULES}-html`),
-        files: [
-          GLOB_PHP_HTML_BLOCKS,
-        ],
-        rules: {
-          'html/indent': ['error', PHP_INDENT],
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.PHP, `${SUB_SCOPES.RULES}-html`),
+          files: [
+            GLOB_PHP_HTML_BLOCKS,
+          ],
+          rules: {
+            'html/indent': ['error', PHP_INDENT],
+          },
+        } satisfies Config,
+      ]
       : []),
     ...(hasRegexpBlocks
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.PHP, `${SUB_SCOPES.RULES}-regexp`),
-        files: [
-          GLOB_PHP_REGEXP_BLOCKS,
-        ],
-        linterOptions: {
-          reportUnusedDisableDirectives: 'off',
-        },
-        rules: {
-          'prefer-regex-literals': 'off',
-          'regexp/control-character-escape': 'off',
-          'regexp/grapheme-string-literal': 'off',
-          'regexp/prefer-set-operation': 'off',
-          'regexp/require-unicode-sets-regexp': 'off',
-          'regexp/simplify-set-operations': 'off',
-          'regexp/unicode-escape': 'off',
-          'regexp/unicode-property': ['error', {
-            key: 'short',
-            property: 'short',
-          }],
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.PHP, `${SUB_SCOPES.RULES}-regexp`),
+          files: [
+            GLOB_PHP_REGEXP_BLOCKS,
+          ],
+          linterOptions: {
+            reportUnusedDisableDirectives: 'off',
+          },
+          rules: {
+            'prefer-regex-literals': 'off',
+            'regexp/control-character-escape': 'off',
+            'regexp/grapheme-string-literal': 'off',
+            'regexp/prefer-set-operation': 'off',
+            'regexp/require-unicode-sets-regexp': 'off',
+            'regexp/simplify-set-operations': 'off',
+            'regexp/unicode-escape': 'off',
+            'regexp/unicode-property': [
+              'error',
+              {
+                key: 'short',
+                property: 'short',
+              },
+            ],
+          },
+        } satisfies Config,
+      ]
       : []),
   ];
 };

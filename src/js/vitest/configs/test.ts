@@ -9,13 +9,19 @@ import { packageOrganization } from '#shared/utils/package-json.ts';
 import type { Config } from '#vitest/types/config.ts';
 
 const NARROWED_IGNORES = new Map([
-  ['**/dist/**', [
-    'dist/**',
-  ]],
-  ['**/node_modules/**', [
-    `**/node_modules/!(@${packageOrganization})/**`,
-    `**/node_modules/@${packageOrganization}/*/!(dist)/**`,
-  ]],
+  [
+    '**/dist/**',
+    [
+      'dist/**',
+    ],
+  ],
+  [
+    '**/node_modules/**',
+    [
+      `**/node_modules/!(@${packageOrganization})/**`,
+      `**/node_modules/@${packageOrganization}/*/!(dist)/**`,
+    ],
+  ],
 ]);
 
 export const test = (): Config[] => [

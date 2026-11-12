@@ -23,23 +23,33 @@ export default getConfig({
   rules: {
     // NOTICE: This rule has quite a significant performance impact so we turn it off in the editor
     'import/no-cycle': isInEditor ? 'off' : 'error',
-    'import/no-useless-path-segments': ['error', {
-      noUselessIndex: false,
-    }],
-    'import/extensions': ['error', 'always', {
-      checkTypeImports: true,
-      ignorePackages: true,
-    }],
-    'test/expect-expect': ['error', {
-      assertFunctionNames: [
-        'expect',
-        'runJsRuleTests',
-        'runRuleTests',
-        'runTsRuleTests',
-        'runTypeAwareRuleTests',
-        'snapshotConfigs',
-      ],
-    }],
+    'import/no-useless-path-segments': [
+      'error',
+      {
+        noUselessIndex: false,
+      },
+    ],
+    'import/extensions': [
+      'error',
+      'always',
+      {
+        checkTypeImports: true,
+        ignorePackages: true,
+      },
+    ],
+    'test/expect-expect': [
+      'error',
+      {
+        assertFunctionNames: [
+          'expect',
+          'runJsRuleTests',
+          'runRuleTests',
+          'runTsRuleTests',
+          'runTypeAwareRuleTests',
+          'snapshotConfigs',
+        ],
+      },
+    ],
   },
 }, {
   files: [
@@ -53,11 +63,14 @@ export default getConfig({
     'scripts/typegen.ts',
   ],
   rules: {
-    [<const>`${packageOrganization}/internal-usage`]: ['error', {
-      allowedInternals: [
-        '@brnshkr/config/eslint',
-      ],
-    }],
+    [<const>`${packageOrganization}/internal-usage`]: [
+      'error',
+      {
+        allowedInternals: [
+          '@brnshkr/config/eslint',
+        ],
+      },
+    ],
     'import/no-extraneous-dependencies': 'off',
   },
 }, {
@@ -65,11 +78,14 @@ export default getConfig({
     'tests/**/*.?(c|m)[jt]s?(x)',
   ],
   rules: {
-    [<const>`${packageOrganization}/internal-usage`]: ['error', {
-      allowedCallers: [
-        '@brnshkr/config/tests',
-      ],
-    }],
+    [<const>`${packageOrganization}/internal-usage`]: [
+      'error',
+      {
+        allowedCallers: [
+          '@brnshkr/config/tests',
+        ],
+      },
+    ],
   },
 }, {
   files: [

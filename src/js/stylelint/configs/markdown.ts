@@ -17,7 +17,9 @@ import type { Config } from '#stylelint/types/config.ts';
 
 export const markdown = (ownConfig: Config): Config[] => [
   {
-    plugins: [createFencedCodePlugin(ownConfig)],
+    plugins: [
+      createFencedCodePlugin(ownConfig),
+    ],
     overrides: [
       {
         name: buildOverrideName(OVERRIDES.FENCED_CODE_RULE),

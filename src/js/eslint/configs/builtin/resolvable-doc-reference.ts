@@ -74,7 +74,9 @@ const getLeftmostNameNode = (nameNode: DocNameNode): DocNameNode => {
 };
 
 const collectInlineReferences = (docComment: DocComment): DocNameReference[] => (
-  Array.isArray(docComment.comment) ? <DocCommentPart[]>docComment.comment : []
+  Array.isArray(docComment.comment)
+    ? <DocCommentPart[]>docComment.comment
+    : []
 )
   .filter((part) => part.name !== undefined)
   .map((part) => (<DocNameReference>{
@@ -92,18 +94,25 @@ const collectBlockReferences = (docComment: DocComment): DocNameReference[] => (
   }));
 
 const collectNameReferences = (node: NodeWithDocComments): DocNameReference[] => (node.jsDoc ?? [])
-  .flatMap((docComment) => [...collectInlineReferences(docComment), ...collectBlockReferences(docComment)]);
+  .flatMap((docComment) => [
+    ...collectInlineReferences(docComment),
+    ...collectBlockReferences(docComment),
+  ]);
 
 const resolveNameNodeType = (checker: ts.TypeChecker, nameNode: DocNameNode): Maybe<ts.Type> => {
   if (nameNode.left === undefined || nameNode.right === undefined) {
     const symbol = checker.getSymbolAtLocation(nameNode);
 
-    return symbol === undefined ? undefined : checker.getDeclaredTypeOfSymbol(symbol);
+    return symbol === undefined
+      ? undefined
+      : checker.getDeclaredTypeOfSymbol(symbol);
   }
 
   const property = resolveNameNodeType(checker, nameNode.left)?.getProperty(nameNode.right.getText());
 
-  return property === undefined ? undefined : checker.getTypeOfSymbolAtLocation(property, nameNode);
+  return property === undefined
+    ? undefined
+    : checker.getTypeOfSymbolAtLocation(property, nameNode);
 };
 
 const isMemberNameResolved = (
@@ -139,7 +148,9 @@ const collectLexicalReferences = (comment: TSESTree.Comment): LexicalReference[]
         headIdentifier: getHeadIdentifier(target),
         loc: {
           line: comment.loc.start.line + offset,
-          column: offset === 0 ? comment.loc.start.column + targetColumn : targetColumn,
+          column: offset === 0
+            ? comment.loc.start.column + targetColumn
+            : targetColumn,
         },
       });
     }
@@ -178,7 +189,10 @@ export const resolvableDocReferenceRule = <const>{
     const checkNameNode = (checker: ts.TypeChecker, reference: DocNameReference): void => {
       const { isInlineTag, nameNode, trailingText } = reference;
       const name = nameNode.getText();
-      const target = startsContinuation(trailingText) ? `${name}${trailingText}` : name;
+
+      const target = startsContinuation(trailingText)
+        ? `${name}${trailingText}`
+        : name;
 
       if (!isCheckableTarget(target) || checker.getSymbolAtLocation(nameNode) !== undefined) {
         return;

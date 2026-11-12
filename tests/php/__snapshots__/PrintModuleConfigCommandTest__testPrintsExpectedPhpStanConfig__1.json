@@ -326,7 +326,6 @@
                     "symfony/var-exporter": "./vendor/symfony/var-exporter",
                     "symfony/yaml": "./vendor/symfony/yaml",
                     "ta-tikoma/phpunit-architecture-test": "./vendor/ta-tikoma/phpunit-architecture-test",
-                    "theseer/tokenizer": "./vendor/theseer/tokenizer",
                     "twig/twig": "./vendor/twig/twig",
                     "webmozart/assert": "./vendor/webmozart/assert"
                 },
@@ -526,6 +525,20 @@
                     "yaml_emit*": "Use \"Symfony\\Component\\Yaml\\Yaml::dump()\" instead.",
                     "yaml_parse*": "Use \"Symfony\\Component\\Yaml\\Yaml::parse()\" instead."
                 }
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\SeeAnnotationToTestRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "requiredSeeTypes": [
+                    "PhpCsFixer\\Fixer\\FixerInterface",
+                    "Rector\\Contract\\Rector\\RectorInterface",
+                    "PHPStan\\Rules\\Rule",
+                    "TwigCsFixer\\Rules\\RuleInterface"
+                ]
             }
         }
     ]

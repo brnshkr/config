@@ -76,10 +76,13 @@ import { getConfig } from '@brnshkr/config/eslint';
 
 export default getConfig({
   rules: {
-    'brnshkr/type-assertion-style': ['error', {
-      parentheses: 'never',
-      spacing: 'always',
-    }],
+    'brnshkr/type-assertion-style': [
+      'error',
+      {
+        parentheses: 'never',
+        spacing: 'always',
+      },
+    ],
   },
 });
 ```

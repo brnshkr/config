@@ -132,9 +132,11 @@ test('internalUsageRule scenarios', () => {
         name: 'call of an internal function from a sibling namespace',
         code: 'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         filename: CALLER_SIBLING,
-        errors: [{
-          message: '`@acme/user/internal/hasher#hashPassword` is internal and must not be used from `@acme/user/public`.',
-        }],
+        errors: [
+          {
+            message: '`@acme/user/internal/hasher#hashPassword` is internal and must not be used from `@acme/user/public`.',
+          },
+        ],
       },
       buildInvalidCase(
         'construction of an internal class',
@@ -171,9 +173,11 @@ test('internalUsageRule scenarios', () => {
         name: 'explicit target excludes the declaring namespace',
         code: 'import { emailOnlyHelper } from \'./scoped\';\n\nemailOnlyHelper(\'a\');\n',
         filename: CALLER_INSIDE,
-        errors: [{
-          message: '`@acme/user/internal/scoped#emailOnlyHelper` is internal to `@acme/email` and must not be used from `@acme/user/internal`.',
-        }],
+        errors: [
+          {
+            message: '`@acme/user/internal/scoped#emailOnlyHelper` is internal to `@acme/email` and must not be used from `@acme/user/internal`.',
+          },
+        ],
       },
       buildInvalidCase(
         'bare vendor target from a lookalike scope',
@@ -220,25 +224,31 @@ test('internalUsageRule scenarios', () => {
         name: 'a declared function carries parentheses in its symbol name',
         code: 'import { hashLegacy } from \'../internal/hasher\';\n\nhashLegacy(\'a\');\n',
         filename: CALLER_SIBLING,
-        errors: [{
-          message: '`@acme/user/internal/hasher#hashLegacy()` is internal and must not be used from `@acme/user/public`.',
-        }],
+        errors: [
+          {
+            message: '`@acme/user/internal/hasher#hashLegacy()` is internal and must not be used from `@acme/user/public`.',
+          },
+        ],
       },
       {
         name: 'unscoped package name in the symbol identity',
         code: 'import { plainHelper } from \'../internal/tokens\';\n\nplainHelper(\'a\');\n',
         filename: CALLER_UNSCOPED,
-        errors: [{
-          message: '`acme-app/internal/tokens#plainHelper` is internal and must not be used from `acme-app/public`.',
-        }],
+        errors: [
+          {
+            message: '`acme-app/internal/tokens#plainHelper` is internal and must not be used from `acme-app/public`.',
+          },
+        ],
       },
       {
         name: 'unscoped package target excludes another package',
         code: 'import { packageWideHelper } from \'../../plain/src/internal/tokens\';\n\npackageWideHelper(\'a\');\n',
         filename: CALLER_SIBLING,
-        errors: [{
-          message: '`acme-app/internal/tokens#packageWideHelper` is internal to `acme-app` and must not be used from `@acme/user/public`.',
-        }],
+        errors: [
+          {
+            message: '`acme-app/internal/tokens#packageWideHelper` is internal to `acme-app` and must not be used from `@acme/user/public`.',
+          },
+        ],
       },
       buildInvalidCase(
         '@internal symbol inside a file-level @api module',
@@ -265,77 +275,166 @@ test('internalUsageRule option scenarios', () => {
       buildValidCase(
         'allowedCallers exempts the caller',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallers: ['@acme/user/public'] }] },
+        {
+          options: [
+            {
+              allowedCallers: ['@acme/user/public'],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'allowedCallers ignores a leading separator',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallers: ['/@acme/user/public'] }] },
+        {
+          options: [
+            {
+              allowedCallers: ['/@acme/user/public'],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'allowedCallers matches a parent prefix',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallers: ['@acme/user'] }] },
+        {
+          options: [
+            {
+              allowedCallers: ['@acme/user'],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'allowedInternals matches the declaring namespace',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedInternals: [/^@acme\/user\/internal/v] }] },
+        {
+          options: [
+            {
+              allowedInternals: [/^@acme\/user\/internal/v],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'allowedInternals matches the internal target',
         'import { emailOnlyHelper } from \'./scoped\';\n\nemailOnlyHelper(\'a\');\n',
         {
           filename: CALLER_INSIDE,
-          options: [{ allowedInternals: [/^@acme\/email$/v] }],
+          options: [
+            {
+              allowedInternals: [/^@acme\/email$/v],
+            },
+          ],
         },
       ),
       buildValidCase(
         'allowedInternals matches one export',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedInternals: ['@acme/user/internal/hasher#hashPassword'] }] },
+        {
+          options: [
+            {
+              allowedInternals: ['@acme/user/internal/hasher#hashPassword'],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'allowedInternals matches a module and its members',
         'import { PasswordHasher } from \'../internal/hasher\';\n\nnew PasswordHasher().rehash(\'a\');\n',
-        { options: [{ allowedInternals: ['@acme/user/internal/hasher'] }] },
+        {
+          options: [
+            {
+              allowedInternals: ['@acme/user/internal/hasher'],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'a delimited pattern string stands in for a regular expression',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedInternals: [String.raw`/^@acme\/user\/internal/v`] }] },
+        {
+          options: [
+            {
+              allowedInternals: [String.raw`/^@acme\/user\/internal/v`],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'a mapped entry may name a delimited pattern string as its subject',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallers: [{ '/^@acme\\/user/v': ['@acme/user/internal'] }] }] },
+        {
+          options: [
+            {
+              allowedCallers: [
+                {
+                  '/^@acme\\/user/v': ['@acme/user/internal'],
+                },
+              ],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'a mapped entry allows the counterpart it names',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedCallers: [{ '@acme/user/public': ['@acme/user/internal'] }] }] },
+        {
+          options: [
+            {
+              allowedCallers: [
+                {
+                  '@acme/user/public': ['@acme/user/internal'],
+                },
+              ],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'a mapped caller entry may name the symbol it reaches',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         {
-          options: [{
-            allowedCallers: [{ '@acme/user/public': ['@acme/user/internal/hasher#hashPassword'] }],
-          }],
+          options: [
+            {
+              allowedCallers: [
+                {
+                  '@acme/user/public': ['@acme/user/internal/hasher#hashPassword'],
+                },
+              ],
+            },
+          ],
         },
       ),
       buildValidCase(
         'a mapped internal entry is bounded by its caller',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
-        { options: [{ allowedInternals: [{ '@acme/user/internal': ['@acme/user/public'] }] }] },
+        {
+          options: [
+            {
+              allowedInternals: [
+                {
+                  '@acme/user/internal': ['@acme/user/public'],
+                },
+              ],
+            },
+          ],
+        },
       ),
       buildValidCase(
         'a bare entry beside a mapped one keeps its old meaning',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         {
-          options: [{
-            allowedCallers: ['@acme/user/public', { '@acme/elsewhere': ['@acme/nowhere'] }],
-          }],
+          options: [
+            {
+              allowedCallers: [
+                '@acme/user/public',
+                {
+                  '@acme/elsewhere': ['@acme/nowhere'],
+                },
+              ],
+            },
+          ],
         },
       ),
     ],
@@ -344,13 +443,29 @@ test('internalUsageRule option scenarios', () => {
         'a partial segment is not a prefix match',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
-        { options: [{ allowedCallers: ['@acme/user/pub'] }] },
+        {
+          options: [
+            {
+              allowedCallers: ['@acme/user/pub'],
+            },
+          ],
+        },
       ),
       buildInvalidCase(
         'a mapped entry still reports a counterpart it does not name',
         'import { hashPassword } from \'../internal/hasher\';\n\nhashPassword(\'a\');\n',
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
-        { options: [{ allowedCallers: [{ '@acme/user/public': ['@acme/nowhere'] }] }] },
+        {
+          options: [
+            {
+              allowedCallers: [
+                {
+                  '@acme/user/public': ['@acme/nowhere'],
+                },
+              ],
+            },
+          ],
+        },
       ),
     ],
   });
@@ -364,7 +479,9 @@ test('internalUsageRule resolves namespaces through tsconfig path aliases', () =
         'import { aliasedHelper } from \'../aliased\';\n\naliasedHelper(\'a\');\n',
         {
           filename: CALLER_BELOW,
-          options: [{ tsConfigPath: FIXTURE_TSCONFIG }],
+          options: [
+            { tsConfigPath: FIXTURE_TSCONFIG },
+          ],
         },
       ),
     ],
@@ -379,10 +496,14 @@ test('internalUsageRule resolves namespaces through tsconfig path aliases', () =
         name: 'alias target excludes a sibling namespace',
         code: 'import { aliasedHelper } from \'../internal/aliased\';\n\naliasedHelper(\'a\');\n',
         filename: CALLER_SIBLING,
-        options: [{ tsConfigPath: FIXTURE_TSCONFIG }],
-        errors: [{
-          message: '`@acme/user/internal/aliased#aliasedHelper` is internal to `@user/internal` and must not be used from `@acme/user/public`.',
-        }],
+        options: [
+          { tsConfigPath: FIXTURE_TSCONFIG },
+        ],
+        errors: [
+          {
+            message: '`@acme/user/internal/aliased#aliasedHelper` is internal to `@user/internal` and must not be used from `@acme/user/public`.',
+          },
+        ],
       },
     ],
   });
@@ -395,7 +516,13 @@ test('internalUsageRule rejects an option entry that is not a namespace prefix',
         buildValidCase(
           'entry that is neither a prefix nor a pattern',
           'export const value = true;\n',
-          { options: [{ allowedCallers: ['#^@acme'] }] },
+          {
+            options: [
+              {
+                allowedCallers: ['#^@acme'],
+              },
+            ],
+          },
         ),
       ],
       invalid: [],
@@ -410,7 +537,13 @@ test('internalUsageRule rejects a separator-only option entry', () => {
         buildValidCase(
           'separator only',
           'export const value = true;\n',
-          { options: [{ allowedInternals: ['/'] }] },
+          {
+            options: [
+              {
+                allowedInternals: ['/'],
+              },
+            ],
+          },
         ),
       ],
       invalid: [],
@@ -425,7 +558,13 @@ test('internalUsageRule rejects an empty option entry', () => {
         buildValidCase(
           'empty entry',
           'export const value = true;\n',
-          { options: [{ allowedInternals: [''] }] },
+          {
+            options: [
+              {
+                allowedInternals: [''],
+              },
+            ],
+          },
         ),
       ],
       invalid: [],
@@ -440,7 +579,15 @@ test('internalUsageRule rejects a mapped option entry that does not name a list'
         buildValidCase(
           'mapped entry naming a bare counterpart',
           'export const value = true;\n',
-          { options: [{ allowedCallers: [{ '@acme/user/public': <never>'@acme/user/internal' }] }] },
+          {
+            options: [
+              {
+                allowedCallers: [
+                  { '@acme/user/public': <never>'@acme/user/internal' },
+                ],
+              },
+            ],
+          },
         ),
       ],
       invalid: [],
@@ -476,7 +623,9 @@ test('internalUsageRule degrades to lexical resolution without type information'
         'import { hashPassword } from \'@user/internal/hasher.ts\';\n\nhashPassword(\'a\');\n',
         {
           filename: CALLER_INSIDE,
-          options: [{ tsConfigPath: FIXTURE_TSCONFIG }],
+          options: [
+            { tsConfigPath: FIXTURE_TSCONFIG },
+          ],
         },
       ),
     ],
@@ -495,7 +644,11 @@ test('internalUsageRule degrades to lexical resolution without type information'
         'usage of an internal import through a path alias',
         'import { hashPassword } from \'@user/internal/hasher\';\n\nhashPassword(\'a\');\n',
         [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE],
-        { options: [{ tsConfigPath: FIXTURE_TSCONFIG }] },
+        {
+          options: [
+            { tsConfigPath: FIXTURE_TSCONFIG },
+          ],
+        },
       ),
       buildInvalidCase(
         'usage of an internal import through a package.json import',
@@ -506,9 +659,11 @@ test('internalUsageRule degrades to lexical resolution without type information'
         name: 'a declared function carries parentheses without type information',
         code: 'import { hashLegacy } from \'../internal/hasher\';\n\nhashLegacy(\'a\');\n',
         filename: CALLER_SIBLING,
-        errors: [{
-          message: '`@acme/user/internal/hasher#hashLegacy()` is internal and must not be used from `@acme/user/public`.',
-        }],
+        errors: [
+          {
+            message: '`@acme/user/internal/hasher#hashLegacy()` is internal and must not be used from `@acme/user/public`.',
+          },
+        ],
       },
       buildInvalidCase(
         're-export of an internal symbol',

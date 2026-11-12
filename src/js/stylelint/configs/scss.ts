@@ -29,7 +29,9 @@ export const scss = (): Config[] => {
           files: ['**/*.scss'],
           extends: [
             PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,
-            ...hasCssModules ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES] : [],
+            ...hasCssModules
+              ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES]
+              : [],
           ],
           rules: {
             'scss/at-each-key-value-single-line': true,
@@ -40,27 +42,33 @@ export const scss = (): Config[] => {
             'scss/block-no-redundant-nesting': true,
             'scss/declaration-nested-properties': 'never',
             'scss/dimension-no-non-numeric-values': true,
-            'scss/dollar-variable-first-in-block': [true, {
-              ignore: [
-                'comments',
-                'imports',
-              ],
-              except: [
-                'function',
-                'mixin',
-                'if-else',
-                'loops',
-              ],
-            }],
+            'scss/dollar-variable-first-in-block': [
+              true,
+              {
+                ignore: [
+                  'comments',
+                  'imports',
+                ],
+                except: [
+                  'function',
+                  'mixin',
+                  'if-else',
+                  'loops',
+                ],
+              },
+            ],
             'scss/dollar-variable-no-namespaced-assignment': true,
             'scss/double-slash-comment-inline': 'never',
             'scss/function-color-channel': true,
             'scss/function-color-relative': true,
             'scss/map-keys-quotes': 'always',
-            'scss/no-duplicate-dollar-variables': [true, {
-              ignoreInsideAtRules: ['if', 'mixin'],
-              ignoreDefaults: false,
-            }],
+            'scss/no-duplicate-dollar-variables': [
+              true,
+              {
+                ignoreInsideAtRules: ['if', 'mixin'],
+                ignoreDefaults: false,
+              },
+            ],
             'scss/no-duplicate-load-rules': true,
             'scss/no-unused-private-members': true,
             'scss/partial-no-import': true,
@@ -72,26 +80,34 @@ export const scss = (): Config[] => {
             // eslint-disable-next-line unicorn/no-null -- Null is required here
             'property-no-unknown': null,
             'scss/property-no-unknown': hasCssModules
-              ? [true, {
-                ignoreProperties: [
-                  'compose-with',
-                  'composes',
-                ],
-                ignoreSelectors: [
-                  ':export',
-                  '/^:import/',
-                ],
-              }]
+              ? [
+                true,
+                {
+                  ignoreProperties: [
+                    'compose-with',
+                    'composes',
+                  ],
+                  ignoreSelectors: [
+                    ':export',
+                    '/^:import/',
+                  ],
+                },
+              ]
               : [true],
             'scss/selector-no-redundant-nesting-selector': true,
             'scss/comment-no-loud': true,
+            // eslint-disable-next-line unicorn/no-null -- Null is required here
+            'value-no-invalid': null,
             ...isStylelintPluginUseBaselineInstalled
               ? {
-                'plugin/use-baseline': [true, {
-                  ignoreAtRules: [
-                    'function',
-                  ],
-                }],
+                'plugin/use-baseline': [
+                  true,
+                  {
+                    ignoreAtRules: [
+                      'function',
+                    ],
+                  },
+                ],
               }
               : undefined,
           },

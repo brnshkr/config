@@ -28,21 +28,28 @@ export const less = (): Config[] => {
           files: ['**/*.less'],
           extends: [
             PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
-            ...hasCssModules ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES] : [],
+            ...hasCssModules
+              ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES]
+              : [],
           ],
           rules: {
             ...hasCssModules
               ? {
-                'at-rule-no-unknown': [true, {
-                  ignoreAtRules: [
-                    'plugin',
-                    'value',
-                  ],
-                }],
+                'at-rule-no-unknown': [
+                  true,
+                  {
+                    ignoreAtRules: [
+                      'plugin',
+                      'value',
+                    ],
+                  },
+                ],
               }
               : undefined,
             // eslint-disable-next-line unicorn/no-null -- Null is required here
             'function-no-unknown': null,
+            // eslint-disable-next-line unicorn/no-null -- Null is required here
+            'value-no-invalid': null,
             'less/color-hex-case': 'lower',
             'less/container-name-pattern': ['^(--)?([a-z][a-z0-9]*)(-[a-z0-9]+)*$'],
             'less/declaration-property-value-no-unknown': true,

@@ -30,8 +30,6 @@ import { packageOrganization } from '#shared/utils/package-json.ts';
 import type { ESLint, Linter } from 'eslint';
 import type { Config, TsEslintParser } from '#eslint/types/config.ts';
 
-type ParseResult = ReturnType<TsEslintParser['parseForESLint']>;
-
 const TAGS_BY_MODULE = <const>{
   test: [
     'vitest-environment',
@@ -299,6 +297,8 @@ export const TAG_SEQUENCE = [
 ];
 
 const memoizeParser = (parser: TsEslintParser): TsEslintParser => {
+  type ParseResult = ReturnType<TsEslintParser['parseForESLint']>;
+
   const parsedSources = new Map<string, ParseResult>();
 
   return {
@@ -365,7 +365,10 @@ const mergeExampleProcessors = (processorsByExtension: [string, Linter.Processor
         const blockCount = blockCounts.at(index) ?? 0;
 
         mappedMessages.push(...processor.postprocess?.(
-          [[], ...blockMessages.slice(blockOffset, blockOffset + blockCount)],
+          [
+            [],
+            ...blockMessages.slice(blockOffset, blockOffset + blockCount),
+          ],
           filePath,
         ) ?? []);
 
@@ -390,7 +393,9 @@ export const jsdoc = async (): Promise<Config[]> => {
   const definedTags = [
     'api',
     'rejects',
-    ...isModuleEnabled(MODULES.test) ? TAGS_BY_MODULE.test : [],
+    ...isModuleEnabled(MODULES.test)
+      ? TAGS_BY_MODULE.test
+      : [],
   ];
 
   const createSetupConfig = (isForTypescript: boolean): Config => ({
@@ -430,80 +435,127 @@ export const jsdoc = async (): Promise<Config[]> => {
               ))
               .filter(Boolean),
           )),
-          'jsdoc/check-tag-names': ['error', {
-            definedTags,
-            typed: true,
-          }],
+          'jsdoc/check-tag-names': [
+            'error',
+            {
+              definedTags,
+              typed: true,
+            },
+          ],
           'jsdoc/require-param': 'off',
           'jsdoc/require-returns': 'off',
         }
         : {
           ...pluginJsdoc.configs['flat/recommended-error'].rules,
-          'jsdoc/check-tag-names': ['error', {
-            definedTags,
-          }],
-          'jsdoc/check-indentation': ['error', {
-            allowIndentedSections: true,
-          }],
+          'jsdoc/check-tag-names': [
+            'error',
+            {
+              definedTags,
+            },
+          ],
+          'jsdoc/check-indentation': [
+            'error',
+            {
+              allowIndentedSections: true,
+            },
+          ],
           'jsdoc/check-line-alignment': 'error',
           'jsdoc/check-syntax': 'error',
           'jsdoc/check-template-names': 'error',
-          'jsdoc/convert-to-jsdoc-comments': ['error', {
-            lineOrBlockStyle: 'block',
-          }],
-          'jsdoc/imports-as-dependencies': 'error',
-          'jsdoc/informative-docs': ['error', {
-            excludedTags: [
-              'default',
-            ],
-          }],
-          'jsdoc/match-description': ['error', {
-            tags: {
-              ...objectFromEntries(FRAGMENT_DESCRIPTION_TAGS.map((tag) => [tag, {
-                match: DESCRIPTION_FRAGMENT_PATTERN,
-                message: `The \`@${tag}\` description starts lowercase and ends without a period.`,
-              }])),
-              ...objectFromEntries(['throws', 'rejects'].map((tag) => [tag, {
-                match: THROWS_DESCRIPTION_PATTERN,
-                message: `The \`@${tag}\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
-              }])),
+          'jsdoc/convert-to-jsdoc-comments': [
+            'error',
+            {
+              lineOrBlockStyle: 'block',
             },
-          }],
-          'jsdoc/multiline-blocks': ['error', {
-            noSingleLineBlocks: true,
-            singleLineTags: [],
-          }],
-          'jsdoc/no-bad-blocks': ['error', {
-            preventAllMultiAsteriskBlocks: true,
-          }],
+          ],
+          'jsdoc/imports-as-dependencies': 'error',
+          'jsdoc/informative-docs': [
+            'error',
+            {
+              excludedTags: [
+                'default',
+              ],
+            },
+          ],
+          'jsdoc/match-description': [
+            'error',
+            {
+              tags: {
+                ...objectFromEntries(FRAGMENT_DESCRIPTION_TAGS.map((tag) => [
+                  tag,
+                  {
+                    match: DESCRIPTION_FRAGMENT_PATTERN,
+                    message: `The \`@${tag}\` description starts lowercase and ends without a period.`,
+                  },
+                ])),
+                ...objectFromEntries(['throws', 'rejects'].map((tag) => [
+                  tag,
+                  {
+                    match: THROWS_DESCRIPTION_PATTERN,
+                    message: `The \`@${tag}\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
+                  },
+                ])),
+              },
+            },
+          ],
+          'jsdoc/multiline-blocks': [
+            'error',
+            {
+              noSingleLineBlocks: true,
+              singleLineTags: [],
+            },
+          ],
+          'jsdoc/no-bad-blocks': [
+            'error',
+            {
+              preventAllMultiAsteriskBlocks: true,
+            },
+          ],
           'jsdoc/no-blank-block-descriptions': 'error',
           'jsdoc/no-blank-blocks': 'error',
-          'jsdoc/no-unnecessary-type-assertion': ['error', {
-            preferConstToLiteralTuples: true,
-          }],
+          'jsdoc/no-unnecessary-type-assertion': [
+            'error',
+            {
+              preferConstToLiteralTuples: true,
+            },
+          ],
           'jsdoc/normalize-see-links': 'error',
           'jsdoc/prefer-import-tag': 'error',
           'jsdoc/require-asterisk-prefix': 'error',
-          'jsdoc/require-hyphen-before-param-description': ['error', DESCRIPTION_DASHES.param, {
-            tags: objectFromEntries(objectEntries(DESCRIPTION_DASHES).filter(([tag]) => tag !== 'param')),
-          }],
+          'jsdoc/require-hyphen-before-param-description': [
+            'error',
+            DESCRIPTION_DASHES.param,
+            {
+              tags: objectFromEntries(objectEntries(DESCRIPTION_DASHES).filter(([tag]) => tag !== 'param')),
+            },
+          ],
           'jsdoc/require-param-description': 'off',
           'jsdoc/require-property-description': 'off',
           'jsdoc/require-returns-description': 'off',
           'jsdoc/require-jsdoc': 'off',
           'jsdoc/require-template': 'error',
-          'jsdoc/sort-tags': ['error', {
-            tagSequence: TAG_SEQUENCE,
-          }],
-          'jsdoc/tag-lines': ['error', 'any', {
-            maxBlockLines: 1,
-            startLines: 1,
-            startLinesWithNoTags: 0,
-          }],
-          'jsdoc/text-escaping': ['error', {
-            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-            escapeHTML: true,
-          }],
+          'jsdoc/sort-tags': [
+            'error',
+            {
+              tagSequence: TAG_SEQUENCE,
+            },
+          ],
+          'jsdoc/tag-lines': [
+            'error',
+            'any',
+            {
+              maxBlockLines: 1,
+              startLines: 1,
+              startLinesWithNoTags: 0,
+            },
+          ],
+          'jsdoc/text-escaping': [
+            'error',
+            {
+              // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+              escapeHTML: true,
+            },
+          ],
           'jsdoc/ts-method-signature-style': 'error',
           'jsdoc/ts-no-unnecessary-template-expression': 'error',
           'jsdoc/ts-prefer-function-type': 'error',
@@ -523,7 +575,10 @@ export const jsdoc = async (): Promise<Config[]> => {
   });
 
   const parser = await getTsEslintParserIfExists();
-  const exampleParser = parser ? memoizeParser(parser) : undefined;
+
+  const exampleParser = parser
+    ? memoizeParser(parser)
+    : undefined;
 
   const examplePlugin = jsdocProcessorModule
     ? {
@@ -555,9 +610,13 @@ export const jsdoc = async (): Promise<Config[]> => {
 
   return [
     createSetupConfig(false),
-    parser ? createSetupConfig(true) : undefined,
+    parser
+      ? createSetupConfig(true)
+      : undefined,
     createRulesConfig(false),
-    parser ? createRulesConfig(true) : undefined,
+    parser
+      ? createRulesConfig(true)
+      : undefined,
     ...(examplePlugin
       ? [
         {

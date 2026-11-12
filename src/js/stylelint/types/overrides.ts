@@ -10,6 +10,9 @@ export const OVERRIDES = <const>{
   LESS: 'less',
   PHP_TEMPLATE: 'php-template',
   SCSS: 'scss',
+  STYLE_FENCED_CODE: 'style/fenced-code',
+  STYLE_LESS: 'style/less',
+  STYLE_SCSS: 'style/scss',
   SVELTE: 'svelte',
   // eslint-disable-next-line no-warning-comments -- (vue-support)
   // TODO: This will be needed if and when Vue.js support is added

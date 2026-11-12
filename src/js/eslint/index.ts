@@ -250,6 +250,8 @@ export default new Proxy(<FlatConfigComposer<Config, ConfigNames>>Object.create(
   get: (_target, key): unknown => {
     const value: unknown = Reflect.get(defaultConfig.composer, key);
 
-    return typeof value === 'function' ? <unknown>value.bind(defaultConfig.composer) : value;
+    return typeof value === 'function'
+      ? <unknown>value.bind(defaultConfig.composer)
+      : value;
   },
 });

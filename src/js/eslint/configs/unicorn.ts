@@ -152,139 +152,193 @@ export const unicorn = async (): Promise<Config[]> => {
         'no-else-return': 'off',
         'no-useless-concat': 'off',
         'operator-assignment': 'off',
-        'unicorn/comment-content': ['error', {
-          replacements: {
-            [String.raw`\bapplication\b(?!/)`]: false,
-            [String.raw`\bapplications\b`]: false,
-            [String.raw`\bhtml\b`]: false,
-            [String.raw`(?<!^\s?)\bhtml\b(?!\s?$)`]: {
-              replacement: 'HTML',
-              caseSensitive: false,
-            },
-            ...Object.fromEntries(COMMENT_TERMS.map((term) => [
-              String.raw`\b${term}\b`,
-              {
-                replacement: term,
+        'unicorn/comment-content': [
+          'error',
+          {
+            replacements: {
+              [String.raw`\bapplication\b(?!/)`]: false,
+              [String.raw`\bapplications\b`]: false,
+              [String.raw`\bhtml\b`]: false,
+              [String.raw`(?<!^\s?)\bhtml\b(?!\s?$)`]: {
+                replacement: 'HTML',
                 caseSensitive: false,
               },
-            ])),
+              ...Object.fromEntries(COMMENT_TERMS.map((term) => [
+                String.raw`\b${term}\b`,
+                {
+                  replacement: term,
+                  caseSensitive: false,
+                },
+              ])),
+            },
           },
-        }],
+        ],
         'unicorn/consistent-boolean-name': 'off',
-        'unicorn/consistent-class-member-order': ['error', {
-          order: [
-            'public-field',
-            'static-field',
-            'private-field',
-            'static-block',
-            'constructor',
-            'public-method',
-            'static-method',
-            'private-method',
-          ],
-        }],
+        'unicorn/consistent-class-member-order': [
+          'error',
+          {
+            order: [
+              'public-field',
+              'static-field',
+              'private-field',
+              'static-block',
+              'constructor',
+              'public-method',
+              'static-method',
+              'private-method',
+            ],
+          },
+        ],
         'unicorn/consistent-conditional-object-spread': ['error', 'ternary'],
         'unicorn/consistent-destructuring': 'error',
         'func-style': 'off',
-        'unicorn/consistent-function-style': ['error', {
-          defaultExport: 'arrow-function',
-          namedExports: 'arrow-function',
-          namedFunctions: 'arrow-function',
-          objectProperties: 'arrow-function',
-          reassignedVariables: 'arrow-function',
-          typedVariables: 'arrow-function',
-        }],
+        'unicorn/consistent-function-style': [
+          'error',
+          {
+            defaultExport: 'arrow-function',
+            namedExports: 'arrow-function',
+            namedFunctions: 'arrow-function',
+            objectProperties: 'arrow-function',
+            reassignedVariables: 'arrow-function',
+            typedVariables: 'arrow-function',
+          },
+        ],
         'unicorn/custom-error-definition': 'error',
-        'unicorn/filename-case': ['error', {
-          case: 'kebabCase',
-          ignore: FILE_NAMES_TO_IGNORE,
-        }],
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'kebabCase',
+            ignore: FILE_NAMES_TO_IGNORE,
+          },
+        ],
         'unicorn/require-post-message-target-origin': 'error',
         'unicorn/iteration-fallback-style': ['error', 'fallback'],
-        'unicorn/name-replacements': ['error', {
-          replacements: {
-            application: false,
-            applications: false,
-            repository: false,
+        'unicorn/name-replacements': [
+          'error',
+          {
+            replacements: {
+              application: false,
+              applications: false,
+              repository: false,
+            },
+            ignore: [
+              '[Ii]nheritDoc',
+              String.raw`\.dist$`,
+            ],
           },
-          ignore: [
-            '[Ii]nheritDoc',
-            String.raw`\.dist$`,
-          ],
-        }],
+        ],
         'unicorn/no-accidental-bitwise-operator': 'off',
         'unicorn/no-array-front-mutation': 'error',
-        'unicorn/no-array-reduce': ['error', {
-          allowSimpleOperations: false,
-        }],
-        'unicorn/no-array-reverse': ['error', {
-          allowExpressionStatement: false,
-        }],
-        'unicorn/no-array-sort': ['error', {
-          allowExpressionStatement: false,
-        }],
+        'unicorn/no-array-reduce': [
+          'error',
+          {
+            allowSimpleOperations: false,
+          },
+        ],
+        'unicorn/no-array-reverse': [
+          'error',
+          {
+            allowExpressionStatement: false,
+          },
+        ],
+        'unicorn/no-array-sort': [
+          'error',
+          {
+            allowExpressionStatement: false,
+          },
+        ],
+        'unicorn/no-asterisk-prefix-in-documentation-comments': 'off',
         'unicorn/no-barrel-files': 'error',
-        'unicorn/no-instanceof-builtins': ['error', {
-          useErrorIsError: true,
-        }],
+        'unicorn/no-instanceof-builtins': [
+          'error',
+          {
+            useErrorIsError: true,
+          },
+        ],
         'unicorn/no-invalid-file-input-accept': 'error',
         'unicorn/no-keyword-prefix': 'error',
         'unicorn/no-manually-wrapped-comments': 'error',
         'unicorn/no-missing-local-resource': 'error',
-        'unicorn/no-negated-comparison': ['error', {
-          checkLogicalExpressions: true,
-        }],
-        'unicorn/no-null': ['error', {
-          checkStrictEquality: true,
-        }],
-        'unicorn/no-typeof-undefined': ['error', {
-          checkGlobalVariables: true,
-        }],
+        'unicorn/no-negated-comparison': [
+          'error',
+          {
+            checkLogicalExpressions: true,
+          },
+        ],
+        'unicorn/no-null': [
+          'error',
+          {
+            checkStrictEquality: true,
+          },
+        ],
+        'unicorn/no-repeated-call-wrappers': 'error',
+        'unicorn/no-typeof-undefined': [
+          'error',
+          {
+            checkGlobalVariables: true,
+          },
+        ],
+        'unicorn/no-unnecessary-default-arguments': 'error',
         'unicorn/no-unsafe-dom-html': 'error',
         'unicorn/no-unused-properties': 'error',
-        'unicorn/numeric-separators-style': ['error', {
-          binary: {
-            minimumDigits: 9,
-            groupLength: 8,
+        'unicorn/numeric-separators-style': [
+          'error',
+          {
+            binary: {
+              minimumDigits: 9,
+              groupLength: 8,
+            },
+            hexadecimal: {
+              minimumDigits: 3,
+              groupLength: 2,
+            },
+            number: {
+              minimumDigits: 4,
+              groupLength: 3,
+              fractionGroupLength: 3,
+            },
+            octal: {
+              minimumDigits: 4,
+              groupLength: 3,
+            },
           },
-          hexadecimal: {
-            minimumDigits: 3,
-            groupLength: 2,
-          },
-          number: {
-            minimumDigits: 4,
-            groupLength: 3,
-            fractionGroupLength: 3,
-          },
-          octal: {
-            minimumDigits: 4,
-            groupLength: 3,
-          },
-        }],
+        ],
         'unicorn/prefer-dispose': 'error',
         'unicorn/prefer-error-is-error': 'error',
         'unicorn/prefer-json-import': 'error',
         'unicorn/prefer-minimal-ternary': 'error',
-        'unicorn/prefer-queue-microtask': ['error', {
-          checkSetImmediate: true,
-          checkSetTimeout: true,
-        }],
+        'unicorn/prefer-queue-microtask': [
+          'error',
+          {
+            checkSetImmediate: true,
+            checkSetTimeout: true,
+          },
+        ],
         'unicorn/prefer-regexp-escape': 'error',
         'unicorn/prefer-short-arrow-method': 'error',
         'unicorn/prefer-switch': 'off',
         'unicorn/prefer-temporal-conversion': 'off',
         'unicorn/prefer-ternary': 'off',
-        'unicorn/require-css-escape': ['error', {
-          checkAllSelectors: true,
-        }],
-        'unicorn/string-content': ['error', {
-          patterns: {
-            '\\.\\.\\.': '…',
+        'unicorn/require-css-escape': [
+          'error',
+          {
+            checkAllSelectors: true,
           },
-        }],
-        'unicorn/text-encoding-identifier-case': ['error', {
-          withDash: true,
-        }],
+        ],
+        'unicorn/string-content': [
+          'error',
+          {
+            patterns: {
+              '\\.\\.\\.': '…',
+            },
+          },
+        ],
+        'unicorn/text-encoding-identifier-case': [
+          'error',
+          {
+            withDash: true,
+          },
+        ],
         'unicorn/try-complexity': 'error',
       },
     },

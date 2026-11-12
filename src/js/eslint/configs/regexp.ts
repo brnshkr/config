@@ -35,10 +35,13 @@ export const regexp = async (): Promise<Config[]> => {
         ...pluginRegExp.configs.recommended.rules,
         'regexp/confusing-quantifier': 'error',
         'regexp/grapheme-string-literal': 'error',
-        'regexp/letter-case': ['error', {
-          unicodeEscape: 'uppercase',
-          hexadecimalEscape: 'uppercase',
-        }],
+        'regexp/letter-case': [
+          'error',
+          {
+            unicodeEscape: 'uppercase',
+            hexadecimalEscape: 'uppercase',
+          },
+        ],
         'regexp/no-control-character': 'error',
         'regexp/no-empty-alternative': 'error',
         'regexp/no-lazy-ends': 'error',
@@ -61,10 +64,13 @@ export const regexp = async (): Promise<Config[]> => {
         'regexp/sort-alternatives': 'error',
         'regexp/sort-character-class-elements': 'error',
         'regexp/unicode-escape': 'error',
-        'regexp/unicode-property': ['error', {
-          key: 'short',
-          property: 'long',
-        }],
+        'regexp/unicode-property': [
+          'error',
+          {
+            key: 'short',
+            property: 'long',
+          },
+        ],
       },
     },
   ];

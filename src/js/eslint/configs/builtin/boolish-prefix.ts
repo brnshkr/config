@@ -105,7 +105,9 @@ interface RuleContext {
 /* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum throughout this module */
 
 const resolveNameNode = (node: TSESTree.Node): Maybe<NameNode> => (
-  (node.type === 'Identifier' || node.type === 'PrivateIdentifier') ? node : undefined
+  (node.type === 'Identifier' || node.type === 'PrivateIdentifier')
+    ? node
+    : undefined
 );
 
 const isSetterMember = (node: ClassMemberNode): boolean => {
@@ -264,11 +266,15 @@ const checkParameters = (ruleContext: RuleContext, node: CallableNode): void => 
       checkTarget(ruleContext, {
         nameNode,
         // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
-        valueKind: parameter.type === 'TSParameterProperty' ? KIND_PROPERTY : KIND_PARAMETER,
+        valueKind: parameter.type === 'TSParameterProperty'
+          ? KIND_PROPERTY
+          : KIND_PARAMETER,
         callableKind: KIND_FUNCTION,
         typeAnnotation: nameNode.typeAnnotation,
         // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
-        initializer: parameter.type === 'AssignmentPattern' ? parameter.right : undefined,
+        initializer: parameter.type === 'AssignmentPattern'
+          ? parameter.right
+          : undefined,
       });
     }
   }
@@ -299,14 +305,18 @@ const checkClassMember = (ruleContext: RuleContext, node: ClassMemberNode): void
     checkTarget(ruleContext, {
       nameNode,
       valueKind: KIND_PROPERTY,
-      callableKind: node.kind === 'get' ? KIND_PROPERTY : KIND_METHOD,
+      callableKind: node.kind === 'get'
+        ? KIND_PROPERTY
+        : KIND_METHOD,
       callable: node.value,
     });
   }
 };
 
 const collectReturnClassification = (ruleContext: RuleContext, node: TSESTree.ReturnStatement): void => {
-  const callable = ruleContext.services === undefined ? findEnclosingCallable(node) : undefined;
+  const callable = ruleContext.services === undefined
+    ? findEnclosingCallable(node)
+    : undefined;
 
   if (callable === undefined) {
     return;
@@ -314,7 +324,9 @@ const collectReturnClassification = (ruleContext: RuleContext, node: TSESTree.Re
 
   ruleContext.returnClassifications.set(callable, [
     ...ruleContext.returnClassifications.get(callable) ?? [],
-    node.argument ? classifyExpression(node.argument) : TYPE_CLASSIFICATIONS.NON_BOOL,
+    node.argument
+      ? classifyExpression(node.argument)
+      : TYPE_CLASSIFICATIONS.NON_BOOL,
   ]);
 };
 
@@ -420,7 +432,9 @@ export const boolishPrefixRule = <const>{
           data,
         });
       },
-      services: program === undefined ? undefined : services,
+      services: program === undefined
+        ? undefined
+        : services,
       checker: program?.getTypeChecker(),
       returnClassifications: new Map(),
     } satisfies RuleContext);

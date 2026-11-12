@@ -154,7 +154,12 @@ export const getReservedToken = (name: string, kind: string): Maybe<string> => {
   }
 
   const firstWord = getFirstWord(name);
-  const reservedPrefixes = isCallableKind(kind) ? RESERVED_METHOD_PREFIXES : RESERVED_VALUE_PREFIXES;
 
-  return reservedPrefixes.includes(firstWord) ? firstWord : undefined;
+  const reservedPrefixes = isCallableKind(kind)
+    ? RESERVED_METHOD_PREFIXES
+    : RESERVED_VALUE_PREFIXES;
+
+  return reservedPrefixes.includes(firstWord)
+    ? firstWord
+    : undefined;
 };

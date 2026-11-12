@@ -67,7 +67,9 @@ const getBlockFilePath = (filePath: string, index: number, language: string): st
   `${String(index)}.${FENCED_CODE_MARKER}.${language}`,
 );
 
-const getRawText = (value: unknown): Maybe<string> => (typeof value === 'string' ? value : undefined);
+const getRawText = (value: unknown): Maybe<string> => (typeof value === 'string'
+  ? value
+  : undefined);
 
 export const fencedCodeSyntax = <const>{
   parse: (source: string | { toString: () => string }, options?: postcss.ProcessOptions): Root => {
@@ -102,7 +104,9 @@ const getConfigSource = (ownConfig: Config): ConfigSource => {
       .find((candidateFile) => doesFileExist(candidateFile))
     : configuredFile;
 
-  return configFile === undefined ? { config: ownConfig } : { configFile };
+  return configFile === undefined
+    ? { config: ownConfig }
+    : { configFile };
 };
 
 /**
@@ -145,7 +149,9 @@ const lintFencedCodes = async (
   isFixing: boolean,
   configSource: ConfigSource,
 ): Promise<LintedFencedCode[]> => {
-  const languages = [...new Set(fencedCodes.map(({ language }) => language))];
+  const languages = [
+    ...new Set(fencedCodes.map(({ language }) => language)),
+  ];
 
   const styleLanguageResults = await Promise.all(languages.map(
     async (language) => isStyleLanguage(language, filePath, configSource),
@@ -212,7 +218,9 @@ const applyLintResults = (
   }
 
   for (const { fencedCode, fixedCode } of lintedFencedCodes.toReversed()) {
-    fixedSource = fixedCode === fencedCode.code ? fixedSource : replaceFencedCode(fixedSource, fencedCode, fixedCode);
+    fixedSource = fixedCode === fencedCode.code
+      ? fixedSource
+      : replaceFencedCode(fixedSource, fencedCode, fixedCode);
   }
 
   if (fixedSource !== source) {
@@ -259,12 +267,13 @@ const checkFencedCodes = async (
  * @see https://github.com/brnshkr/config/blob/master/docs/js/stylelint/rules/fenced-code.md
  */
 export const createFencedCodePlugin = (ownConfig: Config): Plugin => {
-  const ruleFunction: Rule<boolean> = (isEnabled, _secondaryOptions, context) => async (root, result) => (
+  const ruleFunction: Rule<boolean> = (isEnabled) => async (root, result) => (
     isEnabled
       ? checkFencedCodes(
         root,
         result,
-        context.fix === true,
+        // eslint-disable-next-line brnshkr/internal-usage -- Stylelint offers no public fix flag
+        result.stylelint.config?.fix === true,
         ownConfig,
       )
       : undefined

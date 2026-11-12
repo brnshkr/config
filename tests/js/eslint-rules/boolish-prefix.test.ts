@@ -48,9 +48,23 @@ test('boolishPrefixRule stays in sync with the PHP rule', () => {
 
   expect(reservedValuePrefixes.length).toBeGreaterThan(0);
   expect(RESERVED_VALUE_PREFIXES).toStrictEqual(reservedValuePrefixes);
-  expect(RESERVED_METHOD_PREFIXES).toStrictEqual([...reservedValuePrefixes, ...colliderPrefixes]);
-  expect(PREDICATE_PREFIXES).toStrictEqual([...reservedValuePrefixes, ...colliderPrefixes, ...directivePrefixes]);
-  expect(FLAG_PREFIXES).toStrictEqual([...reservedValuePrefixes, ...directivePrefixes, 'as']);
+
+  expect(RESERVED_METHOD_PREFIXES).toStrictEqual([
+    ...reservedValuePrefixes,
+    ...colliderPrefixes,
+  ]);
+
+  expect(PREDICATE_PREFIXES).toStrictEqual([
+    ...reservedValuePrefixes,
+    ...colliderPrefixes,
+    ...directivePrefixes,
+  ]);
+
+  expect(FLAG_PREFIXES).toStrictEqual([
+    ...reservedValuePrefixes,
+    ...directivePrefixes,
+    'as',
+  ]);
 });
 
 test('boolishPrefixRule forward direction', () => {

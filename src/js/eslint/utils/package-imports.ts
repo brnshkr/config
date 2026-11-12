@@ -72,11 +72,24 @@ export const loadPackageImports = (directory: string, customConditions: readonly
   }
 
   const packageRoot = path.dirname(packageJsonPath);
-  const activeConditions = new Set([...BUNDLER_CONDITIONS, ...customConditions]);
+
+  const activeConditions = new Set([
+    ...BUNDLER_CONDITIONS,
+    ...customConditions,
+  ]);
 
   return objectFromEntries(objectEntries(importsField).flatMap(([pattern, target]) => {
     const resolvedTarget = resolveConditionalTarget(target, activeConditions);
 
-    return resolvedTarget === undefined ? [] : [[pattern, [toPosix(path.resolve(packageRoot, resolvedTarget))]]];
+    return resolvedTarget === undefined
+      ? []
+      : [
+        [
+          pattern,
+          [
+            toPosix(path.resolve(packageRoot, resolvedTarget)),
+          ],
+        ],
+      ];
   }));
 };

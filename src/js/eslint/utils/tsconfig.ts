@@ -26,7 +26,9 @@ interface ParsedTsConfig {
 const DEFAULT_TSCONFIG_FILENAME = 'tsconfig.json';
 
 const stripJsonc = (input: string): string => input
-  .replaceAll(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//gv, (match) => (match.startsWith('"') ? match : ''))
+  .replaceAll(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//gv, (match) => (match.startsWith('"')
+    ? match
+    : ''))
   .replaceAll(/,(?=\s*[\]\}])/gv, '');
 
 const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
@@ -47,7 +49,9 @@ const resolveExtends = (parentConfig: string, fromDirectory: string): string => 
   if (parentConfig.startsWith('.') || path.isAbsolute(parentConfig)) {
     const resolved = path.resolve(fromDirectory, parentConfig);
 
-    return path.extname(resolved) === '' ? `${resolved}.json` : resolved;
+    return path.extname(resolved) === ''
+      ? `${resolved}.json`
+      : resolved;
   }
 
   return path.resolve(fromDirectory, 'node_modules', parentConfig);
@@ -58,7 +62,9 @@ const normalizeExtends = (raw: ParsedTsConfig): string[] => {
     return [];
   }
 
-  return Array.isArray(raw.extends) ? raw.extends : [raw.extends];
+  return Array.isArray(raw.extends)
+    ? raw.extends
+    : [raw.extends];
 };
 
 const loadInternal = (filePath: string, visitedPaths: Set<string>): Maybe<ParsedTsConfig> => {

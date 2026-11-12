@@ -9,9 +9,9 @@ import type { ResolvedOptions, UserOptions } from '#vitest/types/options.ts';
 /**
  * Build the `@brnshkr` Vitest config object.
  *
- * Collects the project's own tests and the spelling test this package ships, so a repository
- * needs no test file of its own for it, and activates each module lazily, only when its
- * optional peer dependency is installed.
+ * Collects the project's own tests and the spelling test this package ships.
+ * A repository needs no spelling test file of its own.
+ * Each module activates lazily, only when its optional peer dependency is installed.
  *
  * @api
  *

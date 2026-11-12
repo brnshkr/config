@@ -45,7 +45,9 @@ export const RULE_DEFINITIONS = <const>{
 } satisfies Record<string, RuleDefinition>;
 
 export const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
-  const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined);
+  const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object'
+    ? typescriptOptions
+    : undefined);
 
   return [
     {
@@ -67,13 +69,19 @@ export const builtin = (typescriptOptions?: boolean | Partial<TypescriptOptions>
         [<const>`${packageOrganization}/api-or-internal-tag`]: 'error',
         [<const>`${packageOrganization}/boolish-prefix`]: 'error',
         [<const>`${packageOrganization}/interface-suffix`]: 'error',
-        [<const>`${packageOrganization}/internal-usage`]: ['error', {
-          tsConfigPath,
-        }],
+        [<const>`${packageOrganization}/internal-usage`]: [
+          'error',
+          {
+            tsConfigPath,
+          },
+        ],
         [<const>`${packageOrganization}/public-api-documentation`]: 'error',
-        [<const>`${packageOrganization}/require-import-alias`]: ['error', {
-          tsConfigPath,
-        }],
+        [<const>`${packageOrganization}/require-import-alias`]: [
+          'error',
+          {
+            tsConfigPath,
+          },
+        ],
         [<const>`${packageOrganization}/require-import-attributes`]: 'error',
         [<const>`${packageOrganization}/require-rejects`]: 'error',
         [<const>`${packageOrganization}/require-throws`]: 'error',

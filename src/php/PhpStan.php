@@ -34,6 +34,7 @@ use Fruitcake\LaravelDebugbar\LaravelDebugbar;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use PhpCsFixer\Finder as PhpCsFixerFinder;
+use PhpCsFixer\Fixer\FixerInterface;
 use PhpParser\Node;
 use PHPStan\Rules\PHPUnit\AssertEmptyIsDiscouragedRule;
 use PHPStan\Rules\PHPUnit\AssertEqualsIsDiscouragedRule;
@@ -41,6 +42,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Type\DynamicStaticMethodThrowTypeExtension;
 use Psr\Log\LoggerInterface;
 use Random\Randomizer;
+use Rector\Contract\Rector\RectorInterface;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Clock\ClockInterface;
@@ -68,6 +70,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symplify\PHPStanRules\Rules as SymplifyPhpStanRules;
 use Tempest\Debug\Debug;
 use Throwable;
+use TwigCsFixer\Rules\RuleInterface;
 
 use function array_any;
 use function array_diff;
@@ -1989,6 +1992,14 @@ final class PhpStan
             ]),
             self::configureRule(SymplifyPhpStanRules\ForbiddenFuncCallRule::class, [
                 'forbiddenFunctions' => self::getForbiddenFunctions(),
+            ]),
+            self::configureRule(SymplifyPhpStanRules\SeeAnnotationToTestRule::class, [
+                'requiredSeeTypes' => [
+                    FixerInterface::class,
+                    RectorInterface::class,
+                    Rule::class,
+                    RuleInterface::class,
+                ],
             ]),
         ];
     }

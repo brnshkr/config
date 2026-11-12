@@ -334,6 +334,7 @@
         "./tests/php/SpellingTest.php",
         "./tests/php/StrTest.php",
         "./tests/php/Testing/JsonSnapshotDriverTest.php",
+        "./tests/php/Trait/TemporaryRootTrait.php",
         "./tests/php/TwigCsFixerTest.php"
     ],
     "format": "txt",

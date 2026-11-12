@@ -38,19 +38,30 @@ export const toml = async (): Promise<Config[]> => {
         'toml/array-bracket-spacing': ['error', 'never'],
         'toml/array-element-newline': ['error', 'consistent'],
         'toml/indent': ['error', INDENT],
-        'toml/inline-table-curly-newline': ['error', {
-          consistent: true,
-        }],
-        'toml/inline-table-curly-spacing': ['error', 'always', {
-          emptyObjects: 'never',
-        }],
+        'toml/inline-table-curly-newline': [
+          'error',
+          {
+            consistent: true,
+          },
+        ],
+        'toml/inline-table-curly-spacing': [
+          'error',
+          'always',
+          {
+            emptyObjects: 'never',
+          },
+        ],
         'toml/no-mixed-type-in-array': 'error',
-        'toml/spaced-comment': ['error', 'always', {
-          markers: [
-            '##>',
-            '##<',
-          ],
-        }],
+        'toml/spaced-comment': [
+          'error',
+          'always',
+          {
+            markers: [
+              '##>',
+              '##<',
+            ],
+          },
+        ],
       },
     },
   ];

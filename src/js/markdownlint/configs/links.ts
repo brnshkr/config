@@ -21,8 +21,12 @@ export const links = (): Config[] => {
   } = resolvePackages(MODULES.links);
 
   const customRules = [
-    ...isMarkdownlintRuleRelativeLinksInstalled ? [PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS] : [],
-    ...isMarkdownlintRuleNoTrailingSlashInLinksInstalled ? [NO_TRAILING_SLASH_IN_LINKS_RULE] : [],
+    ...isMarkdownlintRuleRelativeLinksInstalled
+      ? [PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS]
+      : [],
+    ...isMarkdownlintRuleNoTrailingSlashInLinksInstalled
+      ? [NO_TRAILING_SLASH_IN_LINKS_RULE]
+      : [],
   ];
 
   if (customRules.length === 0) {

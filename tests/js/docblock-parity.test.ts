@@ -42,7 +42,9 @@ test('both stacks group the tags they share the same way', () => {
 });
 
 test('the php groups and the php order agree', () => {
-  const groupedTags = [...new Set(phpGroups.flat().map((tag) => stripTwinPrefix(tag)))];
+  const groupedTags = [
+    ...new Set(phpGroups.flat().map((tag) => stripTwinPrefix(tag))),
+  ];
 
   expect(groupedTags).toStrictEqual(phpOrder.filter((tag) => groupedTags.includes(tag)));
 });
@@ -50,7 +52,9 @@ test('the php groups and the php order agree', () => {
 test('both stacks put a dash before the same tag descriptions', () => {
   const javascriptDashes = objectEntries(DESCRIPTION_DASHES)
     .filter(([tag]) => tag !== 'rejects')
-    .map(([tag, dash]) => `${tag === 'returns' ? 'return' : tag}=${String(dash === 'always')}`);
+    .map(([tag, dash]) => `${tag === 'returns'
+      ? 'return'
+      : tag}=${String(dash === 'always')}`);
 
   expect(extractPhpConstantFlags(tagDescriptionSource, 'DESCRIPTION_DASHES')).toStrictEqual(javascriptDashes);
 });

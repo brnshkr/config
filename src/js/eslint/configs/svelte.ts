@@ -141,38 +141,56 @@ export const svelte = async (): Promise<Config[]> => {
       files: [GLOB_SVELTE, GLOB_SVELTE_SCRIPT],
       rules: {
         ...extractRelevantConfig(pluginSvelte.configs.recommended, 'recommended:rules').rules,
-        'svelte/block-lang': ['error', {
-          enforceScriptPresent: false,
-          enforceStylePresent: false,
-          /* eslint-disable unicorn/no-null -- Null is required here to allow for tags without a lang attribute */
-          script: ['ts', null],
-          style: ['scss', null],
-          /* eslint-enable unicorn/no-null */
-        }],
+        'svelte/block-lang': [
+          'error',
+          {
+            enforceScriptPresent: false,
+            enforceStylePresent: false,
+            /* eslint-disable unicorn/no-null -- Null is required here to allow for tags without a lang attribute */
+            script: ['ts', null],
+            style: ['scss', null],
+            /* eslint-enable unicorn/no-null */
+          },
+        ],
         'svelte/button-has-type': 'error',
-        'svelte/consistent-selector-style': ['error', {
-          style: ['type', 'class', 'id'],
-        }],
+        'svelte/consistent-selector-style': [
+          'error',
+          {
+            style: ['type', 'class', 'id'],
+          },
+        ],
         'svelte/derived-has-same-inputs-outputs': 'error',
         'svelte/experimental-require-strict-events': 'error',
         'svelte/experimental-require-slot-types': 'error',
         'svelte/first-attribute-linebreak': 'error',
         'svelte/html-closing-bracket-new-line': 'error',
-        'svelte/html-closing-bracket-spacing': ['error', {
-          selfClosingTag: 'never',
-        }],
+        'svelte/html-closing-bracket-spacing': [
+          'error',
+          {
+            selfClosingTag: 'never',
+          },
+        ],
         'svelte/html-quotes': 'error',
-        'svelte/html-self-closing': ['error', {
-          normal: 'ignore',
-          void: 'never',
-        }],
+        'svelte/html-self-closing': [
+          'error',
+          {
+            normal: 'ignore',
+            void: 'never',
+          },
+        ],
         'style/indent': 'off',
-        'svelte/indent': ['error', {
-          indent: INDENT,
-        }],
-        'svelte/max-attributes-per-line': ['error', {
-          singleline: 3,
-        }],
+        'svelte/indent': [
+          'error',
+          {
+            indent: INDENT,
+          },
+        ],
+        'svelte/max-attributes-per-line': [
+          'error',
+          {
+            singleline: 3,
+          },
+        ],
         'svelte/mustache-spacing': 'error',
         'svelte/no-add-event-listener': 'error',
         'svelte/no-at-const-tags': 'error',
@@ -181,9 +199,12 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/no-conflicting-module-names': 'error',
         'svelte/no-extra-reactive-curlies': 'error',
         'svelte/no-ignored-unsubscribe': 'error',
-        'svelte/no-inline-styles': ['error', {
-          allowTransitions: false,
-        }],
+        'svelte/no-inline-styles': [
+          'error',
+          {
+            allowTransitions: false,
+          },
+        ],
         'svelte/no-inspect': 'error',
         'svelte/no-nested-style-tag': 'error',
         'svelte/no-spaces-around-equal-signs-in-attribute': 'error',
@@ -191,9 +212,12 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/no-top-level-browser-globals': 'error',
         'style/no-trailing-spaces': 'off',
         'svelte/no-trailing-spaces': 'error',
-        'svelte/no-unused-props': ['error', {
-          checkImportedTypes: true,
-        }],
+        'svelte/no-unused-props': [
+          'error',
+          {
+            checkImportedTypes: true,
+          },
+        ],
         'svelte/prefer-attribute-interpolation': 'error',
         'svelte/prefer-class-directive': 'error',
         'prefer-const': 'off',
@@ -207,9 +231,12 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/require-stores-init': 'error',
         'svelte/shorthand-attribute': 'error',
         'svelte/shorthand-directive': 'error',
-        'svelte/sort-attributes': ['error', {
-          order: SVELTE_ATTRIBUTE_ORDER,
-        }],
+        'svelte/sort-attributes': [
+          'error',
+          {
+            order: SVELTE_ATTRIBUTE_ORDER,
+          },
+        ],
         'svelte/spaced-html-comment': 'error',
         'svelte/valid-compile': 'error',
         'svelte/valid-style-parse': 'error',

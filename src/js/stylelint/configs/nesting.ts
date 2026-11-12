@@ -24,9 +24,14 @@ export const nesting = (): Config[] => {
     {
       plugins: PACKAGES.STYLELINT_USE_NESTING,
       rules: {
-        'csstools/use-nesting': ['always', {
-          syntax: isModuleEnabled(MODULES.scss) ? 'scss' : 'css',
-        }],
+        'csstools/use-nesting': [
+          'always',
+          {
+            syntax: isModuleEnabled(MODULES.scss)
+              ? 'scss'
+              : 'css',
+          },
+        ],
       },
     },
   ];

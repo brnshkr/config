@@ -18,6 +18,7 @@ import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/obje
 import { TAILWIND_DIALECT } from '#shared/utils/tailwind.ts';
 
 import type { CSSLanguageOptions, DefaultSyntaxConfig, SyntaxExtensionCallback } from '@eslint/css';
+import type PluginCssicorn from 'eslint-cssicorn';
 import type { Config } from '#eslint/types/config.ts';
 import type { CssOptions } from '#eslint/types/options.ts';
 import type { Maybe } from '#shared/types/core.ts';
@@ -36,16 +37,19 @@ const buildDialectSyntax = (
 
   return {
     atrules: objectFromEntries(objectEntries(dialect.atRules).map(
-      ([name, { prelude, descriptors, isDeclarationBlock }]) => <const>[name, {
-        // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
-        prelude: prelude ?? null,
-        descriptors: isDeclarationBlock === true
-          ? {
-            ...declarations,
-            ...descriptors,
-          }
-          : descriptors,
-      }],
+      ([name, { prelude, descriptors, isDeclarationBlock }]) => <const>[
+        name,
+        {
+          // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
+          prelude: prelude ?? null,
+          descriptors: isDeclarationBlock === true
+            ? {
+              ...declarations,
+              ...descriptors,
+            }
+            : descriptors,
+        },
+      ],
     )),
     properties: dialect.properties,
     types: {
@@ -80,11 +84,17 @@ const buildDialect = (
   options: Maybe<Partial<CssOptions>>,
 ): Maybe<CssDialect> => {
   const dialects = [
-    ...(isTailwindEnabled ? [TAILWIND_DIALECT] : []),
-    ...(options?.dialect === undefined ? [] : [options.dialect]),
+    ...(isTailwindEnabled
+      ? [TAILWIND_DIALECT]
+      : []),
+    ...(options?.dialect === undefined
+      ? []
+      : [options.dialect]),
   ];
 
-  return dialects.length === 0 ? undefined : mergeDialects(dialects);
+  return dialects.length === 0
+    ? undefined
+    : mergeDialects(dialects);
 };
 
 const buildCustomSyntax = (
@@ -104,14 +114,36 @@ const buildCustomSyntax = (
 
     return mergeSyntaxDefinitions(
       dialectSyntax,
-      typeof customSyntax === 'function' ? customSyntax(defaultSyntax) : customSyntax,
+      typeof customSyntax === 'function'
+        ? customSyntax(defaultSyntax)
+        : customSyntax,
     );
   };
 };
 
+const buildCssicornRules = (
+  pluginCssicorn: Maybe<typeof PluginCssicorn>,
+  dialect: Maybe<CssDialect>,
+): Config['rules'] => (
+  pluginCssicorn
+    ? {
+      ...pluginCssicorn.configs.recommended.rules,
+      'cssicorn/no-layout-animations': 'error',
+      'cssicorn/no-unscoped-nesting-selector': [
+        'error',
+        {
+          scopingRootAtRules: getScopingRootAtRules(dialect),
+        },
+      ],
+      'cssicorn/require-prefers-reduced-motion': 'error',
+    }
+    : undefined
+);
+
 export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
   const {
     requiredAll: [pluginCss],
+    optional: [pluginCssicorn],
   } = await resolvePackages(MODULES.css);
 
   if (!pluginCss) {
@@ -143,6 +175,11 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
               ),
             },
           },
+        ...(pluginCssicorn
+          ? {
+            cssicorn: pluginCssicorn,
+          }
+          : undefined),
       },
     },
     {
@@ -166,25 +203,16 @@ export const css = async (options?: Partial<CssOptions>): Promise<Config[]> => {
           }
           : undefined),
         'css/prefer-logical-properties': 'error',
-        'css/relative-font-units': ['error', {
-          allowUnits: ['em', 'rem'],
-        }],
+        'css/relative-font-units': [
+          'error',
+          {
+            allowUnits: ['em', 'rem'],
+          },
+        ],
+        ...buildCssicornRules(pluginCssicorn, dialect),
         ...(isModuleEnabled(MODULES.unicorn)
           ? {
-            'unicorn/no-deprecated-css-features': 'error',
-            'unicorn/no-duplicate-css-selectors': 'error',
-            'unicorn/no-duplicate-font-family-names': 'error',
-            'unicorn/no-invalid-media-features': 'error',
             'unicorn/no-missing-local-resource': 'error',
-            'unicorn/no-nesting-with-mixed-specificity': 'error',
-            'unicorn/no-redundant-nested-style-rules': 'error',
-            'unicorn/no-unknown-css-annotations': 'error',
-            'unicorn/no-unknown-pseudo-selectors': 'error',
-            'unicorn/no-unscoped-css-nesting-selector': ['error', {
-              scopingRootAtRules: getScopingRootAtRules(dialect),
-            }],
-            'unicorn/prefer-explicit-viewport-units': 'error',
-            'unicorn/prefer-media-feature-range-syntax': 'error',
           }
           : undefined),
       },

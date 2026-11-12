@@ -216,7 +216,9 @@ test('resolvableDocReferenceRule resolves members when type information is avail
         name: 'type import expression is not a namepath',
         code: '/**\n * {@link import(\'eslint\').Linter}\n */\nexport const value = true;\n',
         filename: TYPE_AWARE_FIXTURE_FILE,
-        errors: [{ message: 'Reference `import(\'eslint\').Linter` does not exist.' }],
+        errors: [
+          { message: 'Reference `import(\'eslint\').Linter` does not exist.' },
+        ],
       },
       buildInvalidTypeAwareCase(
         'broken link in a chained namepath',
@@ -232,7 +234,9 @@ test('resolvableDocReferenceRule resolves members when type information is avail
         name: 'undeclared target with link text after a pipe',
         code: '/**\n * {@link Missing|the transport}\n */\nexport const value = true;\n',
         filename: TYPE_AWARE_FIXTURE_FILE,
-        errors: [{ message: 'Reference `Missing` does not exist.' }],
+        errors: [
+          { message: 'Reference `Missing` does not exist.' },
+        ],
       },
       buildInvalidTypeAwareCase(
         'block tag naming an undeclared target',

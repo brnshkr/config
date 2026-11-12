@@ -44,12 +44,15 @@ const getJsoncSortConfigs = (): Config[] => [
     name: buildConfigName(MAIN_SCOPES.JSON, `${SUB_SCOPES.RULES}-sort-package-json`),
     files: ['**/package.json'],
     rules: {
-      'jsonc/sort-array-values': ['error', {
-        pathPattern: '^files$',
-        order: {
-          type: 'asc',
+      'jsonc/sort-array-values': [
+        'error',
+        {
+          pathPattern: '^files$',
+          order: {
+            type: 'asc',
+          },
         },
-      }],
+      ],
       'jsonc/sort-keys': [
         'error',
         {
@@ -316,12 +319,15 @@ const getJsoncSortConfigs = (): Config[] => [
     name: buildConfigName(MAIN_SCOPES.JSON, `${SUB_SCOPES.RULES}-sort-tsconfig-json`),
     files: TSCONFIG_FILES,
     rules: {
-      'jsonc/sort-array-values': ['error', {
-        pathPattern: '^(?:files|include|exclude)$',
-        order: {
-          type: 'asc',
+      'jsonc/sort-array-values': [
+        'error',
+        {
+          pathPattern: '^(?:files|include|exclude)$',
+          order: {
+            type: 'asc',
+          },
         },
-      }],
+      ],
       // @see https://www.typescriptlang.org/tsconfig/
       'jsonc/sort-keys': [
         'error',
@@ -534,7 +540,9 @@ export const json = async (): Promise<Config[]> => {
       : undefined),
     rules: {
       ...pluginJson.configs.recommended.rules,
-      ...pluginJsonc ? extractAllRules(pluginJsonc.configs[`recommended-with-${language}`]) : undefined,
+      ...pluginJsonc
+        ? extractAllRules(pluginJsonc.configs[`recommended-with-${language}`])
+        : undefined,
       ...(pluginJsonc
         ? {
           'jsonc/array-bracket-newline': ['error', 'consistent'],
@@ -544,9 +552,13 @@ export const json = async (): Promise<Config[]> => {
           'jsonc/key-spacing': 'error',
           'jsonc/no-octal-escape': 'error',
           'jsonc/object-curly-newline': 'error',
-          'jsonc/object-curly-spacing': ['error', 'always', {
-            emptyObjects: 'never',
-          }],
+          'jsonc/object-curly-spacing': [
+            'error',
+            'always',
+            {
+              emptyObjects: 'never',
+            },
+          ],
           'jsonc/object-property-newline': 'error',
           'jsonc/quotes': 'error',
         }

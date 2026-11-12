@@ -147,6 +147,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "CanvasCaptureMediaStream": false,
       "CanvasCaptureMediaStreamTrack": false,
       "CanvasGradient": false,
+      "CanvasPaintEvent": false,
       "CanvasPattern": false,
       "CanvasRenderingContext2D": false,
       "CaptureController": false,
@@ -223,6 +224,8 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "DynamicsCompressorNode": false,
       "EditContext": false,
       "Element": false,
+      "ElementGeometryUpdateEvent": false,
+      "ElementImage": false,
       "ElementInternals": false,
       "EncodedAudioChunk": false,
       "EncodedVideoChunk": false,
@@ -360,6 +363,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "HTMLIFrameElement": false,
       "HTMLImageElement": false,
       "HTMLInputElement": false,
+      "HTMLInstallElement": false,
       "HTMLLIElement": false,
       "HTMLLabelElement": false,
       "HTMLLegendElement": false,
@@ -442,6 +446,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "InputDeviceCapabilities": false,
       "InputDeviceInfo": false,
       "InputEvent": false,
+      "InstallResultEvent": false,
       "Int16Array": false,
       "Int32Array": false,
       "Int8Array": false,
@@ -874,6 +879,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "Translator": false,
       "TreeWalker": false,
       "TrustedHTML": false,
+      "TrustedHTMLParserOptions": false,
       "TrustedParserOptions": false,
       "TrustedScript": false,
       "TrustedScriptURL": false,
@@ -1152,6 +1158,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "ongotpointercapture": true,
       "onhashchange": true,
       "oninput": true,
+      "oninstallresult": true,
       "oninvalid": true,
       "onkeydown": true,
       "onkeypress": true,
@@ -1289,7 +1296,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "when": false,
       "window": false,
     },
-    "parser": "typescript-eslint/parser@8.71.2",
+    "parser": "typescript-eslint/parser@8.72.1",
     "parserOptions": {
       "ecmaFeatures": {
         "jsx": true,
@@ -1308,28 +1315,29 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
   },
   "plugins": [
     "@",
-    "antfu:antfu@3.2.3",
+    "antfu:antfu@3.3.1",
     "unused:unused-imports",
-    "ts:@typescript-eslint/eslint-plugin@8.71.2",
-    "test:vitest@1.6.27",
+    "ts:@typescript-eslint/eslint-plugin@8.72.1",
+    "test:vitest@1.6.28",
     "jsdoc",
     "examples:brnshkr/jsdoc-examples",
-    "node:eslint-plugin-n@18.4.1",
+    "node:eslint-plugin-n@18.5.0",
     "brnshkr:brnshkr@<version>",
     "comments",
-    "regexp:eslint-plugin-regexp@3.3.1",
-    "security:eslint-plugin-security@4.2.0",
-    "unicorn:eslint-plugin-unicorn@76.0.0",
+    "regexp:eslint-plugin-regexp@3.3.3",
+    "security:eslint-plugin-security@4.2.1",
+    "unicorn:eslint-plugin-unicorn@79.0.0",
     "import:eslint-plugin-import-x@4.17.1",
     "style:@stylistic/eslint-plugin@5.10.0",
-    "perfectionist:eslint-plugin-perfectionist@5.12.1",
-    "svelte:eslint-plugin-svelte@3.23.1",
+    "perfectionist:eslint-plugin-perfectionist@5.13.0",
+    "svelte:eslint-plugin-svelte@3.24.0",
     "svelte-html:@html-eslint/eslint-plugin-svelte@0.67.0",
     "json:@eslint/json@2.1.1",
     "jsonc:eslint-plugin-jsonc@3.4.2",
     "toml:eslint-plugin-toml@1.5.0",
-    "yaml:eslint-plugin-yml@3.9.0",
+    "yaml:eslint-plugin-yml@3.10.0",
     "css:@eslint/css@2.0.1",
+    "cssicorn:cssicorn@0.3.0",
     "tailwind:better-tailwindcss",
     "html:@html-eslint/eslint-plugin@0.67.0",
     "html-scripts",
@@ -1359,6 +1367,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "antfu/no-ts-export-equal": [
+      2,
+    ],
+    "antfu/reasonable-newline": [
       2,
     ],
     "array-callback-return": [
@@ -8320,6 +8331,24 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "jsdoc/convert-to-jsdoc-comments": [
       2,
       {
+        "allowedPrefixes": [
+          "@ts-",
+          "@license",
+          "@license-end",
+          "istanbul ",
+          "c8 ",
+          "v8 ",
+          "eslint",
+          "prettier-",
+        ],
+        "contextsAfter": [],
+        "contextsBeforeAndAfter": [
+          "VariableDeclarator",
+          "TSPropertySignature",
+          "PropertyDefinition",
+        ],
+        "enableFixer": true,
+        "enforceJsdocLineStyle": "multi",
         "lineOrBlockStyle": "block",
       },
     ],
@@ -8465,6 +8494,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "jsdoc/require-jsdoc": [
       0,
+      {
+        "checkAllFunctionExpressions": false,
+        "enableFixer": true,
+        "exemptEmptyConstructors": true,
+        "exemptEmptyFunctions": false,
+        "exemptOverloadedImplementations": false,
+        "fixerMessage": "",
+        "skipInterveningOverloadedDeclarations": true,
+      },
     ],
     "jsdoc/require-next-description": [
       0,
@@ -11463,11 +11501,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
         "preferThis": true,
       },
     ],
+    "unicorn/comma-spacing": [
+      0,
+    ],
     "unicorn/comment-content": [
       2,
       {
         "checkUniformCase": true,
         "extendDefaultReplacements": true,
+        "ignore": [],
         "replacements": {
           "(?<!^\\s?)\\bhtml\\b(?!\\s?$)": {
             "caseSensitive": false,
@@ -11760,6 +11802,13 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
       {},
     ],
+    "unicorn/indent": [
+      0,
+      {
+        "indent": "tab",
+        "tabWidth": 4,
+      },
+    ],
     "unicorn/isolated-functions": [
       2,
       {
@@ -11777,6 +11826,17 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/iteration-fallback-style": [
       2,
       "fallback",
+    ],
+    "unicorn/key-name-casing": [
+      0,
+      {
+        "PascalCase": false,
+        "SCREAMING_SNAKE_CASE": false,
+        "camelCase": true,
+        "ignore": [],
+        "kebab-case": false,
+        "snake_case": false,
+      },
     ],
     "unicorn/logical-assignment-operators": [
       2,
@@ -11904,6 +11964,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-computed-property-existence-check": [
       2,
     ],
+    "unicorn/no-conflicting-constraints": [
+      2,
+    ],
     "unicorn/no-confusing-array-splice": [
       2,
     ],
@@ -11919,23 +11982,11 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-declarations-before-early-exit": [
       2,
     ],
-    "unicorn/no-deprecated-css-features": [
-      0,
-      {
-        "allow": [],
-      },
-    ],
     "unicorn/no-document-cookie": [
       2,
     ],
     "unicorn/no-double-comparison": [
       2,
-    ],
-    "unicorn/no-duplicate-css-selectors": [
-      0,
-    ],
-    "unicorn/no-duplicate-font-family-names": [
-      0,
     ],
     "unicorn/no-duplicate-if-branches": [
       2,
@@ -11954,6 +12005,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {
         "allowComments": false,
       },
+    ],
+    "unicorn/no-empty-link-text": [
+      0,
     ],
     "unicorn/no-error-property-assignment": [
       2,
@@ -11979,10 +12033,16 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-impossible-length-comparison": [
       2,
     ],
+    "unicorn/no-incomplete-accessor-override": [
+      2,
+    ],
     "unicorn/no-incorrect-query-selector": [
       2,
     ],
     "unicorn/no-incorrect-template-string-interpolation": [
+      2,
+    ],
+    "unicorn/no-ineffective-csp-directives": [
       2,
     ],
     "unicorn/no-instanceof-builtins": [
@@ -11998,7 +12058,13 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
       {},
     ],
+    "unicorn/no-invalid-boolean-attribute-value": [
+      2,
+    ],
     "unicorn/no-invalid-character-comparison": [
+      2,
+    ],
+    "unicorn/no-invalid-dom-token": [
       2,
     ],
     "unicorn/no-invalid-fetch-options": [
@@ -12007,14 +12073,35 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-invalid-file-input-accept": [
       2,
     ],
-    "unicorn/no-invalid-media-features": [
-      0,
+    "unicorn/no-invalid-integrity": [
+      2,
+    ],
+    "unicorn/no-invalid-intl-options": [
+      2,
+    ],
+    "unicorn/no-invalid-property-descriptor": [
+      2,
     ],
     "unicorn/no-invalid-remove-event-listener": [
       2,
     ],
+    "unicorn/no-invalid-response-options": [
+      2,
+    ],
+    "unicorn/no-invalid-style-set-property": [
+      2,
+    ],
+    "unicorn/no-invalid-temporal-arithmetic": [
+      2,
+    ],
+    "unicorn/no-invalid-url-protocol-comparison": [
+      2,
+    ],
     "unicorn/no-invalid-well-known-symbol-methods": [
       2,
+    ],
+    "unicorn/no-javascript-url": [
+      0,
     ],
     "unicorn/no-keyword-prefix": [
       2,
@@ -12026,11 +12113,17 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-late-event-control": [
       2,
     ],
+    "unicorn/no-leading-empty-lines": [
+      2,
+    ],
     "unicorn/no-lonely-if": [
       2,
     ],
     "unicorn/no-loop-iterable-mutation": [
       2,
+    ],
+    "unicorn/no-loss-of-precision": [
+      0,
     ],
     "unicorn/no-magic-array-flat-depth": [
       2,
@@ -12070,9 +12163,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/no-nested-ternary": [
       2,
-    ],
-    "unicorn/no-nesting-with-mixed-specificity": [
-      0,
     ],
     "unicorn/no-new-array": [
       2,
@@ -12115,14 +12205,17 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-optional-chaining-on-undeclared-variable": [
       2,
     ],
+    "unicorn/no-prevent-default-in-passive-listener": [
+      2,
+    ],
     "unicorn/no-process-exit": [
       2,
     ],
     "unicorn/no-redundant-comparison": [
       2,
     ],
-    "unicorn/no-redundant-nested-style-rules": [
-      0,
+    "unicorn/no-repeated-call-wrappers": [
+      2,
     ],
     "unicorn/no-return-array-push": [
       2,
@@ -12156,6 +12249,10 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/no-top-level-side-effects": [
       2,
+      {
+        "allow": {},
+        "checkUnknownCalls": false,
+      },
     ],
     "unicorn/no-transition-all": [
       2,
@@ -12172,15 +12269,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-undeclared-class-members": [
       2,
     ],
-    "unicorn/no-unknown-css-annotations": [
-      0,
-    ],
-    "unicorn/no-unknown-pseudo-selectors": [
-      0,
-      {
-        "allow": [],
-      },
-    ],
     "unicorn/no-unnecessary-array-flat-depth": [
       2,
     ],
@@ -12196,6 +12284,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-unnecessary-boolean-comparison": [
       2,
     ],
+    "unicorn/no-unnecessary-default-arguments": [
+      2,
+    ],
     "unicorn/no-unnecessary-fetch-options": [
       2,
     ],
@@ -12204,6 +12295,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/no-unnecessary-nested-ternary": [
       2,
+    ],
+    "unicorn/no-unnecessary-parameters": [
+      2,
+      {
+        "minimumCallCount": 2,
+      },
     ],
     "unicorn/no-unnecessary-polyfills": [
       2,
@@ -12242,6 +12339,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-unsafe-dom-html": [
       2,
     ],
+    "unicorn/no-unsafe-json-serialization": [
+      2,
+    ],
     "unicorn/no-unsafe-promise-all-settled-values": [
       2,
     ],
@@ -12254,12 +12354,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-unsafe-string-replacement": [
       2,
     ],
-    "unicorn/no-unscoped-css-nesting-selector": [
-      0,
-      {
-        "scopingRootAtRules": [],
-      },
-    ],
     "unicorn/no-unused-builtin-method-return": [
       2,
     ],
@@ -12267,6 +12361,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "unicorn/no-unused-properties": [
+      2,
+    ],
+    "unicorn/no-url-in-search-params": [
       2,
     ],
     "unicorn/no-useless-boolean-cast": [
@@ -12476,6 +12573,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
       {
         "checkCompoundConditions": false,
+        "checkMultiStatementBodies": false,
       },
     ],
     "unicorn/prefer-continue": [
@@ -12490,6 +12588,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/prefer-default-parameters": [
       2,
+      {
+        "checkFallbackExpressions": true,
+      },
     ],
     "unicorn/prefer-direct-iteration": [
       2,
@@ -12529,14 +12630,11 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/prefer-error-is-error": [
       2,
     ],
-    "unicorn/prefer-event-target": [
+    "unicorn/prefer-escaped-irregular-whitespace": [
       2,
     ],
-    "unicorn/prefer-explicit-viewport-units": [
-      0,
-      {
-        "unit": "dvh",
-      },
+    "unicorn/prefer-event-target": [
+      2,
     ],
     "unicorn/prefer-export-from": [
       2,
@@ -12610,6 +12708,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/prefer-keyboard-event-key": [
       2,
     ],
+    "unicorn/prefer-literal-ascii": [
+      2,
+    ],
     "unicorn/prefer-location-assign": [
       2,
     ],
@@ -12630,9 +12731,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/prefer-math-trunc": [
       2,
-    ],
-    "unicorn/prefer-media-feature-range-syntax": [
-      0,
     ],
     "unicorn/prefer-minimal-ternary": [
       2,
@@ -12699,6 +12797,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/prefer-private-class-fields": [
       2,
     ],
+    "unicorn/prefer-promise-static-methods": [
+      2,
+    ],
     "unicorn/prefer-promise-try": [
       2,
     ],
@@ -12752,6 +12853,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
       "always",
     ],
+    "unicorn/prefer-short-escape-sequences": [
+      2,
+    ],
     "unicorn/prefer-simple-condition-first": [
       2,
     ],
@@ -12760,6 +12864,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/prefer-simplified-conditions": [
       2,
+      {
+        "negatedConditions": "simplify",
+      },
     ],
     "unicorn/prefer-single-array-predicate": [
       2,
@@ -12839,6 +12946,10 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/prefer-ternary": [
       0,
       "always",
+      {
+        "checkComputedMemberAccess": false,
+        "checkVaryingBase": false,
+      },
     ],
     "unicorn/prefer-then-catch": [
       2,
@@ -12917,6 +13028,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "unicorn/require-proxy-trap-boolean-return": [
+      2,
+    ],
+    "unicorn/require-text-decoder-streaming": [
       2,
     ],
     "unicorn/single-line-block-comment-style": [
@@ -13334,6 +13448,13 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "yaml/key-spacing": [
         2,
       ],
+      "yaml/max-len": [
+        2,
+        {
+          "code": 120,
+          "ignoreUrls": true,
+        },
+      ],
       "yaml/no-boolean-key": [
         2,
       ],
@@ -13581,6 +13702,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "yoda",
       "antfu/consistent-chaining",
       "antfu/no-ts-export-equal",
+      "antfu/reasonable-newline",
       "unused/no-unused-imports",
       "unused/no-unused-vars",
       "ts/naming-convention",
@@ -13929,6 +14051,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/better-dom-traversing",
       "unicorn/catch-error-name",
       "unicorn/class-reference-in-static-methods",
+      "unicorn/comma-spacing",
       "unicorn/comment-content",
       "unicorn/consistent-arrow-return-style",
       "unicorn/consistent-assert",
@@ -13959,8 +14082,10 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/filename-case",
       "unicorn/id-match",
       "unicorn/import-style",
+      "unicorn/indent",
       "unicorn/isolated-functions",
       "unicorn/iteration-fallback-style",
+      "unicorn/key-name-casing",
       "unicorn/logical-assignment-operators",
       "unicorn/max-nested-calls",
       "unicorn/name-replacements",
@@ -13993,21 +14118,20 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-chained-comparison",
       "unicorn/no-collection-bracket-access",
       "unicorn/no-computed-property-existence-check",
+      "unicorn/no-conflicting-constraints",
       "unicorn/no-confusing-array-splice",
       "unicorn/no-confusing-array-with",
       "unicorn/no-console-spaces",
       "unicorn/no-constant-zero-expression",
       "unicorn/no-declarations-before-early-exit",
-      "unicorn/no-deprecated-css-features",
       "unicorn/no-document-cookie",
       "unicorn/no-double-comparison",
-      "unicorn/no-duplicate-css-selectors",
-      "unicorn/no-duplicate-font-family-names",
       "unicorn/no-duplicate-if-branches",
       "unicorn/no-duplicate-logical-operands",
       "unicorn/no-duplicate-loops",
       "unicorn/no-duplicate-set-values",
       "unicorn/no-empty-file",
+      "unicorn/no-empty-link-text",
       "unicorn/no-error-property-assignment",
       "unicorn/no-exports-in-scripts",
       "unicorn/no-for-each",
@@ -14015,21 +14139,34 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-global-object-property-assignment",
       "unicorn/no-immediate-mutation",
       "unicorn/no-impossible-length-comparison",
+      "unicorn/no-incomplete-accessor-override",
       "unicorn/no-incorrect-query-selector",
       "unicorn/no-incorrect-template-string-interpolation",
+      "unicorn/no-ineffective-csp-directives",
       "unicorn/no-instanceof-builtins",
       "unicorn/no-invalid-argument-count",
+      "unicorn/no-invalid-boolean-attribute-value",
       "unicorn/no-invalid-character-comparison",
+      "unicorn/no-invalid-dom-token",
       "unicorn/no-invalid-fetch-options",
       "unicorn/no-invalid-file-input-accept",
-      "unicorn/no-invalid-media-features",
+      "unicorn/no-invalid-integrity",
+      "unicorn/no-invalid-intl-options",
+      "unicorn/no-invalid-property-descriptor",
       "unicorn/no-invalid-remove-event-listener",
+      "unicorn/no-invalid-response-options",
+      "unicorn/no-invalid-style-set-property",
+      "unicorn/no-invalid-temporal-arithmetic",
+      "unicorn/no-invalid-url-protocol-comparison",
       "unicorn/no-invalid-well-known-symbol-methods",
+      "unicorn/no-javascript-url",
       "unicorn/no-keyword-prefix",
       "unicorn/no-late-current-target-access",
       "unicorn/no-late-event-control",
+      "unicorn/no-leading-empty-lines",
       "unicorn/no-lonely-if",
       "unicorn/no-loop-iterable-mutation",
+      "unicorn/no-loss-of-precision",
       "unicorn/no-magic-array-flat-depth",
       "unicorn/no-manually-wrapped-comments",
       "unicorn/no-mismatched-map-key",
@@ -14042,7 +14179,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-negated-condition",
       "unicorn/no-negation-in-equality-check",
       "unicorn/no-nested-ternary",
-      "unicorn/no-nesting-with-mixed-specificity",
       "unicorn/no-new-array",
       "unicorn/no-new-buffer",
       "unicorn/no-non-function-verb-prefix",
@@ -14051,9 +14187,10 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-object-as-default-parameter",
       "unicorn/no-object-methods-with-collections",
       "unicorn/no-optional-chaining-on-undeclared-variable",
+      "unicorn/no-prevent-default-in-passive-listener",
       "unicorn/no-process-exit",
       "unicorn/no-redundant-comparison",
-      "unicorn/no-redundant-nested-style-rules",
+      "unicorn/no-repeated-call-wrappers",
       "unicorn/no-return-array-push",
       "unicorn/no-selector-as-dom-name",
       "unicorn/no-shorthand-property-overrides",
@@ -14069,16 +14206,16 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-typeof-undefined",
       "unicorn/no-uncalled-method",
       "unicorn/no-undeclared-class-members",
-      "unicorn/no-unknown-css-annotations",
-      "unicorn/no-unknown-pseudo-selectors",
       "unicorn/no-unnecessary-array-flat-depth",
       "unicorn/no-unnecessary-array-flat-map",
       "unicorn/no-unnecessary-array-splice-count",
       "unicorn/no-unnecessary-await",
       "unicorn/no-unnecessary-boolean-comparison",
+      "unicorn/no-unnecessary-default-arguments",
       "unicorn/no-unnecessary-fetch-options",
       "unicorn/no-unnecessary-global-this",
       "unicorn/no-unnecessary-nested-ternary",
+      "unicorn/no-unnecessary-parameters",
       "unicorn/no-unnecessary-polyfills",
       "unicorn/no-unnecessary-slice-end",
       "unicorn/no-unnecessary-splice",
@@ -14090,14 +14227,15 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/no-unreadable-object-destructuring",
       "unicorn/no-unsafe-buffer-conversion",
       "unicorn/no-unsafe-dom-html",
+      "unicorn/no-unsafe-json-serialization",
       "unicorn/no-unsafe-promise-all-settled-values",
       "unicorn/no-unsafe-property-key",
       "unicorn/no-unsafe-sqlite-interpolation",
       "unicorn/no-unsafe-string-replacement",
-      "unicorn/no-unscoped-css-nesting-selector",
       "unicorn/no-unused-builtin-method-return",
       "unicorn/no-unused-iterator-helper",
       "unicorn/no-unused-properties",
+      "unicorn/no-url-in-search-params",
       "unicorn/no-useless-boolean-cast",
       "unicorn/no-useless-coercion",
       "unicorn/no-useless-collection-argument",
@@ -14165,8 +14303,8 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-early-return",
       "unicorn/prefer-else-if",
       "unicorn/prefer-error-is-error",
+      "unicorn/prefer-escaped-irregular-whitespace",
       "unicorn/prefer-event-target",
-      "unicorn/prefer-explicit-viewport-units",
       "unicorn/prefer-export-from",
       "unicorn/prefer-flat-math-min-max",
       "unicorn/prefer-get-or-insert-computed",
@@ -14188,6 +14326,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-iterator-zip",
       "unicorn/prefer-json-import",
       "unicorn/prefer-keyboard-event-key",
+      "unicorn/prefer-literal-ascii",
       "unicorn/prefer-location-assign",
       "unicorn/prefer-logical-operator-over-ternary",
       "unicorn/prefer-map-from-entries",
@@ -14195,7 +14334,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-math-constants",
       "unicorn/prefer-math-min-max",
       "unicorn/prefer-math-trunc",
-      "unicorn/prefer-media-feature-range-syntax",
       "unicorn/prefer-minimal-ternary",
       "unicorn/prefer-modern-dom-apis",
       "unicorn/prefer-modern-math-apis",
@@ -14214,6 +14352,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-optional-catch-binding",
       "unicorn/prefer-path2d",
       "unicorn/prefer-private-class-fields",
+      "unicorn/prefer-promise-static-methods",
       "unicorn/prefer-promise-try",
       "unicorn/prefer-promise-with-resolvers",
       "unicorn/prefer-prototype-methods",
@@ -14228,6 +14367,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-set-methods",
       "unicorn/prefer-set-size",
       "unicorn/prefer-short-arrow-method",
+      "unicorn/prefer-short-escape-sequences",
       "unicorn/prefer-simple-condition-first",
       "unicorn/prefer-simple-sort-comparator",
       "unicorn/prefer-simplified-conditions",
@@ -14275,6 +14415,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/require-passive-events",
       "unicorn/require-post-message-target-origin",
       "unicorn/require-proxy-trap-boolean-return",
+      "unicorn/require-text-decoder-streaming",
       "unicorn/single-line-block-comment-style",
       "unicorn/string-content",
       "unicorn/switch-case-braces",
@@ -14698,6 +14839,7 @@ exports[`expected eslint config > diff: .vscode/settings.json (from .circleci/co
       "yaml/spaced-comment",
       "yaml/vue-custom-block/no-parsing-error",
       "yaml/file-extension",
+      "yaml/max-len",
       "yaml/no-boolean-key",
       "yaml/require-string-key",
       "no-irregular-whitespace",
@@ -15342,7 +15484,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "svelte-eslint-parser@1.9.0",
+      "parser": "svelte-eslint-parser@1.10.1",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
@@ -15351,7 +15493,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.71.2",
+        "parser": "typescript-eslint/parser@8.72.1",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -15359,7 +15501,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
     },
     "removedKeys": [],
   },
-  "processor": "eslint-plugin-svelte@3.23.1",
+  "processor": "eslint-plugin-svelte@3.24.0",
   "rules": {
     "addedValues": {
       "svelte-html/class-spacing": [
@@ -22185,7 +22327,7 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "svelte-eslint-parser@1.9.0",
+      "parser": "svelte-eslint-parser@1.10.1",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
@@ -22194,7 +22336,7 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.71.2",
+        "parser": "typescript-eslint/parser@8.72.1",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -22926,6 +23068,7 @@ exports[`expected eslint config > diff: 20.toml (from .circleci/config.yml) 1`] 
       "yaml/spaced-comment",
       "yaml/vue-custom-block/no-parsing-error",
       "yaml/file-extension",
+      "yaml/max-len",
       "yaml/no-boolean-key",
       "yaml/require-string-key",
       "no-unused-vars",
@@ -24502,6 +24645,218 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
           "available": "widely",
         },
       ],
+      "cssicorn/consistent-compound-selector-order": [
+        2,
+      ],
+      "cssicorn/consistent-custom-property-fallbacks": [
+        2,
+        {
+          "customProperties": [],
+        },
+      ],
+      "cssicorn/consistent-layer-order": [
+        2,
+        {
+          "checkUndeclaredLayers": false,
+        },
+      ],
+      "cssicorn/consistent-property-order": [
+        0,
+        {
+          "order": "concentric-css",
+        },
+      ],
+      "cssicorn/consistent-value-order": [
+        2,
+      ],
+      "cssicorn/lowercase": [
+        2,
+      ],
+      "cssicorn/no-clamped-values": [
+        2,
+      ],
+      "cssicorn/no-declarations-after-nested-rules": [
+        2,
+      ],
+      "cssicorn/no-deprecated-features": [
+        2,
+        {
+          "allow": [],
+        },
+      ],
+      "cssicorn/no-descending-specificity": [
+        0,
+      ],
+      "cssicorn/no-disabled-pinch-zoom": [
+        2,
+      ],
+      "cssicorn/no-duplicate-at-rule-definitions": [
+        2,
+      ],
+      "cssicorn/no-duplicate-font-family-names": [
+        2,
+      ],
+      "cssicorn/no-duplicate-properties": [
+        2,
+      ],
+      "cssicorn/no-duplicate-selectors": [
+        2,
+      ],
+      "cssicorn/no-ineffective-keyframe-declarations": [
+        2,
+      ],
+      "cssicorn/no-ineffective-overrides": [
+        2,
+      ],
+      "cssicorn/no-ineffective-properties": [
+        2,
+      ],
+      "cssicorn/no-ineffective-selector-properties": [
+        2,
+      ],
+      "cssicorn/no-ineffective-supports-conditions": [
+        2,
+      ],
+      "cssicorn/no-ineffective-transitions": [
+        2,
+      ],
+      "cssicorn/no-invalid-media-features": [
+        2,
+      ],
+      "cssicorn/no-invalid-property-references": [
+        2,
+      ],
+      "cssicorn/no-layout-animations": [
+        2,
+      ],
+      "cssicorn/no-nesting-with-mixed-specificity": [
+        2,
+      ],
+      "cssicorn/no-overflow-axis-coercion": [
+        2,
+      ],
+      "cssicorn/no-overridden-animation-properties": [
+        2,
+      ],
+      "cssicorn/no-redundant-functions": [
+        2,
+      ],
+      "cssicorn/no-redundant-longhand-properties": [
+        2,
+        {
+          "ignoreShorthands": [],
+        },
+      ],
+      "cssicorn/no-redundant-nested-style-rules": [
+        2,
+      ],
+      "cssicorn/no-redundant-nesting-selector": [
+        2,
+      ],
+      "cssicorn/no-redundant-shorthand-values": [
+        2,
+      ],
+      "cssicorn/no-self-referencing-custom-properties": [
+        2,
+      ],
+      "cssicorn/no-unknown-animations": [
+        0,
+      ],
+      "cssicorn/no-unknown-annotations": [
+        2,
+      ],
+      "cssicorn/no-unknown-pseudo-selectors": [
+        2,
+        {
+          "allow": [],
+        },
+      ],
+      "cssicorn/no-unknown-type-selectors": [
+        2,
+        {
+          "allow": [],
+          "checkCustomElements": false,
+        },
+      ],
+      "cssicorn/no-unscoped-nesting-selector": [
+        2,
+        {
+          "scopingRootAtRules": [
+            "custom-variant",
+            "utility",
+            "variant",
+          ],
+        },
+      ],
+      "cssicorn/no-useless-is": [
+        2,
+      ],
+      "cssicorn/no-zero-length-unit": [
+        2,
+      ],
+      "cssicorn/prefer-aspect-ratio": [
+        2,
+      ],
+      "cssicorn/prefer-clamp": [
+        2,
+      ],
+      "cssicorn/prefer-current-color": [
+        2,
+      ],
+      "cssicorn/prefer-existing-custom-properties": [
+        2,
+        {
+          "customProperties": {},
+        },
+      ],
+      "cssicorn/prefer-explicit-viewport-units": [
+        2,
+        {
+          "unit": "dvh",
+        },
+      ],
+      "cssicorn/prefer-individual-transform-properties": [
+        2,
+      ],
+      "cssicorn/prefer-light-dark": [
+        2,
+      ],
+      "cssicorn/prefer-longhand-overrides": [
+        2,
+      ],
+      "cssicorn/prefer-media-feature-range-syntax": [
+        2,
+      ],
+      "cssicorn/prefer-merged-rules": [
+        2,
+      ],
+      "cssicorn/prefer-modern-syntax": [
+        2,
+      ],
+      "cssicorn/prefer-nesting": [
+        2,
+        {
+          "checkSharedPrefixes": false,
+        },
+      ],
+      "cssicorn/prefer-relative-colors": [
+        2,
+      ],
+      "cssicorn/prefer-short-hex-color": [
+        2,
+      ],
+      "cssicorn/prefer-subgrid": [
+        2,
+      ],
+      "cssicorn/require-prefers-reduced-motion": [
+        2,
+      ],
+      "cssicorn/require-property-descriptors": [
+        2,
+      ],
+      "cssicorn/require-selector-scope": [
+        0,
+      ],
       "tailwind/enforce-canonical-classes": [
         2,
       ],
@@ -24567,56 +24922,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
       "tailwind/no-unnecessary-whitespace": [
         2,
       ],
-      "unicorn/no-deprecated-css-features": [
-        2,
-        {
-          "allow": [],
-        },
-      ],
-      "unicorn/no-duplicate-css-selectors": [
-        2,
-      ],
-      "unicorn/no-duplicate-font-family-names": [
-        2,
-      ],
-      "unicorn/no-invalid-media-features": [
-        2,
-      ],
       "unicorn/no-missing-local-resource": [
-        2,
-      ],
-      "unicorn/no-nesting-with-mixed-specificity": [
-        2,
-      ],
-      "unicorn/no-redundant-nested-style-rules": [
-        2,
-      ],
-      "unicorn/no-unknown-css-annotations": [
-        2,
-      ],
-      "unicorn/no-unknown-pseudo-selectors": [
-        2,
-        {
-          "allow": [],
-        },
-      ],
-      "unicorn/no-unscoped-css-nesting-selector": [
-        2,
-        {
-          "scopingRootAtRules": [
-            "custom-variant",
-            "utility",
-            "variant",
-          ],
-        },
-      ],
-      "unicorn/prefer-explicit-viewport-units": [
-        2,
-        {
-          "unit": "dvh",
-        },
-      ],
-      "unicorn/prefer-media-feature-range-syntax": [
         2,
       ],
     },

@@ -45,7 +45,10 @@ export const tailwind = async (
   }
 
   const entryPointSettings = await buildEntryPointSettings(options?.entryPoint);
-  const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object' ? typescriptOptions : undefined);
+
+  const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object'
+    ? typescriptOptions
+    : undefined);
 
   const paletteNames = objectEntries(tailwindColors ?? {})
     .filter(([, shades]) => isPlainObject(shades))
@@ -76,34 +79,42 @@ export const tailwind = async (
       files: [
         GLOB_CSS,
         ...GLOB_SCRIPT_FILES,
-        ...(isModuleEnabled(MODULES.html) ? GLOB_HTML_FILES : []),
+        ...(isModuleEnabled(MODULES.html)
+          ? GLOB_HTML_FILES
+          : []),
       ],
       rules: {
         ...renameRules(pluginTailwind.configs['recommended-error'].rules, { 'better-tailwindcss': 'tailwind' }),
         'tailwind/enforce-consistent-important-position': 'error',
-        'tailwind/enforce-consistent-line-wrapping': ['error', {
-          indent: INDENT,
-          printWidth: MAX_LEN,
-        }],
+        'tailwind/enforce-consistent-line-wrapping': [
+          'error',
+          {
+            indent: INDENT,
+            printWidth: MAX_LEN,
+          },
+        ],
         'tailwind/enforce-consistent-variable-syntax': 'error',
         'tailwind/enforce-consistent-variant-order': 'error',
         'tailwind/enforce-logical-properties': 'error',
-        'tailwind/no-restricted-classes': ['error', {
-          restrict: [
-            {
-              message: 'Avoid the important modifier, raise specificity through cascade layers instead.',
-              pattern: '(?:^|:)!|!$',
-            },
-            ...(paletteNames.length > 0
-              ? [
-                {
-                  message: 'Avoid palette colors, use a theme color instead.',
-                  pattern: String.raw`-(?:${paletteNames.join('|')})-\d+(?:/.+)?$`,
-                },
-              ]
-              : []),
-          ],
-        }],
+        'tailwind/no-restricted-classes': [
+          'error',
+          {
+            restrict: [
+              {
+                message: 'Avoid the important modifier, raise specificity through cascade layers instead.',
+                pattern: '(?:^|:)!|!$',
+              },
+              ...(paletteNames.length > 0
+                ? [
+                  {
+                    message: 'Avoid palette colors, use a theme color instead.',
+                    pattern: String.raw`-(?:${paletteNames.join('|')})-\d+(?:/.+)?$`,
+                  },
+                ]
+                : []),
+            ],
+          },
+        ],
       },
     },
   ];

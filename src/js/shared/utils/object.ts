@@ -30,15 +30,21 @@ interface ObjectEntriesFunction {
 }
 
 export const objectKeys = <ObjectKeysFunction>(
-  (object: object): unknown[] => (object instanceof Map ? object.keys().toArray() : Object.keys(object))
+  (object: object): unknown[] => (object instanceof Map
+    ? object.keys().toArray()
+    : Object.keys(object))
 );
 
 export const objectValues = <ObjectValuesFunction>(
-  (object: object): unknown[] => (object instanceof Map ? object.values().toArray() : Object.values(object))
+  (object: object): unknown[] => (object instanceof Map
+    ? object.values().toArray()
+    : Object.values(object))
 );
 
 export const objectEntries = <ObjectEntriesFunction>(
-  (object: object): unknown[] => (object instanceof Map ? object.entries().toArray() : Object.entries(object))
+  (object: object): unknown[] => (object instanceof Map
+    ? object.entries().toArray()
+    : Object.entries(object))
 );
 
 interface ObjectFromEntriesFunction {
@@ -84,7 +90,9 @@ export const readOwnValue = <ReadOwnValueFunction>((object: object, key: Propert
     return object.get(key);
   }
 
-  return Object.hasOwn(object, key) ? Reflect.get(object, key) : undefined;
+  return Object.hasOwn(object, key)
+    ? Reflect.get(object, key)
+    : undefined;
 });
 
 export const writeOwnValue = <WriteOwnValueFunction>((object: object, key: PropertyKey, value: unknown): void => {
@@ -103,14 +111,18 @@ export const writeOwnValue = <WriteOwnValueFunction>((object: object, key: Prope
 });
 
 export const pickKeys = <PickKeysFunction>((object: object, keys: readonly unknown[]): unknown => {
-  const pickedEntries = (object instanceof Map ? object.entries().toArray() : Object.entries(object))
+  const pickedEntries = (object instanceof Map
+    ? object.entries().toArray()
+    : Object.entries(object))
     .filter(([key]) => keys.includes(key));
 
   if (pickedEntries.length === 0) {
     return undefined;
   }
 
-  return object instanceof Map ? new Map(pickedEntries) : Object.fromEntries(pickedEntries);
+  return object instanceof Map
+    ? new Map(pickedEntries)
+    : Object.fromEntries(pickedEntries);
 });
 
 export const isPlainObject = (value: unknown): value is Record<string, unknown> => {

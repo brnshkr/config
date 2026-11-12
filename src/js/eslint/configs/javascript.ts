@@ -28,6 +28,7 @@ export const javascript = async (): Promise<Config[]> => {
     plugins['antfu'] = pluginAntfu;
     pluginRules['antfu/consistent-chaining'] = 'error';
     pluginRules['antfu/no-ts-export-equal'] = 'error';
+    pluginRules['antfu/reasonable-newline'] = 'error';
   }
 
   if (pluginUnusedImports) {
@@ -81,31 +82,47 @@ export const javascript = async (): Promise<Config[]> => {
             'no-unused-vars': 'off',
           }
           : undefined),
-        'accessor-pairs': ['error', {
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          enforceForTSTypes: true,
-        }],
-        'array-callback-return': ['error', {
-          checkForEach: true,
-        }],
+        'accessor-pairs': [
+          'error',
+          {
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            enforceForTSTypes: true,
+          },
+        ],
+        'array-callback-return': [
+          'error',
+          {
+            checkForEach: true,
+          },
+        ],
         'arrow-body-style': 'error',
         'block-scoped-var': 'error',
-        'capitalized-comments': ['error', 'always', {
-          block: {
-            ignoreInlineComments: true,
-            ignorePattern: 'v8',
+        'capitalized-comments': [
+          'error',
+          'always',
+          {
+            block: {
+              ignoreInlineComments: true,
+              ignorePattern: 'v8',
+            },
+            line: {
+              ignorePattern: '.*',
+            },
           },
-          line: {
-            ignorePattern: '.*',
+        ],
+        'class-methods-use-this': [
+          'error',
+          {
+            ignoreOverrideMethods: true,
           },
-        }],
-        'class-methods-use-this': ['error', {
-          ignoreOverrideMethods: true,
-        }],
-        complexity: ['error', {
-          max: 10,
-          variant: 'modified',
-        }],
+        ],
+        complexity: [
+          'error',
+          {
+            max: 10,
+            variant: 'modified',
+          },
+        ],
         'consistent-return': 'error',
         'consistent-this': 'error',
         curly: 'error',
@@ -114,44 +131,66 @@ export const javascript = async (): Promise<Config[]> => {
         'default-param-last': 'error',
         'dot-notation': 'error',
         eqeqeq: 'error',
-        'func-name-matching': ['error', {
-          considerPropertyDescriptor: true,
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          includeCommonJSModuleExports: true,
-        }],
+        'func-name-matching': [
+          'error',
+          {
+            considerPropertyDescriptor: true,
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            includeCommonJSModuleExports: true,
+          },
+        ],
         'func-names': 'error',
         'func-style': 'error',
-        'grouped-accessor-pairs': ['error', 'getBeforeSet', {
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          enforceForTSTypes: true,
-        }],
+        'grouped-accessor-pairs': [
+          'error',
+          'getBeforeSet',
+          {
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            enforceForTSTypes: true,
+          },
+        ],
         'guard-for-in': 'error',
         'init-declarations': 'error',
         'logical-assignment-operators': 'error',
         'max-classes-per-file': 'error',
         'max-depth': 'error',
-        'max-lines': ['error', {
-          max: 300,
-          skipBlankLines: true,
-          skipComments: true,
-        }],
-        'max-lines-per-function': ['error', {
-          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-          IIFEs: true,
-          max: 50,
-          skipBlankLines: true,
-          skipComments: true,
-        }],
-        'max-nested-callbacks': ['error', {
-          max: 3,
-          checkConstructorCallCallbacks: true,
-        }],
-        'max-params': ['error', {
-          max: 4,
-        }],
-        'max-statements': ['error', {
-          max: 30,
-        }],
+        'max-lines': [
+          'error',
+          {
+            max: 300,
+            skipBlankLines: true,
+            skipComments: true,
+          },
+        ],
+        'max-lines-per-function': [
+          'error',
+          {
+            // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+            IIFEs: true,
+            max: 50,
+            skipBlankLines: true,
+            skipComments: true,
+          },
+        ],
+        'max-nested-callbacks': [
+          'error',
+          {
+            max: 3,
+            checkConstructorCallCallbacks: true,
+          },
+        ],
+        'max-params': [
+          'error',
+          {
+            max: 4,
+          },
+        ],
+        'max-statements': [
+          'error',
+          {
+            max: 30,
+          },
+        ],
         'new-cap': 'error',
         'no-alert': 'error',
         'no-array-constructor': 'error',
@@ -160,66 +199,100 @@ export const javascript = async (): Promise<Config[]> => {
         'no-caller': 'error',
         'no-cond-assign': ['error', 'always'],
         'no-console': 'error',
-        'no-constant-binary-expression': ['error', {
-          checkRelationalComparisons: true,
-        }],
-        'no-constant-condition': ['error', {
-          checkLoops: 'all',
-        }],
+        'no-constant-binary-expression': [
+          'error',
+          {
+            checkRelationalComparisons: true,
+          },
+        ],
+        'no-constant-condition': [
+          'error',
+          {
+            checkLoops: 'all',
+          },
+        ],
         'no-constructor-return': 'error',
         'no-div-regex': 'error',
         'no-duplicate-imports': isModuleEnabled(MODULES.import)
           ? 'off'
-          : ['error', {
-            allowSeparateTypeImports: true,
-          }],
-        'no-else-return': ['error', {
-          allowElseIf: false,
-        }],
+          : [
+            'error',
+            {
+              allowSeparateTypeImports: true,
+            },
+          ],
+        'no-else-return': [
+          'error',
+          {
+            allowElseIf: false,
+          },
+        ],
         'no-empty-function': 'error',
         'no-eq-null': 'error',
         'no-eval': 'error',
         'no-extend-native': 'error',
         'no-extra-bind': 'error',
-        'no-extra-boolean-cast': ['error', {
-          enforceForInnerExpressions: true,
-        }],
+        'no-extra-boolean-cast': [
+          'error',
+          {
+            enforceForInnerExpressions: true,
+          },
+        ],
         'no-extra-label': 'error',
-        'no-fallthrough': ['error', {
-          allowEmptyCase: true,
-          reportUnusedFallthroughComment: true,
-        }],
-        'no-implicit-coercion': ['error', {
-          boolean: false,
-        }],
+        'no-fallthrough': [
+          'error',
+          {
+            allowEmptyCase: true,
+            reportUnusedFallthroughComment: true,
+          },
+        ],
+        'no-implicit-coercion': [
+          'error',
+          {
+            boolean: false,
+          },
+        ],
         'no-implicit-globals': 'error',
         'no-implied-eval': 'error',
-        'no-inline-comments': ['error', {
-          ignorePattern: String.raw`^\s*html\s*$`,
-        }],
-        'no-inner-declarations': ['error', 'functions', {
-          blockScopedFunctions: 'disallow',
-        }],
+        'no-inline-comments': [
+          'error',
+          {
+            ignorePattern: String.raw`^\s*html\s*$`,
+          },
+        ],
+        'no-inner-declarations': [
+          'error',
+          'functions',
+          {
+            blockScopedFunctions: 'disallow',
+          },
+        ],
         'no-invalid-this': 'error',
-        'no-irregular-whitespace': ['error', {
-          skipStrings: false,
-        }],
+        'no-irregular-whitespace': [
+          'error',
+          {
+            skipStrings: false,
+          },
+        ],
         'no-iterator': 'error',
         'no-label-var': 'error',
         'no-labels': 'error',
         'no-lone-blocks': 'error',
         'no-lonely-if': 'error',
         'no-loop-func': 'error',
-        'no-magic-numbers': ['error', {
-          ignore: [
-            -1,
-            0,
-            1,
-            100,
-            42_069,
-          ],
-          enforceConst: true,
-        }],
+        'no-magic-numbers': [
+          'error',
+          {
+            ignore: [
+              -1,
+              0,
+              1,
+              100,
+              42_069,
+            ],
+            enforceConst: true,
+          },
+        ],
         'no-multi-assign': 'error',
         'no-multi-str': 'error',
         'no-negated-condition': 'error',
@@ -229,15 +302,21 @@ export const javascript = async (): Promise<Config[]> => {
         'no-new-wrappers': 'error',
         'no-object-constructor': 'error',
         'no-octal-escape': 'error',
-        'no-param-reassign': ['error', {
-          props: false,
-        }],
+        'no-param-reassign': [
+          'error',
+          {
+            props: false,
+          },
+        ],
         'no-plusplus': 'error',
         'no-promise-executor-return': 'error',
         'no-proto': 'error',
-        'no-restricted-exports': ['error', {
-          restrictedNamedExports: ['default'],
-        }],
+        'no-restricted-exports': [
+          'error',
+          {
+            restrictedNamedExports: ['default'],
+          },
+        ],
         'no-restricted-properties': [
           'error',
           { message: 'Use `Object.getPrototypeOf` or `Object.setPrototypeOf` instead.', property: '__proto__' },
@@ -272,34 +351,58 @@ export const javascript = async (): Promise<Config[]> => {
         'no-return-assign': ['error', 'always'],
         'no-script-url': 'error',
         'no-self-compare': 'error',
-        'no-sequences': ['error', {
-          allowInParentheses: false,
-        }],
-        'no-shadow': ['error', {
-          hoist: 'all',
-        }],
+        'no-sequences': [
+          'error',
+          {
+            allowInParentheses: false,
+          },
+        ],
+        'no-shadow': [
+          'error',
+          {
+            hoist: 'all',
+          },
+        ],
         'no-template-curly-in-string': 'error',
         'no-throw-literal': 'error',
-        'no-undef': ['error', {
-          typeof: true,
-        }],
-        'no-underscore-dangle': ['error', {
-          enforceInClassFields: true,
-          enforceInMethodNames: true,
-        }],
-        'no-unmodified-loop-condition': ['error', {
-          checkConditionalExpressions: true,
-        }],
-        'no-unneeded-ternary': ['error', {
-          defaultAssignment: false,
-        }],
+        'no-undef': [
+          'error',
+          {
+            typeof: true,
+          },
+        ],
+        'no-underscore-dangle': [
+          'error',
+          {
+            enforceInClassFields: true,
+            enforceInMethodNames: true,
+          },
+        ],
+        'no-unmodified-loop-condition': [
+          'error',
+          {
+            checkConditionalExpressions: true,
+          },
+        ],
+        'no-unneeded-ternary': [
+          'error',
+          {
+            defaultAssignment: false,
+          },
+        ],
         'no-unreachable-loop': 'error',
-        'no-unsafe-negation': ['error', {
-          enforceForOrderingRelations: true,
-        }],
-        'no-unsafe-optional-chaining': ['error', {
-          disallowArithmeticOperators: true,
-        }],
+        'no-unsafe-negation': [
+          'error',
+          {
+            enforceForOrderingRelations: true,
+          },
+        ],
+        'no-unsafe-optional-chaining': [
+          'error',
+          {
+            disallowArithmeticOperators: true,
+          },
+        ],
         'no-unused-expressions': 'error',
         'no-use-before-define': 'error',
         'no-useless-call': 'error',
@@ -309,21 +412,34 @@ export const javascript = async (): Promise<Config[]> => {
         'no-useless-rename': 'error',
         'no-useless-return': 'error',
         'no-var': 'error',
-        'no-void': ['error', {
-          allowAsStatement: true,
-        }],
+        'no-void': [
+          'error',
+          {
+            allowAsStatement: true,
+          },
+        ],
         'no-warning-comments': 'error',
-        'object-shorthand': ['error', 'always', {
-          avoidQuotes: true,
-          ignoreConstructors: false,
-        }],
+        'object-shorthand': [
+          'error',
+          'always',
+          {
+            avoidQuotes: true,
+            ignoreConstructors: false,
+          },
+        ],
         'operator-assignment': 'error',
-        'prefer-arrow-callback': ['error', {
-          allowUnboundThis: false,
-        }],
-        'prefer-const': ['error', {
-          ignoreReadBeforeAssign: true,
-        }],
+        'prefer-arrow-callback': [
+          'error',
+          {
+            allowUnboundThis: false,
+          },
+        ],
+        'prefer-const': [
+          'error',
+          {
+            ignoreReadBeforeAssign: true,
+          },
+        ],
         'prefer-destructuring': 'error',
         'prefer-exponentiation-operator': 'error',
         'prefer-named-capture-group': 'error',
@@ -331,9 +447,12 @@ export const javascript = async (): Promise<Config[]> => {
         'prefer-object-has-own': 'error',
         'prefer-object-spread': 'error',
         'prefer-promise-reject-errors': 'error',
-        'prefer-regex-literals': ['error', {
-          disallowRedundantWrapping: true,
-        }],
+        'prefer-regex-literals': [
+          'error',
+          {
+            disallowRedundantWrapping: true,
+          },
+        ],
         'prefer-rest-params': 'error',
         'prefer-spread': 'error',
         'prefer-template': 'error',
@@ -343,12 +462,18 @@ export const javascript = async (): Promise<Config[]> => {
         strict: 'error',
         'symbol-description': 'error',
         'unicode-bom': 'error',
-        'use-isnan': ['error', {
-          enforceForIndexOf: true,
-        }],
-        'valid-typeof': ['error', {
-          requireStringLiterals: true,
-        }],
+        'use-isnan': [
+          'error',
+          {
+            enforceForIndexOf: true,
+          },
+        ],
+        'valid-typeof': [
+          'error',
+          {
+            requireStringLiterals: true,
+          },
+        ],
         'vars-on-top': 'error',
         yoda: 'error',
         ...pluginRules,

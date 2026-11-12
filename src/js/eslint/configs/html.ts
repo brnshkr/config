@@ -324,10 +324,12 @@ const convertToSnakeCase = (name: string): string => name
 const AUTOCOMPLETE_FIELD_NAMES = objectFromEntries(objectEntries(AUTOCOMPLETE_FIELD_NAMES_BY_TOKEN)
   .map(([token, fieldNames]) => [
     token,
-    [...new Set(fieldNames.flatMap((fieldName) => [
-      fieldName,
-      convertToSnakeCase(fieldName),
-    ]))],
+    [
+      ...new Set(fieldNames.flatMap((fieldName) => [
+        fieldName,
+        convertToSnakeCase(fieldName),
+      ])),
+    ],
   ]));
 
 const AUTOCOMPLETE_FIELD_TAGS = <const>[
@@ -584,7 +586,10 @@ export const RESTRICTED_TAGS = {
 const ATTRIBUTE_PRIORITY = [
   ...ATTRIBUTE_ORDER,
   {
-    pattern: `^(?!${[...TRAILING_ATTRIBUTES.map((attribute) => `${attribute}$`), ...ATTRIBUTE_GROUP_PREFIXES].join('|')})`,
+    pattern: `^(?!${[
+      ...TRAILING_ATTRIBUTES.map((attribute) => `${attribute}$`),
+      ...ATTRIBUTE_GROUP_PREFIXES,
+    ].join('|')})`,
     order: <const>'alphabetically',
   },
   ...TRAILING_ATTRIBUTES,
@@ -637,8 +642,6 @@ interface HtmlTag {
   }[];
 }
 
-type NodeVisitor = (node: Rule.Node) => void;
-
 type RenderedAttributes = 'any'
   | 'unknown'
   | ReadonlyMap<string, Maybe<string>>;
@@ -663,7 +666,9 @@ const findReportedTag = (descriptor: Rule.ReportDescriptor, context: Rule.RuleCo
     return findTag(descriptor.node);
   }
 
-  const index = context.sourceCode.getIndexFromLoc('start' in descriptor.loc ? descriptor.loc.start : descriptor.loc);
+  const index = context.sourceCode.getIndexFromLoc('start' in descriptor.loc
+    ? descriptor.loc.start
+    : descriptor.loc);
 
   return findTag(<Maybe<HtmlNode>><unknown>context.sourceCode.getNodeByRangeIndex(index) ?? undefined);
 };
@@ -705,7 +710,9 @@ const readRenderedAttributes = (template: string): RenderedAttributes => {
 const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
   const tag = <HtmlNode><unknown>node;
 
-  const templateAttributes = findTemplateParts(tag.type === 'Tag' ? tag : undefined).flatMap((part) => {
+  const templateAttributes = findTemplateParts(tag.type === 'Tag'
+    ? tag
+    : undefined).flatMap((part) => {
     const template = text.slice(...part.range);
     const renderedAttributes = readRenderedAttributes(template);
 
@@ -725,7 +732,9 @@ const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
           value: {
             type: 'AttributeValue',
             value: literalValue ?? template,
-            parts: literalValue === undefined ? [part] : <HtmlTemplatePart[]>[],
+            parts: literalValue === undefined
+              ? [part]
+              : <HtmlTemplatePart[]>[],
             range: part.range,
             loc: part.loc,
           },
@@ -753,6 +762,8 @@ const withTemplateAttributes = (rule: RuleDefinition): RuleDefinition => ({
     .map(([selector, visit]) => <const>[
       selector,
       (node: Rule.Node): void => {
+        type NodeVisitor = (node: Rule.Node) => void;
+
         (<NodeVisitor>visit)(addTemplateAttributes(node, context.sourceCode.text));
       },
     ])),
@@ -763,7 +774,9 @@ const skipUnresolvedTemplates: ReportRewrite = (descriptor, context) => {
     .map((part) => readRenderedAttributes(context.sourceCode.text.slice(...part.range))));
 
   if (renderedAttributes.has('any') || !renderedAttributes.has('unknown')) {
-    return renderedAttributes.has('any') ? undefined : descriptor;
+    return renderedAttributes.has('any')
+      ? undefined
+      : descriptor;
   }
 
   return {
@@ -794,7 +807,11 @@ const indentAttributes: ReportRewrite = (descriptor, context) => {
   const openingTag = [
     tag.openStart.value,
     ...tag.attributes.map((attribute) => `\n${attributeIndentation}${text.slice(...attribute.range)}`),
-    isClosingOnSameLine ? (tag.openEnd.value === '/>' ? ' ' : '') : `\n${tagIndentation}`,
+    isClosingOnSameLine
+      ? (tag.openEnd.value === '/>'
+        ? ' '
+        : '')
+      : `\n${tagIndentation}`,
     tag.openEnd.value,
   ].join('');
 
@@ -883,50 +900,71 @@ export const html = async (): Promise<Config[]> => {
       ],
       rules: {
         ...pluginHtml.configs.recommended.rules,
-        'html/attrs-newline': ['error', {
-          ifAttrsMoreThan: 3,
-          inline: ['$inline'],
-          maxLen: MAX_LEN,
-          skip: PREFORMATTED_TAGS,
-        }],
+        'html/attrs-newline': [
+          'error',
+          {
+            ifAttrsMoreThan: 3,
+            inline: ['$inline'],
+            maxLen: MAX_LEN,
+            skip: PREFORMATTED_TAGS,
+          },
+        ],
         'html/class-spacing': 'error',
         'html/css-no-empty-blocks': 'error',
-        'html/element-newline': ['error', {
-          inline: ['$inline'],
-          skip: PREFORMATTED_TAGS,
-        }],
+        'html/element-newline': [
+          'error',
+          {
+            inline: ['$inline'],
+            skip: PREFORMATTED_TAGS,
+          },
+        ],
         'html/head-order': 'error',
         'html/id-naming-convention': ['error', 'regex', ID_NAMING_PATTERN],
         'html/indent': ['error', INDENT],
         'html/lowercase': 'error',
-        'html/max-element-depth': ['error', {
-          max: 24,
-        }],
+        'html/max-element-depth': [
+          'error',
+          {
+            max: 24,
+          },
+        ],
         'html/no-abstract-roles': 'error',
         'html/no-accesskey-attrs': 'error',
         'html/no-aria-hidden-body': 'error',
         'html/no-aria-hidden-on-focusable': 'error',
         'html/no-duplicate-class': 'error',
         'html/no-empty-headings': 'error',
-        'html/no-extra-spacing-tags': ['error', {
-          disallowInAssignment: true,
-          disallowMissing: true,
-          disallowTabs: true,
-        }],
-        'html/no-extra-spacing-text': ['error', {
-          skip: PREFORMATTED_TAGS,
-        }],
+        'html/no-extra-spacing-tags': [
+          'error',
+          {
+            disallowInAssignment: true,
+            disallowMissing: true,
+            disallowTabs: true,
+          },
+        ],
+        'html/no-extra-spacing-text': [
+          'error',
+          {
+            skip: PREFORMATTED_TAGS,
+          },
+        ],
         'html/no-heading-inside-button': 'error',
         'html/no-ineffective-attrs': 'error',
-        'html/no-inline-styles': ['error', {
-          allowExpressions: true,
-        }],
+        'html/no-inline-styles': [
+          'error',
+          {
+            allowExpressions: true,
+          },
+        ],
         'html/no-invalid-attr-value': 'error',
         'html/no-invalid-entity': 'error',
         'html/no-invalid-role': 'error',
-        'html/no-multiple-empty-lines': ['error', {
-          max: MAX_EMPTY_LINES,
-        }],
+        'html/no-multiple-empty-lines': [
+          'error',
+          {
+            max: MAX_EMPTY_LINES,
+          },
+        ],
         'html/no-nested-interactive': 'error',
         'html/no-non-scalable-viewport': 'error',
         'html/no-positive-tabindex': 'error',
@@ -947,9 +985,13 @@ export const html = async (): Promise<Config[]> => {
         'html/no-trailing-spaces': 'error',
         'html/no-whitespace-only-children': 'error',
         'html/prefer-https': 'error',
-        'html/quotes': ['error', 'double', {
-          enforceTemplatedAttrValue: true,
-        }],
+        'html/quotes': [
+          'error',
+          'double',
+          {
+            enforceTemplatedAttrValue: true,
+          },
+        ],
         'html/require-attrs': [
           'error',
           ...REQUIRED_ATTRIBUTES,
@@ -965,9 +1007,12 @@ export const html = async (): Promise<Config[]> => {
         'html/require-meta-description': 'error',
         'html/require-meta-viewport': 'error',
         'html/require-open-graph-protocol': 'error',
-        'html/sort-attrs': ['error', {
-          priority: ATTRIBUTE_PRIORITY,
-        }],
+        'html/sort-attrs': [
+          'error',
+          {
+            priority: ATTRIBUTE_PRIORITY,
+          },
+        ],
         'html/svg-require-viewbox': 'error',
       },
     },

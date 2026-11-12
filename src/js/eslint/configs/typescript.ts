@@ -19,10 +19,14 @@ const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,
 ];
 
-export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [...new Set([
-  ...typeof options?.typeAware === 'object' ? (options.typeAware.ignores ?? []) : DEFAULT_TYPE_AWARE_IGNORES,
-  ...options?.ignores ?? [],
-])];
+export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [
+  ...new Set([
+    ...typeof options?.typeAware === 'object'
+      ? (options.typeAware.ignores ?? [])
+      : DEFAULT_TYPE_AWARE_IGNORES,
+    ...options?.ignores ?? [],
+  ]),
+];
 
 export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>> => {
   if (!isModuleEnabled(MODULES.typescript)) {
@@ -48,7 +52,13 @@ const resolveTypeAwareOptions = (
         : undefined,
     };
 
-  typeAwareOptions.files = [...new Set([...(typeAwareOptions.files ?? []), ...files])];
+  typeAwareOptions.files = [
+    ...new Set([
+      ...(typeAwareOptions.files ?? []),
+      ...files,
+    ]),
+  ];
+
   typeAwareOptions.ignores = getTypeAwareIgnores(resolvedOptions);
 
   return typeAwareOptions;
@@ -160,10 +170,12 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
 
   const ignoredGlobs = resolvedOptions.ignores ?? [];
 
-  const files = [...new Set([
-    ...resolvedOptions.extraFileExtensions.map((extension) => `**/*.${extension}`),
-    ...resolvedOptions.files ?? GLOB_SCRIPT_FILES,
-  ])];
+  const files = [
+    ...new Set([
+      ...resolvedOptions.extraFileExtensions.map((extension) => `**/*.${extension}`),
+      ...resolvedOptions.files ?? GLOB_SCRIPT_FILES,
+    ]),
+  ];
 
   const hasEnabledTypeAwareness = resolvedOptions.typeAware !== false;
 
@@ -215,30 +227,51 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
           'ts/promise-function-async': 'error',
           'ts/prefer-readonly': 'error',
           'ts/require-array-sort-compare': 'error',
-          'ts/no-base-to-string': ['error', {
-            checkUnknown: true,
-          }],
-          'ts/no-floating-promises': ['error', {
-            checkThenables: true,
-          }],
-          'ts/no-unnecessary-condition': ['error', {
-            checkTypePredicates: true,
-          }],
-          'ts/only-throw-error': ['error', {
-            allowThrowingUnknown: false,
-          }],
-          'ts/prefer-nullish-coalescing': ['error', {
-            ignoreConditionalTests: false,
-          }],
+          'ts/no-base-to-string': [
+            'error',
+            {
+              checkUnknown: true,
+            },
+          ],
+          'ts/no-floating-promises': [
+            'error',
+            {
+              checkThenables: true,
+            },
+          ],
+          'ts/no-unnecessary-condition': [
+            'error',
+            {
+              checkTypePredicates: true,
+            },
+          ],
+          'ts/only-throw-error': [
+            'error',
+            {
+              allowThrowingUnknown: false,
+            },
+          ],
+          'ts/prefer-nullish-coalescing': [
+            'error',
+            {
+              ignoreConditionalTests: false,
+            },
+          ],
           'ts/return-await': ['error', 'in-try-catch'],
-          'ts/strict-boolean-expressions': ['error', {
-            allowNumber: false,
-            allowString: false,
-          }],
+          'ts/strict-boolean-expressions': [
+            'error',
+            {
+              allowNumber: false,
+              allowString: false,
+            },
+          ],
           'ts/strict-void-return': 'error',
-          'ts/switch-exhaustiveness-check': ['error', {
-            requireDefaultForNonUnion: true,
-          }],
+          'ts/switch-exhaustiveness-check': [
+            'error',
+            {
+              requireDefaultForNonUnion: true,
+            },
+          ],
         }
         : {
           ...extractRelevantRules(tsEslint.configs.recommended, 'recommended'),
@@ -256,22 +289,25 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
             },
           ],
           'ts/consistent-type-imports': 'error',
-          'ts/member-ordering': ['error', {
-            default: [
-              'signature',
-              'call-signature',
-              ['public-field', 'public-accessor'],
-              ['protected-field', 'protected-accessor'],
-              ['private-field', 'private-accessor'],
-              ['#private-field', '#private-accessor'],
-              'static-initialization',
-              'constructor',
-              ['public-get', 'public-set', 'public-method'],
-              ['protected-get', 'protected-set', 'protected-method'],
-              ['private-get', 'private-set', 'private-method'],
-              ['#private-get', '#private-set', '#private-method'],
-            ],
-          }],
+          'ts/member-ordering': [
+            'error',
+            {
+              default: [
+                'signature',
+                'call-signature',
+                ['public-field', 'public-accessor'],
+                ['protected-field', 'protected-accessor'],
+                ['private-field', 'private-accessor'],
+                ['#private-field', '#private-accessor'],
+                'static-initialization',
+                'constructor',
+                ['public-get', 'public-set', 'public-method'],
+                ['protected-get', 'protected-set', 'protected-method'],
+                ['private-get', 'private-set', 'private-method'],
+                ['#private-get', '#private-set', '#private-method'],
+              ],
+            },
+          ],
           'ts/method-signature-style': 'error',
           'ts/no-import-type-side-effects': 'error',
           'no-redeclare': 'off',
@@ -298,9 +334,13 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
       },
     },
     createParserConfig(false),
-    hasEnabledTypeAwareness ? createParserConfig(true) : undefined,
+    hasEnabledTypeAwareness
+      ? createParserConfig(true)
+      : undefined,
     createRulesConfig(false),
-    hasEnabledTypeAwareness ? createRulesConfig(true) : undefined,
+    hasEnabledTypeAwareness
+      ? createRulesConfig(true)
+      : undefined,
     {
       name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.RULES}-typescript`),
       files: [GLOB_TS],

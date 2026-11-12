@@ -57,7 +57,9 @@ export const readJsonFile = (filePath: string): Maybe<unknown> => {
 export const readJsonObjectFile = (filePath: string): Maybe<Record<string, unknown>> => {
   const parsedContent = readJsonFile(filePath);
 
-  return isPlainObject(parsedContent) ? parsedContent : undefined;
+  return isPlainObject(parsedContent)
+    ? parsedContent
+    : undefined;
 };
 
 export const findNearestPackageJson = (startDirectory: string): Maybe<string> => {

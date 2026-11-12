@@ -109,8 +109,7 @@ export interface TypescriptOptions extends IgnoresAndFiles {
    *
    * By default the path `./tsconfig.json` is assumed for the TypeScript configuration file.
    * If it exists, type aware rules will be enabled.
-   * Optionally, you can provide a custom path or even further customize
-   * the type aware options by passing an object.
+   * Optionally, you can provide a custom path or even further customize the type aware options by passing an object.
    *
    * @default `Enabled when the the configured tsconfig.json file exists`
    *

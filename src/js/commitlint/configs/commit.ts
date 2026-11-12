@@ -9,20 +9,58 @@ import type { Config } from '#commitlint/types/config.ts';
 const SCOPE_MIN_LENGTH = 2;
 const SUBJECT_MIN_LENGTH = 5;
 
+const RULES = {
+  'body-case': [
+    ERROR,
+    'always',
+    'sentence-case',
+  ],
+  'body-leading-blank': [
+    ERROR,
+    'always',
+  ],
+  'breaking-change-exclamation-mark': [
+    ERROR,
+    'always',
+  ],
+  'footer-leading-blank': [
+    ERROR,
+    'always',
+  ],
+  'header-case': [
+    ERROR,
+    'always',
+    'lower-case',
+  ],
+  'scope-case': [
+    ERROR,
+    'always',
+    'lower-case',
+  ],
+  'scope-delimiter-style': [
+    ERROR,
+    'always',
+    ['/'],
+  ],
+  'scope-empty': [
+    ERROR,
+    'never',
+  ],
+  'scope-min-length': [
+    ERROR,
+    'always',
+    SCOPE_MIN_LENGTH,
+  ],
+  'subject-min-length': [
+    ERROR,
+    'always',
+    SUBJECT_MIN_LENGTH,
+  ],
+} satisfies Config['rules'];
+
 export const commit = (): Config[] => [
   {
     helpUrl: 'https://github.com/brnshkr/config/blob/master/README.md#-commit-style',
-    rules: {
-      'body-case': [ERROR, 'always', 'sentence-case'],
-      'body-leading-blank': [ERROR, 'always'],
-      'breaking-change-exclamation-mark': [ERROR, 'always'],
-      'footer-leading-blank': [ERROR, 'always'],
-      'header-case': [ERROR, 'always', 'lower-case'],
-      'scope-case': [ERROR, 'always', 'lower-case'],
-      'scope-delimiter-style': [ERROR, 'always', ['/']],
-      'scope-empty': [ERROR, 'never'],
-      'scope-min-length': [ERROR, 'always', SCOPE_MIN_LENGTH],
-      'subject-min-length': [ERROR, 'always', SUBJECT_MIN_LENGTH],
-    },
+    rules: RULES,
   },
 ];

@@ -115,7 +115,10 @@ const toSettings = (
 });
 
 const mergeLists = (shippedEntries: string[], declaredEntries: string[]): string[] => [
-  ...new Set([...shippedEntries, ...declaredEntries]),
+  ...new Set([
+    ...shippedEntries,
+    ...declaredEntries,
+  ]),
 ];
 
 const mergeAllowlists = (
@@ -141,8 +144,14 @@ const mergeSettings = (
 ): SpellingSettings => ({
   fileExtensions: mergeLists(shippedSettings.fileExtensions, declaredSettings.fileExtensions),
   fileNames: mergeLists(shippedSettings.fileNames, declaredSettings.fileNames),
-  ignorePatterns: [...shippedSettings.ignorePatterns, ...declaredSettings.ignorePatterns],
-  britishSpellings: { ...shippedSettings.britishSpellings, ...declaredSettings.britishSpellings },
+  ignorePatterns: [
+    ...shippedSettings.ignorePatterns,
+    ...declaredSettings.ignorePatterns,
+  ],
+  britishSpellings: {
+    ...shippedSettings.britishSpellings,
+    ...declaredSettings.britishSpellings,
+  },
   britishStems: mergeLists(shippedSettings.britishStems, declaredSettings.britishStems),
   stemSuffixes: mergeLists(shippedSettings.stemSuffixes, declaredSettings.stemSuffixes),
   allowlist: mergeAllowlists(shippedSettings.allowlist, declaredSettings.allowlist),
@@ -164,15 +173,22 @@ export const readSettings = (rootDirectory: string, configPath: string): Spellin
 const parseLineNumbers = (lineSuffix: string): Maybe<number[]> => {
   const lineNumbers = lineSuffix.split(',');
 
-  return lineNumbers.every((lineNumber) => /^\d+$/v.test(lineNumber)) ? lineNumbers.map(Number) : undefined;
+  return lineNumbers.every((lineNumber) => /^\d+$/v.test(lineNumber))
+    ? lineNumbers.map(Number)
+    : undefined;
 };
 
 const parseAllowedLiteral = (declaredLiteral: string): AllowedLiteral => {
   const separatorIndex = declaredLiteral.lastIndexOf(':');
-  const lineNumbers = separatorIndex === -1 ? undefined : parseLineNumbers(declaredLiteral.slice(separatorIndex + 1));
+
+  const lineNumbers = separatorIndex === -1
+    ? undefined
+    : parseLineNumbers(declaredLiteral.slice(separatorIndex + 1));
 
   return {
-    text: lineNumbers === undefined ? declaredLiteral : declaredLiteral.slice(0, separatorIndex),
+    text: lineNumbers === undefined
+      ? declaredLiteral
+      : declaredLiteral.slice(0, separatorIndex),
     lineNumbers,
   };
 };
@@ -235,7 +251,10 @@ const rejectCoveredLiterals = (allowlist: Allowlist): void => {
     const broaderLiterals = getLiteralsAllowedIn(allowlist, allowedPath, allowedPath);
 
     for (const [index, allowedLiteral] of allowedLiterals.entries()) {
-      const coveringLiteral = [...broaderLiterals, ...allowedLiterals.slice(0, index)]
+      const coveringLiteral = [
+        ...broaderLiterals,
+        ...allowedLiterals.slice(0, index),
+      ]
         .find((coveringCandidate) => isCoveredBy(coveringCandidate, allowedLiteral));
 
       if (coveringLiteral !== undefined) {

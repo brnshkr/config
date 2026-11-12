@@ -3508,12 +3508,9 @@ _STYLELINT_VALUE_FLAGS := --cache-location \
 	--custom-syntax \
 	--formatter \
 	--globby-options \
-	--go \
 	--ignore-path \
 	--ignore-pattern \
-	--ip \
 	--max-warnings \
-	--mw \
 	--output-file \
 	--stdin-filename \
 	--suppress-location \
@@ -5688,7 +5685,7 @@ declare(strict_types=1);
 use Rector\Config\RectorConfig;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\DependencyInjection\LazyContainerFactory;
-use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
+use Rector\Skipper\Skipper\Skipper;
 use TwigCsFixer\Config\Config;
 
 [, $$autoloaderPath, $$toolName, $$configPath, $$urlTemplate, $$appDirectory, $$hostDirectory] = $$argv;
@@ -5710,7 +5707,7 @@ if ($$toolName === 'rector') {
     $$rules = $$rectorConfig->findByContract(RectorInterface::class);
 
     $$skippedRuleNames = \array_keys(\array_filter(
-        $$rectorConfig->make(SkippedClassResolver::class)->resolve(),
+        $$rectorConfig->make(Skipper::class)->resolveSkippedClasses(),
         static fn (?array $$paths): bool => $$paths === null,
     ));
 } else {

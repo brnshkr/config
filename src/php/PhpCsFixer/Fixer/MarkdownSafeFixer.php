@@ -12,6 +12,7 @@ use Override;
 use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\WhitespacesFixerConfig;
 use SplFileInfo;
@@ -53,6 +54,9 @@ final readonly class MarkdownSafeFixer implements WhitespacesAwareFixerInterface
         return !FileFinder::isMarkdown($file->getFilename()) && $this->fixer->supports($file);
     }
 
+    /**
+     * @param Tokens<Token> $tokens
+     */
     #[Override]
     public function isCandidate(Tokens $tokens): bool
     {
@@ -65,6 +69,9 @@ final readonly class MarkdownSafeFixer implements WhitespacesAwareFixerInterface
         return $this->fixer->isRisky();
     }
 
+    /**
+     * @param Tokens<Token> $tokens
+     */
     #[Override]
     // @phpstan-ignore symplify.preferredClass (Required by php-cs-fixer's FixerInterface)
     public function fix(SplFileInfo $file, Tokens $tokens): void

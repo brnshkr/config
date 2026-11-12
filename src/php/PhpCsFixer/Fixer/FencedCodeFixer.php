@@ -208,6 +208,8 @@ final class FencedCodeFixer implements ConfigurableFixerInterface
 
     /**
      * @internal invoked by php-cs-fixer
+     *
+     * @param Tokens<Token> $tokens
      */
     #[Override]
     public function isCandidate(Tokens $tokens): bool
@@ -236,6 +238,8 @@ final class FencedCodeFixer implements ConfigurableFixerInterface
 
     /**
      * @internal invoked by php-cs-fixer
+     *
+     * @param Tokens<Token> $tokens
      */
     #[Override]
     // @phpstan-ignore symplify.preferredClass (Required by php-cs-fixer's FixerInterface)

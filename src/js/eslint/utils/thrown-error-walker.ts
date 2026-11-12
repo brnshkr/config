@@ -107,7 +107,10 @@ const addThrownErrors = (walkContext: WalkContext, kind: ErrorKind, thrownTypes:
 
 const getExpressionTypes = (walkContext: WalkContext, node: Maybe<TSESTree.Node>): ThrownType[] => {
   const { checker, services } = walkContext;
-  const tsNode = node === undefined ? undefined : services?.esTreeNodeToTSNodeMap.get(node);
+
+  const tsNode = node === undefined
+    ? undefined
+    : services?.esTreeNodeToTSNodeMap.get(node);
 
   return getThrownTypes(
     checker,
@@ -145,7 +148,9 @@ const addCalleeErrors = (
   const isVariableInitializer = variableDeclaration?.initializer === declaration;
 
   const comment = readCommentText(declaration)
-    ?? (isVariableInitializer ? readCommentText(variableDeclaration.parent.parent) : undefined);
+    ?? (isVariableInitializer
+      ? readCommentText(variableDeclaration.parent.parent)
+      : undefined);
 
   const isNativeCallee = declaration.getSourceFile().fileName.includes('/node_modules/@types/');
 
@@ -169,7 +174,10 @@ const walkChildren = (walkContext: WalkContext, node: TSESTree.Node, state: Walk
 
   for (const childKey of childKeys) {
     const child = readOwnValue(<Record<string, unknown>><unknown>node, childKey);
-    const childNodes = Array.isArray(child) ? child : [child];
+
+    const childNodes = Array.isArray(child)
+      ? child
+      : [child];
 
     for (const childNode of childNodes) {
       if (typeof childNode === 'object' && childNode && 'type' in childNode) {
@@ -261,7 +269,9 @@ export const collectThrownErrors = (context: RuleContext, node: FunctionNode): T
 
   const walkContext = {
     sourceCode: context.sourceCode,
-    services: program === undefined ? undefined : services,
+    services: program === undefined
+      ? undefined
+      : services,
     checker: program?.getTypeChecker(),
     isJavaScript: /\.[cm]?jsx?$/v.test(context.filename),
     thrownErrors: <ThrownError[]>[],

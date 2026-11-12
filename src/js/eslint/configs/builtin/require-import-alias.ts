@@ -86,7 +86,9 @@ const compareSpecifiers = (left: string, right: string): number => {
 
   const lengthDifference = left.length - right.length;
 
-  return lengthDifference === 0 ? left.localeCompare(right) : lengthDifference;
+  return lengthDifference === 0
+    ? left.localeCompare(right)
+    : lengthDifference;
 };
 
 const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): Maybe<string> => mappings

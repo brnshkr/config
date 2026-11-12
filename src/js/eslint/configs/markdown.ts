@@ -83,41 +83,53 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
       rules: {
         ...extractRelevantValues('rules', pluginMarkdown.configs.recommended, 'recommended'),
         'markdown/no-bare-urls': 'error',
-        'markdown/no-duplicate-headings': ['error', {
-          checkSiblingsOnly: true,
-        }],
-        'markdown/no-html': ['error', {
-          allowed: [
-            'a',
-            'br',
-            'dd',
-            'del',
-            'details',
-            'div',
-            'dl',
-            'dt',
-            'h1',
-            'img',
-            'ins',
-            'kbd',
-            'p',
-            'q',
-            'rp',
-            'rt',
-            'ruby',
-            'samp',
-            'sub',
-            'summary',
-            'sup',
-            'var',
-          ],
-        }],
-        'markdown/no-space-in-emphasis': ['error', {
-          checkStrikethrough: true,
-        }],
-        'markdown/table-column-count': ['error', {
-          checkMissingCells: true,
-        }],
+        'markdown/no-duplicate-headings': [
+          'error',
+          {
+            checkSiblingsOnly: true,
+          },
+        ],
+        'markdown/no-html': [
+          'error',
+          {
+            allowed: [
+              'a',
+              'br',
+              'dd',
+              'del',
+              'details',
+              'div',
+              'dl',
+              'dt',
+              'h1',
+              'img',
+              'ins',
+              'kbd',
+              'p',
+              'q',
+              'rp',
+              'rt',
+              'ruby',
+              'samp',
+              'sub',
+              'summary',
+              'sup',
+              'var',
+            ],
+          },
+        ],
+        'markdown/no-space-in-emphasis': [
+          'error',
+          {
+            checkStrikethrough: true,
+          },
+        ],
+        'markdown/table-column-count': [
+          'error',
+          {
+            checkMissingCells: true,
+          },
+        ],
         ...(isModuleEnabled(MODULES.unicorn)
           ? {
             'unicorn/no-missing-local-resource': 'error',

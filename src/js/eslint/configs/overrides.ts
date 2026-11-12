@@ -84,26 +84,28 @@ const buildTsOverrides = (): Config[] => (isModuleEnabled(MODULES.typescript)
       },
     },
     ...(isModuleEnabled(MODULES.import) || isModuleEnabled(MODULES.node))
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/imports`),
-        files: GLOB_SCRIPT_FILES,
-        ignores: [GLOB_MD_CODE_BLOCKS],
-        rules: {
-          ...isModuleEnabled(MODULES.import)
-            ? {
-              'import/default': 'off',
-              'import/named': 'off',
-              'import/no-named-as-default-member': 'off',
-              'import/no-unresolved': 'off',
-            }
-            : {},
-          ...isModuleEnabled(MODULES.node)
-            ? {
-              'node/no-missing-import': 'off',
-            }
-            : {},
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/imports`),
+          files: GLOB_SCRIPT_FILES,
+          ignores: [GLOB_MD_CODE_BLOCKS],
+          rules: {
+            ...isModuleEnabled(MODULES.import)
+              ? {
+                'import/default': 'off',
+                'import/named': 'off',
+                'import/no-named-as-default-member': 'off',
+                'import/no-unresolved': 'off',
+              }
+              : {},
+            ...isModuleEnabled(MODULES.node)
+              ? {
+                'node/no-missing-import': 'off',
+              }
+              : {},
+          },
+        } satisfies Config,
+      ]
       : [],
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/dts`),
@@ -147,7 +149,9 @@ const buildTypeUnawareJsdocOverrides = (typescriptOptions?: Partial<TypescriptOp
     return [];
   }
 
-  const typeUnawareFiles = isTypeAware(typescriptOptions) ? getTypeAwareIgnores(typescriptOptions) : GLOB_SCRIPT_FILES;
+  const typeUnawareFiles = isTypeAware(typescriptOptions)
+    ? getTypeAwareIgnores(typescriptOptions)
+    : GLOB_SCRIPT_FILES;
 
   return typeUnawareFiles.length > 0
     ? [
@@ -196,11 +200,14 @@ const buildUnicornOverrides = (): Config[] => (isModuleEnabled(MODULES.unicorn)
         ...GLOB_SCRIPT_FILES.map((glob) => `**/errors/${glob}`),
       ],
       rules: {
-        'unicorn/filename-case': ['error', {
-          case: 'pascalCase',
-          checkDirectories: false,
-          ignore: FILE_NAMES_TO_IGNORE,
-        }],
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+            checkDirectories: false,
+            ignore: FILE_NAMES_TO_IGNORE,
+          },
+        ],
       },
     },
     {
@@ -214,11 +221,14 @@ const buildUnicornOverrides = (): Config[] => (isModuleEnabled(MODULES.unicorn)
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.UNICORN}/template-components`),
       files: [`**/templates/components/${GLOB_HTML_TWIG}`],
       rules: {
-        'unicorn/filename-case': ['error', {
-          case: 'pascalCase',
-          directoryRoots: ['templates/components'],
-          ignore: FILE_NAMES_TO_IGNORE,
-        }],
+        'unicorn/filename-case': [
+          'error',
+          {
+            case: 'pascalCase',
+            directoryRoots: ['templates/components'],
+            ignore: FILE_NAMES_TO_IGNORE,
+          },
+        ],
       },
     },
     {
@@ -246,23 +256,25 @@ const buildSecurityOverrides = (): Config[] => ((isModuleEnabled(MODULES.securit
 const buildJsdocOverrides = (): Config[] => (isModuleEnabled(MODULES.jsdoc)
   ? [
     ...(isModuleEnabled(BUILTIN_MODULE)
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/internal-tag`),
-        files: GLOB_SCRIPT_FILES,
-        settings: {
-          jsdoc: {
-            structuredTags: {
-              internal: {
-                name: 'text',
-                type: false,
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/internal-tag`),
+          files: GLOB_SCRIPT_FILES,
+          settings: {
+            jsdoc: {
+              structuredTags: {
+                internal: {
+                  name: 'text',
+                  type: false,
+                },
               },
             },
           },
-        },
-        rules: {
-          'jsdoc/empty-tags': 'off',
-        },
-      } satisfies Config]
+          rules: {
+            'jsdoc/empty-tags': 'off',
+          },
+        } satisfies Config,
+      ]
       : []),
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.JSDOC}/${SUB_SCOPES.EXAMPLES}`),
@@ -314,36 +326,46 @@ const buildSvelteOverrides = (): Config[] => (isModuleEnabled(MODULES.svelte)
         'no-self-assign': 'off',
         'import/no-rename-default': 'off',
         'import/unambiguous': 'off',
-        'svelte/comment-directive': ['error', {
-          reportUnusedDisableDirectives: true,
-        }],
+        'svelte/comment-directive': [
+          'error',
+          {
+            reportUnusedDisableDirectives: true,
+          },
+        ],
         'svelte/system': 'error',
       },
     },
     ...(isModuleEnabled(MODULES.unicorn)
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/components`),
-        files: [
-          `**/components/${GLOB_SVELTE}`,
-        ],
-        rules: {
-          'unicorn/filename-case': ['error', {
-            case: 'pascalCase',
-            checkDirectories: false,
-          }],
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/components`),
+          files: [
+            `**/components/${GLOB_SVELTE}`,
+          ],
+          rules: {
+            'unicorn/filename-case': [
+              'error',
+              {
+                case: 'pascalCase',
+                checkDirectories: false,
+              },
+            ],
+          },
+        } satisfies Config,
+      ]
       : []),
     ...((isModuleEnabled(MODULES.tailwind)
       && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS, PACKAGES.HTML_ESLINT_PLUGIN_SVELTE]))
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/tailwind`),
-        files: [GLOB_SVELTE],
-        rules: {
-          'svelte-html/class-spacing': 'off',
-          'svelte-html/no-duplicate-class': 'off',
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.SVELTE}/tailwind`),
+          files: [GLOB_SVELTE],
+          rules: {
+            'svelte-html/class-spacing': 'off',
+            'svelte-html/no-duplicate-class': 'off',
+          },
+        } satisfies Config,
+      ]
       : []),
   ]
   : []);
@@ -412,14 +434,16 @@ const buildHtmlOverrides = (): Config[] => (isModuleEnabled(MODULES.html)
       },
     },
     ...((isModuleEnabled(MODULES.tailwind) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS]))
-      ? [{
-        name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/tailwind`),
-        files: GLOB_HTML_FILES,
-        rules: {
-          'html/class-spacing': 'off',
-          'html/no-duplicate-class': 'off',
-        },
-      } satisfies Config]
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.HTML}/tailwind`),
+          files: GLOB_HTML_FILES,
+          rules: {
+            'html/class-spacing': 'off',
+            'html/no-duplicate-class': 'off',
+          },
+        } satisfies Config,
+      ]
       : []),
   ]
   : []);
@@ -502,7 +526,9 @@ const buildDevelopmentOverrides = (): Config[] => [
 ];
 
 export const overrides = (typescriptOptions?: boolean | Partial<TypescriptOptions>): Config[] => {
-  const resolvedTypescriptOptions = typeof typescriptOptions === 'object' ? typescriptOptions : undefined;
+  const resolvedTypescriptOptions = typeof typescriptOptions === 'object'
+    ? typescriptOptions
+    : undefined;
 
   return [
     ...buildJsOverrides(),

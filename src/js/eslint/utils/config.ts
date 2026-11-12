@@ -76,7 +76,9 @@ const ensureNamesForSyncAdditionalConfigs = (
       continue;
     }
 
-    validConfigs.push(objectKeys(config).length > 0 ? config : undefined);
+    validConfigs.push(objectKeys(config).length > 0
+      ? config
+      : undefined);
 
     config.name = buildConfigName(MAIN_SCOPES.USERLAND, `${SUB_SCOPES.UNNAMED}-${String(currentIndex)}`);
     currentIndex += 1;

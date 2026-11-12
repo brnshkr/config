@@ -25,7 +25,9 @@ const listStylesheetPaths = async (rootDirectory: string): Promise<Maybe<string[
     encoding: 'utf-8',
     maxBuffer: Infinity,
   }, (error, stdout) => {
-    resolve(Error.isError(error) ? undefined : stdout.split('\0').filter((filePath) => filePath !== ''));
+    resolve(Error.isError(error)
+      ? undefined
+      : stdout.split('\0').filter((filePath) => filePath !== ''));
   });
 });
 

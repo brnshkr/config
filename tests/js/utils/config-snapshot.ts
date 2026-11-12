@@ -95,7 +95,9 @@ export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<
 
       return [
         filePath.replace(`${fixturesDirectory}/`, ''),
-        stripRoot(normalize ? normalize(config) : config),
+        stripRoot(normalize
+          ? normalize(config)
+          : config),
       ];
     }),
   ));

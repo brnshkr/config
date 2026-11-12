@@ -37,7 +37,11 @@ export const loadPublicApiResolution = (
 ): Maybe<PackageExportsResolution> => {
   const cacheKey = getCacheKey(options, cwd);
   const packageJsonPath = options.packageJsonPath ?? findNearestPackageJson(cwd);
-  const mtime = packageJsonPath === undefined ? undefined : getMtime(packageJsonPath);
+
+  const mtime = packageJsonPath === undefined
+    ? undefined
+    : getMtime(packageJsonPath);
+
   const cacheEntry = resolutionCache.get(cacheKey);
 
   if (cacheEntry !== undefined && cacheEntry.mtime === mtime) {

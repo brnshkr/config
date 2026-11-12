@@ -30,12 +30,15 @@ export const test = async (): Promise<Config[]> => {
       files: GLOB_TEST_FILES,
       rules: {
         ...renameRules(pluginVitest.configs.recommended.rules, { vitest: 'test' }),
-        'test/consistent-each-for': ['error', {
-          test: 'each',
-          it: 'each',
-          describe: 'each',
-          suite: 'each',
-        }],
+        'test/consistent-each-for': [
+          'error',
+          {
+            test: 'each',
+            it: 'each',
+            describe: 'each',
+            suite: 'each',
+          },
+        ],
         'test/consistent-test-filename': 'error',
         'test/consistent-test-it': 'error',
         'test/consistent-vitest-vi': 'error',
@@ -58,11 +61,14 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-hooks-on-top': 'error',
         'test/prefer-import-in-mock': 'error',
         'test/prefer-importing-vitest-globals': 'error',
-        'test/prefer-lowercase-title': ['error', {
-          ignore: [
-            'describe',
-          ],
-        }],
+        'test/prefer-lowercase-title': [
+          'error',
+          {
+            ignore: [
+              'describe',
+            ],
+          },
+        ],
         'test/prefer-mock-promise-shorthand': 'error',
         'test/prefer-snapshot-hint': 'error',
         'test/prefer-spy-on': 'error',
@@ -76,12 +82,18 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-vi-mocked': 'error',
         'test/require-awaited-expect-poll': 'error',
         'test/require-hook': 'error',
-        'test/require-mock-type-parameters': ['error', {
-          checkImportFunctions: true,
-        }],
-        'test/valid-expect': ['error', {
-          alwaysAwait: true,
-        }],
+        'test/require-mock-type-parameters': [
+          'error',
+          {
+            checkImportFunctions: true,
+          },
+        ],
+        'test/valid-expect': [
+          'error',
+          {
+            alwaysAwait: true,
+          },
+        ],
         'test/warn-todo': 'error',
       },
     },

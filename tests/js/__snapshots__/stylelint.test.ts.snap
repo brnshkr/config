@@ -100,7 +100,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
-    "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+    "<root>/node_modules/@stylistic/stylelint-plugin/dist/index.js",
   ],
   "reportDescriptionlessDisables": true,
   "reportInvalidScopeDisables": true,
@@ -109,91 +109,118 @@ exports[`expected stylelint config > base: 1.css 1`] = `
   "rules": {
     "@stylistic/at-rule-name-case": [
       "lower",
+      {},
     ],
     "@stylistic/at-rule-name-newline-after": [
       "always-multi-line",
     ],
     "@stylistic/at-rule-name-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/at-rule-semicolon-newline-after": [
       "always",
+      {},
     ],
     "@stylistic/at-rule-semicolon-space-before": null,
     "@stylistic/block-closing-brace-empty-line-before": [
       "never",
+      {},
     ],
     "@stylistic/block-closing-brace-newline-after": [
       "always",
+      {},
     ],
     "@stylistic/block-closing-brace-newline-before": [
       "always",
     ],
     "@stylistic/block-closing-brace-space-before": [
       "always-single-line",
+      {},
     ],
     "@stylistic/block-opening-brace-newline-after": [
       "always",
     ],
     "@stylistic/block-opening-brace-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/block-opening-brace-space-before": [
       "always",
+      {},
     ],
     "@stylistic/color-hex-case": [
       "lower",
+      {},
     ],
     "@stylistic/declaration-bang-space-after": [
       "never",
+      {},
     ],
     "@stylistic/declaration-bang-space-before": [
       "always",
+      {},
     ],
     "@stylistic/declaration-block-semicolon-newline-after": [
       "always",
     ],
     "@stylistic/declaration-block-semicolon-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/declaration-block-semicolon-space-before": [
       "never",
+      {},
+    ],
+    "@stylistic/declaration-block-single-line-max-declarations": [
+      1,
+      {},
     ],
     "@stylistic/declaration-block-trailing-semicolon": [
       "always",
+      {},
     ],
     "@stylistic/declaration-colon-newline-after": [
       "always-multi-line",
+      {},
     ],
     "@stylistic/declaration-colon-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/declaration-colon-space-before": [
       "never",
+      {},
     ],
     "@stylistic/function-comma-newline-after": [
       "always-multi-line",
+      {},
     ],
     "@stylistic/function-comma-newline-before": [
       "never-multi-line",
     ],
     "@stylistic/function-comma-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/function-comma-space-before": [
       "never-single-line",
     ],
     "@stylistic/function-max-empty-lines": [
       0,
+      {},
     ],
     "@stylistic/function-parentheses-newline-inside": [
       "always-multi-line",
+      {},
     ],
     "@stylistic/function-parentheses-space-inside": [
       "never-single-line",
+      {},
     ],
     "@stylistic/function-whitespace-after": [
       "always",
+      {},
     ],
     "@stylistic/indentation": [
       2,
@@ -203,27 +230,34 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "@stylistic/max-empty-lines": [
       1,
+      {},
     ],
     "@stylistic/max-line-length": [
       120,
     ],
     "@stylistic/media-feature-colon-space-after": [
       "always",
+      {},
     ],
     "@stylistic/media-feature-colon-space-before": [
       "never",
+      {},
     ],
     "@stylistic/media-feature-name-case": [
       "lower",
+      {},
     ],
     "@stylistic/media-feature-parentheses-space-inside": [
       "never",
+      {},
     ],
     "@stylistic/media-feature-range-operator-space-after": [
       "always",
+      {},
     ],
     "@stylistic/media-feature-range-operator-space-before": [
       "always",
+      {},
     ],
     "@stylistic/media-query-list-comma-newline-after": [
       "always",
@@ -233,9 +267,11 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "@stylistic/media-query-list-comma-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/media-query-list-comma-space-before": [
       "never",
+      {},
     ],
     "@stylistic/named-grid-areas-alignment": [
       true,
@@ -245,66 +281,82 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "@stylistic/no-empty-first-line": [
       true,
+      {},
     ],
     "@stylistic/no-eol-whitespace": [
       true,
+      {},
     ],
     "@stylistic/no-extra-semicolons": [
       true,
+      {},
     ],
     "@stylistic/no-missing-end-of-source-newline": [
       true,
-    ],
-    "@stylistic/no-multiple-whitespaces": [
-      true,
+      {},
     ],
     "@stylistic/number-leading-zero": [
       "always",
+      {},
     ],
     "@stylistic/number-no-trailing-zeros": [
       true,
+      {},
     ],
     "@stylistic/property-case": [
       "lower",
+      {},
     ],
     "@stylistic/selector-attribute-brackets-space-inside": [
       "never",
+      {},
     ],
     "@stylistic/selector-attribute-operator-space-after": [
       "never",
+      {},
     ],
     "@stylistic/selector-attribute-operator-space-before": [
       "never",
+      {},
     ],
     "@stylistic/selector-combinator-space-after": [
       "always",
+      {},
     ],
     "@stylistic/selector-combinator-space-before": [
       "always",
+      {},
     ],
     "@stylistic/selector-descendant-combinator-no-non-space": [
       true,
+      {},
     ],
     "@stylistic/selector-list-comma-newline-after": [
       "always",
+      {},
     ],
     "@stylistic/selector-list-comma-newline-before": [
       "never-multi-line",
     ],
     "@stylistic/selector-list-comma-space-before": [
       "never",
+      {},
     ],
     "@stylistic/selector-max-empty-lines": [
       0,
+      {},
     ],
     "@stylistic/selector-pseudo-class-case": [
       "lower",
+      {},
     ],
     "@stylistic/selector-pseudo-class-parentheses-space-inside": [
       "never",
+      {},
     ],
     "@stylistic/selector-pseudo-element-case": [
       "lower",
+      {},
     ],
     "@stylistic/string-quotes": [
       "single",
@@ -314,21 +366,25 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "@stylistic/unit-case": [
       "lower",
+      {},
     ],
     "@stylistic/value-list-comma-newline-after": [
       "always-multi-line",
+      {},
     ],
     "@stylistic/value-list-comma-newline-before": [
       "never-multi-line",
     ],
     "@stylistic/value-list-comma-space-after": [
       "always-single-line",
+      {},
     ],
     "@stylistic/value-list-comma-space-before": [
       "never-single-line",
     ],
     "@stylistic/value-list-max-empty-lines": [
       0,
+      {},
     ],
     "alpha-value-notation": [
       "percentage",
@@ -343,6 +399,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
       },
     ],
     "annotation-no-unknown": [
+      true,
+    ],
+    "at-charset-rule-no-invalid": [
       true,
     ],
     "at-rule-descriptor-no-unknown": [
@@ -497,9 +556,6 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     ],
     "declaration-block-no-shorthand-property-overrides": [
       true,
-    ],
-    "declaration-block-single-line-max-declarations": [
-      1,
     ],
     "declaration-empty-line-before": [
       "always",
@@ -1612,6 +1668,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "overflow-block",
             "overflow-x",
             "overflow-y",
+            "overflow-anchor",
             "scrollbar-gutter",
             "-webkit-overflow-scrolling",
             "-ms-overflow-x",
@@ -1668,6 +1725,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "alignment-baseline",
             "baseline-shift",
             "dominant-baseline",
+            "text-box",
+            "text-box-trim",
+            "text-box-edge",
           ],
         },
         {
@@ -1689,6 +1749,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "text-justify",
             "text-indent",
             "text-transform",
+            "text-autospace",
             "word-spacing",
             "letter-spacing",
             "hyphens",
@@ -1749,6 +1810,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "cursor",
             "caret-color",
             "zoom",
+            "field-sizing",
             "resize",
             "user-select",
             "-webkit-user-select",
@@ -1863,6 +1925,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "border-style",
             "border-width",
             "border-block",
+            "border-block-color",
+            "border-block-style",
+            "border-block-width",
             "border-block-start",
             "border-block-start-color",
             "border-block-start-style",
@@ -1872,6 +1937,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "border-block-end-style",
             "border-block-end-width",
             "border-inline",
+            "border-inline-color",
+            "border-inline-style",
+            "border-inline-width",
             "border-inline-start",
             "border-inline-start-color",
             "border-inline-start-style",
@@ -2006,6 +2074,14 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         },
         {
           "properties": [
+            "x",
+            "y",
+            "rx",
+            "ry",
+            "cx",
+            "cy",
+            "r",
+            "d",
             "text-anchor",
             "fill",
             "fill-rule",
@@ -2018,6 +2094,7 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "stroke-miterlimit",
             "stroke-dasharray",
             "stroke-dashoffset",
+            "vector-effect",
             "color-interpolation",
             "color-interpolation-filters",
             "flood-color",
@@ -2032,6 +2109,13 @@ exports[`expected stylelint config > base: 1.css 1`] = `
             "paint-order",
             "shape-rendering",
             "text-rendering",
+          ],
+        },
+        {
+          "properties": [
+            "math-style",
+            "math-shift",
+            "math-depth",
           ],
         },
         {
@@ -2080,6 +2164,21 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         },
         {
           "properties": [
+            "animation-range",
+            "animation-range-start",
+            "animation-range-end",
+            "scroll-timeline",
+            "scroll-timeline-axis",
+            "scroll-timeline-name",
+            "view-timeline",
+            "view-timeline-axis",
+            "view-timeline-inset",
+            "view-timeline-name",
+            "timeline-scope",
+          ],
+        },
+        {
+          "properties": [
             "offset",
             "offset-position",
             "offset-path",
@@ -2091,6 +2190,11 @@ exports[`expected stylelint config > base: 1.css 1`] = `
         {
           "properties": [
             "will-change",
+          ],
+        },
+        {
+          "properties": [
+            "page",
           ],
         },
         {
@@ -2240,6 +2344,9 @@ exports[`expected stylelint config > base: 1.css 1`] = `
     "value-keyword-layout-mappings": [
       "flow-relative",
     ],
+    "value-no-invalid": [
+      true,
+    ],
     "value-no-vendor-prefix": [
       true,
       {
@@ -2292,7 +2399,7 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
 {
   "+_resolvedCustomSyntax": {},
   "+customSyntax": {},
-  "+name": "brnshkr/scss",
+  "+name": "brnshkr/style/scss",
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
@@ -2303,11 +2410,292 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
     },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
-    "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+    "<root>/node_modules/@stylistic/stylelint-plugin/dist/index.js",
     "<root>/node_modules/stylelint-scss/src/index.js",
   ],
   "rules": {
     "addedValues": {
+      "@stylistic/scss/at-rule-name-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/at-rule-name-newline-after": [
+        "always-multi-line",
+      ],
+      "@stylistic/scss/at-rule-name-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/at-rule-semicolon-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/at-rule-semicolon-space-before": [
+        "never",
+      ],
+      "@stylistic/scss/block-closing-brace-empty-line-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/block-closing-brace-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/block-closing-brace-newline-before": [
+        "always",
+      ],
+      "@stylistic/scss/block-closing-brace-space-before": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/block-opening-brace-newline-after": [
+        "always",
+      ],
+      "@stylistic/scss/block-opening-brace-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/block-opening-brace-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/color-hex-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/declaration-bang-space-after": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/declaration-bang-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/declaration-block-semicolon-newline-after": [
+        "always",
+      ],
+      "@stylistic/scss/declaration-block-semicolon-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/declaration-block-semicolon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/declaration-block-single-line-max-declarations": [
+        1,
+        {},
+      ],
+      "@stylistic/scss/declaration-block-trailing-semicolon": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/declaration-colon-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/scss/declaration-colon-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/declaration-colon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/function-comma-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/scss/function-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/scss/function-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/function-comma-space-before": [
+        "never-single-line",
+      ],
+      "@stylistic/scss/function-max-empty-lines": [
+        0,
+        {},
+      ],
+      "@stylistic/scss/function-parentheses-newline-inside": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/scss/function-parentheses-space-inside": [
+        "never-single-line",
+        {},
+      ],
+      "@stylistic/scss/function-whitespace-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/indentation": [
+        2,
+      ],
+      "@stylistic/scss/linebreaks": [
+        "unix",
+      ],
+      "@stylistic/scss/max-empty-lines": [
+        1,
+        {},
+      ],
+      "@stylistic/scss/max-line-length": [
+        120,
+      ],
+      "@stylistic/scss/media-feature-colon-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/media-feature-colon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/media-feature-name-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/media-feature-parentheses-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/media-feature-range-operator-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/media-feature-range-operator-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/media-query-list-comma-newline-after": [
+        "always",
+      ],
+      "@stylistic/scss/media-query-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/scss/media-query-list-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/media-query-list-comma-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/named-grid-areas-alignment": [
+        true,
+        {
+          "alignQuotes": true,
+        },
+      ],
+      "@stylistic/scss/no-empty-first-line": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/no-eol-whitespace": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/no-extra-semicolons": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/no-missing-end-of-source-newline": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/number-leading-zero": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/number-no-trailing-zeros": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/property-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/selector-attribute-brackets-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/selector-attribute-operator-space-after": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/selector-attribute-operator-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/selector-combinator-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/selector-combinator-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/selector-descendant-combinator-no-non-space": [
+        true,
+        {},
+      ],
+      "@stylistic/scss/selector-list-comma-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/scss/selector-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/scss/selector-list-comma-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/selector-max-empty-lines": [
+        0,
+        {},
+      ],
+      "@stylistic/scss/selector-pseudo-class-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/selector-pseudo-class-parentheses-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/scss/selector-pseudo-element-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/string-quotes": [
+        "single",
+      ],
+      "@stylistic/scss/unicode-bom": [
+        "never",
+      ],
+      "@stylistic/scss/unit-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/scss/value-list-comma-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/scss/value-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/scss/value-list-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/scss/value-list-comma-space-before": [
+        "never-single-line",
+      ],
+      "@stylistic/scss/value-list-max-empty-lines": [
+        0,
+        {},
+      ],
       "scss/at-each-key-value-single-line": [
         true,
       ],
@@ -2604,6 +2992,7 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
         },
       ],
       "property-no-unknown": null,
+      "value-no-invalid": null,
     },
     "removedKeys": [],
   },
@@ -2643,7 +3032,7 @@ exports[`expected stylelint config > diff: 4.svelte (from 3.html) 1`] = `
 exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
 {
   "+_resolvedCustomSyntax": {},
-  "+name": "brnshkr/less",
+  "+name": "brnshkr/style/less",
   "customSyntax": {},
   "plugins": [
     "<root>/node_modules/stylelint-plugin-use-baseline/dist/index.js",
@@ -2655,11 +3044,292 @@ exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
     },
     "<root>/node_modules/stylelint-plugin-defensive-css/dist/index.mjs",
     "<root>/node_modules/stylelint-order/index.js",
-    "<root>/node_modules/@stylistic/stylelint-plugin/lib/index.js",
+    "<root>/node_modules/@stylistic/stylelint-plugin/dist/index.js",
     "<root>/node_modules/stylelint-less/src/index.js",
   ],
   "rules": {
     "addedValues": {
+      "@stylistic/less/at-rule-name-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/at-rule-name-newline-after": [
+        "always-multi-line",
+      ],
+      "@stylistic/less/at-rule-name-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/at-rule-semicolon-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/at-rule-semicolon-space-before": [
+        "never",
+      ],
+      "@stylistic/less/block-closing-brace-empty-line-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/block-closing-brace-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/block-closing-brace-newline-before": [
+        "always",
+      ],
+      "@stylistic/less/block-closing-brace-space-before": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/block-opening-brace-newline-after": [
+        "always",
+      ],
+      "@stylistic/less/block-opening-brace-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/block-opening-brace-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/color-hex-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/declaration-bang-space-after": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/declaration-bang-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/declaration-block-semicolon-newline-after": [
+        "always",
+      ],
+      "@stylistic/less/declaration-block-semicolon-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/declaration-block-semicolon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/declaration-block-single-line-max-declarations": [
+        1,
+        {},
+      ],
+      "@stylistic/less/declaration-block-trailing-semicolon": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/declaration-colon-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/less/declaration-colon-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/declaration-colon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/function-comma-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/less/function-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/less/function-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/function-comma-space-before": [
+        "never-single-line",
+      ],
+      "@stylistic/less/function-max-empty-lines": [
+        0,
+        {},
+      ],
+      "@stylistic/less/function-parentheses-newline-inside": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/less/function-parentheses-space-inside": [
+        "never-single-line",
+        {},
+      ],
+      "@stylistic/less/function-whitespace-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/indentation": [
+        2,
+      ],
+      "@stylistic/less/linebreaks": [
+        "unix",
+      ],
+      "@stylistic/less/max-empty-lines": [
+        1,
+        {},
+      ],
+      "@stylistic/less/max-line-length": [
+        120,
+      ],
+      "@stylistic/less/media-feature-colon-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/media-feature-colon-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/media-feature-name-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/media-feature-parentheses-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/media-feature-range-operator-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/media-feature-range-operator-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/media-query-list-comma-newline-after": [
+        "always",
+      ],
+      "@stylistic/less/media-query-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/less/media-query-list-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/media-query-list-comma-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/named-grid-areas-alignment": [
+        true,
+        {
+          "alignQuotes": true,
+        },
+      ],
+      "@stylistic/less/no-empty-first-line": [
+        true,
+        {},
+      ],
+      "@stylistic/less/no-eol-whitespace": [
+        true,
+        {},
+      ],
+      "@stylistic/less/no-extra-semicolons": [
+        true,
+        {},
+      ],
+      "@stylistic/less/no-missing-end-of-source-newline": [
+        true,
+        {},
+      ],
+      "@stylistic/less/number-leading-zero": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/number-no-trailing-zeros": [
+        true,
+        {},
+      ],
+      "@stylistic/less/property-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/selector-attribute-brackets-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/selector-attribute-operator-space-after": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/selector-attribute-operator-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/selector-combinator-space-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/selector-combinator-space-before": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/selector-descendant-combinator-no-non-space": [
+        true,
+        {},
+      ],
+      "@stylistic/less/selector-list-comma-newline-after": [
+        "always",
+        {},
+      ],
+      "@stylistic/less/selector-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/less/selector-list-comma-space-before": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/selector-max-empty-lines": [
+        0,
+        {},
+      ],
+      "@stylistic/less/selector-pseudo-class-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/selector-pseudo-class-parentheses-space-inside": [
+        "never",
+        {},
+      ],
+      "@stylistic/less/selector-pseudo-element-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/string-quotes": [
+        "single",
+      ],
+      "@stylistic/less/unicode-bom": [
+        "never",
+      ],
+      "@stylistic/less/unit-case": [
+        "lower",
+        {},
+      ],
+      "@stylistic/less/value-list-comma-newline-after": [
+        "always-multi-line",
+        {},
+      ],
+      "@stylistic/less/value-list-comma-newline-before": [
+        "never-multi-line",
+      ],
+      "@stylistic/less/value-list-comma-space-after": [
+        "always-single-line",
+        {},
+      ],
+      "@stylistic/less/value-list-comma-space-before": [
+        "never-single-line",
+      ],
+      "@stylistic/less/value-list-max-empty-lines": [
+        0,
+        {},
+      ],
       "less/color-hex-case": [
         "lower",
       ],
@@ -2692,6 +3362,7 @@ exports[`expected stylelint config > diff: 5.less (from 3.html) 1`] = `
       "function-no-unknown": null,
       "media-query-no-invalid": null,
       "no-invalid-position-at-import-rule": null,
+      "value-no-invalid": null,
     },
     "removedKeys": [],
   },
@@ -2710,6 +3381,8 @@ exports[`expected stylelint config > diff: 6.md (from 3.html) 1`] = `
       ],
     },
     "changedValues": {
+      "@stylistic/max-empty-lines": null,
+      "@stylistic/max-line-length": null,
       "no-empty-source": null,
     },
     "removedKeys": [],

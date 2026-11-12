@@ -31,14 +31,8 @@ const REQUIREMENTS = <const>[
   'never',
 ];
 
-type Requirement = typeof REQUIREMENTS[number];
 type AssertionNode = TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
 type SourceRange = [number, number];
-
-type TypeAssertionStyleOptions = Requirement | {
-  parentheses?: Requirement;
-  spacing?: Requirement;
-};
 
 const REQUIREMENT_SCHEMA = <const>{
   type: 'string',
@@ -131,12 +125,29 @@ export const typeAssertionStyleRule = <const>{
     },
   },
   create: (context) => {
+    type Requirement = typeof REQUIREMENTS[number];
+
+    type TypeAssertionStyleOptions = Requirement | {
+      parentheses?: Requirement;
+      spacing?: Requirement;
+    };
+
     const options = <Maybe<TypeAssertionStyleOptions>>context.options[0];
-    const parentheses = (typeof options === 'string' ? options : options?.parentheses) ?? 'always';
-    const spacing = (typeof options === 'string' ? undefined : options?.spacing) ?? 'never';
+
+    const parentheses = (typeof options === 'string'
+      ? options
+      : options?.parentheses) ?? 'always';
+
+    const spacing = (typeof options === 'string'
+      ? undefined
+      : options?.spacing) ?? 'never';
+
     const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
     const assertionsWithParenthesesFix = new Set<TSESTree.Node>();
-    const gapText = spacing === 'always' ? ' ' : '';
+
+    const gapText = spacing === 'always'
+      ? ' '
+      : '';
 
     return {
       [ASSERTION_SELECTOR]: (assertion: AssertionNode): void => {
@@ -164,7 +175,10 @@ export const typeAssertionStyleRule = <const>{
         }
 
         const operandText = sourceCode.getText(node);
-        const replacementText = isParenthesized ? operandText : `(${operandText})`;
+
+        const replacementText = isParenthesized
+          ? operandText
+          : `(${operandText})`;
 
         const erasedRanges: SourceRange[] = [
           [operandRange[0], node.range[0]],
@@ -176,10 +190,14 @@ export const typeAssertionStyleRule = <const>{
           messageId: isParenthesized ? MESSAGE_ID_UNEXPECTED_PARENTHESES : MESSAGE_ID_EXPECTED_PARENTHESES,
           fix: (fixer) => (hasCommentInAnyRange(sourceCode, erasedRanges)
             ? []
-            : [fixer.replaceTextRange(
-              operandRange,
-              isAngleBracket ? `${gapText}${replacementText}` : `${replacementText} `,
-            )]),
+            : [
+              fixer.replaceTextRange(
+                operandRange,
+                isAngleBracket
+                  ? `${gapText}${replacementText}`
+                  : `${replacementText} `,
+              ),
+            ]),
         });
       },
       'TSTypeAssertion:exit': (node: TSESTree.TSTypeAssertion): void => {
@@ -200,7 +218,9 @@ export const typeAssertionStyleRule = <const>{
           messageId: isSpaced ? MESSAGE_ID_UNEXPECTED_SPACE : MESSAGE_ID_EXPECTED_SPACE,
           fix: (fixer) => (hasCommentInAnyRange(sourceCode, [gapRange])
             ? []
-            : [fixer.replaceTextRange(gapRange, gapText)]),
+            : [
+              fixer.replaceTextRange(gapRange, gapText),
+            ]),
         });
       },
     };

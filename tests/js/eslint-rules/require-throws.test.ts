@@ -57,12 +57,24 @@ test('requireThrowsRule scenarios with type information', () => {
       buildValidTypeAwareCase(
         'unchecked error',
         'export const greet = (): never => {\n  throw new TypeError(\'acme\');\n};\n',
-        { options: [{ uncheckedErrors: ['TypeError'] }] },
+        {
+          options: [
+            {
+              uncheckedErrors: ['TypeError'],
+            },
+          ],
+        },
       ),
       buildValidTypeAwareCase(
         'subclass of an unchecked error',
         'export const greet = (): never => {\n  throw new TypeError(\'acme\');\n};\n',
-        { options: [{ uncheckedErrors: ['Error'] }] },
+        {
+          options: [
+            {
+              uncheckedErrors: ['Error'],
+            },
+          ],
+        },
       ),
       buildValidTypeAwareCase(
         'inline callback throw declared on the enclosing function',

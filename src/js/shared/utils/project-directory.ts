@@ -7,7 +7,9 @@ import { getEnvironmentValue } from '#shared/utils/environment.ts';
 const getConfiguredDirectory = (variableName: string, defaultDirectory: string): string => {
   const configuredDirectory = (getEnvironmentValue(variableName) ?? '').replace(/^\.\//v, '');
 
-  return configuredDirectory === '' ? defaultDirectory : configuredDirectory;
+  return configuredDirectory === ''
+    ? defaultDirectory
+    : configuredDirectory;
 };
 
 export const getConfigDirectory = (): string => getConfiguredDirectory('BRNSHKR_CONFIG_DIR', 'conf');

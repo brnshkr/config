@@ -78,7 +78,9 @@ const warnMissingPackages = (
       moduleInfo.name
     }". Please install ${joinAsQuotedList(
       [...packages],
-      type === 'requiredAny' ? 'disjunction' : 'conjunction',
+      type === 'requiredAny'
+        ? 'disjunction'
+        : 'conjunction',
     )} or disable the ${
       moduleInfo.name
     } module in the config.`,
@@ -138,7 +140,9 @@ const collectPackagesAsynchronously = async (
       break;
     }
 
-    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+    collectedPackages.push(resolvedPackage === false
+      ? undefined
+      : resolvedPackage);
   }
 
   return collectedPackages;
@@ -162,7 +166,9 @@ const collectPackagesSynchronously = (
       break;
     }
 
-    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+    collectedPackages.push(resolvedPackage === false
+      ? undefined
+      : resolvedPackage);
   }
 
   return collectedPackages;
@@ -266,7 +272,9 @@ export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
     }
 
     if (currentPackages && currentPackages.length > 0) {
-      isEnabled = (currentType === 'requiredAll' ? doAllPackagesExist : doesAnyPackageExist)(currentPackages);
+      isEnabled = (currentType === 'requiredAll'
+        ? doAllPackagesExist
+        : doesAnyPackageExist)(currentPackages);
     }
 
     if (isEnabled) {

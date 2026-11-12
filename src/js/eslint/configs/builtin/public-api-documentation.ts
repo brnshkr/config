@@ -70,7 +70,7 @@ interface RuleContext {
   services: Maybe<ParserServicesWithTypeInformation>;
 }
 
-const hasInheritDocTag = (comment: Maybe<string>): boolean => /\*\s+@inheritdoc\b/iv.test(comment ?? '');
+const hasInheritDocTag = (comment = ''): boolean => /\*\s+@inheritdoc\b/iv.test(comment);
 
 const isDocumentedByAncestor = (
   services: Maybe<ParserServicesWithTypeInformation>,
@@ -243,7 +243,9 @@ const checkClassMembers = (
 
     checkFunctionLike(ruleContext, {
       anchor: member,
-      kind: member.kind === 'constructor' ? KIND_CONSTRUCTOR : KIND_METHOD,
+      kind: member.kind === 'constructor'
+        ? KIND_CONSTRUCTOR
+        : KIND_METHOD,
       name: getNamedKeyText(member.key),
       comment: methodComment,
       parameters: member.value.params,

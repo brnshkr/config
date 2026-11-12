@@ -66,7 +66,11 @@ export const apiOrInternalTagRule = <const>{
     const options = <PackageExportsResolverOptions>(context.options[0] ?? {});
     const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
     const fileCommentNode = findFileLevelComment(sourceCode);
-    const fileComment = fileCommentNode === undefined ? undefined : `/*${fileCommentNode.value}*/`;
+
+    const fileComment = fileCommentNode === undefined
+      ? undefined
+      : `/*${fileCommentNode.value}*/`;
+
     const isInPublicApiFile = isPublicApiFile(options, context.cwd, context.filename);
 
     return {

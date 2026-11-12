@@ -90,7 +90,9 @@ export const GLOB_TEST_FILES = <const>[
 ] satisfies string[];
 
 export const getHtmlScriptFileGlobs = (): string[] => (
-  (isModuleEnabled(MODULES.html) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_HTML])) ? [...GLOB_HTML_FILES] : []
+  (isModuleEnabled(MODULES.html) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_HTML]))
+    ? [...GLOB_HTML_FILES]
+    : []
 );
 
 export const getScriptFileGlobs = (): string[] => [
