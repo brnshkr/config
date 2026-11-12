@@ -2416,8 +2416,8 @@ $(call _target,cc): #~~ clears the named caches, or all of them
 		$(call log,This removes every cache in `%s`.,$(COLOR_WARNING),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))'); \
 		$(call log,Name %s to remove only some.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_CACHE_NAMES),disjunction)),no-autolink); \
 		if $(call confirm,Continue?); then \
-			$(RM) -rf "$(CURDIR)/$(_CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))'); \
+			$(call _spinner,$(RM) -rf "$(CURDIR)/$(_CACHE_DIR)" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+				$(call log,Removed `%s`.,$(COLOR_SUCCESS),'$(call _named_path,$(CURDIR)/$(_CACHE_DIR))')); \
 		else \
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 		fi; \
@@ -2499,7 +2499,7 @@ $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 			$(call log,Nothing removed.,$(COLOR_NOTICE)); \
 			exit 0; \
 		}); \
-		$(_FRESH_OPTIONS); $(GIT) clean "$$@")
+		$(call _spinner,$(_FRESH_OPTIONS); $(GIT) clean "$$@"))
 	$(TRACE_PREFIX)$(if $(_IS_JUST_PRINT)$(_IS_DRY_RUN),:,$(_FRESH_OPTIONS); \
 		remaining_report=$$(LC_ALL=C $(GIT) clean -n "$$@") || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		[ "$${remaining_report#*Would remove }" != "$$remaining_report" ] || { \
@@ -2794,13 +2794,13 @@ COMPOSE_LOGS_FLAGS  ?= --follow#~~ additional flags passed to `compose logs`
 SERVICE_SHELL       ?= sh#~~ program a service's shell starts
 
 $(call _target,up): #~~ starts the services the tools need
-	$(DEBUG_PREFIX)$(_COMPOSE) up $(COMPOSE_UP_FLAGS) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(_COMPOSE) up $(COMPOSE_UP_FLAGS) $(ARGS))
 
 $(call _target,down): #~~ stops the services
-	$(DEBUG_PREFIX)$(_COMPOSE) down $(COMPOSE_DOWN_FLAGS) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(_COMPOSE) down $(COMPOSE_DOWN_FLAGS) $(ARGS))
 
 $(call _target,ps): #~~ lists what is running
-	$(DEBUG_PREFIX)$(_COMPOSE) ps $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(_COMPOSE) ps $(ARGS))
 
 $(call _target,shell): _GOAL := $(call _target,shell)
 $(call _target,shell): $(_TARGET_PREFIX)$(or $(_TOOL_SERVICE),$(APP_SERVICE))-shell #~~ opens a shell in the service the tools run in
@@ -2990,7 +2990,7 @@ $(call _target,image): export _GIT_REMOTE_AWK      = $(_GIT_REMOTE_AWK_SOURCE)
 $(call _target,image): export _IMAGE_ARGUMENTS_AWK = $(_IMAGE_ARGUMENTS_AWK_SOURCE)
 $(call _target,image): export _IMAGE_LABELS_AWK    = $(_IMAGE_LABELS_AWK_SOURCE)
 $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's `IMAGE_NAME`
-	$(DEBUG_PREFIX)$(if $(IMAGE_CONTEXT),:,$(RM) -rf '$(_IMAGE_CONTEXT_DIR)' && $(MKDIR) -p '$(_IMAGE_CONTEXT_DIR)' \
+	$(TRACE_PREFIX)$(call _spinner,$(if $(IMAGE_CONTEXT),:,$(RM) -rf '$(_IMAGE_CONTEXT_DIR)' && $(MKDIR) -p '$(_IMAGE_CONTEXT_DIR)' \
 		&& $(GIT) ls-files -z --cached --deduplicate | $(TAR) -c --null -T - -f - 2>/dev/null | $(TAR) -x -f - -C '$(_IMAGE_CONTEXT_DIR)' \
 		&& $(GIT) ls-files -z | $(GIT) check-attr --stdin -z export-ignore | $(TR) '\000' '\n' \
 			| $(AWK) 'NR % 3 == 1 { path = $$0 } NR % 3 == 0 && $$0 == "set" { print path }' >'$(_IMAGE_CONTEXT_DIR)/.forge-export-ignored') \
@@ -3015,7 +3015,7 @@ $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's
 			"$$@" -t $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(or $(IMAGE_CONTEXT),$(_IMAGE_CONTEXT_DIR))) \
 		&& if [ -f $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) ]; then \
 			sh $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(IMAGE_NAME)) $(call _quoted,$(IMAGE_TARGET)); \
-		fi
+		fi)
 
 #---v dependencies
 
@@ -3051,17 +3051,17 @@ $(call _target,composer-audit): #~~ checks the Composer lock file for known vuln
 endif
 
 $(call _target,composer-list): #~~ lists the files the composer package would ship #vv
-	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$app_scratch_directory" --file=package \
-		&& $(TAR) -tf "$$scratch_directory/package.tar")
+	$(TRACE_PREFIX)$(call _spinner,$(call _in_scratch_directory,$(COMPOSER) archive --quiet --format=tar --dir="$$app_scratch_directory" --file=package \
+		&& $(TAR) -tf "$$scratch_directory/package.tar"))
 
 $(call _target,composer-pack): #~~ packs the composer package to `./.local/<VENDOR>/<PACKAGE>` #vvv
-	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_COMPOSER_PACKAGE_DIR)' \
+	$(TRACE_PREFIX)$(call _spinner,$(call _in_scratch_directory,$(RM) -rf '$(_COMPOSER_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_COMPOSER_PACKAGE_DIR)' \
 		&& $(COMPOSER) archive --quiet --format=tar --dir="$$app_scratch_directory" --file=package \
-		&& $(TAR) -xf "$$scratch_directory/package.tar" -C '$(_COMPOSER_PACKAGE_DIR)')
+		&& $(TAR) -xf "$$scratch_directory/package.tar" -C '$(_COMPOSER_PACKAGE_DIR)'))
 
 $(call _target,composer-print): #~~ prints the resolved `composer` configuration #vv
-	$(DEBUG_PREFIX)$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(COMPOSER) config --list $(COMPOSER_FLAGS) $(ARGS))
 
 _$(_TARGET_PREFIX)composer-install:
 	$(TRACE_PREFIX)$(call _spinner,$(_COMPOSER_INSTALL))
@@ -3159,7 +3159,7 @@ $(call _target,phpunit-debug): $(call _target,phpunit) #~~ runs the PHP tests wi
 $(call _target,phpunit-list): #~~ lists the tests the runner collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_UNIT_CONFIG),PHP_UNIT_CONFIG)
 	$(TRACE_PREFIX)$(_PHP_UNIT_WRITE_FALLBACK)
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(ARGS) --list-tests
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_UNIT) --configuration $(_PHP_UNIT_RUN_CONFIG) $(ARGS) --list-tests)
 
 $(call _target,phpunit-update): _FORWARDED_KEYS         += UPDATE_SNAPSHOTS
 $(call _target,phpunit-update): export UPDATE_SNAPSHOTS  = true
@@ -3204,7 +3204,7 @@ $(call _target,phpstan-list): #~~ lists the files `phpstan` reads #vv
 
 $(call _target,phpstan-print): #~~ prints the resolved `phpstan` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_STAN) dump-parameters --configuration $(PHP_STAN_CONFIG) $(_ANSI_OPTION) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) dump-parameters --configuration $(PHP_STAN_CONFIG) $(_ANSI_OPTION) $(ARGS))
 
 $(call _target,phpstan-raw): #~~ analyzes the PHP code with raw output #vvv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
@@ -3239,12 +3239,12 @@ $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fi
 
 $(call _target,php-cs-fixer-list): #~~ lists the files `php-cs-fixer` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) 2>&1) \
-		| $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }'
+	$(TRACE_PREFIX)$(call _spinner,$(call _capture,$(PHP_CS_FIXER) list-files --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) 2>&1) \
+		| $(AWK) '/^'\''\.\/.*\.php'\''$$/ { sub(/^'\''\.\//, ""); sub(/'\''$$/, ""); print }')
 
 $(call _target,php-cs-fixer-print): #~~ prints the `php-cs-fixer` rules in use #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(DEBUG_PREFIX)$(PHP_CS_FIXER) describe --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) -n @ $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(PHP_CS_FIXER) describe --config $(PHP_CS_FIXER_CONFIG) $(_ANSI_OPTION) -n @ $(ARGS))
 
 endif # /php-cs-fixer
 
@@ -3275,7 +3275,7 @@ $(call _target,rector-group): #~~ counts the `rector` findings by rule #v
 
 $(call _target,rector-list): #~~ lists the files `rector` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(RECTOR_CONFIG),RECTOR_CONFIG)
-	$(TRACE_PREFIX)$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }'
+	$(TRACE_PREFIX)$(call _spinner,$(call _capture,$(RECTOR) process --config $(RECTOR_CONFIG) --debug --dry-run) | $(AWK) '/\[file\]/ { sub(".*\\[file\\] $(APP_DIR)/", ""); if (/\.php$$/) print }')
 
 $(call _target,rector-print): export _RULES_PROGRAM = $(_RULES_PROGRAM_SOURCE)
 $(call _target,rector-print): #~~ prints the `rector` rules in use #vv
@@ -3339,17 +3339,17 @@ endif
 
 ifneq ($(_HAS_BUN_BUILD),)
 $(call _target,bun-build): #~~ runs the `build` script of `package.json` #vv
-	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) run build $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(BUN) $(BUN_FLAGS) run build $(ARGS))
 endif
 
 $(call _target,bun-list): #~~ lists the files the bun package would ship #vv
-	$(TRACE_PREFIX)$(call _capture,$(call _with_package_version,NO_COLOR=1 $(BUN) pm pack --dry-run)) | $(AWK) '/^packed /{ print $$3 }'
+	$(TRACE_PREFIX)$(call _spinner,$(call _capture,$(call _with_package_version,NO_COLOR=1 $(BUN) pm pack --dry-run)) | $(AWK) '/^packed /{ print $$3 }')
 
 $(call _target,bun-pack): #~~ packs the bun package to `./.local/<VENDOR>/<PACKAGE>` #vvv
-	$(DEBUG_PREFIX)$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
+	$(TRACE_PREFIX)$(call _spinner,$(call _in_scratch_directory,$(RM) -rf '$(_BUN_PACKAGE_DIR)' \
 		&& $(MKDIR) -p '$(_BUN_PACKAGE_DIR)' \
 		&& ($(call _with_package_version,$(BUN) pm pack --quiet --filename "$$app_scratch_directory/package.tgz" >/dev/null)) \
-		&& $(TAR) -xzf "$$scratch_directory/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1)
+		&& $(TAR) -xzf "$$scratch_directory/package.tgz" -C '$(_BUN_PACKAGE_DIR)' --strip-components 1))
 
 ifneq ($(_HAS_BUN_INSPECT),) # bun-inspect
 
@@ -3397,7 +3397,7 @@ $(call _target,commitlint): $(if $(filter --from --last,$(COMMITLINT_SOURCE)),_$
 
 $(call _target,commitlint-print): #~~ prints the resolved `commitlint` configuration #vv
 	$(TRACE_PREFIX)$(call _require_file,$(COMMITLINT_CONFIG),COMMITLINT_CONFIG)
-	$(DEBUG_PREFIX)$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) --print-config $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(COMMITLINT) --config $(COMMITLINT_CONFIG) $(COMMITLINT_FLAGS) --print-config $(ARGS))
 
 endif # /commitlint
 
@@ -3437,7 +3437,7 @@ $(call _target,eslint-group): #~~ counts the `eslint` findings by rule #v
 $(call _target,eslint-print): #~~ prints the resolved `eslint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(ESLINT_CONFIG),ESLINT_CONFIG)
 	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,eslint-print))
-	$(DEBUG_PREFIX)$(ESLINT) --config $(ESLINT_CONFIG) --print-config $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(ESLINT) --config $(ESLINT_CONFIG) --print-config $(ARGS))
 
 ifneq ($(_HAS_ESLINT_INSPECT),) # eslint-inspect
 
@@ -3543,7 +3543,7 @@ $(call _target,stylelint-group): #~~ counts the `stylelint` findings by rule #v
 $(call _target,stylelint-print): #~~ prints the resolved `stylelint` config for a file #vv
 	$(TRACE_PREFIX)$(call _require_file,$(STYLELINT_CONFIG),STYLELINT_CONFIG)
 	$(TRACE_PREFIX)$(call _require_file_argument,$(call _target,stylelint-print),$(_STYLELINT_VALUE_FLAGS))
-	$(DEBUG_PREFIX)$(STYLELINT) --config $(STYLELINT_CONFIG) --print-config $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(STYLELINT) --config $(STYLELINT_CONFIG) --print-config $(ARGS))
 
 endif # /stylelint
 
@@ -3571,11 +3571,11 @@ $(call _target,typescript-group): #~~ counts the `tsc` errors by code #v
 
 $(call _target,typescript-list): #~~ lists the files the `tsc` project includes #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
-	$(DEBUG_PREFIX)$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) --listFilesOnly $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) --listFilesOnly $(ARGS))
 
 $(call _target,typescript-print): #~~ prints the resolved `tsc` project #vv
 	$(TRACE_PREFIX)$(call _require_file,$(TYPESCRIPT_CONFIG),TYPESCRIPT_CONFIG)
-	$(DEBUG_PREFIX)$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) --showConfig $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(TYPESCRIPT) --project $(TYPESCRIPT_CONFIG) --showConfig $(ARGS))
 
 endif # /typescript
 
@@ -3629,7 +3629,7 @@ endif # /vitest-coverage
 
 $(call _target,vitest-list): #~~ lists the tests `vitest` collects #vv
 	$(TRACE_PREFIX)$(call _require_file,$(VITEST_CONFIG),VITEST_CONFIG)
-	$(DEBUG_PREFIX)$(VITEST) list --config $(VITEST_CONFIG) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(VITEST) list --config $(VITEST_CONFIG) $(ARGS))
 
 $(call _target,vitest-update): #~~ runs `vitest` and updates its snapshots #v
 ifneq ($(_TEST_STAGE_TO_ENTER),) # test stage
@@ -3896,7 +3896,7 @@ $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
 $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
 	$(TRACE_PREFIX)$(call _semgrep_rules)
-	$(DEBUG_PREFIX)$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS)
+	$(TRACE_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS))
 
 endif # /semgrep
 
