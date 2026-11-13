@@ -42,18 +42,19 @@ trait ArchitectureRuleTrait
             );
     }
 
-    /**
-     * @param non-empty-string $namespace
-     */
-    private static function selectInstantiableClassesIn(string $namespace): SelectorInterface
+    private static function selectClasses(SelectorInterface $selector): SelectorInterface
     {
         return Selector::AllOf(
-            Selector::inNamespace($namespace),
+            $selector,
             Selector::Not(Selector::isInterface()),
             Selector::Not(Selector::isEnum()),
             Selector::Not(Selector::isTrait()),
-            Selector::Not(Selector::isAbstract()),
         );
+    }
+
+    private static function selectInstantiableClasses(SelectorInterface $selector): SelectorInterface
+    {
+        return Selector::AllOf(self::selectClasses($selector), Selector::Not(Selector::isAbstract()));
     }
 
     /**
@@ -138,7 +139,7 @@ trait ArchitectureRuleTrait
     private static function buildMustExtendRule(SelectorInterface $selector, string $baseClass, string $because): BuildStep
     {
         return PHPat::rule()
-            ->classes($selector)
+            ->classes(self::selectClasses($selector))
             ->should()
             ->extend()
             ->classes(Selector::classname($baseClass))
@@ -153,7 +154,7 @@ trait ArchitectureRuleTrait
     private static function buildMustImplementRule(SelectorInterface $selector, string $interface, string $because): BuildStep
     {
         return PHPat::rule()
-            ->classes($selector)
+            ->classes(self::selectClasses($selector))
             ->should()
             ->implement()
             ->classes(Selector::classname($interface))

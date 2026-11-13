@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
  *
  * Four checks under `<root>\DependencyInjection`:
  *   - Classes named `*Extension` must extend `Symfony\Component\DependencyInjection\Extension\Extension`.
- *   - Classes named `*Extension` must be `final`.
+ *   - Concrete classes named `*Extension` must be `final`.
  *   - Classes under `Compiler\` must implement `CompilerPassInterface`.
  *   - The single `Configuration` class must implement `ConfigurationInterface`.
  *
@@ -67,7 +67,7 @@ final readonly class DependencyInjectionTest
             );
 
             yield PHPat::rule()
-                ->classes($allOfSelectorModifier)
+                ->classes(self::selectInstantiableClasses($allOfSelectorModifier))
                 ->should()
                 ->beFinal()
                 ->because('DI extension classes must be final.')

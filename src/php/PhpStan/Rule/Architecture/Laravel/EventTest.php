@@ -13,8 +13,8 @@ use PHPat\Test\PHPat;
 /**
  * Enforce Laravel event placement and immutability.
  *
- * Classes named `*Event` must live under `<root>\Events`, and every class in that folder
- * must be `final` and `readonly` — events are sealed, immutable notifications.
+ * Classes named `*Event` must live under `<root>\Events`, and every concrete class in that
+ * folder must be `final` and `readonly` — events are sealed, immutable notifications.
  *
  * @api
  *
@@ -57,14 +57,14 @@ final readonly class EventTest
             );
 
             yield PHPat::rule()
-                ->classes(Selector::inNamespace($root . '\Events'))
+                ->classes(self::selectInstantiableClasses(Selector::inNamespace($root . '\Events')))
                 ->should()
                 ->beFinal()
                 ->because('Events must be final; they are immutable notifications.')
             ;
 
             yield PHPat::rule()
-                ->classes(Selector::inNamespace($root . '\Events'))
+                ->classes(self::selectInstantiableClasses(Selector::inNamespace($root . '\Events')))
                 ->should()
                 ->beReadonly()
                 ->because('Events must be readonly; they are immutable domain notifications.')

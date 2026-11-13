@@ -13,8 +13,8 @@ use PHPat\Test\PHPat;
 /**
  * Enforce Symfony Messenger message placement and immutability.
  *
- * Classes named `*Message` must live under `<root>\Message`, and every class in that folder
- * must be `final` and `readonly` — messages are sealed, immutable data bags passed on the bus.
+ * Classes named `*Message` must live under `<root>\Message`, and every concrete class in that
+ * folder must be `final` and `readonly` — messages are sealed, immutable data bags passed on the bus.
  *
  * @api
  *
@@ -57,14 +57,14 @@ final readonly class MessageTest
             );
 
             yield PHPat::rule()
-                ->classes(Selector::inNamespace($root . '\Message'))
+                ->classes(self::selectInstantiableClasses(Selector::inNamespace($root . '\Message')))
                 ->should()
                 ->beFinal()
                 ->because('Messenger messages must be final; they are sealed value objects.')
             ;
 
             yield PHPat::rule()
-                ->classes(Selector::inNamespace($root . '\Message'))
+                ->classes(self::selectInstantiableClasses(Selector::inNamespace($root . '\Message')))
                 ->should()
                 ->beReadonly()
                 ->because('Messenger messages must be readonly; they are immutable data bags passed on the bus.')
