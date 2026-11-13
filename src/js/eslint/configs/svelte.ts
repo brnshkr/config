@@ -221,6 +221,7 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/prefer-attribute-interpolation': 'error',
         'svelte/prefer-class-directive': 'error',
         'prefer-const': 'off',
+        'unicorn/no-top-level-assignment-in-function': 'off',
         'svelte/prefer-const': 'error',
         'svelte/prefer-derived-over-derived-by': 'error',
         'svelte/prefer-destructured-store-props': 'error',

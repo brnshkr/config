@@ -22418,6 +22418,9 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
           "skipBlankLines": false,
         },
       ],
+      "unicorn/no-top-level-assignment-in-function": [
+        0,
+      ],
     },
     "removedKeys": [
       "jsdoc/check-access",
@@ -22951,6 +22954,9 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
           "ignoreComments": false,
           "skipBlankLines": false,
         },
+      ],
+      "unicorn/no-top-level-assignment-in-function": [
+        0,
       ],
     },
     "removedKeys": [],
