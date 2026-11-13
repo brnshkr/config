@@ -189,7 +189,7 @@ Variables:
   config
    CONFIG                         ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS            ?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing / for a directory)
-   FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
+   FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps outside the dependency directories, unless --all is passed)
    GIT_HOOKS                      ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
    directories
     CONFIG_DIR                    ?=  ./conf                                           (directory holding the project's own tool configs)
@@ -455,7 +455,7 @@ Variables:
   config
    CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
    ARCHIVE_EXTRA_PATHS             ?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing / for a directory)
-   FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps, unless --all is passed)
+   FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps outside the dependency directories, unless --all is passed)
    GIT_HOOKS                       ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
    directories
     CONFIG_DIR                     ?=  ./conf                                           (directory holding the project's own tool configs)
@@ -1517,7 +1517,7 @@ Available commands:
   [35mconfig[0m
    [36mCONFIG                        [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
    [36mARCHIVE_EXTRA_PATHS           [0m  [90m?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
-   [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps, unless [35m--all[0m[90m is passed)[0m
+   [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps outside the dependency directories, unless [35m--all[0m[90m is passed)[0m
    [36mGIT_HOOKS                     [0m  [90m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
    [35mdirectories[0m
     [36mCONFIG_DIR                   [0m  [90m?=  ./conf                                           (directory holding the project's own tool configs)[0m
@@ -2022,7 +2022,7 @@ Available commands:
   [33mconfig[0m
    [32mCONFIG                        [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
    [32mARCHIVE_EXTRA_PATHS           [0m  [0m?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
-   [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps, unless [33m--all[0m[0m is passed)[0m
+   [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps outside the dependency directories, unless [33m--all[0m[0m is passed)[0m
    [32mGIT_HOOKS                     [0m  [0m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
    [33mdirectories[0m
     [32mCONFIG_DIR                   [0m  [0m?=  ./conf                                           (directory holding the project's own tool configs)[0m

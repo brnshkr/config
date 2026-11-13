@@ -178,7 +178,7 @@ FRESH_KEEP ?= /$(_LOCAL_DIR)/ \
 	/.cursor/ \
 	/.aider* \
 	/.continue/ \
-	/.windsurf/#~~ patterns `fresh` keeps, unless `--all` is passed
+	/.windsurf/#~~ patterns `fresh` keeps outside the dependency directories, unless `--all` is passed
 
 GIT_HOOKS ?= $(if $(_HAS_COMMITLINT),commit-msg=$(call _target,commitlint))#~~ git hooks this project installs, as `<hook>=<target>` pairs
 
@@ -2454,8 +2454,11 @@ _FRESH_DIST_FILES = $(foreach \
 _FRESH_DIST_SIBLINGS = $(foreach \
 	FILE,$(_FRESH_DIST_FILES),/$(patsubst ./%,%,$(dir $(FILE)))$(patsubst %.dist,%,$(subst .dist.,.,$(notdir $(FILE)))))
 
+_FRESH_DEPENDENCY_PATTERNS = !/$(_COMPOSER_VENDOR_DIR)/** \
+	!**/node_modules/**
+
 _FRESH_EXCLUDES = $(if $(_IS_FRESH_ALL),,$(foreach \
-	FRESH_PATTERN,$(FRESH_KEEP) $(_FRESH_DIST_SIBLINGS),--exclude='$(FRESH_PATTERN)'))
+	FRESH_PATTERN,$(FRESH_KEEP) $(_FRESH_DIST_SIBLINGS) $(_FRESH_DEPENDENCY_PATTERNS),--exclude='$(FRESH_PATTERN)'))
 
 _FRESH_OPTIONS = set -f; \
 	set -- -xdf$(if $(_IS_FRESH_ALL),f) $(_FRESH_EXCLUDES); \

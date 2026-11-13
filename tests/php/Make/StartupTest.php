@@ -9,6 +9,7 @@ use Brnshkr\Config\Tests\Make\Trait\MakeTrait;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 use function array_map;
 
@@ -87,6 +88,34 @@ final class StartupTest extends TestCase
         self::assertStringNotContainsString('composer install', $result);
         self::assertStringNotContainsString('bun install', $result);
         self::assertStringContainsString("Running `startup-own`\nstartup-own\n", $result);
+    }
+
+    public function testFreshKeepsLocalFilesOutsideTheDependencies(): void
+    {
+        $startupDirectory = $this->getFixtureCopy(self::STARTUP_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($startupDirectory . '/.gitignore', "/.claude/\n/node_modules/\n/vendor/\n*.local.*\n");
+        new Process(['git', 'add', '.gitignore'], $startupDirectory)->mustRun();
+        self::commitInto($startupDirectory, 'chore(init): ignore local files');
+
+        foreach ([
+            '.claude/settings.local.json',
+            'conf/user.local.php',
+            'node_modules/acme-email/.claude/settings.local.json',
+            'vendor/acme/user/.claude/settings.local.json',
+            'vendor/acme/user/composer.json',
+        ] as $path) {
+            $filesystem->dumpFile($startupDirectory . '/' . $path, '');
+        }
+
+        $result = $this->runMake(['fresh', '--', '--dry-run'], directory: $startupDirectory);
+
+        self::assertStringContainsString('Keeping `./.claude/`.', $result);
+        self::assertStringContainsString('Keeping `./conf/user.local.php`.', $result);
+        self::assertStringContainsString('Would remove `./node_modules/`.', $result);
+        self::assertStringContainsString('Would remove `./vendor/`.', $result);
+        self::assertStringNotContainsString('settings.local.json', $result);
     }
 
     public function testTheStarterInstallsJavaScriptWhereJsServiceSays(): void
