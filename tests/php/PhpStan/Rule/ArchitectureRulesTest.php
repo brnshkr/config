@@ -7,10 +7,14 @@ namespace Brnshkr\Config\Tests\PhpStan\Rule;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\CommandTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\DependencyInjectionTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\MessageTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigComponentTest;
 use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
+use Brnshkr\Config\Str;
 use Override;
+use PHPat\Rule\Assertion\Declaration\Exists\ExistsRule;
 use PHPat\Rule\Assertion\Declaration\IsFinal\IsFinalRule;
 use PHPat\Rule\Assertion\Declaration\IsReadonly\IsReadonlyRule;
+use PHPat\Rule\Assertion\Declaration\Named\ClassnameRule;
 use PHPat\Rule\Assertion\Relation\Extend\ParentClassRule;
 use PHPat\Rule\Assertion\Relation\Implement\ImplementedInterfacesRule;
 use PhpParser\Node;
@@ -19,6 +23,7 @@ use PHPStan\Testing\RuleTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 
@@ -32,7 +37,9 @@ use function array_map;
 #[CoversClass(CommandTest::class)]
 #[CoversClass(DependencyInjectionTest::class)]
 #[CoversClass(MessageTest::class)]
+#[CoversClass(TwigComponentTest::class)]
 #[CoversTrait(ArchitectureRuleTrait::class)]
+#[UsesClass(Str::class)]
 final class ArchitectureRulesTest extends RuleTestCase
 {
     private const string FIXTURE_DIRECTORY = __DIR__ . '/../../Fixtures/PhpStan/Rule/Architecture';
@@ -125,6 +132,31 @@ final class ArchitectureRulesTest extends RuleTestCase
                     self::ROOT . '\Command\SyncUserCommand should extend ' . Command::class,
                     19,
                     'Console commands must extend ' . Command::class . '.',
+                ],
+            ],
+        ];
+
+        yield 'components live under Twig\Components' => [
+            ClassnameRule::class,
+            ['Twig/Components/Components.php', 'Ui/Components.php'],
+            [
+                [
+                    self::ROOT . '\Ui\EmailBadge should be named matching the regex /^'
+                        . Str::quoteRegex(self::ROOT . '\Twig\Components') . '\\\.+$/',
+                    14,
+                    'Twig components must reside in ' . self::ROOT . '\Twig\Components\*.',
+                ],
+            ],
+        ];
+
+        yield 'Twig\Components holds only components' => [
+            ExistsRule::class,
+            ['Twig/Components/Components.php'],
+            [
+                [
+                    self::ROOT . '\Twig\Components\UserFormatter should not exist',
+                    38,
+                    'Classes under ' . self::ROOT . '\Twig\Components must carry #[AsTwigComponent] or #[AsLiveComponent].',
                 ],
             ],
         ];

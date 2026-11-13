@@ -64,6 +64,7 @@ use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\RepositoryTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\RoleFoldersExhaustiveTest as SymfonyRoleFoldersExhaustiveTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\ServiceTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\SubscriberTest;
+use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigComponentTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigExtensionTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\VoterTest;
 use Brnshkr\Config\PhpStan\Rule\Architecture\Tempest\ConsoleNoHttpTest;
@@ -868,6 +869,7 @@ final class Architecture
             PhpStan::configurePhpAtTest(FormTypeTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(SubscriberTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(TwigExtensionTest::class, ['roots' => $roots]),
+            PhpStan::configurePhpAtTest(TwigComponentTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(MessageHandlerTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(MessageTest::class, ['roots' => $roots]),
             PhpStan::configurePhpAtTest(EntityNoHttpFoundationTest::class, ['roots' => $roots]),

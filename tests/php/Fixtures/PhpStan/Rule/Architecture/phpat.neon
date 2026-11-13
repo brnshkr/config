@@ -14,3 +14,7 @@ services:
     class: Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\MessageTest
     arguments: [['Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\Architecture']]
     tags: [phpat.test]
+  -
+    class: Brnshkr\Config\PhpStan\Rule\Architecture\Symfony\TwigComponentTest
+    arguments: [['Brnshkr\Config\Tests\Fixtures\PhpStan\Rule\Architecture']]
+    tags: [phpat.test]

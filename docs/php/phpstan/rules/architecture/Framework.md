@@ -90,7 +90,7 @@ while `Acme\User\Controller\UserController` is accepted.
 Each preset adds checks particular to its framework. A few highlights:
 
 - **`symfony()`** — controllers, voters, form types, event listeners, message handlers, authenticators,
-  normalizers, and friends must each live in their canonical role folder;
+  normalizers, Twig components, and friends must each live in their canonical role folder;
   entities may not import from `Symfony\Component\HttpFoundation`
 - **`laravel()`** — Eloquent models, HTTP controllers, form requests,
   jobs, and mailables follow the same role-folder discipline

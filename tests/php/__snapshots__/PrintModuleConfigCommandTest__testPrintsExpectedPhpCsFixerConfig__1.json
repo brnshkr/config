@@ -245,6 +245,7 @@
         "./src/php/PhpStan/Rule/Architecture/Symfony/RoleFoldersExhaustiveTest.php",
         "./src/php/PhpStan/Rule/Architecture/Symfony/ServiceTest.php",
         "./src/php/PhpStan/Rule/Architecture/Symfony/SubscriberTest.php",
+        "./src/php/PhpStan/Rule/Architecture/Symfony/TwigComponentTest.php",
         "./src/php/PhpStan/Rule/Architecture/Symfony/TwigExtensionTest.php",
         "./src/php/PhpStan/Rule/Architecture/Symfony/VoterTest.php",
         "./src/php/PhpStan/Rule/Architecture/Tempest/ConsoleNoHttpTest.php",
