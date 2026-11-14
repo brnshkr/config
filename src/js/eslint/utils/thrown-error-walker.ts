@@ -3,6 +3,7 @@
  */
 
 import { readCommentText } from '#eslint/utils/jsdoc.ts';
+import { getTypeInformation } from '#eslint/utils/rule-context.ts';
 
 import {
   ERROR_KIND_REJECTS,
@@ -12,8 +13,6 @@ import {
   isUncheckedType,
   resolveDeclaredType,
 } from '#eslint/utils/thrown-error-types.ts';
-
-import { readOwnValue } from '#shared/utils/object.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
@@ -65,7 +64,7 @@ export const isInlineCallback = (node: TSESTree.Node): boolean => {
   const { parent } = node;
 
   return (parent?.type === 'CallExpression' || parent?.type === 'NewExpression')
-    && parent.arguments.includes(<TSESTree.CallExpressionArgument>node);
+    && parent.arguments.some((argument) => argument === node);
 };
 
 const isAwaitedOrReturned = (node: TSESTree.Node): boolean => {
@@ -144,12 +143,12 @@ const addCalleeErrors = (
     return;
   }
 
-  const variableDeclaration = <Maybe<ts.VariableDeclaration>>declaration.parent;
-  const isVariableInitializer = variableDeclaration?.initializer === declaration;
+  const { parent } = declaration;
+  const isVariableInitializer = 'initializer' in parent && parent.initializer === declaration;
 
   const comment = readCommentText(declaration)
     ?? (isVariableInitializer
-      ? readCommentText(variableDeclaration.parent.parent)
+      ? readCommentText(parent.parent.parent)
       : undefined);
 
   const isNativeCallee = declaration.getSourceFile().fileName.includes('/node_modules/@types/');
@@ -169,19 +168,27 @@ const addCalleeErrors = (
   }
 };
 
+const isNode = (value: unknown): value is TSESTree.Node => {
+  if (typeof value !== 'object' || !value) {
+    return false;
+  }
+
+  return 'type' in value && typeof value.type === 'string';
+};
+
 const walkChildren = (walkContext: WalkContext, node: TSESTree.Node, state: WalkState): void => {
   const childKeys = walkContext.sourceCode.visitorKeys[node.type] ?? [];
 
   for (const childKey of childKeys) {
-    const child = readOwnValue(<Record<string, unknown>><unknown>node, childKey);
+    const child: unknown = Reflect.get(node, childKey);
 
-    const childNodes = Array.isArray(child)
+    const childNodes: unknown[] = Array.isArray(child)
       ? child
       : [child];
 
     for (const childNode of childNodes) {
-      if (typeof childNode === 'object' && childNode && 'type' in childNode) {
-        walkContext.walk(walkContext, <TSESTree.Node>childNode, state);
+      if (isNode(childNode)) {
+        walkContext.walk(walkContext, childNode, state);
       }
     }
   }
@@ -264,15 +271,12 @@ export const collectThrownErrors = (context: RuleContext, node: FunctionNode): T
     return cachedErrors;
   }
 
-  const services = <Maybe<ParserServicesWithTypeInformation>><unknown>context.sourceCode.parserServices;
-  const program = <Maybe<ts.Program>>services?.program;
+  const services = getTypeInformation(context.sourceCode);
 
   const walkContext = {
     sourceCode: context.sourceCode,
-    services: program === undefined
-      ? undefined
-      : services,
-    checker: program?.getTypeChecker(),
+    services,
+    checker: services?.program.getTypeChecker(),
     isJavaScript: /\.[cm]?jsx?$/v.test(context.filename),
     thrownErrors: <ThrownError[]>[],
     walk: walkNode,

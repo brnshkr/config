@@ -29,6 +29,7 @@ interface ObjectEntriesFunction {
   <TObject extends AnyObject<TObject>>(object: TObject): ObjectEntries<TObject>;
 }
 
+// eslint-disable-next-line ts/no-unsafe-type-assertion -- Overloads are typed separately from the implementation
 export const objectKeys = <ObjectKeysFunction>(
   (object: object): unknown[] => (object instanceof Map
     ? object.keys().toArray()
@@ -41,6 +42,7 @@ export const objectValues = <ObjectValuesFunction>(
     : Object.values(object))
 );
 
+// eslint-disable-next-line ts/no-unsafe-type-assertion -- Overloads are typed separately from the implementation
 export const objectEntries = <ObjectEntriesFunction>(
   (object: object): unknown[] => (object instanceof Map
     ? object.entries().toArray()
@@ -110,6 +112,7 @@ export const writeOwnValue = <WriteOwnValueFunction>((object: object, key: Prope
   });
 });
 
+// eslint-disable-next-line ts/no-unsafe-type-assertion -- Overloads are typed separately from the implementation
 export const pickKeys = <PickKeysFunction>((object: object, keys: readonly unknown[]): unknown => {
   const pickedEntries = (object instanceof Map
     ? object.entries().toArray()

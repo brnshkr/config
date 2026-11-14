@@ -87,7 +87,7 @@ export const FILE_NAMES_TO_IGNORE = <const>[
 ] satisfies string[];
 
 const skipInstalledPackageImports: ReportRewrite = (descriptor, context) => {
-  if (!('node' in descriptor) || (<{ type: string }><unknown>descriptor.node).type !== 'String') {
+  if (!('node' in descriptor) || descriptor.node.type !== 'String') {
     return descriptor;
   }
 

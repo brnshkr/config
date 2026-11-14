@@ -2,6 +2,8 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { Maybe } from '#shared/types/core.ts';
@@ -132,6 +134,7 @@ export const typeAssertionStyleRule = <const>{
       spacing?: Requirement;
     };
 
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- Options are validated by the rule's schema
     const options = <Maybe<TypeAssertionStyleOptions>>context.options[0];
 
     const parentheses = (typeof options === 'string'
@@ -142,7 +145,7 @@ export const typeAssertionStyleRule = <const>{
       ? undefined
       : options?.spacing) ?? 'never';
 
-    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
+    const { sourceCode } = toTypeScriptContext(context);
     const assertionsWithParenthesesFix = new Set<TSESTree.Node>();
 
     const gapText = spacing === 'always'

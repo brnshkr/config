@@ -174,6 +174,7 @@ const collectPackagesSynchronously = (
   return collectedPackages;
 };
 
+/* eslint-disable ts/no-unsafe-type-assertion -- Resolved packages are typed per package here */
 export const resolvePackagesSharedAsynchronously = async <
   TModuleInfo extends ModuleInfo,
   TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
@@ -248,6 +249,7 @@ export const resolvePackagesSharedSynchronously = <
     ? objectFromEntries(resolvedPackages)
     : (resolvedPackages.get(<PackageType>type) ?? []));
 };
+/* eslint-enable ts/no-unsafe-type-assertion */
 
 export const doAllPackagesExist = (
   packages: readonly Package[],

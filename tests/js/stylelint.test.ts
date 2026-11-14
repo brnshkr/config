@@ -5,8 +5,7 @@ import { test } from 'vitest';
 
 import { getConfig } from '#stylelint/index.ts';
 import { snapshotConfigs } from '#tests/utils/config-snapshot.ts';
-
-import type { JsonObject } from '#tests/utils/json-diff.ts';
+import { toJsonObject } from '#tests/utils/json-diff.ts';
 
 test('expected stylelint config', async () => {
   const config = getConfig();
@@ -19,7 +18,7 @@ test('expected stylelint config', async () => {
     virtualFiles: [
       '6.md/0.fenced.css',
     ],
-    resolve: async (filePath) => <JsonObject><unknown>(await stylelint.resolveConfig(filePath, {
+    resolve: async (filePath) => toJsonObject(await stylelint.resolveConfig(filePath, {
       config,
     })),
   });

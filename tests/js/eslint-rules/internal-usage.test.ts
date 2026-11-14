@@ -583,6 +583,7 @@ test('internalUsageRule rejects a mapped option entry that does not name a list'
             options: [
               {
                 allowedCallers: [
+                  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Invalid option on purpose
                   { '@acme/user/public': <never>'@acme/user/internal' },
                 ],
               },

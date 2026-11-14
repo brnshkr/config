@@ -89,6 +89,7 @@ export const fencedCodeSyntax = <const>{
     return root;
   },
   stringify: (node: postcss.AnyNode, builder: postcss.Builder): void => {
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- Only roots from `parse` get stringified here
     const { raws } = <Root>node;
 
     builder(getRawText(raws['fixedSource']) ?? getRawText(raws['originalSource']) ?? '', node);

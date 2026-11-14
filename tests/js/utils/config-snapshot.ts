@@ -3,7 +3,7 @@ import { expect } from 'vitest';
 
 import { objectFromEntries, objectKeys } from '#shared/utils/object.ts';
 import { traverseDirectory } from '#tests/utils/filesystem.ts';
-import { computeConfigDiff } from '#tests/utils/json-diff.ts';
+import { computeConfigDiff, toJsonObject } from '#tests/utils/json-diff.ts';
 
 import type { JsonObject } from '#tests/utils/json-diff.ts';
 
@@ -31,7 +31,7 @@ const listFixtures = (fixturesDirectory: string): string[] => {
 const stripRoot = (config: JsonObject): JsonObject => {
   const root = JSON.stringify(process.cwd()).slice(1, -1);
 
-  return <JsonObject>JSON.parse(JSON.stringify(config).replaceAll(root, '<root>'));
+  return toJsonObject(JSON.parse(JSON.stringify(config).replaceAll(root, '<root>')));
 };
 
 const expectEveryGlobCovered = (globs: string[], names: string[]): void => {

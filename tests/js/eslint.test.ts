@@ -7,8 +7,7 @@ import { getConfig } from '#eslint/index.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 import { createPattern } from '#shared/utils/pattern.ts';
 import { snapshotConfigs } from '#tests/utils/config-snapshot.ts';
-
-import type { JsonObject } from '#tests/utils/json-diff.ts';
+import { toJsonObject } from '#tests/utils/json-diff.ts';
 
 const FIXTURES_DIRECTORY = path.join(process.cwd(), 'tests/js/fixtures/eslint');
 
@@ -41,14 +40,16 @@ test('expected eslint config', async () => {
       'a.php/0_0.html',
       'a.php/1_1.regexp',
     ],
-    resolve: async (filePath) => <JsonObject>(
-      await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd()))
+    resolve: async (filePath) => toJsonObject(
+      await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd())),
     ),
-    normalize: (config) => <JsonObject>JSON.parse(
-      JSON.stringify(config).replaceAll(
+    normalize: (config) => {
+      const normalizedConfigJson = JSON.stringify(config).replaceAll(
         createPattern('gv')`"${packageOrganization}:${packageOrganization}@[^"]*"`,
         () => `"${packageOrganization}:${packageOrganization}@<version>"`,
-      ),
-    ),
+      );
+
+      return toJsonObject(JSON.parse(normalizedConfigJson));
+    },
   });
 });

@@ -245,7 +245,7 @@ const defaultConfig = {
  *
  * @api
  */
-// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting
+// eslint-disable-next-line import/no-default-export, ts/no-unsafe-type-assertion -- Explicitly expose this module with a default export to allow for direct re-exporting, every access goes through the proxy
 export default new Proxy(<FlatConfigComposer<Config, ConfigNames>>Object.create(FlatConfigComposer.prototype), {
   get: (_target, key): unknown => {
     const value: unknown = Reflect.get(defaultConfig.composer, key);

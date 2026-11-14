@@ -1,7 +1,5 @@
 import { objectEntries, readOwnValue, writeOwnValue } from '#shared/utils/object.ts';
 
-import type { Maybe } from '#shared/types/core.ts';
-
 export type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 
 export interface JsonObject {
@@ -21,9 +19,20 @@ export type ConfigDiff = Record<string, JsonValue | ObjectDiff>;
  */
 const isEqual = (value1: JsonValue, value2: JsonValue): boolean => JSON.stringify(value1) === JSON.stringify(value2);
 
-const isPlainObject = (value: Maybe<JsonValue>): value is JsonObject => typeof value === 'object'
+const isPlainObject = (value: unknown): value is JsonObject => typeof value === 'object'
   && (value ?? undefined) !== undefined
   && !Array.isArray(value);
+
+/**
+ * @throws {TypeError}
+ */
+export const toJsonObject = (value: unknown): JsonObject => {
+  if (!isPlainObject(value)) {
+    throw new TypeError('Value must be a JSON object.');
+  }
+
+  return value;
+};
 
 /**
  * @throws {TypeError}
@@ -34,14 +43,12 @@ const diffObjects = (object1: JsonObject, object2: JsonObject): ObjectDiff => {
   const changedValues: JsonObject = {};
 
   for (const [object1Key, object1Value] of objectEntries(object1)) {
-    if (Object.hasOwn(object2, object1Key)) {
-      const object2Value = <JsonValue>readOwnValue(object2, object1Key);
+    const object2Value = readOwnValue(object2, object1Key);
 
-      if (!isEqual(object1Value, object2Value)) {
-        writeOwnValue(changedValues, object1Key, object2Value);
-      }
-    } else {
+    if (object2Value === undefined) {
       removedKeys.push(String(object1Key));
+    } else if (!isEqual(object1Value, object2Value)) {
+      writeOwnValue(changedValues, object1Key, object2Value);
     }
   }
 
@@ -65,13 +72,13 @@ export const computeConfigDiff = (object1: JsonObject, object2: JsonObject): Con
   const diff: ConfigDiff = {};
 
   for (const [object1Key, object1Value] of objectEntries(object1)) {
-    if (!Object.hasOwn(object2, object1Key)) {
+    const object2Value = readOwnValue(object2, object1Key);
+
+    if (object2Value === undefined) {
       diff[`-${String(object1Key)}`] = object1Value;
 
       continue;
     }
-
-    const object2Value = <JsonValue>readOwnValue(object2, object1Key);
 
     if (isEqual(object1Value, object2Value)) {
       continue;

@@ -426,15 +426,13 @@ export const jsdoc = async (): Promise<Config[]> => {
     rules: {
       ...(isForTypescript
         ? {
-          ...(<Config['rules']>Object.fromEntries(
+          ...objectFromEntries(
             objectEntries(pluginJsdoc.configs['flat/recommended-typescript-error'].rules ?? {})
-              .map(([key, value]) => (
-                Object.is(readOwnValue(pluginJsdoc.configs['flat/recommended-error'].rules ?? {}, key), value)
-                  ? undefined
-                  : [key, value]
-              ))
-              .filter(Boolean),
-          )),
+              .filter(([key, value]) => !Object.is(
+                readOwnValue(pluginJsdoc.configs['flat/recommended-error'].rules ?? {}, key),
+                value,
+              )),
+          ),
           'jsdoc/check-tag-names': [
             'error',
             {

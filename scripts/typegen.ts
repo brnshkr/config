@@ -53,6 +53,7 @@ const omitEntry = (
 ): [string, JsonValue][] => objectEntries(object).filter(([entryKey]) => entryKey !== key);
 
 const readSchema = async (path: string): Promise<JSONSchema> => {
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- The file is a JSON schema
   const schema = <JSONSchema>(await file(path).json());
 
   return objectFromEntries(objectEntries(schema).filter(([key]) => key !== '$id' && key !== 'title'));
@@ -64,6 +65,7 @@ const prepareSchema = (node: JsonValue): JSONSchema => {
   }
 
   if (typeof node !== 'object' || !node) {
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- Schema nodes can be scalars here
     return <JSONSchema><unknown>node;
   }
 

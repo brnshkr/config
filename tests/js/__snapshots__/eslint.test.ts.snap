@@ -11372,6 +11372,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "ts/no-unsafe-return": [
       2,
     ],
+    "ts/no-unsafe-type-assertion": [
+      2,
+    ],
     "ts/no-unsafe-unary-minus": [
       2,
     ],
@@ -14054,6 +14057,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "ts/promise-function-async",
       "ts/prefer-readonly",
       "ts/require-array-sort-compare",
+      "ts/no-unsafe-type-assertion",
       "ts/strict-boolean-expressions",
       "ts/strict-void-return",
       "ts/switch-exhaustiveness-check",
@@ -25894,6 +25898,7 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
       "ts/promise-function-async",
       "ts/prefer-readonly",
       "ts/require-array-sort-compare",
+      "ts/no-unsafe-type-assertion",
       "ts/strict-boolean-expressions",
       "ts/strict-void-return",
       "ts/switch-exhaustiveness-check",
@@ -26438,6 +26443,7 @@ exports[`expected eslint config > diff: README.md/0_0.mjs (from 1.js) 1`] = `
       "ts/promise-function-async",
       "ts/prefer-readonly",
       "ts/require-array-sort-compare",
+      "ts/no-unsafe-type-assertion",
       "ts/strict-boolean-expressions",
       "ts/strict-void-return",
       "ts/switch-exhaustiveness-check",

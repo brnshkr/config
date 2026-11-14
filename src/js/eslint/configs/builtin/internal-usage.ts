@@ -11,6 +11,7 @@ import {
 } from '#eslint/utils/jsdoc.ts';
 
 import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
 import { loadTsConfigCustomConditions, loadTsConfigPaths } from '#eslint/utils/tsconfig.ts';
 import { compileConfiguredPattern } from '#shared/utils/configured-pattern.ts';
 
@@ -25,7 +26,7 @@ import {
 
 import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
-import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type { TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
@@ -638,6 +639,15 @@ const findFileVisibility = (sourceFile: SourceFileNode): Maybe<string> => {
   return visibility;
 };
 
+const getModuleSourceFile = (symbol: Maybe<ts.Symbol>): Maybe<SourceFileNode> => {
+  const declaration = symbol?.declarations?.[0];
+  const sourceFile = declaration?.getSourceFile();
+
+  return sourceFile === declaration
+    ? sourceFile
+    : undefined;
+};
+
 const toInternalTarget = (visibility: Maybe<string>): Maybe<string> => (visibility === PUBLIC_API
   ? undefined
   : visibility);
@@ -721,9 +731,9 @@ export const internalUsageRule = <const>{
       allowedInternals: buildAllowList('allowedInternals', options.allowedInternals),
     };
 
-    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
-    const services = <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices;
-    const program = <Maybe<ts.Program>>services?.program;
+    const { sourceCode } = toTypeScriptContext(context);
+    const services = getTypeInformation(sourceCode);
+    const program = services?.program;
     const typeChecker = program?.getTypeChecker();
 
     const aliasPaths = {
@@ -864,7 +874,7 @@ export const internalUsageRule = <const>{
         ? undefined
         : checker.getSymbolAtLocation(tsNode);
 
-      const sourceFile = <Maybe<SourceFileNode>>symbol?.declarations?.[0];
+      const sourceFile = getModuleSourceFile(symbol);
 
       if (sourceFile === undefined || !hasInternalMarker(sourceFile)) {
         return;

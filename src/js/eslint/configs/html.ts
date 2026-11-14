@@ -670,6 +670,7 @@ const findReportedTag = (descriptor: Rule.ReportDescriptor, context: Rule.RuleCo
     ? descriptor.loc.start
     : descriptor.loc);
 
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Nodes come from html-eslint's parser here
   return findTag(<Maybe<HtmlNode>><unknown>context.sourceCode.getNodeByRangeIndex(index) ?? undefined);
 };
 
@@ -708,6 +709,7 @@ const readRenderedAttributes = (template: string): RenderedAttributes => {
 };
 
 const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Nodes come from html-eslint's parser here
   const tag = <HtmlNode><unknown>node;
 
   const templateAttributes = findTemplateParts(tag.type === 'Tag'
@@ -746,6 +748,7 @@ const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
 
   return templateAttributes.length === 0
     ? node
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- The original node stays the prototype
     : <Rule.Node>Object.create(node, {
       attributes: {
         value: [
@@ -764,6 +767,7 @@ const withTemplateAttributes = (rule: RuleDefinition): RuleDefinition => ({
       (node: Rule.Node): void => {
         type NodeVisitor = (node: Rule.Node) => void;
 
+        // eslint-disable-next-line ts/no-unsafe-type-assertion -- Listeners only receive matched nodes
         (<NodeVisitor>visit)(addTemplateAttributes(node, context.sourceCode.text));
       },
     ])),
@@ -790,6 +794,7 @@ const skipSelectTag: ReportRewrite = (descriptor, context) => (findReportedTag(d
   : descriptor);
 
 const indentAttributes: ReportRewrite = (descriptor, context) => {
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Wrapped rules only report on tags
   const tag = <Maybe<HtmlTag>><unknown>findReportedTag(descriptor, context);
 
   if (tag === undefined) {

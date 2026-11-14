@@ -228,6 +228,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
           'ts/promise-function-async': 'error',
           'ts/prefer-readonly': 'error',
           'ts/require-array-sort-compare': 'error',
+          'ts/no-unsafe-type-assertion': 'error',
           'ts/no-base-to-string': [
             'error',
             {

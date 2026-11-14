@@ -9,6 +9,7 @@ export const interopImport = async <TModule>(
 ): Promise<TModule extends { default: infer TEsModule } ? TEsModule : TModule> => {
   const resolved = await thePackage;
 
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Matches the conditional return type
   return <TModule extends { default: infer TEsModule } ? TEsModule : TModule>(
     (typeof resolved === 'object' && resolved && 'default' in resolved)
       ? resolved.default

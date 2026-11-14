@@ -3,8 +3,9 @@
  */
 
 import { isBlockComment } from '#eslint/utils/jsdoc.ts';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
 
-import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { Maybe } from '#shared/types/core.ts';
@@ -28,7 +29,7 @@ interface DocTag {
 }
 
 interface DocComment {
-  comment?: unknown;
+  comment?: string | DocCommentPart[];
   tags?: DocTag[];
 }
 
@@ -75,23 +76,29 @@ const getLeftmostNameNode = (nameNode: DocNameNode): DocNameNode => {
 
 const collectInlineReferences = (docComment: DocComment): DocNameReference[] => (
   Array.isArray(docComment.comment)
-    ? <DocCommentPart[]>docComment.comment
+    ? docComment.comment
     : []
 )
-  .filter((part) => part.name !== undefined)
-  .map((part) => (<DocNameReference>{
-    nameNode: part.name,
-    isInlineTag: true,
-    trailingText: part.text ?? '',
-  }));
+  .flatMap((part): DocNameReference[] => (part.name === undefined
+    ? []
+    : [
+      {
+        nameNode: part.name,
+        isInlineTag: true,
+        trailingText: part.text ?? '',
+      },
+    ]));
 
 const collectBlockReferences = (docComment: DocComment): DocNameReference[] => (docComment.tags ?? [])
-  .filter((tag) => tag.name?.name !== undefined)
-  .map((tag) => (<DocNameReference>{
-    nameNode: tag.name?.name,
-    isInlineTag: false,
-    trailingText: '',
-  }));
+  .flatMap((tag): DocNameReference[] => (tag.name?.name === undefined
+    ? []
+    : [
+      {
+        nameNode: tag.name.name,
+        isInlineTag: false,
+        trailingText: '',
+      },
+    ]));
 
 const collectNameReferences = (node: NodeWithDocComments): DocNameReference[] => (node.jsDoc ?? [])
   .flatMap((docComment) => [
@@ -174,9 +181,9 @@ export const resolvableDocReferenceRule = <const>{
     },
   },
   create: (context) => {
-    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
-    const services = <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices;
-    const program = <Maybe<ts.Program>>services?.program;
+    const { sourceCode } = toTypeScriptContext(context);
+    const services = getTypeInformation(sourceCode);
+    const program = services?.program;
     const typeChecker = program?.getTypeChecker();
     const findings = new Map<string, ReferenceFinding>();
 
@@ -222,6 +229,7 @@ export const resolvableDocReferenceRule = <const>{
           return;
         }
 
+        // eslint-disable-next-line ts/no-unsafe-type-assertion -- TypeScript does not type `jsDoc` on nodes
         const tsNode = <Maybe<NodeWithDocComments>>services.esTreeNodeToTSNodeMap.get(node);
 
         if (tsNode === undefined) {

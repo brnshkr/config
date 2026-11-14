@@ -39,6 +39,7 @@ const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
   }
 
   try {
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- The tsconfig follows TypeScript's documented shape
     return <ParsedTsConfig>JSON.parse(stripJsonc(content));
   } catch {
     return undefined;

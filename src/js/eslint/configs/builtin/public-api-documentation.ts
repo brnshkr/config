@@ -30,12 +30,12 @@ import {
 } from '#eslint/utils/jsdoc.ts';
 
 import { isPublicApiFile } from '#eslint/utils/public-api.ts';
+import { getPackageExportsResolverOptions, getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { ExportedSymbol } from '#eslint/utils/exports.ts';
-import type { PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';
@@ -368,20 +368,21 @@ export const publicApiDocumentationRule = <const>{
    * @throws {TypeError}
    */
   create: (context) => {
-    const options = <PackageExportsResolverOptions>(context.options[0] ?? {});
+    const options = getPackageExportsResolverOptions(context);
 
     if (!isPublicApiFile(options, context.cwd, context.filename)) {
       return {};
     }
 
-    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
+    const typeScriptContext = toTypeScriptContext(context);
+    const { sourceCode } = typeScriptContext;
     const fileComment = getFileLevelBlockComment(sourceCode);
 
     const ruleContext = <const>{
-      context: <TSESLint.RuleContext<string, unknown[]>><unknown>context,
+      context: typeScriptContext,
       sourceCode,
       fileComment,
-      services: <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices,
+      services: getTypeInformation(sourceCode),
     } satisfies RuleContext;
 
     return buildExportVisitors(sourceCode, (symbol) => {

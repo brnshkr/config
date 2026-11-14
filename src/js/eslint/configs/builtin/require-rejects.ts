@@ -2,10 +2,10 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { toTypeScriptContext } from '#eslint/utils/rule-context.ts';
 import { ERROR_KIND_REJECTS } from '#eslint/utils/thrown-error-types.ts';
 import { ERROR_TAG_RULE_SCHEMA, reportMissingErrorTypes } from '#eslint/utils/thrown-errors.ts';
 
-import type { TSESLint } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { FunctionNode } from '#eslint/utils/thrown-error-walker.ts';
 
@@ -29,7 +29,7 @@ export const requireRejectsRule = <const>{
   create: (context) => ({
     'ArrowFunctionExpression, FunctionDeclaration, FunctionExpression': (node: FunctionNode): void => {
       reportMissingErrorTypes(
-        <TSESLint.RuleContext<string, unknown[]>><unknown>context,
+        toTypeScriptContext(context),
         node,
         ERROR_KIND_REJECTS,
         MESSAGE_ID_MISSING_REJECTS,

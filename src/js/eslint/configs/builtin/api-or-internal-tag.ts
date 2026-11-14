@@ -11,10 +11,9 @@ import {
 } from '#eslint/utils/jsdoc.ts';
 
 import { isPublicApiFile } from '#eslint/utils/public-api.ts';
+import { getPackageExportsResolverOptions, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
 
-import type { TSESLint } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
-import type { PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
 
 export const MESSAGE_ID_MISSING_TAG = 'missingTag';
 export const MESSAGE_ID_UNEXPECTED_TAG_CONFLICT = 'unexpectedTagConflict';
@@ -63,8 +62,8 @@ export const apiOrInternalTagRule = <const>{
    * @throws {TypeError}
    */
   create: (context) => {
-    const options = <PackageExportsResolverOptions>(context.options[0] ?? {});
-    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
+    const options = getPackageExportsResolverOptions(context);
+    const { sourceCode } = toTypeScriptContext(context);
     const fileCommentNode = findFileLevelComment(sourceCode);
 
     const fileComment = fileCommentNode === undefined

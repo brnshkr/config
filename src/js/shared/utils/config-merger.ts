@@ -30,6 +30,7 @@ export const merge = <TValue extends object>(currentValue: Maybe<TValue>, valueT
   ...valueToInclude,
 });
 
+// eslint-disable-next-line ts/no-unsafe-type-assertion -- A union of arrays stays an array
 export const union = <TValue>(currentValue: Maybe<TValue>, valueToInclude: TValue): TValue => <TValue>[
   ...new Set([currentValue ?? [], valueToInclude].flat()),
 ];
@@ -37,6 +38,7 @@ export const union = <TValue>(currentValue: Maybe<TValue>, valueToInclude: TValu
 export const createConfigMerger = <TConfig extends object>(
   strategies: MergeStrategies<TConfig>,
 ): ConfigMerger<TConfig> => {
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- Strategies are keyed by config keys
   const strategyEntries = <[keyof TConfig, MergeFunction<unknown>][]>objectEntries(<AnyRecord>strategies);
   const configKeys = strategyEntries.map(([key]) => key);
 
@@ -54,6 +56,7 @@ export const createConfigMerger = <TConfig extends object>(
             continue;
           }
 
+          // eslint-disable-next-line ts/no-unsafe-type-assertion -- Each strategy returns its own key's type
           writeOwnValue(config, key, <TConfig[keyof TConfig]>mergeValues(readOwnValue(config, key), valueToInclude));
         }
       }

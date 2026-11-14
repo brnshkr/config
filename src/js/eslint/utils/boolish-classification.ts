@@ -74,6 +74,11 @@ const UNWRAPPED_EXPRESSIONS = new Set([
   'TSTypeAssertion',
 ]);
 
+const isUnwrappedExpression = (node: TSESTree.Node): node is TSESTree.TSAsExpression
+  | TSESTree.TSNonNullExpression
+  | TSESTree.TSSatisfiesExpression
+  | TSESTree.TSTypeAssertion => UNWRAPPED_EXPRESSIONS.has(node.type);
+
 const BOOLEAN_BINARY_OPERATORS = new Set([
   '!=',
   '!==',
@@ -143,6 +148,7 @@ export const classifyType = (checker: ts.TypeChecker, type: ts.Type): TypeClassi
 
 const unwrapPromiseType = (checker: ts.TypeChecker, type: ts.Type): ts.Type => (
   type.getSymbol()?.getName() === PROMISE_TYPE_NAME
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- Promise types are always type references
     ? (checker.getTypeArguments(<ts.TypeReference>type)[0] ?? type)
     : type
 );
@@ -229,8 +235,8 @@ export const classifyExpression = (node: TSESTree.Expression): TypeClassificatio
       : TYPE_CLASSIFICATIONS.NON_BOOL;
   }
 
-  if (UNWRAPPED_EXPRESSIONS.has(node.type)) {
-    return classifyExpression((<TSESTree.TSAsExpression>node).expression);
+  if (isUnwrappedExpression(node)) {
+    return classifyExpression(node.expression);
   }
 
   return NON_BOOLEAN_EXPRESSIONS.has(node.type)

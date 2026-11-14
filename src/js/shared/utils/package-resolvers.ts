@@ -174,6 +174,7 @@ export const COMMITLINT_PACKAGE_RESOLVERS = <const>{
   [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES]: () => isPackageInstalled(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_FUNCTION_RULES,
   ),
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- The package exports a commitlint plugin
   [COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE]: () => <Plugin>requireModule(
     COMMITLINT_PACKAGES.COMMITLINT_PLUGIN_TENSE,
   ),
@@ -220,8 +221,10 @@ export type PatternPackage = typeof PATTERN_PACKAGES[keyof typeof PATTERN_PACKAG
 
 // NOTICE: Configured patterns are compiled synchronously, and both packages are CommonJS
 export const PATTERN_PACKAGE_RESOLVERS = <const>{
+  /* eslint-disable ts/no-unsafe-type-assertion -- Packages export what their types declare */
   [PATTERN_PACKAGES.REGEXPP]: () => <{ RegExpParser: typeof RegExpParser }>requireModule(PATTERN_PACKAGES.REGEXPP),
   [PATTERN_PACKAGES.SCSLRE]: () => <{ analyse: typeof analyse }>requireModule(PATTERN_PACKAGES.SCSLRE),
+  /* eslint-enable ts/no-unsafe-type-assertion */
 } satisfies Record<PatternPackage, () => unknown>;
 
 export const STYLELINT_PACKAGES = <const>{

@@ -26,7 +26,9 @@ import {
   KIND_VARIABLE,
 } from '#eslint/utils/boolish-prefixes.ts';
 
-import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+
+import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { TypeClassification } from '#eslint/utils/boolish-classification.ts';
@@ -40,11 +42,6 @@ const CLASS_MEMBER_NODES = new Set([
   'PropertyDefinition',
   'TSAbstractMethodDefinition',
   'TSAbstractPropertyDefinition',
-]);
-
-const CALLABLE_INITIALIZERS = new Set([
-  'ArrowFunctionExpression',
-  'FunctionExpression',
 ]);
 
 const RETURN_OWNER_NODES = new Set([
@@ -118,20 +115,21 @@ const isSetterMember = (node: ClassMemberNode): boolean => {
   return node.kind === 'set';
 };
 
+const isClassMember = (node: TSESTree.Node): node is ClassMemberNode => CLASS_MEMBER_NODES.has(node.type);
+
 const isSkippedMember = (ruleContext: RuleContext, node: TSESTree.Node): boolean => {
-  if (!CLASS_MEMBER_NODES.has(node.type)) {
+  if (!isClassMember(node)) {
     return false;
   }
 
-  const member = <ClassMemberNode>node;
-  const nameNode = resolveNameNode(member.key);
+  const nameNode = resolveNameNode(node.key);
 
-  if (nameNode === undefined || isSetterMember(member)) {
+  if (nameNode === undefined || isSetterMember(node)) {
     return true;
   }
 
   return ruleContext.services !== undefined
-    && hasExternalUpstreamMember(ruleContext.services, member.parent.parent, nameNode.name);
+    && hasExternalUpstreamMember(ruleContext.services, node.parent.parent, nameNode.name);
 };
 
 const findEnclosingCallable = (node: TSESTree.Node): Maybe<TSESTree.Node> => {
@@ -168,8 +166,10 @@ const resolveSyntacticCallable = (
     return annotation;
   }
 
-  return CALLABLE_INITIALIZERS.has(target.initializer?.type ?? '')
-    ? <TSESTree.ArrowFunctionExpression>target.initializer
+  const { initializer } = target;
+
+  return (initializer?.type === 'ArrowFunctionExpression' || initializer?.type === 'FunctionExpression')
+    ? initializer
     : undefined;
 };
 
@@ -420,9 +420,7 @@ export const boolishPrefixRule = <const>{
     },
   },
   create: (context) => {
-    const { parserServices } = <TSESLint.SourceCode><unknown>context.sourceCode;
-    const services = <Maybe<ParserServicesWithTypeInformation>><unknown>parserServices;
-    const program = services?.program;
+    const services = getTypeInformation(toTypeScriptContext(context).sourceCode);
 
     return buildVisitors(<const>{
       report: (nameNode, messageId, data) => {
@@ -432,10 +430,8 @@ export const boolishPrefixRule = <const>{
           data,
         });
       },
-      services: program === undefined
-        ? undefined
-        : services,
-      checker: program?.getTypeChecker(),
+      services,
+      checker: services?.program.getTypeChecker(),
       returnClassifications: new Map(),
     } satisfies RuleContext);
   },

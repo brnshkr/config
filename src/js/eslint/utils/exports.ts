@@ -68,51 +68,48 @@ const DEFAULT_KIND_MAP: Partial<Record<TSESTree.Node['type'], ExportedSymbolKind
 };
 /* eslint-enable ts/naming-convention */
 
+/* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum */
 const collectAtomicNamedDeclaration = (
   declaration: TSESTree.Node,
   anchor: TSESTree.Node,
   comment: Maybe<string>,
 ): Maybe<ExportedSymbol> => {
-  type NamedDeclarationWithOptionalId = TSESTree.ClassDeclaration
-    | TSESTree.FunctionDeclaration
-    | TSESTree.TSDeclareFunction
-    | TSESTree.TSEnumDeclaration
-    | TSESTree.TSInterfaceDeclaration
-    | TSESTree.TSTypeAliasDeclaration;
-
   const kind = ATOMIC_NAMED_KIND_MAP[declaration.type];
 
   if (kind === undefined) {
     return undefined;
   }
 
-  const declarationCasted = <NamedDeclarationWithOptionalId>declaration;
-
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- The kind always matches the declaration type here
   return <ExportedSymbol>{
     anchor,
     declaration,
     comment,
     kind,
-    name: declarationCasted.id?.name ?? ANONYMOUS_NAME,
+    name: ('id' in declaration && declaration.id?.type === 'Identifier')
+      ? declaration.id.name
+      : ANONYMOUS_NAME,
   };
 };
 
-/* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum */
 const collectVariableDeclaration = (
   declaration: TSESTree.VariableDeclaration,
   anchor: TSESTree.Node,
   comment: Maybe<string>,
 ): ExportedSymbol[] => declaration.declarations
-  .filter((declarator) => declarator.id.type === 'Identifier')
-  .map((declarator): ExportedSymbol => ({
-    anchor,
-    declaration: declarator,
-    comment,
-    kind: isFunctionInitializer(declarator.init)
-      ? 'Function'
-      : 'Constant',
-    name: (<TSESTree.Identifier>declarator.id).name,
-  }));
+  .flatMap((declarator): ExportedSymbol[] => (declarator.id.type === 'Identifier'
+    ? [
+      {
+        anchor,
+        declaration: declarator,
+        comment,
+        kind: isFunctionInitializer(declarator.init)
+          ? 'Function'
+          : 'Constant',
+        name: declarator.id.name,
+      },
+    ]
+    : []));
 
 const collectNamedDeclaration = (
   declaration: TSESTree.Node,
@@ -152,6 +149,7 @@ const collectDefaultDeclaration = (
     : DEFAULT_NAME;
 
   return [
+    // eslint-disable-next-line ts/no-unsafe-type-assertion -- The kind always matches the declaration type here
     <ExportedSymbol>{
       anchor,
       declaration,

@@ -16,6 +16,7 @@ export const rewriteRuleReports = <TRule extends RuleDefinition>(
   rewrite: ReportRewrite,
 ): TRule => ({
   ...rule,
+  // eslint-disable-next-line ts/no-unsafe-type-assertion -- The original context stays the prototype
   create: (context: Rule.RuleContext) => rule.create(<Rule.RuleContext>Object.create(context, {
     report: {
       value: (descriptor: Rule.ReportDescriptor): void => {
