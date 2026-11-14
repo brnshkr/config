@@ -85,6 +85,7 @@ The rules `commitlint` enforces (`conf/commitlint.mjs`):
 - Scope required, lower-case, ≥2 chars; delimiters only `/` or `-` (no commas).
 - Body sentence-case start, no trailing period, lines ≤100 chars, short.
 - Breaking: `!` in subject AND `BREAKING CHANGE:` footer. Never a `Co-Authored-By` footer. HEREDOC for multi-line.
+- American spelling throughout, as the spelling test checks files.
 - Validate drafts with `project-commitlint-check`. The user may edit a proposed subject before approving
   — the edited wording wins.
 

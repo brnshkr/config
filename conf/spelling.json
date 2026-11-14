@@ -8,6 +8,7 @@
       "phpstan-analyse"
     ],
     "docs/spelling.md": [
+      "\"colour\"",
       "'analyse'",
       "analyse?:",
       "`analyse`",

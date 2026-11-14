@@ -28,6 +28,9 @@ export const MODULES = <const>{
       ],
     },
   },
+  spelling: {
+    name: 'spelling',
+  },
   tense: {
     name: 'tense',
     packages: {

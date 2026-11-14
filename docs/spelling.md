@@ -33,6 +33,12 @@ Re-exporting is what reaches it: Vitest applies `exclude` after `include`, so na
 exports nothing — importing it registers the test — and the `export` form is what keeps
 `import/no-unassigned-import` satisfied.
 
+The [commitlint config](./js/commitlint.md) runs the same check over every commit message:
+
+```text
+✖   message must be in American English. British spellings: "colour", use "color" [brnshkr/spelling]
+```
+
 ## What is scanned
 
 Every file the shipped defaults name, by extension or by file name
@@ -69,6 +75,7 @@ That check needs `scslre` and `@eslint-community/regexpp` installed.
 ```
 
 A key is the exact path the literals are allowed in, a glob like `src/**/*.php`, or `*` for every path.
+Commit messages read the literals under `*` and `.git/COMMIT_EDITMSG`.
 A literal matches case-insensitively and **covers** what it contains,
 so `phpstan-analyse` allows the `analyse` in it.
 Prefer the longest literal that still names the one place — the quoted form, the array key,

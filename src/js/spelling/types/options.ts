@@ -1,5 +1,5 @@
 /**
- * @internal @brnshkr/config/spelling
+ * @internal @brnshkr/config
  */
 
 import type { Maybe } from '#shared/types/core.ts';

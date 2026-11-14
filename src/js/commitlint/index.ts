@@ -47,12 +47,14 @@ export const getConfig = (
   const resolvedOptions = <const>{
     conventional: isModuleEnabledByDefault(MODULES.conventional),
     functions: isModuleEnabledByDefault(MODULES.functions),
+    spelling: isModuleEnabledByDefault(MODULES.spelling),
     tense: isModuleEnabledByDefault(MODULES.tense),
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
   setModuleEnabled(MODULES.conventional, resolvedOptions.conventional);
   setModuleEnabled(MODULES.functions, resolvedOptions.functions);
+  setModuleEnabled(MODULES.spelling, resolvedOptions.spelling);
   setModuleEnabled(MODULES.tense, resolvedOptions.tense !== false);
 
   const config: Config = {};
@@ -65,6 +67,10 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.functions)) {
     includeConfigs(config, configs.functions());
+  }
+
+  if (isModuleEnabled(MODULES.spelling)) {
+    includeConfigs(config, configs.spelling());
   }
 
   if (isModuleEnabled(MODULES.tense)) {

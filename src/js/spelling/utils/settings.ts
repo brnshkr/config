@@ -1,5 +1,5 @@
 /**
- * @internal @brnshkr/config/spelling
+ * @internal @brnshkr/config
  */
 
 import path from 'node:path';

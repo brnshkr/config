@@ -12,6 +12,7 @@ export { default } from '@brnshkr/config/commitlint';
 
 Modules for the presets — e.g. `conventional`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
+The `spelling` module needs no package: it runs the [spelling check](../spelling.md) over the message.
 
 ## Customizing
 

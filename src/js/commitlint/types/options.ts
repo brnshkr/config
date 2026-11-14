@@ -27,6 +27,15 @@ export interface ConfigOptions {
   functions: boolean;
 
   /**
+   * Enables `brnshkr/spelling`.
+   *
+   * @default `true`
+   *
+   * @see https://github.com/brnshkr/config/blob/master/docs/spelling.md
+   */
+  spelling: boolean;
+
+  /**
    * Enables `commitlint-plugin-tense`.
    *
    * @default `Enabled when "commitlint-plugin-tense" is installed.`

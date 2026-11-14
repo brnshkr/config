@@ -1,38 +1,13 @@
 import path from 'node:path';
 
 import { readTextFile } from '#shared/utils/filesystem.ts';
-import { createPattern } from '#shared/utils/pattern.ts';
 import { getConfigDirectory } from '#shared/utils/project-directory.ts';
 import { collectFilePaths } from '#spelling/utils/files.ts';
+import { findInFile } from '#spelling/utils/findings.ts';
 import { buildPatterns } from '#spelling/utils/patterns.ts';
-import { getLiteralsAllowedIn, readAllowlist, readSettings } from '#spelling/utils/settings.ts';
+import { readAllowlist, readSettings } from '#spelling/utils/settings.ts';
 
-import type {
-  AllowedLiteral,
-  Allowlist,
-  SpellingFinding,
-  SpellingOptions,
-  SpellingPattern,
-} from '#spelling/types/options.ts';
-
-const maskAllowedLiterals = (
-  line: string,
-  allowedLiterals: AllowedLiteral[],
-  lineNumber: number,
-): string => {
-  let maskedLine = line;
-
-  for (const { text, lineNumbers } of allowedLiterals) {
-    if (lineNumbers === undefined || lineNumbers.includes(lineNumber)) {
-      maskedLine = maskedLine.replaceAll(
-        createPattern('giu')`${text}`,
-        (matchedText) => '.'.repeat(matchedText.length),
-      );
-    }
-  }
-
-  return maskedLine;
-};
+import type { SpellingFinding, SpellingOptions } from '#spelling/types/options.ts';
 
 const compareCaseInsensitively = (firstValue: string, secondValue: string): number => {
   const firstLowercased = firstValue.toLowerCase();
@@ -59,34 +34,6 @@ const compareFindings = (firstFinding: SpellingFinding, secondFinding: SpellingF
   return firstFinding.line === secondFinding.line
     ? compareCaseInsensitively(firstFinding.word, secondFinding.word)
     : firstFinding.line - secondFinding.line;
-};
-
-const findInFile = (
-  fileContents: string,
-  filePath: string,
-  patterns: SpellingPattern[],
-  allowlist: Allowlist,
-): SpellingFinding[] => {
-  const allowedLiterals = getLiteralsAllowedIn(allowlist, filePath);
-  const findings: SpellingFinding[] = [];
-
-  for (const [index, line] of fileContents.split('\n').entries()) {
-    const lineNumber = index + 1;
-    const maskedLine = maskAllowedLiterals(line, allowedLiterals, lineNumber);
-
-    for (const { pattern, toAmericanSpelling } of patterns) {
-      for (const [word] of maskedLine.matchAll(pattern)) {
-        findings.push({
-          path: filePath,
-          line: lineNumber,
-          word,
-          suggestion: toAmericanSpelling(word),
-        });
-      }
-    }
-  }
-
-  return findings;
 };
 
 /**

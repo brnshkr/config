@@ -63,7 +63,10 @@ exports[`expected commitlint config 1`] = `
       }
     },
     local: {
-      rules: { 'tense/subject-tense': [AsyncFunction: tense/subject-tense] }
+      rules: {
+        'brnshkr/spelling': [Function: checkSpelling],
+        'tense/subject-tense': [AsyncFunction: tense/subject-tense]
+      }
     }
   },
   rules: {
@@ -102,6 +105,7 @@ exports[`expected commitlint config 1`] = `
     'scope-empty': [ 2, 'never' ],
     'scope-min-length': [ 2, 'always', 2 ],
     'subject-min-length': [ 2, 'always', 5 ],
+    'brnshkr/spelling': [ 2, 'always' ],
     'tense/subject-tense': [
       2,
       'always',
