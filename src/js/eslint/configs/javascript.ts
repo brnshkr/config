@@ -10,6 +10,44 @@ import { objectFromEntries } from '#shared/utils/object.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 
+export const TYPESCRIPT_EXTENDED_RULES = {
+  'class-methods-use-this': [
+    'error',
+    {
+      ignoreOverrideMethods: true,
+    },
+  ],
+  'default-param-last': 'error',
+  'init-declarations': 'error',
+  'max-params': [
+    'error',
+    {
+      max: 4,
+    },
+  ],
+  'no-invalid-this': 'error',
+  'no-magic-numbers': [
+    'error',
+    {
+      ignore: [
+        -1,
+        0,
+        1,
+        100,
+        42_069,
+      ],
+      enforceConst: true,
+    },
+  ],
+  'no-shadow': [
+    'error',
+    {
+      hoist: 'all',
+    },
+  ],
+  'no-use-before-define': 'error',
+} satisfies Config['rules'];
+
 export const javascript = async (): Promise<Config[]> => {
   const {
     optional: [
@@ -72,6 +110,7 @@ export const javascript = async (): Promise<Config[]> => {
       files: getScriptFileGlobs(),
       rules: {
         ...jsEslint?.configs.recommended.rules,
+        ...TYPESCRIPT_EXTENDED_RULES,
         ...(confusingBrowserGlobals
           ? {
             'no-restricted-globals': ['error', 'global', ...confusingBrowserGlobals],
@@ -110,12 +149,6 @@ export const javascript = async (): Promise<Config[]> => {
             },
           },
         ],
-        'class-methods-use-this': [
-          'error',
-          {
-            ignoreOverrideMethods: true,
-          },
-        ],
         complexity: [
           'error',
           {
@@ -128,7 +161,6 @@ export const javascript = async (): Promise<Config[]> => {
         curly: 'error',
         'default-case': 'error',
         'default-case-last': 'error',
-        'default-param-last': 'error',
         'dot-notation': 'error',
         eqeqeq: 'error',
         'func-name-matching': [
@@ -150,7 +182,6 @@ export const javascript = async (): Promise<Config[]> => {
           },
         ],
         'guard-for-in': 'error',
-        'init-declarations': 'error',
         'logical-assignment-operators': 'error',
         'max-classes-per-file': 'error',
         'max-depth': 'error',
@@ -177,12 +208,6 @@ export const javascript = async (): Promise<Config[]> => {
           {
             max: 3,
             checkConstructorCallCallbacks: true,
-          },
-        ],
-        'max-params': [
-          'error',
-          {
-            max: 4,
           },
         ],
         'max-statements': [
@@ -267,7 +292,6 @@ export const javascript = async (): Promise<Config[]> => {
             blockScopedFunctions: 'disallow',
           },
         ],
-        'no-invalid-this': 'error',
         'no-irregular-whitespace': [
           'error',
           {
@@ -280,19 +304,6 @@ export const javascript = async (): Promise<Config[]> => {
         'no-lone-blocks': 'error',
         'no-lonely-if': 'error',
         'no-loop-func': 'error',
-        'no-magic-numbers': [
-          'error',
-          {
-            ignore: [
-              -1,
-              0,
-              1,
-              100,
-              42_069,
-            ],
-            enforceConst: true,
-          },
-        ],
         'no-multi-assign': 'error',
         'no-multi-str': 'error',
         'no-negated-condition': 'error',
@@ -357,12 +368,6 @@ export const javascript = async (): Promise<Config[]> => {
             allowInParentheses: false,
           },
         ],
-        'no-shadow': [
-          'error',
-          {
-            hoist: 'all',
-          },
-        ],
         'no-template-curly-in-string': 'error',
         'no-throw-literal': 'error',
         'no-undef': [
@@ -404,7 +409,6 @@ export const javascript = async (): Promise<Config[]> => {
           },
         ],
         'no-unused-expressions': 'error',
-        'no-use-before-define': 'error',
         'no-useless-call': 'error',
         'no-useless-computed-key': 'error',
         'no-useless-concat': 'error',

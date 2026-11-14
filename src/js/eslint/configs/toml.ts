@@ -31,9 +31,9 @@ export const toml = async (): Promise<Config[]> => {
       files: [GLOB_TOML],
       language: 'toml/toml',
       rules: {
-        /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
+        /* eslint-disable ts/no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...pluginToml.configs.standard[2]?.rules,
-        /* eslint-enable no-magic-numbers */
+        /* eslint-enable ts/no-magic-numbers */
         'toml/array-bracket-newline': ['error', 'consistent'],
         'toml/array-bracket-spacing': ['error', 'never'],
         'toml/array-element-newline': ['error', 'consistent'],

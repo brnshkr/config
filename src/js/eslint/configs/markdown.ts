@@ -147,6 +147,7 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
         'no-console': 'off',
         'no-inline-comments': 'off',
         'no-magic-numbers': 'off',
+        'ts/no-magic-numbers': 'off',
         'import/no-default-export': 'off',
         'import/no-extraneous-dependencies': 'off',
         'import/unambiguous': 'off',

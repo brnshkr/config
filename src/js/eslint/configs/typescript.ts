@@ -2,6 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
+import { TYPESCRIPT_EXTENDED_RULES } from '#eslint/configs/javascript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
 import { GLOB_SCRIPT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
@@ -312,6 +313,10 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
           'ts/no-import-type-side-effects': 'error',
           'no-redeclare': 'off',
           'ts/no-redeclare': 'error',
+          ...objectFromEntries(objectEntries(TYPESCRIPT_EXTENDED_RULES).flatMap(([name, entry]) => [
+            [name, <const>'off'],
+            [`ts/${name}`, entry],
+          ])),
           'ts/no-unnecessary-parameter-property-assignment': 'error',
           'no-unused-private-class-members': 'off',
           'ts/no-unused-private-class-members': 'error',

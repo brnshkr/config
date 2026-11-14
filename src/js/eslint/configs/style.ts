@@ -36,13 +36,13 @@ export const style = async (): Promise<Config[]> => {
     braceStyle: '1tbs',
   });
 
-  /* eslint-disable no-magic-numbers -- Index 2 refers to the options of the rule here ('style/indent': ['error', <indent>, <options>]) */
+  /* eslint-disable ts/no-magic-numbers -- Index 2 refers to the options of the rule here ('style/indent': ['error', <indent>, <options>]) */
   const indentRuleEntry = styleConfig.rules?.['@stylistic/indent'];
 
   const indentRuleConfig = (Array.isArray(indentRuleEntry) && isPlainObject(indentRuleEntry[2]))
     ? indentRuleEntry[2]
     : undefined;
-  /* eslint-enable no-magic-numbers */
+  /* eslint-enable ts/no-magic-numbers */
 
   return [
     {

@@ -31,9 +31,9 @@ export const yaml = async (): Promise<Config[]> => {
       files: [GLOB_YAML],
       language: 'yaml/yaml',
       rules: {
-        /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
+        /* eslint-disable ts/no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...renameRules(pluginYaml.configs.standard[2]?.rules, { yml: 'yaml' }),
-        /* eslint-enable no-magic-numbers */
+        /* eslint-enable ts/no-magic-numbers */
         'yaml/file-extension': 'error',
         'yaml/flow-mapping-curly-newline': [
           'error',

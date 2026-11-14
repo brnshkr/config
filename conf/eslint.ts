@@ -57,6 +57,7 @@ export default getConfig({
   ],
   rules: {
     'no-magic-numbers': 'off',
+    'ts/no-magic-numbers': 'off',
   },
 }, {
   files: [
@@ -163,6 +164,7 @@ export default getConfig({
     'perfectionist/sort-heritage-clauses': 'off',
     'style/keyword-spacing': 'off',
     'style/padding-line-between-statements': 'off',
+    'ts/class-methods-use-this': 'off',
     'ts/consistent-type-assertions': 'off',
     'ts/no-empty-function': 'off',
     'ts/no-empty-object-type': 'off',

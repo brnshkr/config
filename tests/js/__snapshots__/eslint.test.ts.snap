@@ -1440,7 +1440,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       },
     ],
     "class-methods-use-this": [
-      2,
+      0,
       {
         "enforceForClassFields": true,
         "exceptMethods": [],
@@ -1510,7 +1510,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "default-param-last": [
-      2,
+      0,
     ],
     "dot-notation": [
       0,
@@ -8277,7 +8277,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "init-declarations": [
-      2,
+      0,
       "always",
     ],
     "jsdoc/check-access": [
@@ -8854,7 +8854,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       },
     ],
     "max-params": [
-      2,
+      0,
       {
         "max": 4,
       },
@@ -9082,7 +9082,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {},
     ],
     "no-invalid-this": [
-      2,
+      0,
       {
         "capIsConstructor": true,
       },
@@ -9123,7 +9123,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "no-magic-numbers": [
-      2,
+      0,
       {
         "detectObjects": false,
         "enforceConst": true,
@@ -9367,7 +9367,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       0,
     ],
     "no-shadow": [
-      2,
+      0,
       {
         "allow": [],
         "builtinGlobals": false,
@@ -9486,7 +9486,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       },
     ],
     "no-use-before-define": [
-      2,
+      0,
       {
         "allowNamedExports": false,
         "classes": true,
@@ -10976,6 +10976,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "ts/class-literal-property-style": [
       2,
     ],
+    "ts/class-methods-use-this": [
+      2,
+      {
+        "ignoreOverrideMethods": true,
+      },
+    ],
     "ts/consistent-generic-constructors": [
       2,
     ],
@@ -11003,6 +11009,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "ts/consistent-type-imports": [
       2,
     ],
+    "ts/default-param-last": [
+      2,
+    ],
     "ts/dot-notation": [
       2,
       {
@@ -11018,6 +11027,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "ts/explicit-member-accessibility": [
       2,
+    ],
+    "ts/init-declarations": [
+      2,
+    ],
+    "ts/max-params": [
+      2,
+      {
+        "max": 4,
+      },
     ],
     "ts/member-ordering": [
       2,
@@ -11221,8 +11239,33 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "ts/no-inferrable-types": [
       2,
     ],
+    "ts/no-invalid-this": [
+      2,
+      {
+        "capIsConstructor": true,
+      },
+    ],
     "ts/no-invalid-void-type": [
       2,
+    ],
+    "ts/no-magic-numbers": [
+      2,
+      {
+        "detectObjects": false,
+        "enforceConst": true,
+        "ignore": [
+          -1,
+          0,
+          1,
+          100,
+          42069,
+        ],
+        "ignoreArrayIndexes": false,
+        "ignoreEnums": false,
+        "ignoreNumericLiteralTypes": false,
+        "ignoreReadonlyClassProperties": false,
+        "ignoreTypeIndexes": false,
+      },
     ],
     "ts/no-meaningless-void-operator": [
       2,
@@ -11259,6 +11302,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "ts/no-require-imports": [
       2,
+    ],
+    "ts/no-shadow": [
+      2,
+      {
+        "hoist": "all",
+      },
     ],
     "ts/no-this-alias": [
       2,
@@ -11339,6 +11388,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "ts/no-unused-vars": [
       0,
+    ],
+    "ts/no-use-before-define": [
+      2,
     ],
     "ts/no-useless-constructor": [
       2,
@@ -13759,20 +13811,26 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "require-yield",
       "use-isnan",
       "valid-typeof",
+      "class-methods-use-this",
+      "default-param-last",
+      "init-declarations",
+      "max-params",
+      "no-invalid-this",
+      "no-magic-numbers",
+      "no-shadow",
+      "no-use-before-define",
       "no-restricted-globals",
       "accessor-pairs",
       "array-callback-return",
       "arrow-body-style",
       "block-scoped-var",
       "capitalized-comments",
-      "class-methods-use-this",
       "complexity",
       "consistent-return",
       "consistent-this",
       "curly",
       "default-case",
       "default-case-last",
-      "default-param-last",
       "dot-notation",
       "eqeqeq",
       "func-name-matching",
@@ -13780,14 +13838,12 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "func-style",
       "grouped-accessor-pairs",
       "guard-for-in",
-      "init-declarations",
       "logical-assignment-operators",
       "max-classes-per-file",
       "max-depth",
       "max-lines",
       "max-lines-per-function",
       "max-nested-callbacks",
-      "max-params",
       "max-statements",
       "new-cap",
       "no-alert",
@@ -13811,14 +13867,12 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "no-implied-eval",
       "no-inline-comments",
       "no-inner-declarations",
-      "no-invalid-this",
       "no-iterator",
       "no-label-var",
       "no-labels",
       "no-lone-blocks",
       "no-lonely-if",
       "no-loop-func",
-      "no-magic-numbers",
       "no-multi-assign",
       "no-multi-str",
       "no-negated-condition",
@@ -13839,7 +13893,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "no-script-url",
       "no-self-compare",
       "no-sequences",
-      "no-shadow",
       "no-template-curly-in-string",
       "no-throw-literal",
       "no-underscore-dangle",
@@ -13847,7 +13900,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "no-unneeded-ternary",
       "no-unreachable-loop",
       "no-unused-expressions",
-      "no-use-before-define",
       "no-useless-call",
       "no-useless-computed-key",
       "no-useless-concat",
@@ -13932,6 +13984,14 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "ts/method-signature-style",
       "ts/no-import-type-side-effects",
       "ts/no-redeclare",
+      "ts/class-methods-use-this",
+      "ts/default-param-last",
+      "ts/init-declarations",
+      "ts/max-params",
+      "ts/no-invalid-this",
+      "ts/no-magic-numbers",
+      "ts/no-shadow",
+      "ts/no-use-before-define",
       "ts/no-unnecessary-parameter-property-assignment",
       "ts/no-unused-private-class-members",
       "ts/no-useless-empty-export",
@@ -25517,11 +25577,22 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
           },
         },
       ],
+      "class-methods-use-this": [
+        2,
+        {
+          "enforceForClassFields": true,
+          "exceptMethods": [],
+          "ignoreOverrideMethods": true,
+        },
+      ],
       "consistent-return": [
         2,
         {
           "treatUndefinedAsUnspecified": false,
         },
+      ],
+      "default-param-last": [
+        2,
       ],
       "dot-notation": [
         2,
@@ -25560,6 +25631,16 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
       "import/unambiguous": [
         0,
       ],
+      "init-declarations": [
+        2,
+        "always",
+      ],
+      "max-params": [
+        2,
+        {
+          "max": 4,
+        },
+      ],
       "no-array-constructor": [
         2,
       ],
@@ -25578,10 +25659,48 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
           "ignorePattern": "^\\s*html\\s*$",
         },
       ],
+      "no-invalid-this": [
+        2,
+        {
+          "capIsConstructor": true,
+        },
+      ],
+      "no-magic-numbers": [
+        2,
+        {
+          "detectObjects": false,
+          "enforceConst": true,
+          "ignore": [
+            -1,
+            0,
+            1,
+            100,
+            42069,
+          ],
+          "ignoreArrayIndexes": false,
+          "ignoreClassFieldInitialValues": false,
+          "ignoreDefaultValues": false,
+          "ignoreEnums": false,
+          "ignoreNumericLiteralTypes": false,
+          "ignoreReadonlyClassProperties": false,
+          "ignoreTypeIndexes": false,
+        },
+      ],
       "no-redeclare": [
         2,
         {
           "builtinGlobals": true,
+        },
+      ],
+      "no-shadow": [
+        2,
+        {
+          "allow": [],
+          "builtinGlobals": false,
+          "hoist": "all",
+          "ignoreFunctionTypeParameterNameValueShadow": true,
+          "ignoreOnInitialization": false,
+          "ignoreTypeValueShadow": true,
         },
       ],
       "no-throw-literal": [
@@ -25599,6 +25718,18 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
       ],
       "no-unused-private-class-members": [
         2,
+      ],
+      "no-use-before-define": [
+        2,
+        {
+          "allowNamedExports": false,
+          "classes": true,
+          "enums": true,
+          "functions": true,
+          "ignoreTypeReferences": true,
+          "typedefs": true,
+          "variables": true,
+        },
       ],
       "no-useless-constructor": [
         2,
@@ -25688,6 +25819,14 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
       "ts/method-signature-style",
       "ts/no-import-type-side-effects",
       "ts/no-redeclare",
+      "ts/class-methods-use-this",
+      "ts/default-param-last",
+      "ts/init-declarations",
+      "ts/max-params",
+      "ts/no-invalid-this",
+      "ts/no-magic-numbers",
+      "ts/no-shadow",
+      "ts/no-use-before-define",
       "ts/no-unnecessary-parameter-property-assignment",
       "ts/no-unused-private-class-members",
       "ts/no-useless-empty-export",
@@ -26171,27 +26310,6 @@ exports[`expected eslint config > diff: README.md/0_0.mjs (from 1.js) 1`] = `
           "ignorePattern": "^\\s*html\\s*$",
         },
       ],
-      "no-magic-numbers": [
-        0,
-        {
-          "detectObjects": false,
-          "enforceConst": true,
-          "ignore": [
-            -1,
-            0,
-            1,
-            100,
-            42069,
-          ],
-          "ignoreArrayIndexes": false,
-          "ignoreClassFieldInitialValues": false,
-          "ignoreDefaultValues": false,
-          "ignoreEnums": false,
-          "ignoreNumericLiteralTypes": false,
-          "ignoreReadonlyClassProperties": false,
-          "ignoreTypeIndexes": false,
-        },
-      ],
       "no-throw-literal": [
         2,
       ],
@@ -26216,6 +26334,25 @@ exports[`expected eslint config > diff: README.md/0_0.mjs (from 1.js) 1`] = `
       "strict": [
         0,
         "safe",
+      ],
+      "ts/no-magic-numbers": [
+        0,
+        {
+          "detectObjects": false,
+          "enforceConst": true,
+          "ignore": [
+            -1,
+            0,
+            1,
+            100,
+            42069,
+          ],
+          "ignoreArrayIndexes": false,
+          "ignoreEnums": false,
+          "ignoreNumericLiteralTypes": false,
+          "ignoreReadonlyClassProperties": false,
+          "ignoreTypeIndexes": false,
+        },
       ],
       "ts/no-redeclare": [
         0,
