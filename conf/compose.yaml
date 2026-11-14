@@ -2,3 +2,15 @@ name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required}
 
 include:
   - path: oci://${FORGE_FRAGMENT_NAMESPACE:-${FORGE_NAMESPACE:?}}/forge-compose-cli:${FORGE_TAG:?}@${FORGE_CLI_FRAGMENT_DIGEST:?}
+
+services:
+  cli:
+    image: ${COMPOSE_PROJECT_NAME:?}-cli
+    pull_policy: build
+    build:
+      dockerfile_inline: |
+        FROM ${FORGE_IMAGE_NAMESPACE:-${FORGE_NAMESPACE:?}}/forge:${FORGE_TAG:?}-cli@${FORGE_CLI_IMAGE_DIGEST:?}
+        USER root
+        RUN apt-get update \
+          && apt-get install -y --no-install-recommends python3 \
+          && rm -rf /var/lib/apt/lists/*

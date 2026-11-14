@@ -11,9 +11,9 @@ With Docker and Make installed, run this on a fresh clone:
 make startup
 ```
 
-It starts [Forge's `cli` container](https://github.com/brnshkr/forge/blob/HEAD/docs/compose/cli.md),
-installs the dependencies inside it, writes the tool configs this repository does not track,
-builds `./dist/`, and installs the Git hooks.
+It starts [Forge's `cli` container](https://github.com/brnshkr/forge/blob/HEAD/docs/compose/cli.md)
+with `python3` added for the Semgrep ruleset tests, installs the dependencies inside it,
+writes the tool configs this repository does not track, builds `./dist/`, and installs the Git hooks.
 `make help` lists every target. The [Makefile docs](./Makefile.md) explain the shared ones.
 
 ## 🤖 AI tooling
