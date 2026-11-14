@@ -23246,6 +23246,9 @@ exports[`expected eslint config > diff: 20.toml (from .circleci/config.yml) 1`] 
       "toml/no-mixed-type-in-array": [
         2,
       ],
+      "toml/no-non-decimal-integer": [
+        2,
+      ],
       "toml/no-space-dots": [
         2,
       ],
@@ -25196,6 +25199,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
       "toml/tables-order",
       "toml/vue-custom-block/no-parsing-error",
       "toml/no-mixed-type-in-array",
+      "toml/no-non-decimal-integer",
       "no-irregular-whitespace",
     ],
   },
@@ -25380,6 +25384,7 @@ exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
       "toml/tables-order",
       "toml/vue-custom-block/no-parsing-error",
       "toml/no-mixed-type-in-array",
+      "toml/no-non-decimal-integer",
       "no-irregular-whitespace",
     ],
   },
@@ -26043,6 +26048,9 @@ exports[`expected eslint config > diff: 34.inc.php (from 20.toml) 1`] = `
       2,
     ],
     "toml/no-mixed-type-in-array": [
+      2,
+    ],
+    "toml/no-non-decimal-integer": [
       2,
     ],
     "toml/no-space-dots": [

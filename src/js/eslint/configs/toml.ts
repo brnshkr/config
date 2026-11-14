@@ -52,6 +52,7 @@ export const toml = async (): Promise<Config[]> => {
           },
         ],
         'toml/no-mixed-type-in-array': 'error',
+        'toml/no-non-decimal-integer': 'error',
         'toml/spaced-comment': [
           'error',
           'always',
