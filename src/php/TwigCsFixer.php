@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config;
 
 use Brnshkr\Config\Tests\TwigCsFixerTest;
+use Brnshkr\Config\TwigCsFixer\Rule\ProperNameRule;
 use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
@@ -154,6 +155,7 @@ final readonly class TwigCsFixer
                 case: FileNameRule::PASCAL_CASE,
                 baseDirectory: self::COMPONENTS_DIRECTORY,
             ))
+            ->addRule(new ProperNameRule())
             ->addRule(new ValidConstantFunctionRule())
             ->overrideRule(new CompactHashRule(compact: true))
             ->overrideRule(new MacroArgumentNameRule(MacroArgumentNameRule::CAMEL_CASE))

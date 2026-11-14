@@ -14,6 +14,20 @@ return TwigCsFixer::getConfig();
 Pass a [Finder](https://symfony.com/doc/current/components/finder.html) to narrow the scope
 — [`FileFinder`](./FileFinder.md) applies the shared exclusions either way.
 
+## Proper names
+
+`ProperNameRule` spells each name in a comment the way its own project spells it,
+as [`Brnshkr/proper_name`](./php-cs-fixer/rules/ProperNameFixer.md) does in PHP:
+
+<!-- brnshkr-skip -->
+```twig
+{# ❌ Bad #}
+{# Built on Github. #}
+
+{# ✅ Good #}
+{# Built on GitHub. #}
+```
+
 ## Customizing
 
 `getBuilder()` gives the same configuration as a builder, and `build()` finishes it.

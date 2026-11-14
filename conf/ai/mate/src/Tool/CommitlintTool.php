@@ -10,7 +10,7 @@ use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
 /**
- * Lints commit messages against the Commitlint rules of this repository.
+ * Lints commit messages against the commitlint rules of this repository.
  *
  * @internal
  */

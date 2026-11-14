@@ -22,6 +22,7 @@ use function mb_rtrim;
 use function mb_strlen;
 use function mb_strrpos;
 use function mb_strtolower;
+use function mb_strtoupper;
 use function mb_substr;
 use function mb_trim;
 use function mb_ucfirst;
@@ -78,6 +79,12 @@ final readonly class Str
     {
         // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strtolower($string);
+    }
+
+    public static function toUpperCase(string $string): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return mb_strtoupper($string);
     }
 
     public static function upperFirst(string $string): string

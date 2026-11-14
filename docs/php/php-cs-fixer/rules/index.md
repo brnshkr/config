@@ -8,3 +8,8 @@ All rules ship as `Brnshkr/<rule>` and are enabled by the default configuration.
   — PHP and Twig code blocks are formatted with the configured rules
 - `Brnshkr/no_trailing_whitespace_in_string` and `Brnshkr/string_line_ending`
   — the built-in rules of the same name, leaving Markdown pages alone
+
+## Comments
+
+- [`Brnshkr/proper_name`](./ProperNameFixer.md)
+  — names are spelled the way their own projects spell them

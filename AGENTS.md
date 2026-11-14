@@ -21,7 +21,7 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 - `src/js/stylelint/` — config builder, named modes in `configs/` (incl. custom rules `configs/builtin/`)
 - `src/php/` — builders `PhpStan.php`, `Rector.php`, `PhpCsFixer.php`,
   `TwigCsFixer.php`, `FileFinder.php`; Composer plugin `Composer/`;
-  custom rules `PhpStan/Rule/`, `PhpCsFixer/Fixer/`, `Rector/Rule/`
+  custom rules `PhpStan/Rule/`, `PhpCsFixer/Fixer/`, `Rector/Rule/`, `TwigCsFixer/Rule/`
 - `conf/` — this repo's own tool configs; `conf/Makefile` = reusable foundation (colorized help system)
 - `tests/{js,php}/` — Vitest + Pest, snapshots in `__snapshots__/`
 - `docs/` — user-facing reference; PHP pages PascalCase per class

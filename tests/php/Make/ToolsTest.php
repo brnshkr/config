@@ -118,7 +118,7 @@ final class ToolsTest extends TestCase
         $result = $this->runMake(['twig-cs-fixer-print'], directory: self::PROJECT_DIRECTORY);
 
         self::assertStringStartsWith(
-            "Loaded twig-cs-fixer rules\n==========================\n\n * TwigCsFixer\\",
+            "Loaded twig-cs-fixer rules\n==========================\n\n * Brnshkr\\Config\\TwigCsFixer\\Rule\\ProperNameRule\n * TwigCsFixer\\",
             $result,
         );
 

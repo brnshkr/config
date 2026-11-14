@@ -10,6 +10,7 @@ namespace Brnshkr\Config;
 
 use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
 use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\ProperNameFixer;
 use Brnshkr\Config\Tests\PhpCsFixerTest;
 use PhpCsFixer\Config as PhpCsFixerConfig;
 use PhpCsFixer\Fixer\StringNotation\NoTrailingWhitespaceInStringFixer;
@@ -143,6 +144,7 @@ final readonly class PhpCsFixer
             $fencedCodeFixer,
             new MarkdownSafeFixer(new NoTrailingWhitespaceInStringFixer()),
             new MarkdownSafeFixer(new StringLineEndingFixer()),
+            new ProperNameFixer(),
         ]);
 
         $rules = [
@@ -567,6 +569,7 @@ final readonly class PhpCsFixer
         }
 
         $rules[FencedCodeFixer::name()] = true;
+        $rules[ProperNameFixer::name()] = true;
 
         $config->setRules(array_filter($rules, Str::isNonDecimalIntString(...), ARRAY_FILTER_USE_KEY));
 
