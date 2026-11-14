@@ -4111,14 +4111,14 @@ interrupt() {
     done";
   done;
 };
-trap "interrupt; exit 130" INT TERM;
+trap "interrupt; exit 130" INT TERM HUP;
 if [ "$$#" -gt 1 ]; then
   "$$@";
 else
   $(SHELL) $(_PROJECT_SHELLFLAGS) "$$1";
 fi;
 status=$$?;
-[ "$$status" -ne 130 ] || { trap - INT TERM; kill -INT 0; };
+[ "$$status" -ne 130 ] || { trap - INT TERM HUP; kill -INT 0; };
 exit "$$status"
 endef
 
