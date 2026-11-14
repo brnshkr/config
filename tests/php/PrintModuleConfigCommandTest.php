@@ -89,7 +89,7 @@ final class PrintModuleConfigCommandTest extends TestCase
     /**
      * @var ?list<string>
      */
-    private static ?array $unignoredPaths = null;
+    private static ?array $trackedPaths = null;
 
     public function testPrintsExpectedPhpCsFixerConfig(): void
     {
@@ -167,14 +167,14 @@ final class PrintModuleConfigCommandTest extends TestCase
         return $this->runCommand(['module' => $module->value]);
     }
 
-    private static function removeIgnoredPaths(mixed $config): mixed
+    private static function removeUntrackedPaths(mixed $config): mixed
     {
         if ($config instanceof stdClass) {
             $keptProperties = [];
 
             foreach (get_object_vars($config) as $name => $value) {
                 if (Str::isNonDecimalIntString((string) $name)) {
-                    $keptProperties[$name] = self::removeIgnoredPaths($value);
+                    $keptProperties[$name] = self::removeUntrackedPaths($value);
                 }
             }
 
@@ -188,52 +188,52 @@ final class PrintModuleConfigCommandTest extends TestCase
         $keptValues = [];
 
         foreach ($config as $value) {
-            if (!is_string($value) || !self::isIgnoredProjectPath($value)) {
-                $keptValues[] = self::removeIgnoredPaths($value);
+            if (!is_string($value) || !self::isUntrackedProjectPath($value)) {
+                $keptValues[] = self::removeUntrackedPaths($value);
             }
         }
 
         return $keptValues;
     }
 
-    private static function isIgnoredProjectPath(string $value): bool
+    private static function isUntrackedProjectPath(string $value): bool
     {
         if (!Str::startsWith($value, './') || Str::startsWithAny($value, self::DEPENDENCY_DIRECTORIES)) {
             return false;
         }
 
-        return !in_array(Str::trimSuffix($value, '/'), self::getUnignoredPaths(), true);
+        return !in_array(Str::trimSuffix($value, '/'), self::getTrackedPaths(), true);
     }
 
     /**
      * @return list<string>
      */
-    private static function getUnignoredPaths(): array
+    private static function getTrackedPaths(): array
     {
-        if (self::$unignoredPaths !== null) {
-            return self::$unignoredPaths;
+        if (self::$trackedPaths !== null) {
+            return self::$trackedPaths;
         }
 
-        $process = new Process(['git', 'ls-files', '--cached', '--others', '--exclude-standard']);
+        $process = new Process(['git', 'ls-files', '--cached']);
 
         $process->mustRun();
 
-        $unignoredPaths = [];
+        $trackedPaths = [];
 
-        foreach (Str::split(Str::trim($process->getOutput()), "\n") as $unignoredFile) {
-            $path = $unignoredFile;
+        foreach (Str::split(Str::trim($process->getOutput()), "\n") as $trackedFile) {
+            $path = $trackedFile;
 
             while ($path !== '') {
-                $unignoredPaths[] = './' . $path;
-                $path             = Path::getDirectory($path);
+                $trackedPaths[] = './' . $path;
+                $path           = Path::getDirectory($path);
             }
         }
 
-        self::$unignoredPaths = $unignoredPaths
+        self::$trackedPaths = $trackedPaths
             |> array_unique(...)
             |> array_values(...);
 
-        return self::$unignoredPaths;
+        return self::$trackedPaths;
     }
 
     /**
@@ -268,7 +268,7 @@ final class PrintModuleConfigCommandTest extends TestCase
         self::assertSame(0, $exitCode);
 
         return Json::decode($output, isAssociative: false)
-            |> self::removeIgnoredPaths(...)
+            |> self::removeUntrackedPaths(...)
             |> Json::encode(...);
     }
 }
