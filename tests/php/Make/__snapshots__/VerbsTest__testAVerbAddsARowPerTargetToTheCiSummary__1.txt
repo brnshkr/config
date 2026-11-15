@@ -1,7 +1,7 @@
 | Target | Result | Time |
 | --- | --- | --- |
 | `rector-dry-run` | ✅ | <seconds>s |
+| `phpstan-dry-run` | ✅ | <seconds>s |
 | `php-cs-fixer-dry-run` | ❌ [log](https://github.com/acme/verbs/actions/runs/1/job/2) | <seconds>s |
-| `phpstan` | ✅ | <seconds>s |
 | `shellcheck` | ✅ | <seconds>s |
 | `phpunit` | ✅ | <seconds>s |

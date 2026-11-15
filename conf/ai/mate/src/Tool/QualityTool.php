@@ -37,7 +37,6 @@ final class QualityTool
      * @phpstan-var non-empty-list<non-empty-string>
      */
     private const array CHECK_ONLY_TOOLS = [
-        'phpstan',
         'typescript',
     ];
 
@@ -54,14 +53,14 @@ final class QualityTool
 
     /**
      * @param string $tool - the tool to run, one of {@see self::TOOLS}
-     * @param bool $isDryRun - when true (default), runs the non-mutating dry-run variant; phpstan and typescript are always non-mutating
+     * @param bool $isDryRun - when true (default), runs the non-mutating dry-run variant; typescript is always non-mutating
      *
      * @throws LogicException
      * @throws RuntimeException
      */
     #[MateTool(
         name: 'project-quality-check',
-        description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, markdownlint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (phpstan and typescript are check-only).',
+        description: 'Runs one of the quality tools of this repository (PHP: phpstan, php-cs-fixer, rector, twig-cs-fixer; JS: eslint, markdownlint, stylelint, typescript) and returns its output. Defaults to dry-run; pass isDryRun=false to apply fixes (typescript is check-only).',
     )]
     public function runQualityTool(string $tool, bool $isDryRun = true): string
     {

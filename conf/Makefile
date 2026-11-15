@@ -1305,6 +1305,7 @@ _SEMGREP_NAME       := $(if $(_HAS_SEMGREP),semgrep)
 
 _FIXER_NAMES := $(strip \
 	$(_RECTOR_NAME) \
+	$(_PHPSTAN_NAME) \
 	$(_PHP_CS_FIXER_NAME) \
 	$(_TWIG_CS_FIXER_NAME) \
 	$(_ESLINT_NAME) \
@@ -1313,7 +1314,6 @@ _FIXER_NAMES := $(strip \
 )
 
 _ANALYZER_NAMES := $(strip \
-	$(_PHPSTAN_NAME) \
 	$(_COMMITLINT_NAME) \
 	$(_TYPESCRIPT_NAME) \
 	$(_HADOLINT_NAME) \
@@ -1895,7 +1895,7 @@ $(call _target,check): #~~ lints and analyzes everything without writing
 	+$(DEBUG_PREFIX)$(call _run_summarized,$(_DRY_RUNS) $(_ANALYZERS) $(CHECK_TARGETS))
 endif
 
-_FIX_ORDER := rector+php-cs-fixer \
+_FIX_ORDER := rector+phpstan+php-cs-fixer \
 	twig-cs-fixer \
 	eslint+stylelint+markdownlint
 
@@ -3187,15 +3187,22 @@ PHP_STAN_FLAGS  ?= --memory-limit=-1 $(or $(_ANSI_OPTION),$(if $(MAKE_TERMOUT),-
 
 _PHP_STAN_ARGS = $(if $(_COMMAND),$(ARGS),$(call _shell_quoted,$(call _without_option,--level,$(_ARGS))))
 
+_PHP_STAN_FIX = fix_output=$$($(PHP_STAN) $(_COMMAND) $(_PHP_STAN_ARGS) --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) \
+	--no-progress --fix 2>&1); case "$$fix_output" in *'No fixable errors found'*) ;; *) printf '%s\n' "$$fix_output";; esac
+
 _LAYERED_CONFIGS += $(call _when_in_project,$(call _layered,$(PHP_STAN_CONFIG),php),$(PHP_EXTENSIONS))
 
 $(call _target,phpstan): _COMMAND = analyze
-$(call _target,phpstan): #~~ analyzes the PHP code
+$(call _target,phpstan): #~~ fixes and analyzes the PHP code
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)
+	$(TRACE_PREFIX)$(if $(_IS_DRY_RUN),:,$(_PHP_STAN_FIX))
 	$(TRACE_PREFIX)$(call _spinner,$(PHP_STAN) $(_COMMAND) $(_PHP_STAN_ARGS) --configuration $(PHP_STAN_CONFIG) $(PHP_STAN_FLAGS) $(_DEBUG_FLAG))
 
+$(call _target,phpstan-dry-run): _GOAL := $(call _target,phpstan-dry-run)
+$(call _target,phpstan-dry-run): $(call _target,phpstan) #~~ analyzes the PHP code without writing fixes #v
+
 $(call _target,phpstan-debug): _GOAL := $(call _target,phpstan-debug)
-$(call _target,phpstan-debug): $(call _target,phpstan) #~~ analyzes the PHP code with debug output #vvv
+$(call _target,phpstan-debug): $(call _target,phpstan) #~~ runs `phpstan` with debug output #vvv
 
 $(call _target,phpstan-group): #~~ counts the `phpstan` findings by identifier #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_STAN_CONFIG),PHP_STAN_CONFIG)

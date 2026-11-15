@@ -133,7 +133,7 @@ Available commands:
   phpunit
    phpunit        runs the PHP tests
   phpstan
-   phpstan        analyzes the PHP code
+   phpstan        fixes and analyzes the PHP code
   php-cs-fixer
    php-cs-fixer   fixes the PHP coding style
   rector
@@ -377,7 +377,8 @@ Available commands:
    phpunit-coverage       runs the PHP tests and reports how much source they reach
    phpunit-update         runs the PHP tests and updates their snapshots
   phpstan
-   phpstan                analyzes the PHP code
+   phpstan                fixes and analyzes the PHP code
+   phpstan-dry-run        analyzes the PHP code without writing fixes
    phpstan-group          counts the phpstan findings by identifier
   php-cs-fixer
    php-cs-fixer           fixes the PHP coding style
@@ -763,7 +764,8 @@ Available commands:
    phpunit-list           lists the tests the runner collects
    phpunit-update         runs the PHP tests and updates their snapshots
   phpstan
-   phpstan                analyzes the PHP code
+   phpstan                fixes and analyzes the PHP code
+   phpstan-dry-run        analyzes the PHP code without writing fixes
    phpstan-group          counts the phpstan findings by identifier
    phpstan-list           lists the files phpstan reads
    phpstan-print          prints the resolved phpstan configuration
@@ -1016,8 +1018,9 @@ Available commands:
     phpunit-list           lists the tests the runner collects
     phpunit-update         runs the PHP tests and updates their snapshots
    phpstan
-    phpstan                analyzes the PHP code
-+   phpstan-debug          analyzes the PHP code with debug output
+    phpstan                fixes and analyzes the PHP code
+    phpstan-dry-run        analyzes the PHP code without writing fixes
++   phpstan-debug          runs phpstan with debug output
     phpstan-group          counts the phpstan findings by identifier
     phpstan-list           lists the files phpstan reads
     phpstan-print          prints the resolved phpstan configuration
@@ -1136,14 +1139,16 @@ Available commands:
 +   phpunit-list                             lists the tests the runner collects
 +   phpunit-update                           runs the PHP tests and updates their snapshots
    phpstan
--   phpstan                analyzes the PHP code
--   phpstan-debug          analyzes the PHP code with debug output
+-   phpstan                fixes and analyzes the PHP code
+-   phpstan-dry-run        analyzes the PHP code without writing fixes
+-   phpstan-debug          runs phpstan with debug output
 -   phpstan-group          counts the phpstan findings by identifier
 -   phpstan-list           lists the files phpstan reads
 -   phpstan-print          prints the resolved phpstan configuration
 -   phpstan-raw            analyzes the PHP code with raw output
-+   phpstan                                  analyzes the PHP code
-+   phpstan-debug                            analyzes the PHP code with debug output
++   phpstan                                  fixes and analyzes the PHP code
++   phpstan-dry-run                          analyzes the PHP code without writing fixes
++   phpstan-debug                            runs phpstan with debug output
 +   phpstan-group                            counts the phpstan findings by identifier
 +   phpstan-list                             lists the files phpstan reads
 +   phpstan-print                            prints the resolved phpstan configuration
@@ -1918,8 +1923,9 @@ Available commands:
    [36mphpunit-list         [0m  [90mlists the tests the runner collects[0m
    [36mphpunit-update       [0m  [90mruns the PHP tests and updates their snapshots[0m
   [35mphpstan[0m
-   [36mphpstan              [0m  [90manalyzes the PHP code[0m
-   [36mphpstan-debug        [0m  [90manalyzes the PHP code with debug output[0m
+   [36mphpstan              [0m  [90mfixes and analyzes the PHP code[0m
+   [36mphpstan-dry-run      [0m  [90manalyzes the PHP code without writing fixes[0m
+   [36mphpstan-debug        [0m  [90mruns [35mphpstan[0m[90m with debug output[0m
    [36mphpstan-group        [0m  [90mcounts the [35mphpstan[0m[90m findings by identifier[0m
    [36mphpstan-list         [0m  [90mlists the files [35mphpstan[0m[90m reads[0m
    [36mphpstan-print        [0m  [90mprints the resolved [35mphpstan[0m[90m configuration[0m
@@ -2423,8 +2429,9 @@ Available commands:
    [32mphpunit-list         [0m  [0mlists the tests the runner collects[0m
    [32mphpunit-update       [0m  [0mruns the PHP tests and updates their snapshots[0m
   [33mphpstan[0m
-   [32mphpstan              [0m  [0manalyzes the PHP code[0m
-   [32mphpstan-debug        [0m  [0manalyzes the PHP code with debug output[0m
+   [32mphpstan              [0m  [0mfixes and analyzes the PHP code[0m
+   [32mphpstan-dry-run      [0m  [0manalyzes the PHP code without writing fixes[0m
+   [32mphpstan-debug        [0m  [0mruns [33mphpstan[0m[0m with debug output[0m
    [32mphpstan-group        [0m  [0mcounts the [33mphpstan[0m[0m findings by identifier[0m
    [32mphpstan-list         [0m  [0mlists the files [33mphpstan[0m[0m reads[0m
    [32mphpstan-print        [0m  [0mprints the resolved [33mphpstan[0m[0m configuration[0m

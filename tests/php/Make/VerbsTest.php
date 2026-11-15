@@ -30,10 +30,12 @@ final class VerbsTest extends TestCase
 
         self::assertStringContainsString('php-cs-fixer fix', $fix);
         self::assertStringNotContainsString('--dry-run', $fix);
-        self::assertStringNotContainsString('phpstan', $fix);
+        self::assertStringContainsString('phpstan analyze', $fix);
+        self::assertStringContainsString('--fix', $fix);
         self::assertStringNotContainsString('phpunit', $fix);
         self::assertStringContainsString('--dry-run', $check);
         self::assertStringContainsString('phpstan analyze', $check);
+        self::assertStringNotContainsString('--fix', $check);
         self::assertStringNotContainsString('phpunit', $check);
         self::assertStringContainsString('phpunit', $test);
         self::assertStringNotContainsString('php-cs-fixer', $test);
@@ -61,14 +63,14 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString(" -v\n", $checking);
     }
 
-    public function testFixRunsRectorBeforePhpCsFixerEvenInParallel(): void
+    public function testFixRunsRectorThenPhpstanThenPhpCsFixerEvenInParallel(): void
     {
         $directory = __DIR__ . '/../Fixtures/Make/Verbs';
 
         foreach ([[], ['-j4']] as $flags) {
             $fix = $this->runMake([...$flags, 'fix'], directory: $directory);
 
-            self::assertMatchesRegularExpression('/rector done\n(?:.*\n)*php-cs-fixer fix/', $fix);
+            self::assertMatchesRegularExpression('/rector done\n(?:.*\n)*phpstan analyze [^\n]*--fix\n(?:.*\n)*php-cs-fixer fix/', $fix);
             self::assertStringNotContainsString('warning', $fix);
         }
     }
@@ -95,7 +97,7 @@ final class VerbsTest extends TestCase
         $aggregate = $this->runMake(['ci', 'CI_TARGETS=aggregate'], directory: $directory);
 
         self::assertStringContainsString("[acme/verbs] Running `rector-dry-run`\nrector process", $check);
-        self::assertStringContainsString("[acme/verbs] Running `phpstan`\nphpstan analyze", $check);
+        self::assertStringContainsString("[acme/verbs] Running `phpstan-dry-run`\nphpstan analyze", $check);
         self::assertStringNotContainsString("Running `rector`\n", $check);
         self::assertStringContainsString("[acme/verbs] Running `rector`\nrector process", $fix);
         self::assertStringNotContainsString('Running `_', $fix);
@@ -136,7 +138,7 @@ final class VerbsTest extends TestCase
 
         $this->runMake(['check', 'CI_SUMMARY_FILE=' . $summaryPath], directory: $directory);
 
-        self::assertStringContainsString('| `phpstan` | ✅ |', new Filesystem()->readFile($summaryPath));
+        self::assertStringContainsString('| `phpstan-dry-run` | ✅ |', new Filesystem()->readFile($summaryPath));
     }
 
     public function testAnAnnouncementCanBeRewordedOrSilenced(): void
@@ -145,7 +147,7 @@ final class VerbsTest extends TestCase
         $reworded  = $this->runMake(['check'], ['ANNOUNCEMENT' => '>>> %s'], $directory);
         $silenced  = $this->runMake(['check'], ['ANNOUNCEMENT' => ''], $directory);
 
-        self::assertStringContainsString("[acme/verbs] >>> phpstan\n", $reworded);
+        self::assertStringContainsString("[acme/verbs] >>> phpstan-dry-run\n", $reworded);
         self::assertStringNotContainsString('[acme/verbs]', $silenced);
     }
 
@@ -205,7 +207,7 @@ final class VerbsTest extends TestCase
             $check,
         );
 
-        self::assertMatchesRegularExpression('/Running `phpstan`\nphpstan analyze [^\n]*\nphpstan done/', $check);
+        self::assertMatchesRegularExpression('/Running `phpstan-dry-run`\nphpstan analyze [^\n]*\nphpstan done/', $check);
     }
 
     public function testFindingsAreCountedByTheIdentifierTheyCarry(): void

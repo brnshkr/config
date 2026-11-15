@@ -8,7 +8,7 @@ the linters only when there are files for them to read.
 | --- | --- |
 | `composer` | Runs `composer`. `composer-pack` packs your package into `./.local`. |
 | `php-cs-fixer` | Fixes the PHP coding style. |
-| `phpstan` | Analyzes the PHP code. |
+| `phpstan` | Fixes and analyzes the PHP code. |
 | `phpunit` | Runs the tests with Pest if it is installed, PHPUnit otherwise. |
 | `pest` | Runs the tests with Pest. |
 | `rector` | Refactors the PHP code. |
