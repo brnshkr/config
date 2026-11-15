@@ -3001,7 +3001,8 @@ $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's
 		&& server_url=$${GITHUB_SERVER_URL:-$${remote% *}} \
 		&& repository=$${GITHUB_REPOSITORY:-$${remote#* }} \
 		&& set -f \
-		&& set -- --label "org.opencontainers.image.created=$$($(GIT) log -1 --format=%cI)" --label "org.opencontainers.image.revision=$$($(GIT) rev-parse HEAD)" \
+		&& set -- --label "org.opencontainers.image.created=$$(TZ=UTC0 $(GIT) log -1 --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd)" \
+			--label "org.opencontainers.image.revision=$$($(GIT) rev-parse HEAD)" \
 		&& build_arguments=$$(printf '%s' $(call _quoted,$(foreach ARGUMENT,$(_IMAGE_ARGUMENTS),$(call \
 			_format_build_argument,$(patsubst %=,%,$(ARGUMENT)),$(findstring =,$(ARGUMENT))))) | $(AWK) "$$_IMAGE_ARGUMENTS_AWK") \
 		&& newline=$$(printf '\n_') && IFS=$${newline%_} \
