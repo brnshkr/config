@@ -6225,7 +6225,8 @@ END {
 endef
 
 define _CHANGELOG_AWK_SOURCE
-function sort_pair(keys, values, count,    position, sorted_position, key_held, value_held) {
+function sort_pair(keys, values,    count, position, sorted_position, key_held, value_held) {
+	count = length(keys)
 	for (position = 2; position <= count; position += 1) {
 		key_held = keys[position]
 		value_held = values[position]
@@ -6251,11 +6252,13 @@ function to_readable_scope(scope,    parts, count, index_, word, out) {
 }
 function render(section, label,    position, inner, seconds, second_names, keys, entries, second, out) {
 	out = unscoped_entries[section, label]
+	split("", seconds)
+	split("", second_names)
 	for (position = 1; position <= second_count[section, label]; position += 1) {
 		seconds[position] = second_name[section, label, position]
 		second_names[position] = second_name[section, label, position]
 	}
-	sort_pair(seconds, second_names, second_count[section, label])
+	sort_pair(seconds, second_names)
 	for (position = 1; position <= second_count[section, label]; position += 1) {
 		second = seconds[position]
 		if (out != "") out = out "\n"
@@ -6266,7 +6269,7 @@ function render(section, label,    position, inner, seconds, second_names, keys,
 			keys[inner] = sub_key[section, label, second, inner]
 			entries[inner] = sub_entry[section, label, second, inner]
 		}
-		sort_pair(keys, entries, sub_count[section, label, second])
+		sort_pair(keys, entries)
 		for (inner = 1; inner <= sub_count[section, label, second]; inner += 1) out = out entries[inner] "\n"
 	}
 	return out
