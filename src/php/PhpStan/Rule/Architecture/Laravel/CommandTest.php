@@ -12,8 +12,8 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Laravel Artisan command placement and base class.
  *
- * Classes named `*Command` or extending `Illuminate\Console\Command` must live under
- * `<root>\Console\Commands`, and every class in that folder must extend the base command.
+ * Classes extending `Illuminate\Console\Command` must live under `<root>\Console\Commands`, and every
+ * class in that folder must extend the base command.
  *
  * @api
  *
@@ -50,7 +50,7 @@ final readonly class CommandTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Command'), Selector::extends('Illuminate\Console\Command')],
+                [Selector::extends('Illuminate\Console\Command')],
                 'Console\Commands',
                 'Artisan commands',
             );

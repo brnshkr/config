@@ -12,8 +12,8 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Laravel form request placement and base class.
  *
- * Classes named `*Request` or extending `Illuminate\Foundation\Http\FormRequest` must live
- * under `<root>\Http\Requests`, and every `*Request` in that folder must extend FormRequest.
+ * Classes extending `Illuminate\Foundation\Http\FormRequest` must live under `<root>\Http\Requests`,
+ * and every `*Request` in that folder must extend FormRequest.
  *
  * @api
  *
@@ -50,7 +50,7 @@ final readonly class RequestTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Request'), Selector::extends('Illuminate\Foundation\Http\FormRequest')],
+                [Selector::extends('Illuminate\Foundation\Http\FormRequest')],
                 'Http\Requests',
                 'Form requests',
             );

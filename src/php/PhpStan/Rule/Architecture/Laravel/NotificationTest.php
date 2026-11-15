@@ -12,9 +12,8 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Laravel notification placement and base class.
  *
- * Classes named `*Notification` or extending `Illuminate\Notifications\Notification` must
- * live under `<root>\Notifications`, and every `*Notification` in that folder must extend
- * the base notification.
+ * Classes extending `Illuminate\Notifications\Notification` must live under `<root>\Notifications`,
+ * and every `*Notification` in that folder must extend the base notification.
  *
  * @api
  *
@@ -51,7 +50,7 @@ final readonly class NotificationTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Notification'), Selector::extends('Illuminate\Notifications\Notification')],
+                [Selector::extends('Illuminate\Notifications\Notification')],
                 'Notifications',
                 'Notifications',
             );

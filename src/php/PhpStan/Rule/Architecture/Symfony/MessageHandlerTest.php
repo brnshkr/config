@@ -12,9 +12,9 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Symfony Messenger handler placement and HTTP isolation.
  *
- * Classes named `*Handler` or annotated with `#[AsMessageHandler]` must live under
- * `<root>\MessageHandler`, and handlers may not depend on `Symfony\Component\HttpFoundation` —
- * handlers run outside the HTTP lifecycle (workers, schedulers, etc.).
+ * Classes annotated with `#[AsMessageHandler]` must live under `<root>\MessageHandler`, and handlers
+ * may not depend on `Symfony\Component\HttpFoundation` — handlers run outside the HTTP lifecycle
+ * (workers, schedulers, etc.).
  *
  * @api
  *
@@ -51,10 +51,7 @@ final readonly class MessageHandlerTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [
-                    self::selectByClassnameSuffix('Handler'),
-                    Selector::appliesAttribute('Symfony\Component\Messenger\Attribute\AsMessageHandler'),
-                ],
+                [Selector::appliesAttribute('Symfony\Component\Messenger\Attribute\AsMessageHandler')],
                 'MessageHandler',
                 'Messenger handlers',
             );

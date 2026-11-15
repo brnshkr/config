@@ -13,8 +13,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 /**
  * Enforce Symfony event listener placement.
  *
- * Classes named `*Listener` or annotated with `#[AsEventListener]` must live under
- * `<root>\EventListener`.
+ * Classes annotated with `#[AsEventListener]` must live under `<root>\EventListener`.
  *
  * @api
  *
@@ -51,7 +50,7 @@ final readonly class EventListenerTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Listener'), Selector::appliesAttribute(AsEventListener::class)],
+                [Selector::appliesAttribute(AsEventListener::class)],
                 'EventListener',
                 'Event listeners',
             );

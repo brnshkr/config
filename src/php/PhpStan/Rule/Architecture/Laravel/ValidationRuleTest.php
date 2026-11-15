@@ -12,8 +12,8 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Laravel validation rule placement and contract.
  *
- * Classes named `*Rule` or implementing `Illuminate\Contracts\Validation\ValidationRule`
- * must live under `<root>\Rules`, and every `*Rule` in that folder must implement the contract.
+ * Classes implementing `Illuminate\Contracts\Validation\ValidationRule` must live under `<root>\Rules`,
+ * and every `*Rule` in that folder must implement the contract.
  *
  * @api
  *
@@ -50,7 +50,7 @@ final readonly class ValidationRuleTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Rule'), Selector::implements('Illuminate\Contracts\Validation\ValidationRule')],
+                [Selector::implements('Illuminate\Contracts\Validation\ValidationRule')],
                 'Rules',
                 'Validation rules',
             );

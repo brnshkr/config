@@ -12,9 +12,9 @@ use PHPat\Test\Builder\BuildStep;
 /**
  * Enforce Laravel queue job placement, contract and HTTP isolation.
  *
- * Classes named `*Job` or implementing `Illuminate\Contracts\Queue\ShouldQueue` must live
- * under `<root>\Jobs`, every `*Job` in that folder must implement `ShouldQueue`, and jobs
- * may not depend on `Illuminate\Http` — they run outside the HTTP request lifecycle.
+ * Classes implementing `Illuminate\Contracts\Queue\ShouldQueue` must live under `<root>\Jobs`, every
+ * `*Job` in that folder must implement `ShouldQueue`, and jobs may not depend on `Illuminate\Http` —
+ * they run outside the HTTP request lifecycle.
  *
  * @api
  *
@@ -51,7 +51,7 @@ final readonly class JobTest
         foreach ($this->roots as $root) {
             yield self::buildPlacementRule(
                 $root,
-                [self::selectByClassnameSuffix('Job'), Selector::implements('Illuminate\Contracts\Queue\ShouldQueue')],
+                [Selector::implements('Illuminate\Contracts\Queue\ShouldQueue')],
                 'Jobs',
                 'Queue jobs',
             );
