@@ -155,6 +155,16 @@ With a stage and a service both named `worker`, `make worker-build` runs `build`
 and `make worker-worker-build` builds the service.
 With a `.env.test`, the tests always run with `APP_ENV=test`, whether you type `make test`, `make ci`, or `make phpunit`.
 
+## Deploy
+
+A stage file that sets `DEPLOY_HOSTS` gives you [Forge's deploy](https://github.com/brnshkr/forge/blob/HEAD/docs/deploy/index.md)
+for that stage:
+
+```sh
+make production-deploy VERSION=1.2.3  # deploys a published version
+make production-deploy-rollback       # goes back one release
+```
+
 ## Changelog
 
 `make changelog` builds the changelog from your commit messages, grouped by scope.

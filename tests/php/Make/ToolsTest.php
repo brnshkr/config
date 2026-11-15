@@ -36,6 +36,7 @@ final class ToolsTest extends TestCase
     private const string SETTINGS_DIRECTORY      = __DIR__ . '/../Fixtures/Make/Settings';
     private const string COMPOSER_DIRECTORY      = __DIR__ . '/../Fixtures/Make/ComposerDirectories';
     private const string GITHUB_EVENTS_DIRECTORY = __DIR__ . '/../Fixtures/Make/GitHubEvents';
+    private const string DEPLOY_DIRECTORY        = __DIR__ . '/../Fixtures/Make/Deploy';
 
     #[Before]
     #[After]
@@ -423,6 +424,23 @@ final class ToolsTest extends TestCase
         self::assertStringNotContainsString('ls-files -z --cached --deduplicate', $configured);
         self::assertStringContainsString('buildx build --platform=linux/arm64 --push -f \'./docker/app.Dockerfile\'', $configured);
         self::assertStringContainsString('-t \'registry.acme.internal/shop:1.0.0\' \'docker\'', $configured);
+    }
+
+    public function testDeployRunsForgesScriptAgainstTheStage(): void
+    {
+        $deployDirectory = $this->getFixtureCopy(self::DEPLOY_DIRECTORY);
+        $env             = ['PATH' => $deployDirectory . '/bin:' . Str::fromEnvironment('PATH')];
+
+        $rollback  = $this->runMake(['production-deploy-rollback'], $env, $deployDirectory);
+        $versioned = $this->runMake(['production-deploy', 'VERSION=1.2.3'], $env, $deployDirectory);
+        $unstaged  = $this->runMake(['deploy'], $env, $deployDirectory, doExpectFailure: true);
+
+        self::assertStringContainsString('deploy.sh rollback production', $rollback);
+        self::assertStringContainsString('DEPLOY_DOTENV_BASE=' . $deployDirectory . '/.env', $rollback);
+        self::assertStringContainsString("VERSION=\n", $rollback);
+        self::assertStringContainsString('deploy.sh deploy production', $versioned);
+        self::assertStringContainsString('VERSION=1.2.3', $versioned);
+        self::assertStringContainsString('`DEPLOY_HOSTS` is empty, so run it in a stage that names hosts', $unstaged);
     }
 
     public function testSemgrepResolvesItsRulesets(): void

@@ -1212,6 +1212,15 @@ _HAS_ASSET_MAPPER    = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR
 _HAS_SYMFONY         = $(and $(_HAS_PHP),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/symfony/http-kernel))
 _HAS_AUDIT           = $(or $(_HAS_COMPOSER_AUDIT),$(_HAS_BUN_AUDIT))
 
+_DOTENV_PATHS := $(if $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).local $(foreach \
+	STAGE,$(DOTENV_STAGES),$(_DOTENV_BASE).$(STAGE) $(_DOTENV_BASE).$(STAGE).local)))
+
+_DOTENV_FEATURES := $(if $(_IS_DETECTED_BY_PARENT),$(_DOTENV_FEATURES),$(if $(_DOTENV_PATHS),$(shell $(AWK) ' \
+	/^[\t ]*(export[\t ]+)?DEPLOY_HOSTS=./ { has_deploy = 1 } \
+	END { if (has_deploy) print "deploy" }' $(_DOTENV_PATHS))))
+
+_HAS_DEPLOY = $(filter deploy,$(_DOTENV_FEATURES))
+
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
 	$(CURDIR)/node_modules/@vitest/coverage-istanbul \
@@ -1352,6 +1361,7 @@ _HAS_DIST        := $(or $(_HAS_ASSET_MAPPER),$(_HAS_BUN_BUILD),$(DIST_TARGETS))
 export _BRNSHKR_DETECTED_IN := $(CURDIR)
 export _COMPOSE_SERVICES
 export _DETECTED_EDITOR
+export _DOTENV_FEATURES
 export _HAS_ACTIONLINT
 export _HAS_DOCKER
 export _HAS_HADOLINT
@@ -3020,6 +3030,53 @@ $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's
 		&& if [ -f $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) ]; then \
 			sh $(call _quoted,$(dir $(_IMAGE_DOCKERFILE))verify.sh) $(call _quoted,$(IMAGE_REFERENCE)) $(call _quoted,$(IMAGE_NAME)) $(call _quoted,$(IMAGE_TARGET)); \
 		fi)
+
+#---v deploy
+
+ifneq ($(_HAS_DEPLOY),) # deploy
+
+_DEPLOY_SCRIPT = $(_CACHE_DIR)/deploy.sh
+
+#**
+#* The call running forge's `deploy.sh` with an action against the current stage.
+#*
+#* parameters:
+#*   action: string
+#*
+#* returns: string
+#*
+define _deploy
+DEPLOY_DOTENV_BASE=$(call _quoted,$(_DOTENV_BASE)) sh '$(_DEPLOY_SCRIPT)' $1 $(call _quoted,$(_CURRENT_ENV))
+endef
+
+_$(_TARGET_PREFIX)deploy-script:
+	$(if $(DEPLOY_HOSTS),,$(error [$(_LABEL)] `DEPLOY_HOSTS` is empty, so run it in a stage that names hosts, e.g. `make production-deploy`))
+	$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
+	$(DEBUG_PREFIX)$(MKDIR) -p '$(_CACHE_DIR)' && $(DOCKER) run --rm --entrypoint cat \
+		$(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) /usr/local/share/forge/deploy.sh >'$(_DEPLOY_SCRIPT)'
+
+$(call _target,deploy): _$(_TARGET_PREFIX)deploy-script #~~ deploys `VERSION` to the stage's `DEPLOY_HOSTS`
+	$(DEBUG_PREFIX)$(call _deploy,deploy)
+
+$(call _target,deploy-remove): _$(_TARGET_PREFIX)deploy-script #~~ takes the stage off its servers
+	$(DEBUG_PREFIX)$(call _deploy,remove)
+
+$(call _target,deploy-restart): _$(_TARGET_PREFIX)deploy-script #~~ recreates the stage's application, e.g. after a `shared/` change
+	$(DEBUG_PREFIX)$(call _deploy,restart)
+
+$(call _target,deploy-restore): _$(_TARGET_PREFIX)deploy-script #~~ restores the databases from before the current release
+	$(DEBUG_PREFIX)$(call _deploy,restore)
+
+$(call _target,deploy-rollback): _$(_TARGET_PREFIX)deploy-script #~~ goes back one release, further with each call
+	$(DEBUG_PREFIX)$(call _deploy,rollback)
+
+$(call _target,deploy-shared): _$(_TARGET_PREFIX)deploy-script #~~ recreates the services the stage's servers share
+	$(DEBUG_PREFIX)$(call _deploy,shared)
+
+$(call _target,deploy-unlock): _$(_TARGET_PREFIX)deploy-script #~~ clears the lock a killed deploy left
+	$(DEBUG_PREFIX)$(call _deploy,unlock)
+
+endif # /deploy
 
 #---v dependencies
 
