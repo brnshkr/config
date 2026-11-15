@@ -165,6 +165,20 @@ make production-deploy VERSION=1.2.3  # deploys a published version
 make production-deploy-rollback       # goes back one release
 ```
 
+## Sites
+
+`make sites` writes the sites of [Forge's web server](https://github.com/brnshkr/forge/blob/HEAD/docs/images/web-server.md)
+from your stage files into `./conf/caddy/<stage>/`:
+
+```ini
+# ./.env.production
+
+CADDY_SITE_ADMIN="admin.example.com, www.admin.example.com"
+CADDY_SITE_ADMIN_HANDLER="reverse_proxy acme-admin:8080"
+```
+
+`admin.example.com` is served, and `www.admin.example.com` redirects to it.
+
 ## Changelog
 
 `make changelog` builds the changelog from your commit messages, grouped by scope.

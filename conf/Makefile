@@ -1217,9 +1217,11 @@ _DOTENV_PATHS := $(if $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE)
 
 _DOTENV_FEATURES := $(if $(_IS_DETECTED_BY_PARENT),$(_DOTENV_FEATURES),$(if $(_DOTENV_PATHS),$(shell $(AWK) ' \
 	/^[\t ]*(export[\t ]+)?DEPLOY_HOSTS=./ { has_deploy = 1 } \
-	END { if (has_deploy) print "deploy" }' $(_DOTENV_PATHS))))
+	/^[\t ]*(export[\t ]+)?CADDY_SITE_[0-9A-Z_]+=./ { has_sites = 1 } \
+	END { if (has_deploy) print "deploy"; if (has_sites) print "sites" }' $(_DOTENV_PATHS))))
 
 _HAS_DEPLOY = $(filter deploy,$(_DOTENV_FEATURES))
+_HAS_SITES  = $(filter sites,$(_DOTENV_FEATURES))
 
 _HAS_VITEST_COVERAGE = $(firstword $(wildcard \
 	$(CURDIR)/node_modules/@vitest/coverage-v8 \
@@ -3077,6 +3079,54 @@ $(call _target,deploy-unlock): _$(_TARGET_PREFIX)deploy-script #~~ clears the lo
 	$(DEBUG_PREFIX)$(call _deploy,unlock)
 
 endif # /deploy
+
+#---v sites
+
+ifneq ($(_HAS_SITES),) # sites
+
+_SITES_DIR  = $(_CONFIG_DIR)/caddy/$(_CURRENT_ENV)
+_SITE_NAMES = $(foreach KEY,$(filter-out %_HANDLER,$(filter CADDY_SITE_%,$(_DOTENV_KEYS))),$(if $($(KEY)),$(KEY:CADDY_SITE_%=%)))
+
+#**
+#* The addresses a site's `CADDY_SITE_<NAME>` lists, its main one first.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: list<string>
+#*
+define _get_site_addresses
+$(subst $(_COMMA), ,$(CADDY_SITE_$1))
+endef
+
+#**
+#* The command writing a site's Caddyfile, its first address serving and the others redirecting to it.
+#*
+#* parameters:
+#*   name: string
+#*
+#* returns: string
+#*
+define _write_site
+$(if $(CADDY_SITE_$1_HANDLER),,$(error [$(_LABEL)] `CADDY_SITE_$1_HANDLER` is empty, so set the directive \
+	`CADDY_SITE_$1` serves, e.g. `reverse_proxy acme-admin:8080`))file=$(call _quoted,$(_SITES_DIR))/$$(printf '%s' '$1' \
+	| $(TR) '[:upper:]_' '[:lower:]-').caddyfile \
+	&& printf '%s {\n\timport forge-headers\n\t%s\n}\n' $(call _quoted,$(firstword $(call _get_site_addresses,$1))) \
+		$(call _quoted,$(CADDY_SITE_$1_HANDLER)) >"$$file" \
+	$(if $(word 2,$(call _get_site_addresses,$1)),&& printf '\n%s {\n\tredir {scheme}://%s{uri} permanent\n}\n' \
+		$(call _quoted,$(subst $(_SPACE),$(_COMMA)$(_SPACE),$(wordlist 2,$(words $(call _get_site_addresses,$1)),$(call \
+		_get_site_addresses,$1)))) \
+		$(call _quoted,$(firstword $(call _get_site_addresses,$1))) >>"$$file")
+endef
+
+_$(_TARGET_PREFIX)sites-stage:
+	$(DEBUG_PREFIX)$(RM) -f $(call _quoted,$(_SITES_DIR))/*.caddyfile $(if $(_SITE_NAMES),&& $(MKDIR) -p $(call _quoted,$(_SITES_DIR)) \
+		$(foreach NAME,$(_SITE_NAMES),&& $(call _write_site,$(NAME))))
+
+$(call _target,sites): #~~ writes the Caddy sites each stage's `CADDY_SITE_*` names
+	+$(DEBUG_PREFIX)$(foreach STAGE,$(_CONFIG_STAGES),$(call _run_in_stage,$(STAGE),_$(_TARGET_PREFIX)sites-stage) && ):
+
+endif # /sites
 
 #---v dependencies
 
