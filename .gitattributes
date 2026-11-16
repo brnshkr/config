@@ -41,7 +41,8 @@
 /conf/editorconfig.dist                -export-ignore
 /conf/gitattributes.dist               -export-ignore
 /conf/hadolint.dist.yaml               -export-ignore
-/conf/launch.dist.json                 -export-ignore
+/conf/launch.dist.jsonc                -export-ignore
+/conf/launch.php.dist.jsonc            -export-ignore
 /conf/php-cs-fixer.dist.php            -export-ignore
 /conf/phpstan                          -export-ignore
 /conf/phpstan.dist.php                 -export-ignore

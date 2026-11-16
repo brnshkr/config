@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\Make;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
 use PHPUnit\Framework\Attributes\After;
@@ -140,6 +141,18 @@ final class ConfigsTest extends TestCase
 
         self::assertStringNotContainsString('svelte.svelte-vscode', $withoutSvelte);
         self::assertStringContainsString("    // Frameworks\n    \"svelte.svelte-vscode\"\n", new Filesystem()->readFile($extensionsPath));
+    }
+
+    public function testTheLaunchConfigurationsFollowTheStacks(): void
+    {
+        $configsDirectory    = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $typescriptDirectory = $this->getFixtureCopy(self::TSCONFIG_DIRECTORY);
+
+        $this->runMake(['configs', 'launch'], directory: $configsDirectory);
+        $this->runMake(['configs', 'launch'], directory: $typescriptDirectory);
+
+        self::assertSame(['PHP: listen for Xdebug'], self::readLaunchNames($configsDirectory));
+        self::assertSame(['Bun: attach', 'Bun: launch current file'], self::readLaunchNames($typescriptDirectory));
     }
 
     public function testAComposerProjectWithoutMarkersGetsTheBlockAheadOfItsOwnLines(): void
@@ -703,6 +716,22 @@ final class ConfigsTest extends TestCase
     private static function getPackageFullName(): string
     {
         return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('Package name not found in "composer.json".');
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private static function readLaunchNames(string $directory): array
+    {
+        $launch = Json::decode(Str::replaceMatches(
+            new Filesystem()->readFile($directory . '/.vscode/launch.json'),
+            '/^ *\/\/[^\n]*$/m',
+            static fn (): string => '',
+        ));
+
+        self::assertIsArray($launch['configurations'] ?? null);
+
+        return array_column($launch['configurations'], 'name');
     }
 
     /**

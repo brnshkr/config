@@ -1,6 +1,25 @@
 {
   "version": "0.2.0",
   "configurations": [
+    // ###> brnshkr/config ###
+    // Bun
+    {
+      "name": "Bun: attach",
+      "type": "bun",
+      "request": "attach",
+      "url": "ws://localhost:6499/"
+    },
+    {
+      "name": "Bun: launch current file",
+      "type": "bun",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${file}",
+      "runtimeArgs": ["--bun"],
+      "stopOnEntry": false
+    },
+
+    // PHP
     {
       "name": "PHP: listen for Xdebug",
       "type": "php",
@@ -11,23 +30,7 @@
         "/app": "${workspaceFolder}",
         "${workspaceFolder}": "${workspaceFolder}"
       }
-    },
-    {
-      "name": "Bun: attach",
-      "type": "bun",
-      "request": "attach",
-      "url": "ws://localhost:6499/",
-      "localRoot": "${workspaceFolder}",
-      "remoteRoot": "/app"
-    },
-    {
-      "name": "Bun: launch current file",
-      "type": "bun",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "program": "${file}",
-      "runtimeArgs": ["--bun"],
-      "stopOnEntry": false
     }
+    // ###< brnshkr/config ###
   ]
 }

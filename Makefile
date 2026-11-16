@@ -15,7 +15,8 @@ ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/editorconfig.dist \
 	./conf/gitattributes.dist \
 	./conf/hadolint.dist.yaml \
-	./conf/launch.dist.json \
+	./conf/launch.dist.jsonc \
+	./conf/launch.php.dist.jsonc \
 	./conf/php-cs-fixer.dist.php \
 	./conf/phpstan/ \
 	./conf/phpstan.dist.php \

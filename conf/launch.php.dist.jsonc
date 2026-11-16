@@ -1,0 +1,16 @@
+{
+  "configurations": [
+    // PHP
+    {
+      "name": "PHP: listen for Xdebug",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "log": false,
+      "pathMappings": {
+        "/app": "${workspaceFolder}",
+        "${workspaceFolder}": "${workspaceFolder}"
+      }
+    }
+  ]
+}

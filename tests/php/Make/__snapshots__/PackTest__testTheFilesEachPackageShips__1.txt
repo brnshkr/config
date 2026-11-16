@@ -8,7 +8,8 @@ conf/actionlint.dist.yaml
 conf/editorconfig.dist
 conf/gitattributes.dist
 conf/hadolint.dist.yaml
-conf/launch.dist.json
+conf/launch.dist.jsonc
+conf/launch.php.dist.jsonc
 conf/php-cs-fixer.dist.php
 conf/phpstan.dist.php
 conf/phpstan/console-application.php
@@ -165,7 +166,8 @@ conf/editorconfig.dist
 conf/eslint.dist.mjs
 conf/gitattributes.dist
 conf/hadolint.dist.yaml
-conf/launch.dist.json
+conf/launch.dist.jsonc
+conf/launch.js.dist.jsonc
 conf/markdownlint.dist.mjs
 conf/semgrep.dist.yaml
 conf/shellcheckrc.dist

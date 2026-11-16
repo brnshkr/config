@@ -1767,6 +1767,7 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 	$(CURDIR)/.editorconfig|$(_BRNSHKR_CONFIG_DIR)/editorconfig.dist \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
+	$(CURDIR)/.vscode/launch.json|$(_BRNSHKR_CONFIG_DIR)/launch.dist.jsonc \
 	$(_CSS_DATA_CONFIGS) \
 	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_JS_CONFIG_DIR)/bunfig.dist.toml)) \
 	$(if $(wildcard $(CURDIR)/composer.json),$(CURDIR)/composer.json|) \
@@ -4484,6 +4485,10 @@ case "$$config_path" in \
 		$(if $(strip $(_EDITOR_EXTENSIONS)),printf '%s\n' '' '    // Frameworks' $(_EDITOR_EXTENSIONS) >>"$$body_path";) \
 		block_anchor='"recommendations"'; block_indent='    '; comment_prefix='// '; \
 		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' <"$$config_path")" ] || printf '%s\n' '{' '  "recommendations": [' '  ]' '}' >"$$config_path";; \
+	*/launch.json) $(call _append_stack_entries,2); \
+		block_anchor='"configurations"'; block_indent='    '; comment_prefix='// '; deduplication_mode=; \
+		[ -f "$$config_path" ] && [ -n "$$($(TR) -d '{}[:space:]' <"$$config_path")" ] \
+			|| printf '%s\n' '{' '  "version": "0.2.0",' '  "configurations": [' '  ]' '}' >"$$config_path";; \
 	*/Makefile) $(AWK) '/^###< brnshkr\/config ###$$/ { is_inside = 0; print } is_inside { print } /^###> brnshkr\/config ###$$/ { is_inside = 1 }' \
 		"$$template_path" >"$$body_path"; deduplication_mode=;; \
 	*) is_whole_file=1;; \
