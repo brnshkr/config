@@ -11,7 +11,7 @@ import {
   publicApiDocumentationRule,
 } from '#eslint/configs/builtin/public-api-documentation.ts';
 
-import { clearPublicApiResolutionCache } from '#eslint/utils/public-api.ts';
+import { clearPublicApiResolutionCache } from '#eslint/utils/package/public-api.ts';
 
 import {
   createRuleCaseBuilders,

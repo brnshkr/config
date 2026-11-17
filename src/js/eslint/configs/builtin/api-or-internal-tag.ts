@@ -2,16 +2,15 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { buildExportVisitors } from '#eslint/utils/exports.ts';
-
 import {
   findFileLevelComment,
   getEffectiveVisibilityTag,
   hasConflictingVisibilityTags,
 } from '#eslint/utils/jsdoc.ts';
 
-import { isPublicApiFile } from '#eslint/utils/public-api.ts';
-import { getPackageExportsResolverOptions, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { buildExportVisitors } from '#eslint/utils/package/exported-symbols.ts';
+import { isPublicApiFile } from '#eslint/utils/package/public-api.ts';
+import { getPackageExportsResolverOptions, toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 

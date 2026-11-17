@@ -9,12 +9,12 @@ import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName } from '#eslint/utils/config.ts';
 import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
-import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
+import { rewriteRuleReports } from '#eslint/utils/rule/reports.ts';
 import { doesFileExist } from '#shared/utils/filesystem.ts';
 import { TERMS } from '#shared/utils/terms.ts';
 
 import type { Config } from '#eslint/types/config.ts';
-import type { ReportRewrite } from '#eslint/utils/rule-reports.ts';
+import type { ReportRewrite } from '#eslint/utils/rule/reports.ts';
 
 export const FILE_NAMES_TO_IGNORE = <const>[
   '__mocks__',

@@ -2,7 +2,7 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';

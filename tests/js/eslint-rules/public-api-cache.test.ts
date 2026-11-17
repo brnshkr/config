@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { expect, test } from 'vitest';
 
-import { isPublicApiFile } from '#eslint/utils/public-api.ts';
+import { isPublicApiFile } from '#eslint/utils/package/public-api.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 import { makeDirectory, setModificationTime, writeText } from '#tests/utils/filesystem.ts';
 

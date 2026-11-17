@@ -4,10 +4,10 @@
 
 import path from 'node:path';
 
-import { resolvePackageApiSources } from '#eslint/utils/package-exports.ts';
+import { resolvePackageApiSources } from '#eslint/utils/package/exports.ts';
 import { findNearestPackageJson, getMtime, toPosix } from '#shared/utils/filesystem.ts';
 
-import type { PackageExportsResolution, PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
+import type { PackageExportsResolution, PackageExportsResolverOptions } from '#eslint/utils/package/exports.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 interface ResolutionCacheEntry {

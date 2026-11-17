@@ -3,7 +3,7 @@
  */
 
 import { isBlockComment } from '#eslint/utils/jsdoc.ts';
-import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';

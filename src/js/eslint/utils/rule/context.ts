@@ -4,7 +4,7 @@
 
 import type { ParserServicesWithTypeInformation, TSESLint } from '@typescript-eslint/utils';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
-import type { PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
+import type { PackageExportsResolverOptions } from '#eslint/utils/package/exports.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 export const toTypeScriptContext = (

@@ -11,7 +11,7 @@ import {
   PREDICATE_PREFIXES,
   RESERVED_METHOD_PREFIXES,
   RESERVED_VALUE_PREFIXES,
-} from '#eslint/utils/boolish-prefixes.ts';
+} from '#eslint/utils/boolish/prefixes.ts';
 
 import { extractPhpListConstant, readPhpRuleSource } from '#tests/utils/php-rule.ts';
 

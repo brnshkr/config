@@ -4,7 +4,7 @@
 
 import path from 'node:path';
 
-import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { loadPackageImports } from '#eslint/utils/package/imports.ts';
 import { loadTsConfigCustomConditions, loadTsConfigPaths, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 import { toPosix } from '#shared/utils/filesystem.ts';
 import { objectEntries } from '#shared/utils/object.ts';

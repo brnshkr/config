@@ -12,7 +12,7 @@ import {
   resolvePackages,
 } from '#eslint/utils/module.ts';
 
-import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
+import { rewriteRuleReports } from '#eslint/utils/rule/reports.ts';
 import { getAnyDescriptorAtRules, getScopingRootAtRules, mergeDialects } from '#shared/utils/dialect.ts';
 import { objectEntries, objectFromEntries, objectKeys } from '#shared/utils/object.ts';
 import { TAILWIND_DIALECT } from '#shared/utils/tailwind.ts';

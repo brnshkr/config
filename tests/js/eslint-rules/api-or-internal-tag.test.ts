@@ -10,7 +10,7 @@ import {
 } from '#eslint/configs/builtin/api-or-internal-tag.ts';
 
 import { TAG_API, TAG_INTERNAL } from '#eslint/utils/jsdoc.ts';
-import { clearPublicApiResolutionCache } from '#eslint/utils/public-api.ts';
+import { clearPublicApiResolutionCache } from '#eslint/utils/package/public-api.ts';
 import { extractPhpStringConstants, readPhpRuleSource } from '#tests/utils/php-rule.ts';
 import { createRuleCaseBuilders, runJsRuleTests, runTsRuleTests } from '#tests/utils/rule-tester.ts';
 

@@ -2,12 +2,12 @@
  * @internal @brnshkr/config/eslint
  */
 
-import { toTypeScriptContext } from '#eslint/utils/rule-context.ts';
-import { ERROR_KIND_THROWS } from '#eslint/utils/thrown-error-types.ts';
-import { ERROR_TAG_RULE_SCHEMA, reportMissingErrorTypes } from '#eslint/utils/thrown-errors.ts';
+import { toTypeScriptContext } from '#eslint/utils/rule/context.ts';
+import { ERROR_TAG_RULE_SCHEMA, reportMissingErrorTypes } from '#eslint/utils/thrown-errors/report.ts';
+import { ERROR_KIND_THROWS } from '#eslint/utils/thrown-errors/types.ts';
 
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
-import type { FunctionNode } from '#eslint/utils/thrown-error-walker.ts';
+import type { FunctionNode } from '#eslint/utils/thrown-errors/walker.ts';
 
 export const MESSAGE_ID_MISSING_THROWS = 'missingThrows';
 

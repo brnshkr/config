@@ -3,11 +3,11 @@
  */
 
 import { extractBlockComment } from '#eslint/utils/jsdoc.ts';
-import { getDeclaredTypeNames, UNKNOWN_TYPE_NAME } from '#eslint/utils/thrown-error-types.ts';
-import { collectThrownErrors, getDocumentationHost, isInlineCallback } from '#eslint/utils/thrown-error-walker.ts';
+import { getDeclaredTypeNames, UNKNOWN_TYPE_NAME } from '#eslint/utils/thrown-errors/types.ts';
+import { collectThrownErrors, getDocumentationHost, isInlineCallback } from '#eslint/utils/thrown-errors/walker.ts';
 
-import type { ErrorKind } from '#eslint/utils/thrown-error-types.ts';
-import type { FunctionNode, RuleContext } from '#eslint/utils/thrown-error-walker.ts';
+import type { ErrorKind } from '#eslint/utils/thrown-errors/types.ts';
+import type { FunctionNode, RuleContext } from '#eslint/utils/thrown-errors/walker.ts';
 
 interface ErrorTagRuleOptions {
   uncheckedErrors?: string[];

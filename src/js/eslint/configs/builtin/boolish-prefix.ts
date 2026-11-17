@@ -12,7 +12,7 @@ import {
   hasExternalUpstreamMember,
   resolveReturnType,
   TYPE_CLASSIFICATIONS,
-} from '#eslint/utils/boolish-classification.ts';
+} from '#eslint/utils/boolish/classification.ts';
 
 import {
   getPrefixesForKind,
@@ -24,14 +24,14 @@ import {
   KIND_PARAMETER,
   KIND_PROPERTY,
   KIND_VARIABLE,
-} from '#eslint/utils/boolish-prefixes.ts';
+} from '#eslint/utils/boolish/prefixes.ts';
 
-import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 
 import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
-import type { TypeClassification } from '#eslint/utils/boolish-classification.ts';
+import type { TypeClassification } from '#eslint/utils/boolish/classification.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_PREFIX = 'missingPrefix';

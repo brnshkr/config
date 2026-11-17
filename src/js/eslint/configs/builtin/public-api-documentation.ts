@@ -13,8 +13,6 @@ import {
   resolveFunctionShape,
 } from '#eslint/utils/ast.ts';
 
-import { buildExportVisitors } from '#eslint/utils/exports.ts';
-
 import {
   extractBlockComment,
   getEffectiveVisibilityTag,
@@ -29,13 +27,14 @@ import {
   TAG_INTERNAL,
 } from '#eslint/utils/jsdoc.ts';
 
-import { isPublicApiFile } from '#eslint/utils/public-api.ts';
-import { getPackageExportsResolverOptions, getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { buildExportVisitors } from '#eslint/utils/package/exported-symbols.ts';
+import { isPublicApiFile } from '#eslint/utils/package/public-api.ts';
+import { getPackageExportsResolverOptions, getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
-import type { ExportedSymbol } from '#eslint/utils/exports.ts';
+import type { ExportedSymbol } from '#eslint/utils/package/exported-symbols.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 export const MESSAGE_ID_MISSING_DESCRIPTION = 'missingDescription';

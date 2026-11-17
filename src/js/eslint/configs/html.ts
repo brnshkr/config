@@ -16,7 +16,7 @@ import {
 } from '#eslint/utils/globs.ts';
 
 import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
-import { rewriteRuleReports } from '#eslint/utils/rule-reports.ts';
+import { rewriteRuleReports } from '#eslint/utils/rule/reports.ts';
 import { INDENT, MAX_EMPTY_LINES, MAX_LEN } from '#shared/utils/constants.ts';
 import { GLOB_BLADE, GLOB_HTML_PHP, GLOB_PHTML } from '#shared/utils/globs.ts';
 
@@ -30,7 +30,7 @@ import {
 import type { Rule } from 'eslint';
 import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 import type { Config } from '#eslint/types/config.ts';
-import type { ReportRewrite } from '#eslint/utils/rule-reports.ts';
+import type { ReportRewrite } from '#eslint/utils/rule/reports.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 const TEMPLATE_ENGINES = <const>{

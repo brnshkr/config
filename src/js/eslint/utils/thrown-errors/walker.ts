@@ -3,7 +3,7 @@
  */
 
 import { readCommentText } from '#eslint/utils/jsdoc.ts';
-import { getTypeInformation } from '#eslint/utils/rule-context.ts';
+import { getTypeInformation } from '#eslint/utils/rule/context.ts';
 
 import {
   ERROR_KIND_REJECTS,
@@ -12,11 +12,11 @@ import {
   getThrownTypes,
   isUncheckedType,
   resolveDeclaredType,
-} from '#eslint/utils/thrown-error-types.ts';
+} from '#eslint/utils/thrown-errors/types.ts';
 
 import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
 import type ts from 'typescript';
-import type { ErrorKind, ThrownError, ThrownType } from '#eslint/utils/thrown-error-types.ts';
+import type { ErrorKind, ThrownError, ThrownType } from '#eslint/utils/thrown-errors/types.ts';
 import type { Maybe } from '#shared/types/core.ts';
 
 export type FunctionNode = TSESTree.ArrowFunctionExpression

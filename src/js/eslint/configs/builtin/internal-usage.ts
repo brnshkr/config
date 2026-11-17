@@ -10,8 +10,8 @@ import {
   TAG_INTERNAL,
 } from '#eslint/utils/jsdoc.ts';
 
-import { loadPackageImports } from '#eslint/utils/package-imports.ts';
-import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule-context.ts';
+import { loadPackageImports } from '#eslint/utils/package/imports.ts';
+import { getTypeInformation, toTypeScriptContext } from '#eslint/utils/rule/context.ts';
 import { loadTsConfigCustomConditions, loadTsConfigPaths } from '#eslint/utils/tsconfig.ts';
 import { compileConfiguredPattern } from '#shared/utils/configured-pattern.ts';
 
