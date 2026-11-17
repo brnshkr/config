@@ -32,6 +32,7 @@ export const GLOB_HANDLEBARS = '**/*.{handlebars,hbs}';
 export const GLOB_NUNJUCKS = '**/*.{njk,nunjucks}';
 export const GLOB_PHP_HTML_BLOCKS = '**/*.php/*.html';
 export const GLOB_PHP_REGEXP_BLOCKS = '**/*.php/*.regexp';
+export const GLOB_TWIG_CLASS_BLOCKS = '**/*.twig/*.classes.js';
 export const GLOB_MD_CODE_BLOCKS = `${GLOB_MD}/**`;
 export const GLOB_EXAMPLES = String.raw`**/*.md/\*.[jt]s?(x)`;
 export const GLOB_STYLELINT_CONFIG = '**/?(.)stylelint*.?(c|m)[jt]s';

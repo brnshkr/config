@@ -39,6 +39,7 @@ test('expected eslint config', async () => {
       'a.ts/3_dummy.jsdoc-properties.md/*.js',
       'a.php/0_0.html',
       'a.php/1_1.regexp',
+      '37.html.twig/1_0.classes.js',
     ],
     resolve: async (filePath) => toJsonObject(
       await eslint.calculateConfigForFile(filePath.replace(FIXTURES_DIRECTORY, () => process.cwd())),

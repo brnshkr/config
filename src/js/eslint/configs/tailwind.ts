@@ -2,6 +2,13 @@
  * @internal @brnshkr/config/eslint
  */
 
+import {
+  createTwigProcessor,
+  getTwigFunctions,
+  twig,
+  TWIG_PROCESSOR,
+} from '#eslint/configs/twig.ts';
+
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
 import { GLOB_CSS, GLOB_HTML_FILES, GLOB_SCRIPT_FILES } from '#eslint/utils/globs.ts';
@@ -44,11 +51,18 @@ export const tailwind = async (
     return [];
   }
 
-  const entryPointSettings = await buildEntryPointSettings(options?.entryPoint);
+  const {
+    twigFunctions,
+    ...settings
+  } = options ?? {};
+
+  const entryPointSettings = await buildEntryPointSettings(settings.entryPoint);
 
   const tsConfigPath = resolveTsConfigPath(typeof typescriptOptions === 'object'
     ? typescriptOptions
     : undefined);
+
+  const functions = getTwigFunctions(twigFunctions);
 
   const paletteNames = objectEntries(tailwindColors ?? {})
     .filter(([, shades]) => isPlainObject(shades))
@@ -58,7 +72,12 @@ export const tailwind = async (
     {
       name: buildConfigName(MAIN_SCOPES.TAILWIND, SUB_SCOPES.SETUP),
       plugins: {
-        tailwind: pluginTailwind,
+        tailwind: {
+          ...pluginTailwind,
+          processors: {
+            [TWIG_PROCESSOR]: createTwigProcessor(functions),
+          },
+        },
       },
       settings: {
         'better-tailwindcss': {
@@ -70,7 +89,7 @@ export const tailwind = async (
               tsconfig: tsConfigPath,
             }
             : undefined),
-          ...options,
+          ...settings,
         },
       },
     },
@@ -117,5 +136,6 @@ export const tailwind = async (
         ],
       },
     },
+    ...twig(functions),
   ];
 };

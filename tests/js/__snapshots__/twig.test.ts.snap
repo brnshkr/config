@@ -1,0 +1,198 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`twig function classes 1`] = `
+{
+  "a class string spanning lines": {
+    "block": "        attrs({ class: \`
+  flex acme-unknown
+\` });         
+",
+    "messages": [
+      {
+        "column": 24,
+        "line": 1,
+        "message": "Incorrect class order. Expected
+
+\`↵
+··flex·acme-unknown↵
+\`
+
+to be
+
+\`↵
+··acme-unknown·flex↵
+\`",
+        "ruleId": "tailwind/enforce-consistent-class-order",
+      },
+      {
+        "column": 8,
+        "line": 2,
+        "message": "Unknown class detected: acme-unknown",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": "<div {{ attrs({ class: '
+  acme-unknown flex
+' }) }}></div>
+",
+  },
+  "a long class string on a line of its own": {
+    "block": "        attrs({
+  class: [
+    'flex items-center justify-between gap-4 rounded-lg border p-4 text-sm font-medium shadow-sm transition-colors duration-150',
+    'hidden',
+  ],
+});         
+",
+    "messages": [
+      {
+        "column": 5,
+        "line": 3,
+        "message": "Class string exceeds the maximum line length, split it into array items.",
+        "ruleId": "tailwind/enforce-consistent-line-wrapping",
+      },
+    ],
+    "output": "<div {{ attrs({
+  class: [
+    'flex items-center justify-between gap-4 rounded-lg border p-4 text-sm font-medium shadow-sm transition-colors',
+    'duration-150',
+    'hidden',
+  ],
+}) }}></div>
+",
+  },
+  "a long class string sharing its line": {
+    "block": "        attrs({ class: 'flex items-center justify-between gap-4 rounded-lg border p-4 text-sm font-medium shadow-sm transition-colors' });         
+",
+    "messages": [
+      {
+        "column": 24,
+        "line": 1,
+        "message": "Class string exceeds the maximum line length.",
+        "ruleId": "tailwind/enforce-consistent-line-wrapping",
+      },
+    ],
+    "output": undefined,
+  },
+  "a project function under its own key": {
+    "block": "   acme_attrs({ classes: ['acme-one'], title: 'acme-two' });  
+",
+    "messages": [
+      {
+        "column": 28,
+        "line": 1,
+        "message": "Unknown class detected: acme-one",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": undefined,
+  },
+  "attributes.defaults() with a concatenation": {
+    "block": "        attributes_defaults({ class: _                          });         
+",
+    "messages": [],
+    "output": undefined,
+  },
+  "attrs() with a full ternary": {
+    "block": "        attrs({ class: _         ? 'acme-on' : 'acme-off', title: 'Acme' });         
+",
+    "messages": [
+      {
+        "column": 37,
+        "line": 1,
+        "message": "Unknown class detected: acme-on",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+      {
+        "column": 49,
+        "line": 1,
+        "message": "Unknown class detected: acme-off",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": undefined,
+  },
+  "attrs() with a short ternary": {
+    "block": "        attrs({ id: 'acme-card', class: ['flex',             'acme-unknown'] });         
+",
+    "messages": [
+      {
+        "column": 63,
+        "line": 1,
+        "message": "Unknown class detected: acme-unknown",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": undefined,
+  },
+  "attrs() with unsorted classes": {
+    "block": "        attrs({ class: ['p-4  flex',             'hidden'] });         
+",
+    "messages": [
+      {
+        "column": 25,
+        "line": 1,
+        "message": "Incorrect class order. Expected
+
+'p-4··flex'
+
+to be
+
+'flex··p-4'",
+        "ruleId": "tailwind/enforce-consistent-class-order",
+      },
+      {
+        "column": 29,
+        "line": 1,
+        "message": "Unnecessary whitespace.",
+        "ruleId": "tailwind/no-unnecessary-whitespace",
+      },
+    ],
+    "output": "<div {{ attrs({ class: ['flex p-4', is_active ? 'hidden'] }) }}></div>
+",
+  },
+  "html_classes() with strings and hash keys": {
+    "block": "   html_classes('acme-one', { 'acme-two': _         },      'grid');  
+",
+    "messages": [
+      {
+        "column": 18,
+        "line": 1,
+        "message": "Unknown class detected: acme-one",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+      {
+        "column": 32,
+        "line": 1,
+        "message": "Unknown class detected: acme-two",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": undefined,
+  },
+  "html_cva() with named arguments": {
+    "block": "               html_cva({base: 'acme-base', variants: { size: { sm: 'acme-small' } }}); 
+",
+    "messages": [
+      {
+        "column": 33,
+        "line": 1,
+        "message": "Unknown class detected: acme-base",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+      {
+        "column": 70,
+        "line": 1,
+        "message": "Unknown class detected: acme-small",
+        "ruleId": "tailwind/no-unknown-classes",
+      },
+    ],
+    "output": undefined,
+  },
+  "no twig function": {
+    "block": undefined,
+    "messages": [],
+    "output": undefined,
+  },
+}
+`;

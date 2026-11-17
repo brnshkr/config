@@ -5,7 +5,7 @@
 import { TYPESCRIPT_EXTENDED_RULES } from '#eslint/configs/javascript.ts';
 import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
 import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
-import { GLOB_SCRIPT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
+import { GLOB_SCRIPT_FILES, GLOB_TS, GLOB_TWIG_CLASS_BLOCKS } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
 import { GLOB_MD } from '#shared/utils/globs.ts';
@@ -18,6 +18,7 @@ import type { Maybe } from '#shared/types/core.ts';
 
 const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,
+  GLOB_TWIG_CLASS_BLOCKS,
 ];
 
 export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [

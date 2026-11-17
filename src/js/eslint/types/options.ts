@@ -9,7 +9,40 @@ import type { Config, TsEslintParserOptions } from '#eslint/types/config.ts';
 import type { CssDialect } from '#shared/utils/dialect.ts';
 import type { packageOrganization } from '#shared/utils/package-json.ts';
 
-export type TailwindOptions = Settings;
+export interface TwigFunctionMatcher {
+  /**
+   * What holds the classes: string arguments, object keys or object values.
+   */
+  type: 'objectKeys' | 'objectValues' | 'strings';
+
+  /**
+   * The key to read, a regular expression over its dotted path, e.g. `^class$` or `^variants\.size\.`.
+   */
+  path?: string;
+}
+
+export interface TwigFunction {
+  /**
+   * The function name, e.g. `attributes.defaults`.
+   */
+  name: string;
+
+  /**
+   * Where its arguments hold classes.
+   *
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss/blob/main/docs/configuration/advanced.md#callee
+   */
+  match: readonly TwigFunctionMatcher[];
+}
+
+export interface TailwindOptions extends Settings {
+  /**
+   * Additional Twig functions to check classes in, e.g. project specific helpers.
+   *
+   * @default []
+   */
+  twigFunctions: readonly TwigFunction[];
+}
 
 /* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
 export interface CssOptions {
