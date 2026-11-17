@@ -115,6 +115,19 @@ final class HelpTest extends TestCase
         }
     }
 
+    #[Group('tty')]
+    public function testOnlyAHelpTallerThanTheTerminalOpensThePager(): void
+    {
+        $env = [
+            'LESS_BIN' => 'echo paged',
+            'PATH'     => self::TOOLS_DIRECTORY . '/bin:' . Str::fromEnvironment('PATH'),
+            'TERM'     => 'xterm',
+        ];
+
+        self::assertStringContainsString('paged -R', $this->runMakeOnATty(['help'], self::TOOLS_DIRECTORY, env: $env, rowCount: 15));
+        self::assertStringNotContainsString('paged -R', $this->runMakeOnATty(['help'], self::TOOLS_DIRECTORY, env: $env, rowCount: 500));
+    }
+
     public function testUnknownScopeReportsError(): void
     {
         $result = $this->runMakeHelp(['nonexistent.scope'], doExpectFailure: true);

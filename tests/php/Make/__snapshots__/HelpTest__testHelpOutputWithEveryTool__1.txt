@@ -115,7 +115,7 @@ Available commands:
   local-command   a command only this machine runs
  brnshkr
   common
-   help, h        shows this help, narrowed by scope, widened by v to vvv
+   help, h        shows this help, narrowed by scope, widened by v to vvv, in a pager on a terminal
    check, c       lints and analyzes everything without writing
    fix, f         runs every fixer this project has, writing its fixes
    group, g       counts every tool's findings by identifier
@@ -351,7 +351,7 @@ Available commands:
   local-command           a command only this machine runs
  brnshkr
   common
-   help, h                shows this help, narrowed by scope, widened by v to vvv
+   help, h                shows this help, narrowed by scope, widened by v to vvv, in a pager on a terminal
    check, c               lints and analyzes everything without writing
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
@@ -733,7 +733,7 @@ Available commands:
   local-command           a command only this machine runs
  brnshkr
   common
-   help, h                shows this help, narrowed by scope, widened by v to vvv
+   help, h                shows this help, narrowed by scope, widened by v to vvv, in a pager on a terminal
    check, c               lints and analyzes everything without writing
    fix, f                 runs every fixer this project has, writing its fixes
    group, g               counts every tool's findings by identifier
@@ -864,6 +864,7 @@ Available commands:
 +    FIND                           ?=  find                                             (path to find binary)
 +    GIT                            ?=  git                                              (path to git binary)
 +    ID                             ?=  id                                               (path to id binary)
++    LESS_BIN                       ?=  less                                             (path to less binary)
 +    LN                             ?=  ln                                               (path to ln binary)
 +    LS                             ?=  ls                                               (path to ls binary)
 +    MKDIR                          ?=  mkdir                                            (path to mkdir binary)
@@ -1065,7 +1066,7 @@ Available commands:
 +  local-command                             a command only this machine runs
   brnshkr
    common
--   help, h                shows this help, narrowed by scope, widened by v to vvv
+-   help, h                shows this help, narrowed by scope, widened by v to vvv, in a pager on a terminal
 -   check, c               lints and analyzes everything without writing
 -   fix, f                 runs every fixer this project has, writing its fixes
 -   group, g               counts every tool's findings by identifier
@@ -1075,7 +1076,7 @@ Available commands:
 -   test-matrix            runs the tests once per TEST_MATRIX row
 -   ci                     runs CI_TARGETS, failing at the end if any of them failed
 -   fixtures               builds the fixtures this project's tests read
-+   help, h                                  shows this help, narrowed by scope, widened by v to vvv
++   help, h                                  shows this help, narrowed by scope, widened by v to vvv, in a pager on a terminal
 +   list-scopes/ls/resolve/r/env/e/v/vv/vvv  runs help with its own name as the argument
 +   check, c                                 lints and analyzes everything without writing
 +   fix, f                                   runs every fixer this project has, writing its fixes
@@ -1558,6 +1559,7 @@ Available commands:
     [36mFIND                         [0m  [90m?=  find                                             (path to [35mfind[0m[90m binary)[0m
     [36mGIT                          [0m  [90m?=  git                                              (path to [35mgit[0m[90m binary)[0m
     [36mID                           [0m  [90m?=  id                                               (path to [35mid[0m[90m binary)[0m
+    [36mLESS_BIN                     [0m  [90m?=  less                                             (path to [35mless[0m[90m binary)[0m
     [36mLN                           [0m  [90m?=  ln                                               (path to [35mln[0m[90m binary)[0m
     [36mLS                           [0m  [90m?=  ls                                               (path to [35mls[0m[90m binary)[0m
     [36mMKDIR                        [0m  [90m?=  mkdir                                            (path to [35mmkdir[0m[90m binary)[0m
@@ -1884,7 +1886,7 @@ Available commands:
   [36mlocal-command         [0m  [90ma command only this machine runs[0m
  [35mbrnshkr[0m
   [35mcommon[0m
-   [36mhelp, h              [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m[0m
+   [36mhelp, h              [0m  [90mshows this help, narrowed by scope, widened by [35mv[0m[90m to [35mvvv[0m[90m, in a pager on a terminal[0m
    [36mcheck, c             [0m  [90mlints and analyzes everything without writing[0m
    [36mfix, f               [0m  [90mruns every fixer this project has, writing its fixes[0m
    [36mgroup, g             [0m  [90mcounts every tool's findings by identifier[0m
@@ -2064,6 +2066,7 @@ Available commands:
     [32mFIND                         [0m  [0m?=  find                                             (path to [33mfind[0m[0m binary)[0m
     [32mGIT                          [0m  [0m?=  git                                              (path to [33mgit[0m[0m binary)[0m
     [32mID                           [0m  [0m?=  id                                               (path to [33mid[0m[0m binary)[0m
+    [32mLESS_BIN                     [0m  [0m?=  less                                             (path to [33mless[0m[0m binary)[0m
     [32mLN                           [0m  [0m?=  ln                                               (path to [33mln[0m[0m binary)[0m
     [32mLS                           [0m  [0m?=  ls                                               (path to [33mls[0m[0m binary)[0m
     [32mMKDIR                        [0m  [0m?=  mkdir                                            (path to [33mmkdir[0m[0m binary)[0m
@@ -2390,7 +2393,7 @@ Available commands:
   [32mlocal-command         [0m  [0ma command only this machine runs[0m
  [33mbrnshkr[0m
   [33mcommon[0m
-   [32mhelp, h              [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m[0m
+   [32mhelp, h              [0m  [0mshows this help, narrowed by scope, widened by [33mv[0m[0m to [33mvvv[0m[0m, in a pager on a terminal[0m
    [32mcheck, c             [0m  [0mlints and analyzes everything without writing[0m
    [32mfix, f               [0m  [0mruns every fixer this project has, writing its fixes[0m
    [32mgroup, g             [0m  [0mcounts every tool's findings by identifier[0m

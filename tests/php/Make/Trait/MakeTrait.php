@@ -383,11 +383,13 @@ trait MakeTrait
         string $directory,
         ?string $input = null,
         array $env = [],
+        ?int $rowCount = null,
     ): string {
         $process = new Process([
             'script',
             '-qfc',
-            sprintf('make --no-print-directory -C %s %s', $directory, Str::join($args, ' ')),
+            ($rowCount === null ? '' : sprintf('stty rows %d cols 100; ', $rowCount))
+            . sprintf('make --no-print-directory -C %s %s', $directory, Str::join($args, ' ')),
             '/dev/null',
         ], env: [
             ...self::getBaselineEnvironment(),

@@ -276,8 +276,11 @@ final class DotenvTest extends TestCase
         self::assertStringContainsString('DOTENV_FIXTURE_LATER', $filteredOutput);
         self::assertStringNotContainsString('DOTENV_FIXTURE_PLAIN', $filteredOutput);
         self::assertStringNotContainsString('FIXTURE_MAKEFILE_EXPORT', $filteredOutput);
-        self::assertStringContainsString("acme://open/Makefile#13\e\\FIXTURE_MAKEFILE_EXPORT", $outputWithEditorLinks);
-        self::assertStringContainsString("acme://open/.env#3\e\\DOTENV_FIXTURE_PLAIN", $outputWithEditorLinks);
+
+        // eslint-disable no-control-regex, regexp/no-control-character -- Matching the escape sequences around a link is what these patterns are for
+        self::assertMatchesRegularExpression('/acme:\/\/open\/Makefile#13\x1B\\\(?:\x1B\[[0-9;]*m)?FIXTURE_MAKEFILE_EXPORT/', $outputWithEditorLinks);
+        self::assertMatchesRegularExpression('/acme:\/\/open\/\.env#3\x1B\\\(?:\x1B\[[0-9;]*m)?DOTENV_FIXTURE_PLAIN/', $outputWithEditorLinks);
+        // eslint-enable no-control-regex, regexp/no-control-character
     }
 
     public function testResolveListsAValueOnlyADotenvFileProvides(): void
@@ -292,8 +295,10 @@ final class DotenvTest extends TestCase
         );
 
         self::assertMatchesRegularExpression('/DOTENV_FIXTURE_LAYER +\?= {2}\.\/\.env\.dev\.local +dev-local\n/', $resolved);
-        self::assertStringContainsString("acme://open/.env.dev.local#1\e\\DOTENV_FIXTURE_LAYER", $linked);
         self::assertStringNotContainsString('DOTENV_FIXTURE_LAYER', $plain);
+
+        // eslint-disable-next-line no-control-regex, regexp/no-control-character -- Matching the escape sequences around a link is what this pattern is for
+        self::assertMatchesRegularExpression('/acme:\/\/open\/\.env\.dev\.local#1\x1B\\\(?:\x1B\[[0-9;]*m)?DOTENV_FIXTURE_LAYER/', $linked);
     }
 
     public function testResolveNamesTheEnvironmentOrCommandLineThatReplacedAValue(): void

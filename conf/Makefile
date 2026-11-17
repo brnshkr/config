@@ -347,6 +347,7 @@ ENV_BIN         ?= env#~~ path to `env` binary
 FIND            ?= find#~~ path to `find` binary
 GIT             ?= git#~~ path to `git` binary
 ID              ?= id#~~ path to `id` binary
+LESS_BIN        ?= less#~~ path to `less` binary
 LN              ?= ln#~~ path to `ln` binary
 LS              ?= ls#~~ path to `ls` binary
 MKDIR           ?= mkdir#~~ path to `mkdir` binary
@@ -1854,8 +1855,8 @@ _CONDITION_VARIABLES = $(shell $(AWK) $(call _quote_program,$(_CONDITION_VARIABL
 
 $(call _target,help): export _HELP_AWK          = $(_HELP_AWK_SOURCE)
 $(call _target,help): export _DOTENV_REPORT_AWK = $(_DOTENV_AWK)
-$(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`
-	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$($(ENV_BIN) | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )$(call _make_vars_as_env,$(_HELP_VARIABLES)) \
+$(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to `vvv`, in a pager on a terminal
+	$(TRACE_PREFIX)[ -t 1 ] && terminal_width="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}"; $(if $(_HAS_ENV_ARGUMENT),exported_names=$$($(ENV_BIN) | $(AWK) -F= '/^[A-Za-z_][A-Za-z0-9_]*=/ { print $$1 }'); )render_help() { $(call _make_vars_as_env,$(_HELP_VARIABLES)) \
 		$(if $(_HAS_ENV_ARGUMENT),$(_HELP_ENV_INPUTS)) \
 		$(if $(_HAS_RESOLVE_ARGUMENT),$(_HELP_RESOLVE_INPUTS)) \
 		$(if $(or $(_HAS_ENV_ARGUMENT),$(_HAS_RESOLVE_ARGUMENT)),$(_HELP_DOTENV_INPUTS)) \
@@ -1871,13 +1872,51 @@ $(call _target,help): #~~ shows this help, narrowed by scope, widened by `v` to 
 		_HAS_RESOLVE_ARGUMENT="$(_HAS_RESOLVE_ARGUMENT)" \
 		_HAS_ENV_ARGUMENT="$(_HAS_ENV_ARGUMENT)" \
 		_INLINE_CODE_OPEN="$$(printf '%b' '$(call _ansi,$(COLOR_INLINE_CODE))')" \
+		_ENTRY_OPEN="$$(printf '%b' '$(call _ansi,$(COLOR_ENTRY))')" \
 		_INLINE_CODE_CLOSE="$$(printf '%b' '$(_ANSI_RESET)$(call _ansi,$(COLOR_DESCRIPTION))')" \
 		_VERBOSITY="$(or $(V),$(_HELP_VERBOSITY))" \
 		_CURRENT_ENV="$(_CURRENT_ENV)" \
-		_COLUMNS="$$terminal_width" \
+		_COLUMNS="$$1" \
 		LC_ALL=C \
 		$(AWK) "$$_HELP_AWK" \
-		$(MAKEFILE_LIST)
+		$(MAKEFILE_LIST); \
+	}; \
+	if [ -z '$(_IS_CI)' ] && [ -t 0 ] && [ -t 1 ] && terminal_size=$$($(STTY) size </dev/tty 2>/dev/null) \
+		&& set -- $$terminal_size && [ "$${1:-0}" -gt 1 ]; then \
+		help_file="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		render_help "$$2" >"$$help_file"; \
+		line_count=$$(($$(wc -l <"$$help_file"))); \
+		if [ "$$line_count" -lt "$$1" ] || [ "$${TERM:-dumb}" = dumb ] \
+			|| ! command -v $(firstword $(LESS_BIN)) >/dev/null 2>&1; then \
+			$(CAT) "$$help_file"; \
+		else \
+			saved_settings=$$($(STTY) -g </dev/tty); \
+			trap 'is_resized=1' WINCH; \
+			while :; do \
+				is_resized=; \
+				$(LESS_BIN) -R -Ps"[$(_LABEL)] make $(call _target,help) line %lt/$$line_count?e (END). (press h for help or q to quit)" \
+					<"$$help_file" & \
+				pager_pid=$$!; \
+				wait "$$pager_pid"; \
+				pager_status=$$?; \
+				if [ -z "$$is_resized" ]; then \
+					[ "$$pager_status" -eq 0 ] || $(CAT) "$$help_file"; \
+					break; \
+				fi; \
+				kill "$$pager_pid" 2>/dev/null || break; \
+				wait "$$pager_pid"; \
+				$(STTY) "$$saved_settings" </dev/tty; \
+				terminal_size=$$($(STTY) size </dev/tty); \
+				set -- $$terminal_size; \
+				render_help "$$2" >"$$help_file"; \
+				line_count=$$(($$(wc -l <"$$help_file"))); \
+			done; \
+			trap - WINCH; \
+		fi; \
+		$(RM) -f "$$help_file"; \
+	else \
+		render_help "$$terminal_width"; \
+	fi
 
 $(call _target,list-scopes) \
 	$(call _target,ls) \
@@ -6686,12 +6725,12 @@ $(_TEXT_AWK_SOURCE)
 function trim(string) { gsub(/^[ \t\r\n]+|[ \t\r\n]+$$/, "", string); return string }
 function get_leaf(path) { sub(/.*\//, "", path); return path }
 function repeat(text, count,    out) { out = ""; while (count-- > 0) out = out text; return out }
-function render_link(text, path, line_number,    url) {
+function render_link(text, path, line_number, color,    url) {
 	if (index(path, ENVIRON["_APP_DIR"] "/") == 1) path = substr(path, length(ENVIRON["_APP_DIR"]) + 2)
 	if (index(path, ENVIRON["_CURDIR"] "/") == 1) path = substr(path, length(ENVIRON["_CURDIR"]) + 2)
 	url = (path != "" ? render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], path, line_number) : "")
 	if (url == "" || ENVIRON["_IS_NO_COLOR"]) return text
-	return "\033]8;;" url "\033\\" text "\033]8;;\033\\"
+	return "\033]8;;" url "\033\\" color text "\033]8;;\033\\"
 }
 function get_named_path(path) { return index(path, ENVIRON["_CURDIR"] "/") == 1 ? "./" substr(path, length(ENVIRON["_CURDIR"]) + 2) : path }
 function strip_verbosity(text) { sub("[ \t]*" marker_pattern "([ \t]|$$)", "", text); return text }
@@ -7133,8 +7172,8 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 			else if (section == "functions") { extra = render_inline_code(fit(extra, column + 2)); text = render_inline_code(text) }
 			else if (section == "description") text = render_inline_code(fit(text, (depth + 2) * ENVIRON["INDENT"]))
 			linked_entry = (section == "variables" && variable_source_file[entry] != "") \
-				? render_link(entry, variable_source_file[entry], variable_source_line[entry]) \
-				: render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx])
+				? render_link(entry, variable_source_file[entry], variable_source_line[entry], ENVIRON["_ENTRY_OPEN"]) \
+				: render_link(entry, section_file[scope_path, section, idx], section_line[scope_path, section, idx], ENVIRON["_ENTRY_OPEN"])
 			entry_pad = width - length(entry)
 			if (entry_pad < 0) entry_pad = 0
 			padded_entry = linked_entry repeat(" ", entry_pad)
@@ -7198,7 +7237,7 @@ function render_environment_value(value) { gsub(/\n/, " ", value); gsub(/[[:cntr
 function get_resolved_value(name,    value) { value = trim(ENVIRON[name]); gsub(/[[:cntrl:]]/, "?", value); return value }
 function print_environment_row(name, path, line_number, value, replacement_note,    indentation, linked_name) {
 	indentation = repeat(" ", 2 * ENVIRON["INDENT"])
-	linked_name = render_link(name, path, line_number) repeat(" ", environment_name_width - length(name))
+	linked_name = render_link(name, path, line_number, ENVIRON["_ENTRY_OPEN"]) repeat(" ", environment_name_width - length(name))
 	if (replacement_note == "") printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", indentation, linked_name, value
 	else printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s  (%s),$(COLOR_DESCRIPTION))\n", indentation, linked_name, value repeat(" ", environment_value_width - get_display_width(value)), render_inline_code(replacement_note)
 }
