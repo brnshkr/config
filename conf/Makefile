@@ -7135,7 +7135,6 @@ function get_tree_max(scope_path, depth, section, mode,    best, idx, width, chi
 	if (is_scope_target(scope_path)) {
 		for (idx = 1; idx <= section_count[scope_path, section] + 0; idx += 1) {
 			if (!is_entry_visible(scope_path, section, idx)) continue
-			if (mode == "value" && section_description[scope_path, section, idx] == "") continue
 			value = section_text[scope_path, section, idx]
 			if (mode == "value" && ENVIRON["_HAS_RESOLVE_ARGUMENT"] != "" && section_name[scope_path, section, idx] in ENVIRON) value = get_resolved_value(section_name[scope_path, section, idx])
 			width = (mode == "value") ? length(value) : (mode == "source") ? length(variable_source[section_name[scope_path, section, idx]]) : (depth + 2) * ENVIRON["INDENT"] + length(section_name[scope_path, section, idx])
@@ -7185,7 +7184,7 @@ function walk(scope_path, depth, section, column,    render_scope, padding, widt
 					format = sprintf("%2s  %s%s", extra, text, repeat(" ", description_column - get_display_width(text)))
 					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s (%s),$(COLOR_DESCRIPTION))\n", padding, padded_entry, format, description
 				} else {
-					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra, fit(terminal_width > 0 ? text : truncate(text, ENVIRON["VALUE_WIDTH"] + 0), column + extra_width + 4)
+					printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%2s  %s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, extra, truncate(text, description_column)
 				}
 			} else if (section == "commands") {
 				printf "%s$(call text,%s,$(COLOR_ENTRY))  $(call text,%s,$(COLOR_DESCRIPTION))\n", padding, padded_entry, text
