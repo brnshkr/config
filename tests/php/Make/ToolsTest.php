@@ -492,7 +492,7 @@ final class ToolsTest extends TestCase
     #[Group('python')]
     public function testSemgrepSaysWhenARefetchChangedARuleset(): void
     {
-        $cachedPath = self::LINTERS_DIRECTORY . '/.cache/semgrep/default.json';
+        $cachedPath = self::LINTERS_DIRECTORY . '/.cache/semgrep.cache/default.json';
         $filesystem = new Filesystem();
 
         $filesystem->dumpFile($cachedPath, '{"rules":[{"id":"old"}]}');

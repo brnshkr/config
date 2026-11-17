@@ -697,7 +697,7 @@ Variables:
    SEMGREP_CONFIG                  ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to semgrep config)
    SEMGREP_RULESETS                ?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless x-brnshkr sets them)
    SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-   SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
+   SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep.cache           (path to the semgrep ruleset cache)
    SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
 
 Functions:
@@ -936,7 +936,7 @@ Available commands:
     PHP_UNIT_FLAGS                  ?=  $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR)… (additional flags passed to the test runner)
 @@ @@
     SEMGREP_FLAGS                   ?=  --error --quiet --metrics off --disable-version… (additional flags passed to semgrep)
-    SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the semgrep ruleset cache)
+    SEMGREP_CACHE                   ?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep.cache           (path to the semgrep ruleset cache)
     SEMGREP_MAX_AGE                 ?=  7                                                (days a cached ruleset is kept before it is fetched again)
 +   SEMGREP_REGISTRY                ?=  https://semgrep.dev/c/p                          (address semgrep fetches its rulesets from)
 +   SEMGREP_PYTHON                  ?=  $(_SEMGREP_RUN) python3                          (command that runs python3, merging semgrep rulesets)
@@ -1822,7 +1822,7 @@ Available commands:
    [36mSEMGREP_CONFIG                [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [35msemgrep[0m[90m config)[0m
    [36mSEMGREP_RULESETS              [0m  [90m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [35mx-brnshkr[0m[90m sets them)[0m
    [36mSEMGREP_FLAGS                 [0m  [90m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [35msemgrep[0m[90m)[0m
-   [36mSEMGREP_CACHE                 [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [35msemgrep[0m[90m ruleset cache)[0m
+   [36mSEMGREP_CACHE                 [0m  [90m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep.cache           (path to the [35msemgrep[0m[90m ruleset cache)[0m
    [36mSEMGREP_MAX_AGE               [0m  [90m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [36mSEMGREP_REGISTRY              [0m  [90m?=  https://semgrep.dev/c/p                          (address [35msemgrep[0m[90m fetches its rulesets from)[0m
    [36mSEMGREP_PYTHON                [0m  [90m?=  $(_SEMGREP_RUN) python3                          (command that runs [35mpython3[0m[90m, merging [35msemgrep[0m[90m rulesets)[0m
@@ -2329,7 +2329,7 @@ Available commands:
    [32mSEMGREP_CONFIG                [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/semgre… (path to [33msemgrep[0m[0m config)[0m
    [32mSEMGREP_RULESETS              [0m  [0m?=  $(_SEMGREP_RULESETS)                             (registry rulesets, detected unless [33mx-brnshkr[0m[0m sets them)[0m
    [32mSEMGREP_FLAGS                 [0m  [0m?=  --error --quiet --metrics off --disable-version… (additional flags passed to [33msemgrep[0m[0m)[0m
-   [32mSEMGREP_CACHE                 [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep                 (path to the [33msemgrep[0m[0m ruleset cache)[0m
+   [32mSEMGREP_CACHE                 [0m  [0m?=  $(APP_DIR)/$(_CACHE_DIR)/semgrep.cache           (path to the [33msemgrep[0m[0m ruleset cache)[0m
    [32mSEMGREP_MAX_AGE               [0m  [0m?=  7                                                (days a cached ruleset is kept before it is fetched again)[0m
    [32mSEMGREP_REGISTRY              [0m  [0m?=  https://semgrep.dev/c/p                          (address [33msemgrep[0m[0m fetches its rulesets from)[0m
    [32mSEMGREP_PYTHON                [0m  [0m?=  $(_SEMGREP_RUN) python3                          (command that runs [33mpython3[0m[0m, merging [33msemgrep[0m[0m rulesets)[0m
