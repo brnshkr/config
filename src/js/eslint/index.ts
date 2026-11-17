@@ -107,10 +107,53 @@ export const getConfig = (
   setModuleEnabled(MODULES.yaml, resolvedOptions.yaml);
 
   const composer = new FlatConfigComposer<Config, ConfigNames>();
+  const modulePromises: Promise<Awaited<ResolvableConfig>>[] = [];
+
+  const settleModule = async (config: ResolvableConfig): Promise<Awaited<ResolvableConfig>> => {
+    try {
+      return await config;
+    } catch {
+      return [];
+    }
+  };
 
   const appendToComposer = (...configsToAppend: ResolvableConfig[]): void => {
-    void composer.append(...configsToAppend);
+    void composer.append(...configsToAppend.map((config): ResolvableConfig => {
+      if (!(config instanceof Promise)) {
+        return config;
+      }
+
+      modulePromises.push(Promise.resolve(config));
+
+      return settleModule(config);
+    }));
   };
+
+  void composer.onResolved(async (resolvedConfigs) => {
+    const settledModules = await Promise.allSettled(modulePromises);
+
+    const moduleErrors = settledModules.flatMap((result) => {
+      if (result.status === 'fulfilled') {
+        return [];
+      }
+
+      const reason: unknown = result.reason;
+
+      return Error.isError(reason)
+        ? reason
+        : new Error('A config module failed.', {
+          cause: reason,
+        });
+    });
+
+    const [moduleError, ...otherModuleErrors] = moduleErrors;
+
+    return moduleError === undefined
+      ? resolvedConfigs
+      : Promise.reject(otherModuleErrors.length === 0
+        ? moduleError
+        : new AggregateError(moduleErrors, 'Several config modules failed.'));
+  });
 
   appendToComposer(configs.ignores(resolvedOptions.ignores));
 
