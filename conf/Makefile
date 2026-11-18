@@ -190,6 +190,7 @@ CACHE_DIR                 ?= ./.cache#~~ directory the tools keep their caches i
 _CONFIG_DIR                = $(patsubst ./%,%,$(CONFIG_DIR))
 _LOCAL_DIR                 = $(patsubst ./%,%,$(LOCAL_DIR))
 _CACHE_DIR                 = $(patsubst ./%,%,$(CACHE_DIR))
+_BRNSHKR_CACHE_DIR         = $(_CACHE_DIR)/brnshkr.cache
 export BRNSHKR_CONFIG_DIR  = $(_CONFIG_DIR)
 export BRNSHKR_LOCAL_DIR   = $(_LOCAL_DIR)
 export BRNSHKR_CACHE_DIR   = $(_CACHE_DIR)
@@ -2006,7 +2007,7 @@ TEST_MATRIX           ?= #v #~~ rows of images and dependency constraints `test-
 TEST_MATRIX_IMAGE_KEY ?= $(if $(filter cli-chromium %-cli-chromium,$(_SERVICE_TAG)),FORGE_CLI_CHROMIUM_IMAGE,$(if $(filter $(CLI_SERVICE),$(_TOOL_SERVICE)),FORGE_CLI_IMAGE,FORGE_APP_DEV_IMAGE))#vv #~~ variable naming the image the Compose file runs
 
 _MATRIX_PROJECT    = $(or $(COMPOSE_PROJECT_NAME),$(notdir $(CURDIR)))-matrix
-_MATRIX_BACKUP_DIR = $(CURDIR)/$(_CACHE_DIR)/test-matrix.cache
+_MATRIX_BACKUP_DIR = $(CURDIR)/$(_BRNSHKR_CACHE_DIR)/test-matrix.cache
 _MATRIX_SETTINGS   = COMPOSE_PROJECT_NAME='$(_MATRIX_PROJECT)' APP_SERVICE_MODE=run $${reference:+$(TEST_MATRIX_IMAGE_KEY)="$$reference"}
 _MATRIX_MAKE       = $(MAKE) $(_VERB_FLAGS) --no-print-directory CI_SUMMARY_FILE= $(_MATRIX_SETTINGS)
 
@@ -2937,8 +2938,8 @@ IMAGE_CONTEXT    ?= #~~ directory `image` builds from, empty for the files Git t
 IMAGE_REFERENCE  ?= $(_IMAGE_REFERENCE)#~~ reference `image` tags the build with
 IMAGE_FLAGS      ?= --load#~~ flags passed to `docker buildx build`
 
-_IMAGE_CONTEXT_DIR         = $(_CACHE_DIR)/image.context
-_IMAGE_GENERIC_DOCKERFILE  = $(_CACHE_DIR)/image.Dockerfile
+_IMAGE_CONTEXT_DIR         = $(_BRNSHKR_CACHE_DIR)/image.context
+_IMAGE_GENERIC_DOCKERFILE  = $(_BRNSHKR_CACHE_DIR)/image.Dockerfile
 _IMAGE_PROJECT_DOCKERFILE  = $(firstword $(wildcard $(addprefix $(CURDIR)/,$(_CONFIG_DIR)/docker/$(IMAGE_NAME).Dockerfile docker/$(IMAGE_NAME).Dockerfile $(IMAGE_NAME).Dockerfile Dockerfile)))
 _IMAGE_DOCKERFILE          = $(or $(IMAGE_DOCKERFILE),$(patsubst $(CURDIR)/%,./%,$(_IMAGE_PROJECT_DOCKERFILE)),./$(_IMAGE_GENERIC_DOCKERFILE))
 _IS_GENERIC_DOCKERFILE     = $(filter ./$(_IMAGE_GENERIC_DOCKERFILE),$(_IMAGE_DOCKERFILE))
@@ -3037,7 +3038,7 @@ _$(_TARGET_PREFIX)image-dockerfile:
 	$(if $(IMAGE_NAME),,$(error [$(_LABEL)] `IMAGE_NAME` is empty, so run `image` in a stage that names one, e.g. `make production-image`))
 	$(if $(and $(IMAGE_DOCKERFILE),$(if $(wildcard $(CURDIR)/$(IMAGE_DOCKERFILE)),,1)),$(error [$(_LABEL)] `$(IMAGE_DOCKERFILE)` does not exist, so fix `IMAGE_DOCKERFILE`))
 	$(if $(and $(_IS_GENERIC_DOCKERFILE),$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,1)),$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
-	$(DEBUG_PREFIX)$(if $(_IS_GENERIC_DOCKERFILE),$(MKDIR) -p '$(_CACHE_DIR)' \
+	$(DEBUG_PREFIX)$(if $(_IS_GENERIC_DOCKERFILE),$(MKDIR) -p '$(_BRNSHKR_CACHE_DIR)' \
 		&& $(DOCKER) run --rm --entrypoint cat $(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) \
 			/usr/local/share/forge/app.Dockerfile >'$(_IMAGE_GENERIC_DOCKERFILE)',:)
 
@@ -3077,7 +3078,7 @@ $(call _target,image): _$(_TARGET_PREFIX)image-dockerfile #~~ builds the stage's
 
 ifneq ($(_HAS_DEPLOY),) # deploy
 
-_DEPLOY_SCRIPT = $(_CACHE_DIR)/deploy.sh
+_DEPLOY_SCRIPT = $(_BRNSHKR_CACHE_DIR)/deploy.sh
 
 #**
 #* The call running forge's `deploy.sh` with an action against the current stage.
@@ -3095,7 +3096,7 @@ _$(_TARGET_PREFIX)deploy-script:
 	$(if $(or $(AI_AGENT),$(CLAUDECODE)),$(error [$(_LABEL)] `AI_AGENT` or `CLAUDECODE` is set, so run the deploy yourself, outside the agent))
 	$(if $(DEPLOY_HOSTS),,$(error [$(_LABEL)] `DEPLOY_HOSTS` is empty, so run it in a stage that names hosts, e.g. `make production-deploy`))
 	$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
-	$(DEBUG_PREFIX)$(MKDIR) -p '$(_CACHE_DIR)' && $(DOCKER) run --rm --entrypoint cat \
+	$(DEBUG_PREFIX)$(MKDIR) -p '$(_BRNSHKR_CACHE_DIR)' && $(DOCKER) run --rm --entrypoint cat \
 		$(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) /usr/local/share/forge/deploy.sh >'$(_DEPLOY_SCRIPT)'
 
 $(call _target,deploy): _$(_TARGET_PREFIX)deploy-script #~~ deploys `VERSION` to the stage's `DEPLOY_HOSTS`
@@ -3570,7 +3571,7 @@ ESLINT_CACHE          ?= $(APP_DIR)/$(_CACHE_DIR)/eslint.cache.json#v #~~ path t
 ESLINT_FLAGS          ?= --max-warnings 0 $(if $(_IS_DEBUG),--debug) $(if $(_IS_NO_COLOR),--no-color)#v #~~ additional flags passed to `eslint`
 unexport ESLINT_FLAGS  # NOTICE: ESLint reads this as its feature flags
 
-_ESLINT_OUTPUT := $(APP_DIR)/$(_CACHE_DIR)/eslint.output
+_ESLINT_OUTPUT := $(APP_DIR)/$(_BRNSHKR_CACHE_DIR)/eslint.output
 
 ESLINT_EXTENSIONS ?= $(_ESLINT_EXTENSIONS)#vv #~~ extensions `eslint` lints, set by its config's modules
 
@@ -4980,8 +4981,8 @@ endef
 #* returns: void
 #*
 define _in_scratch_directory
-$(MKDIR) -p '$(CURDIR)/$(_CACHE_DIR)' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/$(_CACHE_DIR)/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-app_scratch_directory='$(APP_DIR)/$(_CACHE_DIR)/'"$${scratch_directory##*/}"; \
+$(MKDIR) -p '$(CURDIR)/$(_BRNSHKR_CACHE_DIR)' && scratch_directory="$$($(MKTEMP) -d '$(CURDIR)/$(_BRNSHKR_CACHE_DIR)/scratch.XXXXXX')" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+app_scratch_directory='$(APP_DIR)/$(_BRNSHKR_CACHE_DIR)/'"$${scratch_directory##*/}"; \
 { $1; }; status=$$?; $(RM) -rf "$$scratch_directory"; exit $$status
 endef
 

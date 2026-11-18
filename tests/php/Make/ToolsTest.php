@@ -418,7 +418,7 @@ final class ToolsTest extends TestCase
 
         self::assertStringContainsString('ls-files -z --cached --deduplicate', $default);
         self::assertStringContainsString('buildx build --load -f \'./docker/app.Dockerfile\'', $default);
-        self::assertStringContainsString('-t \'localhost/app:latest\' \'.cache/image.context\'', $default);
+        self::assertStringContainsString('-t \'localhost/app:latest\' \'.cache/brnshkr.cache/image.context\'', $default);
         self::assertStringContainsString('-f \'./Dockerfile\'', $unnamed);
 
         self::assertStringNotContainsString('ls-files -z --cached --deduplicate', $configured);
