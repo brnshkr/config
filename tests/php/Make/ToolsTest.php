@@ -434,6 +434,7 @@ final class ToolsTest extends TestCase
         $rollback  = $this->runMake(['production-deploy-rollback'], $env, $deployDirectory);
         $versioned = $this->runMake(['production-deploy', 'VERSION=1.2.3'], $env, $deployDirectory);
         $unstaged  = $this->runMake(['deploy'], $env, $deployDirectory, doExpectFailure: true);
+        $agent     = $this->runMake(['production-deploy'], [...$env, 'AI_AGENT' => 'acme-agent'], $deployDirectory, doExpectFailure: true);
 
         self::assertStringContainsString('deploy.sh rollback production', $rollback);
         self::assertStringContainsString('DEPLOY_DOTENV_BASE=' . $deployDirectory . '/.env', $rollback);
@@ -441,6 +442,8 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString('deploy.sh deploy production', $versioned);
         self::assertStringContainsString('VERSION=1.2.3', $versioned);
         self::assertStringContainsString('`DEPLOY_HOSTS` is empty, so run it in a stage that names hosts', $unstaged);
+        self::assertStringContainsString('`AI_AGENT` or `CLAUDECODE` is set, so run the deploy yourself', $agent);
+        self::assertStringNotContainsString('deploy.sh deploy production', $agent);
     }
 
     public function testSemgrepResolvesItsRulesets(): void

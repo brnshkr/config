@@ -3092,6 +3092,7 @@ DEPLOY_DOTENV_BASE=$(call _quoted,$(_DOTENV_BASE)) sh '$(_DEPLOY_SCRIPT)' $1 $(c
 endef
 
 _$(_TARGET_PREFIX)deploy-script:
+	$(if $(or $(AI_AGENT),$(CLAUDECODE)),$(error [$(_LABEL)] `AI_AGENT` or `CLAUDECODE` is set, so run the deploy yourself, outside the agent))
 	$(if $(DEPLOY_HOSTS),,$(error [$(_LABEL)] `DEPLOY_HOSTS` is empty, so run it in a stage that names hosts, e.g. `make production-deploy`))
 	$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
 	$(DEBUG_PREFIX)$(MKDIR) -p '$(_CACHE_DIR)' && $(DOCKER) run --rm --entrypoint cat \
