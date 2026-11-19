@@ -1,11 +1,15 @@
-import { INDENT } from '../../shared/utils/constants';
-import { objectAssign } from '../../shared/utils/object';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_JSON5, GLOB_JSON, GLOB_JSONC } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_JSON5, GLOB_JSON, GLOB_JSONC } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { INDENT } from '#shared/utils/constants.ts';
+import { objectAssign, objectEntries } from '#shared/utils/object.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 const TSCONFIG_FILES = [
   '**/tsconfig.json',
@@ -110,6 +114,7 @@ const getJsoncSortConfigs = (): Config[] => [
             'lint-staged',
             'eslintConfig',
             'stylelint',
+            'markdownlint-cli2',
             'prettier',
             'ava',
             'stackblitz',
@@ -516,11 +521,12 @@ export const json = async (): Promise<Config[]> => {
   }
 
   const createRulesConfig = (
-    language: 'json' | 'jsonc' | 'json5',
+    language: keyof typeof LANGUAGE_TO_GLOB_MAP,
+    files: string[],
   ): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSON, `${SUB_SCOPES.RULES}-${language}`),
     language: `json/${language}`,
-    files: LANGUAGE_TO_GLOB_MAP[language],
+    files,
     ...(language === 'json'
       ? {
         ignores: JSON_FILES_TO_TREAT_AS_JSONC,
@@ -542,7 +548,7 @@ export const json = async (): Promise<Config[]> => {
             emptyObjects: 'never',
           }],
           'jsonc/object-property-newline': 'error',
-          'jsonc/quotes': ['error', 'double'],
+          'jsonc/quotes': 'error',
         }
         : undefined),
     },
@@ -564,9 +570,7 @@ export const json = async (): Promise<Config[]> => {
       name: buildConfigName(MAIN_SCOPES.JSON, SUB_SCOPES.SETUP),
       plugins,
     },
-    createRulesConfig('json'),
-    createRulesConfig('jsonc'),
-    createRulesConfig('json5'),
+    ...objectEntries(LANGUAGE_TO_GLOB_MAP).map(([language, files]) => createRulesConfig(language, files)),
     ...jsoncSortConfigs,
   ].filter(Boolean);
 };

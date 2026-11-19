@@ -47,12 +47,12 @@ on:
         description: Bun version to use when JS is enabled
         required: false
         type: string
-        default: 1.3.12
+        default: 1.4.4
       node-version:
         description: Node version to use when JS is enabled
         required: false
         type: string
-        default: 24.11.0
+        default: 24.21.0
       do-enable-php:
         description: Enable PHP checks and build/publish (requires composer.json, php-version)
         required: false
@@ -107,12 +107,12 @@ on:
         description: Bun version to use when JS is enabled
         required: false
         type: string
-        default: 1.3.12
+        default: 1.4.4
       node-version:
         description: Node version to use when JS is enabled
         required: false
         type: string
-        default: 24.11.0
+        default: 24.21.0
       do-enable-php:
         description: Enable PHP checks and build/publish (requires composer.json, php-version)
         required: false
@@ -126,7 +126,7 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'release/') }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
 
 permissions:
   contents: read
@@ -156,6 +156,7 @@ jobs:
         id: validate
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         env:
+          INPUTS: ${{ toJSON(inputs) }}
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
           PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
@@ -163,11 +164,11 @@ jobs:
           script: |
             const fs = require('fs');
 
-            const inputs = ${{ toJSON(inputs) }};
+            const inputs = JSON.parse(process.env.INPUTS);
             const isDryRun = String(inputs['is-dry-run'] ?? 'false') === 'true';
             const doEnsureSetSecrets = String(inputs['do-ensure-set-secrets'] ?? 'true') === 'true';
-            const bunVersion = String(inputs['bun-version'] ?? '1.3.12').trim();
-            const nodeVersion = String(inputs['node-version'] ?? '24.11.0').trim();
+            const bunVersion = String(inputs['bun-version'] ?? '1.4.4').trim();
+            const nodeVersion = String(inputs['node-version'] ?? '24.21.0').trim();
             const phpVersion = String(inputs['php-version'] ?? '8.5').trim();
             let doEnableJs = String(inputs['do-enable-js'] ?? 'false') === 'true';
             let doEnablePhp = String(inputs['do-enable-php'] ?? 'false') === 'true';
@@ -332,12 +333,6 @@ jobs:
     steps:
       - *checkout
 
-      - name: Run Commitlint
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # 6.2.1
-        with:
-          configFile: ./.conf/commitlint.config.mjs
-
       - name: Setup Node
         if: &do-enable-js fromJSON(needs.inputs.outputs.do-enable-js)
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # 6.2.0
@@ -367,11 +362,7 @@ jobs:
 
       - name: Generate Types
         if: *do-enable-js
-        run: bun typegen
-
-      - name: Run JS Checks
-        if: *do-enable-js
-        run: touch ./.git/COMMIT_EDITMSG && bun check
+        run: make typegen
 
       - &handle-composer-cache
           name: Handle Composer Cache
@@ -387,6 +378,7 @@ jobs:
       - &setup-composer
           name: Setup Composer
           uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+          if: *do-enable-php
           with:
             php-version: ${{ needs.inputs.outputs.php-version }}
             tools: composer
@@ -397,14 +389,10 @@ jobs:
           if: *do-enable-php
           run: composer install --no-interaction --no-progress --optimize-autoloader --prefer-dist
 
-      - name: Run PHP Checks
-        if: *do-enable-php
-        run: |
-          cp ./conf/php-cs-fixer.php.example ./conf/php-cs-fixer.php
-          cp ./conf/rector.php.example ./conf/rector.php
-          cp ./conf/phpstan.php.example ./conf/phpstan.php
-          cp ./conf/twig-cs-fixer.php.example ./conf/twig-cs-fixer.php
-          make check
+      - name: Run Checks
+        run: make ci
+        env:
+          COMMITLINT_RANGE: ${{ (github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before)) && format('{0}..{1}', github.event.pull_request.base.sha || github.event.before, github.sha) || '' }}
 
   build:
     name: Build
@@ -423,7 +411,7 @@ jobs:
 
       - name: Build JS Package
         if: *do-enable-js
-        run: bun run build
+        run: make build
 
       - name: Pack JS Package
         if: *do-enable-js
@@ -432,6 +420,10 @@ jobs:
       - *handle-composer-cache
       - *setup-composer
       - *install-php-dependencies
+
+      - name: Check Shipped Files
+        if: fromJSON(needs.inputs.outputs.do-enable-js) && fromJSON(needs.inputs.outputs.do-enable-php)
+        run: make phpunit -- --filter testTheFilesEachPackageShips
 
       - name: Pack PHP Package
         if: *do-enable-php
@@ -459,37 +451,22 @@ jobs:
     permissions:
       contents: write
     steps:
-      - *checkout
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+        with:
+          fetch-depth: 0
+
       - *handle-bun-cache
       - *setup-bun
 
-      - name: Generate Changelog
-        run: bunx -y conventional-changelog -r 0 -o CHANGELOG.md || echo "No changelog changes"
-
-      - name: Extract Release Notes
+      - name: Generate Release Notes
         id: release-notes
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
-        with:
-          script: |
-            const fs = require('fs');
-
-            try {
-              const content = fs.readFileSync('CHANGELOG.md', 'utf8');
-              const lines = content.split('\n');
-              const start = lines.findIndex((line) => line.startsWith('## '));
-              let releaseNotes = '';
-
-              if (start !== -1) {
-                const nextHeaderOffset = lines.slice(start + 1).findIndex((line) => line.startsWith('## '));
-                const end = nextHeaderOffset === -1 ? lines.length : start + 1 + nextHeaderOffset;
-
-                releaseNotes = lines.slice(start, end).join('\n').replace(/^## v/gm, '## ');
-              }
-
-              core.setOutput('release_notes', releaseNotes || 'No release notes available.');
-            } catch (error) {
-              core.setOutput('release_notes', 'No CHANGELOG.md found.');
-            }
+        env:
+          VERSION: ${{ needs.inputs.outputs.tag }}
+        run: |
+          notes="$(make changelog -- --notes CHANGELOG_URL="${{ github.server_url }}/${{ github.repository }}")"
+          printf 'release_notes<<CHANGELOG_EOF\n%s\nCHANGELOG_EOF\n' \
+            "${notes:-No release notes available.}" >> "$GITHUB_OUTPUT"
 
       - name: Download Artifacts
         if: ${{ !fromJSON(needs.inputs.outputs.is-dry-run) }}
@@ -508,17 +485,12 @@ jobs:
         with:
           script: |
             const tag = process.env.INPUT_TAG;
-            let gitRevParse;
 
-            try {
-              gitRevParse = await exec.exec('git', ['rev-parse', `v${tag}`], {
-                ignoreReturnCode: true,
-              });
-            } catch {
-              // Do nothing
-            }
+            const tagExistsExitCode = await exec.exec('git', ['rev-parse', `v${tag}`], {
+              ignoreReturnCode: true,
+            });
 
-            if (gitRevParse && gitRevParse.exitCode === 0) {
+            if (tagExistsExitCode === 0) {
               core.setFailed(`Tag "v${tag}" already exists.`);
 
               return;
@@ -564,17 +536,44 @@ jobs:
 
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-            const retry = async (callback, attempts = 3, delay = 1000, timeout = 15000) => {
+            const { spawn } = require('child_process');
+
+            const run = (command, args, timeout = 15000) => new Promise((resolve, reject) => {
+              const child = spawn(command, args, { stdio: 'inherit' });
+
+              const timer = setTimeout(() => {
+                child.kill('SIGKILL');
+                reject(new Error(`\`${command}\` timed out after ${timeout}ms and was killed.`));
+              }, timeout);
+
+              child.on('error', (error) => {
+                clearTimeout(timer);
+                reject(error);
+              });
+
+              child.on('close', (code) => {
+                clearTimeout(timer);
+
+                if (code === 0) {
+                  resolve(code);
+                } else {
+                  reject(new Error(`\`${command}\` exited with ${code}.`));
+                }
+              });
+            });
+
+            const retry = async (callback, attempts = 3, delay = 1000) => {
               let lastError;
 
               for (let i = 1; i <= attempts; i += 1) {
                 try {
-                  return await Promise.race([
-                    callback(i),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
-                  ]);
+                  return await callback(i);
                 } catch (error) {
                   lastError = error;
+
+                  if (i === attempts) {
+                    break;
+                  }
 
                   core.info(`Attempt ${i} failed. Retrying in ${delay}ms...`);
                   await sleep(delay);
@@ -616,14 +615,12 @@ jobs:
               core.info(`Publishing ${path}`);
 
               try {
-                await retry(async () => {
-                  await exec.exec('bun', [
-                    'publish',
-                    '--access', 'public',
-                    process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
-                    path,
-                  ].filter(Boolean));
-                });
+                await retry(() => run('bun', [
+                  'publish',
+                  '--access', 'public',
+                  process.env.IS_DRY_RUN === 'true' ? '--dry-run' : undefined,
+                  path,
+                ].filter(Boolean), 120000));
               } catch (error) {
                 failures.push(path);
               }
@@ -651,10 +648,7 @@ jobs:
 
               for (let i = 1; i <= attempts; i += 1) {
                 try {
-                  const response = await Promise.race([
-                    fetch(url, options),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), timeout)),
-                  ]);
+                  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeout) });
 
                   if (response.ok
                     || response.status === 401

@@ -1,0 +1,9 @@
+{
+  "name": "acme/plain",
+  "require": {
+    "php": ">=8.5"
+  },
+  "require-dev": {
+    "composer-runtime-api": "^2.0"
+  }
+}

@@ -1,32 +1,40 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
 
-const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
-const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
-const MESSAGE_ID_WRONG_TYPE_VALUE = 'wrongTypeValue';
+export const MESSAGE_ID_MISSING_WITH_KEYWORD = 'missingWithKeyword';
+export const MESSAGE_ID_MISSING_TYPE_PROPERTY = 'missingTypeProperty';
+export const MESSAGE_ID_UNEXPECTED_TYPE_VALUE = 'unexpectedTypeValue';
 
-const FILE_TYPE_MAP: Record<string, string> = <const>{
-  '.json': 'json',
-  '.css': 'css',
-  '.svg': 'svg',
-  '.png': 'image',
-  '.jpg': 'image',
-  '.jpeg': 'image',
-  '.txt': 'text',
-  '.oct': 'bytes',
-  '.wasm': 'webassembly',
-};
+const FILE_TYPE_MAP = new Map([
+  ['.css', 'css'],
+  ['.jpeg', 'image'],
+  ['.jpg', 'image'],
+  ['.json', 'json'],
+  ['.oct', 'bytes'],
+  ['.png', 'image'],
+  ['.svg', 'svg'],
+  ['.txt', 'text'],
+  ['.wasm', 'webassembly'],
+]);
 
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-attributes.md
+ */
 export const requireImportAttributesRule = <const>{
   meta: {
     type: 'problem',
     docs: {
       description: 'Require non-JavaScript imports (e.g. .json and .css) to include import attributes.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-attributes.md',
     },
     messages: {
       [MESSAGE_ID_MISSING_WITH_KEYWORD]: 'Non-JavaScript import (\'{{ extension }}\') requires an import attributes object with the \'type\' property set to \'{{ expectedValue }}\'.',
       [MESSAGE_ID_MISSING_TYPE_PROPERTY]: 'Import attributes for non-JavaScript imports must include the \'type\' property.',
-      [MESSAGE_ID_WRONG_TYPE_VALUE]: 'Import attribute \'type\' for \'{{ file }}\' must be \'{{ expectedValue }}\'.',
+      [MESSAGE_ID_UNEXPECTED_TYPE_VALUE]: 'Import attribute \'type\' for \'{{ file }}\' must be \'{{ expectedValue }}\'.',
     },
   },
   create: (context) => ({
@@ -39,7 +47,7 @@ export const requireImportAttributesRule = <const>{
       }
 
       const extension = sourceValue.slice(extensionIndex).toLowerCase();
-      const expectedValue = FILE_TYPE_MAP[extension];
+      const expectedValue = FILE_TYPE_MAP.get(extension);
 
       if (expectedValue === undefined) {
         return;
@@ -60,7 +68,7 @@ export const requireImportAttributesRule = <const>{
         return;
       }
 
-      /* eslint-disable ts/no-unsafe-enum-comparison -- Usage of strings is desired here to not have an explicit dependency on typescript-eslint */
+      /* eslint-disable ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum */
       const typeProperty = attributes.find(
         (attribute) => (
           attribute.key.type === 'Identifier'
@@ -72,7 +80,7 @@ export const requireImportAttributesRule = <const>{
           && attribute.key.value === 'type'
         ),
       );
-      /* eslint-enable ts/no-unsafe-enum-comparison -- Restore rule */
+      /* eslint-enable ts/no-unsafe-enum-comparison */
 
       if (!typeProperty) {
         context.report({
@@ -86,7 +94,7 @@ export const requireImportAttributesRule = <const>{
       if (typeProperty.value.value !== expectedValue) {
         context.report({
           node,
-          messageId: MESSAGE_ID_WRONG_TYPE_VALUE,
+          messageId: MESSAGE_ID_UNEXPECTED_TYPE_VALUE,
           data: {
             expectedValue,
             file: sourceValue,

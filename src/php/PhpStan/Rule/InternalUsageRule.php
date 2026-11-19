@@ -6,6 +6,7 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\PhpStan\Rule\InternalUsageRuleTest;
 use InvalidArgumentException;
 use Override;
 use PhpParser\Node;
@@ -18,142 +19,187 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\NodeAbstract;
+use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\GroupUse;
+use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\TraitUse;
+use PhpParser\Node\Stmt\Use_;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
+use PhpParser\NodeVisitorAbstract;
 use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ClassMemberReflection;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
-use RuntimeException;
 
-use function array_filter;
-use function array_find;
+use function array_any;
 use function array_is_list;
+use function array_map;
+use function is_array;
+use function is_int;
 use function is_string;
 use function sprintf;
 
 /**
+ * Reports calls into another package's `@internal` symbols.
+ *
+ * An `@internal` symbol may only be used from its own declaring namespace or below, unless the tag
+ * names another subtree (`@internal Acme\Foo`). Two allow-lists widen that: `allowedInternals`
+ * names what may be reached, `allowedCallers` names who may reach it, and each entry is a plain
+ * prefix or a delimited pattern.
+ *
  * @api
  *
  * @no-named-arguments
  *
- * @implements Rule<NodeAbstract>
+ * @implements Rule<Stmt>
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/phpstan/rules/InternalUsageRule.md
+ * @see InternalUsageRuleTest
+ *
+ * @example
+ * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
+ * PhpStan::getBuilder()
+ *     ->replaceRule(InternalUsageRule::class, [
+ *         'allowedCallers'   => ['Acme\Tests'],
+ *         'allowedInternals' => ['Acme\User\Internal\PasswordHasher::hash()' => ['Acme\Security']],
+ *     ])
+ * ;
+ * ```
  */
-final class InternalUsageRule implements Rule
+final readonly class InternalUsageRule implements Rule
 {
     use RuleTrait;
 
+    private const string AT_API      = '@api';
     private const string AT_INTERNAL = '@internal';
 
-    private const string KIND_CLASS     = 'Class';
-    private const string KIND_CONSTANT  = 'Constant';
-    private const string KIND_ENUM      = 'Enum';
-    private const string KIND_FUNCTION  = 'Function';
-    private const string KIND_INTERFACE = 'Interface';
-    private const string KIND_METHOD    = 'Method';
-    private const string KIND_PROPERTY  = 'Property';
-    private const string KIND_TRAIT     = 'Trait';
-
     /**
-     * @var list<string>
+     * @var array<array-key, non-empty-string|list<non-empty-string>>
      */
-    private array $allowedInternalTargets;
+    private array $allowedInternals;
 
     /**
-     * @var list<string>
+     * @var array<array-key, non-empty-string|list<non-empty-string>>
      */
-    private array $allowedDeclaringNamespaces;
+    private array $allowedCallers;
 
     /**
-     * @var list<string>
-     */
-    private array $allowedCallingNamespaces;
-
-    /**
-     * @param ?list<string> $allowedInternalTargets
-     * @param ?list<string> $allowedDeclaringNamespaces
-     * @param ?list<string> $allowedCallingNamespaces
+     * @internal invoked by PHPStan
      *
-     * @throws InvalidArgumentException
+     * @param ReflectionProvider $reflectionProvider - PHPStan reflection provider (auto-wired)
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedInternals - what may be reached
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $allowedCallers - who may reach it
+     *
+     * @throws InvalidArgumentException when an entry is neither a namespace prefix nor a delimited regex pattern
      */
     public function __construct(
-        private readonly ReflectionProvider $reflectionProvider,
-        ?array $allowedInternalTargets = null,
-        ?array $allowedDeclaringNamespaces = null,
-        ?array $allowedCallingNamespaces = null,
+        private ReflectionProvider $reflectionProvider,
+        ?array $allowedInternals = null,
+        ?array $allowedCallers = null,
     ) {
-        $this->setAllowedInternalTargets($allowedInternalTargets);
-        $this->setAllowedDeclaringNamespaces($allowedDeclaringNamespaces);
-        $this->setAllowedCallingNamespaces($allowedCallingNamespaces);
+        $this->allowedInternals = self::getValidatedStringList('allowedInternals', $allowedInternals);
+        $this->allowedCallers   = self::getValidatedStringList('allowedCallers', $allowedCallers);
     }
 
+    /**
+     * @internal invoked by PHPStan
+     */
     #[Override]
     public function getNodeType(): string
     {
-        return NodeAbstract::class;
+        return Stmt::class;
     }
 
     /**
-     * @throws RuntimeException
+     * @internal invoked by PHPStan
      */
     #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        $callerNamespace = $scope->getNamespace() ?? '';
-        $line            = $node->getStartLine();
+        $callerNamespace = self::resolveCallerNamespace($node, $scope);
 
-        return array_filter(
-            match (true) {
-                $node instanceof New_            => [$this->processNameLikeNode($node->class, $scope, $callerNamespace, $line)],
-                $node instanceof Name            => [$this->processNameLikeNode($node, $scope, $callerNamespace, $line)],
-                $node instanceof StaticCall      => [$this->processStaticCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof ClassConstFetch => [$this->processClassConstFetch($node, $scope, $callerNamespace, $line)],
-                $node instanceof MethodCall      => [$this->processMethodCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof PropertyFetch   => [$this->processPropertyFetch($node, $scope, $callerNamespace, $line)],
-                $node instanceof FuncCall        => [$this->processFunctionCall($node, $scope, $callerNamespace, $line)],
-                $node instanceof ConstFetch      => [$this->processConstantFetch($node, $scope, $callerNamespace, $line)],
-                default                          => [],
-            },
-            static fn (?IdentifierRuleError $identifierRuleError): bool => $identifierRuleError instanceof IdentifierRuleError,
-        );
+        if ($node instanceof Namespace_
+            || $node instanceof Use_
+            || $node instanceof GroupUse
+            || $node instanceof TraitUse) {
+            return [];
+        }
+
+        foreach (self::collectNodesWithinStatement($node) as $subNode) {
+            $error = $this->processSubNode($subNode, $scope, $callerNamespace);
+
+            if ($error instanceof IdentifierRuleError) {
+                return [$error];
+            }
+        }
+
+        return [];
     }
 
-    /**
-     * @param ?list<string> $allowedInternalTargets
-     *
-     * @throws InvalidArgumentException
-     */
-    private function setAllowedInternalTargets(?array $allowedInternalTargets): void
+    private static function resolveCallerNamespace(Node $node, Scope $scope): string
     {
-        $this->allowedInternalTargets = self::getValidatedStringList('allowedInternalTargets', $allowedInternalTargets);
+        $namespace = $scope->getNamespace() ?? '';
+        $fileDoc   = self::resolveFileLevelDoc($node, $scope);
+        $target    = self::resolveInternalTarget($fileDoc?->getText());
+
+        return $target === null || $target === self::AT_INTERNAL ? $namespace : $target;
     }
 
     /**
-     * @param ?list<string> $allowedDeclaringNamespaces
-     *
-     * @throws InvalidArgumentException
+     * @return list<Node>
      */
-    private function setAllowedDeclaringNamespaces(?array $allowedDeclaringNamespaces): void
+    private static function collectNodesWithinStatement(Stmt $stmt): array
     {
-        $this->allowedDeclaringNamespaces = self::getValidatedStringList('allowedDeclaringNamespaces', $allowedDeclaringNamespaces);
+        $visitor = new class extends NodeVisitorAbstract {
+            /**
+             * @var list<Node>
+             */
+            public array $collectedNodes = [];
+
+            private bool $isRoot = true;
+
+            #[Override]
+            public function enterNode(Node $node): ?int
+            {
+                if ($this->isRoot) {
+                    $this->isRoot = false;
+                } elseif ($node instanceof Stmt) {
+                    return NodeVisitor::DONT_TRAVERSE_CHILDREN;
+                }
+
+                $this->collectedNodes[] = $node;
+
+                return null;
+            }
+        };
+
+        new NodeTraverser($visitor)->traverse([$stmt]);
+
+        return $visitor->collectedNodes;
     }
 
-    /**
-     * @param ?list<string> $allowedCallingNamespaces
-     *
-     * @throws InvalidArgumentException
-     */
-    private function setAllowedCallingNamespaces(?array $allowedCallingNamespaces): void
+    private function processSubNode(Node $node, Scope $scope, string $callerNamespace): ?IdentifierRuleError
     {
-        $this->allowedCallingNamespaces = self::getValidatedStringList('allowedCallingNamespaces', $allowedCallingNamespaces);
+        $line = $node->getStartLine();
+
+        return match (true) {
+            $node instanceof New_            => $this->processNameLikeNode($node->class, $scope, $callerNamespace, $line),
+            $node instanceof Name            => $this->processNameLikeNode($node, $scope, $callerNamespace, $line),
+            $node instanceof StaticCall      => $this->processStaticCall($node, $scope, $callerNamespace, $line),
+            $node instanceof ClassConstFetch => $this->processClassConstFetch($node, $scope, $callerNamespace, $line),
+            $node instanceof MethodCall      => $this->processMethodCall($node, $scope, $callerNamespace, $line),
+            $node instanceof PropertyFetch   => $this->processPropertyFetch($node, $scope, $callerNamespace, $line),
+            $node instanceof FuncCall        => $this->processFunctionCall($node, $scope, $callerNamespace, $line),
+            $node instanceof ConstFetch      => $this->processConstantFetch($node, $scope, $callerNamespace, $line),
+            default                          => null,
+        };
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processNameLikeNode(Node|Name $name, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$name instanceof Name) {
@@ -180,9 +226,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processFunctionCall(FuncCall $funcCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$funcCall->name instanceof Name || !$this->reflectionProvider->hasFunction($funcCall->name, $scope)) {
@@ -191,21 +234,18 @@ final class InternalUsageRule implements Rule
 
         $functionReflection = $this->reflectionProvider->getFunction($funcCall->name, $scope);
         $internalTarget     = self::resolveInternalTarget($functionReflection->getDocComment());
-        $declaringNamespace = Str::match($functionReflection->getName(), '/^(.+)\\\[^\\\]+$/')[1] ?? '';
+        $declaringNamespace = Str::beforeLast($functionReflection->getName(), '\\');
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $declaringNamespace,
             $callerNamespace,
             self::KIND_FUNCTION,
-            $funcCall->name->toString(),
+            $functionReflection->getName() . '()',
             $line,
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processConstantFetch(ConstFetch $constFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$this->reflectionProvider->hasConstant($constFetch->name, $scope)) {
@@ -213,29 +253,22 @@ final class InternalUsageRule implements Rule
         }
 
         $constantReflection = $this->reflectionProvider->getConstant($constFetch->name, $scope);
-
-        if (!$constantReflection instanceof ClassMemberReflection) {
-            return null;
-        }
-
-        $internalTarget = self::resolveInternalTarget($constantReflection->getDocComment());
+        $constantName       = $constantReflection->getName();
+        $fileName           = $constantReflection->getFileName();
 
         return $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $constantReflection->getDeclaringClass()->getNativeReflection()->getNamespaceName(),
+            self::resolveInternalTarget($fileName === null ? null : ConstantDocCache::get($fileName, $constantName)),
+            Str::beforeLast($constantName, '\\'),
             $callerNamespace,
             self::KIND_CONSTANT,
-            $constFetch->name->toString(),
+            $constantName,
             $line,
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processStaticCall(StaticCall $staticCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
-        if (!$staticCall->class instanceof Name) {
+        if (!$staticCall->class instanceof Name || !$staticCall->name instanceof Identifier) {
             return null;
         }
 
@@ -246,43 +279,29 @@ final class InternalUsageRule implements Rule
         }
 
         $classReflection = $this->reflectionProvider->getClass($resolvedName);
-        $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
-        $internalTarget  = self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
 
-        $classError = $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $classNamespace,
-            $callerNamespace,
-            self::getKindForClassReflection($classReflection),
-            $resolvedName,
-            $line,
-        );
-
-        if ($classError instanceof IdentifierRuleError) {
-            return $classError;
-        }
-
-        if (!$staticCall->name instanceof Identifier || !$classReflection->hasMethod($staticCall->name->toString())) {
+        if (!$classReflection->hasMethod($staticCall->name->toString())) {
             return null;
         }
 
         $methodName               = $staticCall->name->toString();
         $extendedMethodReflection = $classReflection->getMethod($methodName, $scope);
-        $internalTarget           = self::resolveInternalTarget($extendedMethodReflection->getDocComment());
+
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $extendedMethodReflection->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
-            $classNamespace,
+            $classReflection->getNativeReflection()->getNamespaceName(),
             $callerNamespace,
             self::KIND_METHOD,
-            $resolvedName . '::' . $methodName,
+            $resolvedName . '::' . $methodName . '()',
             $line,
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processMethodCall(MethodCall $methodCall, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$methodCall->name instanceof Identifier) {
@@ -298,22 +317,21 @@ final class InternalUsageRule implements Rule
         $classReflection = $method->getDeclaringClass();
         $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
 
-        $internalTarget = self::resolveInternalTarget($method->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $method->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
             $classNamespace,
             $callerNamespace,
             self::KIND_METHOD,
-            $classReflection->getName() . '::' . $method->getName(),
+            $classReflection->getName() . '::' . $method->getName() . '()',
             $line,
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processPropertyFetch(PropertyFetch $propertyFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$propertyFetch->name instanceof Identifier) {
@@ -329,8 +347,10 @@ final class InternalUsageRule implements Rule
         $classReflection = $property->getDeclaringClass();
         $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
 
-        $internalTarget = self::resolveInternalTarget($property->getDocComment())
-            ?? self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $property->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
@@ -342,9 +362,6 @@ final class InternalUsageRule implements Rule
         );
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processClassConstFetch(ClassConstFetch $classConstFetch, Scope $scope, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$classConstFetch->name instanceof Identifier) {
@@ -368,9 +385,6 @@ final class InternalUsageRule implements Rule
         return null;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private function processClassAndConst(string $className, string $constName, string $callerNamespace, int $line): ?IdentifierRuleError
     {
         if (!$this->reflectionProvider->hasClass($className)) {
@@ -378,31 +392,19 @@ final class InternalUsageRule implements Rule
         }
 
         $classReflection = $this->reflectionProvider->getClass($className);
-        $classNamespace  = $classReflection->getNativeReflection()->getNamespaceName();
-        $internalTarget  = self::resolveInternalTarget($classReflection->getNativeReflection()->getDocComment());
-
-        $classError = $this->buildViolationIfDisallowed(
-            $internalTarget,
-            $classNamespace,
-            $callerNamespace,
-            self::getKindForClassReflection($classReflection),
-            $className,
-            $line,
-        );
-
-        if ($classError instanceof IdentifierRuleError) {
-            return $classError;
-        }
 
         if (!$classReflection->hasConstant($constName)) {
             return null;
         }
 
-        $internalTarget = self::resolveInternalTarget($classReflection->getConstant($constName)->getDocComment());
+        $internalTarget = self::resolveEffectiveInternalTarget(
+            $classReflection->getConstant($constName)->getDocComment(),
+            $classReflection->getNativeReflection()->getDocComment(),
+        );
 
         return $this->buildViolationIfDisallowed(
             $internalTarget,
-            $classNamespace,
+            $classReflection->getNativeReflection()->getNamespaceName(),
             $callerNamespace,
             self::KIND_CONSTANT,
             $className . '::' . $constName,
@@ -412,37 +414,115 @@ final class InternalUsageRule implements Rule
 
     private static function resolveInternalTarget(string|false|null $docComment): ?string
     {
-        $matches = Str::match($docComment ?: '', '/\*\s+@internal\s*([\w\\\]*)\s*\n/');
+        $matches = Str::match($docComment ?: '', '/\*\s+@internal(?=\s|$)(?<target>[^\n]*)(?:\n|$)/');
 
-        return isset($matches[1])
-            ? ($matches[1] ?: self::AT_INTERNAL)
-            : null;
-    }
-
-    private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace): bool
-    {
-        $patternsByValue = [
-            $internalTarget     => $this->allowedInternalTargets,
-            $declaringNamespace => $this->allowedDeclaringNamespaces,
-            $callerNamespace    => $this->allowedCallingNamespaces,
-        ];
-
-        foreach ($patternsByValue as $value => $patterns) {
-            foreach ($patterns as $pattern) {
-                if (Str::match($value, $pattern) !== []) {
-                    return true;
-                }
-            }
+        if (!isset($matches['target'])) {
+            return null;
         }
 
-        return $internalTarget === self::AT_INTERNAL
-            ? Str::doesStartWith($callerNamespace, $declaringNamespace)
-            : ($callerNamespace === '' || Str::doesContain($callerNamespace, $internalTarget));
+        $target = self::trimBackslashes(Str::trim($matches['target']));
+
+        return Str::match($target, '/^[\w\\\]+$/') === [] ? self::AT_INTERNAL : $target;
+    }
+
+    private static function resolveVisibility(string|false|null $docComment): ?string
+    {
+        return self::resolveInternalTarget($docComment)
+            ?? (self::hasTagInText($docComment ?: '', self::TAG_API) ? self::AT_API : null);
+    }
+
+    private static function resolveEffectiveInternalTarget(string|false|null $memberDocComment, string|false|null $containerDocComment): ?string
+    {
+        $visibility = self::resolveVisibility($memberDocComment) ?? self::resolveVisibility($containerDocComment);
+
+        return $visibility === self::AT_API ? null : $visibility;
+    }
+
+    private static function trimBackslashes(string $namespace): string
+    {
+        return Str::trim($namespace, '\\');
+    }
+
+    private function isAllowedInCaller(string $internalTarget, string $declaringNamespace, string $callerNamespace, string $symbol): bool
+    {
+        $callerValues   = [$callerNamespace];
+        $internalValues = [$internalTarget, $declaringNamespace, $symbol];
+
+        if (self::isAllowedByAny($internalValues, $this->allowedInternals, $callerValues)) {
+            return true;
+        }
+
+        if (self::isAllowedByAny($callerValues, $this->allowedCallers, $internalValues)) {
+            return true;
+        }
+
+        return self::isInSubtree(
+            $callerNamespace,
+            $internalTarget === self::AT_INTERNAL ? $declaringNamespace : $internalTarget,
+        );
     }
 
     /**
-     * @throws RuntimeException
+     * @param non-empty-list<string> $values
+     * @param ?array<array-key, non-empty-string|list<non-empty-string>> $entries
+     * @param non-empty-list<string> $counterparts
      */
+    private static function isAllowedByAny(array $values, ?array $entries, array $counterparts): bool
+    {
+        foreach ($entries ?? [] as $key => $entry) {
+            $pattern = is_int($key) ? $entry : $key;
+
+            if (!is_string($pattern)) {
+                continue;
+            }
+
+            if (!self::isAllowedByAnyValue($values, $pattern)) {
+                continue;
+            }
+
+            if (is_int($key) || self::isAllowedByAnyCounterpart($counterparts, $entry)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param non-empty-list<string> $values
+     */
+    private static function isAllowedByAnyValue(array $values, string $pattern): bool
+    {
+        return array_any($values, static fn (string $value): bool => self::isAllowed($value, $pattern));
+    }
+
+    /**
+     * @param non-empty-list<string> $counterparts
+     * @param non-empty-string|list<non-empty-string> $patterns
+     */
+    private static function isAllowedByAnyCounterpart(array $counterparts, string|array $patterns): bool
+    {
+        return is_array($patterns) && array_any(
+            $patterns,
+            static fn (string $pattern): bool => array_any(
+                $counterparts,
+                static fn (string $counterpart): bool => self::isAllowed($counterpart, $pattern),
+            ),
+        );
+    }
+
+    private static function isAllowed(string $value, string $pattern): bool
+    {
+        return Str::isRegex($pattern)
+            ? Str::match($value, $pattern) !== []
+            : self::isInSubtree($value, $pattern);
+    }
+
+    private static function isInSubtree(string $value, string $prefix): bool
+    {
+        return $value === $prefix || Str::startsWithAny($value, [$prefix . '\\', $prefix . '::']);
+    }
+
     private function buildViolationIfDisallowed(
         ?string $internalTarget,
         string $declaringNamespace,
@@ -451,60 +531,86 @@ final class InternalUsageRule implements Rule
         string $symbol,
         int $line,
     ): ?IdentifierRuleError {
-        return $internalTarget !== null && !$this->isAllowedInCaller($internalTarget, $declaringNamespace, $callerNamespace)
+        return $internalTarget !== null && !$this->isAllowedInCaller($internalTarget, $declaringNamespace, $callerNamespace, $symbol)
             ? self::buildError($kind, $symbol, $internalTarget ?: self::AT_INTERNAL, $callerNamespace, $line)
             : null;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     private static function buildError(string $kind, string $symbol, string $internalTarget, string $callerNamespace, int $line): IdentifierRuleError
     {
         return self::buildRuleError(sprintf(
-            '%s `%s` is internal%sand must not be used from `%s`.',
+            '%s `%s` is internal%sand must not be used from %s.',
             $kind,
             $symbol,
             $internalTarget === self::AT_INTERNAL ? ' ' : sprintf(' to `%s` ', $internalTarget),
-            $callerNamespace,
+            Str::isEmpty($callerNamespace) ? 'the global namespace' : sprintf('`%s`', $callerNamespace),
         ), $line);
     }
 
     /**
+     * @param non-empty-string $optionName
      * @param ?array<array-key, mixed> $input
      *
-     * @return list<string>
+     * @return array<array-key, non-empty-string|list<non-empty-string>>
      *
      * @throws InvalidArgumentException
      */
     private static function getValidatedStringList(string $optionName, ?array $input): array
     {
-        if ($input === null) {
-            return [];
+        $entries = [];
+
+        foreach ($input ?? [] as $key => $value) {
+            if (is_int($key)) {
+                $entries[] = self::getValidatedPattern($optionName, $value);
+
+                continue;
+            }
+
+            if (!is_array($value) || !array_is_list($value)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Entry "%s" for option "%s" must map to a list of non-empty strings.',
+                    $key,
+                    $optionName,
+                ));
+            }
+
+            $entries[self::getValidatedPattern($optionName, $key)] = array_map(
+                static fn (mixed $counterpart): string => self::getValidatedPattern($optionName, $counterpart),
+                $value,
+            );
         }
 
-        if (!array_is_list($input) || array_find($input, static fn ($item): bool => !is_string($item))) {
+        return $entries;
+    }
+
+    /**
+     * @return non-empty-string
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function getValidatedPattern(string $optionName, mixed $pattern): string
+    {
+        if (!is_string($pattern) || Str::isEmpty($pattern)) {
             throw new InvalidArgumentException(sprintf(
-                'Value for option "%s" must be a list of strings.',
+                'Value for option "%s" must be a list of non-empty strings.',
                 $optionName,
             ));
         }
 
-        /**
-         * @var list<string> $inputCasted
-         */
-        $inputCasted = $input;
+        if (Str::isRegex($pattern)) {
+            return $pattern;
+        }
 
-        return $inputCasted;
-    }
+        $namespacePrefix = self::trimBackslashes($pattern);
 
-    private static function getKindForClassReflection(ClassReflection $classReflection): string
-    {
-        return match (true) {
-            $classReflection->isEnum()      => self::KIND_ENUM,
-            $classReflection->isInterface() => self::KIND_INTERFACE,
-            $classReflection->isTrait()     => self::KIND_TRAIT,
-            default                         => self::KIND_CLASS,
-        };
+        if (Str::match($pattern, '/^[\w\\\]/') === [] || Str::isEmpty($namespacePrefix)) {
+            throw new InvalidArgumentException(sprintf(
+                'Entry "%s" for option "%s" is neither a namespace prefix nor a delimited regex pattern.',
+                $pattern,
+                $optionName,
+            ));
+        }
+
+        return $namespacePrefix;
     }
 }

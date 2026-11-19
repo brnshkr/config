@@ -1,15 +1,16 @@
-// eslint-disable-next-line brnshkr/require-import-attributes -- Allow imported json properties to get inlined
-import { name } from '../../../../package.json';
+/**
+ * @internal @brnshkr/config
+ */
 
-import type { Maybe } from '../types/core';
+import manifest from '#package.json' with { type: 'json' };
 
-export {
-  name as packageFullName,
-  version as packageVersion,
-} from '../../../../package.json';
+import type { Maybe } from '#shared/types/core.ts';
 
-export const packageOrganizationInternal = <Maybe<'brnshkr'>>name
-  .split('/')
+export const packageFullName = manifest.name;
+export const packageVersion = manifest.version;
+
+export const packageOrganizationInternal = <Maybe<'brnshkr'>>manifest.name
+  .split('/', 1)
   .at(0)
   ?.replace(/^@/v, '');
 

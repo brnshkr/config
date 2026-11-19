@@ -1,0 +1,927 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
+import path from 'node:path';
+
+import {
+  hasTag,
+  TAG_API,
+  TAG_INTERNAL,
+} from '#eslint/utils/jsdoc.ts';
+
+import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { loadTsConfigCustomConditions, loadTsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import { compileConfiguredPattern } from '#shared/utils/configured-pattern.ts';
+
+import {
+  doesFileExist,
+  findNearestPackageJson,
+  getMtime,
+  readJsonObjectFile,
+  readTextFile,
+  toPosix,
+} from '#shared/utils/filesystem.ts';
+
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
+
+import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils';
+import type ts from 'typescript';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import type { Maybe } from '#shared/types/core.ts';
+
+export const MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE = 'unexpectedInternalUsage';
+export const MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE = 'unexpectedTargetedInternalUsage';
+
+const PLAIN_INTERNAL = '@internal';
+const PUBLIC_API = '@api';
+const NAMESPACE_SEPARATORS = <const>['/', '#', '.'];
+
+const LAYOUT_SEGMENTS = new Set<string>([
+  'dist',
+  'js',
+  'lib',
+  'src',
+]);
+
+const WILDCARD_SUFFIX = '/*';
+const MODULE_SPECIFIER_SEARCH_DEPTH = 4;
+
+const OPTION_NAMES = <const>[
+  'allowedInternals',
+  'allowedCallers',
+];
+
+const MODULE_EXTENSIONS = <const>[
+  '.ts',
+  '.tsx',
+  '.mts',
+  '.cts',
+  '.d.ts',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+];
+
+const IMPORT_SPECIFIER_TYPES = new Set<string>([
+  'ImportDefaultSpecifier',
+  'ImportNamespaceSpecifier',
+  'ImportSpecifier',
+]);
+
+type OptionName = typeof OPTION_NAMES[number];
+type AllowScalar = string | RegExp;
+type AllowEntry = AllowScalar | Record<string, AllowScalar[]>;
+
+interface InternalUsageOptions extends Partial<Record<OptionName, AllowEntry[]>> {
+  tsConfigPath?: string;
+}
+
+interface CommentNode {
+  end: number;
+  getText: () => string;
+}
+
+interface DeclarationNode extends ts.Node {
+  jsDoc?: CommentNode[];
+  parameters?: readonly ts.Node[];
+  moduleSpecifier?: ts.Node;
+  name?: {
+    getText?: () => string;
+  };
+  statements?: readonly ts.Node[];
+}
+
+interface SourceFileNode extends DeclarationNode {
+  fileName: string;
+  text: string;
+}
+
+interface PackageIdentity {
+  packageName: string;
+  packageRoot: string;
+}
+
+interface PackageCacheEntry {
+  mtime: Maybe<number>;
+  identity: Maybe<PackageIdentity>;
+}
+
+interface ModuleIdentity {
+  moduleId: string;
+  namespace: string;
+  namespaces: string[];
+}
+
+interface ModuleVisibility {
+  fileVisibility: Maybe<string>;
+  visibilityByExportName: Map<string, string>;
+  callableExportNames: Set<string>;
+}
+
+interface ModuleVisibilityCacheEntry {
+  mtime: Maybe<number>;
+  visibility: ModuleVisibility;
+}
+
+interface InternalSymbol {
+  namespace: string;
+  namespaces: string[];
+  symbolId: string;
+  target: string;
+}
+
+interface AllowMatcher {
+  prefixes: string[];
+  patterns: RegExp[];
+}
+
+interface BoundedAllowEntry {
+  subject: AllowMatcher;
+  counterparts: AllowMatcher;
+}
+
+interface AllowList {
+  bare: AllowMatcher;
+  bounded: BoundedAllowEntry[];
+}
+
+const packageCache = new Map<string, PackageCacheEntry>();
+const packageJsonPathCache = new Map<string, Maybe<string>>();
+const moduleVisibilityCache = new Map<string, ModuleVisibilityCacheEntry>();
+const internalMarkerCache = new WeakMap<SourceFileNode, boolean>();
+const fileVisibilityCache = new WeakMap<SourceFileNode, Maybe<string>>();
+
+const trimSeparators = (value: string): string => {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value.startsWith('/', start)) {
+    start += 1;
+  }
+
+  while (end > start && value.endsWith('/', end)) {
+    end -= 1;
+  }
+
+  return value.slice(start, end);
+};
+
+const isInSubtree = (value: string, prefix: string): boolean => value === prefix
+  || NAMESPACE_SEPARATORS.some((separator) => value.startsWith(`${prefix}${separator}`));
+
+const resolveInternalTarget = (comment: string): Maybe<string> => {
+  const target = /\*\s+@internal(?=\s|$)(?<target>[^\n]*)/v.exec(comment)?.groups?.['target'];
+
+  if (target === undefined) {
+    return undefined;
+  }
+
+  const trimmedTarget = target.replace(/\*\/\s*$/v, '').trim();
+
+  return /^[\w\-.\/@]+$/v.test(trimmedTarget) ? trimSeparators(trimmedTarget) : PLAIN_INTERNAL;
+};
+
+const findPackageJsonPath = (directory: string): Maybe<string> => {
+  if (packageJsonPathCache.has(directory)) {
+    return packageJsonPathCache.get(directory);
+  }
+
+  const packageJsonPath = findNearestPackageJson(directory);
+
+  packageJsonPathCache.set(directory, packageJsonPath);
+
+  return packageJsonPath;
+};
+
+const loadPackageIdentity = (directory: string): Maybe<PackageIdentity> => {
+  const packageJsonPath = findPackageJsonPath(directory);
+
+  if (packageJsonPath === undefined) {
+    return undefined;
+  }
+
+  const mtime = getMtime(packageJsonPath);
+  const cacheEntry = packageCache.get(packageJsonPath);
+
+  if (cacheEntry !== undefined && cacheEntry.mtime === mtime) {
+    return cacheEntry.identity;
+  }
+
+  const manifest = readJsonObjectFile(packageJsonPath);
+  const declaredName = manifest?.['name'];
+  const packageName = typeof declaredName === 'string' ? declaredName : '';
+
+  const identity = packageName.length === 0
+    ? undefined
+    : {
+      packageName,
+      packageRoot: toPosix(path.dirname(packageJsonPath)),
+    };
+
+  packageCache.set(packageJsonPath, {
+    mtime,
+    identity,
+  });
+
+  return identity;
+};
+
+const dropModuleExtension = (modulePath: string): string => modulePath.replace(/(?:\.d)?\.[cm]?[jt]sx?$/v, '');
+
+const stripLayoutSegments = (modulePath: string): string => {
+  const segments = modulePath.split('/');
+  let start = 0;
+
+  while (start < segments.length - 1 && LAYOUT_SEGMENTS.has(segments.at(start) ?? '')) {
+    start += 1;
+  }
+
+  return segments.slice(start).join('/');
+};
+
+const toNamespace = (moduleId: string): string => {
+  const lastSeparator = moduleId.lastIndexOf('/');
+
+  return lastSeparator === -1 ? moduleId : moduleId.slice(0, lastSeparator);
+};
+
+const toAliasModuleId = (pattern: string, target: string, absolutePath: string): Maybe<string> => {
+  if (!pattern.endsWith(WILDCARD_SUFFIX) || !target.endsWith(WILDCARD_SUFFIX)) {
+    return dropModuleExtension(target) === dropModuleExtension(absolutePath) ? pattern : undefined;
+  }
+
+  const targetRoot = target.slice(0, -WILDCARD_SUFFIX.length);
+
+  if (!absolutePath.startsWith(`${targetRoot}/`)) {
+    return undefined;
+  }
+
+  const relativePath = stripLayoutSegments(dropModuleExtension(absolutePath.slice(targetRoot.length + 1)));
+
+  return `${pattern.slice(0, -WILDCARD_SUFFIX.length)}/${relativePath}`;
+};
+
+const buildAliasNamespaces = (absolutePath: string, aliasPaths: Maybe<TsConfigPaths>): string[] => {
+  const namespaces: string[] = [];
+  const aliasEntries = objectEntries(aliasPaths ?? {});
+
+  for (const [pattern, targets] of aliasEntries) {
+    for (const target of targets) {
+      const aliasModuleId = toAliasModuleId(pattern, target, absolutePath);
+
+      if (aliasModuleId !== undefined) {
+        namespaces.push(toNamespace(aliasModuleId));
+      }
+    }
+  }
+
+  return namespaces;
+};
+
+const buildModuleIdentity = (filePath: string, aliasPaths: Maybe<TsConfigPaths>): Maybe<ModuleIdentity> => {
+  const absolutePath = toPosix(path.resolve(filePath));
+  const identity = loadPackageIdentity(path.dirname(absolutePath));
+
+  if (identity === undefined || !absolutePath.startsWith(`${identity.packageRoot}/`)) {
+    return undefined;
+  }
+
+  const relativePath = stripLayoutSegments(dropModuleExtension(absolutePath.slice(identity.packageRoot.length + 1)));
+  const moduleId = `${identity.packageName}/${relativePath}`;
+  const namespace = toNamespace(moduleId);
+
+  return {
+    moduleId,
+    namespace,
+    namespaces: [namespace, ...buildAliasNamespaces(absolutePath, aliasPaths)],
+  };
+};
+
+const createExportPattern = (): RegExp => /^\s*export\s+(?<defaultKeyword>default\s+)?(?:(?:abstract|async|declare)\s+)*(?<keyword>class|const|enum|function|interface|let|type|var)\s+(?<name>[\p{ID_Start}$_][\p{ID_Continue}$]*)/v;
+
+const readExportName = (following: string): Maybe<string> => {
+  const match = createExportPattern().exec(following);
+
+  if (!match) {
+    return undefined;
+  }
+
+  return match.groups?.['defaultKeyword'] === undefined ? match.groups?.['name'] : 'default';
+};
+
+const hasInternalMarker = (sourceFile: SourceFileNode): boolean => {
+  if (internalMarkerCache.has(sourceFile)) {
+    return internalMarkerCache.get(sourceFile) === true;
+  }
+
+  const hasMarker = sourceFile.text.includes(`@${TAG_INTERNAL}`);
+
+  internalMarkerCache.set(sourceFile, hasMarker);
+
+  return hasMarker;
+};
+
+const resolveVisibility = (comment: string): Maybe<string> => resolveInternalTarget(comment)
+  ?? (hasTag(comment, TAG_API) ? PUBLIC_API : undefined);
+
+const isCallableExport = (following: string): boolean => createExportPattern()
+  .exec(following)
+  ?.groups?.['keyword'] === 'function';
+
+const startsWithBlankLine = (following: string): boolean => /^[^\n]*\n[^\S\n]*\n/v.test(following);
+
+const isFileLevelComment = (following: string): boolean => {
+  const trimmed = following.trimStart();
+  const [firstLine = ''] = trimmed.split('\n', 1);
+
+  return startsWithBlankLine(following)
+    || trimmed.startsWith('/**')
+    || firstLine.startsWith('import ')
+    || (firstLine.startsWith('export ') && firstLine.includes(' from '));
+};
+
+const resolveLexicalFileVisibility = (content: string, docblockMatches: RegExpExecArray[]): Maybe<string> => {
+  const [fileComment] = docblockMatches;
+
+  if (fileComment === undefined || !isFileLevelComment(content.slice(fileComment.index + fileComment[0].length))) {
+    return undefined;
+  }
+
+  return resolveVisibility(fileComment[0]);
+};
+
+const buildModuleVisibility = (filePath: string): ModuleVisibility => {
+  const content = readTextFile(filePath) ?? '';
+  const docblockMatches = content.matchAll(/\/\*\*(?:[^*]|\*(?!\/))*\*\//gv).toArray();
+  const visibilityByExportName = new Map<string, string>();
+  const callableExportNames = new Set<string>();
+
+  for (const match of docblockMatches) {
+    const visibility = resolveVisibility(match[0]);
+    const following = content.slice(match.index + match[0].length);
+    const exportName = readExportName(following);
+
+    if (exportName === undefined) {
+      continue;
+    }
+
+    if (visibility !== undefined) {
+      visibilityByExportName.set(exportName, visibility);
+    }
+
+    if (isCallableExport(following)) {
+      callableExportNames.add(exportName);
+    }
+  }
+
+  return {
+    fileVisibility: resolveLexicalFileVisibility(content, docblockMatches),
+    visibilityByExportName,
+    callableExportNames,
+  };
+};
+
+const loadModuleVisibility = (filePath: string): ModuleVisibility => {
+  const mtime = getMtime(filePath);
+  const cacheEntry = moduleVisibilityCache.get(filePath);
+
+  if (cacheEntry !== undefined && cacheEntry.mtime === mtime) {
+    return cacheEntry.visibility;
+  }
+
+  const visibility = buildModuleVisibility(filePath);
+
+  moduleVisibilityCache.set(filePath, {
+    mtime,
+    visibility,
+  });
+
+  return visibility;
+};
+
+const resolveModulePath = (
+  fromFilePath: string,
+  specifier: string,
+  aliasPaths: Maybe<TsConfigPaths>,
+): Maybe<string> => {
+  const basePaths = specifier.startsWith('.')
+    ? [path.resolve(path.dirname(fromFilePath), specifier)]
+    : objectEntries(aliasPaths ?? {}).flatMap(([pattern, targets]) => {
+      const wildcardIndex = pattern.indexOf('*');
+
+      if (wildcardIndex === -1) {
+        return pattern === specifier ? targets : [];
+      }
+
+      const patternPrefix = pattern.slice(0, wildcardIndex);
+      const patternSuffix = pattern.slice(wildcardIndex + 1);
+
+      if (!specifier.startsWith(patternPrefix)
+        || !specifier.endsWith(patternSuffix)
+        || specifier.length < patternPrefix.length + patternSuffix.length) {
+        return [];
+      }
+
+      const capturedPath = specifier.slice(patternPrefix.length, specifier.length - patternSuffix.length);
+
+      return targets.map((target) => target.replace('*', () => capturedPath));
+    });
+
+  return basePaths
+    .flatMap((basePath) => [
+      ...MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension)) ? [basePath] : [],
+      ...MODULE_EXTENSIONS.map((extension) => `${basePath}${extension}`),
+      ...MODULE_EXTENSIONS.map((extension) => path.join(basePath, `index${extension}`)),
+    ])
+    .find((candidate) => doesFileExist(candidate));
+};
+
+/**
+ * @throws {Error}
+ */
+const toPattern = (entry: AllowScalar): Maybe<RegExp> => {
+  try {
+    return compileConfiguredPattern(entry);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined;
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * @throws {Error}
+ */
+const buildMatcher = (optionName: OptionName, entries: AllowScalar[]): AllowMatcher => {
+  const prefixes: string[] = [];
+  const patterns: RegExp[] = [];
+
+  for (const entry of entries) {
+    const pattern = toPattern(entry);
+
+    if (pattern !== undefined) {
+      patterns.push(pattern);
+
+      continue;
+    }
+
+    const text = String(entry);
+    const prefix = trimSeparators(text);
+
+    if (prefix.length === 0 || !/^[\w@]/v.test(prefix)) {
+      throw new Error(
+        `Entry "${text}" for option "${optionName}" is neither a namespace prefix nor a regular expression.`,
+      );
+    }
+
+    prefixes.push(prefix);
+  }
+
+  return {
+    prefixes,
+    patterns,
+  };
+};
+
+const isMappedEntry = (entry: unknown): entry is Record<string, AllowScalar[]> => typeof entry === 'object'
+  && (entry ?? undefined) !== undefined
+  && !Array.isArray(entry)
+  && !(entry instanceof RegExp);
+
+/**
+ * @throws {Error}
+ * @throws {TypeError}
+ */
+const buildAllowList = (optionName: OptionName, entries: Maybe<AllowEntry[]>): AllowList => {
+  const bare: AllowScalar[] = [];
+  const bounded: BoundedAllowEntry[] = [];
+  const allowEntries = entries ?? [];
+
+  for (const entry of allowEntries) {
+    if (!isMappedEntry(entry)) {
+      bare.push(entry);
+
+      continue;
+    }
+
+    for (const [subject, counterparts] of objectEntries(entry)) {
+      if (!Array.isArray(counterparts)) {
+        throw new TypeError(
+          `Entry "${subject}" for option "${optionName}" must map to a list of namespace prefixes`
+          + ' or regular expressions.',
+        );
+      }
+
+      bounded.push({
+        subject: buildMatcher(optionName, [subject]),
+        counterparts: buildMatcher(optionName, counterparts),
+      });
+    }
+  }
+
+  return {
+    bare: buildMatcher(optionName, bare),
+    bounded,
+  };
+};
+
+const matches = (values: string[], matcher: AllowMatcher): boolean => values.some(
+  (value) => matcher.prefixes.some((prefix) => isInSubtree(value, prefix))
+    || matcher.patterns.some((pattern) => pattern.test(value)),
+);
+
+const isAllowedBy = (
+  values: string[],
+  counterparts: string[],
+  allowList: AllowList,
+): boolean => matches(values, allowList.bare)
+  || allowList.bounded.some((entry) => matches(values, entry.subject) && matches(counterparts, entry.counterparts));
+
+const hasModuleSpecifierAbove = (node: DeclarationNode): boolean => {
+  let current = <Maybe<DeclarationNode>>node;
+
+  for (let depth = 0; current !== undefined && depth < MODULE_SPECIFIER_SEARCH_DEPTH; depth += 1) {
+    if (current.moduleSpecifier !== undefined) {
+      return true;
+    }
+
+    current = current.parent;
+  }
+
+  return false;
+};
+
+const findDeclaredVisibility = (declaration: DeclarationNode): Maybe<string> => {
+  let current = <Maybe<DeclarationNode>>declaration;
+
+  while (current !== undefined) {
+    const commentNodes = (current.jsDoc ?? []).toReversed();
+
+    for (const commentNode of commentNodes) {
+      const visibility = resolveVisibility(commentNode.getText());
+
+      if (visibility !== undefined) {
+        return visibility;
+      }
+    }
+
+    current = current.parent;
+  }
+
+  return undefined;
+};
+
+const isSeparatedByBlankLine = (
+  sourceFile: SourceFileNode,
+  commentNode: CommentNode,
+  statement: DeclarationNode,
+): boolean => startsWithBlankLine(sourceFile.text.slice(commentNode.end, statement.getStart()));
+
+const findFileLevelComment = (sourceFile: SourceFileNode): Maybe<string> => {
+  const statement = <Maybe<DeclarationNode>>sourceFile.statements?.[0];
+  const commentNodes = statement?.jsDoc ?? [];
+  const [fileCommentNode] = commentNodes;
+
+  if (statement === undefined || fileCommentNode === undefined) {
+    return undefined;
+  }
+
+  if (commentNodes.length > 1 || statement.moduleSpecifier !== undefined) {
+    return fileCommentNode.getText();
+  }
+
+  return isSeparatedByBlankLine(sourceFile, fileCommentNode, statement)
+    ? fileCommentNode.getText()
+    : undefined;
+};
+
+const findFileVisibility = (sourceFile: SourceFileNode): Maybe<string> => {
+  if (fileVisibilityCache.has(sourceFile)) {
+    return fileVisibilityCache.get(sourceFile);
+  }
+
+  const fileComment = findFileLevelComment(sourceFile);
+  const visibility = fileComment === undefined ? undefined : resolveVisibility(fileComment);
+
+  fileVisibilityCache.set(sourceFile, visibility);
+
+  return visibility;
+};
+
+const toInternalTarget = (visibility: Maybe<string>): Maybe<string> => (visibility === PUBLIC_API
+  ? undefined
+  : visibility);
+
+const buildSymbolId = (moduleId: string, symbolName: string, declaration: DeclarationNode): string => {
+  const names = [symbolName];
+  let current = <Maybe<DeclarationNode>>declaration.parent;
+
+  while (current !== undefined) {
+    const name = current.name?.getText?.();
+
+    if (name !== undefined && name.length > 0) {
+      names.push(name);
+    }
+
+    current = current.parent;
+  }
+
+  return `${moduleId}#${names.toReversed().join('.')}${declaration.parameters === undefined ? '' : '()'}`;
+};
+
+const isPublicExportName = (node: TSESTree.Identifier): boolean => 'exported' in node.parent
+  && node.parent.exported === node;
+
+const getImportedName = (specifier: TSESTree.ImportClause): Maybe<string> => {
+  if ('imported' in specifier) {
+    return 'name' in specifier.imported ? specifier.imported.name : undefined;
+  }
+
+  // eslint-disable-next-line ts/no-unsafe-enum-comparison -- Avoid an explicit dependency on typescript-eslint's enum
+  return specifier.type === 'ImportDefaultSpecifier' ? 'default' : undefined;
+};
+
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/internal-usage.md
+ */
+export const internalUsageRule = <const>{
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Forbid usage of an `@internal` symbol from outside the namespace it is internal to.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/internal-usage.md',
+    },
+    schema: [
+      {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          ...objectFromEntries(OPTION_NAMES.map((optionName) => [
+            optionName,
+            {
+              type: 'array',
+              tsType: '(string | RegExp | Record<string, (string | RegExp)[]>)[]',
+            },
+          ])),
+          tsConfigPath: {
+            type: 'string',
+          },
+        },
+      },
+    ],
+    messages: {
+      [MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE]: '`{{ symbol }}` is internal and must not be used from `{{ caller }}`.',
+      [MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE]: '`{{ symbol }}` is internal to `{{ target }}` and must not be used from `{{ caller }}`.',
+    },
+  },
+  /**
+   * @throws {Error}
+   */
+  create: (context) => {
+    const options = <InternalUsageOptions>(context.options[0] ?? {});
+
+    const allowLists = {
+      allowedCallers: buildAllowList('allowedCallers', options.allowedCallers),
+      allowedInternals: buildAllowList('allowedInternals', options.allowedInternals),
+    };
+
+    const sourceCode = <TSESLint.SourceCode><unknown>context.sourceCode;
+    const services = <Maybe<ParserServicesWithTypeInformation>><unknown>sourceCode.parserServices;
+    const program = <Maybe<ts.Program>>services?.program;
+    const typeChecker = program?.getTypeChecker();
+
+    const aliasPaths = {
+      ...loadPackageImports(
+        path.dirname(context.filename),
+        options.tsConfigPath === undefined ? [] : loadTsConfigCustomConditions(options.tsConfigPath),
+      ),
+      ...options.tsConfigPath === undefined ? {} : loadTsConfigPaths(options.tsConfigPath),
+    };
+
+    const resolveIdentity = (filePath: string): Maybe<ModuleIdentity> => buildModuleIdentity(filePath, aliasPaths);
+    const callerIdentity = resolveIdentity(context.filename);
+
+    if (callerIdentity === undefined) {
+      return {};
+    }
+
+    const callerNamespace = callerIdentity.namespace;
+    const callerNamespaces = callerIdentity.namespaces;
+
+    const isReachable = (internal: InternalSymbol): boolean => {
+      const roots = internal.target === PLAIN_INTERNAL ? internal.namespaces : [internal.target];
+
+      return callerNamespaces.some((namespace) => roots.some((root) => isInSubtree(namespace, root)));
+    };
+
+    const isUsageAllowed = (internal: InternalSymbol): boolean => {
+      const internalValues = [internal.target, ...internal.namespaces, internal.symbolId];
+
+      return isAllowedBy(internalValues, callerNamespaces, allowLists.allowedInternals)
+        || isAllowedBy(callerNamespaces, internalValues, allowLists.allowedCallers)
+        || isReachable(internal);
+    };
+
+    const reportUsage = (node: TSESTree.Node, internal: InternalSymbol): void => {
+      if (isUsageAllowed(internal)) {
+        return;
+      }
+
+      context.report({
+        node,
+        messageId: internal.target === PLAIN_INTERNAL
+          ? MESSAGE_ID_UNEXPECTED_INTERNAL_USAGE
+          : MESSAGE_ID_UNEXPECTED_TARGETED_INTERNAL_USAGE,
+        data: {
+          caller: callerNamespace,
+          symbol: internal.symbolId,
+          target: internal.target,
+        },
+      });
+    };
+
+    const buildInternalSymbol = (
+      identity: ModuleIdentity,
+      symbolId: string,
+      visibility: Maybe<string>,
+    ): Maybe<InternalSymbol> => {
+      const target = toInternalTarget(visibility);
+
+      return target === undefined
+        ? undefined
+        : {
+          namespace: identity.namespace,
+          namespaces: identity.namespaces,
+          symbolId,
+          target,
+        };
+    };
+
+    const checkResolvedSymbol = (
+      node: TSESTree.Node,
+      symbol: ts.Symbol,
+      currentSourceFile: ts.SourceFile,
+    ): void => {
+      const declaration = <Maybe<DeclarationNode>>symbol.declarations?.[0];
+
+      if (declaration === undefined) {
+        return;
+      }
+
+      const sourceFile = <SourceFileNode>declaration.getSourceFile();
+
+      if (sourceFile === currentSourceFile || !hasInternalMarker(sourceFile)) {
+        return;
+      }
+
+      const target = toInternalTarget(findDeclaredVisibility(declaration) ?? findFileVisibility(sourceFile));
+      const identity = target === undefined ? undefined : resolveIdentity(sourceFile.fileName);
+
+      if (identity === undefined || target === undefined) {
+        return;
+      }
+
+      reportUsage(node, {
+        namespace: identity.namespace,
+        namespaces: identity.namespaces,
+        symbolId: buildSymbolId(identity.moduleId, symbol.getName(), declaration),
+        target,
+      });
+    };
+
+    const checkTypedIdentifier = (node: TSESTree.Identifier, checker: ts.TypeChecker): void => {
+      const tsNode = services?.esTreeNodeToTSNodeMap.get(node);
+      const symbol = tsNode === undefined ? undefined : checker.getSymbolAtLocation(tsNode);
+      const declaration = <Maybe<DeclarationNode>>symbol?.declarations?.[0];
+
+      if (tsNode === undefined || symbol === undefined || declaration === undefined) {
+        return;
+      }
+
+      checkResolvedSymbol(
+        node,
+        hasModuleSpecifierAbove(declaration) ? checker.getAliasedSymbol(symbol) : symbol,
+        tsNode.getSourceFile(),
+      );
+    };
+
+    const checkTypedModule = (node: TSESTree.Node, checker: ts.TypeChecker): void => {
+      const tsNode = services?.esTreeNodeToTSNodeMap.get(node);
+      const symbol = tsNode === undefined ? undefined : checker.getSymbolAtLocation(tsNode);
+      const sourceFile = <Maybe<SourceFileNode>>symbol?.declarations?.[0];
+
+      if (sourceFile === undefined || !hasInternalMarker(sourceFile)) {
+        return;
+      }
+
+      const identity = resolveIdentity(sourceFile.fileName);
+
+      const internal = identity === undefined
+        ? undefined
+        : buildInternalSymbol(identity, identity.moduleId, findFileVisibility(sourceFile));
+
+      if (internal !== undefined) {
+        reportUsage(node, internal);
+      }
+    };
+
+    const resolveScannedSymbol = (specifier: string, importedName?: string): Maybe<InternalSymbol> => {
+      const modulePath = resolveModulePath(context.filename, specifier, aliasPaths);
+      const identity = modulePath === undefined ? undefined : resolveIdentity(modulePath);
+
+      if (modulePath === undefined || identity === undefined) {
+        return undefined;
+      }
+
+      const moduleVisibility = loadModuleVisibility(modulePath);
+
+      return buildInternalSymbol(
+        identity,
+        importedName === undefined
+          ? identity.moduleId
+          : `${identity.moduleId}#${importedName}${moduleVisibility.callableExportNames.has(importedName) ? '()' : ''}`,
+        (importedName === undefined
+          ? undefined
+          : moduleVisibility.visibilityByExportName.get(importedName)) ?? moduleVisibility.fileVisibility,
+      );
+    };
+
+    const checkScannedImport = (node: TSESTree.ImportDeclaration): void => {
+      for (const specifier of node.specifiers) {
+        const internal = resolveScannedSymbol(node.source.value, getImportedName(specifier));
+
+        if (internal === undefined) {
+          continue;
+        }
+
+        const references = sourceCode
+          .getDeclaredVariables(node)
+          .filter((variable) => variable.name === specifier.local.name)
+          .flatMap((variable) => variable.references);
+
+        for (const reference of references) {
+          reportUsage(reference.identifier, internal);
+        }
+      }
+    };
+
+    const checkScannedReexport = (node: TSESTree.ExportNamedDeclaration): void => {
+      for (const specifier of node.specifiers) {
+        const localName = 'name' in specifier.local ? specifier.local.name : undefined;
+        const internal = node.source ? resolveScannedSymbol(node.source.value, localName) : undefined;
+
+        if (internal !== undefined) {
+          reportUsage(specifier, internal);
+        }
+      }
+    };
+
+    if (services === undefined || typeChecker === undefined) {
+      return {
+        ExportAllDeclaration: (node: TSESTree.ExportAllDeclaration): void => {
+          const internal = resolveScannedSymbol(node.source.value);
+
+          if (internal !== undefined) {
+            reportUsage(node, internal);
+          }
+        },
+        ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
+          checkScannedReexport(node);
+        },
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+          checkScannedImport(node);
+        },
+        ImportExpression: (node: TSESTree.ImportExpression): void => {
+          const specifier = ('value' in node.source && typeof node.source.value === 'string')
+            ? node.source.value
+            : undefined;
+
+          const internal = specifier === undefined ? undefined : resolveScannedSymbol(specifier);
+
+          if (internal !== undefined) {
+            reportUsage(node, internal);
+          }
+        },
+      };
+    }
+
+    return {
+      ExportAllDeclaration: (node: TSESTree.ExportAllDeclaration): void => {
+        checkTypedModule(node.source, typeChecker);
+      },
+      Identifier: (node: TSESTree.Identifier): void => {
+        if (!IMPORT_SPECIFIER_TYPES.has(node.parent.type) && !isPublicExportName(node)) {
+          checkTypedIdentifier(node, typeChecker);
+        }
+      },
+      ImportExpression: (node: TSESTree.ImportExpression): void => {
+        checkTypedModule(node.source, typeChecker);
+      },
+    };
+  },
+} satisfies RuleDefinition;

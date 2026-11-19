@@ -1,0 +1,3 @@
+{
+  "extends": "@brnshkr/config/conf/tsconfig.json"
+}

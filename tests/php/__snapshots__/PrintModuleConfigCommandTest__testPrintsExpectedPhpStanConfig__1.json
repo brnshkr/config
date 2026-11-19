@@ -1,0 +1,503 @@
+{
+    "includes": [],
+    "parameters": {
+        "level": "max",
+        "paths": [
+            "./AGENTS.md",
+            "./CLAUDE.md",
+            "./README.md",
+            "./conf",
+            "./docs",
+            "./mate",
+            "./scripts",
+            "./src/php",
+            "./tests/php"
+        ],
+        "excludePaths": {
+            "analyseAndScan": [
+                "./docs/js/markdownlint/rules/no-php-open-tag.md",
+                "./tests/php/Fixtures"
+            ]
+        },
+        "fileExtensions": [
+            "markdown",
+            "md"
+        ],
+        "tmpDir": ".cache/phpstan.cache",
+        "editorUrlTitle": "%%relFile%%:%%line%%",
+        "errorFormat": "ticketswap",
+        "checkBenevolentUnionTypes": true,
+        "checkImplicitMixed": true,
+        "checkMissingCallableSignature": true,
+        "checkMissingOverrideMethodAttribute": true,
+        "checkMissingOverridePropertyAttribute": true,
+        "checkStrictPrintfPlaceholderTypes": true,
+        "checkTooWideReturnTypesInProtectedAndPublicMethods": true,
+        "checkTooWideThrowTypesInProtectedAndPublicMethods": false,
+        "rememberPossiblyImpureFunctionValues": false,
+        "reportAlwaysTrueInLastCondition": true,
+        "reportAnyTypeWideningInVarTag": true,
+        "reportIgnoresWithoutComments": true,
+        "reportNonIntStringArrayKey": true,
+        "reportPossiblyNonexistentConstantArrayOffset": true,
+        "reportPossiblyNonexistentGeneralArrayOffset": true,
+        "reportUnsafeArrayStringKeyCasting": "prevent",
+        "featureToggles": {
+            "checkParameterCastableToNumberFunctions": true,
+            "reportPreciseLineForUnusedFunctionParameter": true,
+            "stricterFunctionMap": true
+        },
+        "exceptions": {
+            "uncheckedExceptionRegexes": [
+                "/\\\\Exception\\\\UnreachableException$/"
+            ],
+            "check": {
+                "missingCheckedExceptionInThrows": true,
+                "throwTypeCovariance": true,
+                "tooWideImplicitThrowType": true,
+                "tooWideThrowType": true
+            },
+            "uncheckedExceptionClasses": [
+                "Brnshkr\\Config\\Exception\\UnreachableException"
+            ]
+        },
+        "ignoreErrors": [
+            {
+                "identifier": "ternary.shortNotAllowed",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "missingType.checkedException",
+                "paths": [
+                    "./tests/php",
+                    "./conf/ai/mate/src"
+                ],
+                "reportUnmatched": false
+            },
+            {
+                "message": "#^Function \"(?:getenv|putenv)\\(\\)\" cannot be used#",
+                "identifier": "symplify.forbiddenFuncCall",
+                "paths": [
+                    "./tests/php",
+                    "./conf/ai/mate/src"
+                ],
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "brnshkr.superglobalUsage",
+                "paths": [
+                    "./tests/php",
+                    "./conf/ai/mate/src"
+                ],
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.commandHasAsCommandAttribute",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.forbiddenTrait",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.noNullableServiceInConstructor",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.noReadonlyApiParam",
+                "reportUnmatched": false
+            },
+            {
+                "identifier": "symplify.requiredInterfaceContractNamespace",
+                "reportUnmatched": false
+            }
+        ],
+        "scanFiles": [
+            "./vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php"
+        ],
+        "doctrine": {
+            "literalString": true,
+            "reportDynamicQueryBuilders": true,
+            "reportUnknownTypes": true
+        },
+        "phpunit": {
+            "reportMissingDataProviderReturnType": true
+        },
+        "strictRules": {
+            "allRules": true
+        },
+        "type_coverage": {
+            "constant_type": 100,
+            "param_type": 100,
+            "property_type": 100,
+            "return_type": 100
+        },
+        "type_perfect": {
+            "narrow_return": true,
+            "no_empty_on_object": true,
+            "no_isset_on_object": true,
+            "no_mixed": true,
+            "no_param_type_removal": true,
+            "null_over_false": true
+        },
+        "symplify": {
+            "configurable": false,
+            "ctor": true,
+            "laravelReturnType": false,
+            "mocks": true,
+            "symfonyReturnType": true
+        }
+    },
+    "rules": [
+        "Brnshkr\\Config\\PhpStan\\Rule\\ApiOrInternalTagRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\BoolishPrefixRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\FencedCodeRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\InterfaceSuffixRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\InternalExposureRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsTagRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\NamedArgumentsUsageRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\PublicApiDocumentationRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\ResolvableDocReferenceRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\TagDescriptionRule",
+        "Brnshkr\\Config\\PhpStan\\Rule\\ServiceArgumentBindingRule",
+        "PHPStan\\Rules\\PHPUnit\\AssertEmptyIsDiscouragedRule",
+        "PHPStan\\Rules\\PHPUnit\\AssertEqualsIsDiscouragedRule",
+        "Symplify\\PHPStanRules\\Rules\\Doctrine\\RequireServiceRepositoryParentRule",
+        "Symplify\\PHPStanRules\\Rules\\ForbiddenSwitchRule",
+        "Symplify\\PHPStanRules\\Rules\\NoEntityOutsideEntityNamespaceRule",
+        "Symplify\\PHPStanRules\\Rules\\Rector\\AvoidFeatureSetAttributeInRectorRule",
+        "Symplify\\PHPStanRules\\Rules\\Rector\\PreferDirectIsNameRule",
+        "Symplify\\PHPStanRules\\Rules\\StringFileAbsolutePathExistsRule"
+    ],
+    "services": [
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\Rule\\InternalUsageRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "allowedCallers": {
+                    "Brnshkr\\Config\\Tests": [
+                        "Brnshkr\\Config"
+                    ],
+                    "Brnshkr\\Config\\Mate": [
+                        "Brnshkr\\Config"
+                    ]
+                }
+            }
+        },
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\Rule\\SuperglobalUsageRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenSuperglobals": {
+                    "$GLOBALS": "Pass the value explicitly instead.",
+                    "$_ENV": "Read the environment in one place and inject the value instead.",
+                    "$_SERVER": "Read the environment in one place and inject the value instead."
+                }
+            }
+        },
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\ThrowTypeExtension\\FileFinderThrowTypeExtension",
+            "tags": [
+                "phpstan.dynamicStaticMethodThrowTypeExtension"
+            ]
+        },
+        {
+            "class": "Brnshkr\\Config\\PhpStan\\Rule\\DevFunctionUsageRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "developmentPackageDirectories": {
+                    "composer/composer": "./vendor/composer/composer",
+                    "dave-liddament/phpstan-rule-test-helper": "./vendor/dave-liddament/phpstan-rule-test-helper",
+                    "helgesverre/toon": "./vendor/helgesverre/toon",
+                    "matesofmate/composer-extension": "./vendor/matesofmate/composer-extension",
+                    "matesofmate/phpstan-extension": "./vendor/matesofmate/phpstan-extension",
+                    "matesofmate/phpunit-extension": "./vendor/matesofmate/phpunit-extension",
+                    "matesofmate/rector-extension": "./vendor/matesofmate/rector-extension",
+                    "pestphp/pest": "./vendor/pestphp/pest",
+                    "phpunit/phpunit": "./vendor/phpunit/phpunit",
+                    "sebastian/diff": "./vendor/sebastian/diff",
+                    "spatie/phpunit-snapshot-assertions": "./vendor/spatie/phpunit-snapshot-assertions",
+                    "symfony/ai-mate": "./vendor/symfony/ai-mate",
+                    "symfony/filesystem": "./vendor/symfony/filesystem",
+                    "symfony/process": "./vendor/symfony/process",
+                    "brianium/paratest": "./vendor/brianium/paratest",
+                    "clue/ndjson-react": "./vendor/clue/ndjson-react",
+                    "composer/ca-bundle": "./vendor/composer/ca-bundle",
+                    "composer/class-map-generator": "./vendor/composer/class-map-generator",
+                    "composer/metadata-minifier": "./vendor/composer/metadata-minifier",
+                    "composer/pcre": "./vendor/composer/pcre",
+                    "composer/semver": "./vendor/composer/semver",
+                    "composer/spdx-licenses": "./vendor/composer/spdx-licenses",
+                    "composer/xdebug-handler": "./vendor/composer/xdebug-handler",
+                    "dflydev/dot-access-data": "./vendor/dflydev/dot-access-data",
+                    "doctrine/deprecations": "./vendor/doctrine/deprecations",
+                    "entropy/entropy": "./vendor/entropy/entropy",
+                    "ergebnis/agent-detector": "./vendor/ergebnis/agent-detector",
+                    "evenement/evenement": "./vendor/evenement/evenement",
+                    "fidry/cpu-core-counter": "./vendor/fidry/cpu-core-counter",
+                    "filp/whoops": "./vendor/filp/whoops",
+                    "jean85/pretty-package-versions": "./vendor/jean85/pretty-package-versions",
+                    "justinrainbow/json-schema": "./vendor/justinrainbow/json-schema",
+                    "league/config": "./vendor/league/config",
+                    "marc-mabe/php-enum": "./vendor/marc-mabe/php-enum",
+                    "matesofmate/common": "./vendor/matesofmate/common",
+                    "myclabs/deep-copy": "./vendor/myclabs/deep-copy",
+                    "nette/schema": "./vendor/nette/schema",
+                    "nette/utils": "./vendor/nette/utils",
+                    "nikic/php-parser": "./vendor/nikic/php-parser",
+                    "nunomaduro/collision": "./vendor/nunomaduro/collision",
+                    "nunomaduro/termwind": "./vendor/nunomaduro/termwind",
+                    "pestphp/pest-plugin": "./vendor/pestphp/pest-plugin",
+                    "pestphp/pest-plugin-arch": "./vendor/pestphp/pest-plugin-arch",
+                    "pestphp/pest-plugin-mutate": "./vendor/pestphp/pest-plugin-mutate",
+                    "pestphp/pest-plugin-profanity": "./vendor/pestphp/pest-plugin-profanity",
+                    "phar-io/manifest": "./vendor/phar-io/manifest",
+                    "phar-io/version": "./vendor/phar-io/version",
+                    "phpdocumentor/reflection-common": "./vendor/phpdocumentor/reflection-common",
+                    "phpdocumentor/reflection-docblock": "./vendor/phpdocumentor/reflection-docblock",
+                    "phpdocumentor/type-resolver": "./vendor/phpdocumentor/type-resolver",
+                    "phpstan/phpdoc-parser": "./vendor/phpstan/phpdoc-parser",
+                    "phpunit/php-code-coverage": "./vendor/phpunit/php-code-coverage",
+                    "phpunit/php-file-iterator": "./vendor/phpunit/php-file-iterator",
+                    "phpunit/php-invoker": "./vendor/phpunit/php-invoker",
+                    "phpunit/php-text-template": "./vendor/phpunit/php-text-template",
+                    "phpunit/php-timer": "./vendor/phpunit/php-timer",
+                    "psr/container": "./vendor/psr/container",
+                    "psr/event-dispatcher": "./vendor/psr/event-dispatcher",
+                    "psr/log": "./vendor/psr/log",
+                    "psr/simple-cache": "./vendor/psr/simple-cache",
+                    "react/cache": "./vendor/react/cache",
+                    "react/child-process": "./vendor/react/child-process",
+                    "react/dns": "./vendor/react/dns",
+                    "react/event-loop": "./vendor/react/event-loop",
+                    "react/promise": "./vendor/react/promise",
+                    "react/socket": "./vendor/react/socket",
+                    "react/stream": "./vendor/react/stream",
+                    "sebastian/cli-parser": "./vendor/sebastian/cli-parser",
+                    "sebastian/comparator": "./vendor/sebastian/comparator",
+                    "sebastian/complexity": "./vendor/sebastian/complexity",
+                    "sebastian/environment": "./vendor/sebastian/environment",
+                    "sebastian/exporter": "./vendor/sebastian/exporter",
+                    "sebastian/file-filter": "./vendor/sebastian/file-filter",
+                    "sebastian/git-state": "./vendor/sebastian/git-state",
+                    "sebastian/global-state": "./vendor/sebastian/global-state",
+                    "sebastian/lines-of-code": "./vendor/sebastian/lines-of-code",
+                    "sebastian/object-enumerator": "./vendor/sebastian/object-enumerator",
+                    "sebastian/object-reflector": "./vendor/sebastian/object-reflector",
+                    "sebastian/recursion-context": "./vendor/sebastian/recursion-context",
+                    "sebastian/type": "./vendor/sebastian/type",
+                    "sebastian/version": "./vendor/sebastian/version",
+                    "seld/jsonlint": "./vendor/seld/jsonlint",
+                    "seld/phar-utils": "./vendor/seld/phar-utils",
+                    "seld/signal-handler": "./vendor/seld/signal-handler",
+                    "staabm/side-effects-detector": "./vendor/staabm/side-effects-detector",
+                    "symfony/ai-mate-composer-plugin": "./vendor/symfony/ai-mate-composer-plugin",
+                    "symfony/config": "./vendor/symfony/config",
+                    "symfony/console": "./vendor/symfony/console",
+                    "symfony/dependency-injection": "./vendor/symfony/dependency-injection",
+                    "symfony/deprecation-contracts": "./vendor/symfony/deprecation-contracts",
+                    "symfony/dotenv": "./vendor/symfony/dotenv",
+                    "symfony/event-dispatcher": "./vendor/symfony/event-dispatcher",
+                    "symfony/event-dispatcher-contracts": "./vendor/symfony/event-dispatcher-contracts",
+                    "symfony/options-resolver": "./vendor/symfony/options-resolver",
+                    "symfony/polyfill-ctype": "./vendor/symfony/polyfill-ctype",
+                    "symfony/polyfill-deepclone": "./vendor/symfony/polyfill-deepclone",
+                    "symfony/polyfill-intl-grapheme": "./vendor/symfony/polyfill-intl-grapheme",
+                    "symfony/polyfill-intl-normalizer": "./vendor/symfony/polyfill-intl-normalizer",
+                    "symfony/polyfill-mbstring": "./vendor/symfony/polyfill-mbstring",
+                    "symfony/polyfill-php73": "./vendor/symfony/polyfill-php73",
+                    "symfony/polyfill-php80": "./vendor/symfony/polyfill-php80",
+                    "symfony/polyfill-php81": "./vendor/symfony/polyfill-php81",
+                    "symfony/polyfill-php84": "./vendor/symfony/polyfill-php84",
+                    "symfony/polyfill-php85": "./vendor/symfony/polyfill-php85",
+                    "symfony/property-access": "./vendor/symfony/property-access",
+                    "symfony/property-info": "./vendor/symfony/property-info",
+                    "symfony/serializer": "./vendor/symfony/serializer",
+                    "symfony/service-contracts": "./vendor/symfony/service-contracts",
+                    "symfony/stopwatch": "./vendor/symfony/stopwatch",
+                    "symfony/string": "./vendor/symfony/string",
+                    "symfony/type-info": "./vendor/symfony/type-info",
+                    "symfony/var-exporter": "./vendor/symfony/var-exporter",
+                    "symfony/yaml": "./vendor/symfony/yaml",
+                    "ta-tikoma/phpunit-architecture-test": "./vendor/ta-tikoma/phpunit-architecture-test",
+                    "theseer/tokenizer": "./vendor/theseer/tokenizer",
+                    "twig/twig": "./vendor/twig/twig",
+                    "webmozart/assert": "./vendor/webmozart/assert"
+                },
+                "developmentDirectories": [
+                    "./tests/php",
+                    "./conf/ai/mate/src"
+                ]
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\ForbiddenNodeRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenNodes": [
+                    "PhpParser\\Node\\Expr\\Empty_",
+                    "PhpParser\\Node\\Expr\\ErrorSuppress",
+                    "PhpParser\\Node\\Expr\\Eval_",
+                    "PhpParser\\Node\\Expr\\Exit_",
+                    "PhpParser\\Node\\Expr\\PostDec",
+                    "PhpParser\\Node\\Expr\\PostInc",
+                    "PhpParser\\Node\\Expr\\PreDec",
+                    "PhpParser\\Node\\Expr\\PreInc",
+                    "PhpParser\\Node\\Expr\\Print_",
+                    "PhpParser\\Node\\Stmt\\Global_",
+                    "PhpParser\\Node\\Stmt\\Goto_",
+                    "PhpParser\\Node\\Expr\\ShellExec"
+                ]
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\PreferredClassRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "oldToPreferredClasses": {
+                    "DateTime": "DateTimeImmutable",
+                    "SplFileInfo": "Symfony\\Component\\Finder\\SplFileInfo",
+                    "PhpCsFixer\\Finder": "Symfony\\Component\\Finder\\Finder"
+                }
+            }
+        },
+        {
+            "class": "Symplify\\PHPStanRules\\Rules\\ForbiddenFuncCallRule",
+            "tags": [
+                "phpstan.rules.rule"
+            ],
+            "arguments": {
+                "forbiddenFunctions": {
+                    "eval": "Usage of this function is strongly discouraged. If using this function is really the only option, please disable this rule for this line.",
+                    "compact": "Explicitly assign to keys in the array.",
+                    "extract": "Explicitly define variables for the entries of the array.",
+                    "define": "Declare the constant with \"const\" instead.",
+                    "assert": "Throw a \"LogicException\" or a domain exception instead.",
+                    "method_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
+                    "property_exists": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
+                    "spl_autoload": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
+                    "spl_autoload_*": "Usage of this function is discouraged. If using this function is really the only option, please disable this rule for this line.",
+                    "call_user_func": "Call the callable directly instead.",
+                    "call_user_func_array": "Call the callable directly, spreading the arguments, instead.",
+                    "func_get_args": "Use a variadic parameter instead.",
+                    "gettype": "Use \"get_debug_type()\" instead.",
+                    "settype": "Use a cast instead.",
+                    "getenv": "Read the environment in one place and inject the value instead.",
+                    "putenv": "Pass the environment to the process that needs it instead.",
+                    "ini_set": "Configure the runtime in php.ini instead.",
+                    "set_time_limit": "Configure the runtime in php.ini instead.",
+                    "error_reporting": "Configure the runtime in php.ini instead.",
+                    "rand": "Use \"random_int()\" instead.",
+                    "mt_rand": "Use \"random_int()\" instead.",
+                    "lcg_value": "Use \"Random\\Randomizer::nextFloat()\" instead.",
+                    "array_rand": "Use \"Random\\Randomizer::pickArrayKeys()\" instead.",
+                    "shuffle": "Use \"Random\\Randomizer::shuffleArray()\" instead.",
+                    "str_shuffle": "Use \"Random\\Randomizer::shuffleBytes()\" instead.",
+                    "var_dump": "Please remove all debug functions. Use a logger if needed.",
+                    "print_r": "Please remove all debug functions. Use a logger if needed.",
+                    "debug_backtrace": "Please remove all debug functions. Use a logger if needed.",
+                    "debug_print_backtrace": "Please remove all debug functions. Use a logger if needed.",
+                    "error_log": "Use \"Psr\\Log\\LoggerInterface\" instead.",
+                    "chgrp": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chgrp()\" instead.",
+                    "chmod": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chmod()\" instead.",
+                    "chown": "Use \"Symfony\\Component\\Filesystem\\Filesystem::chown()\" instead.",
+                    "copy": "Use \"Symfony\\Component\\Filesystem\\Filesystem::copy()\" instead.",
+                    "file_get_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::readFile()\" instead.",
+                    "file_put_contents": "Use \"Symfony\\Component\\Filesystem\\Filesystem::dumpFile()\" or \"Symfony\\Component\\Filesystem\\Filesystem::appendToFile()\" instead.",
+                    "link": "Use \"Symfony\\Component\\Filesystem\\Filesystem::hardlink()\" instead.",
+                    "mkdir": "Use \"Symfony\\Component\\Filesystem\\Filesystem::mkdir()\" instead.",
+                    "readlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::readlink()\" instead.",
+                    "rename": "Use \"Symfony\\Component\\Filesystem\\Filesystem::rename()\" instead.",
+                    "rmdir": "Use \"Symfony\\Component\\Filesystem\\Filesystem::remove()\" instead.",
+                    "symlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::symlink()\" instead.",
+                    "tempnam": "Use \"Symfony\\Component\\Filesystem\\Filesystem::tempnam()\" instead.",
+                    "touch": "Use \"Symfony\\Component\\Filesystem\\Filesystem::touch()\" instead.",
+                    "unlink": "Use \"Symfony\\Component\\Filesystem\\Filesystem::remove()\" instead.",
+                    "dirname": "Use \"Symfony\\Component\\Filesystem\\Path::getDirectory()\" instead.",
+                    "pathinfo": "Use \"Symfony\\Component\\Filesystem\\Path::getExtension()\" or \"Symfony\\Component\\Filesystem\\Path::getFilenameWithoutExtension()\" instead.",
+                    "glob": "Use \"Symfony\\Component\\Finder\\Finder::name()\" instead.",
+                    "opendir": "Use \"Symfony\\Component\\Finder\\Finder::in()\" with \"Symfony\\Component\\Finder\\Finder::depth()\" instead.",
+                    "scandir": "Use \"Symfony\\Component\\Finder\\Finder::in()\" with \"Symfony\\Component\\Finder\\Finder::depth()\" instead.",
+                    "exec": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" instead.",
+                    "passthru": "Use \"Symfony\\Component\\Process\\Process::run()\" with an output callback instead.",
+                    "popen": "Use \"Symfony\\Component\\Process\\Process::start()\" instead.",
+                    "proc_*": "Use \"Symfony\\Component\\Process\\Process::start()\" instead.",
+                    "shell_exec": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" with \"Symfony\\Component\\Process\\Process::getOutput()\" instead.",
+                    "system": "Use \"Symfony\\Component\\Process\\Process::mustRun()\" instead.",
+                    "json_decode": "Use \"Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::decode()\" instead.",
+                    "json_encode": "Use \"Symfony\\Component\\Serializer\\Encoder\\JsonEncoder::encode()\" instead.",
+                    "unserialize": "Use \"Symfony\\Component\\Serializer\\SerializerInterface::deserialize()\" instead.",
+                    "ucfirst": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
+                    "mb_ucfirst": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
+                    "ucwords": "Use \"Symfony\\Component\\String\\s::title()\" instead.",
+                    "str_pad": "Use \"Symfony\\Component\\String\\s::{padBoth,padEnd,padStart}()\" instead.",
+                    "mb_str_pad": "Use \"Symfony\\Component\\String\\s::{padBoth,padEnd,padStart}()\" instead.",
+                    "trim": "Use \"Symfony\\Component\\String\\s::trim()\" instead.",
+                    "mb_trim": "Use \"Symfony\\Component\\String\\s::trim()\" instead.",
+                    "ltrim": "Use \"Symfony\\Component\\String\\s::trimStart()\" instead.",
+                    "mb_ltrim": "Use \"Symfony\\Component\\String\\s::trimStart()\" instead.",
+                    "rtrim": "Use \"Symfony\\Component\\String\\s::trimEnd()\" instead.",
+                    "mb_rtrim": "Use \"Symfony\\Component\\String\\s::trimEnd()\" instead.",
+                    "str_split": "Use \"Symfony\\Component\\String\\s::chunk()\" instead.",
+                    "mb_str_split": "Use \"Symfony\\Component\\String\\s::chunk()\" instead.",
+                    "mb_split": "Use \"Symfony\\Component\\String\\s::split()\" instead.",
+                    "explode": "Use \"Symfony\\Component\\String\\s::split()\" instead.",
+                    "implode": "Use \"Symfony\\Component\\String\\s::join()\" instead.",
+                    "join": "Use \"Symfony\\Component\\String\\s::join()\" instead.",
+                    "preg_split": "Use \"Symfony\\Component\\String\\s::split()\" with a \"PREG_SPLIT_*\" flag instead.",
+                    "strlen": "Use \"Symfony\\Component\\String\\s::length()\" instead.",
+                    "mb_strlen": "Use \"Symfony\\Component\\String\\s::length()\" instead.",
+                    "strtolower": "Use \"Symfony\\Component\\String\\s::lower()\" instead.",
+                    "mb_strtolower": "Use \"Symfony\\Component\\String\\s::lower()\" instead.",
+                    "strtoupper": "Use \"Symfony\\Component\\String\\s::upper()\" instead.",
+                    "mb_strtoupper": "Use \"Symfony\\Component\\String\\s::upper()\" instead.",
+                    "substr": "Use \"Symfony\\Component\\String\\s::slice()\" instead.",
+                    "mb_substr": "Use \"Symfony\\Component\\String\\s::slice()\" instead.",
+                    "str_contains": "Use \"Symfony\\Component\\String\\s::containsAny()\" instead.",
+                    "str_starts_with": "Use \"Symfony\\Component\\String\\s::startsWith()\" instead.",
+                    "str_ends_with": "Use \"Symfony\\Component\\String\\s::endsWith()\" instead.",
+                    "str_replace": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
+                    "str_ireplace": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
+                    "substr_replace": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
+                    "str_repeat": "Use \"Symfony\\Component\\String\\s::repeat()\" instead.",
+                    "strpos": "Use \"Symfony\\Component\\String\\s::indexOf()\" instead.",
+                    "mb_strpos": "Use \"Symfony\\Component\\String\\s::indexOf()\" instead.",
+                    "stripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOf()\" instead.",
+                    "mb_stripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOf()\" instead.",
+                    "strrpos": "Use \"Symfony\\Component\\String\\s::indexOfLast()\" instead.",
+                    "mb_strrpos": "Use \"Symfony\\Component\\String\\s::indexOfLast()\" instead.",
+                    "strripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOfLast()\" instead.",
+                    "mb_strripos": "Use \"Symfony\\Component\\String\\s::ignoreCase()->indexOfLast()\" instead.",
+                    "strstr": "Use \"Symfony\\Component\\String\\s::{after,before}()\" instead.",
+                    "mb_strstr": "Use \"Symfony\\Component\\String\\s::{after,before}()\" instead.",
+                    "stristr": "Use \"Symfony\\Component\\String\\s::ignoreCase()->{after,before}()\" instead.",
+                    "mb_stristr": "Use \"Symfony\\Component\\String\\s::ignoreCase()->{after,before}()\" instead.",
+                    "strrchr": "Use \"Symfony\\Component\\String\\s::afterLast()\" instead.",
+                    "mb_strrchr": "Use \"Symfony\\Component\\String\\s::afterLast()\" instead.",
+                    "strrev": "Use \"Symfony\\Component\\String\\s::reverse()\" instead.",
+                    "strtr": "Use \"Symfony\\Component\\String\\s::replace()\" instead.",
+                    "wordwrap": "Use \"Symfony\\Component\\String\\s::wordwrap()\" instead.",
+                    "mb_strwidth": "Use \"Symfony\\Component\\String\\s::width()\" instead.",
+                    "mb_strimwidth": "Use \"Symfony\\Component\\String\\s::truncate()\" instead.",
+                    "preg_match_all": "Use \"Symfony\\Component\\String\\s::match()\" instead.",
+                    "preg_match": "Use \"Symfony\\Component\\String\\s::match()\" instead.",
+                    "preg_replace_callback": "Use \"Symfony\\Component\\String\\s::replaceMatches()\" instead.",
+                    "preg_replace": "Use \"Symfony\\Component\\String\\s::replaceMatches()\" instead.",
+                    "var_export": "Use \"Symfony\\Component\\VarExporter\\VarExporter::export()\" instead.",
+                    "yaml_emit*": "Use \"Symfony\\Component\\Yaml\\Yaml::dump()\" instead.",
+                    "yaml_parse*": "Use \"Symfony\\Component\\Yaml\\Yaml::parse()\" instead."
+                }
+            }
+        }
+    ]
+}

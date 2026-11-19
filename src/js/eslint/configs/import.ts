@@ -1,33 +1,55 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_DEVELOPMENT_FILES, GLOB_SCRIPT_FILES } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { ESLint } from 'eslint';
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { getScriptFileGlobs, GLOB_DEVELOPMENT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { objectKeys } from '#shared/utils/object.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const imports = async (): Promise<Config[]> => {
   const {
     requiredAny: [pluginImport, pluginAntfu],
-    optional: [importResovlerTypescript],
+    optional: [importResolverTypescript],
   } = await resolvePackages(MODULES.import);
 
   const plugins: Config['plugins'] = {};
   const settings: Config['settings'] = {};
   let pluginImportRules: Config['rules'] = {};
+  let pluginImportTsRules: Config['rules'] = {};
   let pluginAntfuRules: Config['rules'] = {};
 
   if (pluginImport) {
-    plugins['import'] = <ESLint.Plugin><unknown>pluginImport;
+    plugins['import'] = pluginImport;
 
     settings['import-x/resolver-next'] = [
       pluginImport.createNodeResolver(),
-      importResovlerTypescript === undefined
+      importResolverTypescript === undefined
         ? undefined
-        : importResovlerTypescript.createTypeScriptImportResolver({
+        : importResolverTypescript.createTypeScriptImportResolver({
           bun: true,
         }),
     ].filter(Boolean);
+
+    if (isModuleEnabled(MODULES.typescript)) {
+      settings['import-x/extensions'] = [
+        '.cjs',
+        '.cts',
+        '.js',
+        '.jsx',
+        '.mjs',
+        '.mts',
+        '.ts',
+        '.tsx',
+      ];
+    }
+
+    settings['import-x/ignore'] = [
+      String.raw`[/\\]node_modules[/\\]`,
+    ];
 
     settings['import-x/core-modules'] = [
       'bun',
@@ -38,28 +60,36 @@ export const imports = async (): Promise<Config[]> => {
       'bun:test',
     ];
 
-    const pluginImportTsRules: Config['rules'] = isModuleEnabled(MODULES.typescript)
-      ? renameRules(pluginImport.flatConfigs.typescript.rules, { 'import-x': 'import' })
-      : {};
+    pluginImportTsRules = renameRules(pluginImport.flatConfigs.typescript.rules, { 'import-x': 'import' });
 
     pluginImportRules = {
       ...renameRules(pluginImport.flatConfigs.recommended.rules, { 'import-x': 'import' }),
-      ...pluginImportTsRules,
-      'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      'import/consistent-type-specifier-style': 'error',
       'import/extensions': ['error', 'ignorePackages', {
-        js: 'never',
-        ts: 'never',
-        cts: 'never',
-        mts: 'never',
+        checkTypeImports: true,
+        pattern: {
+          js: 'never',
+          ts: 'never',
+          cts: 'never',
+          mts: 'never',
+        },
+        pathGroupOverrides: [
+          {
+            pattern: '{{.,..,../..,../../..,../../../..,../../../../..}/**/declarations,$types/declarations,$declarations}{,/**}',
+            action: 'ignore',
+          },
+        ],
       }],
       'import/first': 'error',
       'import/max-dependencies': ['error', {
         max: 15,
       }],
+      'import/namespace': 'off',
       'import/newline-after-import': 'error',
       'import/no-absolute-path': 'error',
       'import/no-amd': 'error',
       'import/no-cycle': ['error', {
+        ignoreExternal: true,
         maxDepth: 3,
       }],
       'import/no-default-export': 'error',
@@ -69,6 +99,7 @@ export const imports = async (): Promise<Config[]> => {
       'import/no-empty-named-blocks': 'error',
       'import/no-extraneous-dependencies': ['error', {
         devDependencies: GLOB_DEVELOPMENT_FILES,
+        includeTypes: true,
       }],
       'import/no-import-module-exports': 'error',
       'import/no-mutable-exports': 'error',
@@ -89,7 +120,7 @@ export const imports = async (): Promise<Config[]> => {
       }],
       'import/no-unresolved': ['error', {
         commonjs: true,
-        caseSensitive: true,
+        caseSensitiveStrict: true,
       }],
       'import/no-webpack-loader-syntax': 'error',
       'import/order': [
@@ -139,7 +170,7 @@ export const imports = async (): Promise<Config[]> => {
     };
   }
 
-  if (Object.keys(plugins).length === 0) {
+  if (objectKeys(plugins).length === 0) {
     return [];
   }
 
@@ -148,7 +179,7 @@ export const imports = async (): Promise<Config[]> => {
     plugins,
   };
 
-  if (Object.keys(settings).length > 0) {
+  if (objectKeys(settings).length > 0) {
     setupConfig.settings = settings;
   }
 
@@ -156,11 +187,18 @@ export const imports = async (): Promise<Config[]> => {
     setupConfig,
     {
       name: buildConfigName(MAIN_SCOPES.IMPORT, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...pluginImportRules,
         ...pluginAntfuRules,
       },
     },
+    ...(isModuleEnabled(MODULES.typescript)
+      ? [{
+        name: buildConfigName(MAIN_SCOPES.IMPORT, `${SUB_SCOPES.RULES}-typescript`),
+        files: [GLOB_TS],
+        rules: pluginImportTsRules,
+      } satisfies Config]
+      : []),
   ];
 };

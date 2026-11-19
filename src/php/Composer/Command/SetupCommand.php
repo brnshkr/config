@@ -8,6 +8,7 @@ use Brnshkr\Config\Composer\ComposerJsonManipulator;
 use Brnshkr\Config\Composer\Installer;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
 use Brnshkr\Config\Str;
 use Composer\Installer as ComposerInstaller;
 use Exception;
@@ -18,22 +19,17 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
 use function array_filter;
 use function array_first;
-use function array_key_exists;
-use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_values;
 use function count;
 use function file_get_contents;
-use function get_debug_type;
 use function in_array;
-use function is_array;
 use function is_file;
-use function is_string;
+use function is_readable;
 use function sprintf;
 
 /**
@@ -50,10 +46,16 @@ final class SetupCommand extends AbstractCommand
 
     private ComposerJson $projectComposerJson;
 
+    private bool $doForceUpdate = false;
+
+    private bool $doInstallExactVersions = false;
+
+    private bool $doIncludeOptionalPackagesAutomatically = false;
+
     #[Override]
     protected function getDescriptionTemplate(): string
     {
-        return 'Runs the {{ package_full_name }} setup process';
+        return 'Installs the packages the {{ package_full_name }} modules you pick need';
     }
 
     /**
@@ -81,14 +83,11 @@ final class SetupCommand extends AbstractCommand
     protected function wrappedConfigure(): void
     {
         $this
-            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(array_keys(Module::NAME_TO_MODULE_MAP)) . ')</fg=yellow>')
+            ->addArgument('modules', InputArgument::IS_ARRAY, 'The modules to install <fg=yellow>(' . Str::joinAsQuotedList(Module::values()) . ')</fg=yellow>')
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Install all modules')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force update to the latest package versions from ' . $this->libraryComposerJson->getPackageFullName())
             ->addOption('exact', 'e', InputOption::VALUE_NONE, 'Install exact versions of dependencies')
             ->addOption('optional', 'o', InputOption::VALUE_NONE, 'Automatically include all optional packages')
-            ->addOption('copy', 'c', InputOption::VALUE_NONE, 'Automatically copy config files for selected modules')
-            ->addOption('make', 'm', InputOption::VALUE_NONE, 'Automatically create Makefile')
-            ->addOption('gitignore', 'g', InputOption::VALUE_NONE, 'Automatically create .gitignore file')
         ;
     }
 
@@ -101,54 +100,43 @@ final class SetupCommand extends AbstractCommand
     #[Override]
     protected function wrappedExecute(): int
     {
+        $this->doForceUpdate                          = $this->isBoolOptionEnabled('force');
+        $this->doInstallExactVersions                 = $this->isBoolOptionEnabled('exact');
+        $this->doIncludeOptionalPackagesAutomatically = $this->isBoolOptionEnabled('optional');
+
+        $modules             = $this->getStringListArgument('modules');
+        $doInstallAllModules = $this->isBoolOptionEnabled('all');
+        $modulesToInstall    = [];
+
         $this->console->writeLogo();
 
-        $modules              = $this->input->getArgument('modules');
-        $modules              = is_array($modules) && $modules !== [] ? $modules : null;
-        $doInstallAllModules  = $this->input->getOption('all') !== false;
-        $moduleNamesToInstall = [];
-
-        if ($modules === null) {
-            $moduleNamesToInstall = $doInstallAllModules ? array_keys(Module::NAME_TO_MODULE_MAP) : $this->getModuleNamesToInstall();
+        if ($modules === []) {
+            $modulesToInstall = $doInstallAllModules
+                ? Module::cases()
+                : Module::fromValues($this->getModuleNamesToInstall());
         } elseif ($doInstallAllModules) {
-            throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifing modules via the arguments.');
+            throw new InvalidArgumentException('The <fg=cyan>--all</fg=cyan> option is not allowed when specifying modules via the arguments.');
         } else {
-            foreach ($modules as $module) {
-                if (!is_string($module)) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid module name, expected string, but got %s.',
-                        get_debug_type($module),
-                    ));
-                }
+            foreach ($modules as $moduleName) {
+                $module = Module::tryFrom($moduleName);
 
-                if (!array_key_exists($module, Module::NAME_TO_MODULE_MAP)) {
+                if ($module === null) {
                     throw new InvalidArgumentException(sprintf(
                         'Unknown module "%s". Allowed modules are: %s.',
-                        $module,
-                        Str::joinAsQuotedList(array_keys(Module::NAME_TO_MODULE_MAP)),
+                        $moduleName,
+                        Str::joinAsQuotedList(Module::values()),
                     ));
                 }
 
-                $moduleNamesToInstall[] = $module;
+                $modulesToInstall[] = $module;
             }
         }
 
-        $modulesToInstall = array_map(
-            static fn (string $name): array => Module::NAME_TO_MODULE_MAP[$name],
-            $moduleNamesToInstall,
-        );
-
-        $doForceUpdate                          = $this->input->getOption('force') !== false;
-        $doInstallExactVersions                 = $this->input->getOption('exact') !== false;
-        $doIncludeOptionalPackagesAutomatically = $this->input->getOption('optional') !== false;
-        $doCopyConfigFilesAutomatically         = $this->input->getOption('copy') !== false;
-        $doCreateMakeFileAutomatically          = $this->input->getOption('make') !== false;
-        $doCreateGitignoreFileAutomatically     = $this->input->getOption('gitignore') !== false;
-        $composerJsonFileContent                = $this->getFileContent($this->projectComposerJson->path);
-        $lockFileContent                        = $this->getFileContent($this->projectComposerJson->lockFilePath);
+        $composerJsonFileContent = $this->getFileContent($this->projectComposerJson->path);
+        $lockFileContent         = $this->getFileContent($this->projectComposerJson->lockFilePath);
 
         $packagesToInstall = array_merge(...array_map(
-            fn (array $moduleInfo): array => $this->getPackagesToInstall($moduleInfo, $doForceUpdate, $doIncludeOptionalPackagesAutomatically),
+            $this->getPackagesToInstall(...),
             $modulesToInstall,
         ));
 
@@ -158,15 +146,13 @@ final class SetupCommand extends AbstractCommand
                 $this->libraryComposerJson->getPackageFullName(),
             ));
 
-            $this->copyFilesIfApplicable($modulesToInstall, $doCopyConfigFilesAutomatically, $doCreateMakeFileAutomatically, $doCreateGitignoreFileAutomatically);
-
             return self::SUCCESS;
         }
 
         $exitCode = null;
 
         try {
-            $exitCode = $this->installer->install($packagesToInstall, $doInstallExactVersions);
+            $exitCode = $this->installer->install($packagesToInstall, $this->doInstallExactVersions);
         } catch (Exception $exception) {
             $this->console->writeError($exception);
         }
@@ -182,6 +168,7 @@ final class SetupCommand extends AbstractCommand
                         ComposerInstaller::ERROR_LOCK_FILE_INVALID               => 'ERROR_LOCK_FILE_INVALID',
                         ComposerInstaller::ERROR_DEPENDENCY_RESOLUTION_FAILED    => 'ERROR_DEPENDENCY_RESOLUTION_FAILED',
                         ComposerInstaller::ERROR_AUDIT_FAILED                    => 'ERROR_AUDIT_FAILED',
+                        ComposerInstaller::ERROR_PSR_AUTOLOAD_VIOLATION          => 'ERROR_PSR_AUTOLOAD_VIOLATION',
                         ComposerInstaller::ERROR_TRANSPORT_EXCEPTION             => 'ERROR_TRANSPORT_EXCEPTION',
                         -1                                                       => 'ERROR_UNKNOWN',
                     ][$exitCode],
@@ -199,21 +186,19 @@ final class SetupCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        $this->copyFilesIfApplicable($modulesToInstall, $doCopyConfigFilesAutomatically, $doCreateMakeFileAutomatically, $doCreateGitignoreFileAutomatically);
         $this->console->writeNotice('Setup process completed successfully.');
 
         return self::SUCCESS;
     }
 
     /**
-     * @return list<key-of<Module::NAME_TO_MODULE_MAP>>
+     * @return list<value-of<Module>>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
     private function getModuleNamesToInstall(): array
     {
-        $moduleNames          = array_keys(Module::NAME_TO_MODULE_MAP);
         $isAnswerValid        = false;
         $moduleNamesToInstall = [];
 
@@ -221,7 +206,7 @@ final class SetupCommand extends AbstractCommand
             $moduleNamesToInstall = $this->console->select(
                 question: 'Which modules would you like to install?',
                 choices: [
-                    ...$moduleNames,
+                    ...Module::values(),
                     self::ANSWER_ALL,
                     self::ANSWER_NONE,
                 ],
@@ -233,46 +218,44 @@ final class SetupCommand extends AbstractCommand
         }
 
         return array_values(array_filter(
-            array_first($moduleNamesToInstall) === self::ANSWER_ALL ? $moduleNames : $moduleNamesToInstall,
+            array_first($moduleNamesToInstall) === self::ANSWER_ALL ? Module::values() : $moduleNamesToInstall,
             $this->isNotAllOrNoneAnswer(...),
         ));
     }
 
     /**
-     * @param Module::MODULE_* $moduleInfo
-     *
-     * @return list<Module::PACKAGE_*>
+     * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function getPackagesToInstall(array $moduleInfo, bool $doForceUpdate, bool $doIncludeOptionalPackagesAutomatically): array
+    private function getPackagesToInstall(Module $module): array
     {
-        $packages = array_values(array_filter(
-            $moduleInfo['packages']['requiredAll'],
-            static fn (string $package): bool => $doForceUpdate ? true : !Module::isPackageInstalled($package),
+        $packages = self::toPackageNames(array_filter(
+            $module->getRequiredPackages(),
+            fn (Package $package): bool => $this->doForceUpdate ? true : !$package->isInstalled(),
         ));
 
-        $allOptionalPackages = $moduleInfo['packages']['optional'] ?? [];
+        $allOptionalPackages = $module->getOptionalPackages();
 
-        if ($doForceUpdate && $doIncludeOptionalPackagesAutomatically) {
-            $optionalPackagesToInstall = $allOptionalPackages;
-        } elseif ($doForceUpdate) {
-            $optionalPackagesToInstall = array_values(array_filter(
+        if ($this->doForceUpdate && $this->doIncludeOptionalPackagesAutomatically) {
+            $optionalPackagesToInstall = self::toPackageNames($allOptionalPackages);
+        } elseif ($this->doForceUpdate) {
+            $optionalPackagesToInstall = self::toPackageNames(array_filter(
                 $allOptionalPackages,
-                Module::isPackageInstalled(...),
+                static fn (Package $package): bool => $package->isInstalled(),
             ));
-        } elseif ($doIncludeOptionalPackagesAutomatically) {
-            $optionalPackagesToInstall = array_values(array_filter(
+        } elseif ($this->doIncludeOptionalPackagesAutomatically) {
+            $optionalPackagesToInstall = self::toPackageNames(array_filter(
                 $allOptionalPackages,
-                static fn (string $package): bool => !Module::isPackageInstalled($package),
+                static fn (Package $package): bool => !$package->isInstalled(),
             ));
         } else {
             $optionalPackagesToInstall = $this->promptForOptionalPackages(
-                $moduleInfo,
-                array_values(array_filter(
+                $module,
+                self::toPackageNames(array_filter(
                     $allOptionalPackages,
-                    static fn (string $package): bool => !Module::isPackageInstalled($package),
+                    static fn (Package $package): bool => !$package->isInstalled(),
                 )),
             );
         }
@@ -281,15 +264,14 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param Module::MODULE_* $moduleInfo
-     * @param list<Module::PACKAGE_*> $packages
+     * @param list<non-empty-string> $packages
      *
-     * @return list<Module::PACKAGE_*>
+     * @return list<non-empty-string>
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function promptForOptionalPackages(array $moduleInfo, array $packages): array
+    private function promptForOptionalPackages(Module $module, array $packages): array
     {
         $packageCount = count($packages);
 
@@ -303,7 +285,7 @@ final class SetupCommand extends AbstractCommand
             $doInstallOptionalPackage = $this->console->isConfirmed(sprintf(
                 'Install optional dependency "%s" for module "%s"?',
                 $optionalPackage,
-                $moduleInfo['name'],
+                $module->value,
             ));
 
             return $doInstallOptionalPackage ? [$optionalPackage] : [];
@@ -316,7 +298,7 @@ final class SetupCommand extends AbstractCommand
             $selectedPackages = $this->console->select(
                 question: sprintf(
                     'Select optional dependencies to install for module "%s".',
-                    $moduleInfo['name'],
+                    $module->value,
                 ),
                 choices: [
                     ...$packages,
@@ -337,141 +319,34 @@ final class SetupCommand extends AbstractCommand
     }
 
     /**
-     * @param list<Module::MODULE_*> $moduleInfos
+     * @param array<array-key, Package> $packages
      *
-     * @throws IOException
-     * @throws RuntimeException
+     * @return list<non-empty-string>
      */
-    private function copyFilesIfApplicable(array $moduleInfos, bool $doCopyConfigFilesAutomatically, bool $doCreateMakeFileAutomatically, bool $doCreateGitignoreFileAutomatically): void
+    private static function toPackageNames(array $packages): array
     {
-        if (!$doCopyConfigFilesAutomatically && !$doCreateMakeFileAutomatically && !$doCreateGitignoreFileAutomatically) {
-            return;
-        }
-
-        $projectRootPath = Path::getDirectory($this->projectComposerJson->path);
-        $libraryRootPath = Path::getDirectory($this->libraryComposerJson->path);
-
-        if ($doCreateMakeFileAutomatically) {
-            $this->console->writeNotice('Copying Makefile');
-            $this->copyFile($libraryRootPath . '/conf/Makefile.example', $projectRootPath . '/Makefile');
-        }
-
-        if ($doCreateGitignoreFileAutomatically) {
-            $this->console->writeNotice('Copying .gitignore file');
-            $this->copyFile($libraryRootPath . '/conf/.gitignore.example', $projectRootPath . '/.gitignore');
-        }
-
-        if (!$doCopyConfigFilesAutomatically) {
-            return;
-        }
-
-        foreach ($moduleInfos as $moduleInfo) {
-            $files = match ($moduleInfo['name']) {
-                Module::NAME_PHP_CS_FIXER => [[
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/php-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/php-cs-fixer.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_PHP_STAN => [[
-                    'source'      => $libraryRootPath . '/conf/phpstan.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/phpstan.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/phpstan.php.example',
-                    'target'      => $projectRootPath . '/conf/phpstan.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_RECTOR => [[
-                    'source'      => $libraryRootPath . '/conf/rector.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/rector.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/rector.php.example',
-                    'target'      => $projectRootPath . '/conf/rector.php',
-                    'isVersioned' => false,
-                ]],
-                Module::NAME_TWIG_CS_FIXER => [[
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.dist.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.dist.php',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.php.example',
-                    'isVersioned' => true,
-                ], [
-                    'source'      => $libraryRootPath . '/conf/twig-cs-fixer.php.example',
-                    'target'      => $projectRootPath . '/conf/twig-cs-fixer.php',
-                    'isVersioned' => false,
-                ]],
-            };
-
-            $this->console->writeNotice(sprintf('Copying files for module "%s".', $moduleInfo['name']));
-
-            foreach ($files as $file) {
-                $this->copyFile($file['source'], $file['target'], $file['isVersioned']);
-            }
-        }
+        return array_values(array_map(static fn (Package $package): string => $package->value, $packages));
     }
 
     /**
-     * @throws RuntimeException
-     */
-    private function copyFile(string $sourceFilePath, string $targetFilePath, bool $isVersioned = true): void
-    {
-        if ($this->isCopyAllowed($targetFilePath)) {
-            $this->filesystem->copy($sourceFilePath, $targetFilePath, true);
-            $this->console->writeInfo(sprintf('Copied file "%s" to "%s".', $sourceFilePath, $targetFilePath));
-
-            if (!$isVersioned) {
-                $this->console->writeWarning(sprintf(
-                    'Make sure to exclude %s from versioning.',
-                    $targetFilePath,
-                ));
-            }
-        }
-    }
-
-    /**
-     * @throws RuntimeException
-     */
-    private function isCopyAllowed(string $targetFilePath): bool
-    {
-        return $this->filesystem->exists($targetFilePath)
-            ? $this->console->isConfirmed(sprintf(
-                'File "%s" already exists. Do you want to overwrite it?',
-                $targetFilePath,
-            ), isDefaultAnswerYes: false)
-            : true;
-    }
-
-    /**
+     * @param non-empty-string $path
+     *
+     * @return ?non-empty-string
+     *
      * @throws RuntimeException
      */
     private function getFileContent(string $path): ?string
     {
-        return ($this->filesystem->exists($path) && is_file($path))
+        return (is_file($path) && is_readable($path))
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using Filesystem::readFile since this method is newer and does no necessarily exist in the version bundled with composer)
             ? (file_get_contents($path) ?: null)
             : null;
     }
 
     /**
+     * @param non-empty-string $path
+     * @param non-empty-string $content
+     *
      * @throws IOException
      * @throws RuntimeException
      */

@@ -1,0 +1,41 @@
+{
+  "packages": [
+    {
+      "name": "acme/shipped",
+      "autoload": {
+        "psr-4": {
+          "Acme\\Shipped\\": "src/"
+        }
+      }
+    },
+    {
+      "name": "acme/direct-dev",
+      "autoload": {
+        "psr-4": {
+          "Acme\\DirectDev\\": "src/"
+        }
+      }
+    },
+    {
+      "name": "acme/transitive-dev",
+      "autoload": {
+        "psr-4": {
+          "Acme\\TransitiveDev\\": "src/"
+        }
+      }
+    },
+    {
+      "name": "acme/suggested",
+      "autoload": {
+        "psr-4": {
+          "Acme\\Suggested\\": "src/"
+        }
+      }
+    }
+  ],
+  "dev-package-names": [
+    "acme/direct-dev",
+    "acme/transitive-dev",
+    "acme/suggested"
+  ]
+}

@@ -1,17 +1,24 @@
-import jsEslint from '@eslint/js';
-import confusingBrowserGlobals from 'confusing-browser-globals';
-import globals from 'globals';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SCRIPT_FILES } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { objectFromEntries } from '#shared/utils/object.ts';
 
-import type { Config } from '../types/config';
+import type { Config } from '#eslint/types/config.ts';
 
 export const javascript = async (): Promise<Config[]> => {
   const {
-    optional: [pluginAntfu, pluginUnusedImports],
+    optional: [
+      confusingBrowserGlobals,
+      jsEslint,
+      pluginAntfu,
+      pluginUnusedImports,
+      globals,
+    ],
   } = await resolvePackages(MODULES.javascript);
 
   const plugins: Config['plugins'] = {};
@@ -35,11 +42,16 @@ export const javascript = async (): Promise<Config[]> => {
       plugins,
       languageOptions: {
         ecmaVersion: 'latest',
-        globals: {
-          ...globals.browser,
-          ...globals.es2025,
-          ...globals.node,
-        },
+        ...(globals
+          ? {
+            globals: {
+              ...globals.browser,
+              ...globals.es2025,
+              ...globals.node,
+              ...objectFromEntries((confusingBrowserGlobals ?? []).map((name) => [name, <const>'off'])),
+            },
+          }
+          : undefined),
         sourceType: 'module',
         parserOptions: {
           sourceType: 'module',
@@ -51,23 +63,32 @@ export const javascript = async (): Promise<Config[]> => {
       },
       linterOptions: {
         reportUnusedDisableDirectives: 'error',
+        reportUnusedInlineConfigs: 'error',
       },
     },
     {
       name: buildConfigName(MAIN_SCOPES.JAVASCRIPT, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
-        ...jsEslint.configs.recommended.rules,
+        ...jsEslint?.configs.recommended.rules,
+        ...(confusingBrowserGlobals
+          ? {
+            'no-restricted-globals': ['error', 'global', ...confusingBrowserGlobals],
+          }
+          : undefined),
         ...(pluginUnusedImports
           ? {
             'no-unused-vars': 'off',
           }
           : undefined),
-        'accessor-pairs': 'error',
+        'accessor-pairs': ['error', {
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          enforceForTSTypes: true,
+        }],
         'array-callback-return': ['error', {
           checkForEach: true,
         }],
-        'arrow-body-style': ['error', 'as-needed'],
+        'arrow-body-style': 'error',
         'block-scoped-var': 'error',
         'capitalized-comments': ['error', 'always', {
           block: {
@@ -98,8 +119,11 @@ export const javascript = async (): Promise<Config[]> => {
           includeCommonJSModuleExports: true,
         }],
         'func-names': 'error',
-        'func-style': ['error', 'expression'],
-        'grouped-accessor-pairs': 'error',
+        'func-style': 'error',
+        'grouped-accessor-pairs': ['error', 'getBeforeSet', {
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          enforceForTSTypes: true,
+        }],
         'guard-for-in': 'error',
         'init-declarations': 'error',
         'logical-assignment-operators': 'error',
@@ -119,6 +143,7 @@ export const javascript = async (): Promise<Config[]> => {
         }],
         'max-nested-callbacks': ['error', {
           max: 3,
+          checkConstructorCallCallbacks: true,
         }],
         'max-params': ['error', {
           max: 4,
@@ -134,6 +159,12 @@ export const javascript = async (): Promise<Config[]> => {
         'no-caller': 'error',
         'no-cond-assign': ['error', 'always'],
         'no-console': 'error',
+        'no-constant-binary-expression': ['error', {
+          checkRelationalComparisons: true,
+        }],
+        'no-constant-condition': ['error', {
+          checkLoops: 'all',
+        }],
         'no-constructor-return': 'error',
         'no-div-regex': 'error',
         'no-duplicate-imports': isModuleEnabled(MODULES.import)
@@ -149,15 +180,29 @@ export const javascript = async (): Promise<Config[]> => {
         'no-eval': 'error',
         'no-extend-native': 'error',
         'no-extra-bind': 'error',
+        'no-extra-boolean-cast': ['error', {
+          enforceForInnerExpressions: true,
+        }],
         'no-extra-label': 'error',
+        'no-fallthrough': ['error', {
+          allowEmptyCase: true,
+          reportUnusedFallthroughComment: true,
+        }],
         'no-implicit-coercion': ['error', {
           boolean: false,
         }],
         'no-implicit-globals': 'error',
         'no-implied-eval': 'error',
-        'no-inline-comments': 'error',
-        'no-inner-declarations': 'error',
+        'no-inline-comments': ['error', {
+          ignorePattern: String.raw`^\s*html\s*$`,
+        }],
+        'no-inner-declarations': ['error', 'functions', {
+          blockScopedFunctions: 'disallow',
+        }],
         'no-invalid-this': 'error',
+        'no-irregular-whitespace': ['error', {
+          skipStrings: false,
+        }],
         'no-iterator': 'error',
         'no-label-var': 'error',
         'no-labels': 'error',
@@ -172,6 +217,7 @@ export const javascript = async (): Promise<Config[]> => {
             100,
             42_069,
           ],
+          enforceConst: true,
         }],
         'no-multi-assign': 'error',
         'no-multi-str': 'error',
@@ -191,7 +237,6 @@ export const javascript = async (): Promise<Config[]> => {
         'no-restricted-exports': ['error', {
           restrictedNamedExports: ['default'],
         }],
-        'no-restricted-globals': ['error', 'global', ...confusingBrowserGlobals],
         'no-restricted-properties': [
           'error',
           { message: 'Use `Object.getPrototypeOf` or `Object.setPrototypeOf` instead.', property: '__proto__' },
@@ -226,16 +271,34 @@ export const javascript = async (): Promise<Config[]> => {
         'no-return-assign': ['error', 'always'],
         'no-script-url': 'error',
         'no-self-compare': 'error',
-        'no-sequences': 'error',
-        'no-shadow': 'error',
+        'no-sequences': ['error', {
+          allowInParentheses: false,
+        }],
+        'no-shadow': ['error', {
+          hoist: 'all',
+        }],
         'no-template-curly-in-string': 'error',
         'no-throw-literal': 'error',
-        'no-underscore-dangle': 'error',
-        'no-unmodified-loop-condition': 'error',
+        'no-undef': ['error', {
+          typeof: true,
+        }],
+        'no-underscore-dangle': ['error', {
+          enforceInClassFields: true,
+          enforceInMethodNames: true,
+        }],
+        'no-unmodified-loop-condition': ['error', {
+          checkConditionalExpressions: true,
+        }],
         'no-unneeded-ternary': ['error', {
           defaultAssignment: false,
         }],
         'no-unreachable-loop': 'error',
+        'no-unsafe-negation': ['error', {
+          enforceForOrderingRelations: true,
+        }],
+        'no-unsafe-optional-chaining': ['error', {
+          disallowArithmeticOperators: true,
+        }],
         'no-unused-expressions': 'error',
         'no-use-before-define': 'error',
         'no-useless-call': 'error',
@@ -245,14 +308,18 @@ export const javascript = async (): Promise<Config[]> => {
         'no-useless-rename': 'error',
         'no-useless-return': 'error',
         'no-var': 'error',
-        'no-void': 'error',
+        'no-void': ['error', {
+          allowAsStatement: true,
+        }],
         'no-warning-comments': 'error',
         'object-shorthand': ['error', 'always', {
           avoidQuotes: true,
           ignoreConstructors: false,
         }],
         'operator-assignment': 'error',
-        'prefer-arrow-callback': 'error',
+        'prefer-arrow-callback': ['error', {
+          allowUnboundThis: false,
+        }],
         'prefer-const': ['error', {
           ignoreReadBeforeAssign: true,
         }],

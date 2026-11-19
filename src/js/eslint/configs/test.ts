@@ -1,9 +1,13 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_TEST_FILES } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_TEST_FILES } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const test = async (): Promise<Config[]> => {
   const {
@@ -54,7 +58,11 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-hooks-on-top': 'error',
         'test/prefer-import-in-mock': 'error',
         'test/prefer-importing-vitest-globals': 'error',
-        'test/prefer-lowercase-title': 'error',
+        'test/prefer-lowercase-title': ['error', {
+          ignore: [
+            'describe',
+          ],
+        }],
         'test/prefer-mock-promise-shorthand': 'error',
         'test/prefer-snapshot-hint': 'error',
         'test/prefer-spy-on': 'error',
@@ -68,7 +76,12 @@ export const test = async (): Promise<Config[]> => {
         'test/prefer-vi-mocked': 'error',
         'test/require-awaited-expect-poll': 'error',
         'test/require-hook': 'error',
-        'test/require-mock-type-parameters': 'error',
+        'test/require-mock-type-parameters': ['error', {
+          checkImportFunctions: true,
+        }],
+        'test/valid-expect': ['error', {
+          alwaysAwait: true,
+        }],
         'test/warn-todo': 'error',
       },
     },

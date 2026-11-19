@@ -1,0 +1,7 @@
+Summary:
+  Classes: 50.00% (1/2)
+  Methods: 90.00% (9/10)
+  Lines:   95.00% (19/20)
+
+Brnshkr\Config\Thing
+  Methods:  50.00% ( 1/ 2)   Lines:  10.00% (  1/ 10)

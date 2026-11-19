@@ -1,10 +1,22 @@
-import { INDENT, MAX_LEN, QUOTES } from '../../shared/utils/constants';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_SCRIPT_FILES } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
+import {
+  INDENT,
+  MAX_EMPTY_LINES,
+  MAX_LEN,
+  QUOTES,
+} from '#shared/utils/constants.ts';
+
+import { isPlainObject } from '#shared/utils/object.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const style = async (): Promise<Config[]> => {
   const {
@@ -16,24 +28,21 @@ export const style = async (): Promise<Config[]> => {
   }
 
   const styleConfig = pluginStyle.configs.customize({
-    jsx: true,
     semi: true,
     indent: INDENT,
     quotes: QUOTES,
     quoteProps: 'as-needed',
     arrowParens: true,
-    blockSpacing: true,
     braceStyle: '1tbs',
-    commaDangle: 'always-multiline',
   });
 
   /* eslint-disable no-magic-numbers -- Index 2 refers to the options of the rule here ('style/indent': ['error', <indent>, <options>]) */
-  const indentRuleConfig = (Array.isArray(styleConfig.rules?.['@stylistic/indent'])
-    && typeof styleConfig.rules['@stylistic/indent'][2] === 'object'
-    && styleConfig.rules['@stylistic/indent'][2] !== null)
-    ? styleConfig.rules['@stylistic/indent'][2]
+  const indentRuleEntry = styleConfig.rules?.['@stylistic/indent'];
+
+  const indentRuleConfig = (Array.isArray(indentRuleEntry) && isPlainObject(indentRuleEntry[2]))
+    ? indentRuleEntry[2]
     : undefined;
-  /* eslint-enable no-magic-numbers -- Restore rule */
+  /* eslint-enable no-magic-numbers */
 
   return [
     {
@@ -44,7 +53,7 @@ export const style = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.STYLE, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...renameRules(styleConfig.rules, { '@stylistic': 'style' }),
         'style/array-bracket-newline': ['error', 'consistent'],
@@ -122,6 +131,7 @@ export const style = async (): Promise<Config[]> => {
           ignoreUrls: true,
           ignoreStrings: true,
           ignoreComments: true,
+          ignoreRegExpLiterals: true,
         }],
         'style/newline-per-chained-call': 'error',
         'style/no-confusing-arrow': 'error',
@@ -187,6 +197,13 @@ export const style = async (): Promise<Config[]> => {
             ],
           ],
         }],
+        'style/no-multiple-empty-lines': ['error', {
+          max: MAX_EMPTY_LINES,
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          maxBOF: 0,
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          maxEOF: 0,
+        }],
         'style/nonblock-statement-body-position': ['error', 'below'],
         'style/object-curly-newline': ['error', {
           /* eslint-disable ts/naming-convention -- Options need to be cased like this */
@@ -210,7 +227,7 @@ export const style = async (): Promise<Config[]> => {
             multiline: true,
             consistent: true,
           },
-          /* eslint-enable ts/naming-convention -- Restore rule */
+          /* eslint-enable ts/naming-convention */
         }],
         'style/object-property-newline': ['error', {
           allowAllPropertiesOnSameLine: true,

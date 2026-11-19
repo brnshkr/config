@@ -4,73 +4,153 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
-use JsonException;
-use PhpCsFixer\Config;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
+use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
+use Brnshkr\Config\ProjectDirectory;
+use Brnshkr\Config\Str;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use RuntimeException;
-use Spatie\Snapshots\MatchesSnapshots;
-use Symfony\Component\Filesystem\Exception\InvalidArgumentException;
-use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
-use function array_keys;
-use function array_map;
-use function getcwd;
-use function is_iterable;
-use function is_object;
-use function iterator_to_array;
-use function preg_quote;
-use function sprintf;
-use function Symfony\Component\String\s;
+use function array_key_first;
+use function count;
 
 /**
  * @internal
  */
-#[CoversNothing]
+#[CoversClass(PhpCsFixer::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(FencedCodeFixer::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(MarkdownSafeFixer::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(ProjectDirectory::class)]
+#[UsesClass(Str::class)]
 final class PhpCsFixerTest extends TestCase
 {
-    use MatchesSnapshots;
-
-    /**
-     * @throws DirectoryNotFoundException
-     * @throws InvalidArgumentException
-     * @throws JsonException
-     * @throws RuntimeException
-     */
-    public function testExpectedPhpCsFixerConfig(): void
+    public function testTheFixersThatChangeMarkdownRunUnderANameThatSkipsIt(): void
     {
-        $config = include __DIR__ . '/../../conf/php-cs-fixer.dist.php';
+        $rules        = PhpCsFixer::getConfig()->getRules();
+        $organization = Str::upperFirst(ComposerJson::forThisLibrary()->getPackageOrganization());
 
-        self::assertInstanceOf(Config::class, $config);
+        self::assertFalse($rules['no_trailing_whitespace_in_string'] ?? null);
+        self::assertFalse($rules['string_line_ending'] ?? null);
+        self::assertTrue($rules[$organization . '/no_trailing_whitespace_in_string'] ?? null);
+        self::assertTrue($rules[$organization . '/string_line_ending'] ?? null);
+    }
 
-        $reflectionClass = new ReflectionClass($config);
-        $configArray     = [];
+    public function testADisabledFixerThatChangesMarkdownIsNotRenamed(): void
+    {
+        $rules = PhpCsFixer::getBuilder()
+            ->addRules(['string_line_ending' => false])
+            ->build()
+            ->getRules()
+        ;
 
-        foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $value            = $reflectionProperty->getValue($config);
-            $propertyName     = $reflectionProperty->getName();
-            $isFinderProperty = $propertyName === 'finder';
+        $organization = Str::upperFirst(ComposerJson::forThisLibrary()->getPackageOrganization());
 
-            $value = $isFinderProperty && $value instanceof Finder
-                ? array_keys([...$value])
-                : $value;
+        self::assertFalse($rules['string_line_ending'] ?? null);
+        self::assertArrayNotHasKey($organization . '/string_line_ending', $rules);
+    }
 
-            if (!$isFinderProperty && is_iterable($value)) {
-                $value = array_map(
-                    static fn ($item) => is_object($item) ? $item::class : $item,
-                    iterator_to_array($value),
-                );
-            }
+    public function testRulesAreMergedIntoTheBaseline(): void
+    {
+        $baseline = PhpCsFixer::getConfig()->getRules();
 
-            $configArray[$propertyName] = $value;
+        $rules = PhpCsFixer::getBuilder()
+            ->addRules(['simplified_null_return' => true])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertCount(count($baseline) + 1, $rules);
+        self::assertTrue($rules['simplified_null_return'] ?? null);
+    }
+
+    public function testARuleGivenAgainOverridesTheBaselineValue(): void
+    {
+        $baseline = PhpCsFixer::getConfig()->getRules();
+        $name     = array_key_first($baseline);
+
+        self::assertIsString($name);
+        self::assertNotSame('', $name);
+
+        $rules = PhpCsFixer::getBuilder()
+            ->addRules([$name => false])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertCount(count($baseline), $rules);
+        self::assertFalse($rules[$name] ?? null);
+    }
+
+    public function testSetRulesReplacesTheBaseline(): void
+    {
+        $rules = PhpCsFixer::getBuilder()
+            ->setRules(['simplified_null_return' => true])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertSame(['simplified_null_return' => true], $rules);
+    }
+
+    public function testRulesAreRemovedByName(): void
+    {
+        $baseline = PhpCsFixer::getConfig()->getRules();
+        $name     = array_key_first($baseline);
+
+        self::assertIsString($name);
+        self::assertNotSame('', $name);
+
+        $rules = PhpCsFixer::getBuilder()
+            ->removeRules([$name])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertCount(count($baseline) - 1, $rules);
+        self::assertArrayNotHasKey($name, $rules);
+    }
+
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $config = PhpCsFixer::getConfig();
+
+        $rules = PhpCsFixer::from($config)
+            ->addRules(['simplified_null_return' => true])
+            ->build()
+            ->getRules()
+        ;
+
+        self::assertCount(count($config->getRules()), $rules);
+        self::assertTrue($rules['simplified_null_return'] ?? null);
+    }
+
+    public function testTheFinderArgumentNarrowsTheFiles(): void
+    {
+        $finder = PhpCsFixer::getConfig(new Finder()->in(__DIR__ . '/../../src/php/Composer'))->getFinder();
+
+        $paths = [];
+
+        foreach ($finder as $file) {
+            $paths[] = $file->getPathname();
         }
 
-        $cwd    = getcwd() ?: '.';
-        $result = s(Json::encode($configArray))->replaceMatches(sprintf('/%s/', preg_quote($cwd, '/')), '.')->toString();
+        self::assertNotSame([], $paths);
 
-        $this->assertMatchesJsonSnapshot($result);
+        foreach ($paths as $path) {
+            self::assertStringContainsString('/src/php/Composer/', $path);
+        }
     }
 }

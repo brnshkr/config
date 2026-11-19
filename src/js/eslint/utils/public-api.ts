@@ -1,0 +1,79 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
+import path from 'node:path';
+
+import { resolvePackageApiSources } from '#eslint/utils/package-exports.ts';
+import { findNearestPackageJson, getMtime, toPosix } from '#shared/utils/filesystem.ts';
+
+import type { PackageExportsResolution, PackageExportsResolverOptions } from '#eslint/utils/package-exports.ts';
+import type { Maybe } from '#shared/types/core.ts';
+
+interface ResolutionCacheEntry {
+  mtime: Maybe<number>;
+  resolution: Maybe<PackageExportsResolution>;
+}
+
+const resolutionCache = new Map<string, ResolutionCacheEntry>();
+
+/**
+ * @throws {TypeError}
+ */
+const getCacheKey = (options: Partial<PackageExportsResolverOptions>, cwd: string): string => JSON.stringify({
+  cwd,
+  packageJsonPath: options.packageJsonPath,
+  distRoot: options.distRoot,
+  srcRoot: options.srcRoot,
+  srcExtensions: options.srcExtensions,
+});
+
+/**
+ * @throws {TypeError}
+ */
+export const loadPublicApiResolution = (
+  options: Partial<PackageExportsResolverOptions>,
+  cwd: string,
+): Maybe<PackageExportsResolution> => {
+  const cacheKey = getCacheKey(options, cwd);
+  const packageJsonPath = options.packageJsonPath ?? findNearestPackageJson(cwd);
+  const mtime = packageJsonPath === undefined ? undefined : getMtime(packageJsonPath);
+  const cacheEntry = resolutionCache.get(cacheKey);
+
+  if (cacheEntry !== undefined && cacheEntry.mtime === mtime) {
+    return cacheEntry.resolution;
+  }
+
+  const resolution = packageJsonPath === undefined
+    ? undefined
+    : resolvePackageApiSources({
+      packageJsonPath,
+      distRoot: options.distRoot,
+      srcRoot: options.srcRoot,
+      srcExtensions: options.srcExtensions,
+    });
+
+  resolutionCache.set(cacheKey, {
+    mtime,
+    resolution,
+  });
+
+  return resolution;
+};
+
+/**
+ * @throws {TypeError}
+ */
+export const isPublicApiFile = (
+  options: PackageExportsResolverOptions,
+  cwd: string,
+  filename: string,
+): boolean => {
+  const resolution = loadPublicApiResolution(options, cwd);
+
+  return resolution?.apiSourceFiles.has(toPosix(path.resolve(filename))) === true;
+};
+
+export const clearPublicApiResolutionCache = (): void => {
+  resolutionCache.clear();
+};

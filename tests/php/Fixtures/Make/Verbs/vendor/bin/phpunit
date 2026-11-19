@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "phpunit $*"
+sleep 0.05
+echo "phpunit done"

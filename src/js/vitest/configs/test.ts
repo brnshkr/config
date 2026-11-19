@@ -1,0 +1,46 @@
+/**
+ * @internal @brnshkr/config/vitest
+ */
+
+import { getEnvironmentValue } from '#shared/utils/environment.ts';
+import { GLOB_IGNORES, GLOB_TEST_FILES } from '#shared/utils/globs.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { Config } from '#vitest/types/config.ts';
+
+const NARROWED_IGNORES = new Map([
+  ['**/dist/**', [
+    'dist/**',
+  ]],
+  ['**/node_modules/**', [
+    `**/node_modules/!(@${packageOrganization})/**`,
+    `**/node_modules/@${packageOrganization}/*/!(dist)/**`,
+  ]],
+]);
+
+export const test = (): Config[] => [
+  {
+    resolve: {
+      tsconfigPaths: true,
+    },
+    test: {
+      include: GLOB_TEST_FILES,
+      exclude: GLOB_IGNORES.flatMap((glob) => NARROWED_IGNORES.get(glob) ?? glob),
+      ...getEnvironmentValue('GITHUB_ACTIONS') === 'true'
+        ? {
+          reporters: [
+            'default',
+            [
+              'github-actions',
+              {
+                jobSummary: {
+                  enabled: false,
+                },
+              },
+            ],
+          ],
+        }
+        : {},
+    },
+  },
+];

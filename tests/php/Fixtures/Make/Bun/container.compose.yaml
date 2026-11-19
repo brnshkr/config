@@ -1,0 +1,4 @@
+services:
+  app:
+    image: acme/app
+    working_dir: /app

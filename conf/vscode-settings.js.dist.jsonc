@@ -1,0 +1,70 @@
+{
+  //////////
+  /// JS ///
+  //////////
+
+  // Formatters
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+
+  // CSS
+  "tailwindCSS.emmetCompletions": true,
+  "css.lint.unknownAtRules": "ignore",
+  "css.validate": false,
+  "scss.lint.unknownAtRules": "ignore",
+  "scss.validate": false,
+  "stylelint.configBasedir": "./",
+  "stylelint.validate": [
+    "css",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "less",
+    "markdown",
+    "php",
+    "scss",
+    "svelte",
+    "typescript",
+    "typescriptreact",
+    "vue-html",
+    "vue",
+    "xml"
+  ],
+
+  // JS/TS
+  "js/ts.tsdk.path": "./node_modules/typescript/lib",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.preferences.quoteStyle": "single",
+  "svelte.enable-ts-plugin": true,
+  "eslint.workingDirectories": ["."],
+  "eslint.validate": [
+    "blade",
+    "css",
+    "erb",
+    "handlebars",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "json5",
+    "jsonc",
+    "markdown",
+    "nunjucks",
+    "php",
+    "svelte",
+    "toml",
+    "twig",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "yaml"
+  ],
+
+  // Markdown
+  "markdownlint.configPointer": "/config"
+}

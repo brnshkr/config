@@ -1,20 +1,36 @@
-import { isPackageExists } from 'local-pkg';
+/**
+ * @internal @brnshkr/config
+ */
 
-import { log } from './log';
-import { objectEntries } from './object';
-import { ESLINT_PACKAGE_RESOLVERS, STYLELINT_PACKAGE_RESOLVERS } from './package-resolvers';
-import { joinAsQuotedList } from './string';
+import { log } from '#shared/utils/log.ts';
+import { objectEntries, objectFromEntries, readOwnValue } from '#shared/utils/object.ts';
 
-import type { Simplify } from 'type-fest';
-import type { Maybe } from '../types/core';
+import {
+  COMMITLINT_PACKAGE_RESOLVERS,
+  ESLINT_PACKAGE_RESOLVERS,
+  MARKDOWNLINT_PACKAGE_RESOLVERS,
+  PATTERN_PACKAGE_RESOLVERS,
+  STYLELINT_PACKAGE_RESOLVERS,
+  VITEST_PACKAGE_RESOLVERS,
+} from '#shared/utils/package-resolvers.ts';
+
+import { isPackageInstalled } from '#shared/utils/resolve.ts';
+import { joinAsQuotedList } from '#shared/utils/string.ts';
+
+import type { Maybe, Simplify } from '#shared/types/core.ts';
 
 const PACKAGE_RESOLVERS = <const>{
+  ...COMMITLINT_PACKAGE_RESOLVERS,
   ...ESLINT_PACKAGE_RESOLVERS,
+  ...MARKDOWNLINT_PACKAGE_RESOLVERS,
+  ...PATTERN_PACKAGE_RESOLVERS,
   ...STYLELINT_PACKAGE_RESOLVERS,
+  ...VITEST_PACKAGE_RESOLVERS,
 };
 
 type PackageResolvers = typeof PACKAGE_RESOLVERS;
-type Package = keyof PackageResolvers;
+
+export type Package = keyof PackageResolvers;
 
 type ResolvedPackage<TPackage extends Package> = ReturnType<PackageResolvers[TPackage]> extends boolean
   ? Awaited<ReturnType<PackageResolvers[TPackage]>>
@@ -31,7 +47,7 @@ type ResolvedPackagesImplWithType<
 };
 
 type ResolvedPackagesImplWithNoType<TModuleInfo extends ModuleInfo> = {
-  [TType in keyof TModuleInfo['packages']]: TModuleInfo['packages'][TType] extends NonNullable<unknown>
+  [TType in keyof TModuleInfo['packages']]: TModuleInfo['packages'][TType] extends object
     ? ResolvedPackagesImplWithType<TModuleInfo, TType>
     : never;
 };
@@ -58,7 +74,6 @@ const warnMissingPackages = (
   type: 'requiredAll' | 'requiredAny',
 ): void => {
   log(
-    'error',
     `Failed resolving required dependencies for module "${
       moduleInfo.name
     }". Please install ${joinAsQuotedList(
@@ -69,10 +84,89 @@ const warnMissingPackages = (
     } module in the config.`,
   );
 
-  log('log', `Run \`bun a -D -E ${packages.join(' ')}\` to install.`);
+  log(`Run \`bun a -D -E ${packages.join(' ')}\` to install.`);
 };
 
-const packageCache: Record<string, unknown> = {};
+const packageCache = new Map<Package>();
+
+type PackageType = keyof NonNullable<ModuleInfo['packages']>;
+
+const loadPackageAsynchronously = async (thePackage: Package): Promise<unknown> => {
+  const resolvePackage = readOwnValue(PACKAGE_RESOLVERS, thePackage);
+
+  if (resolvePackage === undefined) {
+    return false;
+  }
+
+  try {
+    return await resolvePackage();
+  } catch {
+    return false;
+  }
+};
+
+const loadPackageSynchronously = (thePackage: Package): unknown => {
+  const resolvePackage = readOwnValue(PACKAGE_RESOLVERS, thePackage);
+
+  if (resolvePackage === undefined) {
+    return false;
+  }
+
+  try {
+    return resolvePackage();
+  } catch {
+    return false;
+  }
+};
+
+const collectPackagesAsynchronously = async (
+  moduleInfo: ModuleInfo,
+  type: PackageType,
+  packages: readonly Package[],
+): Promise<unknown[]> => {
+  const collectedPackages: unknown[] = [];
+
+  for (const thePackage of packages) {
+    // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
+    const resolvedPackage = packageCache.get(thePackage) ?? await loadPackageAsynchronously(thePackage);
+
+    packageCache.set(thePackage, resolvedPackage);
+
+    if (type === 'requiredAll' && resolvedPackage === false) {
+      warnMissingPackages(moduleInfo, packages, type);
+
+      break;
+    }
+
+    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+  }
+
+  return collectedPackages;
+};
+
+const collectPackagesSynchronously = (
+  moduleInfo: ModuleInfo,
+  type: PackageType,
+  packages: readonly Package[],
+): unknown[] => {
+  const collectedPackages: unknown[] = [];
+
+  for (const thePackage of packages) {
+    const resolvedPackage = packageCache.get(thePackage) ?? loadPackageSynchronously(thePackage);
+
+    packageCache.set(thePackage, resolvedPackage);
+
+    if (type === 'requiredAll' && resolvedPackage === false) {
+      warnMissingPackages(moduleInfo, packages, type);
+
+      break;
+    }
+
+    collectedPackages.push(resolvedPackage === false ? undefined : resolvedPackage);
+  }
+
+  return collectedPackages;
+};
 
 export const resolvePackagesSharedAsynchronously = async <
   TModuleInfo extends ModuleInfo,
@@ -85,7 +179,7 @@ export const resolvePackagesSharedAsynchronously = async <
     return <ResolvedPackages<TModuleInfo, TType>>{};
   }
 
-  const resolvedPackages: Record<string, unknown[]> = {};
+  const resolvedPackages = new Map<PackageType, unknown[]>();
 
   const packages = type === undefined
     ? moduleInfo.packages
@@ -96,40 +190,20 @@ export const resolvePackagesSharedAsynchronously = async <
       continue;
     }
 
-    resolvedPackages[currentType] ??= [];
+    // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
+    const collectedPackages = await collectPackagesAsynchronously(moduleInfo, currentType, currentPackages);
 
-    for (const currentPackage of currentPackages) {
-      try {
-        // eslint-disable-next-line no-await-in-loop -- Sequential resolving is desired here
-        const resolvedPackage = packageCache[currentPackage] ?? await PACKAGE_RESOLVERS[currentPackage]();
-
-        packageCache[currentPackage] ??= resolvedPackage;
-
-        if (resolvedPackage === false) {
-          throw new Error('Skip to catch block.');
-        }
-
-        resolvedPackages[currentType].push(resolvedPackage);
-      } catch {
-        if (currentType === 'requiredAll') {
-          warnMissingPackages(moduleInfo, currentPackages, currentType);
-
-          break;
-        }
-
-        resolvedPackages[currentType].push(undefined);
-      }
-    }
+    resolvedPackages.set(currentType, collectedPackages);
 
     if (currentType === 'requiredAny'
-      && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
+      && collectedPackages.filter((thePackage) => thePackage !== undefined).length === 0) {
       warnMissingPackages(moduleInfo, currentPackages, currentType);
     }
   }
 
   return <ResolvedPackages<TModuleInfo, TType>>(type === undefined
-    ? resolvedPackages
-    : (resolvedPackages[<keyof typeof moduleInfo.packages>type] ?? []));
+    ? objectFromEntries(resolvedPackages)
+    : (resolvedPackages.get(<PackageType>type) ?? []));
 };
 
 export const resolvePackagesSharedSynchronously = <
@@ -143,7 +217,7 @@ export const resolvePackagesSharedSynchronously = <
     return <ResolvedPackages<TModuleInfo, TType>>{};
   }
 
-  const resolvedPackages: Record<string, unknown[]> = {};
+  const resolvedPackages = new Map<PackageType, unknown[]>();
 
   const packages = type === undefined
     ? moduleInfo.packages
@@ -154,48 +228,28 @@ export const resolvePackagesSharedSynchronously = <
       continue;
     }
 
-    resolvedPackages[currentType] ??= [];
+    const collectedPackages = collectPackagesSynchronously(moduleInfo, currentType, currentPackages);
 
-    for (const currentPackage of currentPackages) {
-      try {
-        const resolvedPackage = packageCache[currentPackage] ?? PACKAGE_RESOLVERS[currentPackage]();
-
-        packageCache[currentPackage] ??= resolvedPackage;
-
-        if (resolvedPackage === false) {
-          throw new Error('Skip to catch block.');
-        }
-
-        resolvedPackages[currentType].push(resolvedPackage);
-      } catch {
-        if (currentType === 'requiredAll') {
-          warnMissingPackages(moduleInfo, currentPackages, currentType);
-
-          break;
-        }
-
-        resolvedPackages[currentType].push(undefined);
-      }
-    }
+    resolvedPackages.set(currentType, collectedPackages);
 
     if (currentType === 'requiredAny'
-      && resolvedPackages[currentType].filter((thePackage) => thePackage !== undefined).length === 0) {
+      && collectedPackages.filter((thePackage) => thePackage !== undefined).length === 0) {
       warnMissingPackages(moduleInfo, currentPackages, currentType);
     }
   }
 
   return <ResolvedPackages<TModuleInfo, TType>>(type === undefined
-    ? resolvedPackages
-    : (resolvedPackages[<keyof typeof moduleInfo.packages>type] ?? []));
+    ? objectFromEntries(resolvedPackages)
+    : (resolvedPackages.get(<PackageType>type) ?? []));
 };
 
 export const doAllPackagesExist = (
   packages: readonly Package[],
-): boolean => packages.every((thePackage) => isPackageExists(thePackage));
+): boolean => packages.every((thePackage) => isPackageInstalled(thePackage));
 
 export const doesAnyPackageExist = (
   packages: readonly Package[],
-): boolean => packages.some((thePackage) => isPackageExists(thePackage));
+): boolean => packages.some((thePackage) => isPackageInstalled(thePackage));
 
 export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
   const { packages } = moduleInfo;
@@ -212,9 +266,7 @@ export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
     }
 
     if (currentPackages && currentPackages.length > 0) {
-      isEnabled = currentType === 'requiredAll'
-        ? doAllPackagesExist(currentPackages)
-        : doesAnyPackageExist(currentPackages);
+      isEnabled = (currentType === 'requiredAll' ? doAllPackagesExist : doesAnyPackageExist)(currentPackages);
     }
 
     if (isEnabled) {
@@ -223,4 +275,36 @@ export const isModuleEnabledByDefault = (moduleInfo: ModuleInfo): boolean => {
   }
 
   return isEnabled;
+};
+
+export type PackageResolver<TPackage extends Package> = <
+  TModuleInfo extends ModuleInfo<readonly TPackage[]>,
+  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
+>(
+  moduleInfo: TModuleInfo,
+  type?: TType,
+) => ResolvedPackages<TModuleInfo, TType>;
+
+export type AsyncPackageResolver<TPackage extends Package> = <
+  TModuleInfo extends ModuleInfo<readonly TPackage[]>,
+  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
+>(
+  moduleInfo: TModuleInfo,
+  type?: TType,
+) => Promise<ResolvedPackages<TModuleInfo, TType>>;
+
+export interface ModuleState {
+  isModuleEnabled: (moduleInfo: ModuleInfo) => boolean;
+  setModuleEnabled: (moduleInfo: ModuleInfo, isEnabled: boolean) => void;
+}
+
+export const createModuleState = (): ModuleState => {
+  const enabledStates: Record<string, boolean> = {};
+
+  return {
+    isModuleEnabled: (moduleInfo) => enabledStates[moduleInfo.name] ?? isModuleEnabledByDefault(moduleInfo),
+    setModuleEnabled: (moduleInfo, isEnabled): void => {
+      enabledStates[moduleInfo.name] = isEnabled;
+    },
+  };
 };

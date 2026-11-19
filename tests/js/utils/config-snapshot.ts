@@ -1,39 +1,108 @@
+import { Minimatch } from 'minimatch';
 import { expect } from 'vitest';
 
-import { run } from './command';
-import { traverseDirectory } from './filesystem';
-import { computeConfigDiff } from './json-diff';
+import { objectFromEntries, objectKeys } from '#shared/utils/object.ts';
+import { traverseDirectory } from '#tests/utils/filesystem.ts';
+import { computeConfigDiff } from '#tests/utils/json-diff.ts';
 
-import type { JsonObject } from './json-diff';
+import type { JsonObject } from '#tests/utils/json-diff.ts';
 
 interface SnapshotConfigsOptions {
-  command: (filePath: string) => string;
   fixturesDirectory: string;
-  normalize?: (output: string) => string;
+  globs?: string[];
+  virtualFiles?: string[];
+  resolve: (filePath: string) => Promise<JsonObject> | JsonObject;
+  normalize?: (config: JsonObject) => JsonObject;
 }
 
-const parseConfigOutput = (output: string): JsonObject => {
-  const start = output.indexOf('{');
+const listFixtures = (fixturesDirectory: string): string[] => {
+  const filePaths: string[] = [];
 
-  return <JsonObject>JSON.parse(output.slice(start));
+  traverseDirectory(fixturesDirectory, (filePath) => {
+    filePaths.push(filePath);
+  });
+
+  return filePaths;
 };
 
-export const snapshotConfigs = (options: SnapshotConfigsOptions): void => {
+/**
+ * @throws {TypeError}
+ */
+const stripRoot = (config: JsonObject): JsonObject => {
+  const root = JSON.stringify(process.cwd()).slice(1, -1);
+
+  return <JsonObject>JSON.parse(JSON.stringify(config).replaceAll(root, '<root>'));
+};
+
+const expectEveryGlobCovered = (globs: string[], names: string[]): void => {
+  expect(globs.length).toBeGreaterThan(0);
+
+  const uncovered = globs.filter((glob) => names.every((name) => !new Minimatch(glob, { dot: true }).match(name)));
+
+  expect(uncovered).toStrictEqual([]);
+};
+
+/**
+ * @throws {TypeError}
+ */
+const expectDiffsFromClosestPrintedConfig = (configs: Map<string, JsonObject>, configNames: string[]): void => {
+  const [baseConfigName, ...otherConfigNames] = configNames;
+
+  if (baseConfigName === undefined) {
+    return;
+  }
+
+  expect(configs.get(baseConfigName)).toMatchSnapshot(`base: ${baseConfigName}`);
+
+  const printedConfigNames = [baseConfigName];
+
+  for (const configName of otherConfigNames) {
+    const config = configs.get(configName) ?? {};
+
+    const [closestPrintedConfigDiff] = printedConfigNames
+      .map((printedConfigName) => ({
+        printedConfigName,
+        diff: computeConfigDiff(configs.get(printedConfigName) ?? {}, config),
+      }))
+      .toSorted((first, second) => JSON.stringify(first.diff).length - JSON.stringify(second.diff).length);
+
+    expect(closestPrintedConfigDiff?.diff).toMatchSnapshot(
+      `diff: ${configName} (from ${closestPrintedConfigDiff?.printedConfigName ?? baseConfigName})`,
+    );
+
+    printedConfigNames.push(configName);
+  }
+};
+
+/**
+ * @rejects {TypeError}
+ */
+export const snapshotConfigs = async (options: SnapshotConfigsOptions): Promise<void> => {
   const {
     fixturesDirectory,
-    command,
+    globs,
+    virtualFiles = [],
+    resolve,
     normalize,
   } = options;
 
-  const configs = new Map<string, JsonObject>();
+  const configs = new Map(await Promise.all(
+    [
+      ...listFixtures(fixturesDirectory),
+      ...virtualFiles.map((virtualFile) => `${fixturesDirectory}/${virtualFile}`),
+    ].map(async (filePath): Promise<[string, JsonObject]> => {
+      const config = await resolve(filePath);
 
-  traverseDirectory(fixturesDirectory, (filePath) => {
-    const name = filePath.replace(`${fixturesDirectory}/`, '');
-    const raw = run(command(filePath));
-    const config = parseConfigOutput(normalize ? normalize(raw) : raw);
+      return [
+        filePath.replace(`${fixturesDirectory}/`, ''),
+        stripRoot(normalize ? normalize(config) : config),
+      ];
+    }),
+  ));
 
-    configs.set(name, config);
-  });
+  if (globs !== undefined) {
+    expectEveryGlobCovered(globs, objectKeys(configs));
+  }
 
   const groups = new Map<string, string[]>();
   const hashToRepresentative = new Map<string, string>();
@@ -50,19 +119,7 @@ export const snapshotConfigs = (options: SnapshotConfigsOptions): void => {
     }
   }
 
-  expect(Object.fromEntries(groups)).toMatchSnapshot('config-groups');
+  expect(objectFromEntries(groups)).toMatchSnapshot('config-groups');
 
-  const [baseName, ...otherNames] = [...groups.keys()];
-
-  if (baseName === undefined) {
-    return;
-  }
-
-  const baseConfig = configs.get(baseName) ?? {};
-
-  expect(baseConfig).toMatchSnapshot(`base: ${baseName}`);
-
-  for (const name of otherNames) {
-    expect(computeConfigDiff(baseConfig, configs.get(name) ?? {})).toMatchSnapshot(`diff: ${name}`);
-  }
+  expectDiffsFromClosestPrintedConfig(configs, objectKeys(groups));
 };

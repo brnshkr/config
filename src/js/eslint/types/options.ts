@@ -1,9 +1,42 @@
-import type { Linter } from 'eslint';
-import type { FlatGitignoreOptions } from 'eslint-config-flat-gitignore';
-import type { packageOrganization } from '../../shared/utils/package-json';
-import type { Config, TsEslintParserOptions } from './config';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-export type GitignoreOptions = Omit<FlatGitignoreOptions, 'name'>;
+import type { CSSLanguageOptions } from '@eslint/css';
+import type { Linter } from 'eslint';
+import type { Settings } from 'eslint-plugin-better-tailwindcss/api/types';
+import type { Config, TsEslintParserOptions } from '#eslint/types/config.ts';
+import type { CssDialect } from '#shared/utils/dialect.ts';
+import type { packageOrganization } from '#shared/utils/package-json.ts';
+
+export type TailwindOptions = Settings;
+
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys mirror the upstream names they configure, so they carry no boolish prefix */
+export interface CssOptions {
+  /**
+   * Additional syntax definitions, e.g. project specific at-rules.
+   *
+   * @default undefined
+   *
+   * @see https://github.com/eslint/css#configuring-custom-syntax
+   */
+  customSyntax: CSSLanguageOptions['customSyntax'];
+
+  /**
+   * Additional CSS syntax, e.g. project specific at-rules and functions.
+   *
+   * @default `Tailwind CSS's syntax when the "tailwind" module is enabled.`
+   */
+  dialect: Partial<CssDialect>;
+
+  /**
+   * Enables tolerant parsing of preludes the CSS parser cannot read.
+   *
+   * @default `Enabled when the "tailwind" module is enabled.`
+   */
+  tolerant: boolean;
+}
+/* eslint-enable brnshkr/boolish-prefix */
 
 export interface NodeOptions {
   /**
@@ -43,6 +76,7 @@ export interface IgnoresAndFiles {
    *
    * @default []
    */
+  // eslint-disable-next-line brnshkr/boolish-prefix -- Mirrors ESLint's own `ignores` config key
   ignores?: Linter.Config['ignores'];
 }
 
@@ -85,6 +119,7 @@ export interface TypescriptOptions extends IgnoresAndFiles {
   typeAware: boolean | string | TypeAwareOptions;
 }
 
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
 export interface ConfigOptions {
   /**
    * Enables builtin rules.
@@ -109,16 +144,17 @@ export interface ConfigOptions {
    *
    * @see https://github.com/eslint/css
    */
-  css: boolean;
+  css: boolean | Partial<CssOptions>;
 
   /**
-   * Enables `eslint-config-flat-gitignore`.
+   * Enables `@html-eslint/eslint-plugin`.
    *
-   * @default `Enabled when "eslint-config-flat-gitignore" is installed.`
+   * @default `Enabled when "@html-eslint/eslint-plugin" is installed.`
    *
-   * @see https://github.com/antfu/eslint-config-flat-gitignore
+   * @see https://github.com/yeonjuan/html-eslint
+   * @see https://github.com/BenoitZugmeyer/eslint-plugin-html
    */
-  gitignore: boolean | Partial<GitignoreOptions>;
+  html: boolean;
 
   /**
    * Enables `eslint-plugin-import-x`.
@@ -185,6 +221,15 @@ export interface ConfigOptions {
   regexp: boolean;
 
   /**
+   * Enables `eslint-plugin-security`.
+   *
+   * @default `Enabled when "eslint-plugin-security" is installed.`
+   *
+   * @see https://github.com/eslint-community/eslint-plugin-security
+   */
+  security: boolean;
+
+  /**
    * Enables `@stylistic/eslint-plugin`.
    *
    * @default `Enabled when "@stylistic/eslint-plugin" is installed.`
@@ -199,8 +244,19 @@ export interface ConfigOptions {
    * @default `Enabled when "eslint-plugin-svelte" is installed.`
    *
    * @see https://github.com/sveltejs/eslint-plugin-svelte
+   * @see https://github.com/yeonjuan/html-eslint/tree/main/packages/eslint-plugin-svelte
    */
   svelte: boolean;
+
+  /**
+   * Enables `eslint-plugin-better-tailwindcss`.
+   *
+   * @default `Enabled when "tailwindcss" is installed.`
+   *
+   * @see https://github.com/tailwindlabs/tailwindcss
+   * @see https://github.com/schoero/eslint-plugin-better-tailwindcss
+   */
+  tailwind: boolean | Partial<TailwindOptions>;
 
   /**
    * Enables `@vitest/eslint-plugin`.
@@ -248,6 +304,7 @@ export interface ConfigOptions {
    */
   yaml: boolean;
 }
+/* eslint-enable brnshkr/boolish-prefix */
 
 export type ResolvedOptions = ConfigOptions & Omit<Config, 'files'>;
 export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'files'>;

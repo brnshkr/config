@@ -1,22 +1,397 @@
-import { objectEntries } from '../../shared/utils/object';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SCRIPT_FILES, GLOB_SCRIPT_FILES_WITHOUT_TS, GLOB_TS } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import { getTsEslintParserIfExists } from './typescript';
+import path from 'node:path';
 
-import type { Config } from '../types/config';
+import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+
+import {
+  getHtmlScriptFileGlobs,
+  GLOB_SCRIPT_FILES,
+  GLOB_SCRIPT_FILES_WITHOUT_TS,
+  GLOB_TS,
+} from '#eslint/utils/globs.ts';
+
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
+import {
+  objectEntries,
+  objectFromEntries,
+  objectKeys,
+  objectValues,
+  readOwnValue,
+} from '#shared/utils/object.ts';
+
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { ESLint, Linter } from 'eslint';
+import type { Config, TsEslintParser } from '#eslint/types/config.ts';
+
+type ParseResult = ReturnType<TsEslintParser['parseForESLint']>;
+
+const TAGS_BY_MODULE = <const>{
+  test: [
+    'vitest-environment',
+    'vitest-environment-options',
+  ],
+} satisfies Partial<Record<keyof typeof MODULES, readonly string[]>>;
+
+const EXAMPLE_FENCE_LANGUAGES = <const>{
+  js: [
+    'js',
+    'javascript',
+    'ecmascript',
+  ],
+  jsx: [
+    'jsx',
+  ],
+  ts: [
+    'ts',
+    'typescript',
+  ],
+  tsx: [
+    'tsx',
+  ],
+  json: [
+    'json',
+  ],
+  jsonc: [
+    'jsonc',
+  ],
+  json5: [
+    'json5',
+  ],
+  yaml: [
+    'yaml',
+  ],
+  yml: [
+    'yml',
+  ],
+  toml: [
+    'toml',
+  ],
+  css: [
+    'css',
+  ],
+  md: [
+    'md',
+    'markdown',
+  ],
+} satisfies Record<string, readonly string[]>;
+
+export const DESCRIPTION_DASHES = <const>{
+  param: 'always',
+  property: 'always',
+  template: 'always',
+  returns: 'never',
+  throws: 'never',
+  rejects: 'never',
+} satisfies Record<string, 'always' | 'never'>;
+
+export const THROWS_DESCRIPTION_WORDS = <const>[
+  'when',
+  'unless',
+];
+
+const FRAGMENT_DESCRIPTION_TAGS = objectKeys(DESCRIPTION_DASHES).filter((tag) => tag !== 'throws' && tag !== 'rejects');
+const DESCRIPTION_FRAGMENT_PATTERN = String.raw`/^(?!\p{Lu}[\p{Ll}\s])[\s\S]*(?<!\.)$/v`;
+const THROWS_DESCRIPTION_PATTERN = String.raw`/^(?:$|(?:${THROWS_DESCRIPTION_WORDS.join('|')})\s[\s\S]*(?<!\.)$)/v`;
+
+export const TAG_SEQUENCE = [
+  {
+    tags: [
+      'file',
+      'fileoverview',
+      'overview',
+      'module',
+    ],
+  },
+  {
+    tags: [
+      'api',
+      'internal',
+    ],
+  },
+  {
+    tags: [
+      'deprecated',
+      'ignore',
+      'since',
+      'version',
+      ['to', 'do'].join(''),
+    ],
+  },
+  {
+    tags: [
+      'author',
+      'copyright',
+      'license',
+    ],
+  },
+  {
+    tags: [
+      'summary',
+      'typeSummary',
+      'desc',
+      'description',
+      'classdesc',
+    ],
+  },
+  {
+    tags: [
+      'namespace',
+      'category',
+      'package',
+    ],
+  },
+  {
+    tags: [
+      'import',
+    ],
+  },
+  {
+    tags: [
+      'typedef',
+    ],
+  },
+  {
+    tags: [
+      'template',
+    ],
+  },
+  {
+    tags: [
+      'augments',
+      'extends',
+      'implements',
+    ],
+  },
+  {
+    tags: [
+      'readonly',
+    ],
+  },
+  {
+    tags: [
+      'override',
+      'requires',
+      'mixes',
+      'mixin',
+      'mixinClass',
+      'mixinFunction',
+      'borrows',
+      'constructs',
+      'lends',
+      'final',
+      'global',
+      'abstract',
+      'virtual',
+      'static',
+      'private',
+      'protected',
+      'public',
+      'access',
+      'const',
+      'constant',
+      'variation',
+      'var',
+      'member',
+      'memberof',
+      'inner',
+      'instance',
+      'inheritdoc',
+      'inheritDoc',
+      'hideconstructor',
+    ],
+  },
+  {
+    tags: [
+      'name',
+    ],
+  },
+  {
+    tags: [
+      'this',
+      'interface',
+      'enum',
+      'event',
+      'kind',
+      'type',
+      'alias',
+      'external',
+      'host',
+      'async',
+      'callback',
+      'func',
+      'function',
+      'method',
+      'class',
+      'constructor',
+      'generator',
+      'fires',
+      'emits',
+      'listens',
+    ],
+  },
+  {
+    tags: [
+      'prop',
+      'property',
+    ],
+  },
+  {
+    tags: [
+      'param',
+      'arg',
+      'argument',
+    ],
+  },
+  {
+    tags: [
+      'return',
+      'returns',
+    ],
+  },
+  {
+    tags: [
+      'yield',
+      'yields',
+    ],
+  },
+  {
+    tags: [
+      'throws',
+      'exception',
+      'rejects',
+    ],
+  },
+  {
+    tags: [
+      'satisfies',
+    ],
+  },
+  {
+    tags: [
+      'default',
+      'defaultvalue',
+    ],
+  },
+  {
+    tags: [
+      'exports',
+    ],
+  },
+  {
+    tags: [
+      'link',
+      'see',
+      'tutorial',
+    ],
+  },
+  {
+    tags: [
+      'example',
+    ],
+  },
+];
+
+const memoizeParser = (parser: TsEslintParser): TsEslintParser => {
+  const parsedSources = new Map<string, ParseResult>();
+
+  return {
+    ...parser,
+    // eslint-disable-next-line ts/naming-convention -- Method needs to be cased like this
+    parseForESLint: (...parserArguments): ParseResult => {
+      const [code] = parserArguments;
+      const cachedResult = parsedSources.get(code);
+
+      if (cachedResult !== undefined) {
+        return cachedResult;
+      }
+
+      const parsedResult = parser.parseForESLint(...parserArguments);
+
+      parsedSources.clear();
+      parsedSources.set(code, parsedResult);
+
+      return parsedResult;
+    },
+  };
+};
+
+const mergeExampleProcessors = (processorsByExtension: [string, Linter.Processor][]): Linter.Processor => {
+  const blockCountsByFilePath = new Map<string, number[]>();
+
+  return {
+    meta: {
+      name: `${packageOrganization}/jsdoc-examples`,
+    },
+    supportsAutofix: true,
+    preprocess: (text: string, filePath: string): ReturnType<NonNullable<Linter.Processor['preprocess']>> => {
+      const blockCounts: number[] = [];
+
+      blockCountsByFilePath.set(filePath, blockCounts);
+
+      return [
+        text,
+        ...processorsByExtension.flatMap(([extension, processor]) => {
+          const [, ...blocks] = processor.preprocess?.(text, filePath) ?? [];
+
+          blockCounts.push(blocks.length);
+
+          return blocks.map((block) => (typeof block === 'string'
+            ? block
+            : {
+              ...block,
+              filename: `${path.basename(path.dirname(block.filename))}/*.${extension}`,
+            }));
+        }),
+      ];
+    },
+    postprocess: (
+      [ownMessages = [], ...blockMessages]: Linter.LintMessage[][],
+      filePath: string,
+    ): Linter.LintMessage[] => {
+      const blockCounts = blockCountsByFilePath.get(filePath) ?? [];
+      const mappedMessages = [...ownMessages];
+      let blockOffset = 0;
+
+      blockCountsByFilePath.delete(filePath);
+
+      for (const [index, [, processor]] of processorsByExtension.entries()) {
+        const blockCount = blockCounts.at(index) ?? 0;
+
+        mappedMessages.push(...processor.postprocess?.(
+          [[], ...blockMessages.slice(blockOffset, blockOffset + blockCount)],
+          filePath,
+        ) ?? []);
+
+        blockOffset += blockCount;
+      }
+
+      return mappedMessages;
+    },
+  };
+};
 
 export const jsdoc = async (): Promise<Config[]> => {
   const {
     requiredAll: [pluginJsdoc],
-    optional: [getJsdocProcessorPlugin],
+    optional: [jsdocProcessorModule],
   } = await resolvePackages(MODULES.jsdoc);
 
   if (!pluginJsdoc) {
     return [];
   }
+
+  const definedTags = [
+    'api',
+    'rejects',
+    ...isModuleEnabled(MODULES.test) ? TAGS_BY_MODULE.test : [],
+  ];
 
   const createSetupConfig = (isForTypescript: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.SETUP}${isForTypescript ? '-typescript' : ''}`),
@@ -36,24 +411,37 @@ export const jsdoc = async (): Promise<Config[]> => {
 
   const createRulesConfig = (isForTypescript: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.RULES}${isForTypescript ? '-typescript' : ''}`),
-    files: isForTypescript ? [GLOB_TS] : [GLOB_TS, ...GLOB_SCRIPT_FILES_WITHOUT_TS],
+    files: isForTypescript
+      ? [GLOB_TS]
+      : [
+        GLOB_TS,
+        ...GLOB_SCRIPT_FILES_WITHOUT_TS,
+        ...getHtmlScriptFileGlobs(),
+      ],
     rules: {
       ...(isForTypescript
         ? {
           ...(<Config['rules']>Object.fromEntries(
             objectEntries(pluginJsdoc.configs['flat/recommended-typescript-error'].rules ?? {})
               .map(([key, value]) => (
-                Object.is(pluginJsdoc.configs['flat/recommended-error'].rules?.[key], value)
+                Object.is(readOwnValue(pluginJsdoc.configs['flat/recommended-error'].rules ?? {}, key), value)
                   ? undefined
                   : [key, value]
               ))
               .filter(Boolean),
           )),
+          'jsdoc/check-tag-names': ['error', {
+            definedTags,
+            typed: true,
+          }],
           'jsdoc/require-param': 'off',
           'jsdoc/require-returns': 'off',
         }
         : {
           ...pluginJsdoc.configs['flat/recommended-error'].rules,
+          'jsdoc/check-tag-names': ['error', {
+            definedTags,
+          }],
           'jsdoc/check-indentation': ['error', {
             allowIndentedSections: true,
           }],
@@ -69,195 +457,43 @@ export const jsdoc = async (): Promise<Config[]> => {
               'default',
             ],
           }],
-          'jsdoc/match-description': 'error',
+          'jsdoc/match-description': ['error', {
+            tags: {
+              ...objectFromEntries(FRAGMENT_DESCRIPTION_TAGS.map((tag) => [tag, {
+                match: DESCRIPTION_FRAGMENT_PATTERN,
+                message: `The \`@${tag}\` description starts lowercase and ends without a period.`,
+              }])),
+              ...objectFromEntries(['throws', 'rejects'].map((tag) => [tag, {
+                match: THROWS_DESCRIPTION_PATTERN,
+                message: `The \`@${tag}\` description starts with \`${THROWS_DESCRIPTION_WORDS.join('` or `')}\`.`,
+              }])),
+            },
+          }],
           'jsdoc/multiline-blocks': ['error', {
             noSingleLineBlocks: true,
             singleLineTags: [],
           }],
-          'jsdoc/no-bad-blocks': 'error',
+          'jsdoc/no-bad-blocks': ['error', {
+            preventAllMultiAsteriskBlocks: true,
+          }],
           'jsdoc/no-blank-block-descriptions': 'error',
           'jsdoc/no-blank-blocks': 'error',
+          'jsdoc/no-unnecessary-type-assertion': ['error', {
+            preferConstToLiteralTuples: true,
+          }],
+          'jsdoc/normalize-see-links': 'error',
           'jsdoc/prefer-import-tag': 'error',
-          'jsdoc/require-description-complete-sentence': 'error',
           'jsdoc/require-asterisk-prefix': 'error',
-          'jsdoc/require-hyphen-before-param-description': 'error',
+          'jsdoc/require-hyphen-before-param-description': ['error', DESCRIPTION_DASHES.param, {
+            tags: objectFromEntries(objectEntries(DESCRIPTION_DASHES).filter(([tag]) => tag !== 'param')),
+          }],
           'jsdoc/require-param-description': 'off',
           'jsdoc/require-property-description': 'off',
           'jsdoc/require-returns-description': 'off',
           'jsdoc/require-jsdoc': 'off',
           'jsdoc/require-template': 'error',
-          'jsdoc/require-throws': 'error',
           'jsdoc/sort-tags': ['error', {
-            tagSequence: [
-              {
-                tags: [
-                  'import',
-                ],
-              },
-              {
-                tags: [
-                  'deprecated',
-                  'ignore',
-                  'since',
-                  'version',
-                  ['to', 'do'].join(''),
-                ],
-              },
-              {
-                tags: [
-                  'author',
-                  'copyright',
-                  'license',
-                ],
-              },
-              {
-                tags: [
-                  'summary',
-                  'typeSummary',
-                ],
-              },
-              {
-                tags: [
-                  'desc',
-                  'description',
-                  'classdesc',
-                ],
-              },
-              {
-                tags: [
-                  'internal',
-                  'namespace',
-                  'category',
-                  'package',
-                  'file',
-                  'fileoverview',
-                  'overview',
-                  'module',
-                  'override',
-                  'requires',
-                  'implements',
-                  'mixes',
-                  'mixin',
-                  'mixinClass',
-                  'mixinFunction',
-                  'borrows',
-                  'constructs',
-                  'lends',
-                  'final',
-                  'global',
-                  'readonly',
-                  'abstract',
-                  'virtual',
-                  'static',
-                  'private',
-                  'protected',
-                  'public',
-                  'access',
-                  'const',
-                  'constant',
-                  'variation',
-                  'var',
-                  'member',
-                  'memberof',
-                  'inner',
-                  'instance',
-                  'inheritdoc',
-                  'inheritDoc',
-                  'hideconstructor',
-                ],
-              },
-              {
-                tags: [
-                  'this',
-                  'interface',
-                  'enum',
-                  'event',
-                  'augments',
-                  'extends',
-                  'name',
-                  'kind',
-                  'type',
-                  'alias',
-                  'external',
-                  'host',
-                  'async',
-                  'callback',
-                  'func',
-                  'function',
-                  'method',
-                  'class',
-                  'constructor',
-                  'generator',
-                  'fires',
-                  'emits',
-                  'listens',
-                ],
-              },
-              {
-                tags: [
-                  'template',
-                ],
-              },
-              {
-                tags: [
-                  'typedef',
-                ],
-              },
-              {
-                tags: [
-                  'param',
-                  'arg',
-                  'argument',
-                  'prop',
-                  'property',
-                ],
-              },
-              {
-                tags: [
-                  'return',
-                  'returns',
-                ],
-              },
-              {
-                tags: [
-                  'yield',
-                  'yields',
-                ],
-              },
-              {
-                tags: [
-                  'throws',
-                  'exception',
-                ],
-              },
-              {
-                tags: [
-                  'satisfies',
-                ],
-              },
-              {
-                tags: [
-                  'default',
-                  'defaultvalue',
-                ],
-              },
-              {
-                tags: [
-                  'exports',
-                ],
-              },
-              {
-                tags: [
-                  'see',
-                  'tutorial',
-                ],
-              },
-              {
-                tags: [
-                  'example',
-                ],
-              },
-            ],
+            tagSequence: TAG_SEQUENCE,
           }],
           'jsdoc/tag-lines': ['error', 'any', {
             maxBlockLines: 1,
@@ -287,15 +523,34 @@ export const jsdoc = async (): Promise<Config[]> => {
   });
 
   const parser = await getTsEslintParserIfExists();
+  const exampleParser = parser ? memoizeParser(parser) : undefined;
 
-  const examplePlugin = getJsdocProcessorPlugin
-    ? getJsdocProcessorPlugin.getJsdocProcessorPlugin({
-      checkDefaults: true,
-      checkExamples: true,
-      checkParams: true,
-      checkProperties: true,
-      parser,
-    })
+  const examplePlugin = jsdocProcessorModule
+    ? {
+      meta: {
+        name: `${packageOrganization}/jsdoc-examples`,
+      },
+      processors: {
+        examples: mergeExampleProcessors(objectEntries(EXAMPLE_FENCE_LANGUAGES).map(([extension, languages]) => {
+          const isScriptExtension = extension === 'js';
+
+          const processorPlugin = jsdocProcessorModule.getJsdocProcessorPlugin({
+            allowedLanguagesToProcess: objectValues(EXAMPLE_FENCE_LANGUAGES).flat(),
+            checkDefaults: isScriptExtension,
+            checkExamples: true,
+            checkParams: isScriptExtension,
+            checkProperties: isScriptExtension,
+            exampleCodeRegex: `/\`\`\`(?:${languages.join('|')})\\s*\\n([\\s\\S]*?)\\n\\s*\`\`\`/gv`,
+            matchingFileNameDefaults: 'dummy.jsdoc-defaults.md/*.js',
+            matchingFileNameParams: 'dummy.jsdoc-params.md/*.js',
+            matchingFileNameProperties: 'dummy.jsdoc-properties.md/*.js',
+            parser: exampleParser,
+          });
+
+          return [extension, processorPlugin.processors?.['examples'] ?? {}];
+        })),
+      },
+    } satisfies ESLint.Plugin
     : undefined;
 
   return [
@@ -314,7 +569,7 @@ export const jsdoc = async (): Promise<Config[]> => {
         {
           name: buildConfigName(MAIN_SCOPES.JSDOC, `${SUB_SCOPES.EXAMPLES}/${SUB_SCOPES.PROCESSOR}`),
           files: GLOB_SCRIPT_FILES,
-          processor: examplePlugin.processors?.['examples'],
+          processor: examplePlugin.processors.examples,
         },
       ]
       : []),

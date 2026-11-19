@@ -1,0 +1,1 @@
+not-included-command: #~~ should NOT appear (txt file, not Makefile or *.mk)

@@ -1,0 +1,7 @@
+{
+  "name": "acme/runtime",
+  "require": {
+    "php": ">=8.5",
+    "composer-runtime-api": "^2.0"
+  }
+}

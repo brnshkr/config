@@ -1,0 +1,212 @@
+{
+  ///////////////
+  /// General ///
+  ///////////////
+
+  // Functional
+  "files.trimFinalNewlines": true,
+  "files.associations": {
+    ".env{,.*}": "properties",
+    "*.neon": "yaml",
+    "LICENSE": "plaintext"
+  },
+  "emmet.includeLanguages": {
+    "twig": "html"
+  },
+  "workbench.editorAssociations": {
+    "*.svg": "default"
+  },
+
+  // Visual
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // Formatters
+  "[css]": {
+    "editor.defaultFormatter": "aeschli.vscode-css-formatter"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+
+  // Telemetry
+  "gitlens.telemetry.enabled": false,
+  "partialDiff.enableTelemetry": false,
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off", // NOTICE: Can only be turned off in the default settings
+
+  // Copilot
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "properties": false,
+    "markdown": false,
+    "scminput": false
+  },
+
+  // Excludes
+  "explorer.autoRevealExclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vitest/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/build/**": true,
+    "**/bun.lock": true,
+    "**/changelog/**": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+  "search.exclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vitest/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/build/**": true,
+    "**/bun.lock": true,
+    "**/changelog/**": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+  "files.watcherExclude": {
+    "**/.cache/**": true,
+    "**/.changeset/**": true,
+    "**/.git/**": true,
+    "**/.hg/store/**": true,
+    "**/.history/**": true,
+    "**/.idea/**": true,
+    "**/.next/**": true,
+    "**/.nuxt/**": true,
+    "**/.output/**": true,
+    "**/.svelte-kit/**": true,
+    "**/.temp/**": true,
+    "**/.tmp/**": true,
+    "**/.vercel/**": true,
+    "**/.vite-inspect/**": true,
+    "**/.vitepress/cache/**": true,
+    "**/.vitest/**": true,
+    "**/.vscode/**": true,
+    "**/.yarn/**": true,
+    "**/__snapshots__/**": true,
+    "**/*.code-search": true,
+    "**/*.example": true,
+    "**/*.min.*": true,
+    "**/bower_components/**": true,
+    "**/build/**": true,
+    "**/bun.lock": true,
+    "**/changelog/**": true,
+    "**/composer.lock": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/output/**": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/temp/**": true,
+    "**/tests/**/fixtures/**": true,
+    "**/tmp/**": true,
+    "**/vendor/**": true,
+    "**/vite.config.*.timestamp-*": true,
+    "**/yarn.lock": true
+  },
+
+  /////////////////////////
+  /// Language specific ///
+  /////////////////////////
+
+  // JSON
+  "json.schemas": [
+    {
+      "url": "https://getcomposer.org/schema.json",
+      "fileMatch": [
+        "composer.json",
+        "*.composer.json"
+      ]
+    },
+    {
+      "url": "https://json.schemastore.org/package",
+      "fileMatch": [
+        "package.json",
+        "*.package.json"
+      ]
+    },
+    {
+      "url": "https://json.schemastore.org/tsconfig",
+      "fileMatch": [
+        "tsconfig.json",
+        "*.tsconfig.json"
+      ]
+    }
+  ]
+}

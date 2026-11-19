@@ -1,10 +1,14 @@
-import { INDENT, QUOTES } from '../../shared/utils/constants';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_YAML } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_YAML } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { INDENT, QUOTES } from '#shared/utils/constants.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const yaml = async (): Promise<Config[]> => {
   const {
@@ -29,17 +33,18 @@ export const yaml = async (): Promise<Config[]> => {
       rules: {
         /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...renameRules(pluginYaml.configs.standard[2]?.rules, { yml: 'yaml' }),
-        /* eslint-enable no-magic-numbers -- Restore rule */
-        'yaml/block-mapping-colon-indicator-newline': ['error', 'never'],
+        /* eslint-enable no-magic-numbers */
         'yaml/file-extension': 'error',
+        'yaml/flow-mapping-curly-newline': ['error', {
+          consistent: true,
+        }],
         'yaml/flow-mapping-curly-spacing': ['error', 'always', {
           emptyObjects: 'never',
         }],
+        'yaml/flow-sequence-bracket-newline': ['error', 'consistent'],
         'yaml/indent': ['error', INDENT],
-        'yaml/no-multiple-empty-lines': 'error',
-        'yaml/no-trailing-zeros': 'error',
+        'yaml/no-boolean-key': 'error',
         'yaml/quotes': ['error', {
-          avoidEscape: true,
           prefer: QUOTES,
         }],
         'yaml/require-string-key': 'error',

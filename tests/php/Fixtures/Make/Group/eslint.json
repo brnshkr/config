@@ -1,0 +1,54 @@
+[
+  {
+    "filePath": "a.ts",
+    "messages": [
+      {
+        "ruleId": "acme/real",
+        "severity": 2,
+        "message": "Real finding.",
+        "line": 1,
+        "column": 1,
+        "fix": {
+          "range": [0, 1],
+          "text": ""
+        }
+      }
+    ],
+    "suppressedMessages": [
+      {
+        "ruleId": "acme/suppressed",
+        "severity": 2,
+        "message": "Suppressed finding.",
+        "line": 2,
+        "column": 1,
+        "fix": {
+          "range": [2, 3],
+          "text": ""
+        },
+        "suppressions": [
+          {
+            "kind": "directive",
+            "justification": "Silenced"
+          }
+        ]
+      }
+    ],
+    "errorCount": 1,
+    "warningCount": 0
+  },
+  {
+    "filePath": "b.ts",
+    "messages": [
+      {
+        "ruleId": "acme/real",
+        "severity": 2,
+        "message": "Real finding elsewhere.",
+        "line": 1,
+        "column": 1
+      }
+    ],
+    "suppressedMessages": [],
+    "errorCount": 1,
+    "warningCount": 0
+  }
+]

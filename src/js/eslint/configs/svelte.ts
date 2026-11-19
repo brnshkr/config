@@ -1,13 +1,90 @@
-import { INDENT } from '../../shared/utils/constants';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SVELTE, GLOB_SVELTE_SCRIPT } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import { getTsEslintParserIfExists } from './typescript';
+import {
+  ID_NAMING_PATTERN,
+  REQUIRED_ATTRIBUTES,
+  RESTRICTED_ATTRIBUTE_VALUES,
+  RESTRICTED_ATTRIBUTES,
+  RESTRICTED_TAGS,
+} from '#eslint/configs/html.ts';
 
-import type { Config } from '../types/config';
+import { getTsEslintParserIfExists } from '#eslint/configs/typescript.ts';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { ATTRIBUTE_GROUP_PREFIXES, ATTRIBUTE_ORDER, TRAILING_ATTRIBUTES } from '#eslint/utils/attributes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_SVELTE, GLOB_SVELTE_SCRIPT } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { INDENT } from '#shared/utils/constants.ts';
 
+import type { Config } from '#eslint/types/config.ts';
+
+const ATTRIBUTE_DIRECTIVE_GROUPS = [
+  <[string, ...string[]]>[
+    '/^bind:/u',
+    '!bind:this',
+    '/^on:/u',
+  ],
+  ...[
+    'use',
+    'transition',
+    'in',
+    'out',
+    'animate',
+    'let',
+  ].map((directive) => ({
+    match: `/^${directive}:/u`,
+    sort: <const>'alphabetical',
+  })),
+];
+
+const ORDERED_ATTRIBUTE_NAMES = [
+  'this',
+  'slot',
+  ...ATTRIBUTE_ORDER,
+  ...TRAILING_ATTRIBUTES,
+].toSorted((first, second) => first.localeCompare(second));
+
+const SVELTE_ATTRIBUTE_ORDER = [
+  'this',
+  'bind:this',
+  ...ATTRIBUTE_ORDER.filter((attribute) => attribute !== 'class' && attribute !== 'style'),
+  'class',
+  {
+    match: '/^class:/u',
+    sort: <const>'alphabetical',
+  },
+  'style',
+  {
+    match: '/^style:/u',
+    sort: <const>'alphabetical',
+  },
+  'slot',
+  {
+    match: '/^--/u',
+    sort: <const>'alphabetical',
+  },
+  {
+    match: <[string, ...string[]]>[
+      '!/:/u',
+      '!/^--/u',
+      `!/^(?:${ORDERED_ATTRIBUTE_NAMES.join('|')})$/u`,
+      ...ATTRIBUTE_GROUP_PREFIXES.map((prefix) => `!/^${prefix}/u`),
+    ],
+    sort: <const>'alphabetical',
+  },
+  ...TRAILING_ATTRIBUTES,
+  ...ATTRIBUTE_GROUP_PREFIXES.map((prefix) => ({
+    match: `/^${prefix}/u`,
+    sort: <const>'alphabetical',
+  })),
+  ...ATTRIBUTE_DIRECTIVE_GROUPS,
+];
+
+/**
+ * @throws {Error}
+ */
 const extractRelevantConfig = (configs: Config[], key: string): Config => {
   for (const config of configs) {
     if (config.name === `svelte:${key}` && config.rules) {
@@ -18,9 +95,13 @@ const extractRelevantConfig = (configs: Config[], key: string): Config => {
   throw new Error(`Expected key "${key}" to be contained in given config.`);
 };
 
+/**
+ * @rejects {Error}
+ */
 export const svelte = async (): Promise<Config[]> => {
   const {
     requiredAll: [isSvelteInstalled, pluginSvelte],
+    optional: [pluginHtmlSvelte],
   } = await resolvePackages(MODULES.svelte);
 
   if (!isSvelteInstalled || !pluginSvelte) {
@@ -32,6 +113,11 @@ export const svelte = async (): Promise<Config[]> => {
       name: buildConfigName(MAIN_SCOPES.SVELTE, SUB_SCOPES.SETUP),
       plugins: {
         svelte: pluginSvelte,
+        ...(pluginHtmlSvelte
+          ? {
+            'svelte-html': pluginHtmlSvelte,
+          }
+          : undefined),
       },
     },
     {
@@ -61,11 +147,10 @@ export const svelte = async (): Promise<Config[]> => {
           /* eslint-disable unicorn/no-null -- Null is required here to allow for tags without a lang attribute */
           script: ['ts', null],
           style: ['scss', null],
-          /* eslint-enable unicorn/no-null -- Restore rule */
+          /* eslint-enable unicorn/no-null */
         }],
         'svelte/button-has-type': 'error',
         'svelte/consistent-selector-style': ['error', {
-          checkGlobal: false,
           style: ['type', 'class', 'id'],
         }],
         'svelte/derived-has-same-inputs-outputs': 'error',
@@ -86,24 +171,34 @@ export const svelte = async (): Promise<Config[]> => {
           indent: INDENT,
         }],
         'svelte/max-attributes-per-line': ['error', {
-          multiline: 1,
           singleline: 3,
         }],
         'svelte/mustache-spacing': 'error',
         'svelte/no-add-event-listener': 'error',
+        'svelte/no-at-const-tags': 'error',
         'svelte/no-at-debug-tags': 'error',
+        'svelte/no-bind-value-on-checkable-inputs': 'error',
+        'svelte/no-conflicting-module-names': 'error',
         'svelte/no-extra-reactive-curlies': 'error',
         'svelte/no-ignored-unsubscribe': 'error',
-        'svelte/no-inline-styles': 'error',
+        'svelte/no-inline-styles': ['error', {
+          allowTransitions: false,
+        }],
         'svelte/no-inspect': 'error',
+        'svelte/no-nested-style-tag': 'error',
         'svelte/no-spaces-around-equal-signs-in-attribute': 'error',
         'svelte/no-target-blank': 'error',
         'svelte/no-top-level-browser-globals': 'error',
         'style/no-trailing-spaces': 'off',
         'svelte/no-trailing-spaces': 'error',
+        'svelte/no-unused-props': ['error', {
+          checkImportedTypes: true,
+        }],
+        'svelte/prefer-attribute-interpolation': 'error',
         'svelte/prefer-class-directive': 'error',
         'prefer-const': 'off',
         'svelte/prefer-const': 'error',
+        'svelte/prefer-derived-over-derived-by': 'error',
         'svelte/prefer-destructured-store-props': 'error',
         'svelte/prefer-style-directive': 'error',
         'svelte/require-event-prefix': 'error',
@@ -112,11 +207,39 @@ export const svelte = async (): Promise<Config[]> => {
         'svelte/require-stores-init': 'error',
         'svelte/shorthand-attribute': 'error',
         'svelte/shorthand-directive': 'error',
-        'svelte/sort-attributes': 'error',
+        'svelte/sort-attributes': ['error', {
+          order: SVELTE_ATTRIBUTE_ORDER,
+        }],
         'svelte/spaced-html-comment': 'error',
         'svelte/valid-compile': 'error',
         'svelte/valid-style-parse': 'error',
       },
     },
+    ...(pluginHtmlSvelte
+      ? [
+        {
+          name: buildConfigName(MAIN_SCOPES.SVELTE, `${SUB_SCOPES.RULES}-html`),
+          files: [GLOB_SVELTE],
+          rules: {
+            ...renameRules(pluginHtmlSvelte.configs.recommended.rules, { '@html-eslint/svelte': 'svelte-html' }),
+            'svelte-html/id-naming-convention': ['error', 'regex', ID_NAMING_PATTERN],
+            'svelte-html/no-restricted-attr-values': [
+              'error',
+              ...RESTRICTED_ATTRIBUTE_VALUES,
+            ],
+            'svelte-html/no-restricted-attrs': [
+              'error',
+              ...RESTRICTED_ATTRIBUTES,
+            ],
+            'svelte-html/no-restricted-tags': ['error', RESTRICTED_TAGS],
+            'svelte-html/require-attrs': [
+              'error',
+              ...REQUIRED_ATTRIBUTES,
+            ],
+            'svelte-html/use-baseline': 'error',
+          },
+        } satisfies Config,
+      ]
+      : []),
   ];
 };
