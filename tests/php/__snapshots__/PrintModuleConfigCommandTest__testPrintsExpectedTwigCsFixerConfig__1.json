@@ -1,0 +1,43 @@
+{
+    "ruleset": [
+        "TwigCsFixer\\Rules\\Delimiter\\DelimiterSpacingRule",
+        "TwigCsFixer\\Rules\\Function\\NamedArgumentSeparatorRule",
+        "TwigCsFixer\\Rules\\Function\\NamedArgumentSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\OperatorNameSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\OperatorSpacingRule",
+        "TwigCsFixer\\Rules\\Punctuation\\PunctuationSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\TernaryOperatorSpacingRule",
+        "TwigCsFixer\\Rules\\Operator\\UnaryOperatorSpacingRule",
+        "TwigCsFixer\\Rules\\Variable\\VariableNameRule",
+        "TwigCsFixer\\Rules\\Whitespace\\BlankEOFRule",
+        "TwigCsFixer\\Rules\\Delimiter\\BlockNameSpacingRule",
+        "TwigCsFixer\\Rules\\Whitespace\\EmptyLinesRule",
+        "TwigCsFixer\\Rules\\Literal\\HashQuoteRule",
+        "TwigCsFixer\\Rules\\Whitespace\\IndentRule",
+        "TwigCsFixer\\Rules\\Literal\\SingleQuoteRule",
+        "TwigCsFixer\\Rules\\Punctuation\\TrailingCommaMultiLineRule",
+        "TwigCsFixer\\Rules\\Punctuation\\TrailingCommaSingleLineRule",
+        "TwigCsFixer\\Rules\\Whitespace\\TrailingSpaceRule",
+        "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "TwigCsFixer\\Rules\\File\\DirectoryNameRule",
+        "TwigCsFixer\\Rules\\File\\FileExtensionRule",
+        "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "TwigCsFixer\\Rules\\File\\FileNameRule",
+        "TwigCsFixer\\Rules\\Node\\ValidConstantFunctionRule",
+        "TwigCsFixer\\Rules\\Literal\\CompactHashRule",
+        "TwigCsFixer\\Rules\\Function\\MacroArgumentNameRule",
+        "TwigCsFixer\\Rules\\Function\\NamedArgumentNameRule"
+    ],
+    "finder": [
+        "./tests/php/templates/test.html.twig"
+    ],
+    "cacheFile": ".cache/twig-cs-fixer.cache.json",
+    "cacheManager": null,
+    "customReporters": [],
+    "twigExtensions": [],
+    "tokenParsers": [],
+    "nodeVisitors": [],
+    "allowNonFixableRules": true,
+    "name": "Default"
+}

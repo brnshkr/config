@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer;
 
 use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Str;
 use Composer\IO\IOInterface;
 use InvalidArgumentException;
 use LogicException;
@@ -17,7 +18,6 @@ use function array_any;
 use function array_filter;
 use function array_map;
 use function array_merge;
-use function implode;
 use function is_array;
 use function is_bool;
 use function is_string;
@@ -139,7 +139,7 @@ final readonly class Console
                 '  <info>%s</info>%s%s%s',
                 $name,
                 s(' ')->repeat($spacingWidth)->toString(),
-                $aliases !== [] ? '[' . implode('|', $aliases) . '] ' : '',
+                $aliases !== [] ? '[' . Str::join($aliases, '|') . '] ' : '',
                 $command->getDescription(),
             ));
         }
@@ -170,7 +170,6 @@ final readonly class Console
      * @template T of array<int|string, int|string>
      * @template U of bool
      *
-     * @param mixed $default
      * @param T $choices
      * @param key-of<T>|value-of<T>|list<value-of<T>>|list<key-of<T>>|array<key-of<T>, value-of<T>> $default
      * @param U $isMultiselect
@@ -183,11 +182,11 @@ final readonly class Console
     public function select(
         string $question,
         array $choices,
-        $default,
+        int|string|array $default,
         bool $isMultiselect = false,
     ): int|string|array {
         $default = is_array($default)
-            ? implode(',', array_map(strval(...), $default))
+            ? Str::join(array_map(strval(...), $default), ',')
             : (string) $default;
 
         $question = $this->getFormattedMessage(
@@ -204,7 +203,7 @@ final readonly class Console
             question: $question,
             choices: array_map(strval(...), $choices),
             default: $default,
-            multiselect: (bool) $isMultiselect,
+            multiselect: $isMultiselect,
         );
 
         if (is_array($answerIndex)) {
@@ -227,6 +226,8 @@ final readonly class Console
     }
 
     /**
+     * @param non-empty-string $tag
+     *
      * @throws RuntimeException
      */
     public function write(string $message, string $tag): void
@@ -273,6 +274,10 @@ final readonly class Console
     }
 
     /**
+     * @param non-empty-string $tag
+     *
+     * @return non-empty-string
+     *
      * @throws RuntimeException
      */
     private function getFormattedMessage(string $message, string $tag): string

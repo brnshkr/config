@@ -1,0 +1,80 @@
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { configs } from '#vitest/configs/index.ts';
+import { getUserConfigs, includeConfigs } from '#vitest/utils/config.ts';
+import { isModuleEnabled, MODULES, setModuleEnabled } from '#vitest/utils/module.ts';
+
+import type { Config } from '#vitest/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#vitest/types/options.ts';
+
+/**
+ * Build the `@brnshkr` Vitest config object.
+ *
+ * Collects the project's own tests and the spelling test this package ships, so a repository
+ * needs no test file of its own for it, and activates each module lazily, only when its
+ * optional peer dependency is installed.
+ *
+ * @api
+ *
+ * @param optionsAndGlobalConfig - per-module toggles and global Vitest fields merged with the defaults
+ * @param additionalConfigs - extra config entries merged after the built-in ones
+ *
+ * @returns final config ready to be consumed by Vitest
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/vitest.md
+ *
+ * @example
+ * ```js
+ * import { getConfig } from '@brnshkr/config/vitest';
+ *
+ * getConfig(undefined);
+ * getConfig({});
+ *
+ * getConfig({
+ *   spelling: false,
+ *   test: { testTimeout: 120_000 },
+ * });
+ * ```
+ */
+export const getConfig = (
+  optionsAndGlobalConfig?: UserOptions,
+  ...additionalConfigs: Config[]
+): Config => {
+  const resolvedOptions = <const>{
+    environment: isModuleEnabledByDefault(MODULES.environment),
+    spelling: isModuleEnabledByDefault(MODULES.spelling),
+    ui: isModuleEnabledByDefault(MODULES.ui),
+    ...optionsAndGlobalConfig,
+  } satisfies ResolvedOptions;
+
+  setModuleEnabled(MODULES.environment, resolvedOptions.environment);
+  setModuleEnabled(MODULES.spelling, resolvedOptions.spelling);
+  setModuleEnabled(MODULES.ui, resolvedOptions.ui);
+
+  const config: Config = {};
+
+  includeConfigs(config, configs.test());
+
+  if (isModuleEnabled(MODULES.environment)) {
+    includeConfigs(config, configs.environment());
+  }
+
+  if (isModuleEnabled(MODULES.spelling)) {
+    includeConfigs(config, configs.spelling());
+  }
+
+  if (isModuleEnabled(MODULES.ui)) {
+    includeConfigs(config, configs.ui());
+  }
+
+  includeConfigs(config, getUserConfigs(resolvedOptions, additionalConfigs));
+
+  return config;
+};
+
+/**
+ * Default-exported pre-built config for direct re-export from a Vitest config file.
+ *
+ * @api
+ */
+// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting
+export default getConfig();

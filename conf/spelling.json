@@ -1,0 +1,46 @@
+{
+  "allowlist": {
+    "*": [
+      "PHPStan\\Analyser\\Error",
+      "PHPStan\\Analyser\\Scope"
+    ],
+    "conf/ai/mate/INSTRUCTIONS.md": [
+      "phpstan-analyse"
+    ],
+    "docs/spelling.md": [
+      "'analyse'",
+      "analyse?:",
+      "`analyse`",
+      "phpstan-analyse"
+    ],
+    "src/js/shared/utils/configured-pattern.ts": [
+      ".analyse("
+    ],
+    "src/js/shared/utils/package-resolvers.ts": [
+      "{ analyse }",
+      "{ analyse: typeof analyse }"
+    ],
+    "src/php/PhpStan.php": [
+      "'analyse'",
+      "{analyse,",
+      "analyse?:"
+    ],
+    "tests/php/PhpStan/Rule/FencedCodeRuleTest.php": [
+      "->analyse("
+    ],
+    "tests/php/PhpStan/Rule/PublicApiDocumentationRuleTest.php": [
+      "->analyse("
+    ],
+    "tests/php/PhpStanTest.php": [
+      "'analyse'"
+    ],
+    "tests/php/SpellingTest.php": [
+      "'analyse'",
+      "\"analyse",
+      "phpstan-analyse",
+      "'behaviour'",
+      "'normalises'",
+      "\"colour\\n\":160"
+    ]
+  }
+}

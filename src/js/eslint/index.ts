@@ -1,26 +1,70 @@
 import { FlatConfigComposer } from 'eslint-flat-config-utils';
 
-import { isModuleEnabledByDefault } from '../shared/utils/module';
-import { packageOrganization } from '../shared/utils/package-json';
+import { configs } from '#eslint/configs/index.ts';
+import { getUserConfigs } from '#eslint/utils/config.ts';
 
-import { configs } from './configs';
-import { getUserConfigs } from './utils/config';
-import { isModuleEnabled, MODULES, setModuleEnabled } from './utils/module';
+import {
+  BUILTIN_MODULE,
+  isModuleEnabled,
+  MODULES,
+  setModuleEnabled,
+} from '#eslint/utils/module.ts';
 
-import type { Awaitable } from '../shared/types/core';
-import type { Config, ConfigNames, ResolvableConfig } from './types/config';
-import type { ResolvedOptions, UserOptions } from './types/options';
+import { isModuleEnabledByDefault } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
 
+import type { Config, ConfigNames, ResolvableConfig } from '#eslint/types/config.ts';
+import type { ResolvedOptions, UserOptions } from '#eslint/types/options.ts';
+import type { Awaitable } from '#shared/types/core.ts';
+
+/**
+ * Build the `@brnshkr` ESLint flat config composer.
+ *
+ * Merges sensible defaults for every supported module (TypeScript, Svelte, JSDoc, etc.) with user
+ * overrides and any additional flat configs. Modules whose optional peer dependency is not installed
+ * are skipped automatically, so consumers only opt into what they use.
+ *
+ * @api
+ *
+ * @param optionsAndGlobalConfig - per-module toggles and global flat-config fields (`files`,
+ * `ignores`, `languageOptions`, etc.) merged with the defaults
+ * @param additionalConfigs - extra flat-config entries appended after the built-in ones
+ *
+ * @returns configured {@link FlatConfigComposer} that resolves to the final flat-config array
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/index.md
+ *
+ * @example
+ * ```js
+ * import { getConfig } from '@brnshkr/config/eslint';
+ *
+ * getConfig(undefined);
+ * getConfig({});
+ *
+ * getConfig({
+ *   svelte: false,
+ *   files: ['src/**'],
+ * }, {
+ *   files: ['scripts/**'],
+ *   rules: { 'no-console': 'off' },
+ * });
+ *
+ * getConfig(undefined, {
+ *   files: ['scripts/**'],
+ *   rules: { 'no-console': 'off' },
+ * });
+ * ```
+ */
 export const getConfig = (
   optionsAndGlobalConfig?: UserOptions,
   ...additionalConfigs: Awaitable<Config>[]
 // eslint-disable-next-line ts/promise-function-async -- Explicitly mark function as synchronous since the promises are handled by the composer
 ): FlatConfigComposer<Config, ConfigNames> => {
   const resolvedOptions = <const>{
-    [packageOrganization]: isModuleEnabledByDefault(MODULES[packageOrganization]),
+    [packageOrganization]: isModuleEnabledByDefault(BUILTIN_MODULE),
     comments: isModuleEnabledByDefault(MODULES.comments),
     css: isModuleEnabledByDefault(MODULES.css),
-    gitignore: isModuleEnabledByDefault(MODULES.gitignore),
+    html: isModuleEnabledByDefault(MODULES.html),
     import: isModuleEnabledByDefault(MODULES.import),
     jsdoc: isModuleEnabledByDefault(MODULES.jsdoc),
     json: isModuleEnabledByDefault(MODULES.json),
@@ -28,8 +72,10 @@ export const getConfig = (
     node: isModuleEnabledByDefault(MODULES.node),
     perfectionist: isModuleEnabledByDefault(MODULES.perfectionist),
     regexp: isModuleEnabledByDefault(MODULES.regexp),
+    security: isModuleEnabledByDefault(MODULES.security),
     style: isModuleEnabledByDefault(MODULES.style),
     svelte: isModuleEnabledByDefault(MODULES.svelte),
+    tailwind: isModuleEnabledByDefault(MODULES.tailwind),
     test: isModuleEnabledByDefault(MODULES.test),
     toml: isModuleEnabledByDefault(MODULES.toml),
     typescript: isModuleEnabledByDefault(MODULES.typescript),
@@ -38,10 +84,11 @@ export const getConfig = (
     ...optionsAndGlobalConfig,
   } satisfies ResolvedOptions;
 
-  setModuleEnabled(MODULES[packageOrganization], resolvedOptions[packageOrganization]);
+  // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+  setModuleEnabled(BUILTIN_MODULE, resolvedOptions[packageOrganization]);
   setModuleEnabled(MODULES.comments, resolvedOptions.comments);
-  setModuleEnabled(MODULES.css, resolvedOptions.css);
-  setModuleEnabled(MODULES.gitignore, resolvedOptions.gitignore !== false);
+  setModuleEnabled(MODULES.css, resolvedOptions.css !== false);
+  setModuleEnabled(MODULES.html, resolvedOptions.html);
   setModuleEnabled(MODULES.import, resolvedOptions.import);
   setModuleEnabled(MODULES.jsdoc, resolvedOptions.jsdoc);
   setModuleEnabled(MODULES.json, resolvedOptions.json);
@@ -49,8 +96,10 @@ export const getConfig = (
   setModuleEnabled(MODULES.node, resolvedOptions.node !== false);
   setModuleEnabled(MODULES.perfectionist, resolvedOptions.perfectionist);
   setModuleEnabled(MODULES.regexp, resolvedOptions.regexp);
+  setModuleEnabled(MODULES.security, resolvedOptions.security);
   setModuleEnabled(MODULES.style, resolvedOptions.style);
   setModuleEnabled(MODULES.svelte, resolvedOptions.svelte);
+  setModuleEnabled(MODULES.tailwind, resolvedOptions.tailwind !== false);
   setModuleEnabled(MODULES.test, resolvedOptions.test);
   setModuleEnabled(MODULES.toml, resolvedOptions.toml);
   setModuleEnabled(MODULES.typescript, resolvedOptions.typescript !== false);
@@ -60,19 +109,10 @@ export const getConfig = (
   const composer = new FlatConfigComposer<Config, ConfigNames>();
 
   const appendToComposer = (...configsToAppend: ResolvableConfig[]): void => {
-    // eslint-disable-next-line no-void -- Explicitly mark the promises as ignored with void and let the composer handle them
     void composer.append(...configsToAppend);
   };
 
   appendToComposer(configs.ignores(resolvedOptions.ignores));
-
-  if (isModuleEnabled(MODULES.gitignore)) {
-    appendToComposer(configs.gitignore(
-      typeof resolvedOptions.gitignore === 'object'
-        ? resolvedOptions.gitignore
-        : { strict: false },
-    ));
-  }
 
   appendToComposer(configs.javascript());
 
@@ -100,7 +140,8 @@ export const getConfig = (
     ));
   }
 
-  if (isModuleEnabled(MODULES[packageOrganization])) {
+  if (isModuleEnabled(BUILTIN_MODULE)) {
+    // eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
     appendToComposer(configs[packageOrganization](resolvedOptions.typescript));
   }
 
@@ -110,6 +151,10 @@ export const getConfig = (
 
   if (isModuleEnabled(MODULES.regexp)) {
     appendToComposer(configs.regexp());
+  }
+
+  if (isModuleEnabled(MODULES.security)) {
+    appendToComposer(configs.security());
   }
 
   if (isModuleEnabled(MODULES.unicorn)) {
@@ -145,7 +190,28 @@ export const getConfig = (
   }
 
   if (isModuleEnabled(MODULES.css)) {
-    appendToComposer(configs.css());
+    appendToComposer(configs.css(
+      typeof resolvedOptions.css === 'object'
+        ? resolvedOptions.css
+        : undefined,
+    ));
+  }
+
+  if (isModuleEnabled(MODULES.tailwind)) {
+    appendToComposer(configs.tailwind(
+      typeof resolvedOptions.tailwind === 'object'
+        ? resolvedOptions.tailwind
+        : undefined,
+      resolvedOptions.typescript,
+    ));
+  }
+
+  if (isModuleEnabled(MODULES.html)) {
+    appendToComposer(configs.html());
+  }
+
+  if (isModuleEnabled(MODULES.html) || isModuleEnabled(MODULES.regexp)) {
+    appendToComposer(configs.php());
   }
 
   if (isModuleEnabled(MODULES.markdown)) {
@@ -156,11 +222,16 @@ export const getConfig = (
     ));
   }
 
-  appendToComposer(configs.overrides());
+  appendToComposer(configs.overrides(resolvedOptions.typescript));
   appendToComposer(...getUserConfigs(resolvedOptions, additionalConfigs));
 
   return composer;
 };
 
-// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting from eslint config file
+/**
+ * Default-exported pre-built composer for direct re-export from an ESLint flat-config file.
+ *
+ * @api
+ */
+// eslint-disable-next-line import/no-default-export -- Explicitly expose this module with a default export to allow for direct re-exporting
 export default getConfig();

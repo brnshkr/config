@@ -1,13 +1,16 @@
-import { isModuleEnabledByDefault, resolvePackagesSharedAsynchronously } from '../../shared/utils/module';
-import { packageOrganization } from '../../shared/utils/package-json';
-import { ESLINT_PACKAGES } from '../../shared/utils/package-resolvers';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Maybe } from '../../shared/types/core';
-import type { ModuleInfo, ResolvedPackages } from '../../shared/utils/module';
-import type { EslintPackage } from '../../shared/utils/package-resolvers';
-import type { configs } from '../configs';
+import { createModuleState, resolvePackagesSharedAsynchronously } from '#shared/utils/module.ts';
+import { packageOrganization } from '#shared/utils/package-json.ts';
+import { ESLINT_PACKAGES } from '#shared/utils/package-resolvers.ts';
 
-export { ESLINT_PACKAGES as PACKAGES } from '../../shared/utils/package-resolvers';
+import type { configs } from '#eslint/configs/index.ts';
+import type { AsyncPackageResolver, ModuleInfo } from '#shared/utils/module.ts';
+import type { EslintPackage } from '#shared/utils/package-resolvers.ts';
+
+export { ESLINT_PACKAGES as PACKAGES } from '#shared/utils/package-resolvers.ts';
 
 export const MODULES = <const>{
   [packageOrganization]: {
@@ -29,11 +32,14 @@ export const MODULES = <const>{
       ],
     },
   },
-  gitignore: {
-    name: 'gitignore',
+  html: {
+    name: 'html',
     packages: {
       requiredAll: [
-        ESLINT_PACKAGES.ESLINT_FLAT_CONFIG_GITIGNORE,
+        ESLINT_PACKAGES.HTML_ESLINT_PLUGIN,
+      ],
+      optional: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_HTML,
       ],
     },
   },
@@ -45,7 +51,7 @@ export const MODULES = <const>{
         ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU,
       ],
       optional: [
-        ESLINT_PACKAGES.ESLINT_IMPORT_RESOVLER_TYPESCRIPT,
+        ESLINT_PACKAGES.ESLINT_IMPORT_RESOLVER_TYPESCRIPT,
       ],
     },
   },
@@ -53,8 +59,11 @@ export const MODULES = <const>{
     name: 'javascript',
     packages: {
       optional: [
+        ESLINT_PACKAGES.CONFUSING_BROWSER_GLOBALS,
+        ESLINT_PACKAGES.ESLINT_JS,
         ESLINT_PACKAGES.ESLINT_PLUGIN_ANTFU,
         ESLINT_PACKAGES.ESLINT_PLUGIN_UNUSED_IMPORTS,
+        ESLINT_PACKAGES.GLOBALS,
       ],
     },
   },
@@ -113,6 +122,14 @@ export const MODULES = <const>{
       ],
     },
   },
+  security: {
+    name: 'security',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_SECURITY,
+      ],
+    },
+  },
   style: {
     name: 'style',
     packages: {
@@ -127,6 +144,21 @@ export const MODULES = <const>{
       requiredAll: [
         ESLINT_PACKAGES.SVELTE,
         ESLINT_PACKAGES.ESLINT_PLUGIN_SVELTE,
+      ],
+      optional: [
+        ESLINT_PACKAGES.HTML_ESLINT_PLUGIN_SVELTE,
+      ],
+    },
+  },
+  tailwind: {
+    name: 'tailwind',
+    packages: {
+      requiredAll: [
+        ESLINT_PACKAGES.TAILWINDCSS,
+      ],
+      optional: [
+        ESLINT_PACKAGES.ESLINT_PLUGIN_BETTER_TAILWINDCSS,
+        ESLINT_PACKAGES.TAILWINDCSS_COLORS,
       ],
     },
   },
@@ -173,19 +205,7 @@ export const MODULES = <const>{
   },
 } satisfies Partial<Record<keyof typeof configs, ModuleInfo<readonly EslintPackage[]>>>;
 
-export const resolvePackages = async <
-  TModuleInfo extends ModuleInfo<readonly EslintPackage[]>,
-  TType extends Maybe<keyof TModuleInfo['packages']> = undefined,
->(
-  moduleInfo: TModuleInfo,
-  type?: TType,
-): Promise<ResolvedPackages<TModuleInfo, TType>> => resolvePackagesSharedAsynchronously(moduleInfo, type);
-
-const enabledStates: Record<string, boolean> = {};
-
-export const isModuleEnabled = (moduleInfo: ModuleInfo): boolean => enabledStates[moduleInfo.name]
-  ?? isModuleEnabledByDefault(moduleInfo);
-
-export const setModuleEnabled = (moduleInfo: ModuleInfo, state: boolean): void => {
-  enabledStates[moduleInfo.name] = state;
-};
+// eslint-disable-next-line security/detect-object-injection -- The key is the package's own organization name
+export const BUILTIN_MODULE = MODULES[packageOrganization];
+export const resolvePackages: AsyncPackageResolver<EslintPackage> = resolvePackagesSharedAsynchronously;
+export const { isModuleEnabled, setModuleEnabled } = createModuleState();

@@ -1,3 +1,7 @@
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
 import type { Config as StylelintConfig } from 'stylelint';
 
 export type Config = {

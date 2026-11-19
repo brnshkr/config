@@ -1,6 +1,21 @@
-import type { Config } from './config';
+/**
+ * @internal @brnshkr/config/stylelint
+ */
+
+/* eslint-disable brnshkr/boolish-prefix -- Public option keys are named after the module they toggle, so they carry no boolish prefix */
+
+import type { CssDialect } from '#shared/utils/dialect.ts';
+import type { packageOrganization } from '#shared/utils/package-json.ts';
+import type { Config } from '#stylelint/types/config.ts';
 
 export interface ConfigOptions {
+  /**
+   * Enables builtin rules.
+   *
+   * @default true
+   */
+  [packageOrganization]: boolean;
+
   /**
    * Enables `stylelint-plugin-use-baseline`.
    *
@@ -20,6 +35,13 @@ export interface ConfigOptions {
   defensive: boolean;
 
   /**
+   * Additional CSS syntax, e.g. project specific at-rules and functions.
+   *
+   * @default `Tailwind CSS's syntax when the "tailwind" module is enabled.`
+   */
+  dialect: Partial<CssDialect>;
+
+  /**
    * Enables `stylelint-config-html`.
    *
    * @default `Enabled when "stylelint-config-html" and "postcss-html" are installed.`
@@ -30,13 +52,22 @@ export interface ConfigOptions {
   html: boolean;
 
   /**
-   * Enables `stylelint-plugin-logical-css`.
+   * Enables `stylelint-config-standard-less`.
    *
-   * @default `Enabled when "stylelint-plugin-logical-css" is installed.`
+   * @default `Enabled when "stylelint-config-standard-less" is installed.`
    *
-   * @see https://github.com/yuschick/stylelint-plugin-logical-css
+   * @see https://github.com/stylelint-less/stylelint-less/tree/main/packages/stylelint-config-standard-less
    */
-  logical: boolean;
+  less: boolean;
+
+  /**
+   * Enables `brnshkr/fenced-code` alongside the builtin rules, linting the stylesheet code blocks of pages and docblocks.
+   *
+   * @default `Enabled when "@eslint/markdown" is installed.`
+   *
+   * @see https://github.com/eslint/markdown
+   */
+  markdown: boolean;
 
   /**
    * Enables `stylelint-config-css-modules`.
@@ -92,7 +123,21 @@ export interface ConfigOptions {
    * @see https://github.com/stylelint-stylistic/stylelint-config
    */
   style: boolean;
+
+  /**
+   * Enables Tailwind CSS support.
+   *
+   * @default `Enabled when "tailwindcss" is installed.`
+   *
+   * @see https://github.com/tailwindlabs/tailwindcss
+   */
+  tailwind: boolean;
 }
 
-export type ResolvedOptions = ConfigOptions & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
-export type UserOptions = Partial<ConfigOptions> & Omit<Config, 'ignorePatterns' | '_processorFunctions'>;
+export type ResolvedOptions = ConfigOptions
+  & Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>;
+
+export type UserOptions = Partial<ConfigOptions>
+  & Omit<Config, 'computeEditInfo' | 'ignorePatterns' | '_processorFunctions'>;
+
+/* eslint-enable brnshkr/boolish-prefix */

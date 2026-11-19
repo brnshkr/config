@@ -1,0 +1,80 @@
+# 🔤 Spelling
+
+Prose, docblocks and identifiers are written in American English across the organization,
+and this check reports every British spelling with the American form to replace it.
+The word list is shipped by **@brnshkr/config**, so a repository never carries a copy of it.
+
+## Usage
+
+It runs as a test, on whichever stack a repository has.
+On PHP, name the shipped directory as a test suite;
+on JavaScript, import the shipped module from a test of your own.
+`make configs tools` writes the PHP one. The [Vitest builder](./js/vitest.md) collects the test itself,
+so the JavaScript file is only needed without it.
+
+```xml
+<!-- ./conf/phpunit.dist.xml -->
+<phpunit>
+  <testsuites>
+    <testsuite name="Brnshkr\Config">
+      <directory>../vendor/brnshkr/config/src/php/Testing</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
+```
+
+```ts
+// ./tests/spelling.test.ts
+export * from '@brnshkr/config/spelling/test';
+```
+
+Re-exporting is what reaches it: Vitest applies `exclude` after `include`, so naming the shipped file under
+`node_modules` collects nothing unless the repository drops that exclusion for every dependency. The module
+exports nothing — importing it registers the test — and the `export` form is what keeps
+`import/no-unassigned-import` satisfied.
+
+## What is scanned
+
+Every tracked file the shipped defaults name, by extension or by file name
+— see [`./conf/spelling/defaults.json`](../conf/spelling/defaults.json) for the exact set.
+The list comes from `git ls-files`, so anything gitignored is already out,
+and snapshots and test fixtures are excluded on top of that.
+
+## Customizing
+
+`./conf/spelling.json` is merged over `./conf/spelling/defaults.json` as shipped,
+so a repository adds to any of them and restates none. Every key is optional.
+
+| Key | Adds to |
+| --- | --- |
+| `fileExtensions` | the scanned file extensions |
+| `fileNames` | the scanned file names |
+| `ignorePatterns` | expressions matched against a path to skip it, bare or delimited as `/…/i` |
+| `britishSpellings` | the spelling-to-correction map |
+| `britishStems` | the `-ise`/`-isation` stems |
+| `stemSuffixes` | the suffixes a stem takes |
+| `allowlist` | words allowed in a path, keyed by that path |
+
+Both stacks read a delimited pattern, so keep to the flags both engines know: `i`, `m`, `s` and `u`.
+On JavaScript, a pattern added to `ignorePatterns` is rejected when it can backtrack super-linearly.
+That check needs `scslre` and `@eslint-community/regexpp` installed.
+
+```json
+{
+  "fileExtensions": [".svelte"],
+  "allowlist": {
+    "src/PhpStan.php": ["'analyse'", "analyse?:"]
+  }
+}
+```
+
+A key is the exact path the literals are allowed in; `*` is every path.
+A literal matches case-insensitively and **covers** what it contains,
+so `phpstan-analyse` allows the `analyse` in it.
+Prefer the longest literal that still names the one place — the quoted form, the array key,
+the namespaced class — over the bare word, which keeps allowing it anywhere in the file.
+
+`word:12` or `word:12,40` narrows a literal to those lines, but it is coupled to that position:
+an edit above it shifts the line and the allowance silently stops matching.
+
+**An entry a broader one already covers is an error**, so the allowlist cannot grow entries that do nothing.

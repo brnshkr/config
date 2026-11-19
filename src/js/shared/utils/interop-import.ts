@@ -1,4 +1,8 @@
-import type { Awaitable } from '../types/core';
+/**
+ * @internal @brnshkr/config
+ */
+
+import type { Awaitable } from '#shared/types/core.ts';
 
 export const interopImport = async <TModule>(
   thePackage: Awaitable<TModule>,
@@ -6,7 +10,7 @@ export const interopImport = async <TModule>(
   const resolved = await thePackage;
 
   return <TModule extends { default: infer TEsModule } ? TEsModule : TModule>(
-    (typeof resolved === 'object' && resolved !== null && 'default' in resolved)
+    (typeof resolved === 'object' && resolved && 'default' in resolved)
       ? resolved.default
       : resolved
   );

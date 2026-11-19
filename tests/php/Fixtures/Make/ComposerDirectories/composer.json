@@ -1,0 +1,7 @@
+{
+    "name": "acme/composer-directories",
+    "config": {
+        "vendor-dir": "lib",
+        "bin-dir": "tools/bin"
+    }
+}

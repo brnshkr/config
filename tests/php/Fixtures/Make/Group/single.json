@@ -1,0 +1,12 @@
+{
+  "files": {
+    "a.php": {
+      "messages": [
+        {
+          "message": "Only finding.",
+          "identifier": "acme.only"
+        }
+      ]
+    }
+  }
+}

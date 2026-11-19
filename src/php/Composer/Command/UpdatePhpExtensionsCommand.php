@@ -24,9 +24,7 @@ use function array_find;
 use function array_keys;
 use function array_values;
 use function count;
-use function implode;
 use function in_array;
-use function is_array;
 use function sprintf;
 use function Symfony\Component\String\s;
 
@@ -138,8 +136,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
             $jsonManipulator->removeMainKeyIfEmpty(self::SECTION_REQUIRE_DEV);
         });
 
-        $allowedUnusedMainRequires = $this->input->getOption('allow') ?? [];
-        $allowedUnusedMainRequires = is_array($allowedUnusedMainRequires) ? $allowedUnusedMainRequires : [];
+        $allowedUnusedMainRequires = $this->getStringListOption('allow');
 
         foreach ($unusedMainRequires as $key => $unusedMainRequire) {
             if (in_array($unusedMainRequire, $allowedUnusedMainRequires, true)) {
@@ -147,8 +144,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
             }
         }
 
-        $allowedUnusedDevRequires = $this->input->getOption('allow-dev') ?? [];
-        $allowedUnusedDevRequires = is_array($allowedUnusedDevRequires) ? $allowedUnusedDevRequires : [];
+        $allowedUnusedDevRequires = $this->getStringListOption('allow-dev');
 
         foreach ($unusedDevRequires as $key => $unusedDevRequire) {
             if (in_array($unusedDevRequire, $allowedUnusedDevRequires, true)) {
@@ -202,7 +198,7 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
 
             foreach (array_keys($package->getRequires()) as $childPackageName) {
                 if (self::isPhpExtension($childPackageName) && !isset($relevantRequires[$childPackageName])) {
-                    $this->console->writeDebug(implode(' —> ', [...$packageNameTrail, '<fg=cyan>' . $childPackageName . '</>']));
+                    $this->console->writeDebug(Str::join([...$packageNameTrail, '<fg=cyan>' . $childPackageName . '</>'], ' —> '));
 
                     $relevantRequires[$childPackageName] = true;
                 }
@@ -219,8 +215,8 @@ final class UpdatePhpExtensionsCommand extends AbstractCommand
     }
 
     /**
-     * @param array<string, string> $potentiallyUnusedMainRequires
-     * @param array<string, string> $potentiallyUnusedDevRequires
+     * @param array<non-empty-string, non-empty-string> $potentiallyUnusedMainRequires
+     * @param array<non-empty-string, non-empty-string> $potentiallyUnusedDevRequires
      *
      * @throws RuntimeException
      */

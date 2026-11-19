@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    // General
+    "aeschli.vscode-css-formatter",
+    "EditorConfig.EditorConfig",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "usernamehw.errorlens",
+    "yzhang.markdown-all-in-one"
+  ]
+}

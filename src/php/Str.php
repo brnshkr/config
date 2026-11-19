@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\StrTest;
+use Closure;
+
 use function array_any;
 use function array_filter;
 use function array_last;
+use function array_map;
 use function array_slice;
-use function array_values;
 use function count;
+use function explode;
+use function getenv;
 use function implode;
 use function is_string;
 use function mb_ltrim;
@@ -19,88 +24,256 @@ use function mb_strrpos;
 use function mb_strtolower;
 use function mb_substr;
 use function mb_trim;
+use function mb_ucfirst;
 use function preg_match;
+use function preg_match_all;
+use function preg_quote;
+use function preg_replace_callback;
 use function sprintf;
 use function str_contains;
 use function str_ends_with;
+use function str_repeat;
 use function str_replace;
 use function str_starts_with;
 
+use const PHP_INT_MAX;
+use const PREG_SET_ORDER;
 use const PREG_UNMATCHED_AS_NULL;
 
 /**
  * @internal
+ *
+ * @see StrTest
  */
 final readonly class Str
 {
     private function __construct() {}
 
+    /**
+     * @phpstan-assert-if-false non-empty-string $string
+     */
+    public static function isEmpty(string $string): bool
+    {
+        return $string === '';
+    }
+
+    /**
+     * @phpstan-assert-if-true non-decimal-int-string $string
+     */
+    public static function isNonDecimalIntString(string $string): bool
+    {
+        return (string) (int) $string !== $string;
+    }
+
+    /**
+     * @return int<0, max>
+     */
     public static function length(string $string): int
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strlen($string);
     }
 
     public static function toLowerCase(string $string): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return mb_strtolower($string);
     }
 
-    public static function doesStartWith(string $haystack, string $needle): bool
+    public static function upperFirst(string $string): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return mb_ucfirst($string);
+    }
+
+    public static function startsWith(string $haystack, string $needle): bool
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_starts_with($haystack, $needle);
     }
 
     /**
      * @param list<string> $needles
      */
-    public static function doesStartWithAny(string $haystack, array $needles): bool
+    public static function startsWithAny(string $haystack, array $needles): bool
     {
         return array_any(
             $needles,
-            static fn (string $needle): bool => self::doesStartWith($haystack, $needle),
+            static fn (string $needle): bool => self::startsWith($haystack, $needle),
         );
     }
 
-    public static function doesEndWith(string $haystack, string $needle): bool
+    public static function endsWith(string $haystack, string $needle): bool
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_ends_with($haystack, $needle);
     }
 
     /**
-     * @return list<string>
+     * @param list<string> $needles
+     */
+    public static function endsWithAny(string $haystack, array $needles): bool
+    {
+        return array_any(
+            $needles,
+            static fn (string $needle): bool => self::endsWith($haystack, $needle),
+        );
+    }
+
+    /**
+     * @param int<0, max> $times
+     */
+    public static function repeat(string $string, int $times): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return str_repeat($string, $times);
+    }
+
+    /**
+     * @param Closure(array<int|string, string>): string $callback
+     */
+    public static function replaceMatches(string $subject, string $pattern, Closure $callback): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return preg_replace_callback($pattern . 'u', $callback, $subject) ?? $subject;
+    }
+
+    public static function quoteRegex(string $value, ?string $delimiter = '/'): string
+    {
+        return preg_quote($value, $delimiter);
+    }
+
+    public static function isRegex(string $string): bool
+    {
+        return self::match($string, '/^(?<delimiter>[^\s\w"%\'\\\`])(?:\\\.|(?!\k<delimiter>)[^\\\])*\k<delimiter>[ADJSUXimnsux]*$/s') !== [];
+    }
+
+    /**
+     * @return array<array-key, string>
      */
     public static function match(string $string, string $pattern): array
     {
         $matches = [];
 
-        // @phpstan-ignore symplify.forbiddenFuncCall(Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall(Avoid using symfony/string here to keep package as lightweight as possible)
         $result = preg_match($pattern . 'u', $string, $matches, PREG_UNMATCHED_AS_NULL);
 
         return $result === false
             ? []
-            : array_values(array_filter($matches, is_string(...)));
+            : array_filter($matches, is_string(...));
     }
 
-    public static function doesContain(string $haystack, string $needle): bool
+    /**
+     * @return list<array<array-key, string>>
+     */
+    public static function matchAll(string $string, string $pattern): array
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        $matches = [];
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $result = preg_match_all($pattern . 'u', $string, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
+
+        return $result === false
+            ? []
+            : array_map(
+                static fn (array $match): array => array_filter($match, is_string(...)),
+                $matches,
+            );
+    }
+
+    public static function contains(string $haystack, string $needle): bool
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_contains($haystack, $needle);
     }
 
     public static function replace(string $haystack, string $needle, string $replacement): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
         return str_replace($needle, $replacement, $haystack);
+    }
+
+    /**
+     * @param non-empty-string $delimiter
+     * @param positive-int $limit
+     *
+     * @return non-empty-list<string>
+     */
+    public static function split(string $string, string $delimiter, int $limit = PHP_INT_MAX): array
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return explode($delimiter, $string, $limit);
+    }
+
+    /**
+     * @param array<array-key, int|string> $strings
+     */
+    public static function join(array $strings, string $glue): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return implode($glue, $strings);
+    }
+
+    public static function beforeLast(string $haystack, string $needle): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $position = mb_strrpos($haystack, $needle);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return $position === false ? '' : mb_substr($haystack, 0, $position);
     }
 
     public static function afterLast(string $haystack, string $needle): string
     {
-        // @phpstan-ignore symplify.forbiddenFuncCall (See ->), symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lighweight as possible)
-        return mb_substr($haystack, (mb_strrpos($haystack, $needle) ?: -1) + 1);
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        $position = mb_strrpos($haystack, $needle);
+
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return $position === false ? $haystack : mb_substr($haystack, $position + self::length($needle));
+    }
+
+    public static function slice(string $string, int $offset, ?int $length = null): string
+    {
+        // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+        return mb_substr($string, $offset, $length);
+    }
+
+    public static function trimPrefix(string $haystack, string $prefix): string
+    {
+        return self::isEmpty($prefix) || !self::startsWith($haystack, $prefix)
+            ? $haystack
+            : self::slice($haystack, self::length($prefix));
+    }
+
+    public static function trimSuffix(string $haystack, string $suffix): string
+    {
+        return self::isEmpty($suffix) || !self::endsWith($haystack, $suffix)
+            ? $haystack
+            // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
+            : mb_substr($haystack, 0, -self::length($suffix));
+    }
+
+    public static function getClassShortName(string|object $classOrObject): string
+    {
+        $fullyQualifiedName = is_string($classOrObject) ? $classOrObject : $classOrObject::class;
+        $shortName          = self::afterLast($fullyQualifiedName, '\\');
+
+        return self::isEmpty($shortName) ? $fullyQualifiedName : $shortName;
+    }
+
+    /**
+     * @param non-empty-string $cwd
+     * @param non-empty-string $path
+     *
+     * @return non-empty-string
+     */
+    public static function toAbsolutePath(string $cwd, string $path): string
+    {
+        if (self::startsWith($path, '/')) {
+            return $path;
+        }
+
+        return $cwd . self::trimPrefix($path, './');
     }
 
     /**
@@ -111,7 +284,7 @@ final readonly class Str
         string $characters = " \t\n\r\0\x0B\x0C\u{A0}\u{FEFF}",
         string $mode = 'default',
     ): string {
-        $result = match ($mode) {
+        return match ($mode) {
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'start' => mb_ltrim($string, $characters),
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
@@ -119,12 +292,6 @@ final readonly class Str
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/string here to keep package as lightweight as possible)
             'default' => mb_trim($string, $characters),
         };
-
-        if (!is_string($result)) {
-            return $string;
-        }
-
-        return $result;
     }
 
     /**
@@ -134,17 +301,40 @@ final readonly class Str
     public static function joinAsQuotedList(
         array $strings,
         string $type = 'conjunction',
+        string $quote = '"',
     ): string {
-        return count($strings) > 1
+        $quotedStrings = array_map(static fn (string $string): string => $quote . $string . $quote, $strings);
+
+        return count($quotedStrings) > 1
             ? sprintf(
-                '"%s" %s "%s"',
-                implode('", "', array_slice($strings, 0, -1)),
+                '%s %s %s',
+                self::join(array_slice($quotedStrings, 0, -1), ', '),
                 $type === 'conjunction' ? 'and' : 'or',
-                array_last($strings),
+                array_last($quotedStrings),
             )
-            : [
-                0 => '',
-                1 => isset($strings[0]) ? sprintf('"%s"', $strings[0]) : '',
-            ][count($strings)];
+            : $quotedStrings[0] ?? '';
+    }
+
+    public static function fromEnvironment(string $name): string
+    {
+        $value = self::getEnvironment()[$name] ?? null;
+
+        return is_string($value)
+            ? $value
+            // @phpstan-ignore symplify.forbiddenFuncCall (The one place this package reads the environment)
+            : (string) getenv($name);
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    public static function getEnvironment(): array
+    {
+        return [
+            // @phpstan-ignore brnshkr.superglobalUsage (The one place this package reads the environment)
+            ...$_ENV,
+            // @phpstan-ignore brnshkr.superglobalUsage (The one place this package reads the environment)
+            ...$_SERVER,
+        ];
     }
 }

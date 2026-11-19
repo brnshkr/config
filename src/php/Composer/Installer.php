@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Composer;
 
 use Brnshkr\Config\ComposerJson;
-use Brnshkr\Config\Module;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\Installer as ComposerInstaller;
@@ -29,8 +28,11 @@ use function version_compare;
  */
 final readonly class Installer
 {
-    private const int STABILTY_RANK_STABLE = 4;
+    private const int STABILITY_RANK_STABLE = 4;
 
+    /**
+     * @phpstan-var non-empty-array<non-empty-string, int<0, 4>>
+     */
     private const array STABILITY_RANKS = [
         'dev'    => 0,
         'alpha'  => 1,
@@ -39,7 +41,7 @@ final readonly class Installer
         'b'      => 2,
         'RC'     => 3,
         'rc'     => 3,
-        'stable' => self::STABILTY_RANK_STABLE,
+        'stable' => self::STABILITY_RANK_STABLE,
     ];
 
     public function __construct(
@@ -50,7 +52,7 @@ final readonly class Installer
     ) {}
 
     /**
-     * @param list<Module::PACKAGE_*> $packages
+     * @param list<non-empty-string> $packages
      *
      * @return ComposerInstaller::ERROR_*
      *
@@ -99,7 +101,7 @@ final readonly class Installer
     }
 
     /**
-     * @param list<Module::PACKAGE_*> $packages
+     * @param list<non-empty-string> $packages
      *
      * @return list<PackageInterface>
      *
@@ -135,12 +137,15 @@ final readonly class Installer
     }
 
     /**
+     * @param non-empty-string $package
+     * @param non-empty-string $versionConstraint
+     *
      * @throws RuntimeException
      */
     private function findPackage(string $package, string $versionConstraint): ?PackageInterface
     {
         $minimumStability     = $this->composer->getConfig()->get('minimum-stability');
-        $minimumStabilityRank = is_string($minimumStability) ? self::getStabilityRank($minimumStability) : self::STABILTY_RANK_STABLE;
+        $minimumStabilityRank = is_string($minimumStability) ? self::getStabilityRank($minimumStability) : self::STABILITY_RANK_STABLE;
 
         $packagesToInstall = array_filter(
             $this->composer->getRepositoryManager()->findPackages($package, $versionConstraint),
@@ -161,8 +166,11 @@ final readonly class Installer
         return $packagesToInstall[0] ?? null;
     }
 
+    /**
+     * @return int<0, 4>
+     */
     private static function getStabilityRank(string $stability): int
     {
-        return self::STABILITY_RANKS[$stability] ?? self::STABILTY_RANK_STABLE;
+        return self::STABILITY_RANKS[$stability] ?? self::STABILITY_RANK_STABLE;
     }
 }

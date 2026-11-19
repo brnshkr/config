@@ -1,3 +1,20 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
+import { isModuleEnabled, MODULES, PACKAGES } from '#eslint/utils/module.ts';
+
+import {
+  GLOB_BENCHMARK_FILES,
+  GLOB_HTML,
+  GLOB_JS_TS,
+  GLOB_MD,
+  GLOB_PHP_TEMPLATE_FILES,
+  GLOB_TEST_FILES as GLOB_TEST_FILES_SHARED,
+} from '#shared/utils/globs.ts';
+
+import { doAllPackagesExist } from '#shared/utils/module.ts';
+
 export const GLOB_CJS = '**/*.cjs';
 export const GLOB_TS = '**/*.?(c|m)ts?(x)';
 export const GLOB_DTS = '**/*.d.?(c|m)ts';
@@ -9,11 +26,37 @@ export const GLOB_JSON5 = '**/*.json5';
 export const GLOB_YAML = '**/*.y?(a)ml';
 export const GLOB_TOML = '**/*.toml';
 export const GLOB_CSS = '**/*.css';
-export const GLOB_MD = '**/*.md';
-export const GLOB_EXAMPLES = '**/*.md/*.js';
+export const GLOB_HTML_ERB = `${GLOB_HTML}.erb`;
+export const GLOB_HTML_TWIG = `${GLOB_HTML}.twig`;
+export const GLOB_HANDLEBARS = '**/*.{handlebars,hbs}';
+export const GLOB_NUNJUCKS = '**/*.{njk,nunjucks}';
+export const GLOB_PHP_HTML_BLOCKS = '**/*.php/*.html';
+export const GLOB_PHP_REGEXP_BLOCKS = '**/*.php/*.regexp';
+export const GLOB_MD_CODE_BLOCKS = `${GLOB_MD}/**`;
+export const GLOB_EXAMPLES = String.raw`**/*.md/\*.[jt]s?(x)`;
+export const GLOB_STYLELINT_CONFIG = '**/?(.)stylelint*.?(c|m)[jt]s';
+
+export const GLOB_JSDOC_EXPRESSION_FILES = <const>[
+  String.raw`**/*.jsdoc-defaults.md/\*.js`,
+  String.raw`**/*.jsdoc-params.md/\*.js`,
+  String.raw`**/*.jsdoc-properties.md/\*.js`,
+] satisfies string[];
+
+export const GLOB_TEMPLATE_FILES = <const>[
+  GLOB_HTML_ERB,
+  GLOB_HTML_TWIG,
+  GLOB_HANDLEBARS,
+  GLOB_NUNJUCKS,
+  ...GLOB_PHP_TEMPLATE_FILES,
+] satisfies string[];
+
+export const GLOB_HTML_FILES = <const>[
+  GLOB_HTML,
+  ...GLOB_TEMPLATE_FILES,
+] satisfies string[];
 
 export const GLOB_SCRIPT_FILES = <const>[
-  '**/*.?(c|m)[jt]s?(x)',
+  GLOB_JS_TS,
   GLOB_DTS,
   GLOB_SVELTE,
   GLOB_SVELTE_SCRIPT,
@@ -26,14 +69,31 @@ export const GLOB_SCRIPT_FILES_WITHOUT_TS = <const>[
 
 export const GLOB_DEVELOPMENT_FILES = <const>[
   '**/*.config.?(c|m)[jt]s',
+  '**/__mocks__/**',
   '**/{conf,tests}/**',
   '**/types/declarations/reset.d.ts',
 ] satisfies string[];
 
-export const GLOB_TEST_FILES = <const>[
-  '**/__tests__/**/*.?(c|m)[jt]s',
-  '**/*.spec.?(c|m)[jt]s',
-  '**/*.test.?(c|m)[jt]s',
-  '**/*.bench.?(c|m)[jt]s',
-  '**/*.benchmark.?(c|m)[jt]s',
+export const GLOB_YAML_FIXED_EXTENSION_FILES = <const>[
+  '**/.circleci/**/*.yml',
+  '**/.github/**/*.yml',
+  '**/.gitlab-ci.yml',
+  '**/.gitlab/**/*.yml',
+  '**/.travis.yml',
+  '**/.yarnrc.yml',
+  '**/appveyor.yml',
 ] satisfies string[];
+
+export const GLOB_TEST_FILES = <const>[
+  ...GLOB_TEST_FILES_SHARED,
+  ...GLOB_BENCHMARK_FILES,
+] satisfies string[];
+
+export const getHtmlScriptFileGlobs = (): string[] => (
+  (isModuleEnabled(MODULES.html) && doAllPackagesExist([PACKAGES.ESLINT_PLUGIN_HTML])) ? [...GLOB_HTML_FILES] : []
+);
+
+export const getScriptFileGlobs = (): string[] => [
+  ...GLOB_SCRIPT_FILES,
+  ...getHtmlScriptFileGlobs(),
+];

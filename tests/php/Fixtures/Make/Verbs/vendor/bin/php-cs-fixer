@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "php-cs-fixer $*"
+sleep 0.05
+echo "php-cs-fixer done"

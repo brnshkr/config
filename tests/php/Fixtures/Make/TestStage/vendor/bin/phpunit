@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "value=$TEST_STAGE_FIXTURE_VALUE"

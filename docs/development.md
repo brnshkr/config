@@ -1,0 +1,47 @@
+# 💻 Development
+
+Setup and day-to-day commands for working **on** @brnshkr/config itself.
+If you only consume the package, you want the [README](../README.md) and the per-tool docs instead.
+
+## Setup
+
+With PHP 8.3 and Bun on this machine, one command installs everything:
+
+```sh
+make startup
+```
+
+`startup` installs each stack, writes the tool configs this repository does not track,
+builds `./dist/` and installs the git hooks.
+
+## ☕ JS
+
+Everything runs through `make`; `make help` lists what this checkout can actually run,
+and [`./docs/Makefile.md`](./Makefile.md) is the reference.
+Frequently used:
+
+- `make fix` — every fixer, writing its fixes
+- `make check` — every fixer and analyzer, writing nothing
+- `make ci` — `make fix`, `make check`, `make audit`, then `make test`
+- `make vitest` — the Vitest suite, `make vitest-update` to update its snapshots
+- `make build` — regenerate the types and build `./dist/`, `make watch` to rebuild as sources change
+- `make eslint-inspect` — inspect the ESLint configuration (needs Node),
+  `make eslint-inspect-stats` to also time every rule
+
+## 🐘 PHP
+
+The same `make` as above; [`./docs/php/Makefile.md`](./php/Makefile.md) is the PHP reference.
+Frequently used:
+
+- `make phpstan` — static analysis, `make phpstan-list` for the files it reads
+- `make rector` — automated refactorings, `make rector-dry-run` to preview them
+- `make php-cs-fixer` — coding style, `make php-cs-fixer-dry-run` to preview
+- `make phpunit` — the PHP tests, `make phpunit-update` to update their snapshots
+
+## 🤖 AI tooling
+
+This repo ships project-aware tools ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants,
+wired up under [`./conf/ai/`](../conf/ai). They install themselves on `composer install` (the `mate/` directory is generated),
+and an agent runs them as `make mate -- tools:call <tool>`.
+Agents must read [`AGENTS.md`](../AGENTS.md) first;
+how the setup works and how to extend it lives in [`./conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).
