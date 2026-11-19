@@ -359,9 +359,7 @@ final class ComposerJson
             }
         }
 
-        return $directories
-            |> array_unique(...)
-            |> array_values(...);
+        return array_values(array_unique($directories));
     }
 
     /**
@@ -758,12 +756,10 @@ final class ComposerJson
      */
     private function readPackageNamespaces(array $packages): array
     {
-        return [
+        return array_values(array_unique([
             ...$this->readDeclaredPackageNamespaces($packages),
             ...$this->readClassmappedPackageNamespaces($packages),
-        ]
-            |> array_unique(...)
-            |> array_values(...);
+        ]));
     }
 
     /**

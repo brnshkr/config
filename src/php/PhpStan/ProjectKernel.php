@@ -128,11 +128,11 @@ final readonly class ProjectKernel
     {
         $directory = sprintf('%s/%s/%s', self::getRootDirectory(), self::CACHE_DIRECTORY, self::getEnvironment());
 
-        if (!new Filesystem()->exists($directory)) {
+        if (!(new Filesystem())->exists($directory)) {
             return null;
         }
 
-        $containerPaths = array_keys(iterator_to_array(new Finder()
+        $containerPaths = array_keys(iterator_to_array((new Finder())
             ->files()
             ->in($directory)
             ->depth(0)

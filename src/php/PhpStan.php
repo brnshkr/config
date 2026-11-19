@@ -73,6 +73,7 @@ use function array_any;
 use function array_diff;
 use function array_filter;
 use function array_find;
+use function array_flip;
 use function array_is_list;
 use function array_key_exists;
 use function array_map;
@@ -2330,17 +2331,16 @@ final class PhpStan
             static fn (string $path): bool => Path::getDirectory(Str::toAbsolutePath($cwd, $path)) === $rootPath,
         ));
 
-        $directoryPaths = array_diff($analyzedPaths, $rootFilePaths)
-            |> array_values(...)
-            |> self::convertFilesToMinimalAnalysisPaths(...);
+        $directoryPaths = self::convertFilesToMinimalAnalysisPaths(array_values(array_diff($analyzedPaths, $rootFilePaths)));
 
         $filePathsInDirectories = $directoryPaths === []
             ? []
-            : FileFinder::getFilePaths(new Finder()->in($directoryPaths), self::ANALYZED_FILE_EXTENSIONS);
+            : FileFinder::getFilePaths((new Finder())->in($directoryPaths), self::ANALYZED_FILE_EXTENSIONS);
 
-        $excludedPaths = array_diff($filePathsInDirectories, $analyzedPaths)
-            |> array_values(...)
-            |> (static fn (array $paths): array => self::convertFilesToMinimalExcludedPaths($paths, $analyzedPaths));
+        $excludedPaths = self::convertFilesToMinimalExcludedPaths(
+            array_values(array_diff($filePathsInDirectories, $analyzedPaths)),
+            $analyzedPaths,
+        );
 
         return [
             'paths' => array_map(
@@ -2361,7 +2361,7 @@ final class PhpStan
      */
     private static function convertFilesToMinimalAnalysisPaths(array $files): array
     {
-        return array_map(
+        $parentPaths = array_map(
             static function (string $file): string {
                 $segments = Str::split($file, '/');
 
@@ -2370,16 +2370,18 @@ final class PhpStan
                 return Str::join($segments, '/');
             },
             $files,
-        )
-            |> array_unique(...)
-            |> (static fn (array $paths): array => array_filter($paths, static fn (string $path): bool => !Str::isEmpty($path)))
-            |> array_values(...)
-            |> (static fn (array $paths): array => array_filter($paths, static fn (string $path): bool => !array_any(
-                $paths,
-                static fn (string $ancestor): bool => $ancestor !== $path
-                    && Str::startsWith($path, Str::trim($ancestor, '/', 'end') . '/'),
-            )))
-            |> array_values(...);
+        );
+
+        $uniquePaths = array_values(array_filter(
+            array_unique($parentPaths),
+            static fn (string $path): bool => !Str::isEmpty($path),
+        ));
+
+        return array_values(array_filter($uniquePaths, static fn (string $path): bool => !array_any(
+            $uniquePaths,
+            static fn (string $ancestor): bool => $ancestor !== $path
+                && Str::startsWith($path, Str::trim($ancestor, '/', 'end') . '/'),
+        )));
     }
 
     /**
@@ -2390,19 +2392,15 @@ final class PhpStan
      */
     private static function convertFilesToMinimalExcludedPaths(array $excludedFiles, array $analyzedFiles): array
     {
-        $protectedDirectories = array_map(self::getAncestorDirectories(...), $analyzedFiles)
-            |> (static fn (array $directories): array => array_merge([], ...$directories))
-            |> array_flip(...);
+        $protectedDirectories = array_flip(array_merge([], ...array_map(self::getAncestorDirectories(...), $analyzedFiles)));
 
-        return array_map(
+        return array_values(array_unique(array_map(
             static fn (string $excludedFile): string => array_find(
                 self::getAncestorDirectories($excludedFile),
                 static fn (string $directory): bool => !isset($protectedDirectories[$directory]),
             ) ?: $excludedFile,
             $excludedFiles,
-        )
-            |> array_unique(...)
-            |> array_values(...);
+        )));
     }
 
     /**

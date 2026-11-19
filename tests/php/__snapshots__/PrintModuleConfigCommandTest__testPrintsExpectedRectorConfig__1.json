@@ -353,7 +353,7 @@
     "editorUrl": null,
     "isWithPhpSetsUsed": true,
     "isWithPhpLevelUsed": null,
-    "pickedPhpSetsVersion": 80500,
+    "pickedPhpSetsVersion": 80300,
     "isPhpSetsVersionPicked": false,
     "levelOverflows": []
 }

@@ -638,7 +638,7 @@ final readonly class PhpCsFixer
         $rules = $this->phpCsFixerConfig->getRules();
 
         // @phpstan-ignore brnshkr.internalUsage (php-cs-fixer offers no public way to resolve rule names to fixers)
-        $resolvedRules = new RuleSet($rules)->getRules();
+        $resolvedRules = (new RuleSet($rules))->getRules();
 
         foreach ($this->phpCsFixerConfig->getCustomFixers() as $customFixer) {
             if (!$customFixer instanceof MarkdownSafeFixer) {

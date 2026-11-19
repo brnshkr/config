@@ -91,7 +91,7 @@ trait ContainerTrait
             ];
 
             foreach ($projectNames as $projectName) {
-                new Process([
+                (new Process([
                     'docker',
                     'compose',
                     '--project-name',
@@ -103,7 +103,7 @@ trait ContainerTrait
                     ...$environment,
                     'HOST_UID' => (string) posix_getuid(),
                     'HOST_GID' => (string) posix_getgid(),
-                ])->run();
+                ]))->run();
             }
         }
 
@@ -123,7 +123,7 @@ trait ContainerTrait
         $labeledContainerIds = Str::trim($process->getOutput());
 
         if ($labeledContainerIds !== '') {
-            new Process(['docker', 'rm', '--force', ...Str::split($labeledContainerIds, "\n")])->run();
+            (new Process(['docker', 'rm', '--force', ...Str::split($labeledContainerIds, "\n")]))->run();
         }
     }
 

@@ -327,7 +327,7 @@ final class PhpStanTest extends TestCase
     public function testTheSamePhpAtTestRegisteredTwiceWithDifferentArgumentsFails(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains(ModuleIsolatedTest::class);
+        $this->expectExceptionMessage(ModuleIsolatedTest::class);
 
         PhpStan::getBuilder()->addArchitecture([
             PhpStan::configurePhpAtTest(ModuleIsolatedTest::class, [
@@ -375,7 +375,7 @@ final class PhpStanTest extends TestCase
 
         try {
             $parameters         = PhpStan::getConfig()['parameters'];
-            $absoluteParameters = PhpStan::getConfig(new Finder()->in($projectDirectory))['parameters'];
+            $absoluteParameters = PhpStan::getConfig((new Finder())->in($projectDirectory))['parameters'];
         } finally {
             chdir($previousDirectory);
         }
@@ -672,7 +672,7 @@ final class PhpStanTest extends TestCase
     public function testAPathThatIsNotANonEmptyStringIsRejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('non-empty string');
+        $this->expectExceptionMessage('non-empty string');
 
         // @phpstan-ignore argument.type (the guard exists for a caller who ignores the signature, so the test has to)
         PhpStan::getBuilder()->setPaths(['src', '']);
@@ -681,7 +681,7 @@ final class PhpStanTest extends TestCase
     public function testAFileExtensionWithItsLeadingDotIsRejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('without its leading dot, got ".phtml"');
+        $this->expectExceptionMessage('without its leading dot, got ".phtml"');
 
         PhpStan::getBuilder()->addFileExtensions(['inc', '.phtml']);
     }

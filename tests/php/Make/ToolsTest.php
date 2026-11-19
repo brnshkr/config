@@ -41,7 +41,7 @@ final class ToolsTest extends TestCase
     #[After]
     public function removeWhatTheContainerRunsWrote(): void
     {
-        new Filesystem()->remove(self::LINTERS_DIRECTORY . '/.cache');
+        (new Filesystem())->remove(self::LINTERS_DIRECTORY . '/.cache');
     }
 
     public function testAComposerToolIsFoundInTheBinDirectoryComposerJsonNames(): void
@@ -261,7 +261,7 @@ final class ToolsTest extends TestCase
 
         self::assertStringContainsString(
             'keep address casing',
-            new Filesystem()->readFile($consumerDirectory . '/changelog/1.x.md'),
+            (new Filesystem())->readFile($consumerDirectory . '/changelog/1.x.md'),
         );
     }
 
@@ -340,7 +340,7 @@ final class ToolsTest extends TestCase
             'SEMGREP=bin/semgrep',
         ], fixtureDirectory: self::LINTERS_DIRECTORY);
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->in(Path::getDirectory($cachedPath))
             ->depth(0)
             ->ignoreDotFiles(false)

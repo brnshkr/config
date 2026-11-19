@@ -172,7 +172,7 @@ final class FencedCodeFixer implements ConfigurableFixerInterface
     public function getConfigurationDefinition(): FixerConfigurationResolverInterface
     {
         return new FixerConfigurationResolver([
-            new FixerOptionBuilder(self::OPTION_EXCLUDED_RULES, 'further rules kept out of code blocks')
+            (new FixerOptionBuilder(self::OPTION_EXCLUDED_RULES, 'further rules kept out of code blocks'))
                 ->setAllowedTypes(['string[]'])
                 ->setDefault([])
                 ->getOption(),
@@ -311,7 +311,7 @@ final class FencedCodeFixer implements ConfigurableFixerInterface
         $this->twigRuleset ??= self::getTwigRuleset();
 
         try {
-            $formattedCode = new TwigFixer(new Tokenizer(new StubbedEnvironment()))->fixFile($code, $this->twigRuleset);
+            $formattedCode = (new TwigFixer(new Tokenizer(new StubbedEnvironment())))->fixFile($code, $this->twigRuleset);
         } catch (CannotFixFileException|CannotTokenizeException) {
             return null;
         }
@@ -362,12 +362,12 @@ final class FencedCodeFixer implements ConfigurableFixerInterface
 
         $rules = array_diff_key(
             // @phpstan-ignore brnshkr.internalUsage (php-cs-fixer offers no public way to resolve rule names to fixers)
-            new RuleSet($this->phpCsFixerConfig->getRules())->getRules(),
+            (new RuleSet($this->phpCsFixerConfig->getRules()))->getRules(),
             array_fill_keys([...self::ALWAYS_EXCLUDED_RULES, ...$this->excludedRules, $this->getName()], true),
         );
 
         // @phpstan-ignore brnshkr.internalUsage (php-cs-fixer offers no public way to resolve rule names to fixers)
-        $fixers = new FixerFactory()
+        $fixers = (new FixerFactory())
             ->registerBuiltInFixers()
             ->registerCustomFixers($this->phpCsFixerConfig->getCustomFixers())
             ->setWhitespacesConfig(new WhitespacesFixerConfig(

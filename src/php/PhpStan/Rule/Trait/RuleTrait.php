@@ -107,7 +107,7 @@ trait RuleTrait
         $phpDocParser    = new PhpDocParser($parserConfig, new TypeParser($parserConfig, $constExprParser), $constExprParser);
         $tags            = [];
 
-        foreach ($phpDocParser->parse(new TokenIterator(new Lexer($parserConfig)->tokenize($docText)))->getTags() as $phpDocTagNode) {
+        foreach ($phpDocParser->parse(new TokenIterator((new Lexer($parserConfig))->tokenize($docText)))->getTags() as $phpDocTagNode) {
             $value     = $phpDocTagNode->value;
             $startLine = $phpDocTagNode->getAttribute(Attribute::START_LINE);
 

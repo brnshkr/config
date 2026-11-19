@@ -166,7 +166,7 @@ final class TwigCsFixerTest extends TestCase
                 $config->getNodeVisitors(),
             );
 
-            return new Linter($stubbedEnvironment, new Tokenizer($stubbedEnvironment))->run(
+            return (new Linter($stubbedEnvironment, new Tokenizer($stubbedEnvironment)))->run(
                 $config->getFinder(),
                 $config->getRuleset(),
             );

@@ -139,7 +139,7 @@ final class PhpCsFixerTest extends TestCase
 
     public function testTheFinderArgumentNarrowsTheFiles(): void
     {
-        $finder = PhpCsFixer::getConfig(new Finder()->in(__DIR__ . '/../../src/php/Composer'))->getFinder();
+        $finder = PhpCsFixer::getConfig((new Finder())->in(__DIR__ . '/../../src/php/Composer'))->getFinder();
 
         $paths = [];
 

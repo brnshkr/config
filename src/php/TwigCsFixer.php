@@ -121,7 +121,7 @@ final readonly class TwigCsFixer
      */
     public static function getBuilder(?Finder $finder = null): self
     {
-        $config = new TwigCsFixerConfig()
+        $config = (new TwigCsFixerConfig())
             ->allowNonFixableRules()
             ->setCacheFile(ProjectDirectory::getCache() . '/twig-cs-fixer.cache.json')
             ->setFinder(FileFinder::get($finder, FileFinder::EXTENSION_TWIG)->notPath(sprintf(

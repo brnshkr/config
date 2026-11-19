@@ -31,7 +31,7 @@ final class ReleaseAgeTest extends TestCase
 
     public function testAVersionWithoutAReleaseTimeIsKept(): void
     {
-        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
+        $heldBackPackages = (new ReleaseAge())->getHeldBackPackages([
             self::createPackage('vendor/path', null),
         ], new DateTimeImmutable(self::NOW));
 
@@ -40,7 +40,7 @@ final class ReleaseAgeTest extends TestCase
 
     public function testAnExcludedPackageIsKeptHoweverYoung(): void
     {
-        $heldBackPackages = new ReleaseAge(excludedPackageNames: ['symfony/*'])->getHeldBackPackages([
+        $heldBackPackages = (new ReleaseAge(excludedPackageNames: ['symfony/*']))->getHeldBackPackages([
             self::createPackage('symfony/console', '-1 hour'),
             self::createPackage('vendor/fresh', '-1 hour'),
         ], new DateTimeImmutable(self::NOW));
@@ -54,7 +54,7 @@ final class ReleaseAgeTest extends TestCase
 
         $rootPackage->setReleaseDate(new DateTimeImmutable(self::NOW));
 
-        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
+        $heldBackPackages = (new ReleaseAge())->getHeldBackPackages([
             $rootPackage,
             self::createPackage('php', '-1 hour'),
             self::createPackage('ext-intl', '-1 hour'),
@@ -115,7 +115,7 @@ final class ReleaseAgeTest extends TestCase
 
     public function testADevVersionIsKeptHoweverYoung(): void
     {
-        $heldBackPackages = new ReleaseAge()->getHeldBackPackages([
+        $heldBackPackages = (new ReleaseAge())->getHeldBackPackages([
             self::createPackage('vendor/branch', '-1 hour', 'dev-main'),
         ], new DateTimeImmutable(self::NOW));
 
@@ -130,8 +130,8 @@ final class ReleaseAgeTest extends TestCase
             self::createPackage('php', null),
         ];
 
-        self::assertSame(['vendor/path'], self::getNames(new ReleaseAge()->getPackagesWithoutReleaseTime($packages)));
-        self::assertSame([], new ReleaseAge(0)->getPackagesWithoutReleaseTime($packages));
+        self::assertSame(['vendor/path'], self::getNames((new ReleaseAge())->getPackagesWithoutReleaseTime($packages)));
+        self::assertSame([], (new ReleaseAge(0))->getPackagesWithoutReleaseTime($packages));
     }
 
     public function testTheHeldBackVersionsAreTheOnesDropped(): void
@@ -141,8 +141,8 @@ final class ReleaseAgeTest extends TestCase
             self::createPackage('vendor/settled', '-8 days'),
         ];
 
-        self::assertSame(['vendor/fresh'], self::getNames(new ReleaseAge()->getHeldBackPackages($packages, new DateTimeImmutable(self::NOW))));
-        self::assertSame([], new ReleaseAge(0)->getHeldBackPackages($packages, new DateTimeImmutable(self::NOW)));
+        self::assertSame(['vendor/fresh'], self::getNames((new ReleaseAge())->getHeldBackPackages($packages, new DateTimeImmutable(self::NOW))));
+        self::assertSame([], (new ReleaseAge(0))->getHeldBackPackages($packages, new DateTimeImmutable(self::NOW)));
     }
 
     /**
@@ -162,7 +162,7 @@ final class ReleaseAgeTest extends TestCase
         $completePackage = new CompletePackage($name, $version, $version);
 
         if ($age !== null) {
-            $completePackage->setReleaseDate(new DateTimeImmutable(self::NOW)->modify($age));
+            $completePackage->setReleaseDate((new DateTimeImmutable(self::NOW))->modify($age));
         }
 
         return $completePackage;

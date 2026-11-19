@@ -61,7 +61,7 @@ final class SpellingTest extends TestCase
             }
         }
 
-        new Filesystem()->remove($this->temporaryRoots);
+        (new Filesystem())->remove($this->temporaryRoots);
     }
 
     public function testReportsBritishSpellingsWithTheirCorrection(): void
@@ -110,7 +110,7 @@ final class SpellingTest extends TestCase
     public function testRejectsAnAllowedWordAlreadyAllowedEverywhere(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('is already covered by "analyse"');
+        $this->expectExceptionMessage('is already covered by "analyse"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -122,7 +122,7 @@ final class SpellingTest extends TestCase
     public function testRejectsALineSuppressionTheWholeFileAlreadyAllows(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Allowed word "analyse:9"');
+        $this->expectExceptionMessage('Allowed word "analyse:9"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -134,7 +134,7 @@ final class SpellingTest extends TestCase
     public function testRejectsALineSuppressionABroaderLineListAlreadyAllows(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('is already covered by "analyse:9,11"');
+        $this->expectExceptionMessage('is already covered by "analyse:9,11"');
 
         Spelling::scan(
             $this->getRepositoryRoot(),
@@ -160,13 +160,13 @@ final class SpellingTest extends TestCase
             $filesystem->dumpFile($repositoryRoot . '/' . $filePath, "colour\n");
         }
 
-        new SymfonyProcess([
+        (new SymfonyProcess([
             'git',
             'init',
             '--quiet',
-        ], $repositoryRoot)->mustRun();
+        ], $repositoryRoot))->mustRun();
 
-        new SymfonyProcess([
+        (new SymfonyProcess([
             'git',
             'add',
             '--',
@@ -175,13 +175,11 @@ final class SpellingTest extends TestCase
             'notes.txt',
             'tests/fixtures/notes.md',
             'gone.md',
-        ], $repositoryRoot)->mustRun();
+        ], $repositoryRoot))->mustRun();
 
         $filesystem->remove($repositoryRoot . '/gone.md');
 
-        $paths = array_column(Spelling::scan($repositoryRoot), 'path')
-            |> array_unique(...)
-            |> array_values(...);
+        $paths = array_values(array_unique(array_column(Spelling::scan($repositoryRoot), 'path')));
 
         self::assertSame(['Makefile', 'notes.md'], $paths);
     }
@@ -190,10 +188,10 @@ final class SpellingTest extends TestCase
     {
         $directory = $this->createTemporaryRoot();
 
-        new Filesystem()->mkdir($directory);
+        (new Filesystem())->mkdir($directory);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains(sprintf('"git ls-files -z" failed in "%s" with exit code 128.', $directory));
+        $this->expectExceptionMessage(sprintf('"git ls-files -z" failed in "%s" with exit code 128.', $directory));
 
         Spelling::scan($directory);
     }
@@ -203,7 +201,7 @@ final class SpellingTest extends TestCase
     public function testRejectsAMalformedStemSuffixSetting(string $configPath, string $message): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains($message);
+        $this->expectExceptionMessage($message);
 
         $this->scanCorpus($configPath);
     }

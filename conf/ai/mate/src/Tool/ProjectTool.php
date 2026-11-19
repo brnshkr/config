@@ -188,7 +188,7 @@ final class ProjectTool
      */
     private function getVersionOf(string $file): string
     {
-        $contents = new Filesystem()->readFile(sprintf('%s/%s', Project::getRootDirectory(), $file));
+        $contents = (new Filesystem())->readFile(sprintf('%s/%s', Project::getRootDirectory(), $file));
         $manifest = Json::decode($contents);
         $version  = $manifest['version'] ?? null;
 
@@ -210,7 +210,7 @@ final class ProjectTool
     {
         $names = [];
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->files()
             ->in($directory)
             ->depth(0)

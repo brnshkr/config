@@ -121,7 +121,7 @@ final class FuzzTest extends TestCase
             }
         }
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->in($this->fixtureRoots)
             ->name(self::SENTINEL)
             ->ignoreDotFiles(false)
@@ -152,7 +152,7 @@ final class FuzzTest extends TestCase
 
         $filesystem->dumpFile($directory . '/' . $payload . '.md', '');
         $filesystem->dumpFile($directory . '/.vscode/' . $payload . '.css-data.json', '{}');
-        new Process(['git', 'add', '--all'], $directory)->mustRun();
+        (new Process(['git', 'add', '--all'], $directory))->mustRun();
 
         return $directory;
     }
@@ -161,7 +161,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::CACHES_DIRECTORY);
 
-        new Filesystem()->mkdir($directory . '/.cache/' . $payload);
+        (new Filesystem())->mkdir($directory . '/.cache/' . $payload);
 
         return $directory;
     }
@@ -170,7 +170,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::CONSUMER_DIRECTORY);
 
-        new Filesystem()->dumpFile($directory . '/.env.' . $payload, '');
+        (new Filesystem())->dumpFile($directory . '/.env.' . $payload, '');
 
         return $directory;
     }
@@ -179,7 +179,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::CONSUMER_DIRECTORY);
 
-        new Filesystem()->dumpFile($directory . '/.env', sprintf("ACME_VALUE=%s\n", $value));
+        (new Filesystem())->dumpFile($directory . '/.env', sprintf("ACME_VALUE=%s\n", $value));
 
         return $directory;
     }
@@ -199,7 +199,7 @@ final class FuzzTest extends TestCase
         $directory = $this->createFixtureCopy(self::CONSUMER_DIRECTORY);
 
         self::commitInto($directory, 'feat(user): import users');
-        new Process(['git', '-c', 'tag.gpgsign=false', 'tag', '--', $payload], $directory)->mustRun();
+        (new Process(['git', '-c', 'tag.gpgsign=false', 'tag', '--', $payload], $directory))->mustRun();
 
         return $directory;
     }
@@ -208,7 +208,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::CONSUMER_DIRECTORY);
 
-        new Filesystem()->dumpFile($directory . '/package.json', Json::encode(['name' => $payload]));
+        (new Filesystem())->dumpFile($directory . '/package.json', Json::encode(['name' => $payload]));
 
         return $directory;
     }
@@ -217,7 +217,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::CONSUMER_DIRECTORY);
 
-        new Filesystem()->dumpFile($directory . '/composer.json', Json::encode(['name' => 'acme/' . $payload]));
+        (new Filesystem())->dumpFile($directory . '/composer.json', Json::encode(['name' => 'acme/' . $payload]));
 
         return $directory;
     }
@@ -241,7 +241,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureRoot() . '/x' . $payload;
 
-        new Filesystem()->dumpFile($directory . '/Makefile', "include ../conf/Makefile\n");
+        (new Filesystem())->dumpFile($directory . '/Makefile', "include ../conf/Makefile\n");
 
         return $directory;
     }
@@ -250,7 +250,7 @@ final class FuzzTest extends TestCase
     {
         $directory = $this->createFixtureCopy(self::GROUP_DIRECTORY);
 
-        new Filesystem()->dumpFile(
+        (new Filesystem())->dumpFile(
             $directory . '/errors.txt',
             sprintf("src/%s.ts(3,5): error TS2345: %s\n", $payload, $payload),
         );

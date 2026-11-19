@@ -47,7 +47,7 @@ final class ProgramsTest extends TestCase
         $programPath  = $this->createFixtureRoot() . '/program';
         $isPhpProgram = Str::endsWith($variableName, self::PHP_PROGRAM_SUFFIX);
 
-        new Filesystem()->dumpFile(
+        (new Filesystem())->dumpFile(
             $programPath,
             ($isPhpProgram ? self::PHP_OPENING_TAG : '') . $this->dumpVariable($variableName) . "\n",
         );
@@ -88,7 +88,7 @@ final class ProgramsTest extends TestCase
      */
     public static function provideEveryEmbeddedProgramParsesCases(): iterable
     {
-        $makefile           = new Filesystem()->readFile(self::MAKEFILE_PATH);
+        $makefile           = (new Filesystem())->readFile(self::MAKEFILE_PATH);
         $programDefinitions = Str::matchAll($makefile, '/^define (?<name>_\w+_(?:AWK|AWK_SOURCE|PROGRAM_SOURCE))$/m');
 
         foreach ($programDefinitions as $programDefinition) {

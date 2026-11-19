@@ -82,7 +82,7 @@ final readonly class FileFinder
      * ```php
      * $phpFiles        = FileFinder::get();
      * $phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
-     * $scopedTwigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+     * $scopedTwigFiles = FileFinder::get((new Finder())->in('templates'), FileFinder::EXTENSION_TWIG);
      * ```
      */
     public static function get(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): Finder
@@ -160,7 +160,7 @@ final readonly class FileFinder
      * ```php
      * $phpFiles        = FileFinder::getFilePaths();
      * $phpAndTwigFiles = FileFinder::getFilePaths(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
-     * $scopedTwigFiles = FileFinder::getFilePaths(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+     * $scopedTwigFiles = FileFinder::getFilePaths((new Finder())->in('templates'), FileFinder::EXTENSION_TWIG);
      * ```
      */
     public static function getFilePaths(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): array

@@ -6,15 +6,13 @@ namespace Brnshkr\Config\PhpStan\Rule;
 
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\PhpStan\Rule\FencedCodeRuleTest;
-use Dom\Element;
-use Dom\XMLDocument;
-use DOMException;
+use DOMDocument;
+use DOMElement;
 use LibXMLError;
 
 use function array_find;
 use function array_map;
 use function array_slice;
-use function class_exists;
 use function is_readable;
 use function libxml_clear_errors;
 use function libxml_get_errors;
@@ -42,21 +40,24 @@ final readonly class XmlExampleAnalyzer
      */
     public function analyze(string $code): array
     {
-        if (!class_exists(XMLDocument::class) || Str::isEmpty($code)) {
+        if (Str::isEmpty($code)) {
             return [];
         }
 
         $isUsingInternalErrors = libxml_use_internal_errors(true);
 
         try {
-            $xmlDocument = XMLDocument::createFromString($code, LIBXML_NONET);
-            $schemaPath  = $this->findSchemaPath($xmlDocument);
+            $domDocument = new DOMDocument();
 
-            return $schemaPath === null || $xmlDocument->schemaValidate($schemaPath)
+            if (!$domDocument->loadXML($code, LIBXML_NONET)) {
+                return array_slice(self::collectErrors(FencedCodeRule::PROBLEM_PARSE), 0, 1);
+            }
+
+            $schemaPath = $this->findSchemaPath($domDocument);
+
+            return $schemaPath === null || $domDocument->schemaValidate($schemaPath)
                 ? []
                 : self::collectErrors('Code block does not match its schema');
-        } catch (DOMException) {
-            return array_slice(self::collectErrors(FencedCodeRule::PROBLEM_PARSE), 0, 1);
         } finally {
             libxml_clear_errors();
             libxml_use_internal_errors($isUsingInternalErrors);
@@ -81,17 +82,17 @@ final readonly class XmlExampleAnalyzer
     /**
      * @return ?non-empty-string
      */
-    private function findSchemaPath(XMLDocument $xmlDocument): ?string
+    private function findSchemaPath(DOMDocument $domDocument): ?string
     {
-        $rootElement = $xmlDocument->documentElement;
+        $rootElement = $domDocument->documentElement;
 
-        if (!$rootElement instanceof Element) {
+        if (!$rootElement instanceof DOMElement) {
             return null;
         }
 
         $namespacedSchemaLocation = array_find(
             Str::matchAll(
-                $rootElement->getAttributeNS(self::SCHEMA_INSTANCE_NAMESPACE, 'schemaLocation') ?? '',
+                $rootElement->getAttributeNS(self::SCHEMA_INSTANCE_NAMESPACE, 'schemaLocation'),
                 '/(?<!\S)(?<namespace>\S+)\s+(?<location>\S+)/',
             ),
             static fn (array $locationGroups): bool => ($locationGroups['namespace'] ?? null)
@@ -100,8 +101,7 @@ final readonly class XmlExampleAnalyzer
 
         $schemaLocation = Str::trim(
             $namespacedSchemaLocation['location']
-                ?? $rootElement->getAttributeNS(self::SCHEMA_INSTANCE_NAMESPACE, 'noNamespaceSchemaLocation')
-                ?? '',
+                ?? $rootElement->getAttributeNS(self::SCHEMA_INSTANCE_NAMESPACE, 'noNamespaceSchemaLocation'),
         );
 
         if (Str::isEmpty($schemaLocation) || Str::contains($schemaLocation, '://')) {

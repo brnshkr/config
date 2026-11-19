@@ -181,7 +181,7 @@ final class CachesTest extends TestCase
      */
     private function writeCaches(string $cachesDirectory, array $names): void
     {
-        new Filesystem()->mkdir(array_map(
+        (new Filesystem())->mkdir(array_map(
             static fn (string $name): string => $cachesDirectory . '/.cache/' . $name,
             $names,
         ));

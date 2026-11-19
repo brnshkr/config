@@ -96,7 +96,7 @@ final class RectorTest extends TestCase
 
     public function testTheFinderArgumentNarrowsThePaths(): void
     {
-        $rectorConfigBuilder = Rector::getConfig(new Finder()->in(__DIR__ . '/../../src/php/Composer'));
+        $rectorConfigBuilder = Rector::getConfig((new Finder())->in(__DIR__ . '/../../src/php/Composer'));
 
         $paths = self::readRectorState($rectorConfigBuilder, 'paths');
 

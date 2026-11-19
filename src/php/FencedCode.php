@@ -188,7 +188,7 @@ final readonly class FencedCode
 
             $environment->addExtension(new CommonMarkCoreExtension());
 
-            $document = new MarkdownParser($environment)->parse(Str::join($lines, "\n"));
+            $document = (new MarkdownParser($environment))->parse(Str::join($lines, "\n"));
         } catch (CommonMarkException) {
             return [];
         }

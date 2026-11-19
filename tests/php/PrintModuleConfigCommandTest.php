@@ -229,9 +229,7 @@ final class PrintModuleConfigCommandTest extends TestCase
             }
         }
 
-        self::$unignoredPaths = $unignoredPaths
-            |> array_unique(...)
-            |> array_values(...);
+        self::$unignoredPaths = array_values(array_unique($unignoredPaths));
 
         return self::$unignoredPaths;
     }
@@ -244,10 +242,10 @@ final class PrintModuleConfigCommandTest extends TestCase
         $application = new Application();
 
         $application->setAutoExit(false);
-        $application->addCommands(new CommandProvider()->getCommands());
+        $application->addCommands((new CommandProvider())->getCommands());
 
         $arrayInput = new ArrayInput([
-            'command' => new PrintModuleConfigCommand()->getName(),
+            'command' => (new PrintModuleConfigCommand())->getName(),
             ...$arguments,
         ]);
 
@@ -267,8 +265,6 @@ final class PrintModuleConfigCommandTest extends TestCase
 
         self::assertSame(0, $exitCode);
 
-        return Json::decode($output, isAssociative: false)
-            |> self::removeIgnoredPaths(...)
-            |> Json::encode(...);
+        return Json::encode(self::removeIgnoredPaths(Json::decode($output, isAssociative: false)));
     }
 }

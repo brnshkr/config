@@ -22,7 +22,7 @@ namespace {
 
     require_once ProjectKernel::getRootDirectory() . '/vendor/autoload.php';
 
-    new Dotenv()->bootEnv(ProjectKernel::getRootDirectory() . '/.env');
+    (new Dotenv())->bootEnv(ProjectKernel::getRootDirectory() . '/.env');
 
     /**
      * @var Kernel $kernel

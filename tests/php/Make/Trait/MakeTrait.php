@@ -86,7 +86,7 @@ trait MakeTrait
             }
         }
 
-        new Filesystem()->remove($this->fixtureRoots);
+        (new Filesystem())->remove($this->fixtureRoots);
     }
 
     private function getFixtureCopy(string $fixtureDirectory): string
@@ -98,9 +98,9 @@ trait MakeTrait
     {
         $fixtureCopy = $this->createFixtureRoot() . '/' . self::getProjectRelativePath($fixtureDirectory);
 
-        new Filesystem()->mirror($fixtureDirectory, $fixtureCopy);
-        new Process(['git', 'init', '--quiet'], $fixtureCopy)->mustRun();
-        new Process(['git', 'add', '--all'], $fixtureCopy)->mustRun();
+        (new Filesystem())->mirror($fixtureDirectory, $fixtureCopy);
+        (new Process(['git', 'init', '--quiet'], $fixtureCopy))->mustRun();
+        (new Process(['git', 'add', '--all'], $fixtureCopy))->mustRun();
 
         return $fixtureCopy;
     }
@@ -112,7 +112,7 @@ trait MakeTrait
 
         $this->fixtureRoots[] = $fixtureRoot;
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->in(self::getRealPath(self::PROJECT_DIRECTORY))
             ->depth(0)
             ->ignoreDotFiles(false)
@@ -134,7 +134,7 @@ trait MakeTrait
 
     private static function commitInto(string $directory, string $message): void
     {
-        new Process([
+        (new Process([
             'git',
             '-c',
             'user.name=Acme',
@@ -148,7 +148,7 @@ trait MakeTrait
             '--no-verify',
             '--message',
             $message,
-        ], $directory)->mustRun();
+        ], $directory))->mustRun();
     }
 
     /**
@@ -337,8 +337,8 @@ trait MakeTrait
         );
 
         $differ = new Differ(new StrictUnifiedDiffOutputBuilder([
-            'addLineNumbers' => false,
-            'header'         => '',
+            'fromFile' => '',
+            'toFile'   => '',
         ]));
 
         $renderedOutputs = [$baseScenario => $baseOutput];
@@ -352,7 +352,11 @@ trait MakeTrait
             }
 
             $diffs = array_map(
-                static fn (string $reference): string => $differ->diff($reference, $output),
+                static fn (string $reference): string => Str::replaceMatches(
+                    Str::trimPrefix($differ->diff($reference, $output), "--- \n+++ \n"),
+                    '/^@@ .+ @@$/m',
+                    static fn (): string => '@@ @@',
+                ),
                 $renderedOutputs,
             );
 

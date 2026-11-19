@@ -5,7 +5,7 @@ If you only consume the package, you want the [README](../README.md) and the per
 
 ## Setup
 
-With PHP 8.5 and Bun on this machine, one command installs everything:
+With PHP 8.3 and Bun on this machine, one command installs everything:
 
 ```sh
 make startup

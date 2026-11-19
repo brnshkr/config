@@ -178,7 +178,7 @@ final readonly class InternalUsageRule implements Rule
             }
         };
 
-        new NodeTraverser($visitor)->traverse([$stmt]);
+        (new NodeTraverser($visitor))->traverse([$stmt]);
 
         return $visitor->collectedNodes;
     }

@@ -217,7 +217,7 @@ final class CommandTest extends TestCase
         $application = new Application();
 
         $application->setAutoExit(false);
-        $application->addCommands(new CommandProvider()->getCommands());
+        $application->addCommands((new CommandProvider())->getCommands());
 
         $this->application = $application;
     }
@@ -239,7 +239,7 @@ final class CommandTest extends TestCase
     private function runSetupCommand(array $arguments, ?string $answers = null): array
     {
         $arrayInput = new ArrayInput([
-            'command' => new SetupCommand()->getName(),
+            'command' => (new SetupCommand())->getName(),
             ...$arguments,
         ]);
 

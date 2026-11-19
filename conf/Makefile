@@ -2500,7 +2500,7 @@ _PHP_UNIT_FLOORS = Classes=$(strip $(PHP_UNIT_MIN_COVERAGE_CLASSES)) \
 	Methods=$(strip $(PHP_UNIT_MIN_COVERAGE_METHODS)) \
 	Lines=$(strip $(PHP_UNIT_MIN_COVERAGE_LINES))
 
-_PHP_UNIT_GROUP_FLAGS = $(foreach GROUP,$(PHP_UNIT_EXCLUDED_GROUPS),--exclude-group $(GROUP))
+_PHP_UNIT_GROUP_FLAGS = $(foreach GROUP,$(PHP_UNIT_EXCLUDED_GROUPS),--exclude-group=$(GROUP))
 
 _IS_PHP_UNIT_FALLBACK = $(filter $(addsuffix /%,$(_PACKAGE_CONF_DIRS)),$(PHP_UNIT_CONFIG))
 _PHP_UNIT_RUN_CONFIG  = $(if $(_IS_PHP_UNIT_FALLBACK),$(APP_DIR)/$(_CACHE_DIR)/phpunit.cache/phpunit.dist.xml,$(PHP_UNIT_CONFIG))
@@ -4676,7 +4676,7 @@ foreach ((array) ($$manifest['bin'] ?? []) as $$binaryPath) {
 $$projectDirectory = \dirname($$argv[1]);
 
 $$doesExist = static fn (string $$path): bool => \file_exists(
-    $$projectDirectory . '/' . \mb_trim((string) \preg_replace('#^(?:\./)+#', '', $$path), '/'),
+    $$projectDirectory . '/' . \trim((string) \preg_replace('#^(?:\./)+#', '', $$path), '/'),
 );
 
 $$shippedPaths  = \array_filter($$shippedPaths, $$doesExist);
@@ -4693,10 +4693,10 @@ $$expand = static function (bool $$doesExpandDirectories, string ...$$paths) use
         $$path = (string) \preg_replace('#^(?:\./)+#', '', $$path);
 
         $$isWholeTree = $$doesExpandDirectories
-            ? \is_dir($$projectDirectory . '/' . \mb_trim($$path, '/'))
+            ? \is_dir($$projectDirectory . '/' . \trim($$path, '/'))
             : \str_ends_with($$path, '/');
 
-        $$path            = '/' . \mb_trim($$path, '/');
+        $$path            = '/' . \trim($$path, '/');
         $$expandedPaths[] = $$path;
 
         if ($$isWholeTree) {
@@ -4841,7 +4841,7 @@ use TwigCsFixer\Config\Config;
 require $$autoloaderPath;
 
 if ($$toolName === 'rector') {
-    $$rectorConfig = new LazyContainerFactory()->create();
+    $$rectorConfig = (new LazyContainerFactory())->create();
 
     /**
      * @var callable(RectorConfig $$rectorConfig): void $$configureRector
@@ -4867,15 +4867,13 @@ if ($$toolName === 'rector') {
     $$skippedRuleNames  = [];
 }
 
-$$ruleNames = \array_map(static fn (object $$rule): string => $$rule::class, $$rules)
-    |> \array_unique(...)
-    |> \array_values(...);
+$$ruleNames = \array_values(\array_unique(\array_map(static fn (object $$rule): string => $$rule::class, $$rules)));
 
 \sort($$ruleNames);
 \sort($$skippedRuleNames);
 
 $$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$hostDirectory): string {
-    $$fileName = $$urlTemplate === '' || !\class_exists($$name) ? false : new \ReflectionClass($$name)->getFileName();
+    $$fileName = $$urlTemplate === '' || !\class_exists($$name) ? false : (new \ReflectionClass($$name))->getFileName();
 
     if ($$fileName === false) {
         return $$name;
@@ -4885,8 +4883,8 @@ $$link = static function (string $$name) use ($$urlTemplate, $$appDirectory, $$h
 
     $$url = \strtr($$urlTemplate, [
         '{cwd}'  => $$isInApp ? $$hostDirectory : '',
-        '{file}' => $$isInApp ? \mb_substr($$fileName, \mb_strlen($$appDirectory) + 1) : \mb_ltrim($$fileName, '/'),
-        '{line}' => (string) new \ReflectionClass($$name)->getStartLine(),
+        '{file}' => $$isInApp ? \mb_substr($$fileName, \mb_strlen($$appDirectory) + 1) : \ltrim($$fileName, '/'),
+        '{line}' => (string) (new \ReflectionClass($$name))->getStartLine(),
     ]);
 
     return "\033]8;;" . $$url . "\033\\" . $$name . "\033]8;;\033\\";

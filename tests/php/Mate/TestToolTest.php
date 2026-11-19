@@ -25,20 +25,20 @@ final class TestToolTest extends TestCase
     #[After]
     public function removeTheMarker(): void
     {
-        new Filesystem()->remove(self::MARKER_PATH);
+        (new Filesystem())->remove(self::MARKER_PATH);
     }
 
     #[After]
     public function removeTheNestedSnapshot(): void
     {
-        new Filesystem()->remove(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH);
+        (new Filesystem())->remove(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH);
     }
 
     public function testASnapshotChangedBeforeTheRunIsListedAsUnchanged(): void
     {
-        new Filesystem()->dumpFile(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH, '');
+        (new Filesystem())->dumpFile(Project::getRootDirectory() . '/' . self::NESTED_SNAPSHOT_PATH, '');
 
-        $result = new TestTool()->runTests('php', 'noSuchTestMatchesThisFilter');
+        $result = (new TestTool())->runTests('php', 'noSuchTestMatchesThisFilter');
 
         self::assertStringContainsString("changedSnapshots[0]:\n", $result);
         self::assertStringContainsString(self::NESTED_SNAPSHOT_PATH, $result);
@@ -46,7 +46,7 @@ final class TestToolTest extends TestCase
 
     public function testAFilterReachesTheRunnerAsOneArgument(): void
     {
-        new TestTool()->runTests('js', sprintf('no-such-test; touch %s', self::MARKER_PATH));
+        (new TestTool())->runTests('js', sprintf('no-such-test; touch %s', self::MARKER_PATH));
 
         self::assertFileDoesNotExist(self::MARKER_PATH);
     }

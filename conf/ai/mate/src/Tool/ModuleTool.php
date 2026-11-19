@@ -76,7 +76,7 @@ final class ModuleTool
         }
 
         return Project::encode(Project::runTarget('composer', [
-            'ARGS' => new PrintModuleConfigCommand()->getName() . ' ' . $resolvedModule->value,
+            'ARGS' => (new PrintModuleConfigCommand())->getName() . ' ' . $resolvedModule->value,
         ]));
     }
 }

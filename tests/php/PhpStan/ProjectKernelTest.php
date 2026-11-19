@@ -58,7 +58,7 @@ final class ProjectKernelTest extends TestCase
         putenv(sprintf('%s=Acme\Nope', ProjectKernel::CLASS_ENVIRONMENT_VARIABLE));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains(ProjectKernel::CLASS_ENVIRONMENT_VARIABLE);
+        $this->expectExceptionMessage(ProjectKernel::CLASS_ENVIRONMENT_VARIABLE);
         ProjectKernel::locate();
     }
 

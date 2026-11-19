@@ -23,7 +23,7 @@ and the extensions to collect.
 use Brnshkr\Config\FileFinder;
 use Symfony\Component\Finder\Finder;
 
-$twigFiles = FileFinder::get(new Finder()->in('templates'), FileFinder::EXTENSION_TWIG);
+$twigFiles = FileFinder::get((new Finder())->in('templates'), FileFinder::EXTENSION_TWIG);
 ```
 
 `FileFinder::EXTENSIONS` holds what is supported, `FileFinder::MARKDOWN_EXTENSIONS` both Markdown spellings;

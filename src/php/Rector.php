@@ -214,9 +214,7 @@ final class Rector
      */
     public function addRules(array $rules): self
     {
-        $this->rules = [...$this->rules, ...$rules]
-            |> array_unique(...)
-            |> array_values(...);
+        $this->rules = array_values(array_unique([...$this->rules, ...$rules]));
 
         return $this;
     }
@@ -311,9 +309,7 @@ final class Rector
      */
     public function addPaths(array $paths): self
     {
-        $this->paths = [...$this->paths, ...$paths]
-            |> array_unique(...)
-            |> array_values(...);
+        $this->paths = array_values(array_unique([...$this->paths, ...$paths]));
 
         return $this;
     }

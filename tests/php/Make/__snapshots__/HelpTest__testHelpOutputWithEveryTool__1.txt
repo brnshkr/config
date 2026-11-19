@@ -884,24 +884,23 @@ Available commands:
  Functions:
   brnshkr
 @@ @@
-    text
      Wraps a string in ANSI color and modifier escapes, resetting after it.
      The color and the modifiers may be given together or apart.
-+
+ 
 +    parameters:
 +      text: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
 +      modifiers?: AnyOf<normal | bold | underline | reverse | bright>
 +
 +    returns: string
- 
++
     log
      Prints a message behind the <VENDOR>/<PACKAGE> label.
+     Anything in backticks renders as inline code, and keeps its backticks where color is off.
 @@ @@
-     A literal comma has to be written as $(_COMMA).
      A backticked span that names a target or an existing path links to it, which no-autolink turns
      off where the sentence is about neither.
-+
+ 
 +    parameters:
 +      message: string
 +      color_and_or_modifiers?: AnyOf<normal | white | black | red | yellow | green | cyan | blue | magenta | bold | underline | reverse | bright>
@@ -909,10 +908,9 @@ Available commands:
 +      autolink?: OneOf<autolink | no-autolink> = autolink
 +
 +    returns: void
- 
++
     run_in
      The command a tool named for a Compose service runs through, empty on this machine.
-@@ @@
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
  
@@ -925,11 +923,11 @@ Available commands:
      Asks a yes/no question before something destructive happens.
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
      It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-+
+ 
 +    parameters:
 +      question: string
 +      default?: OneOf<yes | no> = no
- 
++
 +    returns: void
 +
  Available commands:

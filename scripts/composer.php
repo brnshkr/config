@@ -28,5 +28,5 @@ $eventDispatcher->addListener(ConsoleEvents::COMMAND, static function () use ($a
 });
 
 $application->setDispatcher($eventDispatcher);
-$application->addCommands(new CommandProvider()->getCommands());
+$application->addCommands((new CommandProvider())->getCommands());
 $application->run();

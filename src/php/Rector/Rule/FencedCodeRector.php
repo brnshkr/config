@@ -339,10 +339,10 @@ final class FencedCodeRector extends AbstractRector implements ConfigurableRecto
         $stmtsAndTokens = $this->rectorParser->parseFileContentToStmtsAndTokens($fenceFile->getOriginalFileContent());
         $statements     = $stmtsAndTokens->getStmts();
 
-        new NodeTraverser(new NameResolver(null, [
+        (new NodeTraverser(new NameResolver(null, [
             'preserveOriginalNames' => true,
             'replaceNodes'          => false,
-        ]))->traverse($statements);
+        ])))->traverse($statements);
 
         $fileNodes = [new FileNode($statements, $this->usedImportsResolver->resolveForStmts($statements))];
 

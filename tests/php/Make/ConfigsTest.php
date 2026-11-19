@@ -66,7 +66,7 @@ final class ConfigsTest extends TestCase
             }
         }
 
-        new Filesystem()->remove($writtenPaths);
+        (new Filesystem())->remove($writtenPaths);
     }
 
     public function testMissingConfigurationNamesThePathAndTheVariable(): void
@@ -112,7 +112,7 @@ final class ConfigsTest extends TestCase
         self::assertStringContainsString('Created `./conf/tsconfig.json`.', $created);
         self::assertStringContainsString('Linked `./tsconfig.json` to `./conf/tsconfig.json`.', $created);
         self::assertStringContainsString('`./tsconfig.json` already exists.', $kept);
-        self::assertSame('conf/tsconfig.json', new Filesystem()->readlink($typescriptDirectory . '/tsconfig.json'));
+        self::assertSame('conf/tsconfig.json', (new Filesystem())->readlink($typescriptDirectory . '/tsconfig.json'));
     }
 
     public function testARepositoryWithoutComposerGetsNoExportLines(): void
@@ -121,7 +121,7 @@ final class ConfigsTest extends TestCase
 
         $this->runMake(['configs'], directory: $typescriptDirectory);
 
-        $gitattributes = new Filesystem()->readFile($typescriptDirectory . '/.gitattributes');
+        $gitattributes = (new Filesystem())->readFile($typescriptDirectory . '/.gitattributes');
 
         self::assertStringNotContainsString('export-ignore', $gitattributes);
         self::assertStringEndsWith("linguist-vendored\n###< brnshkr/config ###\n", $gitattributes);
@@ -134,24 +134,24 @@ final class ConfigsTest extends TestCase
 
         $this->runMake(['configs', 'vscode-extensions'], directory: $typescriptDirectory);
 
-        $withoutSvelte = new Filesystem()->readFile($extensionsPath);
+        $withoutSvelte = (new Filesystem())->readFile($extensionsPath);
 
-        new Filesystem()->mkdir($typescriptDirectory . '/node_modules/svelte');
+        (new Filesystem())->mkdir($typescriptDirectory . '/node_modules/svelte');
         $this->runMake(['configs', 'vscode-extensions'], directory: $typescriptDirectory);
 
         self::assertStringNotContainsString('svelte.svelte-vscode', $withoutSvelte);
-        self::assertStringContainsString("    // Frameworks\n    \"svelte.svelte-vscode\"\n", new Filesystem()->readFile($extensionsPath));
+        self::assertStringContainsString("    // Frameworks\n    \"svelte.svelte-vscode\"\n", (new Filesystem())->readFile($extensionsPath));
     }
 
     public function testAComposerProjectWithoutMarkersGetsTheBlockAheadOfItsOwnLines(): void
     {
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
 
-        new Filesystem()->dumpFile($configsDirectory . '/.gitattributes', "*.png binary\n");
+        (new Filesystem())->dumpFile($configsDirectory . '/.gitattributes', "*.png binary\n");
 
         $this->runMake(['configs'], directory: $configsDirectory);
 
-        $gitattributes = new Filesystem()->readFile($configsDirectory . '/.gitattributes');
+        $gitattributes = (new Filesystem())->readFile($configsDirectory . '/.gitattributes');
 
         self::assertStringStartsWith("###> brnshkr/config ###\n", $gitattributes);
         self::assertMatchesRegularExpression('/^\/composer\.json\s+-export-ignore$/m', $gitattributes);
@@ -168,7 +168,7 @@ final class ConfigsTest extends TestCase
 
         self::assertStringContainsString(
             '"extends": "./conf/tsconfig.json"',
-            new Filesystem()->readFile($typescriptDirectory . '/tsconfig.json'),
+            (new Filesystem())->readFile($typescriptDirectory . '/tsconfig.json'),
         );
     }
 
@@ -208,7 +208,7 @@ final class ConfigsTest extends TestCase
 
         $this->runMake(['configs', 'local'], directory: $configsDirectory);
 
-        $shim = new Filesystem()->readFile($configsDirectory . '/conf/php-cs-fixer.php');
+        $shim = (new Filesystem())->readFile($configsDirectory . '/conf/php-cs-fixer.php');
 
         self::assertStringContainsString('$config = include __DIR__ . \'/php-cs-fixer.dist.php\';', $shim);
         self::assertStringContainsString('@internal App', $shim);
@@ -257,7 +257,7 @@ final class ConfigsTest extends TestCase
         $layoutDirectory = $this->getFixtureCopy(self::LAYOUT_DIRECTORY);
         $templatePath    = $layoutDirectory . '/tools/conf/phpunit.dist.xml.example';
 
-        new Filesystem()->dumpFile($templatePath, '<phpunit bootstrap="../../lib/autoload.php"/>');
+        (new Filesystem())->dumpFile($templatePath, '<phpunit bootstrap="../../lib/autoload.php"/>');
 
         $this->runMake(['configs', 'phpunit.dist.xml'], self::MOVED_DIRECTORIES, $layoutDirectory);
 
@@ -268,7 +268,7 @@ final class ConfigsTest extends TestCase
     {
         $layoutDirectory = $this->getFixtureCopy(self::LAYOUT_DIRECTORY);
 
-        new Filesystem()->copy(
+        (new Filesystem())->copy(
             self::PROJECT_DIRECTORY . '/conf/phpunit.dist.xml',
             $layoutDirectory . '/lib/' . self::getPackageFullName() . '/conf/phpunit.dist.xml',
         );
@@ -304,7 +304,7 @@ final class ConfigsTest extends TestCase
     {
         $vendorDirectory = $this->getFixtureCopy(self::VENDOR_DIRECTORY);
 
-        new Filesystem()->touch($vendorDirectory . '/vendor/' . self::getPackageFullName() . '/conf/phpstan.php');
+        (new Filesystem())->touch($vendorDirectory . '/vendor/' . self::getPackageFullName() . '/conf/phpstan.php');
 
         $resolved = $this->runMake(['help', 'resolve', 'vv'], ['VALUE_WIDTH' => '200'], $vendorDirectory);
 
@@ -337,7 +337,7 @@ final class ConfigsTest extends TestCase
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
         $resolve          = ['help', 'resolve', 'vv', 'VALUE_WIDTH=200'];
 
-        new Filesystem()->touch([
+        (new Filesystem())->touch([
             $configsDirectory . '/.env.prod',
             $configsDirectory . '/conf/phpstan.dist.php',
             $configsDirectory . '/conf/phpstan.php',
@@ -358,7 +358,7 @@ final class ConfigsTest extends TestCase
 
         self::assertStringContainsString(
             "/conf/phpstan.dev.php\n/conf/phpstan.php\n/conf/phpstan.prod.php\n",
-            new Filesystem()->readFile($configsDirectory . '/.gitignore'),
+            (new Filesystem())->readFile($configsDirectory . '/.gitignore'),
         );
     }
 
@@ -499,7 +499,7 @@ final class ConfigsTest extends TestCase
 
         $this->runMake(['configs', 'vscode-settings'], ['CACHE_DIR' => 'acme-cache'], $composerDirectory);
 
-        $settings = new Filesystem()->readFile($composerDirectory . '/.vscode/settings.json');
+        $settings = (new Filesystem())->readFile($composerDirectory . '/.vscode/settings.json');
 
         self::assertStringContainsString('"phpstan.binPath": "./tools/bin/phpstan"', $settings);
         self::assertStringContainsString('"**/acme-cache/**": true,', $settings);
@@ -575,7 +575,7 @@ final class ConfigsTest extends TestCase
         $descriptions = [];
         $filesystem   = new Filesystem();
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->in($fixtureDirectory)
             ->files()
             ->ignoreDotFiles(false)
@@ -621,6 +621,6 @@ final class ConfigsTest extends TestCase
      */
     private static function getRelativePaths(string $configPath): array
     {
-        return array_column(Str::matchAll(new Filesystem()->readFile($configPath), '/[">](?<path>\.\.\/[^"<]*)/'), 'path');
+        return array_column(Str::matchAll((new Filesystem())->readFile($configPath), '/[">](?<path>\.\.\/[^"<]*)/'), 'path');
     }
 }

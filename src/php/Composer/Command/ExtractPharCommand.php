@@ -122,7 +122,7 @@ final class ExtractPharCommand extends AbstractCommand
             throw new InvalidArgumentException(sprintf('Package directory "%s" does not exist.', $vendorDirectory));
         }
 
-        $finder = new Finder()
+        $finder = (new Finder())
             ->files()
             ->in($vendorDirectory)
             ->depth(0)
@@ -152,7 +152,7 @@ final class ExtractPharCommand extends AbstractCommand
         $this->filesystem->mkdir($targetDirectory);
 
         try {
-            new Phar($pharPath)->extractTo($targetDirectory, overwrite: true);
+            (new Phar($pharPath))->extractTo($targetDirectory, overwrite: true);
         } catch (BadMethodCallException $badMethodCallException) {
             throw UnreachableException::wrap($badMethodCallException);
         }

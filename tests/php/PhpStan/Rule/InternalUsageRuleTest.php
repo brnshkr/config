@@ -279,7 +279,7 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     public function testRuleRejectsAnEmptyOptionEntry(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Value for option "allowedInternals" must be a list of non-empty strings.');
+        $this->expectExceptionMessage('Value for option "allowedInternals" must be a list of non-empty strings.');
 
         // @phpstan-ignore argument.type (Deliberately invalid input to cover the option validation)
         $this->createRule(['']);
@@ -288,7 +288,7 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     public function testRuleRejectsAnUnterminatedRegexPattern(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Entry "/^Brnshkr" for option "allowedCallers" is neither a namespace prefix nor a delimited regex pattern.');
+        $this->expectExceptionMessage('Entry "/^Brnshkr" for option "allowedCallers" is neither a namespace prefix nor a delimited regex pattern.');
 
         $this->createRule(null, ['/^Brnshkr']);
     }
@@ -296,7 +296,7 @@ final class InternalUsageRuleTest extends AbstractRuleTestCase
     public function testRuleRejectsABackslashOnlyEntry(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Entry "\" for option "allowedInternals" is neither a namespace prefix nor a delimited regex pattern.');
+        $this->expectExceptionMessage('Entry "\" for option "allowedInternals" is neither a namespace prefix nor a delimited regex pattern.');
 
         $this->createRule(['\\']);
     }

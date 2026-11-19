@@ -288,7 +288,7 @@ final readonly class FencedCodeRule implements Rule
         ?array $documentedMethod,
     ): array {
         try {
-            $statements = new ParserFactory()
+            $statements = (new ParserFactory())
                 ->createForNewestSupportedVersion()
                 ->parse(FencedCode::OPENING_TAG . $code) ?? []
             ;
@@ -442,7 +442,7 @@ final readonly class FencedCodeRule implements Rule
             }
         };
 
-        new NodeTraverser($nameResolver, $docCollector)->traverse($statements);
+        (new NodeTraverser($nameResolver, $docCollector))->traverse($statements);
 
         return $docCollector->nestedDocs;
     }

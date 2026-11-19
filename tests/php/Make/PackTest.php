@@ -93,11 +93,11 @@ final class PackTest extends TestCase
     private static function getTemplatesWithTheirPackages(): array
     {
         $templateReads = Str::matchAll(
-            new Filesystem()->readFile(self::PROJECT_DIRECTORY . '/conf/Makefile'),
+            (new Filesystem())->readFile(self::PROJECT_DIRECTORY . '/conf/Makefile'),
             '/\$\((?<directory>_BRNSHKR|_JS|_PHP)_CONFIG_DIR\)\/(?<template>[\w\-.]+)/',
         );
 
-        $stackPartFinder = new Finder()
+        $stackPartFinder = (new Finder())
             ->files()
             ->in(self::PROJECT_DIRECTORY . '/conf')
             ->depth(0)

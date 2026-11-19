@@ -55,7 +55,7 @@ final class ConstantDocCache
     {
         try {
             $file       = new SplFileObject($filePath);
-            $statements = new ParserFactory()->createForHostVersion()->parse($file->fread(max(1, $file->getSize())) ?: '') ?? [];
+            $statements = (new ParserFactory())->createForHostVersion()->parse($file->fread(max(1, $file->getSize())) ?: '') ?? [];
         } catch (Error|LogicException|RuntimeException) {
             return [];
         }
@@ -107,7 +107,7 @@ final class ConstantDocCache
             }
         };
 
-        new NodeTraverser(new NameResolver(), $visitor)->traverse($statements);
+        (new NodeTraverser(new NameResolver(), $visitor))->traverse($statements);
 
         return $visitor->docComments;
     }

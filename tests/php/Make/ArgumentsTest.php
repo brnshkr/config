@@ -44,7 +44,7 @@ final class ArgumentsTest extends TestCase
     {
         $directory = $this->writeProject('BareExport');
 
-        new Filesystem()->appendToFile($directory . '/Makefile', $exportLine . "\n");
+        (new Filesystem())->appendToFile($directory . '/Makefile', $exportLine . "\n");
 
         $result = $this->runMake(['help'], directory: $directory, doExpectFailure: true);
 

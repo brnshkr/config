@@ -74,7 +74,7 @@ the shared [`Makefile`](https://github.com/brnshkr/config/blob/master/docs/Makef
 <!-- omit in toc -->
 ### PHP
 
-- PHP >= 8.5 (Older versions may work, but are untested)
+- PHP >= 8.3 (Older versions may work, but are untested)
 - Composer >= 2.9 (Older versions may work, but are untested)
 - PHP Extensions:
   - `json`

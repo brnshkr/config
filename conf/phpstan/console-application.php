@@ -21,7 +21,7 @@ namespace {
 
     require_once ProjectKernel::getRootDirectory() . '/vendor/autoload.php';
 
-    new Dotenv()->bootEnv(ProjectKernel::getRootDirectory() . '/.env');
+    (new Dotenv())->bootEnv(ProjectKernel::getRootDirectory() . '/.env');
 
     // @phpstan-ignore deadCode.unreachable (the stub above only exists where symfony/dotenv is absent, and this loader cannot run there)
     return new Application(new (ProjectKernel::getClassName())(

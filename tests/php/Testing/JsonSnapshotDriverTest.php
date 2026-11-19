@@ -20,13 +20,13 @@ final class JsonSnapshotDriverTest extends TestCase
 {
     public function testMatchesWhatDecodesToTheSameValue(): void
     {
-        new JsonSnapshotDriver()->match('{"paths": ["./src"]}', '{"paths":["./src"]}');
+        (new JsonSnapshotDriver())->match('{"paths": ["./src"]}', '{"paths":["./src"]}');
     }
 
     public function testReportsADifferenceAsAFailedAssertion(): void
     {
         $this->expectException(ExpectationFailedException::class);
 
-        new JsonSnapshotDriver()->match('{"paths":["./src"]}', '{"paths":["./tests"]}');
+        (new JsonSnapshotDriver())->match('{"paths":["./src"]}', '{"paths":["./tests"]}');
     }
 }

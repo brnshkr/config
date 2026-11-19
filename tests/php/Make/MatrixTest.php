@@ -126,7 +126,7 @@ final class MatrixTest extends TestCase
 
         self::assertStringContainsString('update --prefer-lowest', $result);
         self::assertStringContainsString('composer install --no-progress', $result);
-        self::assertSame("{}\n", new Filesystem()->readFile($matrixDirectory . '/composer.lock'));
+        self::assertSame("{}\n", (new Filesystem())->readFile($matrixDirectory . '/composer.lock'));
     }
 
     public function testAFailingRowLetsTheOthersRunAndAddsARowEachToTheCiSummary(): void
@@ -151,7 +151,7 @@ final class MatrixTest extends TestCase
         self::assertStringContainsString('`composer[acme/user:^9.0]` failed.', $result);
 
         $this->assertMatchesSnapshot(Str::replaceMatches(
-            new Filesystem()->readFile($summaryPath),
+            (new Filesystem())->readFile($summaryPath),
             '/\| \d+s \|/',
             static fn (): string => '| <seconds>s |',
         ));

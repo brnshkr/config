@@ -125,7 +125,7 @@ final class DotenvTest extends TestCase
     {
         $dotenvDirectory = $this->getFixtureCopy(self::DOTENV_DIRECTORY);
 
-        new Filesystem()->touch($dotenvDirectory . '/.env.stage:;false;#');
+        (new Filesystem())->touch($dotenvDirectory . '/.env.stage:;false;#');
 
         $result = $this->runMake(['dotenv-show'], directory: $dotenvDirectory, doExpectFailure: true);
 

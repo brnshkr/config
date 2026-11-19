@@ -38,10 +38,7 @@ enum Module: string
      */
     public static function fromValues(array $values): array
     {
-        return $values
-            |> (static fn (array $values): array => array_map(self::tryFrom(...), $values))
-            |> array_filter(...)
-            |> array_values(...);
+        return array_values(array_filter(array_map(self::tryFrom(...), $values)));
     }
 
     /**

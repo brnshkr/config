@@ -147,7 +147,7 @@ final class VerbsTest extends TestCase
         $this->runMake(['test'], ['CI_SUMMARY_FILE' => $summaryPath], $directory);
 
         $this->assertMatchesSnapshot(Str::replaceMatches(
-            new Filesystem()->readFile($summaryPath),
+            (new Filesystem())->readFile($summaryPath),
             '/\| \d+s \|/',
             static fn (): string => '| <seconds>s |',
         ));
