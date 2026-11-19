@@ -4,7 +4,7 @@ include ../../../../../conf/Makefile
 
 #!! Makefile of a project grouping the findings a tool reported
 
-group-pairs group-lists group-text group-eslint group-single group-service group-wide group-braces group-clean group-failing group-crash: export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
+group-pairs group-lists group-diffs group-text group-eslint group-parse-error group-single group-service group-wide group-braces group-clean group-failing group-crash: export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
 
 groups: #~~ runs two groups the way a verb does
 	@$(MAKE) $(_VERB_FLAGS) group-pairs group-single
@@ -15,11 +15,17 @@ group-pairs: #~~ groups findings that carry a message
 group-lists: #~~ groups findings that are named in a list
 	@$(call _group,cat applied.json,appliedFixers,,name)
 
+group-diffs: #~~ groups findings listed per file beside the file's diff
+	@$(call _group,cat diffs.json,appliedFixers,,name)
+
 group-text: #~~ groups findings a compiler reported as text
 	@$(call _group,cat errors.txt)
 
 group-eslint: #~~ groups findings from a report that also lists suppressed ones
 	@$(call _group,cat eslint.json,ruleId,message,filePath)
+
+group-parse-error: #~~ groups a report whose parse error carries no rule
+	@$(call _group,cat parse-error.json,ruleId,message,filePath)
 
 group-single: #~~ groups a report with exactly one finding
 	@$(call _group,cat single.json,identifier,message)

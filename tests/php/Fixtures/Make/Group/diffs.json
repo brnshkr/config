@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "name": "a.php",
+      "appliedFixers": [
+        "acme_first",
+        "acme_second"
+      ],
+      "diff": "--- a.php\n+++ a.php\n-\t$x = \"a\";\n+\t$x = 'a';\n"
+    },
+    {
+      "name": "b.php",
+      "appliedFixers": [
+        "acme_second"
+      ],
+      "diff": "--- b.php\n+++ b.php\n"
+    }
+  ]
+}

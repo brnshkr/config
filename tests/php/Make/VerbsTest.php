@@ -222,6 +222,23 @@ final class VerbsTest extends TestCase
         self::assertStringNotContainsString('acme_second ', $lists);
     }
 
+    public function testAListedRunPrintsOneRowPerFindingAndPerFixedFile(): void
+    {
+        $directory  = __DIR__ . '/../Fixtures/Make/Group';
+        $pairs      = $this->runMake(['group-pairs', '_GROUP_FORMAT=tsv'], directory: $directory, doExpectFailure: true);
+        $text       = $this->runMake(['group-text', '_GROUP_FORMAT=tsv'], directory: $directory, doExpectFailure: true);
+        $diffs      = $this->runMake(['group-diffs', '_GROUP_FORMAT=tsv'], directory: $directory, doExpectFailure: true);
+        $crash      = $this->runMake(['group-crash', '_GROUP_FORMAT=tsv'], directory: $directory, doExpectFailure: true);
+        $parseError = $this->runMake(['group-parse-error', '_GROUP_FORMAT=tsv'], directory: $directory, doExpectFailure: true);
+
+        self::assertStringContainsString("a.php\t\tSecond finding.\t\tacme.second\n", $pairs);
+        self::assertStringContainsString("a.ts\t3\tParsing error: Unexpected token.\t\tnone\n", $parseError);
+        self::assertStringContainsString("src/b.ts\t12\tObject is of type 'unknown'.\t\tTS2571\n", $text);
+        self::assertStringContainsString("a.php\t\t\t--- a.php\\n+++ a.php\\n-\\t\$x = \\\"a\\\";\\n+\\t\$x = 'a';\\n\tacme_first, acme_second\n", $diffs);
+        self::assertStringContainsString('crashed', $crash);
+        self::assertSame('', $this->runMake(['group-clean', '_GROUP_FORMAT=tsv'], directory: $directory));
+    }
+
     public function testFindingsAreCountedByTheCodeACompilerPrints(): void
     {
         $text = $this->runMake(['group-text'], directory: __DIR__ . '/../Fixtures/Make/Group');
@@ -293,6 +310,14 @@ final class VerbsTest extends TestCase
 
         self::assertStringContainsString('2  acme/real  Real finding.', $eslint);
         self::assertStringNotContainsString('acme/suppressed', $eslint);
+    }
+
+    public function testAFindingWithoutARuleIsCountedAsNone(): void
+    {
+        $parseError = $this->runMake(['group-parse-error'], directory: __DIR__ . '/../Fixtures/Make/Group');
+
+        self::assertStringContainsString("1  none       Parsing error: Unexpected token.\n", $parseError);
+        self::assertStringContainsString("✘ 2 findings\n", $parseError);
     }
 
     public function testAMessageContainingBracesKeepsItsText(): void

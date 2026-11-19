@@ -3395,7 +3395,7 @@ $(call _target,php-cs-fixer-dry-run): $(call _target,php-cs-fixer) #~~ shows the
 
 $(call _target,php-cs-fixer-group): #~~ counts the `php-cs-fixer` findings by fixer #v
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
-	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json,appliedFixers,,name)
+	$(TRACE_PREFIX)$(call _group,$(PHP_CS_FIXER) fix --config $(PHP_CS_FIXER_CONFIG) $(PHP_CS_FIXER_FLAGS) $(ARGS) --dry-run --format=json $(if $(_GROUP_FORMAT),--diff),appliedFixers,,name)
 
 $(call _target,php-cs-fixer-list): #~~ lists the files `php-cs-fixer` reads #vv
 	$(TRACE_PREFIX)$(call _require_file,$(PHP_CS_FIXER_CONFIG),PHP_CS_FIXER_CONFIG)
@@ -4912,7 +4912,7 @@ $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 output=$$($1 2>&1); status=$$?; \
 report=$$(printf '%s\n' "$$output" \
 	| _EDITOR_URL_TEMPLATE='$(_EDITOR_URL_TEMPLATE)' _CURDIR='$(CURDIR)' _APP_DIR='$(APP_DIR)' _SERVICE_DIRECTORY='$(_SERVICE_DIRECTORY)' $(AWK) \
-		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' \
+		-v _INDENT='$(if $(_HAS_GROUP_LABEL),$(INDENT),0)' -v _IDENTIFIER='$2' -v _MESSAGE='$3' -v _FILE_KEY='$4' -v _FORMAT='$(_GROUP_FORMAT)' \
 		-v _VERBOSITY='$(or $(V),0)' -v _IS_NO_COLOR='$(_IS_NO_COLOR)' -v _STATUS="$$status" \
 		-v _COLUMNS="$${COLUMNS:-$$( ($(TPUT) cols || $(STTY) size) 2>/dev/null </dev/tty)}" "$$_GROUP_AWK"); code=$$?; \
 $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || printf '%s\n' $${label:+"$$label"} "$$report";, \
@@ -6608,8 +6608,20 @@ function render_link(text, file, line) {
 	if (ENVIRON["_EDITOR_URL_TEMPLATE"] == "" || file == "" || _IS_NO_COLOR != "") return text
 	return "\033]8;;" render_url(ENVIRON["_EDITOR_URL_TEMPLATE"], get_project_path(file), line) "\033\\" text "\033]8;;\033\\"
 }
-function add(identifier, message, file, line) {
+function escape_field(text,    escaped, position, character) {
+	escaped = ""
+	for (position = 1; position <= length(text); position += 1) {
+		character = substr(text, position, 1)
+		if (character == "\\" || character == "\"") escaped = escaped "\\" character
+		else if (character == "\t") escaped = escaped "\\t"
+		else if (character == "\n") escaped = escaped "\\n"
+		else escaped = escaped character
+	}
+	return escaped
+}
+function add(identifier, message, file, line,    raw_message) {
 	if (identifier == "" || identifier == "null") return
+	raw_message = (_IDENTIFIER == "" ? escape_field(message) : message)
 	identifier = unescape(identifier)
 	message = unescape(message)
 	if (!(identifier in seen_identifiers)) { seen_identifiers[identifier] = 1; order[++total] = identifier }
@@ -6617,6 +6629,9 @@ function add(identifier, message, file, line) {
 	if (example[identifier] == "") example[identifier] = message
 	location_file[identifier, count[identifier]] = file
 	location_line[identifier, count[identifier]] = line
+	identifier_by_finding[++finding_total] = identifier
+	position_by_finding[finding_total] = count[identifier]
+	message_by_finding[finding_total] = raw_message
 	open_identifier = identifier
 }
 function update_open_location(file, line, is_start_line,    position) {
@@ -6664,6 +6679,7 @@ _IDENTIFIER != "" && _MESSAGE != "" {
 	if (record_file != "") current_file = record_file
 	record_identifier = get_value(pending, _IDENTIFIER)
 	if (record_identifier == "") record_identifier = get_number(pending, _IDENTIFIER)
+	if (record_identifier == "" && get_value(pending, _MESSAGE) != "") record_identifier = "none"
 	if (!is_in_suppressed_messages && record_identifier != "" && record_identifier != "null") {
 		add(record_identifier, get_value(pending, _MESSAGE), current_file, get_line(pending))
 		is_location_file_carried = (record_file == "")
@@ -6687,7 +6703,18 @@ END {
 		for (item = 1; item <= size; item += 1) {
 			gsub(/^[ \t]*"|"[ \t]*$$/, "", parts[item])
 			add(parts[item], "", listed_file, "")
+			if (!(listed_file in rules_by_listed_file)) listed_files[++listed_total] = listed_file
+			rules_by_listed_file[listed_file] = rules_by_listed_file[listed_file] (rules_by_listed_file[listed_file] == "" ? "" : ", ") unescape(parts[item])
 		}
+	}
+	rest = buffer
+	while (_FORMAT == "tsv" && _MESSAGE == "" && _FILE_KEY != "" && match(rest, "\"" _FILE_KEY "\"[ \t]*:[ \t]*\"")) {
+		rest = substr(rest, RSTART + RLENGTH)
+		match(rest, /^([^"\\]|\\.)*/)
+		diffed_file = unescape(substr(rest, RSTART, RLENGTH))
+		file_record = rest
+		if (match(file_record, "\"" _FILE_KEY "\"[ \t]*:")) file_record = substr(file_record, 1, RSTART - 1)
+		diff_by_file[diffed_file] = get_value(file_record, "diff")
 	}
 	for (outer = 1; outer < total; outer += 1)
 		for (inner = 1; inner <= total - outer; inner += 1)
@@ -6700,6 +6727,21 @@ END {
 		gsub(/\n/, "\n" padding, raw)
 		if (raw ~ /[^ \t\n]/) printf "%s%s\n", padding, raw
 		exit _STATUS
+	}
+	if (_FORMAT == "tsv") {
+		for (position = 1; position <= listed_total; position += 1) {
+			listed_file = listed_files[position]
+			printf "%s\t\t\t%s\t%s\n", escape_field(listed_file), diff_by_file[listed_file], escape_field(rules_by_listed_file[listed_file])
+		}
+		for (position = 1; listed_total == 0 && position <= finding_total; position += 1) {
+			identifier = identifier_by_finding[position]
+			file = location_file[identifier, position_by_finding[position]]
+			if (file != "") file = strip_directory(get_project_path(file), ENVIRON["_CURDIR"])
+			sub(/^\.\//, "", file)
+			printf "%s\t%s\t%s\t\t%s\n", escape_field(file), location_line[identifier, position_by_finding[position]], message_by_finding[position], escape_field(identifier)
+		}
+		has_findings = (total > 0)
+		exit has_findings
 	}
 	if (total == 0) { printf "%s$(call text,✔,$(COLOR_SUCCESS)) $(call text,No findings,$(COLOR_DESCRIPTION))\n", padding; exit }
 	for (position = 1; position <= total; position += 1) {

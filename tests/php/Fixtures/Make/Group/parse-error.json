@@ -1,0 +1,22 @@
+[
+  {
+    "filePath": "a.ts",
+    "messages": [
+      {
+        "ruleId": null,
+        "fatal": true,
+        "severity": 2,
+        "message": "Parsing error: Unexpected token.",
+        "line": 3
+      },
+      {
+        "ruleId": "acme/real",
+        "severity": 2,
+        "message": "Real finding.",
+        "line": 5
+      }
+    ],
+    "suppressedMessages": [],
+    "errorCount": 2
+  }
+]
