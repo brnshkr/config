@@ -63,8 +63,5 @@
     "typescriptreact",
     "vue",
     "yaml"
-  ],
-
-  // Markdown
-  "markdownlint.configPointer": "/config"
+  ]
 }

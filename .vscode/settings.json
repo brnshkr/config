@@ -277,9 +277,6 @@
     "yaml"
   ],
 
-  // Markdown
-  "markdownlint.configPointer": "/config",
-
   ///////////
   /// PHP ///
   ///////////
