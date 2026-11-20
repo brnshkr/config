@@ -7,17 +7,16 @@ namespace Brnshkr\Config\Tests;
 use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\Trait\TemporaryRootTrait;
 use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 
 use function chdir;
 use function getcwd;
-use function sys_get_temp_dir;
 
 /**
  * @internal
@@ -27,6 +26,10 @@ use function sys_get_temp_dir;
 #[UsesClass(Str::class)]
 final class ComposerJsonTest extends TestCase
 {
+    use TemporaryRootTrait;
+
+    private const string TEMPORARY_ROOT_PREFIX = 'brnshkr-composer-json-';
+
     public function testALookupFromAnotherDirectoryDoesNotReplaceTheOneForThisProject(): void
     {
         $directory    = getcwd() ?: '.';
@@ -123,20 +126,15 @@ final class ComposerJsonTest extends TestCase
 
     public function testAnAbsoluteVendorDirectoryIsTakenAsIs(): void
     {
-        $filesystem = new Filesystem();
-        $manifest   = sys_get_temp_dir() . '/brnshkr-absolute-vendor/composer.json';
+        $manifest = $this->createTemporaryRoot(self::TEMPORARY_ROOT_PREFIX) . '/composer.json';
 
-        $filesystem->dumpFile($manifest, Json::encode([
+        new Filesystem()->dumpFile($manifest, Json::encode([
             'require-dev' => ['acme/direct-dev' => '^1.0'],
             'config'      => ['vendor-dir' => __DIR__ . '/Fixtures/ComposerJson/transitive/vendor'],
         ]));
 
-        try {
-            self::assertContains('Acme\DirectDev', ComposerJson::forPath($manifest)->getDevelopmentOnlyPackageNamespaces());
-            self::assertSame(__DIR__ . '/Fixtures/ComposerJson/transitive/vendor', ComposerJson::forPath($manifest)->getVendorDirectory());
-        } finally {
-            $filesystem->remove(Path::getDirectory($manifest));
-        }
+        self::assertContains('Acme\DirectDev', ComposerJson::forPath($manifest)->getDevelopmentOnlyPackageNamespaces());
+        self::assertSame(__DIR__ . '/Fixtures/ComposerJson/transitive/vendor', ComposerJson::forPath($manifest)->getVendorDirectory());
     }
 
     public function testThePackageNameSplitsIntoItsOrganizationAndItsName(): void
