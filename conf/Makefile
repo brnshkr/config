@@ -1717,7 +1717,7 @@ _OPTION_VARIABLES  = $(strip $(foreach NAME,$(filter -%,$(.VARIABLES)),$(if $(fi
 _MAKE_ARGV        := $(if $(_OPTION_VARIABLES),$(shell { $(TR) '\000' ' ' </proc/$$PPID/cmdline || $(PS) -ww -o args= -p $$PPID; } 2>/dev/null))
 
 _GOAL_WORDS = $(if $(and $(_OPTION_VARIABLES),$(_MAKE_ARGV)),$(foreach WORD,$(_MAKE_ARGV),$(if $(or \
-	$(filter $(WORD),$(MAKECMDGOALS)), \
+	$(filter $(patsubst ./%,%,$(WORD)),$(MAKECMDGOALS)), \
 	$(filter $(_OPTION_VARIABLES),$(firstword $(subst =, ,$(WORD))))),$(WORD))),$(MAKECMDGOALS))
 
 _TARGET_ALIAS_MAP = $(foreach PAIR,$(TARGET_ALIASES),$(lastword $(subst =, ,$(PAIR)))=$(firstword $(subst =, ,$(PAIR))))
