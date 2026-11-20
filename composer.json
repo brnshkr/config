@@ -77,6 +77,7 @@
   },
   "conflict": {
     "friendsofphp/php-cs-fixer": "<3.95.28 || >=4",
+    "helgesverre/toon": "<3.2.1 || >=4",
     "kubawerlos/php-cs-fixer-custom-fixers": "<3.37.4 || >=4",
     "league/commonmark": "<2.10.7 || >=3",
     "phpat/phpat": "<0.12.5 || >=0.13",
@@ -89,6 +90,7 @@
     "phpstan/phpstan-symfony": "<2.1.1 || >=3",
     "phpstan/phpstan-webmozart-assert": "<2.0.0 || >=3",
     "rector/rector": "<2.8.4 || >=3",
+    "symfony/ai-mate": "<0.14.0 || >=0.15",
     "symfony/finder": "<8.1.11 || >=9",
     "symplify/phpstan-rules": "<14.19.3 || >=15",
     "ticketswap/phpstan-error-formatter": "<1.3.0 || >=2",
@@ -98,6 +100,7 @@
   "suggest": {
     "ext-dom": "Optional for checking XML code blocks with PHPStan",
     "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
+    "helgesverre/toon": "Optional for answering Symfony AI Mate tool calls in TOON",
     "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
     "league/commonmark": "Optional for checking, formatting and refactoring code blocks in docblocks and Markdown pages",
     "phpat/phpat": "Optional architecture-related PHPStan rules",
@@ -110,6 +113,7 @@
     "phpstan/phpstan-symfony": "Optional additional PHPStan rules for Symfony (It is recommended to configure parameters.symfony.consoleApplicationLoader when using this extension)",
     "phpstan/phpstan-webmozart-assert": "Optional additional PHPStan rules for Webmozart\\Assert",
     "rector/rector": "Needed for automatically applying upgrades and refactorings",
+    "symfony/ai-mate": "Optional for running the checks as Symfony AI Mate tools",
     "symfony/finder": "Needed when using PHP CS Fixer, Rector or PHPStan",
     "symplify/phpstan-rules": "Optional PHPStan rules by Symplify",
     "ticketswap/phpstan-error-formatter": "Optional PHPStan error output formatter",
@@ -123,8 +127,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Brnshkr\\Config\\Tests\\": "./tests/php/",
-      "Brnshkr\\Config\\Mate\\": "./conf/ai/mate/src/"
+      "Brnshkr\\Config\\Tests\\": "./tests/php/"
     },
     "classmap": [
       "./tests/php/Fixtures/"
@@ -132,13 +135,16 @@
   },
   "extra": {
     "ai-mate": {
-      "extension": false,
-      "instructions": "conf/ai/mate/INSTRUCTIONS.md",
+      "extension": true,
       "scan-dirs": [
-        "conf/ai/mate/src"
+        "src/php/Mate"
       ],
       "includes": [
         "conf/ai/mate/config.php"
+      ],
+      "instructions": "conf/ai/mate/INSTRUCTIONS.md",
+      "skills": [
+        "conf/ai/mate/skills"
       ]
     },
     "brnshkr": {

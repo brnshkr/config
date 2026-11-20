@@ -12,6 +12,9 @@ include ./conf/Makefile
 ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/Makefile.dist \
 	./conf/actionlint.dist.yaml \
+	./conf/ai/mate/INSTRUCTIONS.md \
+	./conf/ai/mate/config.php \
+	./conf/ai/mate/skills/ \
 	./conf/editorconfig.dist \
 	./conf/gitattributes.dist \
 	./conf/hadolint.dist.yaml \
@@ -73,38 +76,6 @@ build: typegen #~~ builds the `./dist/` this package publishes
 
 watch: #~~ rebuilds `./dist/` as the sources change
 	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(APP_DIR)/conf/tsdown.ts --watch $(ARGS)
-
-#--- mate
-
-MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate#v
-_MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
-
-_MATE_TOON_COMMANDS := tools:call \
-	tools:inspect \
-	tools:list \
-	resources:read
-
-_MATE_FORMAT = $(if $(filter $(_MATE_TOON_COMMANDS),$(firstword $(_ARGS))),$(if $(filter --format --format=%,$(_ARGS)),,--format=toon))
-
-mate: #~~ runs mate where the tools run, answering in TOON unless `--format` is given
-	$(DEBUG_PREFIX)$(if $(filter command line,$(origin ARGS)),eval "set -- $$ARGS",set -- $(ARGS)); \
-		$(MATE) "$$@" $(_MATE_FORMAT)
-
-discover: #~~ refreshes what mate generates for agents
-	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
-	$(DEBUG_PREFIX)if [ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ]; then \
-		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
-	else \
-		$(MAKE) --no-print-directory php-cs-fixer $(_MATE_EXTENSIONS) \
-			&& $(AWK) '\
-				/This file is managed by/,/^$$/ { next } \
-				/^\/\*\*$$/,/^ \*\/$$/ { next } \
-				/^return/ { print "/**\n * @internal\n */" } \
-				1 \
-			' '$(call _host_path,$(_MATE_EXTENSIONS))' > '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' \
-			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
-			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
-	fi
 
 #---vvv debug
 

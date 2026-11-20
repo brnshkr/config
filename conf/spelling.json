@@ -4,9 +4,6 @@
       "PHPStan\\Analyser\\Error",
       "PHPStan\\Analyser\\Scope"
     ],
-    "conf/ai/mate/INSTRUCTIONS.md": [
-      "phpstan-analyse"
-    ],
     "docs/spelling.md": [
       "\"colour\"",
       "'analyse'",

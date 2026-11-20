@@ -218,8 +218,9 @@ _CONSUMER_MAKEFILES := $(filter-out $(_BRNSHKR_CONFIG_MAKEFILE),$(MAKEFILE_LIST)
 
 #---- targets
 
-TARGET_PREFIX  ?= #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
-_TARGET_PREFIX  = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
+TARGET_PREFIX                ?= #~~ prefixes every target, so `brnshkr` gives `brnshkr-lint`
+_TARGET_PREFIX                = $(if $(TARGET_PREFIX),$(TARGET_PREFIX)$(if $(filter %- %.,$(TARGET_PREFIX)),,-))
+export BRNSHKR_TARGET_PREFIX  = $(_TARGET_PREFIX)
 
 COLLISION_PREFIX  ?= brnshkr#~~ namespace for a shared target whose name this project uses
 _COLLISION_PREFIX  = $(if $(COLLISION_PREFIX),$(COLLISION_PREFIX)$(if $(filter %- %.,$(COLLISION_PREFIX)),,-))
@@ -485,6 +486,7 @@ _TERMINAL_KEYS := BRNSHKR_CACHE_DIR \
 	BRNSHKR_CONFIG_DIR \
 	BRNSHKR_DEBUG \
 	BRNSHKR_LOCAL_DIR \
+	BRNSHKR_TARGET_PREFIX \
 	CI \
 	CLICOLOR \
 	CLICOLOR_FORCE \
@@ -1195,6 +1197,7 @@ _HAS_PHPSTAN         = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/phpstan)
 _HAS_PHP_CS_FIXER    = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/php-cs-fixer)
 _HAS_RECTOR          = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/rector)
 _HAS_TWIG_CS_FIXER   = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/twig-cs-fixer)
+_HAS_MATE            = $(wildcard $(CURDIR)/$(_COMPOSER_BIN_DIR)/mate)
 _HAS_JS              = $(wildcard $(CURDIR)/package.json)
 _HAS_BUN_INSPECT     = $(wildcard $(CURDIR)/node_modules/.bin/node-modules-inspector)
 _HAS_COMMITLINT      = $(wildcard $(CURDIR)/node_modules/.bin/commitlint)
@@ -1980,6 +1983,16 @@ $(_GROUPS): export _GROUP_AWK = $(_GROUP_AWK_SOURCE)
 $(call _target,group): #~~ counts every tool's findings by identifier
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) $(_GROUPS) $(GROUP_TARGETS)
 endif
+
+_QUALITY_TARGET = $(if $(and $(filter 1,$(words $(_QUALITY_TOOL))),$(filter $(_QUALITY_TOOL),$(_GROUP_NAMES))),$(_QUALITY_TOOL)$(if \
+	$(_IS_QUALITY_GROUPED),-group,$(if $(and $(_IS_QUALITY_DRY_RUN),$(filter $(_QUALITY_TOOL),$(_FIXER_NAMES))),-dry-run)))
+
+_$(_TARGET_PREFIX)quality: $(if $(_QUALITY_TARGET),$(call _target,$(_QUALITY_TARGET)))
+	$(TRACE_PREFIX)$(if $(_QUALITY_TARGET),:,{ \
+		$(call log,Unknown tool `%s`.,$(COLOR_ERROR),$(call _quoted,$(_QUALITY_TOOL))); \
+		$(if $(_GROUP_NAMES),$(call log,Try %s.,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_GROUP_NAMES),disjunction)),no-autolink),$(call log,No quality tool is installed.,$(COLOR_NOTICE))); \
+		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	})
 
 ifneq ($(_HAS_AUDIT),)
 $(call _target,audit): #~~ checks locked dependencies for known vulnerabilities
@@ -3475,6 +3488,79 @@ $(call _target,twig-cs-fixer-print): #~~ prints the `twig-cs-fixer` rules in use
 	$(TRACE_PREFIX)$(call _php_program,_RULES_PROGRAM,twig-cs-fixer $(TWIG_CS_FIXER_CONFIG) '$(_INLINE_CODE_URL)' $(APP_DIR) $(CURDIR))
 
 endif # /twig-cs-fixer
+
+#--- mate
+
+ifneq ($(_HAS_MATE),) # mate
+
+MATE                  ?= $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/mate#v #~~ command that runs `mate`
+MATE_TOON_COMMANDS    ?= $(_MATE_TOON_COMMANDS)#vv #~~ mate commands that answer in TOON unless `--format` is given
+_MATE_EXTENSIONS      := $(APP_DIR)/mate/extensions.php
+_MATE_DISABLED_SKILLS := $(_BRNSHKR_CACHE_DIR)/mate-disabled-skills
+
+_MATE_TOON_COMMANDS := debug:capabilities \
+	debug:extensions \
+	resources:read \
+	skills:install \
+	skills:list \
+	skills:validate \
+	tools:call \
+	tools:inspect \
+	tools:list
+
+_MATE_FORMAT = $(if $(and $(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/helgesverre/toon),$(filter $(MATE_TOON_COMMANDS),$(firstword $(_ARGS)))),$(if $(filter --format --format=%,$(_ARGS)),,--format=toon))
+
+#**
+#* Turns this extension's skills on or off to match the project.
+#*
+#* returns: void
+#*
+define _sync_mate_skills
+record_path='$(call _host_path,$(CURDIR)/$(_MATE_DISABLED_SKILLS))'; \
+$(MKDIR) -p "$${record_path%/*}" && : >"$$record_path.next" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+if [ -r "$$record_path" ]; then \
+	while read -r skill_name reason; do \
+		case "$$reason" in \
+			makefile$(if $(_COMMITLINT_NAME),|commitlint)) $(MATE) skills:enable --quiet "$$skill_name" || exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
+			*) printf '%s %s\n' "$$skill_name" "$$reason" >>"$$record_path.next";; \
+		esac; \
+	done <"$$record_path"; \
+fi; \
+$(if $(_COMMITLINT_NAME),,if $(MATE) skills:list --format=json | $(AWK) \
+	'/"original_name": "brnshkr-commit-message"/ { is_found = 1 } is_found && /"enabled":/ { is_enabled = $$2 == "true,"; exit } END { exit !is_enabled }'; then \
+	$(MATE) skills:disable --quiet brnshkr-commit-message && printf '%s\n' 'brnshkr-commit-message commitlint' >>"$$record_path.next" \
+		|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+fi;) \
+if [ -s "$$record_path.next" ]; then $(MV) "$$record_path.next" "$$record_path"; else $(RM) -f "$$record_path.next" "$$record_path"; fi
+endef
+
+_$(_TARGET_PREFIX)print-variables:
+	$(TRACE_PREFIX)$(foreach NAME,$(_PRINTED_VARIABLES),printf '%s=%s\n' '$(NAME)' $(call _quoted,$($(NAME)));)
+
+$(call _target,mate): #~~ runs mate where the tools run, answering in TOON where `helgesverre/toon` is installed
+	$(DEBUG_PREFIX)$(if $(filter command line,$(origin ARGS)),eval "set -- $$ARGS",set -- $(ARGS)); \
+		$(MATE) "$$@" $(_MATE_FORMAT)
+
+$(call _target,discover): #~~ refreshes what mate generates for agents
+	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
+	$(if $(wildcard $(call _host_path,$(_MATE_EXTENSIONS))),,$(DEBUG_PREFIX)$(MATE) discover --quiet $(ARGS))
+	$(DEBUG_PREFIX)$(call _sync_mate_skills)
+	$(if $(_PHP_CS_FIXER_NAME),$(DEBUG_PREFIX)[ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ] \
+		|| $(MAKE) --no-print-directory $(call _target,php-cs-fixer) $(_MATE_EXTENSIONS))
+	$(DEBUG_PREFIX)if [ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ]; then \
+		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
+	else \
+		$(AWK) '\
+				/This file is managed by/,/^$$/ { next } \
+				/^\/\*\*$$/,/^ \*\/$$/ { next } \
+				/^return/ { print "/**\n * @internal\n */" } \
+				1 \
+			' '$(call _host_path,$(_MATE_EXTENSIONS))' > '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' \
+			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
+			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
+	fi
+
+endif # /mate
 
 endif # /php
 

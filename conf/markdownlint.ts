@@ -5,6 +5,15 @@ export default getConfig(undefined, {
   overrides: [
     {
       filter: [
+        'conf/ai/mate/INSTRUCTIONS.md',
+      ],
+      config: {
+        'first-line-heading': false,
+        'heading-sentence-case': false,
+      },
+    },
+    {
+      filter: [
         'docs/js/markdownlint/rules/no-php-open-tag.md',
       ],
       config: {

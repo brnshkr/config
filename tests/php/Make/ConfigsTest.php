@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\Make;
 
-use Brnshkr\Config\ComposerJson;
 use Brnshkr\Config\Json;
 use Brnshkr\Config\Str;
 use Brnshkr\Config\Tests\Make\Trait\ContainerTrait;
+use Brnshkr\Config\Tests\Trait\PackageNameTrait;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -28,6 +28,7 @@ use function sprintf;
 final class ConfigsTest extends TestCase
 {
     use ContainerTrait;
+    use PackageNameTrait;
 
     private const string CONFIGS_DIRECTORY  = __DIR__ . '/../Fixtures/Make/Configs';
     private const string TSCONFIG_DIRECTORY = __DIR__ . '/../Fixtures/Make/Typescript';
@@ -711,11 +712,6 @@ final class ConfigsTest extends TestCase
             '/PHP_STAN_CONFIG\s+\?=\s+\S+vendor\/%s\/conf\/phpstan\.dist\.php/',
             Str::quoteRegex(self::getPackageFullName()),
         );
-    }
-
-    private static function getPackageFullName(): string
-    {
-        return ComposerJson::forThisLibrary()->getPackageFullName() ?? self::fail('Package name not found in "composer.json".');
     }
 
     /**

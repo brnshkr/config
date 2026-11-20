@@ -5,8 +5,14 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Tests\Mate;
 
 use Brnshkr\Config\Mate\Support\Project;
+use Brnshkr\Config\Str;
+use Brnshkr\Config\Tests\Trait\TemporaryRootTrait;
+use PHPStan\Testing\PHPStanTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Path;
+
+use function sprintf;
 
 /**
  * @internal
@@ -14,6 +20,10 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class ProjectTest extends TestCase
 {
+    use TemporaryRootTrait;
+
+    private const string TEMPORARY_ROOT_PREFIX = 'brnshkr-project-';
+
     /**
      * Every control-sequence form a quality tool can emit, mapped to the output
      * that has to survive the sanitizing pass.
@@ -60,5 +70,45 @@ final class ProjectTest extends TestCase
         $result = Project::run(['cat'], input: "\x1B[1G\x1B[2K 118/118\x00 100%");
 
         self::assertStringContainsString('118/118 100%', Project::encode($result));
+    }
+
+    public function testTheRootDirectoryStaysTheProjectsOnceThePhpStanPharIsLoaded(): void
+    {
+        PHPStanTestCase::getContainer();
+
+        self::assertSame(Path::canonicalize(__DIR__ . '/../../..'), Project::getRootDirectory());
+    }
+
+    public function testAnUnexpectedOutputSaysWhereItCameFrom(): void
+    {
+        self::assertSame('Unexpected output from "vitest".', Project::createUnexpectedOutputException('vitest')->getMessage());
+    }
+
+    public function testAResultKeepsTheEndOfALongOutput(): void
+    {
+        $encodedResult = Project::encodeResult([
+            'exitCode' => 0,
+            'output'   => Str::repeat('a', Project::MAX_OUTPUT_LENGTH) . 'tail',
+        ]);
+
+        self::assertStringContainsString('[... 4 characters truncated ...]', $encodedResult);
+        self::assertStringContainsString('tail', $encodedResult);
+    }
+
+    public function testATargetAnswersItsRecipesExitCodeWithoutMakesErrorLine(): void
+    {
+        $result = Project::runTarget('_quality', ['_QUALITY_TOOL' => 'acme']);
+
+        self::assertSame(69, $result['exitCode']);
+        self::assertStringNotContainsString('make: ***', $result['output']);
+    }
+
+    public function testAVariableReachesTheTargetAsWritten(): void
+    {
+        $markerPath = $this->createMarkerPath(self::TEMPORARY_ROOT_PREFIX);
+        $result     = Project::runTarget('_quality', ['_QUALITY_TOOL' => sprintf('$(shell touch %s)', $markerPath)]);
+
+        self::assertFileDoesNotExist($markerPath);
+        self::assertStringContainsString('Unknown tool `$(shell touch', $result['output']);
     }
 }

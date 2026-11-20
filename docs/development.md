@@ -18,8 +18,8 @@ writes the tool configs this repository does not track, builds `./dist/`, and in
 
 ## 🤖 AI tooling
 
-This repo ships project-aware tools ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants,
-wired up under [`./conf/ai/`](../conf/ai). They install themselves on `composer install` (the `mate/` directory is generated),
+This repo ships project-aware tools ([Symfony AI Mate](https://github.com/symfony/ai-mate)) for AI assistants
+in [`./src/php/Mate/`](../src/php/Mate). They install themselves on `composer install` (the `mate/` directory is generated),
 and an agent runs them as `make mate -- tools:call <tool>`.
 Agents must read [`AGENTS.md`](../AGENTS.md) first;
 how the setup works and how to extend it lives in [`./conf/ai/docs/ai.md`](../conf/ai/docs/ai.md).

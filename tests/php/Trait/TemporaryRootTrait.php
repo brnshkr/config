@@ -62,6 +62,20 @@ trait TemporaryRootTrait
         return $temporaryRoot;
     }
 
+    /**
+     * @param non-empty-string $prefix
+     *
+     * @return non-empty-string
+     */
+    private function createMarkerPath(string $prefix): string
+    {
+        $temporaryRoot = $this->createTemporaryRoot($prefix);
+
+        new Filesystem()->mkdir($temporaryRoot);
+
+        return $temporaryRoot . '/ran';
+    }
+
     private static function getTemporaryDirectory(): string
     {
         $homeDirectory = Str::fromEnvironment('HOME') ?: throw new RuntimeException('Environment variable not found: "HOME".');

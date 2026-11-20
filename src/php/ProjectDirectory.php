@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config;
 
+use Brnshkr\Config\Tests\ProjectDirectoryTest;
+
 /**
  * @internal
+ *
+ * @see ProjectDirectoryTest
  */
 final readonly class ProjectDirectory
 {
     public const string DEFAULT_CONFIG_DIRECTORY = 'conf';
 
     private const string DEFAULT_CACHE_DIRECTORY = '.cache';
+
+    private const string OWN_CACHE_DIRECTORY = 'brnshkr.cache';
 
     private const string DEFAULT_LOCAL_DIRECTORY = '.local';
 
@@ -25,6 +31,11 @@ final readonly class ProjectDirectory
     public static function getCache(): string
     {
         return self::fromEnvironment('BRNSHKR_CACHE_DIR', self::DEFAULT_CACHE_DIRECTORY);
+    }
+
+    public static function getOwnCache(): string
+    {
+        return self::getCache() . '/' . self::OWN_CACHE_DIRECTORY;
     }
 
     public static function getLocal(): string

@@ -80,7 +80,6 @@ final class ComposerJson
         'ext-tokenizer',
         'ext-xml',
         'ext-xmlwriter',
-        'helgesverre/toon',
         'matesofmate/composer-extension',
         'matesofmate/phpstan-extension',
         'matesofmate/phpunit-extension',
@@ -89,7 +88,6 @@ final class ComposerJson
         'phpunit/phpunit',
         'sebastian/diff',
         'spatie/phpunit-snapshot-assertions',
-        'symfony/ai-mate',
         'symfony/process',
     ];
 

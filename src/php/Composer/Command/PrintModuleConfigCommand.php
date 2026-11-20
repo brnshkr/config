@@ -36,7 +36,7 @@ use function max;
 use function sprintf;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal Brnshkr\Config
  */
 final class PrintModuleConfigCommand extends AbstractCommand
 {
@@ -151,12 +151,7 @@ final class PrintModuleConfigCommand extends AbstractCommand
      */
     private static function getDefaultConfigFile(Module $module): string
     {
-        return ProjectDirectory::getConfig() . '/' . match ($module) {
-            Module::PhpCsFixer  => 'php-cs-fixer.dist.php',
-            Module::PhpStan     => 'phpstan.dist.php',
-            Module::Rector      => 'rector.dist.php',
-            Module::TwigCsFixer => 'twig-cs-fixer.dist.php',
-        };
+        return ProjectDirectory::getConfig() . '/' . $module->getConfigFileName();
     }
 
     /**

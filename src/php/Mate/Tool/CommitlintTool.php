@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Brnshkr\Config\Mate\Tool;
 
 use Brnshkr\Config\Mate\Support\Project;
+use RuntimeException;
 use Symfony\AI\Mate\Attribute\MateTool;
 use Symfony\Component\Process\Exception\LogicException;
-use Symfony\Component\Process\Exception\RuntimeException;
+use Symfony\Component\Process\Exception\RuntimeException as ProcessRuntimeException;
 
 /**
- * Lints commit messages against the commitlint rules of this repository.
- *
  * @internal
  */
 final class CommitlintTool
@@ -20,11 +19,12 @@ final class CommitlintTool
      * @param string $message - the commit message draft to lint (subject line plus optional body)
      *
      * @throws LogicException
+     * @throws ProcessRuntimeException
      * @throws RuntimeException
      */
     #[MateTool(
-        name: 'project-commitlint-check',
-        description: 'Lints a commit message draft against the Commitlint rules of this repository without creating a commit. Use before committing to validate type, scope and body formatting.',
+        name: 'brnshkr-commitlint-check',
+        description: 'Lints a commit message draft against the commitlint rules of this repository without creating a commit. Use before committing to validate type, scope and body formatting.',
     )]
     public function checkMessage(string $message): string
     {
@@ -35,6 +35,6 @@ final class CommitlintTool
             ]);
         }
 
-        return Project::encode(Project::runTarget('commitlint', ['COMMITLINT_SOURCE' => ''], $message));
+        return Project::encodeResult(Project::runTarget('commitlint', ['COMMITLINT_SOURCE' => ''], $message));
     }
 }

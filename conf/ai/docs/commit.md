@@ -1,11 +1,11 @@
 # Commits — agent notes
 
-The enforced commitlint rules are in `conf/ai/mate/INSTRUCTIONS.md`.
+The enforced commitlint rules are in `conf/ai/INSTRUCTIONS.md`.
 
 ## Protocol
 
 1. Show the diff.
-2. Stage, then offer four or five subjects through `AskUserQuestion`, checked with `project-commitlint-check`.
+2. Stage, then offer four or five subjects through `AskUserQuestion`, checked with `brnshkr-commitlint-check`.
    Each option's label carries the whole subject, scope included — the scope is itself a judgment call.
 3. Commit only on the literal word "commit", which authorizes exactly one. A subject the user edited wins.
 

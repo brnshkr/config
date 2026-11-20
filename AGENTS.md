@@ -6,9 +6,7 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 
 ## Working here
 
-- **Rules** (code style, tooling, commits) live in @conf/ai/mate/INSTRUCTIONS.md — read it before writing code.
-- **Prefer the `project-*` mate tools** over raw CLI (quality, tests, version sync, commit lint):
-  `make mate -- tools:call <tool> --<param>=<value>`. They return compact, structured output.
+- **Rules** (code style, tooling, commits) live in @conf/ai/INSTRUCTIONS.md — read it before writing code.
 - **Commands, setup, tool/rule reference** live in [`docs/`](./docs/)
   — start at [`docs/development.md`](./docs/development.md). Never duplicate that here.
 - **Deep agent references** live in [`conf/ai/docs/`](./conf/ai/docs/):
@@ -20,12 +18,12 @@ for all @brnshkr projects. This repo lints itself with its own configs.
   lazy plugin loading `utils/module.ts`, typegen output `types/`
 - `src/js/stylelint/` — config builder, named modes in `configs/` (incl. custom rules `configs/builtin/`)
 - `src/php/` — builders `PhpStan.php`, `Rector.php`, `PhpCsFixer.php`,
-  `TwigCsFixer.php`, `FileFinder.php`; Composer plugin `Composer/`;
+  `TwigCsFixer.php`, `FileFinder.php`; Composer plugin `Composer/`; mate tools `Mate/`;
   custom rules `PhpStan/Rule/`, `PhpCsFixer/Fixer/`, `Rector/Rule/`, `TwigCsFixer/Rule/`
 - `conf/` — this repo's own tool configs; `conf/Makefile` = reusable foundation (colorized help system)
 - `tests/{js,php}/` — Vitest + Pest, snapshots in `__snapshots__/`
 - `docs/` — user-facing reference; PHP pages PascalCase per class
-- `conf/ai/` — all AI tooling: `mate/` (mate tool source; root `mate/` = generated, gitignored),
+- `conf/ai/` — all AI tooling: `mate/` (the extension's settings, instructions and skills),
   `claude/` (symlinked from `.claude`), `docs/` (deep agent refs)
 
 ## Response style

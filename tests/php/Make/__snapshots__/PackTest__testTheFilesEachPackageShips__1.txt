@@ -5,6 +5,12 @@ composer.json
 conf/Makefile
 conf/Makefile.dist
 conf/actionlint.dist.yaml
+conf/ai/mate/INSTRUCTIONS.md
+conf/ai/mate/config.php
+conf/ai/mate/skills/brnshkr-code-quality/SKILL.md
+conf/ai/mate/skills/brnshkr-commit-message/SKILL.md
+conf/ai/mate/skills/brnshkr-module-config/SKILL.md
+conf/ai/mate/skills/brnshkr-test-run/SKILL.md
 conf/editorconfig.dist
 conf/gitattributes.dist
 conf/hadolint.dist.yaml
@@ -43,6 +49,12 @@ src/php/FencedCode.php
 src/php/FileFinder.php
 src/php/Json.php
 src/php/Logger.php
+src/php/Mate/DisableToolsCompilerPass.php
+src/php/Mate/Support/Project.php
+src/php/Mate/Tool/CommitlintTool.php
+src/php/Mate/Tool/ModuleTool.php
+src/php/Mate/Tool/QualityTool.php
+src/php/Mate/Tool/TestTool.php
 src/php/Module.php
 src/php/Package.php
 src/php/PhpCsFixer.php

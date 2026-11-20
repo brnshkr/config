@@ -115,4 +115,57 @@ return [
             ],
         ],
     ],
+    '_custom' => [
+        'enabled' => true,
+        'skills'  => [
+            'brnshkr-code-quality' => [
+                'enabled'     => true,
+                'mode'        => 'managed',
+                'state'       => 'managed',
+                'source'      => 'conf/ai/mate/skills/brnshkr-code-quality',
+                'source_hash' => 'sha256:4bacc360b0690041c9876112d49d8f69a1142586e5ab74fe4ad8a79ab011a450',
+                'hash'        => 'sha256:b12e7c79c16fd243a27ce0631ee536a70d6151f1a2ddabdf8f2c5f2de863597c',
+                'targets'     => [
+                    '.agents/skills/mate-brnshkr-code-quality',
+                    '.claude/skills/mate-brnshkr-code-quality',
+                ],
+            ],
+            'brnshkr-commit-message' => [
+                'enabled'     => true,
+                'mode'        => 'managed',
+                'state'       => 'managed',
+                'source'      => 'conf/ai/mate/skills/brnshkr-commit-message',
+                'source_hash' => 'sha256:371f989e0d0ace6857d74d66c660b15c9ad6b9237b85a0b5b2d79c59357c487d',
+                'hash'        => 'sha256:7235dbc3ffb547a49a6bec2056eadefc7a1acc738bb3b1c62db4cb0cd66f30b8',
+                'targets'     => [
+                    '.agents/skills/mate-brnshkr-commit-message',
+                    '.claude/skills/mate-brnshkr-commit-message',
+                ],
+            ],
+            'brnshkr-module-config' => [
+                'enabled'     => true,
+                'mode'        => 'managed',
+                'state'       => 'managed',
+                'source'      => 'conf/ai/mate/skills/brnshkr-module-config',
+                'source_hash' => 'sha256:4c1f52afcd9d33bfe88fa2c30b26967367a9124972d62dba62b2e7801c1b93c3',
+                'hash'        => 'sha256:1a35b43496727c502468939879dd04081e4ab45bebf30c2f0ba1e087c652e33c',
+                'targets'     => [
+                    '.agents/skills/mate-brnshkr-module-config',
+                    '.claude/skills/mate-brnshkr-module-config',
+                ],
+            ],
+            'brnshkr-test-run' => [
+                'enabled'     => true,
+                'mode'        => 'managed',
+                'state'       => 'managed',
+                'source'      => 'conf/ai/mate/skills/brnshkr-test-run',
+                'source_hash' => 'sha256:8e22698a5d9cd3582fefc99b82882a2baa217b2ca1fe0dc8da2eb2b288f73b43',
+                'hash'        => 'sha256:7209880cfab26ae9cf57e9f3537abcbe0e38725c67697f5fe69cad621511e790',
+                'targets'     => [
+                    '.agents/skills/mate-brnshkr-test-run',
+                    '.claude/skills/mate-brnshkr-test-run',
+                ],
+            ],
+        ],
+    ],
 ];

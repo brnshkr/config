@@ -45,6 +45,32 @@ enum Module: string
     }
 
     /**
+     * @return non-empty-string
+     */
+    public function getConfigFileName(): string
+    {
+        return match ($this) {
+            self::PhpCsFixer  => 'php-cs-fixer.dist.php',
+            self::PhpStan     => 'phpstan.dist.php',
+            self::Rector      => 'rector.dist.php',
+            self::TwigCsFixer => 'twig-cs-fixer.dist.php',
+        };
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    public function getConfigVariableName(): string
+    {
+        return match ($this) {
+            self::PhpCsFixer  => 'PHP_CS_FIXER_CONFIG',
+            self::PhpStan     => 'PHP_STAN_CONFIG',
+            self::Rector      => 'RECTOR_CONFIG',
+            self::TwigCsFixer => 'TWIG_CS_FIXER_CONFIG',
+        };
+    }
+
+    /**
      * @return non-empty-list<Package>
      */
     public function getRequiredPackages(): array

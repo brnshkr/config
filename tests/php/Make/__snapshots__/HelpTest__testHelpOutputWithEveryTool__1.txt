@@ -140,6 +140,9 @@ Available commands:
    rector         refactors the PHP code
   twig-cs-fixer
    twig-cs-fixer  fixes the Twig coding style
+  mate
+   mate           runs mate where the tools run, answering in TOON where helgesverre/toon is installed
+   discover       refreshes what mate generates for agents
   bun
    bun            runs bun
   commitlint
@@ -279,6 +282,8 @@ Variables:
    TWIG_CS_FIXER                  ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/twig-cs-… (command that runs twig-cs-fixer)
    TWIG_CS_FIXER_CONFIG           ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS            ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
+  mate
+   MATE                           ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/mate      (command that runs mate)
   bun
    BUN                            ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                      ?=  --bun                                            (flags passed to bun before the command)
@@ -392,6 +397,9 @@ Available commands:
    twig-cs-fixer          fixes the Twig coding style
    twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
    twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
+  mate
+   mate                   runs mate where the tools run, answering in TOON where helgesverre/toon is installed
+   discover               refreshes what mate generates for agents
   bun
    bun                    runs bun
    bun-inspect            opens node-modules-inspector
@@ -624,6 +632,9 @@ Variables:
    TWIG_CS_FIXER_CONFIG            ?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to twig-cs-fixer config)
    TWIG_CS_FIXER_FLAGS             ?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to twig-cs-fixer)
    TWIG_CS_FIXER_EXTENSIONS        ?=  twig                                             (extensions twig-cs-fixer reads)
+  mate
+   MATE                            ?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/mate      (command that runs mate)
+   MATE_TOON_COMMANDS              ?=  $(_MATE_TOON_COMMANDS)                           (mate commands that answer in TOON unless --format is given)
   bun
    BUN                             ?=  $(RUN) bun                                       (command that runs bun)
    BUN_FLAGS                       ?=  --bun                                            (flags passed to bun before the command)
@@ -786,6 +797,9 @@ Available commands:
    twig-cs-fixer-dry-run  shows the Twig style fixes without writing them
    twig-cs-fixer-group    counts the twig-cs-fixer findings by rule
    twig-cs-fixer-print    prints the twig-cs-fixer rules in use
+  mate
+   mate                   runs mate where the tools run, answering in TOON where helgesverre/toon is installed
+   discover               refreshes what mate generates for agents
   bun
    bun                    runs bun
    bun-list               lists the files the bun package would ship
@@ -1189,6 +1203,11 @@ Available commands:
 +   twig-cs-fixer-dry-run                    shows the Twig style fixes without writing them
 +   twig-cs-fixer-group                      counts the twig-cs-fixer findings by rule
 +   twig-cs-fixer-print                      prints the twig-cs-fixer rules in use
+   mate
+-   mate                   runs mate where the tools run, answering in TOON where helgesverre/toon is installed
+-   discover               refreshes what mate generates for agents
++   mate                                     runs mate where the tools run, answering in TOON where helgesverre/toon is installed
++   discover                                 refreshes what mate generates for agents
    bun
 -   bun                    runs bun
 -   bun-list               lists the files the bun package would ship
@@ -1296,6 +1315,7 @@ brnshkr.composer
 brnshkr.eslint
 brnshkr.hadolint
 brnshkr.markdownlint
+brnshkr.mate
 brnshkr.output
 brnshkr.php-cs-fixer
 brnshkr.phpstan
@@ -1333,6 +1353,7 @@ brnshkr.hadolint
 brnshkr.helpers
 brnshkr.image
 brnshkr.markdownlint
+brnshkr.mate
 brnshkr.output
 brnshkr.php
 brnshkr.php-cs-fixer
@@ -1749,6 +1770,9 @@ Available commands:
    [36mTWIG_CS_FIXER_CONFIG          [0m  [90m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [35mtwig-cs-fixer[0m[90m config)[0m
    [36mTWIG_CS_FIXER_FLAGS           [0m  [90m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [35mtwig-cs-fixer[0m[90m)[0m
    [36mTWIG_CS_FIXER_EXTENSIONS      [0m  [90m?=  twig                                             (extensions [35mtwig-cs-fixer[0m[90m reads)[0m
+  [35mmate[0m
+   [36mMATE                          [0m  [90m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/mate      (command that runs [35mmate[0m[90m)[0m
+   [36mMATE_TOON_COMMANDS            [0m  [90m?=  $(_MATE_TOON_COMMANDS)                           (mate commands that answer in TOON unless [35m--format[0m[90m is given)[0m
   [35mbun[0m
    [36mBUN                           [0m  [90m?=  $(RUN) bun                                       (command that runs [35mbun[0m[90m)[0m
    [36mBUN_FLAGS                     [0m  [90m?=  --bun                                            (flags passed to [35mbun[0m[90m before the command)[0m
@@ -1951,6 +1975,9 @@ Available commands:
    [36mtwig-cs-fixer-dry-run[0m  [90mshows the Twig style fixes without writing them[0m
    [36mtwig-cs-fixer-group  [0m  [90mcounts the [35mtwig-cs-fixer[0m[90m findings by rule[0m
    [36mtwig-cs-fixer-print  [0m  [90mprints the [35mtwig-cs-fixer[0m[90m rules in use[0m
+  [35mmate[0m
+   [36mmate                 [0m  [90mruns mate where the tools run, answering in TOON where [35mhelgesverre/toon[0m[90m is installed[0m
+   [36mdiscover             [0m  [90mrefreshes what mate generates for agents[0m
   [35mbun[0m
    [36mbun                  [0m  [90mruns [35mbun[0m[90m[0m
    [36mbun-list             [0m  [90mlists the files the bun package would ship[0m
@@ -2256,6 +2283,9 @@ Available commands:
    [32mTWIG_CS_FIXER_CONFIG          [0m  [0m?=  $(call _config,$(APP_DIR)/$(_CONFIG_DIR)/twig-c… (path to [33mtwig-cs-fixer[0m[0m config)[0m
    [32mTWIG_CS_FIXER_FLAGS           [0m  [0m?=  $(if $(_IS_DEBUG),-vvv --debug,-v) $(_ANSI_OPTI… (additional flags passed to [33mtwig-cs-fixer[0m[0m)[0m
    [32mTWIG_CS_FIXER_EXTENSIONS      [0m  [0m?=  twig                                             (extensions [33mtwig-cs-fixer[0m[0m reads)[0m
+  [33mmate[0m
+   [32mMATE                          [0m  [0m?=  $(RUN) $(APP_DIR)/$(_COMPOSER_BIN_DIR)/mate      (command that runs [33mmate[0m[0m)[0m
+   [32mMATE_TOON_COMMANDS            [0m  [0m?=  $(_MATE_TOON_COMMANDS)                           (mate commands that answer in TOON unless [33m--format[0m[0m is given)[0m
   [33mbun[0m
    [32mBUN                           [0m  [0m?=  $(RUN) bun                                       (command that runs [33mbun[0m[0m)[0m
    [32mBUN_FLAGS                     [0m  [0m?=  --bun                                            (flags passed to [33mbun[0m[0m before the command)[0m
@@ -2458,6 +2488,9 @@ Available commands:
    [32mtwig-cs-fixer-dry-run[0m  [0mshows the Twig style fixes without writing them[0m
    [32mtwig-cs-fixer-group  [0m  [0mcounts the [33mtwig-cs-fixer[0m[0m findings by rule[0m
    [32mtwig-cs-fixer-print  [0m  [0mprints the [33mtwig-cs-fixer[0m[0m rules in use[0m
+  [33mmate[0m
+   [32mmate                 [0m  [0mruns mate where the tools run, answering in TOON where [33mhelgesverre/toon[0m[0m is installed[0m
+   [32mdiscover             [0m  [0mrefreshes what mate generates for agents[0m
   [33mbun[0m
    [32mbun                  [0m  [0mruns [33mbun[0m[0m[0m
    [32mbun-list             [0m  [0mlists the files the bun package would ship[0m
