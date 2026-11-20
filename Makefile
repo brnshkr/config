@@ -12,9 +12,12 @@ include ./conf/Makefile
 ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
 	./conf/Makefile.dist \
 	./conf/actionlint.dist.yaml \
+	./conf/ai/conventions/ \
+	./conf/ai/make.md \
 	./conf/ai/mate/INSTRUCTIONS.md \
 	./conf/ai/mate/config.php \
 	./conf/ai/mate/skills/ \
+	./conf/claude-settings.dist.json \
 	./conf/editorconfig.dist \
 	./conf/gitattributes.dist \
 	./conf/hadolint.dist.yaml \

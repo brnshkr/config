@@ -4,7 +4,6 @@
         "level": "max",
         "paths": [
             "./AGENTS.md",
-            "./CLAUDE.md",
             "./README.md",
             "./conf",
             "./docs",

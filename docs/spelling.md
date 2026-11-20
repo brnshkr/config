@@ -44,7 +44,7 @@ The [commitlint config](./js/commitlint.md) runs the same check over every commi
 Every file the shipped defaults name, by extension or by file name
 — see [`./conf/spelling/defaults.json`](../conf/spelling/defaults.json) for the exact set.
 The list comes from `git ls-files`, untracked files included, so anything gitignored is already out,
-and snapshots and test fixtures are excluded on top of that.
+and generated files, snapshots, and test fixtures are excluded on top of that.
 
 ## Customizing
 

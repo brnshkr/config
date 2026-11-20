@@ -1,13 +1,16 @@
 ###> brnshkr/config ###
 /.cache/
+/.claude
 /.env.*.local
 /.env.local
 /.env.local.php
 /.local/
 /.vitest/
+/CLAUDE.md
 /build/
 /conf/actionlint.dev.yaml
 /conf/actionlint.yaml
+/conf/ai/claude/settings.local.json
 /conf/commitlint.dev.mjs
 /conf/hadolint.dev.yaml
 /conf/hadolint.yaml
@@ -24,15 +27,12 @@
 /conf/stylelint.dev.mjs
 /conf/twig-cs-fixer.dev.php
 /conf/twig-cs-fixer.php
+/mate/AGENT_INSTRUCTIONS.md
 /node_modules/
 /vendor/
 ###< brnshkr/config ###
 
-/.agents/
 /.idea/
-/conf/ai/claude/settings.local.json
-/conf/ai/claude/skills/
 /dist/
-/mate/AGENT_INSTRUCTIONS.md
 /src/js/eslint/types/declarations/typegen.d.ts
 /src/js/markdownlint/types/declarations/typegen.d.ts

@@ -1,4 +1,10 @@
-# @brnshkr/config
+<!-- ###> brnshkr/config ### -->
+@conf/ai/conventions/commits.md  
+@conf/ai/conventions/code.md  
+@conf/ai/conventions/docs.md  
+@conf/ai/conventions/rigor.md  
+@conf/ai/make.md  
+<!-- ###< brnshkr/config ### -->
 
 Dual-stack (JS + PHP) config package: centralized opinionated tooling
 (ESLint, markdownlint, Stylelint, PHPStan, Rector, PHP-CS-Fixer, Twig-CS-Fixer)
@@ -6,11 +12,11 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 
 ## Working here
 
-- **Rules** (code style, tooling, commits) live in @conf/ai/INSTRUCTIONS.md — read it before writing code.
+- **Rules** for this repository live in @conf/ai/INSTRUCTIONS.md — read it before writing code.
 - **Commands, setup, tool/rule reference** live in [`docs/`](./docs)
   — start at [`docs/development.md`](./docs/development.md). Never duplicate that here.
 - **Deep agent references** live in [`conf/ai/docs/`](./conf/ai/docs):
-  `ai` (this AI setup), `commit`, `php`, `js`, `make`.
+  `ai` (this AI setup), `php`, `js`, `make`.
 
 ## Map
 
@@ -23,14 +29,8 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 - `conf/` — this repo's own tool configs; `conf/Makefile` = reusable foundation (colorized help system)
 - `tests/{js,php}/` — Vitest + Pest, snapshots in `__snapshots__/`
 - `docs/` — user-facing reference; PHP pages PascalCase per class
-- `conf/ai/` — all AI tooling: `mate/` (the extension's settings, instructions and skills),
-  `claude/` (symlinked from `.claude`), `docs/` (deep agent refs)
-
-## Response style
-
-Respond terse like smart caveman: drop articles/filler/pleasantries/hedging, fragments OK, short synonyms.
-Technical terms exact, code blocks + commit messages + docs normal prose, errors quoted exact.
-Off only on "stop caveman"/"normal mode".
+- `conf/ai/` — AI tooling: `conventions/` and `make.md` (shipped), `claude/` (linked into `.claude/`),
+  `docs/` (deep agent refs), `mate/` (the extension's settings, instructions and skills)
 
 <!-- markdownlint-disable -->
 

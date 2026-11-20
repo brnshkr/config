@@ -31,7 +31,7 @@ use function is_string;
 use const PHP_BINARY;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final class Plugin implements Capable, EventSubscriberInterface, PluginInterface
 {

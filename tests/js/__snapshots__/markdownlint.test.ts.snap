@@ -340,6 +340,7 @@ exports[`expected markdownlint config 1`] = `
   ],
   "gitignore": true,
   "ignores": [
+    "**/.agents/skills/**",
     "**/.cache/**",
     "**/.changeset/**",
     "**/.git/**",
@@ -395,6 +396,14 @@ exports[`expected markdownlint config 1`] = `
         "**/.github/PULL_REQUEST_TEMPLATE.md",
         "**/.github/ISSUE_TEMPLATE/**",
         "**/profile/README.md",
+      ],
+    },
+    {
+      "combine": "merge",
+      "config": {
+        "first-line-heading": false,
+      },
+      "filter": [
         "**/AGENTS.md",
         "**/CLAUDE.md",
       ],

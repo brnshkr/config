@@ -191,6 +191,7 @@ Variables:
  brnshkr
   config
    CONFIG                         ?=                                                   (local/dist to pin the config, else the first found)
+   BRNSHKR_CONVENTIONS            ?=  $(if $(filter brnshkr @brnshkr,$(VENDOR)),1)     (whether the @brnshkr conventions go into AGENTS.md, on for the brnshkr vendor)
    ARCHIVE_EXTRA_PATHS            ?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing / for a directory)
    FRESH_KEEP                     ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps outside the dependency directories, unless --all is passed)
    GIT_HOOKS                      ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
@@ -463,6 +464,7 @@ Variables:
  brnshkr
   config
    CONFIG                          ?=                                                   (local/dist to pin the config, else the first found)
+   BRNSHKR_CONVENTIONS             ?=  $(if $(filter brnshkr @brnshkr,$(VENDOR)),1)     (whether the @brnshkr conventions go into AGENTS.md, on for the brnshkr vendor)
    ARCHIVE_EXTRA_PATHS             ?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing / for a directory)
    FRESH_KEEP                      ?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns fresh keeps outside the dependency directories, unless --all is passed)
    GIT_HOOKS                       ?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as <hook>=<target> pairs)
@@ -885,6 +887,7 @@ Available commands:
 +    MKTEMP                         ?=  mktemp                                           (path to mktemp binary)
 +    MV                             ?=  mv                                               (path to mv binary)
 +    PS                             ?=  ps                                               (path to ps binary)
++    READLINK                       ?=  readlink                                         (path to readlink binary)
 +    RM                             :=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to rm binary)
 +    SCRIPT                         ?=  script                                           (path to script binary)
 +    SECURITY                       ?=  security                                         (path to macOS's security binary)
@@ -986,24 +989,23 @@ Available commands:
  
     run_in
      The command a tool named for a Compose service runs through, empty on this machine.
-@@ @@
      The service is started first, once per run, unless a throwaway container is what runs it.
      A key the .env files declare passes by name, so its value never reaches a command line.
- 
++
 +    parameters:
 +      service: string
-+
+ 
 +    returns: string
 +
     confirm
      Asks a yes/no question before something destructive happens.
      It answers itself where nobody can: under CI, or where its input is no terminal, it answers the default.
      It succeeds on yes, so the caller reads it as a condition and says what it skipped.
-+
+ 
 +    parameters:
 +      question: string
 +      default?: OneOf<yes | no> = no
- 
++
 +    returns: void
 +
  Available commands:
@@ -1543,6 +1545,7 @@ Available commands:
  [35mbrnshkr[0m
   [35mconfig[0m
    [36mCONFIG                        [0m  [90m?=                                                   ([35mlocal[0m[90m/[35mdist[0m[90m to pin the config, else the first found)[0m
+   [36mBRNSHKR_CONVENTIONS           [0m  [90m?=  $(if $(filter brnshkr @brnshkr,$(VENDOR)),1)     (whether the @brnshkr conventions go into [35mAGENTS.md[0m[90m, on for the [35mbrnshkr[0m[90m vendor)[0m
    [36mARCHIVE_EXTRA_PATHS           [0m  [90m?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing [35m/[0m[90m for a directory)[0m
    [36mFRESH_KEEP                    [0m  [90m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [35mfresh[0m[90m keeps outside the dependency directories, unless [35m--all[0m[90m is passed)[0m
    [36mGIT_HOOKS                     [0m  [90m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [35m<hook>=<target>[0m[90m pairs)[0m
@@ -1587,6 +1590,7 @@ Available commands:
     [36mMKTEMP                       [0m  [90m?=  mktemp                                           (path to [35mmktemp[0m[90m binary)[0m
     [36mMV                           [0m  [90m?=  mv                                               (path to [35mmv[0m[90m binary)[0m
     [36mPS                           [0m  [90m?=  ps                                               (path to [35mps[0m[90m binary)[0m
+    [36mREADLINK                     [0m  [90m?=  readlink                                         (path to [35mreadlink[0m[90m binary)[0m
     [36mRM                           [0m  [90m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [35mrm[0m[90m binary)[0m
     [36mSCRIPT                       [0m  [90m?=  script                                           (path to [35mscript[0m[90m binary)[0m
     [36mSECURITY                     [0m  [90m?=  security                                         (path to macOS's [35msecurity[0m[90m binary)[0m
@@ -2056,6 +2060,7 @@ Available commands:
  [33mbrnshkr[0m
   [33mconfig[0m
    [32mCONFIG                        [0m  [0m?=                                                   ([33mlocal[0m[0m/[33mdist[0m[0m to pin the config, else the first found)[0m
+   [32mBRNSHKR_CONVENTIONS           [0m  [0m?=  $(if $(filter brnshkr @brnshkr,$(VENDOR)),1)     (whether the @brnshkr conventions go into [33mAGENTS.md[0m[0m, on for the [33mbrnshkr[0m[0m vendor)[0m
    [32mARCHIVE_EXTRA_PATHS           [0m  [0m?=  $(if $(_HAS_SYMFONY),assets/ bin/console config… (extra paths an archive ships, a trailing [33m/[0m[0m for a directory)[0m
    [32mFRESH_KEEP                    [0m  [0m?=  /$(_LOCAL_DIR)/ *.local *.local.* /.idea/ /.vsc… (patterns [33mfresh[0m[0m keeps outside the dependency directories, unless [33m--all[0m[0m is passed)[0m
    [32mGIT_HOOKS                     [0m  [0m?=  $(if $(_HAS_COMMITLINT),commit-msg=$(call _targ… (git hooks this project installs, as [33m<hook>=<target>[0m[0m pairs)[0m
@@ -2100,6 +2105,7 @@ Available commands:
     [32mMKTEMP                       [0m  [0m?=  mktemp                                           (path to [33mmktemp[0m[0m binary)[0m
     [32mMV                           [0m  [0m?=  mv                                               (path to [33mmv[0m[0m binary)[0m
     [32mPS                           [0m  [0m?=  ps                                               (path to [33mps[0m[0m binary)[0m
+    [32mREADLINK                     [0m  [0m?=  readlink                                         (path to [33mreadlink[0m[0m binary)[0m
     [32mRM                           [0m  [0m:=  $(if $(filter-out default,$(origin RM)),$(RM),r… (path to [33mrm[0m[0m binary)[0m
     [32mSCRIPT                       [0m  [0m?=  script                                           (path to [33mscript[0m[0m binary)[0m
     [32mSECURITY                     [0m  [0m?=  security                                         (path to macOS's [33msecurity[0m[0m binary)[0m

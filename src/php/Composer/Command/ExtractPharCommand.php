@@ -28,7 +28,7 @@ use function sprintf;
 use function Symfony\Component\String\s;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final class ExtractPharCommand extends AbstractCommand
 {

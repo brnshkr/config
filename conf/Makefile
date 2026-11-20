@@ -168,6 +168,8 @@ _DEFAULT_GOAL := $(.DEFAULT_GOAL)
 
 CONFIG ?= #~~ `local`/`dist` to pin the config, else the first found
 
+BRNSHKR_CONVENTIONS ?= $(if $(filter brnshkr @brnshkr,$(VENDOR)),1)#~~ whether the @brnshkr conventions go into `AGENTS.md`, on for the `brnshkr` vendor
+
 ARCHIVE_EXTRA_PATHS ?= $(if $(_HAS_SYMFONY),assets/ \
 	bin/console \
 	config/ \
@@ -368,6 +370,7 @@ MKDIR           ?= mkdir#~~ path to `mkdir` binary
 MKTEMP          ?= mktemp#~~ path to `mktemp` binary
 MV              ?= mv#~~ path to `mv` binary
 PS              ?= ps#~~ path to `ps` binary
+READLINK        ?= readlink#~~ path to `readlink` binary
 RM              := $(if $(filter-out default,$(origin RM)),$(RM),rm)#~~ path to `rm` binary
 SCRIPT          ?= script#~~ path to `script` binary
 SECURITY        ?= security#~~ path to macOS's `security` binary
@@ -1827,10 +1830,23 @@ _MANAGED_CONFIGS = $(CURDIR)/.gitignore| \
 	$(CURDIR)/.vscode/settings.json|$(_BRNSHKR_CONFIG_DIR)/vscode-settings.dist.jsonc \
 	$(CURDIR)/.vscode/extensions.json|$(_BRNSHKR_CONFIG_DIR)/vscode-extensions.dist.jsonc \
 	$(CURDIR)/.vscode/launch.json|$(_BRNSHKR_CONFIG_DIR)/launch.dist.jsonc \
+	$(if $(_HAS_AI_SETUP),$(CURDIR)/AGENTS.md| $(CURDIR)/CLAUDE.md| $(_AI_CONFIG_DIR)/claude/settings.json|$(_BRNSHKR_CONFIG_DIR)/claude-settings.dist.json) \
 	$(_CSS_DATA_CONFIGS) \
 	$(if $(wildcard $(CURDIR)/package.json),$(CURDIR)/bunfig.toml|$(or $(wildcard $(CURDIR)/$(_CONFIG_DIR)/bunfig.toml.example),$(_JS_CONFIG_DIR)/bunfig.dist.toml)) \
 	$(if $(wildcard $(CURDIR)/composer.json),$(CURDIR)/composer.json|) \
 	$(CURDIR)/Makefile|$(_BRNSHKR_CONFIG_DIR)/Makefile.dist
+
+_LINKED_CONFIGS += $(if $(_HAS_AI_SETUP),$(foreach ENTRY,$(_CLAUDE_ENTRIES),$(CURDIR)/.claude/$(ENTRY)|$(_AI_CONFIG_DIR)/claude/$(ENTRY)))
+
+_AI_CONFIG_DIR     = $(CURDIR)/$(_CONFIG_DIR)/ai
+_HAS_AI_SETUP      = $(or $(_IS_AI_CONFIG),$(wildcard $(_AI_CONFIG_DIR)/claude))
+_AGENT_CONFIG_PATH = $(patsubst $(CURDIR)/%,%,$(abspath $(_BRNSHKR_CONFIG_DIR)))
+
+_CLAUDE_ENTRIES = $(sort settings.json settings.local.json $(notdir $(filter-out %/skills,$(wildcard $(_AI_CONFIG_DIR)/claude/*)))) \
+	$(addprefix skills/,$(notdir $(wildcard $(_AI_CONFIG_DIR)/claude/skills/*)))
+
+_AGENT_IMPORTS = $(if $(filter 1,$(BRNSHKR_CONVENTIONS)),$(foreach TOPIC,commits code docs rigor,'@$(_AGENT_CONFIG_PATH)/ai/conventions/$(TOPIC).md  ')) \
+	'@$(_AGENT_CONFIG_PATH)/ai/make.md  '
 
 _STACK_SUFFIXES = $(if $(wildcard $(CURDIR)/package.json),js) \
 	$(if $(wildcard $(CURDIR)/composer.json),php)
@@ -1856,6 +1872,8 @@ _GITIGNORED_PATHS = $(foreach IGNORED_PATH,$(sort \
 	$(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE) $(_DOTENV_BASE).*)),$(patsubst $(CURDIR)/%,/%,$(addprefix $(_DOTENV_BASE),.local .local.php .*.local))) \
 	$(if $(wildcard $(CURDIR)/package.json),/node_modules/) \
 	$(if $(wildcard $(CURDIR)/composer.json),/$(_COMPOSER_VENDOR_DIR)/) \
+	$(if $(_HAS_AI_SETUP),/.claude /CLAUDE.md /$(_CONFIG_DIR)/ai/claude/settings.local.json) \
+	$(if $(_HAS_MATE),/mate/AGENT_INSTRUCTIONS.md) \
 	$(if $(_HAS_VITEST),/.vitest/) \
 	$(call _when_installed,/build/,node_modules/svelte) \
 	$(patsubst $(APP_DIR)/%,/%,$(call _in_project,$(foreach CONFIG_PATH,$(call _unstaged,$(subst .dist.,.,$(_LAYERED_CONFIGS))),$(CONFIG_PATH) $(foreach STAGE,$(_CONFIG_STAGES),$(call _staged,$(CONFIG_PATH),$(STAGE))))))), \
@@ -2419,9 +2437,10 @@ _$(_TARGET_PREFIX)install-missing-hooks:
 _PINNED_CONFIG = $(filter local dist,$(CONFIG))
 _TEMPLATE_DIRS = $(_BRNSHKR_CONFIG_DIR) $(filter-out $(_BRNSHKR_CONFIG_DIR),$(wildcard $(CURDIR)/$(_COMPOSER_VENDOR_DIR)/brnshkr/config/conf $(CURDIR)/node_modules/@brnshkr/config/conf))
 
-_NAMED_CONFIGS        = $(filter-out tools t local l force f,$(_ARG_WORDS))
+_NAMED_CONFIGS        = $(filter-out tools t local l ai force f,$(_ARG_WORDS))
 _IS_FORCED_CONFIG     = $(filter force f,$(_ARG_WORDS))
 _IS_PRIVATE_CONFIG    = $(filter local l,$(_ARG_WORDS))
+_IS_AI_CONFIG         = $(filter ai,$(_ARG_WORDS))
 _IS_TOOL_CONFIG       = $(or $(filter tools t,$(_ARG_WORDS)),$(_NAMED_CONFIGS))
 _TRACKED_TOOL_CONFIGS = $(foreach CONFIG,$(_LAYERED_CONFIGS),$(call _tracked,$(CONFIG)))
 _PRIVATE_TOOL_CONFIGS = $(subst .dist.,.,$(_LAYERED_CONFIGS))
@@ -2431,12 +2450,13 @@ _CONFIG_FILES         = $(sort $(foreach CONFIG,$(_PLAIN_CONFIGS) $(_TRACKED_TOO
 _CONFIGS = $(call _in_project,$(if $(_IS_PRIVATE_CONFIG),,$(_PLAIN_CONFIGS)) $(if $(_IS_TOOL_CONFIG),$(_TRACKED_TOOL_CONFIGS)) \
 	$(if $(_IS_PRIVATE_CONFIG),$(_PRIVATE_TOOL_CONFIGS),$(foreach CONFIG,$(_PRIVATE_TOOL_CONFIGS),$(if $(filter $(call _get_file_name,$(CONFIG)),$(_NAMED_CONFIGS)),$(CONFIG)))))
 
-$(call _target,configs): _ARG_VALUES                       = $(_CONFIG_NAMES) tools t local l force f
+$(call _target,configs): _ARG_VALUES                       = $(_CONFIG_NAMES) tools t local l ai force f
 $(call _target,configs): _ARG_FILES                        = $(_CONFIG_FILES)
 $(call _target,configs): export _GITATTRIBUTES_PROGRAM     = $(_GITATTRIBUTES_PROGRAM_SOURCE)
 $(call _target,configs): export _LAYOUT_AWK                = $(_LAYOUT_AWK_SOURCE)
 $(call _target,configs): export _MANAGED_BLOCK_AWK         = $(_MANAGED_BLOCK_AWK_SOURCE)
 $(call _target,configs): export _NAME_INTERNAL_TAG_PROGRAM = $(_NAME_INTERNAL_TAG_PROGRAM_SOURCE)
+$(call _target,configs): export _PERMISSIONS_AWK           = $(_PERMISSIONS_AWK_SOURCE)
 $(call _target,configs): export _RELEASE_AGE_PROGRAM       = $(_RELEASE_AGE_PROGRAM_SOURCE)
 $(call _target,configs): #~~ writes the files this project is missing
 	$(TRACE_PREFIX)$(call _require_known_value,config)
@@ -2502,19 +2522,35 @@ $(call _target,configs): #~~ writes the files this project is missing
 	$(TRACE_PREFIX)for linked_config_pair in $(foreach LINKED_CONFIG,$(call _selected_configs,$(if $(_IS_PRIVATE_CONFIG),,$(_LINKED_CONFIGS))),'$(LINKED_CONFIG)'); do \
 		link_path="$${linked_config_pair%%|*}"; \
 		linked_path="$${linked_config_pair#*|}"; \
-		relative_linked_path="$${linked_path#$(CURDIR)/}"; \
+		project_linked_path="$${linked_path#$(CURDIR)/}"; \
+		relative_linked_path="$$project_linked_path"; \
+		link_parent_path="$${link_path#$(CURDIR)/}"; \
+		while [ "$${link_parent_path#*/}" != "$$link_parent_path" ]; do \
+			relative_linked_path="../$$relative_linked_path"; \
+			link_parent_path="$${link_parent_path#*/}"; \
+		done; \
+		current_target_path="$$($(READLINK) "$$link_path" 2>/dev/null)"; \
+		[ "$$current_target_path" != "$$relative_linked_path" ] || continue; \
 		if [ -e "$$link_path" ]; then \
 			$(if $(_IS_FORCED_CONFIG),:,$(call log,`%s` already exists.,$(COLOR_NOTICE),"./$${link_path#$(CURDIR)/}")); \
 			$(if $(_IS_FORCED_CONFIG),:,$(if $(_NAMED_CONFIGS),$(call confirm,Overwrite it?),false)) || continue; \
 		fi; \
 		[ -r "$$linked_path" ] || continue; \
+		$(MKDIR) -p "$${link_path%/*}" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		if $(LN) -sfn "$$relative_linked_path" "$$link_path" 2>/dev/null; then \
-			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}" "./$$relative_linked_path"); \
-		else \
-			printf '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' >"$$link_path" \
-				|| exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}"); \
+			$(call log,Linked `%s` to `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}" "./$$project_linked_path"); \
+			continue; \
 		fi; \
+		case "$$link_path" in \
+			*/.claude/*) \
+				$(call log,`%s` cannot be linked to `%s`.,$(COLOR_NOTICE),"./$${link_path#$(CURDIR)/}" "./$$project_linked_path"); \
+				continue \
+			;; \
+			*) \
+				printf '%s\n' '{' "  \"extends\": \"./$$relative_linked_path\"" '}' >"$$link_path" \
+			;; \
+		esac || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${link_path#$(CURDIR)/}"); \
 	done
 
 _CACHES       = $(eval _CACHES := $$(strip $$(if $$(_CACHE_DIR),$$(foreach CACHE,$$(shell cd '$$(CURDIR)/$$(_CACHE_DIR)' 2>/dev/null && $$(LS)),$$(if $$(findstring %,$$(CACHE)),,$$(CACHE))))))$(_CACHES)
@@ -4645,7 +4681,7 @@ case "$$config_path" in */Makefile) $(AWK) '/^###> brnshkr\/config ###$$/ { is_m
 [ -z "$$template_path" ] || [ -r "$$template_path" ] || continue; \
 $(call _refuse_links,"$$config_path" "$${config_path%/*}" "$$template_path"); \
 : >"$$body_path"; \
-block_anchor=; block_indent=; comment_prefix=; deduplication_mode=lines; is_whole_file=; written_verb=Updated; \
+block_anchor=; block_indent=; comment_prefix=; comment_suffix=; deduplication_mode=lines; is_whole_file=; written_verb=Updated; \
 [ -f "$$config_path" ] || written_verb=Created; \
 case "$$config_path" in */*) $(MKDIR) -p "$${config_path%/*}";; esac; \
 case "$$config_path" in \
@@ -4659,6 +4695,19 @@ case "$$config_path" in \
 		"$$template_path" >"$$body_path"; deduplication_mode=sections;; \
 	*/composer.json) $(PHP) -r "$$_RELEASE_AGE_PROGRAM" '$(APP_DIR)/composer.json' '$(MINIMUM_RELEASE_AGE)' \
 		>"$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+		template_path="$$body_path"; is_whole_file=1;; \
+	*/AGENTS.md) printf '%s\n' $(_AGENT_IMPORTS) >"$$body_path"; comment_prefix='<!-- '; comment_suffix=' -->';; \
+	*/CLAUDE.md) own_lines="$$([ ! -f "$$config_path" ] || $(AWK) '/<!-- BEGIN AI_MATE_AGENTS_IMPORT -->/,/<!-- END AI_MATE_AGENTS_IMPORT -->/ { next } !/^(# CLAUDE\.md|This file provides guidance to Claude Code .*|@AGENTS\.md)?$$/' "$$config_path")"; [ -z "$$own_lines" ] || continue; \
+		printf '%s\n' $(if $(_HAS_MATE),'<!-- BEGIN AI_MATE_AGENTS_IMPORT -->' '@AGENTS.md' '<!-- END AI_MATE_AGENTS_IMPORT -->','@AGENTS.md') >"$$body_path"; \
+		template_path="$$body_path"; is_whole_file=1;; \
+	*/claude/settings.json) local_settings_path="$${config_path%/*}/settings.local.json"; \
+		[ -f "$$local_settings_path" ] || { \
+			printf '%s\n' '{}' >"$$local_settings_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+			$(call log,Created `%s`.,$(COLOR_SUCCESS),"./$${local_settings_path#$(CURDIR)/}"); \
+		}; \
+		stripped_settings="$$([ ! -f "$$config_path" ] || $(TR) -d '{}[:space:]' <"$$config_path")"; \
+		{ [ -n "$$stripped_settings" ] && $(CAT) "$$config_path" || printf '%s\n' '{' '}'; } \
+			| $(AWK) -v defined_targets=' $(_ALL_TARGETS) ' "$$_PERMISSIONS_AWK" "$$template_path" - >"$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 		template_path="$$body_path"; is_whole_file=1;; \
 	*/settings.json) $(call _append_stack_entries,1); \
 		$(if $(filter-out .cache,$(_CACHE_DIR))$(filter-out vendor,$(_COMPOSER_VENDOR_DIR)),$(AWK) -v cache_directory='$(_CACHE_DIR)' -v vendor_directory='$(_COMPOSER_VENDOR_DIR)' 'index($$0, "\"**/.cache/**\"") { sub(/\.cache/, cache_directory) } index($$0, "\"**/vendor/**\"") { sub(/vendor/, vendor_directory) } { print }' "$$body_path" >"$$body_path.renamed" && $(MV) "$$body_path.renamed" "$$body_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE);) \
@@ -4690,8 +4739,8 @@ if [ -n "$$is_whole_file" ]; then \
 	}; \
 else \
 	[ -f "$$config_path" ] || : >"$$config_path"; \
-	updated_contents="$$(_MANAGED_BLOCK_OPEN="$${comment_prefix}###> brnshkr/config ###" \
-		_MANAGED_BLOCK_CLOSE="$${comment_prefix}###< brnshkr/config ###" \
+	updated_contents="$$(_MANAGED_BLOCK_OPEN="$${comment_prefix}###> brnshkr/config ###$${comment_suffix}" \
+		_MANAGED_BLOCK_CLOSE="$${comment_prefix}###< brnshkr/config ###$${comment_suffix}" \
 		_MANAGED_BLOCK_ANCHOR="$$block_anchor" \
 		_MANAGED_BLOCK_INDENT="$$block_indent" \
 		_MANAGED_BLOCK_DEDUPLICATION="$$deduplication_mode" \
@@ -5614,6 +5663,137 @@ END {
 		}
 		print printed_lines[line_index]
 	}
+}
+endef
+
+define _PERMISSIONS_AWK_SOURCE
+function trim(untrimmed_text) {
+	sub(/^[[:space:]]+/, "", untrimmed_text)
+	sub(/[[:space:]]+$$/, "", untrimmed_text)
+	return untrimmed_text
+}
+function strip_comma(line_text) {
+	sub(/,$$/, "", line_text)
+	return line_text
+}
+function get_indent(line_text) {
+	match(line_text, /^[[:space:]]*/)
+	return substr(line_text, 1, RLENGTH)
+}
+function get_depth_change(line_text,    character_index, character, depth_delta, is_in_string, is_escaped) {
+	for (character_index = 1; character_index <= length(line_text); character_index += 1) {
+		character = substr(line_text, character_index, 1)
+		if (is_in_string) {
+			if (is_escaped) is_escaped = 0
+			else if (character == "\\") is_escaped = 1
+			else if (character == "\"") is_in_string = 0
+		} else if (character == "\"") is_in_string = 1
+		else if (character == "{" || character == "[") depth_delta += 1
+		else if (character == "}" || character == "]") depth_delta -= 1
+	}
+	return depth_delta
+}
+function get_make_target(entry) {
+	if (entry !~ /^"Bash[(]make [^ :)]+/) return ""
+	entry = substr(entry, 12)
+	match(entry, /^[^ :)]+/)
+	return substr(entry, 1, RLENGTH)
+}
+function is_defined_target(target) {
+	return target == "" || index(defined_targets, " " target " ") > 0
+}
+function get_list_name(line_text) {
+	line_text = trim(line_text)
+	return line_text ~ /^"(allow|ask|deny)": \[$$/ ? substr(line_text, 2, length(line_text) - 5) : ""
+}
+function add(line_text) {
+	output_lines[++output_count] = line_text
+}
+function add_list(list_name, list_indent, has_following,    entry_index) {
+	add(list_indent "\"" list_name "\": [")
+	for (entry_index = 1; entry_index <= shipped_count_by_list[list_name]; entry_index += 1)
+		add(list_indent "  " shipped_entries[list_name, entry_index] (entry_index < shipped_count_by_list[list_name] ? "," : ""))
+	add(list_indent "]" (has_following ? "," : ""))
+}
+function add_missing_lists(list_indent, has_following,    list_index, missing_count, missing_names) {
+	for (list_index = 1; list_index <= list_count; list_index += 1)
+		if (!(list_names[list_index] in start_line_by_list)) missing_names[++missing_count] = list_names[list_index]
+	for (list_index = 1; list_index <= missing_count; list_index += 1)
+		add_list(missing_names[list_index], list_indent, list_index < missing_count || has_following)
+}
+function add_missing_entries(list_name, entry_indent,    entry_index, missing_count, missing_entries, last_line) {
+	for (entry_index = 1; entry_index <= shipped_count_by_list[list_name]; entry_index += 1)
+		if (!((list_name SUBSEP shipped_entries[list_name, entry_index]) in existing_entries))
+			missing_entries[++missing_count] = shipped_entries[list_name, entry_index]
+	last_line = output_lines[output_count]
+	if (missing_count && last_line !~ /[[,]$$/) output_lines[output_count] = last_line ","
+	else if (!missing_count && last_line ~ /,$$/) output_lines[output_count] = strip_comma(last_line)
+	for (entry_index = 1; entry_index <= missing_count; entry_index += 1)
+		add(entry_indent missing_entries[entry_index] (entry_index < missing_count ? "," : ""))
+}
+function is_followed(line_index) {
+	return trim(target_lines[line_index + 1]) !~ /^[}]/
+}
+function is_shipped_elsewhere(line_index,    entry) {
+	entry = strip_comma(trim(target_lines[line_index]))
+	return (entry in list_by_entry) && list_by_entry[entry] != list_by_line[line_index]
+}
+function is_pruned(line_index) {
+	return (strip_comma(trim(target_lines[line_index])) in pruned_entries) && list_by_line[line_index] != "deny"
+}
+FNR == NR {
+	if (get_list_name($$0) != "") {
+		shipped_list = get_list_name($$0)
+		list_names[++list_count] = shipped_list
+	} else if (trim($$0) ~ /^]/) shipped_list = ""
+	else if (shipped_list != "") {
+		shipped_entry = strip_comma(trim($$0))
+		if (shipped_list != "deny" && !is_defined_target(get_make_target(shipped_entry))) pruned_entries[shipped_entry] = 1
+		else {
+			shipped_entries[shipped_list, ++shipped_count_by_list[shipped_list]] = shipped_entry
+			list_by_entry[shipped_entry] = shipped_list
+		}
+	}
+	next
+}
+trim($$0) ~ /^"(permissions|allow|ask|deny)": ([{][}]|[[][]]),?$$/ {
+	opening_end = index($$0, ": ") + 2
+	target_lines[++target_count] = substr($$0, 1, opening_end)
+	target_lines[++target_count] = get_indent($$0) substr($$0, opening_end + 1)
+	next
+}
+{ target_lines[++target_count] = $$0 }
+END {
+	for (line_index = 1; line_index <= target_count; line_index += 1) {
+		line_text = target_lines[line_index]
+		if (!root_index && trim(line_text) ~ /^[{]/) root_index = line_index
+		if (depth == 1 && trim(line_text) == "\"permissions\": {") permissions_index = line_index
+		if (permissions_index && depth == 2 && get_list_name(line_text) != "") {
+			current_list = get_list_name(line_text)
+			start_line_by_list[current_list] = line_index
+		} else if (current_list != "" && trim(line_text) !~ /^]/) {
+			existing_entries[current_list, strip_comma(trim(line_text))] = 1
+			list_by_line[line_index] = current_list
+		}
+		depth += get_depth_change(line_text)
+		if (current_list != "" && depth == 2) {
+			list_by_closing_line[line_index] = current_list
+			current_list = ""
+		}
+	}
+	for (line_index = 1; line_index <= target_count; line_index += 1) {
+		line_text = target_lines[line_index]
+		if (line_index in list_by_closing_line) add_missing_entries(list_by_closing_line[line_index], get_indent(line_text) "  ")
+		if ((line_index in list_by_line) && (is_shipped_elsewhere(line_index) || is_pruned(line_index))) continue
+		add(line_text)
+		if (line_index == permissions_index) add_missing_lists(get_indent(line_text) "  ", is_followed(line_index))
+		if (line_index == root_index && !permissions_index) {
+			add("  \"permissions\": {")
+			add_missing_lists("    ", 0)
+			add("  }" (is_followed(line_index) ? "," : ""))
+		}
+	}
+	for (line_index = 1; line_index <= output_count; line_index += 1) print output_lines[line_index]
 }
 endef
 

@@ -28,7 +28,7 @@ use function Symfony\Component\String\s;
 use const PHP_EOL;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final readonly class Console
 {

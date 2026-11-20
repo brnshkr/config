@@ -39,11 +39,15 @@
 /conf/Makefile.dist                    -export-ignore
 /conf/actionlint.dist.yaml             -export-ignore
 /conf/ai                               -export-ignore -export-subst
+/conf/ai/conventions                   -export-ignore
+/conf/ai/conventions/**                -export-ignore
+/conf/ai/make.md                       -export-ignore
 /conf/ai/mate                          -export-ignore -export-subst
 /conf/ai/mate/INSTRUCTIONS.md          -export-ignore
 /conf/ai/mate/config.php               -export-ignore
 /conf/ai/mate/skills                   -export-ignore
 /conf/ai/mate/skills/**                -export-ignore
+/conf/claude-settings.dist.json        -export-ignore
 /conf/editorconfig.dist                -export-ignore
 /conf/gitattributes.dist               -export-ignore
 /conf/hadolint.dist.yaml               -export-ignore

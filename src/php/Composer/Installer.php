@@ -24,7 +24,7 @@ use function usort;
 use function version_compare;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final readonly class Installer
 {

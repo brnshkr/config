@@ -33,7 +33,7 @@ use function is_readable;
 use function sprintf;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final class SetupCommand extends AbstractCommand
 {

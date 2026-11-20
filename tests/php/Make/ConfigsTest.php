@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\AI\Mate\Agent\AgentInstructionsMaterializer;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -112,7 +113,7 @@ final class ConfigsTest extends TestCase
 
         self::assertStringContainsString('Created `./conf/tsconfig.json`.', $created);
         self::assertStringContainsString('Linked `./tsconfig.json` to `./conf/tsconfig.json`.', $created);
-        self::assertStringContainsString('`./tsconfig.json` already exists.', $kept);
+        self::assertStringNotContainsString('`./tsconfig.json`', $kept);
         self::assertSame('conf/tsconfig.json', new Filesystem()->readlink($typescriptDirectory . '/tsconfig.json'));
     }
 
@@ -154,6 +155,103 @@ final class ConfigsTest extends TestCase
 
         self::assertSame(['PHP: listen for Xdebug'], self::readLaunchNames($configsDirectory));
         self::assertSame(['Bun: attach', 'Bun: launch current file'], self::readLaunchNames($typescriptDirectory));
+    }
+
+    public function testAiWritesTheAgentFiles(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $filesystem       = new Filesystem();
+
+        $this->runMake(['configs', 'gitignore'], directory: $configsDirectory);
+
+        $gitignoreWithoutAiSetup = $filesystem->readFile($configsDirectory . '/.gitignore');
+
+        $this->runMake(['configs', 'ai'], directory: $configsDirectory);
+
+        $claudeWithoutMate = $filesystem->readFile($configsDirectory . '/CLAUDE.md');
+
+        $filesystem->dumpFile($configsDirectory . '/vendor/bin/mate', '');
+        $filesystem->dumpFile($configsDirectory . '/conf/ai/claude/agents/reviewer.md', '');
+        $filesystem->dumpFile($configsDirectory . '/conf/ai/claude/skills/acme-review/SKILL.md', '');
+
+        $this->runMake(['configs', 'ai'], directory: $configsDirectory);
+
+        $gitignoreWithAiSetup = $filesystem->readFile($configsDirectory . '/.gitignore');
+
+        self::assertSame(['make.md'], self::readAgentImports($configsDirectory));
+        self::assertSame("@AGENTS.md\n", $claudeWithoutMate);
+
+        self::assertSame(
+            AgentInstructionsMaterializer::CLAUDE_START_MARKER . "\n@AGENTS.md\n" . AgentInstructionsMaterializer::CLAUDE_END_MARKER . "\n",
+            $filesystem->readFile($configsDirectory . '/CLAUDE.md'),
+        );
+
+        self::assertSame('../conf/ai/claude/agents', $filesystem->readlink($configsDirectory . '/.claude/agents'));
+        self::assertSame('../conf/ai/claude/settings.json', $filesystem->readlink($configsDirectory . '/.claude/settings.json'));
+        self::assertSame('../conf/ai/claude/settings.local.json', $filesystem->readlink($configsDirectory . '/.claude/settings.local.json'));
+        self::assertSame('../../conf/ai/claude/skills/acme-review', $filesystem->readlink($configsDirectory . '/.claude/skills/acme-review'));
+        self::assertDoesNotMatchRegularExpression('/^\/(?:\.claude|CLAUDE\.md|mate\/AGENT_INSTRUCTIONS\.md)$/m', $gitignoreWithoutAiSetup);
+        self::assertMatchesRegularExpression('/^\/\.claude$/m', $gitignoreWithAiSetup);
+        self::assertMatchesRegularExpression('/^\/CLAUDE\.md$/m', $gitignoreWithAiSetup);
+        self::assertMatchesRegularExpression('/^\/mate\/AGENT_INSTRUCTIONS\.md$/m', $gitignoreWithAiSetup);
+
+        $filesystem->dumpFile($configsDirectory . '/CLAUDE.md', "# Acme\n");
+
+        $this->runMake(['configs'], env: ['BRNSHKR_CONVENTIONS' => '1'], directory: $configsDirectory);
+
+        self::assertSame([
+            'conventions/commits.md',
+            'conventions/code.md',
+            'conventions/docs.md',
+            'conventions/rigor.md',
+            'make.md',
+        ], self::readAgentImports($configsDirectory));
+
+        self::assertSame("# Acme\n", $filesystem->readFile($configsDirectory . '/CLAUDE.md'));
+    }
+
+    public function testTheAiSettingsFollowTheTargets(): void
+    {
+        $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
+        $settingsPath     = $configsDirectory . '/conf/ai/claude/settings.json';
+        $filesystem       = new Filesystem();
+
+        $filesystem->dumpFile($settingsPath, Json::encode([
+            'model'       => 'opus',
+            'permissions' => [
+                'allow' => [
+                    'Bash(bun run build:*)',
+                ],
+                'ask' => [
+                    'Bash(make pest-update:*)',
+                    'Bash(make vitest-update:*)',
+                ],
+            ],
+        ]));
+
+        $this->runMake(['configs'], directory: $configsDirectory);
+
+        $settings            = Json::decode($filesystem->readFile($settingsPath));
+        $settingsPermissions = $settings['permissions'] ?? null;
+        $defaultPermissions  = Json::decode($filesystem->readFile(__DIR__ . '/../../../conf/claude-settings.dist.json'))['permissions'] ?? null;
+
+        self::assertIsArray($settingsPermissions);
+        self::assertIsArray($defaultPermissions);
+
+        $allowedEntries = $settingsPermissions['allow'] ?? null;
+        $askedEntries   = $settingsPermissions['ask'] ?? null;
+
+        self::assertIsArray($allowedEntries);
+        self::assertIsArray($askedEntries);
+        self::assertSame('opus', $settings['model'] ?? null);
+        self::assertSame($defaultPermissions['deny'] ?? null, $settingsPermissions['deny'] ?? null);
+        self::assertSame('Bash(bun run build:*)', $allowedEntries[0] ?? null);
+        self::assertContains('Bash(make pest-update:*)', $allowedEntries);
+        self::assertContains('Bash(make phpstan:*)', $allowedEntries);
+        self::assertNotContains('Bash(make eslint:*)', $allowedEntries);
+        self::assertNotContains('Bash(make vitest-update:*)', [...$allowedEntries, ...$askedEntries]);
+        self::assertContains('Bash(make phpstan-debug:*)', $askedEntries);
+        self::assertNotContains('Bash(make vitest-coverage:*)', $askedEntries);
     }
 
     public function testAComposerProjectWithoutMarkersGetsTheBlockAheadOfItsOwnLines(): void
@@ -728,6 +826,17 @@ final class ConfigsTest extends TestCase
         self::assertIsArray($launch['configurations'] ?? null);
 
         return array_column($launch['configurations'], 'name');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function readAgentImports(string $directory): array
+    {
+        return array_column(
+            Str::matchAll(new Filesystem()->readFile($directory . '/AGENTS.md'), '/^@.*\/ai\/(?<path>\S+) {2}$/m'),
+            'path',
+        );
     }
 
     /**

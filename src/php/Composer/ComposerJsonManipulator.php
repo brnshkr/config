@@ -10,7 +10,7 @@ use Composer\Json\JsonManipulator;
 use RuntimeException;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final readonly class ComposerJsonManipulator
 {

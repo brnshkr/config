@@ -40,6 +40,7 @@ export const GLOB_BENCHMARK_FILES = <const>[
 ] satisfies string[];
 
 export const GLOB_IGNORES = <const>[
+  '**/.agents/skills/**',
   getDirectoryGlob(getCacheDirectory()),
   '**/.changeset/**',
   '**/.git/**',

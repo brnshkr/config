@@ -28,4 +28,5 @@ Installation and the ways to run each tool live in the [README](../README.md)
 - [🐚 ShellCheck](./shellcheck.md) — the shell script linter
 - [🔎 semgrep](./semgrep.md) — the registry rulesets that fit the repository
 - [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run
+- [🤖 AI setup](./ai.md) — the commands, permissions, and conventions agents get
 - [💻 Development](./development.md) — working on @brnshkr/config itself

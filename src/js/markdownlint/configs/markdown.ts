@@ -98,13 +98,20 @@ export const markdown = (): Config[] => {
             '**/.github/PULL_REQUEST_TEMPLATE.md',
             '**/.github/ISSUE_TEMPLATE/**',
             '**/profile/README.md',
-            '**/AGENTS.md',
-            '**/CLAUDE.md',
           ],
           config: {
             'first-line-heading': {
               allow_preamble: true,
             },
+          },
+        },
+        {
+          filter: [
+            '**/AGENTS.md',
+            '**/CLAUDE.md',
+          ],
+          config: {
+            'first-line-heading': false,
           },
         },
         {

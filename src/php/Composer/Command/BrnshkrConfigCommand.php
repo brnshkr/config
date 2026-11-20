@@ -10,7 +10,7 @@ use RuntimeException;
 use Symfony\Component\Console\Descriptor\TextDescriptor;
 
 /**
- * @internal Brnshkr\Config\Composer
+ * @internal
  */
 final class BrnshkrConfigCommand extends AbstractCommand
 {

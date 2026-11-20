@@ -24,6 +24,7 @@
     "Makefile"
   ],
   "ignorePatterns": [
+    "(^|/)\\.agents/skills/",
     "(^|/)__generated__/",
     "(^|/)__snapshots__/",
     "(^|/)tests/(.*/)?[Ff]ixtures?/"
