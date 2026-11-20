@@ -131,7 +131,7 @@ final class DotenvTest extends TestCase
 
         $result = $this->runMake(['dotenv-show'], directory: $dotenvDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('`.env.stage:;false;#` does not name a stage', $result);
+        self::assertStringContainsString('`.env.stage:;false;#` is no stage name', $result);
     }
 
     public function testACustomBaseNamesTheStages(): void

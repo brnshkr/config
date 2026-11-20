@@ -28,7 +28,7 @@ final class ArgumentsTest extends TestCase
     {
         $result = $this->runMake(['help'], directory: $this->writeProject('it\'s'), doExpectFailure: true);
 
-        self::assertStringContainsString('holds a character the recipes cannot quote', $result);
+        self::assertStringContainsString('Unquotable character in', $result);
     }
 
     public function testAPackageNamedForTheParentDirectoryIsRefused(): void
@@ -39,7 +39,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('`vendor/..` cannot name a package', $result);
+        self::assertStringContainsString('`vendor/..` is no package name', $result);
     }
 
     #[DataProvider('provideABareExportIsRefusedCases')]
@@ -210,7 +210,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('`build` is a target of this project, so it cannot follow `bun`', $result);
+        self::assertStringContainsString('Project target `build` cannot follow `bun`', $result);
         self::assertStringNotContainsString('tsdown', $result);
     }
 
@@ -278,7 +278,7 @@ final class ArgumentsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('`fixtures` is a target of this project, so it cannot follow `cc`', $result);
+        self::assertStringContainsString('Project target `fixtures` cannot follow `cc`', $result);
         self::assertDoesNotMatchRegularExpression('/^collision$/m', $result);
     }
 

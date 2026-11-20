@@ -87,7 +87,7 @@ final class ConfigsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('`./conf/phpstan.php`, which `PHP_STAN_CONFIG` names, is missing', $result);
+        self::assertStringContainsString('`./conf/phpstan.php` from `PHP_STAN_CONFIG` is missing', $result);
         self::assertStringNotContainsString('/app/conf/phpstan.php', $result);
     }
 
@@ -622,8 +622,8 @@ final class ConfigsTest extends TestCase
         $eslint    = $this->runMake(['eslint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
         $stylelint = $this->runMake(['stylelint-print'], directory: self::PROJECT_DIRECTORY, doExpectFailure: true);
 
-        self::assertStringContainsString('`eslint-print` needs a file, pass one as an argument.', $eslint);
-        self::assertStringContainsString('`stylelint-print` needs a file, pass one as an argument.', $stylelint);
+        self::assertStringContainsString('`eslint-print` needs a file. Pass one as an argument.', $eslint);
+        self::assertStringContainsString('`stylelint-print` needs a file. Pass one as an argument.', $stylelint);
     }
 
     public function testALoggedPathLinksRelativeToTheProject(): void

@@ -307,7 +307,7 @@ final class ToolsTest extends TestCase
             doExpectFailure: true,
         );
 
-        self::assertStringContainsString('`v1;false` does not name a tag', $result);
+        self::assertStringContainsString('`v1;false` is no tag', $result);
     }
 
     public function testTheFirstReleaseShowsTheInitialText(): void
@@ -441,8 +441,8 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString("VERSION=\n", $rollback);
         self::assertStringContainsString('deploy.sh deploy production', $versioned);
         self::assertStringContainsString('VERSION=1.2.3', $versioned);
-        self::assertStringContainsString('`DEPLOY_HOSTS` is empty, so run it in a stage that names hosts', $unstaged);
-        self::assertStringContainsString('`AI_AGENT` or `CLAUDECODE` is set, so run the deploy yourself', $agent);
+        self::assertStringContainsString('`DEPLOY_HOSTS` is empty. Set it, or run `deploy` in a stage that sets it', $unstaged);
+        self::assertStringContainsString('`AI_AGENT` or `CLAUDECODE` is set. Run the deploy yourself', $agent);
         self::assertStringNotContainsString('deploy.sh deploy production', $agent);
     }
 

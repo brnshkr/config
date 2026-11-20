@@ -531,11 +531,11 @@ _UNQUOTABLE_NAME := $(or $(if $(word 2,$(CURDIR))$(findstring $(_NEWLINE),$(CURD
 	CHARACTER,$(_UNQUOTABLE_CHARACTERS),$(findstring $(CHARACTER),$(NAME)))),$(NAME)))))
 
 ifneq ($(_UNQUOTABLE_NAME),)
-$(error [$(_LABEL)] `$(call _mask_control_characters,$(_UNQUOTABLE_NAME),$(_CONTROL_CHARACTERS))` holds a character the recipes cannot quote, so rename it)
+$(error [$(_LABEL)] Unquotable character in `$(call _mask_control_characters,$(_UNQUOTABLE_NAME),$(_CONTROL_CHARACTERS))`. Rename it)
 endif
 
 ifneq ($(filter . ..,$(VENDOR) $(PACKAGE)),)
-$(error [$(_LABEL)] `$(_LABEL)` cannot name a package, so fix the manifest's `name`)
+$(error [$(_LABEL)] `$(_LABEL)` is no package name. Set `VENDOR` and `PACKAGE`)
 endif
 
 ifneq ($(_DOLLAR_VARIABLES),)
@@ -595,7 +595,7 @@ _DOTENV_REFUSED_STAGES := $(if $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE).
 done))
 
 ifneq ($(_DOTENV_REFUSED_STAGES),)
-$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` does not name a stage, which takes only letters, digits, `.`, `_`, and `-`)
+$(error [$(_LABEL)] `$(firstword $(_DOTENV_REFUSED_STAGES))` is no stage name. A stage takes only letters, digits, `.`, `_`, and `-`)
 endif
 
 _DOTENV_RESET = $(if $(_DOTENV_FILE_KEYS),$(ENV_BIN) $(foreach KEY,$(sort $(_DOTENV_FILE_KEYS)),-u $(KEY)) )
@@ -925,7 +925,7 @@ _DOTENV_DUMP      := $(and $(_DOTENV_BASE),$(wildcard $(_DOTENV_BASE).local.php)
 
 ifneq ($(_DOTENV_DUMP),)
 ifeq ($(call _is_on_path,php),)
-$(error [$(_LABEL)] `$(patsubst $(CURDIR)/%,%,$(_DOTENV_DUMP))` needs `php` to load, so install PHP or delete the file)
+$(error [$(_LABEL)] `$(patsubst $(CURDIR)/%,%,$(_DOTENV_DUMP))` needs `php` to load. Install PHP or delete the file)
 endif
 endif
 
@@ -983,7 +983,7 @@ ifneq ($(_COMPOSE_REFUSAL),)
 $(error [$(_LABEL)] $(_COMPOSE_REFUSAL))
 endif
 
-$(error [$(_LABEL)] None of $(call _join_as_quoted_list,$(APP_SERVICE) $(CLI_SERVICE),disjunction) has a `working_dir`, so fix the Compose file or empty `APP_SERVICE`)
+$(error [$(_LABEL)] None of $(call _join_as_quoted_list,$(APP_SERVICE) $(CLI_SERVICE),disjunction) has a `working_dir`. Fix the Compose file or empty `APP_SERVICE`)
 endif
 endif # /container
 
@@ -1510,7 +1510,7 @@ $(foreach ENVIRONMENT_TARGET,$(_ENVIRONMENT_TARGETS),$(eval $(call _environment_
 _TARGET_LINKS := $(subst |,=,$(patsubst @%,%,$(_TARGET_SOURCES)))
 
 ifeq ($(_TARGET_SOURCES),) # awk
-$(error [$(_LABEL)] `$(AWK)` found no targets, so it is missing or is not an awk)
+$(error [$(_LABEL)] `$(AWK)` found no targets. It is missing or no awk)
 endif # /awk
 
 #**
@@ -1737,7 +1737,7 @@ _DANGLING_ALIASES := $(strip $(foreach PAIR,$(filter-out $(_MALFORMED_ALIASES),$
 	$(if $(call _get_goal,$(lastword $(subst =, ,$(PAIR)))),,$(PAIR))))
 
 ifneq ($(_TAKEN_ALIASES),) # taken
-$(error [$(_LABEL)] `$(firstword $(_TAKEN_ALIASES))` is a target, so it cannot also be an alias)
+$(error [$(_LABEL)] `$(firstword $(_TAKEN_ALIASES))` is already a target)
 endif # /taken
 
 ifneq ($(_MALFORMED_ALIASES),) # malformed
@@ -1745,7 +1745,7 @@ $(error [$(_LABEL)] `$(firstword $(_MALFORMED_ALIASES))` is not an `<alias>=<tar
 endif # /malformed
 
 ifneq ($(_DANGLING_ALIASES),) # dangling
-$(error [$(_LABEL)] `$(subst =,` aliases `,$(firstword $(_DANGLING_ALIASES)))`, which is not a target)
+$(error [$(_LABEL)] Unknown target `$(lastword $(subst =, ,$(firstword $(_DANGLING_ALIASES))))` in alias `$(firstword $(subst =, ,$(firstword $(_DANGLING_ALIASES))))`)
 endif # /dangling
 
 _IS_JUST_PRINT = $(findstring n,$(firstword -$(MAKEFLAGS)))
@@ -2126,7 +2126,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 				*\[?*\]) \
 				;; \
 				*) \
-					refuse_row '`%s` is no field, write `name[value]`.' "$$field" \
+					refuse_row '`%s` is no field. Write `name[value]`.' "$$field" \
 				;; \
 			esac; \
 			case "$$seen_fields" in \
@@ -2142,7 +2142,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 				tag) \
 					case "$$value" in \
 						*[:/@]*) \
-							refuse_row '`%s` is no tag, drop its `:`, `/`, or `@`.' "$$value" \
+							refuse_row '`%s` is no tag. Drop its `:`, `/`, or `@`.' "$$value" \
 						;; \
 					esac; \
 					tag_field="$$value" \
@@ -2154,16 +2154,16 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 					bun_entries="$$value" \
 				;; \
 				*) \
-					refuse_row '`%s[…]` is no matrix field, use `image`, `tag`, `composer`, or `bun`.' "$$name" \
+					refuse_row '`%s[…]` is no matrix field. Use `image`, `tag`, `composer`, or `bun`.' "$$name" \
 				;; \
 			esac; \
 		done; \
 		if [ -n "$$image_field$$tag_field" ]; then \
-			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`$(_COMMA) set it to the variable the Compose file reads the image from.' "$$row";) \
+			$(if $(TEST_MATRIX_IMAGE_KEY),,refuse_row '`%s` needs `TEST_MATRIX_IMAGE_KEY`. Set it to the variable the Compose file reads the image from.' "$$row";) \
 			image='$(or $($(TEST_MATRIX_IMAGE_KEY)),$(filter-out -,$(_SERVICE_IMAGE)))'; image="$${image%@*}"; tag="$${image##*:}"; \
 			case "$${image_field##*/}" in \
 				*:*|*@*) \
-					[ -z "$$tag_field" ] || refuse_row '`tag[%s]` contradicts `image[%s]`, which carries its own tag.' "$$tag_field" "$$image_field"; \
+					[ -z "$$tag_field" ] || refuse_row '`tag[%s]` conflicts with the tag in `image[%s]`.' "$$tag_field" "$$image_field"; \
 					reference="$$image_field" \
 				;; \
 				*) \
@@ -2212,7 +2212,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 			package="$${entry%:*}"; constraint="$${entry##*:}"; \
 			case "$$entry" in \
 				'*':*|*:lowest) \
-					refuse_row '`%s` needs a lower bound, since Bun resolves no lowest versions.' "$$entry" \
+					refuse_row '`%s` needs a lower bound. Bun resolves no lowest versions.' "$$entry" \
 				;; \
 				?*:?*) \
 				;; \
@@ -2233,7 +2233,7 @@ $(call _target,test-matrix): #~~ runs the tests once per `TEST_MATRIX` row #vv
 			&& $(MAKE) $(_VERB_FLAGS) --no-print-directory $(_MATRIX_INSTALLS); \
 	}; \
 	set -- $(call _shell_quoted,$(TEST_MATRIX)); \
-	[ "$$#" -gt 0 ] || refuse_row '`TEST_MATRIX` has no rows, so `test-matrix` has nothing to run.'; \
+	[ "$$#" -gt 0 ] || refuse_row '`TEST_MATRIX` has no rows.'; \
 	repeated_row=$$(printf '%s\n' "$$@" | sort | uniq -d | head -n 1); \
 	[ -z "$$repeated_row" ] || refuse_row '`%s` is in `TEST_MATRIX` twice.' "$$repeated_row"; \
 	listed_rows=" $$* "; \
@@ -2378,7 +2378,7 @@ ifeq ($(TARGET),) # unknown
 	$(DEBUG_PREFIX)$(if $(_ALIAS_GOAL),exec $(MAKE) $(_MAKE_FLAGS) $(_ALIAS_GOAL) \
 		$(if $(_UNKNOWN_ARGS),-- $(_UNKNOWN_ARGS)),:)
 	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),$(if $(_ALIAS_GOAL),:,{ \
-		$(call log,`%s` aliases `%s`$(_COMMA) which is not a target.,$(COLOR_ERROR),$(call _quoted,$@) $(call _quoted,$(_ALIAS_TARGET))); \
+		$(call log,Unknown target `%s` in alias `%s`.,$(COLOR_ERROR),$(call _quoted,$(_ALIAS_TARGET)) $(call _quoted,$@)); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}),:)
 	$(TRACE_PREFIX)$(if $(_ALIAS_TARGET),:,$(if $(_IS_FIRST_GOAL),$(call log,Unknown command `%s`.,$(COLOR_ERROR),$(call _quoted,$@)),:))
@@ -2403,7 +2403,7 @@ ifneq ($(and $(strip $(TARGET_PREFIX)),$(_COLLIDING_TARGETS)),) # collisions
 	$(TRACE_PREFIX)exit $(BRNSHKR_CONFIG_ERROR_CODE)
 endif # /collisions
 ifneq ($(_NAMED_OWN_TARGETS),) # own names
-	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,`%s` is a target of this project$(_COMMA) so it cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(or $(_PASSTHROUGH_GOAL),$(_FIRST_GOAL))')$(_NEWLINE))
+	$(foreach NAME,$(_NAMED_OWN_TARGETS),$(TRACE_PREFIX)$(call log,Project target `%s` cannot follow `%s`.,$(COLOR_ERROR),'$(NAME)' '$(or $(_PASSTHROUGH_GOAL),$(_FIRST_GOAL))')$(_NEWLINE))
 	$(TRACE_PREFIX)$(if $(word 2,$(_NAMED_OWN_TARGETS)), \
 		$(call log,Run them in make calls of their own$(_COMMA) or pass them as `ARGS="%s"`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'), \
 		$(call log,Run it in a make call of its own$(_COMMA) or pass it as `ARGS=%s`.,$(COLOR_NOTICE),'$(_NAMED_OWN_TARGETS)'))
@@ -2509,7 +2509,7 @@ $(call _target,configs): #~~ writes the files this project is missing
 	done
 	$(TRACE_PREFIX)minimum_release_age='$(MINIMUM_RELEASE_AGE)'; \
 	case "$$minimum_release_age" in 0?*|*[!0-9]*) \
-		$(call log,`MINIMUM_RELEASE_AGE` is a number of seconds or empty$(_COMMA) not `%s`.,$(COLOR_ERROR),"$$minimum_release_age") >&2; \
+		$(call log,Invalid `MINIMUM_RELEASE_AGE` `%s`. Write a number of seconds or nothing.,$(COLOR_ERROR),"$$minimum_release_age") >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 	esac
 	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
@@ -2877,7 +2877,7 @@ $(call _target,changelog): export _CHANGELOG_AWK         = $(_CHANGELOG_AWK_SOUR
 $(call _target,changelog): export _CHANGELOG_MERGE_AWK   = $(_CHANGELOG_MERGE_AWK_SOURCE)
 $(call _target,changelog): export _CHANGELOG_SECTION_AWK = $(_CHANGELOG_SECTION_AWK_SOURCE)
 $(call _target,changelog): #~~ prints the changelog, or writes it to `CHANGELOG_DIR`
-	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` does not name a tag `changelog` can read, which takes only letters, digits, `.`, `_`, `-`, `+`, and `/`))
+	$(if $(_CHANGELOG_ODD_TAG),$(error [$(_LABEL)] `$(_CHANGELOG_ODD_TAG)` is no tag `changelog` can read. A tag takes only letters, digits, `.`, `_`, `-`, `+`, and `/`))
 	$(TRACE_PREFIX)$(call _capture,$(GIT) log --no-merges --pretty=format:'%H%x1f%D%x1f%s%x1f%b%x1e' $(_CHANGELOG_RANGE)) \
 		| _CHANGELOG_URL="$(CHANGELOG_URL)" \
 			_CHANGELOG_VERSION="$(_CHANGELOG_VERSION)" \
@@ -2999,7 +2999,7 @@ ifneq ($(_TARGETED_SERVICES),) # services
 
 $(call _service_targets,exec,$(_TARGETED_SERVICES)): $(_TARGET_PREFIX)%-exec:
 	$(TRACE_PREFIX)$(if $(_SERVICE_ARGS),:,{ \
-		$(call log,`%s` needs a command$(_COMMA) pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
+		$(call log,`%s` needs a command. Pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	})
 	$(DEBUG_PREFIX)$(call _enter_service,$*,,$(if $(filter $*,$(_THROWAWAY_SERVICES)),run)) $(_SERVICE_ARGS)
@@ -3106,7 +3106,7 @@ endef
 #* returns: string
 #*
 define _get_forge_image_reference
-$(if $(FORGE_TAG),,$(error [$(_LABEL)] `$1_IMAGE_DIGEST` needs `FORGE_TAG`, so set it beside the digest))$(FORGE_IMAGE_NAMESPACE)/$(or \
+$(if $(FORGE_TAG),,$(error [$(_LABEL)] `$1_IMAGE_DIGEST` needs `FORGE_TAG`. Set it beside the digest))$(FORGE_IMAGE_NAMESPACE)/$(or \
 	$($1_IMAGE_NAME),$(FORGE_IMAGE_NAME),forge):$(FORGE_TAG)$2@$($1_IMAGE_DIGEST)
 endef
 
@@ -3138,9 +3138,9 @@ $(if $(or $(call _get_pinned_forge_image,$1),$(call _is_assigned,$1)),$1=$(subst
 endef
 
 _$(_TARGET_PREFIX)image-dockerfile:
-	$(if $(IMAGE_NAME),,$(error [$(_LABEL)] `IMAGE_NAME` is empty, so run `image` in a stage that names one, e.g. `make production-image`))
-	$(if $(and $(IMAGE_DOCKERFILE),$(if $(wildcard $(CURDIR)/$(IMAGE_DOCKERFILE)),,1)),$(error [$(_LABEL)] `$(IMAGE_DOCKERFILE)` does not exist, so fix `IMAGE_DOCKERFILE`))
-	$(if $(and $(_IS_GENERIC_DOCKERFILE),$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,1)),$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
+	$(if $(IMAGE_NAME),,$(error [$(_LABEL)] `IMAGE_NAME` is empty. Set it, or run `image` in a stage that sets it, e.g. `make production-image`))
+	$(if $(and $(IMAGE_DOCKERFILE),$(if $(wildcard $(CURDIR)/$(IMAGE_DOCKERFILE)),,1)),$(error [$(_LABEL)] `$(IMAGE_DOCKERFILE)` does not exist. Fix `IMAGE_DOCKERFILE`))
+	$(if $(and $(_IS_GENERIC_DOCKERFILE),$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,1)),$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset. Set it, or pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
 	$(DEBUG_PREFIX)$(if $(_IS_GENERIC_DOCKERFILE),$(MKDIR) -p '$(_BRNSHKR_CACHE_DIR)' \
 		&& $(DOCKER) run --rm --entrypoint cat $(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) \
 			/usr/local/share/forge/app.Dockerfile >'$(_IMAGE_GENERIC_DOCKERFILE)',:)
@@ -3196,9 +3196,9 @@ DEPLOY_DOTENV_BASE=$(call _quoted,$(_DOTENV_BASE)) sh '$(_DEPLOY_SCRIPT)' $1 $(c
 endef
 
 _$(_TARGET_PREFIX)deploy-script:
-	$(if $(or $(AI_AGENT),$(CLAUDECODE)),$(error [$(_LABEL)] `AI_AGENT` or `CLAUDECODE` is set, so run the deploy yourself, outside the agent))
-	$(if $(DEPLOY_HOSTS),,$(error [$(_LABEL)] `DEPLOY_HOSTS` is empty, so run it in a stage that names hosts, e.g. `make production-deploy`))
-	$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset, so pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
+	$(if $(or $(AI_AGENT),$(CLAUDECODE)),$(error [$(_LABEL)] `AI_AGENT` or `CLAUDECODE` is set. Run the deploy yourself, outside the agent))
+	$(if $(DEPLOY_HOSTS),,$(error [$(_LABEL)] `DEPLOY_HOSTS` is empty. Set it, or run `deploy` in a stage that sets it, e.g. `make production-deploy`))
+	$(if $(call _get_image_argument_value,FORGE_APP_DEV_IMAGE),,$(error [$(_LABEL)] `FORGE_APP_DEV_IMAGE` is unset. Set it, or pin it with `FORGE_APP_DEV_IMAGE_DIGEST`))
 	$(DEBUG_PREFIX)$(MKDIR) -p '$(_BRNSHKR_CACHE_DIR)' && $(DOCKER) run --rm --entrypoint cat \
 		$(call _quoted,$(call _get_image_argument_value,FORGE_APP_DEV_IMAGE)) /usr/local/share/forge/deploy.sh >'$(_DEPLOY_SCRIPT)'
 
@@ -3253,8 +3253,8 @@ endef
 #* returns: string
 #*
 define _write_site
-$(if $(CADDY_SITE_$1_HANDLER),,$(error [$(_LABEL)] `CADDY_SITE_$1_HANDLER` is empty, so set the directive \
-	`CADDY_SITE_$1` serves, e.g. `reverse_proxy acme-admin:8080`))file=$(call _quoted,$(_SITES_DIR))/$$(printf '%s' '$1' \
+$(if $(CADDY_SITE_$1_HANDLER),,$(error [$(_LABEL)] `CADDY_SITE_$1_HANDLER` is empty. Set the directive for \
+	`CADDY_SITE_$1`, e.g. `reverse_proxy acme-admin:8080`))file=$(call _quoted,$(_SITES_DIR))/$$(printf '%s' '$1' \
 	| $(TR) '[:upper:]_' '[:lower:]-').caddyfile \
 	&& printf '%s {\n\timport forge-headers\n\t%s\n}\n' $(call _quoted,$(firstword $(call _get_site_addresses,$1))) \
 		$(call _quoted,$(CADDY_SITE_$1_HANDLER)) >"$$file" \
@@ -4665,7 +4665,7 @@ endef
 define _refuse_links
 for checked_path in $1; do \
 	[ ! -L "$$checked_path" ] || { \
-		$(call log,`%s` is a symbolic link$(_COMMA) which `configs` does not follow.,$(COLOR_ERROR),"./$${checked_path#$(CURDIR)/}") >&2; \
+		$(call log,`%s` is a symbolic link. `configs` does not follow it.,$(COLOR_ERROR),"./$${checked_path#$(CURDIR)/}") >&2; \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
 done
@@ -5031,8 +5031,8 @@ endef
 define _require_file
 test -r '$(call _host_path,$1)' || { \
 	$(if $(filter command% environment%,$(origin $2)) \
-		,$(call log,`%s`$(_COMMA) which `%s` names$(_COMMA) is missing.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2'), \
-		$(call log,`%s` is missing$(_COMMA) set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') \
+		,$(call log,`%s` from `%s` is missing.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2'), \
+		$(call log,`%s` is missing. Set `%s` or create it.,$(COLOR_ERROR),'$(call _named_path,$1)' '$2') \
 	) >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
@@ -5049,7 +5049,7 @@ endef
 #*
 define _require_file_argument
 $(if $(call _has_positional_arg,$(_ARGS),$2),:,{ \
-	$(call log,`%s` needs a file$(_COMMA) pass one as an argument.,$(COLOR_ERROR),'$1') >&2; \
+	$(call log,`%s` needs a file. Pass one as an argument.,$(COLOR_ERROR),'$1') >&2; \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 })
 endef

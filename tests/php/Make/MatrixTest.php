@@ -222,7 +222,7 @@ final class MatrixTest extends TestCase
      */
     public static function provideAWrongRowIsRefusedCases(): iterable
     {
-        yield 'no rows' => [['TEST_MATRIX='], '`TEST_MATRIX` has no rows, so `test-matrix` has nothing to run.'];
+        yield 'no rows' => [['TEST_MATRIX='], '`TEST_MATRIX` has no rows.'];
 
         yield 'unlisted row' => [['--', 'composer[acme/usr:lowest]'], '`composer[acme/usr:lowest]` is no `TEST_MATRIX` row.'];
 
@@ -233,12 +233,12 @@ final class MatrixTest extends TestCase
 
         yield 'broken later row' => [
             ['TEST_MATRIX=composer[*:lowest] pip[acme:1.0]'],
-            '`pip[…]` is no matrix field, use `image`, `tag`, `composer`, or `bun`.',
+            '`pip[…]` is no matrix field. Use `image`, `tag`, `composer`, or `bun`.',
         ];
 
-        yield 'no brackets' => [['TEST_MATRIX=acme'], '`acme` is no field, write `name[value]`.'];
+        yield 'no brackets' => [['TEST_MATRIX=acme'], '`acme` is no field. Write `name[value]`.'];
 
-        yield 'empty block' => [['TEST_MATRIX=composer[]'], '`composer[]` is no field, write `name[value]`.'];
+        yield 'empty block' => [['TEST_MATRIX=composer[]'], '`composer[]` is no field. Write `name[value]`.'];
 
         yield 'repeated block' => [
             ['TEST_MATRIX=composer[acme/user:^2.0];composer[acme/email:^2.0]'],
@@ -263,7 +263,7 @@ final class MatrixTest extends TestCase
 
         yield 'bun lowest' => [
             ['TEST_MATRIX=bun[@acme/ui:lowest]'],
-            '`@acme/ui:lowest` needs a lower bound, since Bun resolves no lowest versions.',
+            '`@acme/ui:lowest` needs a lower bound. Bun resolves no lowest versions.',
         ];
 
         yield 'repeated bun package' => [
@@ -271,16 +271,16 @@ final class MatrixTest extends TestCase
             '`@acme/ui` is moved twice in one row.',
         ];
 
-        yield 'tag with a separator' => [['TEST_MATRIX=tag[php8.5:dev]'], '`php8.5:dev` is no tag, drop its `:`, `/`, or `@`.'];
+        yield 'tag with a separator' => [['TEST_MATRIX=tag[php8.5:dev]'], '`php8.5:dev` is no tag. Drop its `:`, `/`, or `@`.'];
 
         yield 'tag next to a full image' => [
             ['TEST_MATRIX=image[registry.acme.test/user:2];tag[php8.5-bun1.4]'],
-            '`tag[php8.5-bun1.4]` contradicts `image[registry.acme.test/user:2]`, which carries its own tag.',
+            '`tag[php8.5-bun1.4]` conflicts with the tag in `image[registry.acme.test/user:2]`.',
         ];
 
         yield 'image without its variable' => [
             ['TEST_MATRIX_IMAGE_KEY=', 'TEST_MATRIX=tag[php8.5-bun1.4]'],
-            '`tag[php8.5-bun1.4]` needs `TEST_MATRIX_IMAGE_KEY`, set it to the variable the Compose file reads the image from.',
+            '`tag[php8.5-bun1.4]` needs `TEST_MATRIX_IMAGE_KEY`. Set it to the variable the Compose file reads the image from.',
         ];
     }
 
