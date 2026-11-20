@@ -515,7 +515,7 @@ final class ConfigsTest extends TestCase
         $configsDirectory = $this->getFixtureCopy(self::CONFIGS_DIRECTORY);
         $result           = $this->runMake(['configs', 'phpstna'], directory: $configsDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No config named `phpstna`', $result);
+        self::assertStringContainsString('Unknown config `phpstna`', $result);
         self::assertStringContainsString('Did you mean `phpstan', $result);
     }
 

@@ -30,7 +30,7 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', '--', '--first=x'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named `first=x`', $result);
+        self::assertStringContainsString('Unknown cache `first=x`', $result);
         self::assertDirectoryExists($cachesDirectory . '/.cache/first');
     }
 
@@ -68,7 +68,7 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', 'nope'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named `nope`', $result);
+        self::assertStringContainsString('Unknown cache `nope`', $result);
         self::assertStringContainsString('Try `first`', $result);
         self::assertDirectoryExists($cachesDirectory . '/.cache/first');
     }
@@ -81,7 +81,7 @@ final class CachesTest extends TestCase
 
         $result = $this->runMake(['cc', 'phpstna.cache'], directory: $cachesDirectory, doExpectFailure: true);
 
-        self::assertStringContainsString('No cache named `phpstna.cache`', $result);
+        self::assertStringContainsString('Unknown cache `phpstna.cache`', $result);
         self::assertStringContainsString('Did you mean `phpstan.cache`', $result);
         self::assertStringNotContainsString('Try ', $result);
         self::assertStringNotContainsString('Removed', $result);

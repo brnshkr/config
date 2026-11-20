@@ -4940,7 +4940,7 @@ endef
 #*
 define _require_known_value
 $(if $(_UNKNOWN_VALUES),{ \
-	$(call log,No $1 named `%s`.,$(COLOR_ERROR),$(call _quoted,$(_MISTYPED_VALUE))); \
+	$(call log,Unknown $1 `%s`.,$(COLOR_ERROR),$(call _quoted,$(_MISTYPED_VALUE))); \
 	$(if $(_SUGGESTED_VALUES),$(if $(word 2,$(_SUGGESTED_VALUES)), \
 		$(call log,Did you mean %s?,$(COLOR_NOTICE),$(call _quoted,$(call _join_as_quoted_list,$(_SUGGESTED_VALUES),disjunction))), \
 		$(call log,Did you mean `%s`?,$(COLOR_NOTICE),$(call _quoted,$(_SUGGESTED_VALUES)))), \
