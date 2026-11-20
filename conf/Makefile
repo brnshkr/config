@@ -138,6 +138,18 @@
 _BRNSHKR_CONFIG_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 _BRNSHKR_CONFIG_DIR      := $(patsubst %/,%,$(dir $(_BRNSHKR_CONFIG_MAKEFILE)))
 
+_DOLLAR_VARIABLES := $(strip $(foreach VARIABLE,$(.VARIABLES),$(if $(and \
+	$(filter command line,$(origin $(VARIABLE))), \
+	$(filter-out -%,$(VARIABLE)), \
+	$(findstring $$,$(subst $$$$,,$(value $(VARIABLE))))),$(VARIABLE))))
+
+_BACKTICK_VARIABLES := $(strip $(foreach VARIABLE,$(.VARIABLES),$(if $(and \
+	$(filter command line,$(origin $(VARIABLE))), \
+	$(filter-out -% ARGS,$(VARIABLE)), \
+	$(findstring `,$(value $(VARIABLE)))),$(VARIABLE))))
+
+$(foreach VARIABLE,$(_DOLLAR_VARIABLES) $(_BACKTICK_VARIABLES),$(eval override $(VARIABLE) :=))
+
 _ARG_WORDS = $(_HELP_WORD) $(patsubst -%,%,$(patsubst --%,%,$(_ARGS)))
 
 _HELP_VERBOSITY_ARGS       = $(strip $(foreach ARG_WORD,$(_ARG_WORDS),$(if $(subst v,,$(ARG_WORD)),,$(ARG_WORD))))
@@ -521,6 +533,14 @@ endif
 
 ifneq ($(filter . ..,$(VENDOR) $(PACKAGE)),)
 $(error [$(_LABEL)] `$(_LABEL)` cannot name a package, so fix the manifest's `name`)
+endif
+
+ifneq ($(_DOLLAR_VARIABLES),)
+$(error [$(_LABEL)] Unexpected `$$` in `$(firstword $(_DOLLAR_VARIABLES))`. Write it as `$$$$`)
+endif
+
+ifneq ($(_BACKTICK_VARIABLES),)
+$(error [$(_LABEL)] Unexpected backtick in `$(firstword $(_BACKTICK_VARIABLES))`)
 endif
 
 DEBUG               ?= #~~ whether each command is echoed
@@ -1641,10 +1661,44 @@ ARGS    = $(call _shell_quoted,$(_ARGS))#~~ every argument the running target go
 
 _GOAL = $@
 
-_COMMAND_LINE_ARGS := $(if $(filter command line,$(origin ARGS)),$(shell \
-	for word in $(ARGS); do printf '%s\000' "$$word"; done | $(TR) ' \n\000' '\037\036 '))
+define _ARGS_AWK
+function print_word() { gsub(/ /, "\037", word); gsub(/\n/, "\036", word); printf "%s%s", separator, word; separator = " "; word = ""; is_word = 0 }
+{ text = text (NR > 1 ? "\n" : "") $$0 }
+END {
+	for (position = 1; position <= length(text); position++) {
+		character = substr(text, position, 1)
+		if (quote == "\047" && character != "\047") { word = word character; continue }
+		if (character == "\\" && position < length(text) && (quote == "" || index("$$`\"\\\n", substr(text, position + 1, 1)))) {
+			character = substr(text, ++position, 1)
+			if (character != "\n") { word = word character; is_word = 1 }
+			continue
+		}
+		if (character == "\047" || character == "\"") {
+			if (quote == "") { quote = character; is_word = 1; continue }
+			if (quote == character) { quote = ""; continue }
+		}
+		if (quote == "" && (character == " " || character == "\t" || character == "\n")) {
+			if (is_word) print_word()
+			continue
+		}
+		word = word character
+		is_word = 1
+	}
+	if (is_word) print_word()
+}
+endef
 
-_ARGS = $(strip $(if $(filter command line,$(origin ARGS)) \
+_IS_COMMAND_LINE_ARGS := $(filter command line,$(origin ARGS))
+
+_COMMAND_LINE_ARGS := $(if $(_IS_COMMAND_LINE_ARGS),$(shell \
+	printf '%b' $(_QUOTE)$(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$(subst $(_NEWLINE),\n,$(subst \,\\,$(ARGS))))$(_QUOTE) \
+		| $(AWK) $(call _quote_program,$(_ARGS_AWK))))
+
+ifneq ($(_IS_COMMAND_LINE_ARGS),) # command-line arguments
+override ARGS = $(call _shell_quoted,$(_ARGS))
+endif # /command-line arguments
+
+_ARGS = $(strip $(if $(_IS_COMMAND_LINE_ARGS) \
 	,$(_COMMAND_LINE_ARGS), \
 	$(if $(_NAMING_GOAL) \
 		,$(filter-out $(_FIRST_GOAL) --,$(_GOAL_WORDS)), \
@@ -1693,7 +1747,7 @@ endif # /dangling
 
 _IS_JUST_PRINT = $(findstring n,$(firstword -$(MAKEFLAGS)))
 _IS_FIRST_GOAL = $(filter $@,$(firstword $(MAKECMDGOALS)))
-_UNKNOWN_ARGS  = $(if $(filter command line,$(origin ARGS)),,$(call _shell_quoted,$(filter-out $@,$(_ARGS))))
+_UNKNOWN_ARGS  = $(if $(_IS_COMMAND_LINE_ARGS),,$(call _shell_quoted,$(filter-out $@,$(_ARGS))))
 _SUGGESTED_FOR = $@
 _TARGET_GOALS  = $(filter-out _% -%,$(_ALL_TARGETS))
 _STAGE_GOALS   = $(foreach STAGE,$(DOTENV_STAGES),$(addprefix $(STAGE)-,$(_TARGET_GOALS)))
@@ -3537,9 +3591,13 @@ endef
 _$(_TARGET_PREFIX)print-variables:
 	$(TRACE_PREFIX)$(foreach NAME,$(_PRINTED_VARIABLES),printf '%s=%s\n' '$(NAME)' $(call _quoted,$($(NAME)));)
 
+$(call _target,mate): export _MATE_ARGS = $(_ARGS)
 $(call _target,mate): #~~ runs mate where the tools run, answering in TOON where `helgesverre/toon` is installed
-	$(DEBUG_PREFIX)$(if $(filter command line,$(origin ARGS)),eval "set -- $$ARGS",set -- $(ARGS)); \
-		$(MATE) "$$@" $(_MATE_FORMAT)
+	$(DEBUG_PREFIX)set -f; set --; for word in $$_MATE_ARGS; do \
+		decoded_word=$$(printf '%s' "$$word" | $(TR) '\037\036' ' \n'); \
+		set -- "$$@" "$$decoded_word"; \
+	done; \
+	$(MATE) "$$@" $(_MATE_FORMAT)
 
 $(call _target,discover): #~~ refreshes what mate generates for agents
 	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)

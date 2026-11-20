@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function sprintf;
+
 /**
  * @internal
  */
@@ -20,6 +22,7 @@ final class ArgumentsTest extends TestCase
     use MakeTrait;
 
     private const string SUGGESTIONS_DIRECTORY = __DIR__ . '/../Fixtures/Make/Suggestions';
+    private const string TEMPORARY_ROOT_PREFIX = 'brnshkr-arguments-';
 
     public function testAProjectNameTheRecipesCannotQuoteIsRefused(): void
     {
@@ -61,6 +64,31 @@ final class ArgumentsTest extends TestCase
         yield 'commented' => ['export # Acme passes everything on'];
 
         yield 'special target' => ['.EXPORT_ALL_VARIABLES:'];
+    }
+
+    #[DataProvider('provideAValueMakeOrTheShellWouldRunIsRefusedCases')]
+    public function testAValueMakeOrTheShellWouldRunIsRefused(string $value, string $refusal): void
+    {
+        $markerPath = $this->createMarkerPath(self::TEMPORARY_ROOT_PREFIX);
+
+        $result = $this->runMake(
+            ['help', 'ACME=' . sprintf($value, $markerPath)],
+            directory: self::CONSUMER_DIRECTORY,
+            doExpectFailure: true,
+        );
+
+        self::assertFileDoesNotExist($markerPath);
+        self::assertStringContainsString($refusal, $result);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideAValueMakeOrTheShellWouldRunIsRefusedCases(): iterable
+    {
+        yield 'make function' => ['$(shell touch %s)', 'Unexpected `$` in `ACME`. Write it as `$$`'];
+
+        yield 'command substitution' => ['`touch %s`', 'Unexpected backtick in `ACME`'];
     }
 
     public function testACollidingNameStaysWithTheProjectAndTheSharedOneMovesAside(): void
@@ -122,6 +150,8 @@ final class ArgumentsTest extends TestCase
 
     public function testAnArgumentReachesTheTargetAsWritten(): void
     {
+        $markerPath = $this->createMarkerPath(self::TEMPORARY_ROOT_PREFIX);
+
         $result = $this->runMake(
             ['consumer-arguments', '--', '--filter', 'A|B', 'c$HOME'],
             directory: self::CONSUMER_DIRECTORY,
@@ -135,11 +165,20 @@ final class ArgumentsTest extends TestCase
 
         $spacedFirst = $this->runMake(['consumer-arguments', 'ARGS=\'a b\' c'], directory: self::CONSUMER_DIRECTORY);
 
+        $inert = $this->runMake(
+            ['-n', 'rector', sprintf('ARGS=`touch %s` $$(touch %s)', $markerPath, $markerPath)],
+            ['PATH' => self::TOOLS_DIRECTORY . '/bin:' . Str::fromEnvironment('PATH')],
+            self::TOOLS_DIRECTORY,
+        );
+
         self::assertStringContainsString('consumer-arguments [\'--filter\' \'A|B\'', $result);
-        self::assertStringContainsString('consumer-arguments [\'a b\' c] [\'a b\']', $spacedFirst);
+        self::assertStringContainsString('consumer-arguments [\'a b\' \'c\'] [\'a b\']', $spacedFirst);
         self::assertStringNotContainsString('cOME', $result);
         self::assertStringContainsString('\'a b.php\' --config', $spaced);
         self::assertStringContainsString('--dry-run', $spaced);
+        self::assertFileDoesNotExist($markerPath);
+        self::assertStringContainsString('\'`touch\'', $inert);
+        self::assertStringContainsString('\'$(touch\'', $inert);
     }
 
     public function testAnOptionWithAValueReachesTheTargetItFollows(): void
