@@ -49,7 +49,7 @@ const total = <Total>(price + tax);
 `as` binds loosely, so `await load() as Config` already parses as `(await load()) as Config`
 and the parentheses carry shape alone.
 The rule applies them anyway, so the same form holds where a project sets
-[`ts/consistent-type-assertions`](https://typescript-eslint.io/rules/consistent-type-assertions/) to `as`.
+[`ts/consistent-type-assertions`](https://typescript-eslint.io/rules/consistent-type-assertions) to `as`.
 Spacing is not checked there, since `as` is separated by its own keyword spacing.
 
 ```ts

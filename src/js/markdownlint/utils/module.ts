@@ -27,9 +27,8 @@ export const MODULES = <const>{
   links: {
     name: 'links',
     packages: {
-      requiredAny: [
+      requiredAll: [
         MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS,
-        MARKDOWNLINT_PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS,
       ],
     },
   },

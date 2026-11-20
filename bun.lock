@@ -59,7 +59,6 @@
         "json-schema-to-typescript": "16.0.0",
         "markdownlint": "0.42.0",
         "markdownlint-cli2": "0.24.0",
-        "markdownlint-rule-no-trailing-slash-in-links": "0.0.2",
         "markdownlint-rule-relative-links": "5.1.4",
         "markdownlint-rule-search-replace": "1.2.0",
         "markdownlint-rule-table-format": "1.0.3",
@@ -136,7 +135,6 @@
         "jsdom": "^30.1.0",
         "markdownlint": "^0.42.0",
         "markdownlint-cli2": "^0.24.0",
-        "markdownlint-rule-no-trailing-slash-in-links": "^0.0.2",
         "markdownlint-rule-relative-links": "^5.1.4",
         "markdownlint-rule-search-replace": "^1.2.0",
         "markdownlint-rule-table-format": "^1.0.3",
@@ -211,7 +209,6 @@
         "jsdom",
         "markdownlint",
         "markdownlint-cli2",
-        "markdownlint-rule-no-trailing-slash-in-links",
         "markdownlint-rule-relative-links",
         "markdownlint-rule-search-replace",
         "markdownlint-rule-table-format",
@@ -1216,9 +1213,7 @@
 
     "markdownlint-micromark": ["markdownlint-micromark@0.1.2", "", {}, "sha512-jRxlQg8KpOfM2IbCL9RXM8ZiYWz2rv6DlZAnGv8ASJQpUh6byTBnEsbuMZ6T2/uIgntyf7SKg/mEaEBo1164fQ=="],
 
-    "markdownlint-rule-helpers": ["markdownlint-rule-helpers@0.17.2", "", {}, "sha512-XaeoW2NYSlWxMCZM2B3H7YTG6nlaLfkEZWMBhr4hSPlq9MuY2sy83+Xr89jXOqZMZYjvi5nBCGoFh7hHoPKZmA=="],
-
-    "markdownlint-rule-no-trailing-slash-in-links": ["markdownlint-rule-no-trailing-slash-in-links@0.0.2", "", { "dependencies": { "markdownlint-rule-helpers": "^0.17.2" } }, "sha512-qeQvATWs/3hnNA/A5LGohHjte4Zgx1JjPbB70g3160+A9XjKRuFW8ZiUbRz9VJCgAnVdjFN4PKsOgj/PdpIXYw=="],
+    "markdownlint-rule-helpers": ["markdownlint-rule-helpers@0.21.0", "", { "dependencies": { "markdownlint-micromark": "0.1.2" } }, "sha512-27WM6H76t79EZjEl3jSabV0ZzXsC5QaSslI/5N1XuXV0mJRA6i3BPMGFrtZUbhlCNgtY6oC9h5JhtpDMv95tKg=="],
 
     "markdownlint-rule-relative-links": ["markdownlint-rule-relative-links@5.1.4", "", { "dependencies": { "markdown-it": "15.0.3", "mime": "4.1.1" } }, "sha512-SqkGdLJj7Uxpl2ZTeOd0XAg+6Q5VQKrykjuUMR6whRkUKeUpEHrETQMSg3Hrp5s7YMTV23yJ6zhb51Zp4XzVdg=="],
 
@@ -1839,8 +1834,6 @@
     "jsonc-eslint-parser/verkit": ["verkit@0.3.2", "", {}, "sha512-zj/ob3UsvJGN0whEAKFp53REA5X66hvffVqoCtVQAakJKnKlH+/PcOfMoFwIG/o4rElqLv/ycAFlx8ZlXUorCg=="],
 
     "markdownlint-cli2/js-yaml": ["js-yaml@5.4.3", "", { "dependencies": { "argparse": "^2.0.1" }, "bin": { "js-yaml": "bin/js-yaml.mjs" } }, "sha512-yzzNtgczwgoVHNigCyKTXcQJU4Y8t/ikU4UxXW0BvrLfHTGWZhsNcOT2s/a7vn81/4KqVnNmHjaUEPlvWnNwVw=="],
-
-    "markdownlint-rule-search-replace/markdownlint-rule-helpers": ["markdownlint-rule-helpers@0.21.0", "", { "dependencies": { "markdownlint-micromark": "0.1.2" } }, "sha512-27WM6H76t79EZjEl3jSabV0ZzXsC5QaSslI/5N1XuXV0mJRA6i3BPMGFrtZUbhlCNgtY6oC9h5JhtpDMv95tKg=="],
 
     "mdast-util-find-and-replace/escape-string-regexp": ["escape-string-regexp@5.0.0", "", {}, "sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw=="],
 

@@ -3,6 +3,7 @@
  */
 
 import { noPhpOpenTagRule } from '#markdownlint/configs/builtin/no-php-open-tag.ts';
+import { noTrailingSlashInLinksRule } from '#markdownlint/configs/builtin/no-trailing-slash-in-links.ts';
 import { noWarningCommentsRule } from '#markdownlint/configs/builtin/no-warning-comments.ts';
 import { objectFromEntries, objectKeys, objectValues } from '#shared/utils/object.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
@@ -11,6 +12,7 @@ import type { Config } from '#markdownlint/types/config.ts';
 
 export const RULE_DEFINITIONS = <const>{
   'no-php-open-tag': noPhpOpenTagRule,
+  'no-trailing-slash-in-links': noTrailingSlashInLinksRule,
   'no-warning-comments': noWarningCommentsRule,
 };
 

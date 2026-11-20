@@ -37,7 +37,6 @@ export interface CustomRules {
   'no-default-alt-text': boolean;
   'no-empty-alt-text': boolean;
   'no-generic-link-text': boolean;
-  'no-trailing-slash-in-links': boolean;
   'reference-link-section-placement': boolean;
   'relative-links': boolean | Partial<Record<'root_path' | 'fragment-index-divider', string>>;
   'search-replace': boolean | {

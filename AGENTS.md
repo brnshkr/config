@@ -7,9 +7,9 @@ for all @brnshkr projects. This repo lints itself with its own configs.
 ## Working here
 
 - **Rules** (code style, tooling, commits) live in @conf/ai/INSTRUCTIONS.md — read it before writing code.
-- **Commands, setup, tool/rule reference** live in [`docs/`](./docs/)
+- **Commands, setup, tool/rule reference** live in [`docs/`](./docs)
   — start at [`docs/development.md`](./docs/development.md). Never duplicate that here.
-- **Deep agent references** live in [`conf/ai/docs/`](./conf/ai/docs/):
+- **Deep agent references** live in [`conf/ai/docs/`](./conf/ai/docs):
   `ai` (this AI setup), `commit`, `php`, `js`, `make`.
 
 ## Map

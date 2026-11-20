@@ -7,44 +7,25 @@ import { MODULES, PACKAGES, resolvePackages } from '#markdownlint/utils/module.t
 
 import type { Config } from '#markdownlint/types/config.ts';
 
-// NOTICE: The package declares no entry point at all, so only its rule file can be imported
-const NO_TRAILING_SLASH_IN_LINKS_RULE = `${
-  PACKAGES.MARKDOWNLINT_RULE_NO_TRAILING_SLASH_IN_LINKS
-}/src/no-trailing-slash-in-links.js`;
-
 export const links = (): Config[] => {
   const {
-    requiredAny: [
-      isMarkdownlintRuleRelativeLinksInstalled,
-      isMarkdownlintRuleNoTrailingSlashInLinksInstalled,
-    ],
+    requiredAll: [isMarkdownlintRuleRelativeLinksInstalled],
   } = resolvePackages(MODULES.links);
 
-  const customRules = [
-    ...isMarkdownlintRuleRelativeLinksInstalled
-      ? [PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS]
-      : [],
-    ...isMarkdownlintRuleNoTrailingSlashInLinksInstalled
-      ? [NO_TRAILING_SLASH_IN_LINKS_RULE]
-      : [],
-  ];
-
-  if (customRules.length === 0) {
+  if (!isMarkdownlintRuleRelativeLinksInstalled) {
     return [];
   }
 
   return [
     {
-      customRules: customRules.map((id) => resolveCustomRule(id)),
+      customRules: [
+        resolveCustomRule(PACKAGES.MARKDOWNLINT_RULE_RELATIVE_LINKS),
+      ],
       config: {
-        ...(isMarkdownlintRuleRelativeLinksInstalled
-          ? {
-            'relative-links': {
-              // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
-              root_path: '.',
-            },
-          }
-          : undefined),
+        'relative-links': {
+          // eslint-disable-next-line ts/naming-convention -- Option needs to be cased like this
+          root_path: '.',
+        },
       },
     },
   ];

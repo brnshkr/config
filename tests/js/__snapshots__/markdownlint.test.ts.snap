@@ -4,6 +4,7 @@ exports[`expected markdownlint config 1`] = `
 {
   "config": {
     "brnshkr/no-php-open-tag": true,
+    "brnshkr/no-trailing-slash-in-links": true,
     "brnshkr/no-warning-comments": true,
     "code-block-style": {
       "style": "fenced",
@@ -310,6 +311,17 @@ exports[`expected markdownlint config 1`] = `
       ],
     },
     {
+      "description": "A link names its target without a trailing slash.",
+      "information": "https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-trailing-slash-in-links.md",
+      "names": [
+        "brnshkr/no-trailing-slash-in-links",
+      ],
+      "parser": "micromark",
+      "tags": [
+        "links",
+      ],
+    },
+    {
       "description": "Open work belongs in a backlog, not in a comment.",
       "information": "https://github.com/brnshkr/config/blob/master/docs/js/markdownlint/rules/no-warning-comments.md",
       "names": [
@@ -322,7 +334,6 @@ exports[`expected markdownlint config 1`] = `
     },
     "<root>/node_modules/@github/markdownlint-github/index.js",
     "<root>/node_modules/markdownlint-rule-relative-links/src/index.js",
-    "<root>/node_modules/markdownlint-rule-no-trailing-slash-in-links/src/no-trailing-slash-in-links.js",
     "<root>/node_modules/markdownlint-rule-search-replace/rule.js",
     "<root>/node_modules/@hongminhee/markdownlint-rules/dist/index.js",
     "<root>/node_modules/markdownlint-rule-table-format/rule.js",

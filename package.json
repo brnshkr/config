@@ -110,7 +110,6 @@
     "jsdom": "^30.1.0",
     "markdownlint": "^0.42.0",
     "markdownlint-cli2": "^0.24.0",
-    "markdownlint-rule-no-trailing-slash-in-links": "^0.0.2",
     "markdownlint-rule-relative-links": "^5.1.4",
     "markdownlint-rule-search-replace": "^1.2.0",
     "markdownlint-rule-table-format": "^1.0.3",
@@ -279,9 +278,6 @@
     "markdownlint-cli2": {
       "optional": true
     },
-    "markdownlint-rule-no-trailing-slash-in-links": {
-      "optional": true
-    },
     "markdownlint-rule-relative-links": {
       "optional": true
     },
@@ -413,7 +409,6 @@
     "json-schema-to-typescript": "16.0.0",
     "markdownlint": "0.42.0",
     "markdownlint-cli2": "0.24.0",
-    "markdownlint-rule-no-trailing-slash-in-links": "0.0.2",
     "markdownlint-rule-relative-links": "5.1.4",
     "markdownlint-rule-search-replace": "1.2.0",
     "markdownlint-rule-table-format": "1.0.3",

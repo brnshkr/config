@@ -11,3 +11,8 @@ All rules ship as `brnshkr/<rule>` and are enabled by the default configuration 
 
 - [`brnshkr/no-warning-comments`](./no-warning-comments.md)
   — a `TODO`, `FIXME`, `XXX`, or `HACK` must not stand in prose, an HTML comment, or a code block
+
+## Links
+
+- [`brnshkr/no-trailing-slash-in-links`](./no-trailing-slash-in-links.md)
+  — a link, an image, or a reference definition must not point at a target ending in a slash

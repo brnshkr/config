@@ -44,6 +44,7 @@
         "./docs/js/Makefile.md",
         "./docs/js/markdownlint/index.md",
         "./docs/js/markdownlint/rules/index.md",
+        "./docs/js/markdownlint/rules/no-trailing-slash-in-links.md",
         "./docs/js/markdownlint/rules/no-warning-comments.md",
         "./docs/js/stylelint/index.md",
         "./docs/js/stylelint/rules/fenced-code.md",

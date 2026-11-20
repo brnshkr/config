@@ -25,12 +25,11 @@ export interface ConfigOptions {
   github: boolean;
 
   /**
-   * Enables `markdownlint-rule-relative-links` and `markdownlint-rule-no-trailing-slash-in-links`.
+   * Enables `markdownlint-rule-relative-links`.
    *
-   * @default `Enabled when "markdownlint-rule-relative-links" or "markdownlint-rule-no-trailing-slash-in-links" is installed.`
+   * @default `Enabled when "markdownlint-rule-relative-links" is installed.`
    *
    * @see https://github.com/theoludwig/markdownlint-rule-relative-links
-   * @see https://github.com/xiaogaozi/markdownlint-rule-no-trailing-slash-in-links
    */
   links: boolean;
 
