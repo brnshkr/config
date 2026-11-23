@@ -11,9 +11,6 @@
     "*.neon": "yaml",
     "LICENSE": "plaintext"
   },
-  "emmet.includeLanguages": {
-    "twig": "html"
-  },
   "workbench.editorAssociations": {
     "*.svg": "default"
   },
