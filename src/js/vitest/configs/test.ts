@@ -3,7 +3,7 @@
  */
 
 import { getEnvironmentValue } from '#shared/utils/environment.ts';
-import { GLOB_IGNORES, GLOB_TEST_FILES } from '#shared/utils/globs.ts';
+import { GLOB_IGNORES, GLOB_JS_TS, GLOB_TEST_FILES } from '#shared/utils/globs.ts';
 import { packageOrganization } from '#shared/utils/package-json.ts';
 
 import type { Config } from '#vitest/types/config.ts';
@@ -32,6 +32,11 @@ export const test = (): Config[] => [
     test: {
       include: GLOB_TEST_FILES,
       exclude: GLOB_IGNORES.flatMap((glob) => NARROWED_IGNORES.get(glob) ?? glob),
+      coverage: {
+        include: [
+          `src/${GLOB_JS_TS}`,
+        ],
+      },
       ...(getEnvironmentValue('GITHUB_ACTIONS') === 'true'
         ? {
           reporters: [

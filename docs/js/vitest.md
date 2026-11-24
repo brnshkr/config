@@ -13,6 +13,7 @@ It collects the project's own tests and the spelling test this package ships, so
 Modules for the optional packages — e.g. `environment`, `ui`
 — switch themselves on once the packages they need are installed, so a project configures nothing to gain one.
 Imports resolve through the `paths` of `tsconfig.json`.
+Coverage counts every JavaScript and TypeScript file under `src/`, tested or not.
 Set `spelling` to `false` to collect the project's own tests only.
 
 ## Customizing
