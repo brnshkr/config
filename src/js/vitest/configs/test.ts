@@ -32,7 +32,7 @@ export const test = (): Config[] => [
     test: {
       include: GLOB_TEST_FILES,
       exclude: GLOB_IGNORES.flatMap((glob) => NARROWED_IGNORES.get(glob) ?? glob),
-      ...getEnvironmentValue('GITHUB_ACTIONS') === 'true'
+      ...(getEnvironmentValue('GITHUB_ACTIONS') === 'true'
         ? {
           reporters: [
             'default',
@@ -46,7 +46,7 @@ export const test = (): Config[] => [
             ],
           ],
         }
-        : {},
+        : {}),
     },
   },
 ];

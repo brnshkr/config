@@ -7,6 +7,7 @@ import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
 import { getScriptFileGlobs, GLOB_DEVELOPMENT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
 import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
 import { objectKeys } from '#shared/utils/object.ts';
+import { packageFullName } from '#shared/utils/package-json.ts';
 
 import type { Config } from '#eslint/types/config.ts';
 
@@ -64,6 +65,9 @@ export const imports = async (): Promise<Config[]> => {
 
     pluginImportRules = {
       ...renameRules(pluginImport.flatConfigs.recommended.rules, { 'import-x': 'import' }),
+      'import/avoid-barrel-files': 'error',
+      'import/avoid-importing-barrel-files': 'error',
+      'import/avoid-re-export-all': 'error',
       'import/consistent-type-specifier-style': 'error',
       'import/extensions': [
         'error',
@@ -128,6 +132,7 @@ export const imports = async (): Promise<Config[]> => {
         {
           allow: [
             '**/*.{css,scss}',
+            `${packageFullName}/spelling/test`,
           ],
         },
       ],

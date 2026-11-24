@@ -1296,7 +1296,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "when": false,
       "window": false,
     },
-    "parser": "typescript-eslint/parser@8.72.1",
+    "parser": "typescript-eslint/parser@8.73.0",
     "parserOptions": {
       "ecmaFeatures": {
         "jsx": true,
@@ -1317,7 +1317,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "@",
     "antfu:antfu@3.3.1",
     "unused:unused-imports",
-    "ts:@typescript-eslint/eslint-plugin@8.72.1",
+    "ts:@typescript-eslint/eslint-plugin@8.73.0",
     "test:vitest@1.6.28",
     "jsdoc",
     "examples:brnshkr/jsdoc-examples",
@@ -1326,12 +1326,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "comments",
     "regexp:eslint-plugin-regexp@3.3.3",
     "security:eslint-plugin-security@4.2.1",
-    "unicorn:eslint-plugin-unicorn@79.0.0",
-    "import:eslint-plugin-import-x@4.17.1",
-    "style:@stylistic/eslint-plugin@5.10.0",
-    "perfectionist:eslint-plugin-perfectionist@5.13.0",
-    "svelte:eslint-plugin-svelte@3.24.0",
-    "svelte-html:@html-eslint/eslint-plugin-svelte@0.67.0",
+    "unicorn:eslint-plugin-unicorn@80.0.0",
+    "import:eslint-plugin-import-x@4.18.1",
+    "style:@stylistic/eslint-plugin@6.0.1",
+    "perfectionist:eslint-plugin-perfectionist@5.14.0",
+    "svelte:eslint-plugin-svelte@3.24.1",
+    "svelte-html:@html-eslint/eslint-plugin-svelte@0.68.0",
     "json:@eslint/json@2.1.1",
     "jsonc:eslint-plugin-jsonc@3.4.2",
     "toml:eslint-plugin-toml@1.5.0",
@@ -1339,9 +1339,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "css:@eslint/css@2.0.1",
     "cssicorn:cssicorn@0.3.0",
     "tailwind:better-tailwindcss",
-    "html:@html-eslint/eslint-plugin@0.67.0",
+    "html:@html-eslint/eslint-plugin@0.68.0",
     "html-scripts",
-    "markdown:@eslint/markdown@8.0.3",
+    "markdown:@eslint/markdown@9.0.0",
   ],
   "processor": "brnshkr/jsdoc-examples",
   "rules": {
@@ -8098,6 +8098,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "html/use-baseline": [
       2,
     ],
+    "import/avoid-barrel-files": [
+      2,
+    ],
+    "import/avoid-importing-barrel-files": [
+      2,
+    ],
+    "import/avoid-re-export-all": [
+      2,
+    ],
     "import/consistent-type-specifier-style": [
       2,
     ],
@@ -8217,6 +8226,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       {
         "allow": [
           "**/*.{css,scss}",
+          "@brnshkr/config/spelling/test",
         ],
       },
     ],
@@ -10079,18 +10089,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       0,
       "safe",
     ],
-    "style/array-bracket-newline": [
-      2,
-      "consistent",
-    ],
-    "style/array-bracket-spacing": [
-      2,
-      "never",
-    ],
-    "style/array-element-newline": [
-      2,
-      "consistent",
-    ],
     "style/arrow-parens": [
       2,
       "always",
@@ -10158,36 +10156,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
         },
       },
     ],
-    "style/exp-list-style": [
-      2,
-      {
-        "multiLine": {
-          "minItems": 1,
-        },
-        "overrides": {
-          "{}": {
-            "singleLine": {
-              "spacing": "always",
-            },
-          },
-        },
-        "singleLine": {
-          "maxItems": 3,
-          "spacing": "never",
-        },
-      },
-    ],
-    "style/function-call-argument-newline": [
-      2,
-      "consistent",
-    ],
     "style/function-call-spacing": [
       2,
       "never",
-    ],
-    "style/function-paren-newline": [
-      2,
-      "multiline-arguments",
     ],
     "style/generator-star-spacing": [
       2,
@@ -10223,8 +10194,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
         "ImportDeclaration": 1,
         "MemberExpression": 1,
         "ObjectExpression": 1,
+        "StaticBlock": {
+          "body": 1,
+        },
         "SwitchCase": 1,
         "VariableDeclarator": 1,
+        "assignmentOperator": 1,
         "flatTernaryExpressions": false,
         "ignoreComments": false,
         "ignoredNodes": [
@@ -10390,6 +10365,26 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
         "exceptAfterSingleLine": true,
       },
     ],
+    "style/list-style": [
+      2,
+      {
+        "empty": "ignore",
+        "multiLine": {
+          "minItems": 1,
+        },
+        "overrides": {
+          "{}": {
+            "singleLine": {
+              "spacing": "always",
+            },
+          },
+        },
+        "singleLine": {
+          "maxItems": 3,
+          "spacing": "never",
+        },
+      },
+    ],
     "style/max-len": [
       2,
       {
@@ -10522,15 +10517,10 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "style/no-mixed-spaces-and-tabs": [
       2,
-      false,
     ],
     "style/no-multi-spaces": [
       2,
       {
-        "exceptions": {
-          "ImportAttribute": true,
-          "Property": true,
-        },
         "ignoreEOLComments": false,
         "includeTabs": true,
       },
@@ -10562,41 +10552,6 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "style/nonblock-statement-body-position": [
       2,
       "below",
-    ],
-    "style/object-curly-newline": [
-      2,
-      {
-        "ExportDeclaration": {
-          "consistent": true,
-          "minProperties": 4,
-          "multiline": true,
-        },
-        "ImportDeclaration": {
-          "consistent": true,
-          "minProperties": 4,
-          "multiline": true,
-        },
-        "ObjectExpression": {
-          "consistent": true,
-          "minProperties": 4,
-          "multiline": true,
-        },
-        "ObjectPattern": {
-          "consistent": true,
-          "minProperties": 4,
-          "multiline": true,
-        },
-      },
-    ],
-    "style/object-curly-spacing": [
-      2,
-      "always",
-    ],
-    "style/object-property-newline": [
-      2,
-      {
-        "allowAllPropertiesOnSameLine": true,
-      },
     ],
     "style/one-var-declaration-per-line": [
       2,
@@ -10813,6 +10768,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "style/space-infix-ops": [
       2,
       {
+        "ignoreOperators": [],
         "ignoreTypes": false,
         "int32Hint": false,
       },
@@ -10869,6 +10825,10 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "style/type-generic-spacing": [
       2,
+      {
+        "after": false,
+        "before": false,
+      },
     ],
     "style/type-named-tuple-spacing": [
       2,
@@ -11352,6 +11312,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "ts/no-unsafe-call": [
+      2,
+    ],
+    "ts/no-unsafe-class-instance-assignment": [
       2,
     ],
     "ts/no-unsafe-declaration-merging": [
@@ -12164,7 +12127,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "unicorn/no-async-promise-finally": [
-      2,
+      0,
     ],
     "unicorn/no-await-expression-member": [
       2,
@@ -12262,6 +12225,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/no-immediate-mutation": [
       2,
       {
+        "checkCollections": true,
         "checkConditionals": false,
       },
     ],
@@ -13026,6 +12990,12 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     "unicorn/prefer-optional-catch-binding": [
       2,
     ],
+    "unicorn/prefer-options-parameter": [
+      2,
+      {
+        "checkWithoutOptionsObject": false,
+      },
+    ],
     "unicorn/prefer-path2d": [
       2,
     ],
@@ -13061,6 +13031,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "unicorn/prefer-regexp-escape": [
+      2,
+    ],
+    "unicorn/prefer-regexp-exec": [
       2,
     ],
     "unicorn/prefer-regexp-test": [
@@ -13120,6 +13093,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/prefer-smaller-scope": [
       2,
+      {
+        "checkTypeAliases": true,
+      },
     ],
     "unicorn/prefer-split-limit": [
       2,
@@ -13183,6 +13159,7 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       "always",
       {
         "checkComputedMemberAccess": false,
+        "checkNestedTernaries": false,
         "checkVaryingBase": false,
       },
     ],
@@ -13203,9 +13180,15 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
     ],
     "unicorn/prefer-uint8array-base64": [
       0,
+      {
+        "checkBufferDecoding": true,
+      },
     ],
     "unicorn/prefer-uint8array-hex": [
       0,
+      {
+        "checkBufferDecoding": true,
+      },
     ],
     "unicorn/prefer-unary-minus": [
       2,
@@ -13263,6 +13246,9 @@ exports[`expected eslint config > base: __mocks__/a.ts 1`] = `
       2,
     ],
     "unicorn/require-proxy-trap-boolean-return": [
+      2,
+    ],
+    "unicorn/require-spread-parentheses": [
       2,
     ],
     "unicorn/require-text-decoder-streaming": [
@@ -14041,6 +14027,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-class-instance-assignment",
       "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
@@ -14601,6 +14588,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-object-iterable-methods",
       "unicorn/prefer-observer-apis",
       "unicorn/prefer-optional-catch-binding",
+      "unicorn/prefer-options-parameter",
       "unicorn/prefer-path2d",
       "unicorn/prefer-private-class-fields",
       "unicorn/prefer-promise-static-methods",
@@ -14611,6 +14599,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/prefer-queue-microtask",
       "unicorn/prefer-reflect-apply",
       "unicorn/prefer-regexp-escape",
+      "unicorn/prefer-regexp-exec",
       "unicorn/prefer-regexp-test",
       "unicorn/prefer-response-static-json",
       "unicorn/prefer-scoped-selector",
@@ -14666,6 +14655,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "unicorn/require-passive-events",
       "unicorn/require-post-message-target-origin",
       "unicorn/require-proxy-trap-boolean-return",
+      "unicorn/require-spread-parentheses",
       "unicorn/require-text-decoder-streaming",
       "unicorn/single-line-block-comment-style",
       "unicorn/string-content",
@@ -14683,6 +14673,9 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "import/no-named-as-default",
       "import/no-named-as-default-member",
       "import/no-duplicates",
+      "import/avoid-barrel-files",
+      "import/avoid-importing-barrel-files",
+      "import/avoid-re-export-all",
       "import/consistent-type-specifier-style",
       "import/extensions",
       "import/first",
@@ -14711,7 +14704,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "antfu/import-dedupe",
       "antfu/no-import-dist",
       "antfu/no-import-node-modules-by-path",
-      "style/array-bracket-spacing",
       "style/arrow-parens",
       "style/arrow-spacing",
       "style/block-spacing",
@@ -14728,6 +14720,7 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "style/key-spacing",
       "style/keyword-spacing",
       "style/lines-between-class-members",
+      "style/list-style",
       "style/max-statements-per-line",
       "style/member-delimiter-style",
       "style/multiline-ternary",
@@ -14741,7 +14734,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "style/no-tabs",
       "style/no-trailing-spaces",
       "style/no-whitespace-before-property",
-      "style/object-curly-spacing",
       "style/operator-linebreak",
       "style/padded-blocks",
       "style/quote-props",
@@ -14776,13 +14768,8 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "style/jsx-quotes",
       "style/jsx-tag-spacing",
       "style/jsx-wrap-multilines",
-      "style/array-bracket-newline",
-      "style/array-element-newline",
       "style/exp-jsx-props-style",
-      "style/exp-list-style",
-      "style/function-call-argument-newline",
       "style/function-call-spacing",
-      "style/function-paren-newline",
       "style/implicit-arrow-linebreak",
       "style/jsx-child-element-spacing",
       "style/jsx-pascal-case",
@@ -14796,8 +14783,6 @@ exports[`expected eslint config > diff: .circleci/config.yml (from __mocks__/a.t
       "style/no-confusing-arrow",
       "style/no-extra-semi",
       "style/nonblock-statement-body-position",
-      "style/object-curly-newline",
-      "style/object-property-newline",
       "style/one-var-declaration-per-line",
       "style/padding-line-between-statements",
       "style/semi-style",
@@ -15744,7 +15729,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.72.1",
+        "parser": "typescript-eslint/parser@8.73.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -15752,7 +15737,7 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
     },
     "removedKeys": [],
   },
-  "processor": "eslint-plugin-svelte@3.24.0",
+  "processor": "eslint-plugin-svelte@3.24.1",
   "rules": {
     "addedValues": {
       "svelte-html/class-spacing": [
@@ -22469,8 +22454,12 @@ exports[`expected eslint config > diff: 12.svelte (from 1.js) 1`] = `
           "ImportDeclaration": 1,
           "MemberExpression": 1,
           "ObjectExpression": 1,
+          "StaticBlock": {
+            "body": 1,
+          },
           "SwitchCase": 1,
           "VariableDeclarator": 1,
+          "assignmentOperator": 1,
           "flatTernaryExpressions": false,
           "ignoreComments": false,
           "ignoredNodes": [
@@ -22590,7 +22579,7 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
         "extraFileExtensions": {
           "0": ".svelte",
         },
-        "parser": "typescript-eslint/parser@8.72.1",
+        "parser": "typescript-eslint/parser@8.73.0",
         "projectService": {},
         "sourceType": "module",
         "tsconfigRootDir": "<root>",
@@ -23006,8 +22995,12 @@ exports[`expected eslint config > diff: 13.svelte.js (from 1.js) 1`] = `
           "ImportDeclaration": 1,
           "MemberExpression": 1,
           "ObjectExpression": 1,
+          "StaticBlock": {
+            "body": 1,
+          },
           "SwitchCase": 1,
           "VariableDeclarator": 1,
+          "assignmentOperator": 1,
           "flatTernaryExpressions": false,
           "ignoreComments": false,
           "ignoredNodes": [
@@ -25243,9 +25236,6 @@ exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
           "frontmatterTitle": "^(?!\\s*['"]title[:=]['"])\\s*\\{?\\s*['"]?title['"]?\\s*[:=]",
         },
       ],
-      "markdown/no-bare-urls": [
-        2,
-      ],
       "markdown/no-duplicate-definitions": [
         2,
         {
@@ -25360,12 +25350,6 @@ exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
       ],
       "markdown/require-alt-text": [
         2,
-      ],
-      "markdown/table-column-count": [
-        2,
-        {
-          "checkMissingCells": true,
-        },
       ],
       "unicorn/no-missing-local-resource": [
         2,
@@ -25560,7 +25544,7 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
   "languageOptions": {
     "addedValues": {},
     "changedValues": {
-      "parser": "@html-eslint/parser@0.67.0",
+      "parser": "@html-eslint/parser@0.68.0",
       "parserOptions": {
         "ecmaFeatures": {
           "jsx": true,
@@ -25882,6 +25866,7 @@ exports[`expected eslint config > diff: 32.html (from 1.js) 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-class-instance-assignment",
       "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",
@@ -26650,6 +26635,7 @@ exports[`expected eslint config > diff: README.md/0_0.mjs (from 1.js) 1`] = `
       "ts/no-unnecessary-type-arguments",
       "ts/no-unnecessary-type-conversion",
       "ts/no-unnecessary-type-parameters",
+      "ts/no-unsafe-class-instance-assignment",
       "ts/no-unsafe-enum-assignment",
       "ts/no-useless-default-assignment",
       "ts/prefer-reduce-type-parameter",

@@ -323,7 +323,7 @@ const collectReturnClassification = (ruleContext: RuleContext, node: TSESTree.Re
   }
 
   ruleContext.returnClassifications.set(callable, [
-    ...ruleContext.returnClassifications.get(callable) ?? [],
+    ...(ruleContext.returnClassifications.get(callable) ?? []),
     node.argument
       ? classifyExpression(node.argument)
       : TYPE_CLASSIFICATIONS.NON_BOOL,

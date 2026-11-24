@@ -2928,6 +2928,7 @@ exports[`expected stylelint config > diff: 2.scss (from 1.css) 1`] = `
     },
     "changedValues": {
       "annotation-no-unknown": null,
+      "at-charset-rule-no-invalid": null,
       "at-rule-descriptor-no-unknown": null,
       "at-rule-descriptor-value-no-unknown": null,
       "at-rule-empty-line-before": [

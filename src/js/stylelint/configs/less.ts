@@ -28,12 +28,12 @@ export const less = (): Config[] => {
           files: ['**/*.less'],
           extends: [
             PACKAGES.STYLELINT_CONFIG_STANDARD_LESS,
-            ...hasCssModules
+            ...(hasCssModules
               ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES]
-              : [],
+              : []),
           ],
           rules: {
-            ...hasCssModules
+            ...(hasCssModules
               ? {
                 'at-rule-no-unknown': [
                   true,
@@ -45,7 +45,7 @@ export const less = (): Config[] => {
                   },
                 ],
               }
-              : undefined,
+              : undefined),
             // eslint-disable-next-line unicorn/no-null -- Null is required here
             'function-no-unknown': null,
             // eslint-disable-next-line unicorn/no-null -- Null is required here

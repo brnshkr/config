@@ -364,13 +364,13 @@ const mergeExampleProcessors = (processorsByExtension: [string, Linter.Processor
       for (const [index, [, processor]] of processorsByExtension.entries()) {
         const blockCount = blockCounts.at(index) ?? 0;
 
-        mappedMessages.push(...processor.postprocess?.(
+        mappedMessages.push(...(processor.postprocess?.(
           [
             [],
             ...blockMessages.slice(blockOffset, blockOffset + blockCount),
           ],
           filePath,
-        ) ?? []);
+        ) ?? []));
 
         blockOffset += blockCount;
       }
@@ -393,9 +393,9 @@ export const jsdoc = async (): Promise<Config[]> => {
   const definedTags = [
     'api',
     'rejects',
-    ...isModuleEnabled(MODULES.test)
+    ...(isModuleEnabled(MODULES.test)
       ? TAGS_BY_MODULE.test
-      : [],
+      : []),
   ];
 
   const createSetupConfig = (isForTypescript: boolean): Config => ({

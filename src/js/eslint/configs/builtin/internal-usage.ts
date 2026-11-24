@@ -453,9 +453,9 @@ const resolveModulePath = (
 
   return basePaths
     .flatMap((basePath) => [
-      ...MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension))
+      ...(MODULE_EXTENSIONS.some((extension) => basePath.endsWith(extension))
         ? [basePath]
-        : [],
+        : []),
       ...MODULE_EXTENSIONS.map((extension) => `${basePath}${extension}`),
       ...MODULE_EXTENSIONS.map((extension) => path.join(basePath, `index${extension}`)),
     ])
@@ -743,9 +743,9 @@ export const internalUsageRule = <const>{
           ? []
           : loadTsConfigCustomConditions(options.tsConfigPath),
       ),
-      ...options.tsConfigPath === undefined
+      ...(options.tsConfigPath === undefined
         ? {}
-        : loadTsConfigPaths(options.tsConfigPath),
+        : loadTsConfigPaths(options.tsConfigPath)),
     };
 
     const resolveIdentity = (filePath: string): Maybe<ModuleIdentity> => buildModuleIdentity(filePath, aliasPaths);

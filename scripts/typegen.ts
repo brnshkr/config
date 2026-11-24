@@ -29,7 +29,7 @@ const generateEsLintTypes = async (): Promise<void> => {
         },
       },
     },
-    ...await getConfig().toConfigs(),
+    ...(await getConfig().toConfigs()),
   ];
 
   const configNames = allConfigs.map(({ name }) => name).filter(Boolean);

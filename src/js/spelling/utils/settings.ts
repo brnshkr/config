@@ -18,7 +18,13 @@ import {
 import { packageFullName } from '#shared/utils/package-json.ts';
 
 import type { Maybe } from '#shared/types/core.ts';
-import type { AllowedLiteral, Allowlist, SpellingSettings } from '#spelling/types/options.ts';
+
+import type {
+  AllowedLiteral,
+  Allowlist,
+  AllowlistMergeOptions,
+  SpellingSettings,
+} from '#spelling/types/options.ts';
 
 const EVERY_PATH = '*';
 const DEFAULTS_FILE = 'defaults.json';
@@ -121,13 +127,18 @@ const mergeLists = (shippedEntries: string[], declaredEntries: string[]): string
   ]),
 ];
 
-const mergeAllowlists = (
-  shippedAllowlist: Record<string, string[]> = {},
-  declaredAllowlist: Record<string, string[]> = {},
-): Record<string, string[]> => {
-  const mergedAllowlist = { ...shippedAllowlist };
+const mergeAllowlists = (options: Partial<AllowlistMergeOptions>): Record<string, string[]> => {
+  const resolvedOptions = <const>{
+    shippedAllowlist: {},
+    declaredAllowlist: {},
+    ...options,
+  } satisfies AllowlistMergeOptions;
 
-  for (const [allowedPath, declaredLiterals] of objectEntries(declaredAllowlist)) {
+  const mergedAllowlist = {
+    ...resolvedOptions.shippedAllowlist,
+  };
+
+  for (const [allowedPath, declaredLiterals] of objectEntries(resolvedOptions.declaredAllowlist)) {
     writeOwnValue(
       mergedAllowlist,
       allowedPath,
@@ -154,7 +165,10 @@ const mergeSettings = (
   },
   britishStems: mergeLists(shippedSettings.britishStems, declaredSettings.britishStems),
   stemSuffixes: mergeLists(shippedSettings.stemSuffixes, declaredSettings.stemSuffixes),
-  allowlist: mergeAllowlists(shippedSettings.allowlist, declaredSettings.allowlist),
+  allowlist: mergeAllowlists({
+    shippedAllowlist: shippedSettings.allowlist,
+    declaredAllowlist: declaredSettings.allowlist,
+  }),
 });
 
 /**

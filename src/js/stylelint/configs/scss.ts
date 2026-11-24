@@ -29,9 +29,9 @@ export const scss = (): Config[] => {
           files: ['**/*.scss'],
           extends: [
             PACKAGES.STYLELINT_CONFIG_STANDARD_SCSS,
-            ...hasCssModules
+            ...(hasCssModules
               ? [PACKAGES.STYLELINT_CONFIG_CSS_MODULES]
-              : [],
+              : []),
           ],
           rules: {
             'scss/at-each-key-value-single-line': true,
@@ -98,7 +98,7 @@ export const scss = (): Config[] => {
             'scss/comment-no-loud': true,
             // eslint-disable-next-line unicorn/no-null -- Null is required here
             'value-no-invalid': null,
-            ...isStylelintPluginUseBaselineInstalled
+            ...(isStylelintPluginUseBaselineInstalled
               ? {
                 'plugin/use-baseline': [
                   true,
@@ -109,7 +109,7 @@ export const scss = (): Config[] => {
                   },
                 ],
               }
-              : undefined,
+              : undefined),
           },
         },
       ],

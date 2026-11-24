@@ -22,7 +22,7 @@ export const builtin = (): Config[] => [
           'no-empty-source': null,
         },
       },
-      ...isModuleEnabled(MODULES.html)
+      ...(isModuleEnabled(MODULES.html)
         ? [
           {
             name: buildOverrideName(OVERRIDES.PHP_TEMPLATE),
@@ -30,7 +30,7 @@ export const builtin = (): Config[] => [
             customSyntax: PACKAGES.POSTCSS_HTML,
           },
         ]
-        : [],
+        : []),
     ],
   },
 ];

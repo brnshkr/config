@@ -83,30 +83,30 @@ const buildTsOverrides = (): Config[] => (isModuleEnabled(MODULES.typescript)
         strict: 'off',
       },
     },
-    ...(isModuleEnabled(MODULES.import) || isModuleEnabled(MODULES.node))
+    ...((isModuleEnabled(MODULES.import) || isModuleEnabled(MODULES.node))
       ? [
         {
           name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/imports`),
           files: GLOB_SCRIPT_FILES,
           ignores: [GLOB_MD_CODE_BLOCKS],
           rules: {
-            ...isModuleEnabled(MODULES.import)
+            ...(isModuleEnabled(MODULES.import)
               ? {
                 'import/default': 'off',
                 'import/named': 'off',
                 'import/no-named-as-default-member': 'off',
                 'import/no-unresolved': 'off',
               }
-              : {},
-            ...isModuleEnabled(MODULES.node)
+              : {}),
+            ...(isModuleEnabled(MODULES.node)
               ? {
                 'node/no-missing-import': 'off',
               }
-              : {},
+              : {}),
           },
         } satisfies Config,
       ]
-      : [],
+      : []),
     {
       name: buildConfigName(MAIN_SCOPES.OVERRIDES, `${MAIN_SCOPES.TYPESCRIPT}/dts`),
       files: [GLOB_DTS],

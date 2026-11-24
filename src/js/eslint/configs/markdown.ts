@@ -82,7 +82,6 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
       },
       rules: {
         ...extractRelevantValues('rules', pluginMarkdown.configs.recommended, 'recommended'),
-        'markdown/no-bare-urls': 'error',
         'markdown/no-duplicate-headings': [
           'error',
           {
@@ -124,12 +123,17 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
             checkStrikethrough: true,
           },
         ],
-        'markdown/table-column-count': [
-          'error',
-          {
-            checkMissingCells: true,
-          },
-        ],
+        ...(language === 'markdown/gfm'
+          ? {
+            'markdown/no-bare-urls': 'error',
+            'markdown/table-column-count': [
+              'error',
+              {
+                checkMissingCells: true,
+              },
+            ],
+          }
+          : undefined),
         ...(isModuleEnabled(MODULES.unicorn)
           ? {
             'unicorn/no-missing-local-resource': 'error',

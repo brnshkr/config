@@ -752,7 +752,7 @@ const addTemplateAttributes = (node: Rule.Node, text: string): Rule.Node => {
     : <Rule.Node>Object.create(node, {
       attributes: {
         value: [
-          ...tag.attributes ?? [],
+          ...(tag.attributes ?? []),
           ...templateAttributes,
         ],
       },

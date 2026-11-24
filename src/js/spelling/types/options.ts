@@ -14,6 +14,11 @@ export interface SpellingSettings {
   allowlist?: Record<string, string[]>;
 }
 
+export interface AllowlistMergeOptions {
+  shippedAllowlist: Record<string, string[]>;
+  declaredAllowlist: Record<string, string[]>;
+}
+
 export interface AllowedLiteral {
   text: string;
   lineNumbers: Maybe<number[]>;

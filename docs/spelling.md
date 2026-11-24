@@ -6,11 +6,7 @@ The word list is shipped by **@brnshkr/config**, so a repository never carries a
 
 ## Usage
 
-It runs as a test, on whichever stack a repository has.
-On PHP, name the shipped directory as a test suite;
-on JavaScript, import the shipped module from a test of your own.
-`make configs tools` writes the PHP one. The [Vitest builder](./js/vitest.md) collects the test itself,
-so the JavaScript file is only needed without it.
+The check runs as a test. On PHP, add the shipped directory as a test suite. `make configs tools` writes it.
 
 ```xml
 <!-- ./conf/phpunit.dist.xml -->
@@ -23,15 +19,16 @@ so the JavaScript file is only needed without it.
 </phpunit>
 ```
 
+On JavaScript, the [Vitest builder](./js/vitest.md) collects the test itself.
+Without it, import the test from a file of your own:
+
 ```ts
 // ./tests/spelling.test.ts
-export * from '@brnshkr/config/spelling/test';
+import '@brnshkr/config/spelling/test';
 ```
 
-Re-exporting is what reaches it: Vitest applies `exclude` after `include`, so naming the shipped file under
-`node_modules` collects nothing unless the repository drops that exclusion for every dependency. The module
-exports nothing — importing it registers the test — and the `export` form is what keeps
-`import/no-unassigned-import` satisfied.
+Naming the shipped file in `include` collects nothing, since Vitest excludes `node_modules` after `include`.
+The shipped ESLint config accepts this import without a binding.
 
 The [commitlint config](./js/commitlint.md) runs the same check over every commit message:
 

@@ -33,7 +33,7 @@ const MERGE_STRATEGIES = <const>{
   noProgress: replace,
   outputFormatters: replace,
   overrides: (currentOverrides, overridesToInclude) => [
-    ...currentOverrides ?? [],
+    ...(currentOverrides ?? []),
     ...overridesToInclude.map((override) => ({
       combine: <const>'merge',
       ...override,

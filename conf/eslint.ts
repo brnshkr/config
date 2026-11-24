@@ -119,6 +119,13 @@ export default getConfig({
   },
 }, {
   files: [
+    'src/js/*/utils/module.ts',
+  ],
+  rules: {
+    'import/avoid-barrel-files': 'off',
+  },
+}, {
+  files: [
     'src/js/shared/utils/module.ts',
   ],
   rules: {

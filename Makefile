@@ -65,10 +65,6 @@ PHP_UNIT_FLAGS += --parallel --processes=2
 COMPOSER := $(if $(wildcard $(CURDIR)/vendor/autoload.php),$(PHP) $(APP_DIR)/scripts/composer.php,$(COMPOSER))
 MV       := mv#vvv #~~ path to `mv` binary
 
-# NOTICE: Only `minimatch` 11 fixes it, a major ESLint's dependencies do not accept yet:
-# https://github.com/advisories/GHSA-g3hv-75wg-m249
-BUN_AUDIT_FLAGS += --ignore GHSA-g3hv-75wg-m249
-
 #--- build
 
 typegen: #~~ regenerates the rule types the configs are built from

@@ -23,10 +23,10 @@ const DEFAULT_TYPE_AWARE_IGNORES = [
 
 export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [
   ...new Set([
-    ...typeof options?.typeAware === 'object'
+    ...(typeof options?.typeAware === 'object'
       ? (options.typeAware.ignores ?? [])
-      : DEFAULT_TYPE_AWARE_IGNORES,
-    ...options?.ignores ?? [],
+      : DEFAULT_TYPE_AWARE_IGNORES),
+    ...(options?.ignores ?? []),
   ]),
 ];
 
@@ -175,7 +175,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
   const files = [
     ...new Set([
       ...resolvedOptions.extraFileExtensions.map((extension) => `**/*.${extension}`),
-      ...resolvedOptions.files ?? GLOB_SCRIPT_FILES,
+      ...(resolvedOptions.files ?? GLOB_SCRIPT_FILES),
     ]),
   ];
 

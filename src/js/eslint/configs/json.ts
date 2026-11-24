@@ -540,9 +540,9 @@ export const json = async (): Promise<Config[]> => {
       : undefined),
     rules: {
       ...pluginJson.configs.recommended.rules,
-      ...pluginJsonc
+      ...(pluginJsonc
         ? extractAllRules(pluginJsonc.configs[`recommended-with-${language}`])
-        : undefined,
+        : undefined),
       ...(pluginJsonc
         ? {
           'jsonc/array-bracket-newline': ['error', 'consistent'],

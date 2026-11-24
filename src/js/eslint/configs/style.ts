@@ -56,8 +56,6 @@ export const style = async (): Promise<Config[]> => {
       files: getScriptFileGlobs(),
       rules: {
         ...renameRules(styleConfig.rules, { '@stylistic': 'style' }),
-        'style/array-bracket-newline': ['error', 'consistent'],
-        'style/array-element-newline': ['error', 'consistent'],
         'style/exp-jsx-props-style': [
           'error',
           {
@@ -70,21 +68,7 @@ export const style = async (): Promise<Config[]> => {
             },
           },
         ],
-        'style/exp-list-style': [
-          'error',
-          {
-            singleLine: {
-              spacing: 'never',
-              maxItems: 3,
-            },
-            multiLine: {
-              minItems: 1,
-            },
-          },
-        ],
-        'style/function-call-argument-newline': ['error', 'consistent'],
         'style/function-call-spacing': 'error',
-        'style/function-paren-newline': ['error', 'multiline-arguments'],
         'style/generator-star-spacing': [
           'error',
           {
@@ -142,6 +126,18 @@ export const style = async (): Promise<Config[]> => {
             allowInterfaceStart: true,
             allowModuleStart: true,
             allowTypeStart: true,
+          },
+        ],
+        'style/list-style': [
+          'error',
+          {
+            singleLine: {
+              spacing: 'never',
+              maxItems: 3,
+            },
+            multiLine: {
+              minItems: 1,
+            },
           },
         ],
         'style/max-len': [
@@ -233,39 +229,6 @@ export const style = async (): Promise<Config[]> => {
           },
         ],
         'style/nonblock-statement-body-position': ['error', 'below'],
-        'style/object-curly-newline': [
-          'error',
-          {
-            /* eslint-disable ts/naming-convention -- Options need to be cased like this */
-            ObjectExpression: {
-              minProperties: 4,
-              multiline: true,
-              consistent: true,
-            },
-            ObjectPattern: {
-              minProperties: 4,
-              multiline: true,
-              consistent: true,
-            },
-            ImportDeclaration: {
-              minProperties: 4,
-              multiline: true,
-              consistent: true,
-            },
-            ExportDeclaration: {
-              minProperties: 4,
-              multiline: true,
-              consistent: true,
-            },
-            /* eslint-enable ts/naming-convention */
-          },
-        ],
-        'style/object-property-newline': [
-          'error',
-          {
-            allowAllPropertiesOnSameLine: true,
-          },
-        ],
         'style/one-var-declaration-per-line': ['error', 'always'],
         'style/operator-linebreak': [
           'error',
