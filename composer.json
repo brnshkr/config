@@ -167,6 +167,19 @@
       "symfony/ai-mate-composer-plugin": false
     },
     "policy": {
+      "advisories": {
+        "ignore-id": {
+          "PKSA-2xyw-sdzb-ywxg": "Dev only, project never renders Twig",
+          "PKSA-dq27-x2jc-ksbp": "Dev only, project never renders Twig",
+          "PKSA-hjpc-r7p2-zyfx": "Dev only, project never renders Twig",
+          "PKSA-hs2m-ms65-2zgg": "Dev only, project never renders Twig",
+          "PKSA-k9x8-rxqp-rkb4": "Dev only, project never renders Twig",
+          "PKSA-pkw5-3qxt-b654": "Dev only, project never renders Twig",
+          "PKSA-szz8-81wy-3x8z": "Dev only, project never renders Twig",
+          "PKSA-tfq6-ydd8-dhbf": "Dev only, project never renders Twig",
+          "PKSA-v6ry-d7gg-9dnc": "Dev only, project never renders Twig"
+        }
+      },
       "cooldown": {
         "period": 604800
       }
