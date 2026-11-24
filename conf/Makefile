@@ -4223,12 +4223,12 @@ _SEMGREP_VALUE_FLAGS := --config \
 $(call _target,semgrep) $(call _target,semgrep-group) $(call _target,semgrep-validate): export _SEMGREP_RULES_PROGRAM = $(_SEMGREP_RULES_PROGRAM_SOURCE)
 $(call _target,semgrep): #~~ scans the code for known security issues
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(TRACE_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _spinner,$(call _semgrep_rules),$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json')
 	$(TRACE_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) $(ARGS))
 
 $(call _target,semgrep-group): #~~ counts the `semgrep` findings by rule #v
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(TRACE_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _spinner,$(call _semgrep_rules),$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json')
 	$(TRACE_PREFIX)$(call _group,$(SEMGREP) scan $(_SEMGREP_CONFIGS) $(SEMGREP_FLAGS) --json $(ARGS),check_id,message,path)
 
 $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
@@ -4236,7 +4236,7 @@ $(call _target,semgrep-list): #~~ lists the rulesets `semgrep` runs #vv
 
 $(call _target,semgrep-validate): #~~ checks that the `semgrep` rules load #vv
 	$(TRACE_PREFIX)$(call _require_file,$(SEMGREP_CONFIG),SEMGREP_CONFIG)
-	$(TRACE_PREFIX)$(call _semgrep_rules)
+	$(TRACE_PREFIX)$(call _spinner,$(call _semgrep_rules),$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json')
 	$(TRACE_PREFIX)$(call _spinner,$(SEMGREP) scan $(_SEMGREP_CONFIGS) --validate $(SEMGREP_FLAGS) $(ARGS))
 
 endif # /semgrep
@@ -5483,6 +5483,7 @@ $(MKDIR) -p "$$cache_directory" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 for ruleset in $(SEMGREP_RULESETS); do \
 	cached_ruleset_path="$$cache_directory/$$ruleset.json"; \
 	[ -r "$$cached_ruleset_path" ] && [ -z "$$($(FIND) "$$cached_ruleset_path" -mmin +$$(($(SEMGREP_MAX_AGE) * 1440)))" ] && continue; \
+	[ -z "$${_SPIN_STEP:-}" ] || printf 'Fetching \140%s\140\n' "$$ruleset" >"$$_SPIN_STEP"; \
 	partial_ruleset_path="$$($(MKTEMP) "$$cached_ruleset_path.XXXXXX")" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	$(_SEMGREP_RUN) $(CURL) --silent --show-error --fail --compressed --proto =https --connect-timeout 10 --max-time 120 \
 		-H 'Accept: application/json' -o '$(SEMGREP_CACHE)'/"$${partial_ruleset_path##*/}" '$(SEMGREP_REGISTRY)'/"$$ruleset" \
@@ -5491,6 +5492,7 @@ for ruleset in $(SEMGREP_RULESETS); do \
 		|| $(call log,The `%s` ruleset changed since it was last fetched.,$(COLOR_NOTICE),"$$ruleset"); \
 	$(MV) "$$partial_ruleset_path" "$$cached_ruleset_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 done; \
+[ -z "$${_SPIN_STEP:-}" ] || printf 'Merging rulesets\n' >"$$_SPIN_STEP"; \
 $(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
 	$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
 	$(foreach IGNORE,$(_SEMGREP_IGNORES),'$(IGNORE)') || exit $(BRNSHKR_CONFIG_ERROR_CODE)
