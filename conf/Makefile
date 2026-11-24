@@ -2417,8 +2417,8 @@ endif # /own names
 STARTUP_TARGETS ?= #v #~~ this project's own targets, run by `startup` after installs
 
 _STARTUP := _$(_TARGET_PREFIX)install-missing-hooks \
-	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install) \
-	$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install))
+	$(if $(_IS_INSTALLING),,$(if $(wildcard $(CURDIR)/package.json),_$(_TARGET_PREFIX)bun-install) \
+	$(if $(wildcard $(CURDIR)/composer.json),_$(_TARGET_PREFIX)composer-install))
 
 $(call _target,startup): $(_STARTUP) #~~ installs everything and writes missing files
 	$(DEBUG_PREFIX)$(MAKE) $(_VERB_FLAGS) --no-keep-going $(call _target,configs)
