@@ -5,6 +5,10 @@
 STARTUP_TARGETS := build \
 	install-hooks
 
+ifeq ($(and $(wildcard $(CURDIR)/vendor),$(wildcard $(CURDIR)/node_modules)),)
+bootstrap: startup
+endif
+
 include ./conf/Makefile
 
 #--- release
