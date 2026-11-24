@@ -530,7 +530,7 @@ final class ContainerTest extends TestCase
         $process->setPty(true);
         $process->run();
 
-        self::assertStringContainsString('Running…', $process->getOutput());
+        self::assertStringContainsString("\e[?25l", $process->getOutput());
         self::assertStringNotContainsString('after-interrupted=ran', $process->getOutput());
     }
 }

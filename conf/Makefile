@@ -4496,7 +4496,7 @@ endef
 #* returns: string
 #*
 define _start_service
-$(SHELL) -c '[ -n "$$($(DOCKER) ps --quiet $(_COMPOSE_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null)" ] || { containers=$$($(DOCKER) ps --all --quiet $(_COMPOSE_PROJECT_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null); state=; [ -z "$$containers" ] || ! $(DOCKER) start $$containers >/dev/null 2>&1 || while state=$$($(DOCKER) inspect --format "{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{end}}" $$containers 2>/dev/null); case "$$state" in *starting*) true;; *) false;; esac; do $(SLEEP) $(_SPINNER_SECONDS) 2>/dev/null || $(SLEEP) 1; done; case "$$state" in ""|*unhealthy*|*exited*|*dead*) $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1;; esac; }; exec "$$@"' sh
+$(SHELL) -c '[ -n "$$($(DOCKER) ps --quiet $(_COMPOSE_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null)" ] || { [ -z "$${_SPIN_STEP:-}" ] || printf "Starting \140%s\140\n" "$1" >"$$_SPIN_STEP"; containers=$$($(DOCKER) ps --all --quiet $(_COMPOSE_PROJECT_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null); state=; [ -z "$$containers" ] || ! $(DOCKER) start $$containers >/dev/null 2>&1 || while state=$$($(DOCKER) inspect --format "{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{end}}" $$containers 2>/dev/null); case "$$state" in *starting*) true;; *) false;; esac; do $(SLEEP) $(_SPINNER_SECONDS) 2>/dev/null || $(SLEEP) 1; done; case "$$state" in ""|*unhealthy*|*exited*|*dead*) $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1;; esac; [ -z "$${_SPIN_STEP:-}" ] || : >"$$_SPIN_STEP"; }; exec "$$@"' sh
 endef
 
 #**
@@ -5075,8 +5075,9 @@ _SPINNER_SIGNALS     := $(_SIGNAL_INTERRUPT) $(_SIGNAL_TERMINATE) $(_SIGNAL_HANG
 #*
 define __spinner
 while kill -0 $$$$ 2>/dev/null; do for frame in '|' '/' '-' '\'; do \
-	printf '\r$1$(call text,%s Running…,$(COLOR_DESCRIPTION))' "$$frame"; \
 	$(SLEEP) $(_SPINNER_SECONDS) 2>/dev/null || $(SLEEP) 1; \
+	step=; [ -z "$${_SPIN_STEP:-}" ] || read -r step 2>/dev/null <"$$_SPIN_STEP" || :; \
+	printf '\r$(_ANSI_CLEAR_LINE)$1$(call text,%s %s…,$(COLOR_DESCRIPTION))' "$$frame" "$${step:-Running}"; \
 done; done & spinner_pid=$$!
 endef
 
@@ -5099,6 +5100,8 @@ $(call _echo_command,$(or $5,$1))label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
+		_SPIN_STEP="$$($(MKTEMP))" || _SPIN_STEP=; \
+		export _SPIN_STEP; \
 		printf '$(_ANSI_HIDE_CURSOR)'; \
 		trap 'kill $$spinner_pid 2>/dev/null; $(_CLEAR_SPINNER); exit $(_INTERRUPT_EXIT_CODE)' $(_SPINNER_SIGNALS); \
 		$(call __spinner,$(if $(_HAS_GROUP_LABEL),  )); \
@@ -5114,6 +5117,7 @@ $(if $(_IS_GROUP_PARALLEL),[ -z "$$report" ] || printf '%s\n' $${label:+"$$label
 		kill $$spinner_pid 2>/dev/null; \
 		wait $$spinner_pid 2>/dev/null; \
 		$(_CLEAR_SPINNER); \
+		[ -z "$$_SPIN_STEP" ] || $(RM) -f "$$_SPIN_STEP"; \
 	}; \
 	[ -z "$$report" ] || printf '%s\n' "$$report";) \
 exit $$code
@@ -5139,7 +5143,8 @@ if [ -z "$$has_spinner" ]; then \
 	spin_command; \
 else \
 	_SPIN_STATUS="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
-	export _SPIN_STATUS; \
+	_SPIN_STEP="$$_SPIN_STATUS.step"; \
+	export _SPIN_STATUS _SPIN_STEP; \
 	script_command='trap "printf $(_INTERRUPT_EXIT_CODE) >\"$$_SPIN_STATUS\"; exit $(_INTERRUPT_EXIT_CODE)" $(_SIGNAL_INTERRUPT); ($(subst $(_QUOTE),$(_QUOTE)\$(_QUOTE)$(_QUOTE),$1)); printf "%s" $$? >"$$_SPIN_STATUS"'; \
 	if $(SCRIPT) --version >/dev/null 2>&1; then \
 		set -- -qfc "$$script_command" /dev/null; \
@@ -5158,7 +5163,7 @@ else \
 		$(CAT); \
 	}; \
 	code=$$($(CAT) "$$_SPIN_STATUS"); \
-	$(RM) -f "$$_SPIN_STATUS"; \
+	$(RM) -f "$$_SPIN_STATUS" "$$_SPIN_STEP"; \
 	[ -n "$$code" ] || { spin_command; exit $$?; }; \
 	[ "$$code" -ne $(_INTERRUPT_EXIT_CODE) ] || { trap - $(_SPINNER_SIGNALS); kill -$(_SIGNAL_INTERRUPT) 0; }; \
 	exit $$code; \
