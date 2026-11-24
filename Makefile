@@ -69,6 +69,10 @@ PHP_UNIT_FLAGS += --parallel --processes=2
 COMPOSER := $(if $(wildcard $(CURDIR)/vendor/autoload.php),$(PHP) $(APP_DIR)/scripts/composer.php,$(COMPOSER))
 MV       := mv#vvv #~~ path to `mv` binary
 
+#---v container
+
+COMPOSE_UP_FLAGS += --quiet-build
+
 #--- build
 
 typegen: #~~ regenerates the rule types the configs are built from
