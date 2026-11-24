@@ -467,10 +467,11 @@ _COMPOSE_CANDIDATE = $(firstword $(wildcard \
 
 COMPOSE_FILES = $(or $(subst :, ,$(COMPOSE_FILE)),$(_COMPOSE_CANDIDATE))#~~ Compose files the container targets use
 
-_COMPOSE            = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
-_COMPOSE_CONTAINERS = --filter status=running --filter label=com.docker.compose.project.config_files=$(subst $(_SPACE),$(_COMMA),$(strip $(COMPOSE_FILES)))
-_HAS_CONTAINER      = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
-_SERVE_FLAGS        = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
+_COMPOSE                    = $(DOCKER_COMPOSE) $(addprefix -f ,$(COMPOSE_FILES))
+_COMPOSE_PROJECT_CONTAINERS = --filter label=com.docker.compose.project.config_files=$(subst $(_SPACE),$(_COMMA),$(strip $(COMPOSE_FILES)))
+_COMPOSE_CONTAINERS         = --filter status=running $(_COMPOSE_PROJECT_CONTAINERS)
+_HAS_CONTAINER              = $(if $(IS_IN_CONTAINER),,$(if $(APP_SERVICE),$(if $(COMPOSE_FILES),$(_HAS_DOCKER))))
+_SERVE_FLAGS                = $(if $(_HAS_CONTAINER),--host 0.0.0.0 --no-open)
 
 define _SERVICE_AWK
 /^services:/ { in_services = 1; next }
@@ -4495,7 +4496,7 @@ endef
 #* returns: string
 #*
 define _start_service
-$(SHELL) -c '[ -n "$$($(DOCKER) ps --quiet $(_COMPOSE_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null)" ] || $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1; exec "$$@"' sh
+$(SHELL) -c '[ -n "$$($(DOCKER) ps --quiet $(_COMPOSE_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null)" ] || { containers=$$($(DOCKER) ps --all --quiet $(_COMPOSE_PROJECT_CONTAINERS) --filter label=com.docker.compose.service=$1 2>/dev/null); state=; [ -z "$$containers" ] || ! $(DOCKER) start $$containers >/dev/null 2>&1 || while state=$$($(DOCKER) inspect --format "{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{end}}" $$containers 2>/dev/null); case "$$state" in *starting*) true;; *) false;; esac; do $(SLEEP) $(_SPINNER_SECONDS) 2>/dev/null || $(SLEEP) 1; done; case "$$state" in ""|*unhealthy*|*exited*|*dead*) $(_COMPOSE) up --detach --wait $1 >/dev/null 2>&1;; esac; }; exec "$$@"' sh
 endef
 
 #**
