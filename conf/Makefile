@@ -5472,8 +5472,7 @@ $(foreach WORD,$(shell $(AWK) $(call _quote_program,$(_SEMGREP_OVERRIDES_AWK)) '
 endef
 
 #**
-#* Fetches every ruleset `semgrep` runs that is missing from `SEMGREP_CACHE` or older than `SEMGREP_MAX_AGE` days,
-#* then merges them into one `rules.json` with the config's `x-brnshkr` ignores applied.
+#* Fetches stale `semgrep` rulesets and merges them into `rules.json`.
 #*
 #* returns: void
 #*
@@ -5492,10 +5491,18 @@ for ruleset in $(SEMGREP_RULESETS); do \
 		|| $(call log,The `%s` ruleset changed since it was last fetched.,$(COLOR_NOTICE),"$$ruleset"); \
 	$(MV) "$$partial_ruleset_path" "$$cached_ruleset_path" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 done; \
-[ -z "$${_SPIN_STEP:-}" ] || printf 'Merging rulesets\n' >"$$_SPIN_STEP"; \
-$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
-	$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
-	$(foreach IGNORE,$(_SEMGREP_IGNORES),'$(IGNORE)') || exit $(BRNSHKR_CONFIG_ERROR_CODE)
+printf '%s\n' "$$_SEMGREP_RULES_PROGRAM" -- $(SEMGREP_RULESETS) -- $(foreach IGNORE,$(_SEMGREP_IGNORES),'$(IGNORE)') \
+	>"$$cache_directory/rules.inputs.next" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+if [ -r "$$cache_directory/rules.json" ] && $(CMP) -s "$$cache_directory/rules.inputs.next" "$$cache_directory/rules.inputs" \
+	&& [ -z "$$($(FIND) "$$cache_directory" -name '*.json' ! -name rules.json -newer "$$cache_directory/rules.json")" ]; then \
+	$(RM) -f "$$cache_directory/rules.inputs.next"; \
+else \
+	[ -z "$${_SPIN_STEP:-}" ] || printf 'Merging rulesets\n' >"$$_SPIN_STEP"; \
+	$(SEMGREP_PYTHON) -c "$$_SEMGREP_RULES_PROGRAM" '$(SEMGREP_CACHE)/rules.json' \
+		$(foreach RULESET,$(SEMGREP_RULESETS),'$(SEMGREP_CACHE)/$(RULESET).json') -- \
+		$(foreach IGNORE,$(_SEMGREP_IGNORES),'$(IGNORE)') || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+	$(MV) "$$cache_directory/rules.inputs.next" "$$cache_directory/rules.inputs" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
+fi
 endef
 
 #---vvv programs

@@ -501,14 +501,16 @@ final class ToolsTest extends TestCase
         $filesystem->dumpFile($cachedPath, '{"rules":[{"id":"old"}]}');
         $filesystem->touch($cachedPath, time() - 8 * 86_400);
 
-        $output = $this->runMakeIn(self::MODE_RUN, [
+        $args = [
             'semgrep',
             'APP_SERVICE=php-app',
             'SEMGREP_RULESETS=default',
             'SEMGREP_CONFIG=conf/shipped.yaml',
             'CURL=bin/curl',
             'SEMGREP=bin/semgrep',
-        ], fixtureDirectory: self::LINTERS_DIRECTORY);
+        ];
+
+        $output = $this->runMakeIn(self::MODE_RUN, $args, fixtureDirectory: self::LINTERS_DIRECTORY);
 
         $finder = new Finder()
             ->in(Path::getDirectory($cachedPath))
@@ -520,12 +522,19 @@ final class ToolsTest extends TestCase
         self::assertStringContainsString('The `default` ruleset changed since it was last fetched.', $output);
 
         self::assertSame(
-            ['default.json', 'rules.json'],
+            ['default.json', 'rules.inputs', 'rules.json'],
             array_values(array_map(
                 static fn (SplFileInfo $cachedFile): string => $cachedFile->getFilename(),
                 [...$finder],
             )),
         );
+
+        $rulesPath = Path::getDirectory($cachedPath) . '/rules.json';
+
+        $filesystem->dumpFile($rulesPath, '{"rules":[]}');
+        $this->runMakeIn(self::MODE_RUN, $args, fixtureDirectory: self::LINTERS_DIRECTORY);
+
+        self::assertSame('{"rules":[]}', $filesystem->readFile($rulesPath));
     }
 
     /**
