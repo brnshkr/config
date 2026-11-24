@@ -22,6 +22,7 @@
 /conf/phpunit.dev.xml
 /conf/rector.dev.php
 /conf/rector.php
+/conf/semgrep.dev.yaml
 /conf/shellcheckrc
 /conf/shellcheckrc.dev
 /conf/stylelint.dev.mjs

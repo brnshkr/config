@@ -448,7 +448,7 @@ const resolveModulePath = (
 
       const capturedPath = specifier.slice(patternPrefix.length, specifier.length - patternSuffix.length);
 
-      return targets.map((target) => target.replace('*', () => capturedPath));
+      return targets.map((target) => target.replaceAll('*', () => capturedPath));
     });
 
   return basePaths

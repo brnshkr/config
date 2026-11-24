@@ -147,7 +147,7 @@ final readonly class FencedCode
         } finally {
             if (is_file($scratchFilePath)) {
                 // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem here to keep package as lightweight as possible)
-                unlink($scratchFilePath);
+                unlink($scratchFilePath); // nosemgrep: php.lang.security.unlink-use.unlink-use
             }
 
             // @phpstan-ignore symplify.forbiddenFuncCall (Avoid using symfony/filesystem here to keep package as lightweight as possible)

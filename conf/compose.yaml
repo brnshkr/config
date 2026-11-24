@@ -2,6 +2,7 @@ name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required}
 
 include:
   - path: oci://${FORGE_FRAGMENT_NAMESPACE:-${FORGE_NAMESPACE:?}}/forge-compose-cli:${FORGE_TAG:?}@${FORGE_CLI_FRAGMENT_DIGEST:?}
+  - path: oci://${FORGE_FRAGMENT_NAMESPACE:-${FORGE_NAMESPACE:?}}/forge-compose-semgrep:${FORGE_TAG:?}@${FORGE_SEMGREP_FRAGMENT_DIGEST:?}
 
 services:
   cli:

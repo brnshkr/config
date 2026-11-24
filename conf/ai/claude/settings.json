@@ -67,7 +67,11 @@
       "Bash(make typescript:*)",
       "Bash(make vitest-list:*)",
       "Bash(make vitest-update:*)",
-      "Bash(make vitest:*)"
+      "Bash(make vitest:*)",
+      "Bash(make semgrep-group:*)",
+      "Bash(make semgrep-list:*)",
+      "Bash(make semgrep-validate:*)",
+      "Bash(make semgrep:*)"
     ],
     "ask": [
       "Bash(make bun-inspect:*)",
