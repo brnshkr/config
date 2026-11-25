@@ -1,7 +1,7 @@
 {
   "$schema": "https://getcomposer.org/schema.json",
   "name": "brnshkr/config",
-  "version": "0.0.1-beta.3",
+  "version": "0.0.1-beta.10",
   "description": "Centralized collection of configuration and tooling used across all @brnshkr projects",
   "license": "MIT",
   "authors": [
@@ -15,13 +15,17 @@
     "source": "https://github.com/brnshkr/config"
   },
   "type": "composer-plugin",
+  "scripts": {
+    "post-install-cmd": "make discover",
+    "post-update-cmd": "make discover"
+  },
   "require": {
     "php": ">=8.3",
     "ext-json": "*",
     "ext-mbstring": "*",
     "composer-plugin-api": "^2.0.0",
-    "symfony/polyfill-php84": "^1.33",
-    "symfony/polyfill-php85": "^1.33"
+    "symfony/polyfill-php84": "^1.43",
+    "symfony/polyfill-php85": "^1.44"
   },
   "require-dev": {
     "ext-ctype": "*",
@@ -32,55 +36,73 @@
     "ext-iconv": "*",
     "ext-libxml": "*",
     "ext-openssl": "*",
+    "ext-pcntl": "*",
     "ext-pcre": "*",
     "ext-phar": "*",
+    "ext-posix": "*",
     "ext-reflection": "*",
     "ext-simplexml": "*",
     "ext-tokenizer": "*",
-    "ext-xml": "*",
     "ext-xmlwriter": "*",
-    "composer/composer": "2.9.7",
-    "friendsofphp/php-cs-fixer": "3.95.1",
-    "kubawerlos/php-cs-fixer-custom-fixers": "3.37.1",
-    "pestphp/pest": "4.6.3",
+    "composer/composer": "2.10.3",
+    "dave-liddament/phpstan-rule-test-helper": "0.6.0",
+    "friendsofphp/php-cs-fixer": "3.95.27",
+    "helgesverre/toon": "3.2.1",
+    "kubawerlos/php-cs-fixer-custom-fixers": "3.37.4",
+    "league/commonmark": "2.10.3",
+    "matesofmate/composer-extension": "0.7.1",
+    "matesofmate/phpstan-extension": "0.7.1",
+    "matesofmate/phpunit-extension": "0.7.1",
+    "matesofmate/rector-extension": "0.7.1",
+    "pestphp/pest": "4.7.8",
+    "phpat/phpat": "0.12.5",
     "phpstan/extension-installer": "1.4.3",
-    "phpstan/phpstan": "2.1.54",
-    "phpstan/phpstan-deprecation-rules": "2.0.4",
-    "phpstan/phpstan-doctrine": "2.0.21",
-    "phpstan/phpstan-phpunit": "2.0.16",
-    "phpstan/phpstan-strict-rules": "2.0.10",
-    "phpstan/phpstan-symfony": "2.0.15",
+    "phpstan/phpstan": "2.3.1",
+    "phpstan/phpstan-deprecation-rules": "2.0.5",
+    "phpstan/phpstan-doctrine": "2.0.28",
+    "phpstan/phpstan-phpunit": "2.1.1",
+    "phpstan/phpstan-strict-rules": "2.1.0",
+    "phpstan/phpstan-symfony": "2.1.0",
     "phpstan/phpstan-webmozart-assert": "2.0.0",
-    "phpunit/phpunit": "12.5.23",
-    "rector/rector": "2.4.2",
-    "rector/type-perfect": "2.1.4",
+    "phpunit/phpunit": "12.5.33",
+    "rector/rector": "2.7.0",
+    "sebastian/diff": "7.0.1",
     "spatie/phpunit-snapshot-assertions": "5.4.0",
-    "symfony/finder": "7.4.8",
-    "symplify/phpstan-rules": "14.9.11",
+    "symfony/ai-mate": "0.14.0",
+    "symfony/filesystem": "7.4.23",
+    "symfony/finder": "7.4.23",
+    "symfony/process": "7.4.22",
+    "symplify/phpstan-rules": "14.19.1",
     "ticketswap/phpstan-error-formatter": "1.3.0",
-    "vincentlanglet/twig-cs-fixer": "3.14.0"
+    "tomasvotruba/type-coverage": "2.5.1",
+    "vincentlanglet/twig-cs-fixer": "4.1.1"
   },
   "conflict": {
-    "friendsofphp/php-cs-fixer": "<3.95.1 || >=4",
-    "kubawerlos/php-cs-fixer-custom-fixers": "<3.37.1 || >=4",
+    "friendsofphp/php-cs-fixer": "<3.95.27 || >=4",
+    "kubawerlos/php-cs-fixer-custom-fixers": "<3.37.3 || >=4",
+    "league/commonmark": "<2.10.3 || >=3",
+    "phpat/phpat": "<0.12.4 || >=0.13",
     "phpstan/extension-installer": "<1.4.3 || >=3",
-    "phpstan/phpstan": "<2.1.54 || >=3",
-    "phpstan/phpstan-deprecation-rules": "<2.0.4 || >=3",
-    "phpstan/phpstan-doctrine": "<2.0.21 || >=3",
-    "phpstan/phpstan-phpunit": "<2.0.16 || >=3",
-    "phpstan/phpstan-strict-rules": "<2.0.10 || >=3",
-    "phpstan/phpstan-symfony": "<2.0.15 || >=3",
+    "phpstan/phpstan": "<2.3.1 || >=3",
+    "phpstan/phpstan-deprecation-rules": "<2.0.5 || >=3",
+    "phpstan/phpstan-doctrine": "<2.0.28 || >=3",
+    "phpstan/phpstan-phpunit": "<2.1.1 || >=3",
+    "phpstan/phpstan-strict-rules": "<2.1.0 || >=3",
+    "phpstan/phpstan-symfony": "<2.1.0 || >=3",
     "phpstan/phpstan-webmozart-assert": "<2.0.0 || >=3",
-    "rector/rector": "<2.4.2 || >=3",
-    "rector/type-perfect": "<2.1.4 || >=3",
-    "symfony/finder": "< 6 || >=8",
-    "symplify/phpstan-rules": "<14.9.11 || >=15",
+    "rector/rector": "<2.7.0 || >=3",
+    "symfony/finder": "<6.4 || >=9",
+    "symplify/phpstan-rules": "<14.19.1 || >=15",
     "ticketswap/phpstan-error-formatter": "<1.3.0 || >=2",
-    "vincentlanglet/twig-cs-fixer": "<3.14.0 || >=4"
+    "tomasvotruba/type-coverage": "<2.5.1 || >=3",
+    "vincentlanglet/twig-cs-fixer": "<4.1.1 || >=5"
   },
   "suggest": {
+    "ext-dom": "Optional for checking XML code blocks with PHPStan",
     "friendsofphp/php-cs-fixer": "Needed for automatically applying PHP coding standards",
     "kubawerlos/php-cs-fixer-custom-fixers": "Optional additional PHP CS Fixer rules",
+    "league/commonmark": "Optional for checking, formatting and refactoring code blocks in docblocks and Markdown pages",
+    "phpat/phpat": "Optional architecture-related PHPStan rules",
     "phpstan/extension-installer": "Optional for autoloading of additional PHPStan configurations",
     "phpstan/phpstan": "Needed for static code analysis",
     "phpstan/phpstan-deprecation-rules": "Optional PHPStan rules for deprecations",
@@ -90,10 +112,10 @@
     "phpstan/phpstan-symfony": "Optional additional PHPStan rules for Symfony (It is recommended to configure parameters.symfony.consoleApplicationLoader when using this extension)",
     "phpstan/phpstan-webmozart-assert": "Optional additional PHPStan rules for Webmozart\\Assert",
     "rector/rector": "Needed for automatically applying upgrades and refactorings",
-    "rector/type-perfect": "Optional type-related PHPStan rules",
     "symfony/finder": "Needed when using PHP CS Fixer, Rector or PHPStan",
     "symplify/phpstan-rules": "Optional PHPStan rules by Symplify",
     "ticketswap/phpstan-error-formatter": "Optional PHPStan error output formatter",
+    "tomasvotruba/type-coverage": "Optional type-related PHPStan rules",
     "vincentlanglet/twig-cs-fixer": "Needed for automatically applying Twig coding standards"
   },
   "autoload": {
@@ -103,10 +125,31 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Brnshkr\\Config\\Tests\\": "./tests/php/"
-    }
+      "Brnshkr\\Config\\Tests\\": "./tests/php/",
+      "Brnshkr\\Config\\Mate\\": "./conf/ai/mate/src/"
+    },
+    "classmap": [
+      "./tests/php/Fixtures/"
+    ]
   },
   "extra": {
+    "ai-mate": {
+      "extension": false,
+      "instructions": "conf/ai/mate/INSTRUCTIONS.md",
+      "scan-dirs": [
+        "conf/ai/mate/src"
+      ],
+      "includes": [
+        "conf/ai/mate/config.php"
+      ]
+    },
+    "brnshkr": {
+      "config": {
+        "file-finder-excludes": [
+          "docs/js/markdownlint/rules/no-php-open-tag.md"
+        ]
+      }
+    },
     "class": "Brnshkr\\Config\\Composer\\Plugin"
   },
   "minimum-stability": "stable",
@@ -114,8 +157,11 @@
   "config": {
     "sort-packages": true,
     "allow-plugins": {
+      "brnshkr/config": true,
       "pestphp/pest-plugin": true,
-      "phpstan/extension-installer": true
+      "php-http/discovery": false,
+      "phpstan/extension-installer": true,
+      "symfony/ai-mate-composer-plugin": false
     }
   },
   "keywords": [

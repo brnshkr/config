@@ -1,8 +1,12 @@
-import { OVERRIDES } from '../types/overrides';
-import { buildOverrideName } from '../utils/config';
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/stylelint
+ */
 
-import type { Config } from '../types/config';
+import { OVERRIDES } from '#stylelint/types/overrides.ts';
+import { buildOverrideName } from '#stylelint/utils/config.ts';
+import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
+
+import type { Config } from '#stylelint/types/config.ts';
 
 export const html = (): Config[] => {
   const {
@@ -35,7 +39,7 @@ export const html = (): Config[] => {
           },
         },
         // eslint-disable-next-line no-warning-comments -- (vue-support)
-        // TODO: This will be needed if and when vue support is added
+        // TODO: This will be needed if and when Vue.js support is added
         // {
         //   name: buildOverrideName(OVERRIDES.VUE),
         //   files: ['**/*.vue'],

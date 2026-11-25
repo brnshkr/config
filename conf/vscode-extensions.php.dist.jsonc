@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    // PHP
+    "bmewburn.vscode-intelephense-client",
+    "junstyle.php-cs-fixer",
+    "mblode.twig-language-2",
+    "SanderRonde.phpstan-vscode",
+    "xdebug.php-debug"
+  ]
+}

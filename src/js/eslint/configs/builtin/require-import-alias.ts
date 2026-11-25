@@ -1,15 +1,22 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import path from 'node:path';
 
-import { objectEntries } from '../../../shared/utils/object';
-import { loadTsConfigPaths, resolveTsConfigPath } from '../../utils/tsconfig';
+import { loadPackageImports } from '#eslint/utils/package-imports.ts';
+import { loadTsConfigCustomConditions, loadTsConfigPaths, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { toPosix } from '#shared/utils/filesystem.ts';
+import { objectEntries } from '#shared/utils/object.ts';
 
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { Maybe } from '../../../shared/types/core';
-import type { TsConfigPaths } from '../../utils/tsconfig';
-import type { RuleDefinition } from '.';
+import type { RuleDefinition } from '#eslint/configs/builtin/index.ts';
+import type { TsConfigPaths } from '#eslint/utils/tsconfig.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
-const MESSAGE_ID_PREFER_ALIAS = 'preferAlias';
-const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';
+export const MESSAGE_ID_EXPECTED_ALIAS = 'expectedAlias';
+export const MESSAGE_ID_MISSING_ALIAS = 'missingAlias';
+
 const WILDCARD_SUFFIX = '/*';
 const WILDCARD_SUFFIX_LENGTH = WILDCARD_SUFFIX.length;
 const RELATIVE_SPECIFIER_PREFIXES = <const>['./', '../'];
@@ -25,15 +32,28 @@ interface RequireImportAliasOptions {
   ignoredPaths?: string[];
 }
 
-const resolveAliases = (options: RequireImportAliasOptions): TsConfigPaths => options.aliases
-  ?? loadTsConfigPaths(options.tsConfigPath ?? resolveTsConfigPath())
-  ?? {};
+const resolveAliases = (options: RequireImportAliasOptions, filePath: string): TsConfigPaths => {
+  if (options.aliases !== undefined) {
+    return options.aliases;
+  }
 
-const toPosix = (value: string): string => value.replaceAll('\\', '/');
+  const tsConfigPath = options.tsConfigPath ?? resolveTsConfigPath();
+
+  return {
+    ...loadPackageImports(path.dirname(filePath), loadTsConfigCustomConditions(tsConfigPath)),
+    ...loadTsConfigPaths(tsConfigPath),
+  };
+};
 
 const buildAliasMappings = (aliases: Record<string, string[]>): AliasMapping[] => objectEntries(aliases)
-  .filter(([pattern]) => pattern.endsWith(WILDCARD_SUFFIX))
   .flatMap(([pattern, targets]): AliasMapping[] => {
+    if (!pattern.endsWith(WILDCARD_SUFFIX)) {
+      return targets.map((target) => ({
+        prefix: pattern,
+        baseDirectory: toPosix(target),
+      }));
+    }
+
     const prefix = pattern.slice(0, -WILDCARD_SUFFIX_LENGTH);
 
     return targets
@@ -42,17 +62,46 @@ const buildAliasMappings = (aliases: Record<string, string[]>): AliasMapping[] =
         prefix,
         baseDirectory: toPosix(target).slice(0, -WILDCARD_SUFFIX_LENGTH),
       }));
-  })
-  .toSorted((left, right) => right.baseDirectory.length - left.baseDirectory.length);
+  });
 
-const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): Maybe<string> => {
+const buildAliasedSpecifier = (
+  { prefix, baseDirectory }: AliasMapping,
+  absolutePath: string,
+): Maybe<string> => {
+  if (absolutePath === baseDirectory) {
+    return prefix;
+  }
+
+  return absolutePath.startsWith(`${baseDirectory}/`)
+    ? `${prefix}/${absolutePath.slice(baseDirectory.length + 1)}`
+    : undefined;
+};
+
+const compareSpecifiers = (left: string, right: string): number => {
+  const segmentDifference = left.split('/').length - right.split('/').length;
+
+  if (segmentDifference !== 0) {
+    return segmentDifference;
+  }
+
+  const lengthDifference = left.length - right.length;
+
+  return lengthDifference === 0 ? left.localeCompare(right) : lengthDifference;
+};
+
+const findAliasReplacement = (mappings: AliasMapping[], absolutePath: string): Maybe<string> => mappings
+  .map((mapping) => buildAliasedSpecifier(mapping, absolutePath))
+  .filter((specifier) => specifier !== undefined)
+  .toSorted(compareSpecifiers)[0];
+
+const resolveAliasedPath = (mappings: AliasMapping[], source: string): Maybe<string> => {
   for (const { prefix, baseDirectory } of mappings) {
-    if (absolutePath === baseDirectory) {
-      return prefix;
+    if (source === prefix) {
+      return baseDirectory;
     }
 
-    if (absolutePath.startsWith(`${baseDirectory}/`)) {
-      return `${prefix}/${absolutePath.slice(baseDirectory.length + 1)}`;
+    if (source.startsWith(`${prefix}/`)) {
+      return `${baseDirectory}/${source.slice(prefix.length + 1)}`;
     }
   }
 
@@ -63,16 +112,14 @@ const isRelativeSpecifier = (source: string): boolean => RELATIVE_SPECIFIER_PREF
   (prefix) => source.startsWith(prefix),
 );
 
-const isAlreadyAliased = (source: string, mappings: AliasMapping[]): boolean => mappings.some(
-  ({ prefix }) => source === prefix || source.startsWith(`${prefix}/`),
-);
+const isFileIgnored = (filename: string, patterns: string[]): boolean => {
+  const absoluteFilename = toPosix(filename);
+  const relativeFilename = toPosix(path.relative(process.cwd(), filename));
 
-/* eslint-disable node/no-unsupported-features/node-builtins -- 'path.matchesGlob' is stable enough for our supported runtimes (Bun + Node 22+) */
-const isFileIgnored = (filename: string, patterns: string[]): boolean => patterns.some(
-  (pattern) => path.matchesGlob(toPosix(filename), pattern)
-    || path.matchesGlob(toPosix(path.relative(process.cwd(), filename)), pattern),
-);
-/* eslint-enable node/no-unsupported-features/node-builtins -- Restore rule */
+  return patterns.some(
+    (pattern) => path.matchesGlob(absoluteFilename, pattern) || path.matchesGlob(relativeFilename, pattern),
+  );
+};
 
 const getQuote = (sourceNode: TSESTree.Node): string => (('raw' in sourceNode
   && typeof sourceNode.raw === 'string'
@@ -80,12 +127,16 @@ const getQuote = (sourceNode: TSESTree.Node): string => (('raw' in sourceNode
   ? '"'
   : '\'');
 
+/**
+ * @see https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md
+ */
 export const requireImportAliasRule = <const>{
   meta: {
     type: 'suggestion',
     fixable: 'code',
     docs: {
-      description: 'Require imports to use TypeScript path aliases when the target file is reachable through a configured alias.',
+      description: 'Require imports to use the import alias with the fewest path segments when the target file is reachable through one.',
+      url: 'https://github.com/brnshkr/config/blob/master/docs/js/eslint/rules/require-import-alias.md',
     },
     schema: [
       {
@@ -114,14 +165,14 @@ export const requireImportAliasRule = <const>{
       },
     ],
     messages: {
-      [MESSAGE_ID_PREFER_ALIAS]: 'Import path \'{{ source }}\' must use the configured alias \'{{ alias }}\'.',
-      [MESSAGE_ID_MISSING_ALIAS]: 'Import path \'{{ source }}\' resolves outside any configured TypeScript path alias. Add an alias for this location, remove all other aliases, or disable this rule.',
+      [MESSAGE_ID_EXPECTED_ALIAS]: 'Import path \'{{ source }}\' must use the configured alias \'{{ alias }}\'.',
+      [MESSAGE_ID_MISSING_ALIAS]: 'Import path \'{{ source }}\' resolves outside any configured import alias. Add an alias for this location, remove all other aliases, or disable this rule.',
     },
   },
   create: (context) => {
     const options = <RequireImportAliasOptions>(context.options[0] ?? {});
     const ignoredPaths = options.ignoredPaths ?? [];
-    const mappings = buildAliasMappings(resolveAliases(options));
+    const mappings = buildAliasMappings(resolveAliases(options, context.filename));
 
     if (mappings.length === 0 || isFileIgnored(context.filename, ignoredPaths)) {
       return {};
@@ -137,18 +188,27 @@ export const requireImportAliasRule = <const>{
 
       const source = sourceNode.value;
 
-      if (!isRelativeSpecifier(source) || isAlreadyAliased(source, mappings)) {
+      const absolutePath = isRelativeSpecifier(source)
+        ? path.posix.normalize(`${fileDirectory}/${source}`)
+        : resolveAliasedPath(mappings, source);
+
+      if (absolutePath === undefined) {
         return;
       }
 
-      const absolutePath = path.posix.normalize(`${fileDirectory}/${source}`);
       const replacement = findAliasReplacement(mappings, absolutePath);
+
+      if (replacement === source) {
+        return;
+      }
 
       if (replacement === undefined) {
         context.report({
           node: sourceNode,
           messageId: MESSAGE_ID_MISSING_ALIAS,
-          data: { source },
+          data: {
+            source,
+          },
         });
 
         return;
@@ -156,7 +216,7 @@ export const requireImportAliasRule = <const>{
 
       context.report({
         node: sourceNode,
-        messageId: MESSAGE_ID_PREFER_ALIAS,
+        messageId: MESSAGE_ID_EXPECTED_ALIAS,
         data: {
           source,
           alias: replacement,

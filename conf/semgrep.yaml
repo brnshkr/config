@@ -1,0 +1,22 @@
+x-brnshkr:
+  ignores:
+    # The patterns come from this package's settings and the project's lint config, never from user input
+    - rule: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+      files:
+        - src/js/eslint/configs/builtin/internal-usage.ts
+        - src/js/eslint/utils/jsdoc.ts
+        - src/js/spelling/utils/files.ts
+        - src/js/spelling/utils/patterns.ts
+
+    # The patterns only ever run over the project's own docblocks and file paths
+    - rule: ajinabraham.njsscan.dos.regex_dos.regex_dos
+      files:
+        - src/js/eslint/utils/jsdoc.ts
+        - src/js/spelling/utils/files.ts
+
+    # The command is an argument list, which `proc_open()` runs without a shell
+    - rule: php.lang.security.exec-use.exec-use
+      files:
+        - src/php/Spelling.php
+
+rules: []

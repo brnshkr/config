@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "phpstan $*"
+sleep 0.05
+echo "phpstan done"

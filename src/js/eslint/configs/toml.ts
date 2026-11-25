@@ -1,10 +1,14 @@
-import { INDENT } from '../../shared/utils/constants';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_TOML } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { GLOB_TOML } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { INDENT } from '#shared/utils/constants.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const toml = async (): Promise<Config[]> => {
   const {
@@ -29,13 +33,24 @@ export const toml = async (): Promise<Config[]> => {
       rules: {
         /* eslint-disable no-magic-numbers -- Index 2 refers the config containing the rules of the standard config here */
         ...pluginToml.configs.standard[2]?.rules,
-        /* eslint-enable no-magic-numbers -- Restore rule */
+        /* eslint-enable no-magic-numbers */
+        'toml/array-bracket-newline': ['error', 'consistent'],
         'toml/array-bracket-spacing': ['error', 'never'],
+        'toml/array-element-newline': ['error', 'consistent'],
         'toml/indent': ['error', INDENT],
+        'toml/inline-table-curly-newline': ['error', {
+          consistent: true,
+        }],
         'toml/inline-table-curly-spacing': ['error', 'always', {
           emptyObjects: 'never',
         }],
         'toml/no-mixed-type-in-array': 'error',
+        'toml/spaced-comment': ['error', 'always', {
+          markers: [
+            '##>',
+            '##<',
+          ],
+        }],
       },
     },
   ];

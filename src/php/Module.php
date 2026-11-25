@@ -6,187 +6,151 @@ namespace Brnshkr\Config;
 
 use RuntimeException;
 
-use function array_all;
-use function array_diff;
-use function array_merge;
+use function array_column;
+use function array_filter;
+use function array_map;
 use function array_values;
-use function implode;
 use function in_array;
-use function is_array;
 use function sprintf;
 
 /**
  * @internal
- *
- * @phpstan-type ModuleInfo array{
- *     name: string,
- *     packages: array{
- *         requiredAll: list<self::PACKAGE_*>,
- *         optional?: list<self::PACKAGE_*>,
- *     },
- * }
  */
-final class Module
+enum Module: string
 {
-    public const string PACKAGE_EXTENSION_INSTALLER        = 'phpstan/extension-installer';
-    public const string PACKAGE_FINDER                     = 'symfony/finder';
-    public const string PACKAGE_PHP_CS_FIXER               = 'friendsofphp/php-cs-fixer';
-    public const string PACKAGE_PHP_CS_FIXER_CUSTOM_FIXERS = 'kubawerlos/php-cs-fixer-custom-fixers';
-    public const string PACKAGE_PHP_STAN_DEPRECATION_RULES = 'phpstan/phpstan-deprecation-rules';
-    public const string PACKAGE_PHP_STAN_DOCTRINE          = 'phpstan/phpstan-doctrine';
-    public const string PACKAGE_PHP_STAN_PHPUNIT           = 'phpstan/phpstan-phpunit';
-    public const string PACKAGE_PHP_STAN_RULES             = 'symplify/phpstan-rules';
-    public const string PACKAGE_PHP_STAN_STRICT_RULES      = 'phpstan/phpstan-strict-rules';
-    public const string PACKAGE_PHP_STAN_SYMFONY           = 'phpstan/phpstan-symfony';
-    public const string PACKAGE_PHP_STAN_WEBMOZART_ASSERT  = 'phpstan/phpstan-webmozart-assert';
-    public const string PACKAGE_PHP_STAN                   = 'phpstan/phpstan';
-    public const string PACKAGE_RECTOR                     = 'rector/rector';
-    public const string PACKAGE_PHP_STAN_ERROR_FORMATTER   = 'ticketswap/phpstan-error-formatter';
-    public const string PACKAGE_TWIG_CS_FIXER              = 'vincentlanglet/twig-cs-fixer';
-    public const string PACKAGE_TYPE_PERFECT               = 'rector/type-perfect';
-
-    public const string NAME_PHP_CS_FIXER  = 'phpcsfixer';
-    public const string NAME_PHP_STAN      = 'phpstan';
-    public const string NAME_RECTOR        = 'rector';
-    public const string NAME_TWIG_CS_FIXER = 'twigcsfixer';
+    case PhpCsFixer  = 'phpcsfixer';
+    case PhpStan     = 'phpstan';
+    case Rector      = 'rector';
+    case TwigCsFixer = 'twigcsfixer';
 
     /**
-     * @phpstan-var ModuleInfo
+     * @return non-empty-list<value-of<self>>
      */
-    public const array MODULE_PHP_CS_FIXER = [
-        'name'     => self::NAME_PHP_CS_FIXER,
-        'packages' => [
-            'requiredAll' => [
-                self::PACKAGE_FINDER,
-                self::PACKAGE_PHP_CS_FIXER,
-            ],
-            'optional' => [
-                self::PACKAGE_PHP_CS_FIXER_CUSTOM_FIXERS,
-            ],
-        ],
-    ];
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 
     /**
-     * @phpstan-var ModuleInfo
+     * @param list<string> $values
+     *
+     * @return list<self>
      */
-    public const array MODULE_PHP_STAN = [
-        'name'     => self::NAME_PHP_STAN,
-        'packages' => [
-            'requiredAll' => [
-                self::PACKAGE_FINDER,
-                self::PACKAGE_PHP_STAN,
-            ],
-            'optional' => [
-                self::PACKAGE_EXTENSION_INSTALLER,
-                self::PACKAGE_PHP_STAN_DEPRECATION_RULES,
-                self::PACKAGE_PHP_STAN_DOCTRINE,
-                self::PACKAGE_PHP_STAN_ERROR_FORMATTER,
-                self::PACKAGE_PHP_STAN_PHPUNIT,
-                self::PACKAGE_PHP_STAN_RULES,
-                self::PACKAGE_PHP_STAN_STRICT_RULES,
-                self::PACKAGE_PHP_STAN_SYMFONY,
-                self::PACKAGE_PHP_STAN_WEBMOZART_ASSERT,
-                self::PACKAGE_TYPE_PERFECT,
-            ],
-        ],
-    ];
+    public static function fromValues(array $values): array
+    {
+        return array_values(array_filter(array_map(self::tryFrom(...), $values)));
+    }
 
     /**
-     * @phpstan-var ModuleInfo
+     * @return non-empty-list<Package>
      */
-    public const array MODULE_RECTOR = [
-        'name'     => self::NAME_RECTOR,
-        'packages' => [
-            'requiredAll' => [
-                self::PACKAGE_FINDER,
-                self::PACKAGE_RECTOR,
+    public function getRequiredPackages(): array
+    {
+        return match ($this) {
+            self::PhpCsFixer => [
+                Package::Finder,
+                Package::PhpCsFixer,
             ],
-        ],
-    ];
-
-    /**
-     * @phpstan-var ModuleInfo
-     */
-    public const array MODULE_TWIG_CS_FIXER = [
-        'name'     => self::NAME_TWIG_CS_FIXER,
-        'packages' => [
-            'requiredAll' => [
-                self::PACKAGE_FINDER,
-                self::PACKAGE_TWIG_CS_FIXER,
+            self::PhpStan => [
+                Package::Finder,
+                Package::PhpStan,
             ],
-        ],
-    ];
+            self::Rector => [
+                Package::Finder,
+                Package::Rector,
+            ],
+            self::TwigCsFixer => [
+                Package::Finder,
+                Package::TwigCsFixer,
+            ],
+        };
+    }
 
     /**
-     * @phpstan-var array<self::NAME_*, self::MODULE_*>
+     * @return list<Package>
      */
-    public const array NAME_TO_MODULE_MAP = [
-        self::NAME_PHP_CS_FIXER  => self::MODULE_PHP_CS_FIXER,
-        self::NAME_PHP_STAN      => self::MODULE_PHP_STAN,
-        self::NAME_RECTOR        => self::MODULE_RECTOR,
-        self::NAME_TWIG_CS_FIXER => self::MODULE_TWIG_CS_FIXER,
-    ];
-
-    private static ComposerJson $composerJson;
+    public function getOptionalPackages(): array
+    {
+        return match ($this) {
+            self::PhpCsFixer => [
+                Package::PhpCsFixerCustomFixers,
+            ],
+            self::PhpStan => [
+                Package::ExtensionInstaller,
+                Package::PhpAt,
+                Package::PhpStanDeprecationRules,
+                Package::PhpStanDoctrine,
+                Package::PhpStanErrorFormatter,
+                Package::PhpStanPhpUnit,
+                Package::PhpStanRules,
+                Package::PhpStanStrictRules,
+                Package::PhpStanSymfony,
+                Package::PhpStanWebmozartAssert,
+                Package::TypeCoverage,
+            ],
+            self::Rector,
+            self::TwigCsFixer => [],
+        };
+    }
 
     /**
-     * @var list<self::PACKAGE_*>
+     * @throws RuntimeException
      */
-    private static array $warnedPackages = [];
-
-    private function __construct() {}
+    public static function warnMissingPackage(Package $package): void
+    {
+        self::warnMissing([$package], 'Failed resolving required dependency.');
+    }
 
     /**
-     * @param ModuleInfo|self::PACKAGE_* $moduleInfoOrPackage
+     * @throws RuntimeException
+     */
+    public function warnMissingPackages(): void
+    {
+        self::warnMissing(
+            $this->getRequiredPackages(),
+            sprintf('Failed resolving required dependencies for module "%s".', $this->value),
+        );
+    }
+
+    /**
+     * @param non-empty-list<Package> $candidates
      *
      * @throws RuntimeException
      */
-    public static function warnMissingPackages(array|string $moduleInfoOrPackage): void
+    private static function warnMissing(array $candidates, string $message): void
     {
-        $isModuleInfo = is_array($moduleInfoOrPackage);
-
-        $allPackages = $isModuleInfo
-            ? $moduleInfoOrPackage['packages']['requiredAll']
-            : [$moduleInfoOrPackage];
-
-        if (array_all($allPackages, self::isPackageInstalled(...))) {
+        if (!ComposerJson::forProjectUsingThisLibrary()->hasInstalledVersions()) {
             return;
         }
 
-        $packages = array_values(array_diff($allPackages, self::$warnedPackages));
+        /**
+         * @var list<Package> $warnedPackages
+         */
+        static $warnedPackages = [];
+
+        $packages = array_values(array_filter(
+            $candidates,
+            static fn (Package $package): bool => !$package->isInstalled()
+                && !in_array($package, $warnedPackages, true),
+        ));
 
         if ($packages === []) {
             return;
         }
 
-        self::$warnedPackages = array_merge(self::$warnedPackages, $packages);
-
-        $message = $isModuleInfo
-            ? sprintf('Failed resolving required dependencies for module "%s".', $moduleInfoOrPackage['name'])
-            : 'Failed resolving required dependency.';
+        $warnedPackages = [...$warnedPackages, ...$packages];
+        $packageNames   = array_map(static fn (Package $package): string => $package->value, $packages);
 
         Logger::log('error', sprintf(
             $message . ' Please install %s.',
-            Str::joinAsQuotedList($packages),
+            Str::joinAsQuotedList($packageNames),
         ));
 
         Logger::log('notice', sprintf(
             'Run `%scomposer r --dev %s%s` to install.',
             Logger::ANSI_WHITE_UNDERLINED,
-            implode(' ', $packages),
+            Str::join($packageNames, ' '),
             Logger::ANSI_RESET,
         ));
-    }
-
-    /**
-     * @param self::PACKAGE_* $package
-     *
-     * @throws RuntimeException
-     */
-    public static function isPackageInstalled(string $package): bool
-    {
-        self::$composerJson ??= ComposerJson::forProjectUsingThisLibrary();
-
-        return in_array($package, self::$composerJson->getInstalledPackages(), true);
     }
 }

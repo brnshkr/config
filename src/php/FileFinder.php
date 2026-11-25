@@ -6,42 +6,84 @@ namespace Brnshkr\Config;
 
 use InvalidArgumentException;
 use LogicException;
+use RuntimeException;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
+use function array_diff;
+use function array_is_list;
 use function array_keys;
 use function array_map;
-use function implode;
 use function in_array;
 use function is_array;
+use function is_string;
 use function iterator_to_array;
 use function sprintf;
 
 /**
+ * Shared file-discovery helper that every tool config in this package delegates to.
+ *
+ * Filters by PHP, Twig and/or Markdown extensions with project-wide noise (dependencies, caches, build
+ * artifacts, generated files and test fixtures) excluded, and also picks up `bin/console` when PHP
+ * files are requested. Callers may pass a pre-configured Symfony Finder to narrow the scope
+ * further, otherwise the current working directory is scanned.
+ *
  * @api
  *
  * @no-named-arguments
+ *
+ * @see https://github.com/brnshkr/config/blob/master/docs/php/FileFinder.md
  */
 final readonly class FileFinder
 {
-    public const string EXTENSION_PHP  = 'php';
-    public const string EXTENSION_TWIG = 'twig';
+    public const string EXTENSION_MARKDOWN = 'markdown';
+    public const string EXTENSION_MD       = 'md';
+    public const string EXTENSION_PHP      = 'php';
+    public const string EXTENSION_TWIG     = 'twig';
 
     /**
-     *  @phpstan-var list<self::EXTENSION_*>
+     * @phpstan-var non-empty-list<self::EXTENSION_*>
      */
     public const array EXTENSIONS = [
+        self::EXTENSION_MARKDOWN,
+        self::EXTENSION_MD,
         self::EXTENSION_PHP,
         self::EXTENSION_TWIG,
     ];
 
+    /**
+     * @phpstan-var non-empty-list<self::EXTENSION_*>
+     */
+    public const array MARKDOWN_EXTENSIONS = [
+        self::EXTENSION_MARKDOWN,
+        self::EXTENSION_MD,
+    ];
+
+    private const string KEY_EXCLUDES = 'file-finder-excludes';
+
     private function __construct() {}
 
     /**
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions
+     * Build a Finder filtered to the requested extensions with project-wide exclusions applied.
      *
-     * @throws DirectoryNotFoundException
-     * @throws InvalidArgumentException
+     * Reuses the caller's Finder when provided (calling `in('.')` if no source directory is set);
+     * otherwise constructs a new Finder rooted at the current working directory.
+     *
+     * @param ?Finder $finder - pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions - file extensions to include
+     *
+     * @return Finder configured Finder ready for iteration
+     *
+     * @throws DirectoryNotFoundException when the resolved source directory does not exist
+     * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
+     * @throws RuntimeException when `file-finder-excludes` is malformed
+     *
+     * @example
+     * ```php
+     * $phpFiles        = FileFinder::get();
+     * $phpAndTwigFiles = FileFinder::get(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scopedTwigFiles = FileFinder::get((new Finder())->in('templates'), FileFinder::EXTENSION_TWIG);
+     * ```
      */
     public static function get(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): Finder
     {
@@ -57,13 +99,14 @@ final readonly class FileFinder
 
         $extensions = is_array($extensions) ? $extensions : [$extensions];
 
-        $namePatterns = array_map(static function (string $extension): string {
-            if (!in_array($extension, self::EXTENSIONS, true)) {
-                throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, implode(', ', self::EXTENSIONS)));
-            }
+        foreach (array_diff($extensions, self::EXTENSIONS) as $extension) {
+            throw new InvalidArgumentException(sprintf('Unsupported extension "%s". Supported extensions are: %s.', $extension, Str::join(self::EXTENSIONS, ', ')));
+        }
 
-            return '/\.' . $extension . '$/';
-        }, $extensions);
+        $namePatterns = array_map(
+            static fn (string $extension): string => '/\.' . $extension . '$/',
+            $extensions,
+        );
 
         if ($namePatterns !== []) {
             $finder->name($namePatterns);
@@ -83,12 +126,13 @@ final readonly class FileFinder
             ->sortByCaseInsensitiveName(true)
             ->notPath([
                 'config/reference.php',
-                'tests/coverage',
-                '/^tests(?:\/.+)?\/Fixtures/',
+                '/^tests(?:\/.+)?\/[Ff]ixtures?/',
+                ...self::getConfiguredExcludes(),
             ])
             ->exclude([
-                '.cache',
-                '.local',
+                ProjectDirectory::getCache(),
+                ProjectDirectory::getLocal(),
+                'changelog',
                 'node_modules',
                 'var',
                 'vendor',
@@ -97,15 +141,76 @@ final readonly class FileFinder
     }
 
     /**
-     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions
+     * Return matched file paths as a flat list of strings.
      *
-     * @return list<string>
+     * Convenience over {@see self::get()} for callers that only need the paths,
+     * not the underlying SplFileInfo objects. Each path starts with the directory the Finder searches:
+     * `./src/User.php` by default, `/srv/acme/src/User.php` after `in('/srv/acme')`.
      *
-     * @throws DirectoryNotFoundException
-     * @throws InvalidArgumentException
+     * @param ?Finder $finder - pre-configured Finder to extend, or null to scan the working directory
+     * @param self::EXTENSION_*|list<self::EXTENSION_*> $extensions - file extensions to include
+     *
+     * @return list<non-empty-string> paths to matched files
+     *
+     * @throws DirectoryNotFoundException when the resolved source directory does not exist
+     * @throws InvalidArgumentException when an extension outside {@see self::EXTENSIONS} is passed
+     * @throws RuntimeException when `file-finder-excludes` is malformed
+     *
+     * @example
+     * ```php
+     * $phpFiles        = FileFinder::getFilePaths();
+     * $phpAndTwigFiles = FileFinder::getFilePaths(null, [FileFinder::EXTENSION_PHP, FileFinder::EXTENSION_TWIG]);
+     * $scopedTwigFiles = FileFinder::getFilePaths((new Finder())->in('templates'), FileFinder::EXTENSION_TWIG);
+     * ```
      */
     public static function getFilePaths(?Finder $finder = null, string|array $extensions = self::EXTENSION_PHP): array
     {
         return array_keys(iterator_to_array(self::get($finder, $extensions)));
+    }
+
+    /**
+     * @internal
+     */
+    public static function isMarkdown(string $path): bool
+    {
+        return in_array(Str::toLowerCase(Str::afterLast($path, '.')), self::MARKDOWN_EXTENSIONS, true);
+    }
+
+    /**
+     * @return list<non-empty-string>
+     *
+     * @throws RuntimeException
+     */
+    private static function getConfiguredExcludes(): array
+    {
+        $libraryComposerJson  = ComposerJson::forThisLibrary();
+        $organization         = $libraryComposerJson->getPackageOrganization();
+        $name                 = $libraryComposerJson->getPackageName();
+        $organizationSettings = ComposerJson::forProjectUsingThisLibrary()->getExtra()[$organization] ?? [];
+        $settings             = is_array($organizationSettings) ? $organizationSettings[$name] ?? [] : [];
+        $configuredPatterns   = is_array($settings) ? $settings[self::KEY_EXCLUDES] ?? [] : [];
+
+        $message = sprintf(
+            'The "extra.%s.%s.%s" setting must be a list of paths or patterns.',
+            $organization,
+            $name,
+            self::KEY_EXCLUDES,
+        );
+
+        if (!is_array($configuredPatterns) || !array_is_list($configuredPatterns)) {
+            throw new RuntimeException($message);
+        }
+
+        $excludedPatterns = [];
+
+        foreach ($configuredPatterns as $configuredPattern) {
+            if (!is_string($configuredPattern) || Str::isEmpty($configuredPattern)) {
+                throw new RuntimeException($message);
+            }
+
+            $excludedPatterns[] = $configuredPattern;
+        }
+
+        return $excludedPatterns;
     }
 }

@@ -1,13 +1,20 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SCRIPT_FILES } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { getScriptFileGlobs } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const FILE_NAMES_TO_IGNORE = <const>[
+  '__mocks__',
+  '__tests__',
   'ACKNOWLEDGMENTS.md',
   'ADOPTERS.md',
+  'AGENT_INSTRUCTIONS.md',
   'AGENTS.md',
   'API_REFERENCE.md',
   'ARCHITECTURE.md',
@@ -33,6 +40,7 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'FAQ.md',
   'GOVERNANCE.md',
   'INSTALL.md',
+  'INSTRUCTIONS.md',
   'ISSUE_TEMPLATE.md',
   'LICENSE.md',
   'LLMS.md',
@@ -56,10 +64,10 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'RELEASING.md',
   'RESEARCH.md',
   'ROADMAP.md',
-  'SKILL.md',
-  'SPEC.md',
   'SECURITY_POLICY.md',
   'SECURITY.md',
+  'SKILL.md',
+  'SPEC.md',
   'STYLE_GUIDE.md',
   'SUPPORT.md',
   'TESTING.md',
@@ -69,6 +77,22 @@ export const FILE_NAMES_TO_IGNORE = <const>[
   'UPGRADE_NOTES.md',
   'VERSIONING.md',
 ] satisfies string[];
+
+const COMMENT_TERMS = <const>[
+  'commitlint',
+  'JSDoc',
+  'PHP',
+  'PHPStan',
+  'PHPUnit',
+  'pnpm',
+  'PostCSS',
+  'SCSS',
+  'Stylelint',
+  'Symfony',
+  'TOML',
+  'TSDoc',
+  'Vitest',
+];
 
 export const unicorn = async (): Promise<Config[]> => {
   const {
@@ -88,32 +112,146 @@ export const unicorn = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.UNICORN, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: getScriptFileGlobs(),
       rules: {
         ...pluginUnicorn.configs.recommended.rules,
-        'unicorn/better-regex': 'error',
+        'no-else-return': 'off',
+        'no-useless-concat': 'off',
+        'operator-assignment': 'off',
+        'unicorn/comment-content': ['error', {
+          replacements: {
+            [String.raw`\bapplication\b(?!/)`]: false,
+            [String.raw`\bapplications\b`]: false,
+            [String.raw`\bhtml\b`]: false,
+            [String.raw`(?<!^\s?)\bhtml\b(?!\s?$)`]: {
+              replacement: 'HTML',
+              caseSensitive: false,
+            },
+            ...Object.fromEntries(COMMENT_TERMS.map((term) => [
+              String.raw`\b${term}\b`,
+              {
+                replacement: term,
+                caseSensitive: false,
+              },
+            ])),
+          },
+        }],
+        'unicorn/consistent-boolean-name': 'off',
+        'unicorn/consistent-class-member-order': ['error', {
+          order: [
+            'public-field',
+            'static-field',
+            'private-field',
+            'static-block',
+            'constructor',
+            'public-method',
+            'static-method',
+            'private-method',
+          ],
+        }],
+        'unicorn/consistent-conditional-object-spread': ['error', 'ternary'],
         'unicorn/consistent-destructuring': 'error',
+        'func-style': 'off',
+        'unicorn/consistent-function-style': ['error', {
+          defaultExport: 'arrow-function',
+          namedExports: 'arrow-function',
+          namedFunctions: 'arrow-function',
+          objectProperties: 'arrow-function',
+          reassignedVariables: 'arrow-function',
+          typedVariables: 'arrow-function',
+        }],
         'unicorn/custom-error-definition': 'error',
         'unicorn/filename-case': ['error', {
           case: 'kebabCase',
           ignore: FILE_NAMES_TO_IGNORE,
         }],
         'unicorn/require-post-message-target-origin': 'error',
+        'unicorn/iteration-fallback-style': ['error', 'fallback'],
+        'unicorn/name-replacements': ['error', {
+          replacements: {
+            application: false,
+            applications: false,
+            repository: false,
+          },
+          ignore: [
+            '[Ii]nheritDoc',
+            String.raw`\.dist$`,
+          ],
+        }],
+        'unicorn/no-accidental-bitwise-operator': 'off',
+        'unicorn/no-array-front-mutation': 'error',
+        'unicorn/no-array-reduce': ['error', {
+          allowSimpleOperations: false,
+        }],
+        'unicorn/no-array-reverse': ['error', {
+          allowExpressionStatement: false,
+        }],
+        'unicorn/no-array-sort': ['error', {
+          allowExpressionStatement: false,
+        }],
+        'unicorn/no-barrel-files': 'error',
+        'unicorn/no-instanceof-builtins': ['error', {
+          useErrorIsError: true,
+        }],
+        'unicorn/no-invalid-file-input-accept': 'error',
         'unicorn/no-keyword-prefix': 'error',
-        'unicorn/no-nested-ternay': 'off',
-        'no-nested-ternary': 'error',
+        'unicorn/no-manually-wrapped-comments': 'error',
+        'unicorn/no-missing-local-resource': 'error',
+        'unicorn/no-negated-comparison': ['error', {
+          checkLogicalExpressions: true,
+        }],
+        'unicorn/no-null': ['error', {
+          checkStrictEquality: true,
+        }],
+        'unicorn/no-typeof-undefined': ['error', {
+          checkGlobalVariables: true,
+        }],
+        'unicorn/no-unsafe-dom-html': 'error',
         'unicorn/no-unused-properties': 'error',
-        'unicorn/prefer-json-parse-buffer': 'error',
+        'unicorn/numeric-separators-style': ['error', {
+          binary: {
+            minimumDigits: 9,
+            groupLength: 8,
+          },
+          hexadecimal: {
+            minimumDigits: 3,
+            groupLength: 2,
+          },
+          number: {
+            minimumDigits: 4,
+            groupLength: 3,
+            fractionGroupLength: 3,
+          },
+          octal: {
+            minimumDigits: 4,
+            groupLength: 3,
+          },
+        }],
+        'unicorn/prefer-dispose': 'error',
+        'unicorn/prefer-error-is-error': 'error',
+        'unicorn/prefer-json-import': 'error',
+        'unicorn/prefer-minimal-ternary': 'error',
+        'unicorn/prefer-queue-microtask': ['error', {
+          checkSetImmediate: true,
+          checkSetTimeout: true,
+        }],
+        'unicorn/prefer-regexp-escape': 'error',
+        'unicorn/prefer-short-arrow-method': 'error',
         'unicorn/prefer-switch': 'off',
+        'unicorn/prefer-temporal-conversion': 'off',
+        'unicorn/prefer-ternary': 'off',
+        'unicorn/require-css-escape': ['error', {
+          checkAllSelectors: true,
+        }],
         'unicorn/string-content': ['error', {
           patterns: {
             '\\.\\.\\.': '…',
-            '^http:\\/\\/': String.raw`^https:\/\/`,
           },
         }],
         'unicorn/text-encoding-identifier-case': ['error', {
           withDash: true,
         }],
+        'unicorn/try-complexity': 'error',
       },
     },
   ];

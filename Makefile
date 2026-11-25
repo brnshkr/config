@@ -1,83 +1,139 @@
-include ./conf/Makefile
-
 #-- app
 
-#!! Application Makefile of the brnshkr/config package
+#!! This project's targets
 
-#---v general
+STARTUP_TARGETS := build \
+	install-hooks
 
-GREP  := grep
-MKDIR := mkdir
-MV    := mv
-RM    := rm
-RSYNC := rsync
-TAR   := tar
+include ./conf/Makefile
+
+#--- release
+
+VERSION := 0.0.1-beta.10
+
+ARCHIVE_EXTRA_PATHS := ./conf/Makefile \
+	./conf/Makefile.dist \
+	./conf/actionlint.dist.yaml \
+	./conf/editorconfig.dist \
+	./conf/gitattributes.dist \
+	./conf/hadolint.dist.yaml \
+	./conf/launch.dist.json \
+	./conf/php-cs-fixer.dist.php \
+	./conf/phpstan/ \
+	./conf/phpstan.dist.php \
+	./conf/phpunit.dist.xml \
+	./conf/rector.dist.php \
+	./conf/semgrep.dist.yaml \
+	./conf/spelling/ \
+	./conf/twig-cs-fixer.dist.php \
+	./conf/vscode-extensions.dist.jsonc \
+	./conf/vscode-extensions.php.dist.jsonc \
+	./conf/vscode-settings.dist.jsonc \
+	./conf/vscode-settings.php.dist.jsonc#vvv
+
+#--- forge
+
+FORGE_IMAGE   ?= ghcr.io/brnshkr/forge:dev#~~ image the container tests run in
+SEMGREP_IMAGE ?= semgrep/semgrep:1.177.0-nonroot#~~ image the semgrep tests run in
+
+export FORGE_IMAGE
+export SEMGREP_IMAGE
+
+TEST_MATRIX_IMAGE_KEY := FORGE_IMAGE
+
+#---vvv changelog
+
+CHANGELOG_NAMES += editor-url=EditorUrl \
+	file-finder=FileFinder
+
+#---vv test
+
+PHP_UNIT_MIN_COVERAGE_CLASSES  := 8.33
+PHP_UNIT_MIN_COVERAGE_METHODS  := 50.06
+PHP_UNIT_MIN_COVERAGE_LINES    := 63.90
+VITEST_MIN_COVERAGE_BRANCHES   := 68.84
+VITEST_MIN_COVERAGE_FUNCTIONS  := 88.48
+VITEST_MIN_COVERAGE_LINES      := 87.20
+VITEST_MIN_COVERAGE_STATEMENTS := 86.83
+
+_HAS_FORGE_IMAGE    = $(eval _HAS_FORGE_IMAGE := $$(shell $$(DOCKER) image inspect $$(FORGE_IMAGE) >/dev/null 2>&1 && printf 1))$(_HAS_FORGE_IMAGE)
+_HAS_SEMGREP_IMAGE  = $(eval _HAS_SEMGREP_IMAGE := $$(shell $$(DOCKER) image inspect $$(SEMGREP_IMAGE) >/dev/null 2>&1 && printf 1))$(_HAS_SEMGREP_IMAGE)
+_HAS_SCRIPT        := $(call _is_on_path,$(SCRIPT))
+
+ifneq ($(filter 3.%,$(MAKE_VERSION)),)
+_HAS_FORGE_IMAGE   = $(shell $(DOCKER) image inspect $(FORGE_IMAGE) >/dev/null 2>&1 && printf 1)
+_HAS_SEMGREP_IMAGE = $(shell $(DOCKER) image inspect $(SEMGREP_IMAGE) >/dev/null 2>&1 && printf 1)
+endif
+
+PHP_UNIT_EXCLUDED_GROUPS = $(strip $(if $(wildcard $(CURDIR)/dist),,build) \
+	$(if $(_HAS_FORGE_IMAGE),,container) \
+	$(if $(filter 3.%,$(MAKE_VERSION)),make4) \
+	$(if $(_HAS_SEMGREP_IMAGE),,semgrep) \
+	$(if $(_HAS_SCRIPT),,tty))#vv #~~ test groups this machine cannot run, left out of this project's own runs
+
+PHP_UNIT_FLAGS += --parallel --processes=2
 
 #---vv tools
-BUN      := bun
-COMPOSER := composer
 
-#---vvv constants
+COMPOSER := $(if $(wildcard $(CURDIR)/vendor/autoload.php),$(PHP) $(APP_DIR)/scripts/composer.php,$(COMPOSER))
+MV       := mv#vvv #~~ path to `mv` binary
 
-SEMVER_REGEX := (0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?#vvv
+# NOTICE: `braces` has no fixed release and upstream disputes the advisory:
+# https://github.com/advisories/GHSA-vfj7-8cjw-p6xm, https://github.com/micromatch/braces/issues/70
+BUN_AUDIT_FLAGS += --ignore GHSA-vfj7-8cjw-p6xm
 
-#--- phpunit
+#--- build
 
-PHP_UNIT        := $(PWD)/vendor/bin/pest
-PHP_UNIT_CONFIG := $(PWD)/conf/phpunit.dist.xml
-PHP_UNIT_FLAGS  := $(if $(DEBUG),--debug)
+typegen: #~~ regenerates the rule types the configs are built from
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) $(APP_DIR)/scripts/typegen.ts
 
-cc: #~~ removes the ./cache directory
-	$(DEBUG_PREFIX)$(RM) -rf $(PWD)/.cache
+build: typegen #~~ builds the `./dist/` this package publishes
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(APP_DIR)/conf/tsdown.ts $(ARGS)
 
-#--- test
+watch: #~~ rebuilds `./dist/` as the sources change
+	$(DEBUG_PREFIX)$(BUN) $(BUN_FLAGS) tsdown --config $(APP_DIR)/conf/tsdown.ts --watch $(ARGS)
 
-test: #~~ runs tests
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) $(ARGS)
+#--- mate
 
-test-update: #~~ runs tests with snapshot update
-	$(DEBUG_PREFIX)$(PHP_UNIT) --configuration $(PHP_UNIT_CONFIG) $(PHP_UNIT_FLAGS) --update-snapshots $(ARGS)
+MATE             := $(RUN) $(APP_DIR)/vendor/bin/mate#v
+_MATE_EXTENSIONS := $(APP_DIR)/mate/extensions.php
 
-check: rector php-cs-fixer twig-cs-fixer phpstan test #~~ runs rector, php-cs-fixer, twig-cs-fixer, phpstan and phpunit
+_MATE_TOON_COMMANDS := tools:call \
+	tools:inspect \
+	tools:list \
+	resources:read
 
-#--- package
+_MATE_FORMAT = $(if $(filter $(_MATE_TOON_COMMANDS),$(firstword $(_ARGS))),$(if $(filter --format --format=%,$(_ARGS)),,--format=toon))
 
-pack: bun-pack composer-pack #~~ runs composer-pack and bun-pack
+mate: #~~ runs mate where the tools run, answering in TOON unless `--format` is given
+	$(DEBUG_PREFIX)$(if $(filter command line,$(origin ARGS)),eval "set -- $$ARGS",set -- $(ARGS)); \
+		$(MATE) "$$@" $(_MATE_FORMAT)
 
-#----vv bun
-
-bun-list: #~~ lists included bun package files
-	$(DEBUG_PREFIX)archive_file=$$($(BUN) pm pack 2>&1 | grep -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tgz') \
-		&& $(TAR) -tf "$$archive_file" | sed 's/^package\///' \
-		&& $(RM) -f "$$archive_file"
-
-bun-pack: #~~ publishes the bun package to ./.local/@<VENDOR>/<PACKAGE>
-	$(DEBUG_PREFIX)archive_file=$$($(BUN) pm pack 2>&1 | grep -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tgz') \
-		&& $(RM) -rf $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(MKDIR) -p $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(TAR) -xzf "$$archive_file" \
-		&& $(RM) -f "$$archive_file" \
-		&& $(RSYNC) -a ./package/ $(PWD)/.local/@$(VENDOR)/$(PACKAGE) \
-		&& $(RM) -rf ./package
-
-#----vv composer
-
-composer-list: #~~ lists included composer package files
-	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
-		&& $(TAR) -tf "$$archive_file" \
-		&& $(RM) -f "$$archive_file"
-
-composer-pack: #~~ publishes the composer package to ./.local/<VENDOR>/<PACKAGE>
-	$(DEBUG_PREFIX)archive_file=$$($(COMPOSER) archive 2>&1 | $(GREP) -oE -m1 '$(VENDOR)-$(PACKAGE)-$(SEMVER_REGEX)\.tar') \
-		&& $(RM) -rf $(PWD)/.local/$(VENDOR)/$(PACKAGE) \
-		&& $(MKDIR) -p $(PWD)/.local/$(VENDOR)/$(PACKAGE) \
-		&& $(MV) "$$archive_file" $(PWD)/.local/$(VENDOR)/$(PACKAGE)/ \
-		&& $(TAR) -C $(PWD)/.local/$(VENDOR)/$(PACKAGE) -xf $(PWD)/.local/$(VENDOR)/$(PACKAGE)/"$$archive_file" \
-		&& $(RM) -f $(PWD)/.local/$(VENDOR)/$(PACKAGE)/"$$archive_file"
+discover: #~~ refreshes what mate generates for agents
+	$(DEBUG_PREFIX)$(MATE) discover $(ARGS)
+	$(DEBUG_PREFIX)if [ ! -r '$(call _host_path,$(_MATE_EXTENSIONS))' ]; then \
+		$(call log,No `%s` to post-process.,$(COLOR_NOTICE),'$(call _named_path,$(_MATE_EXTENSIONS))'); \
+	else \
+		$(MAKE) --no-print-directory php-cs-fixer $(_MATE_EXTENSIONS) \
+			&& $(AWK) '\
+				/This file is managed by/,/^$$/ { next } \
+				/^\/\*\*$$/,/^ \*\/$$/ { next } \
+				/^return/ { print "/**\n * @internal\n */" } \
+				1 \
+			' '$(call _host_path,$(_MATE_EXTENSIONS))' > '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' \
+			&& $(MV) '$(call _host_path,$(_MATE_EXTENSIONS)).tmp' '$(call _host_path,$(_MATE_EXTENSIONS))' \
+			&& $(call log,Discovery finished.,$(COLOR_SUCCESS)); \
+	fi
 
 #---vvv debug
 
-_MODIFIER_COLUMNS := $(EMPTY)
+_MODIFIERS := $(MODIFIER_NORMAL) \
+	$(MODIFIER_UNDERLINE) \
+	$(MODIFIER_BRIGHT) \
+	$(MODIFIER_BOLD) \
+	$(MODIFIER_REVERSE)
+
+_MODIFIER_COLUMNS :=
 
 $(foreach MODIFIER,$(_MODIFIERS), \
   $(eval _MODIFIER_COLUMNS := $(_MODIFIER_COLUMNS) $(MODIFIER)) \
@@ -90,82 +146,80 @@ $(foreach MODIFIER,$(_MODIFIERS), \
   ) \
 )
 
-_MODIFIER_COLUMN_WIDTH := $(shell $(PRINTF) '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
+colors: _MODIFIER_COLUMN_WIDTH = $(shell printf '$(_MODIFIER_COLUMNS)' | $(AWK) '{ \
 	max = 0; \
 	for (i = 1; i <= NF; i += 1) { \
 		if (length($$i) > max) \
-			max = length($$i); \
+			max = length($$i) \
 		} \
 		print max \
 	}' \
 )
 
-_TABLE_COLORS        := $(filter-out $(COLOR_NORMAL),$(_COLORS))
-_COLOR_COLUMN_WIDTHS := $(foreach COLOR,$(_TABLE_COLORS),$(shell $(PRINTF) '$(COLOR)' | $(AWK) '{ print length($$0) }'))
+_TABLE_COLORS := $(filter-out $(COLOR_NORMAL),$(_COLORS))
+
+colors: _COLOR_COLUMN_WIDTHS = $(foreach COLOR,$(_TABLE_COLORS),$(shell printf '$(COLOR)' | $(AWK) '{ print length($$0) }'))
 
 colors: #~~ prints a table of all supported colors with combinations with all supported modifiers
-	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s';
+	$(DEBUG_PREFIX)printf '%-$(_MODIFIER_COLUMN_WIDTH)s'
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _COLOR := $(word $(INDEX),$(_TABLE_COLORS))) \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
-		$(PRINTF) ' %-$(_WIDTH)s' '$(_COLOR)'; \
+		printf ' %-$(_WIDTH)s' '$(_COLOR)'; \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n';
-	$(DEBUG_PREFIX)$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' $(call _str_repeat,-,$(_MODIFIER_COLUMN_WIDTH))
+	$(DEBUG_PREFIX)printf '\n'
+	$(DEBUG_PREFIX)printf '%-$(_MODIFIER_COLUMN_WIDTH)s ' $(call _str_repeat,-,$(_MODIFIER_COLUMN_WIDTH))
 	$(DEBUG_PREFIX)$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 		$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
-		$(PRINTF) '%-*s ' $(_WIDTH) $(call _str_repeat,-,$(_WIDTH)); \
+		printf '%-*s ' $(_WIDTH) $(call _str_repeat,-,$(_WIDTH)); \
 	)
-	$(DEBUG_PREFIX)$(PRINTF) '\n';
+	$(DEBUG_PREFIX)printf '\n'
 	$(DEBUG_PREFIX)$(foreach MODIFIER_COLUMN,$(_MODIFIER_COLUMNS), \
-		$(PRINTF) '%-$(_MODIFIER_COLUMN_WIDTH)s ' '$(subst +, ,$(MODIFIER_COLUMN))'; \
+		printf '%-$(_MODIFIER_COLUMN_WIDTH)s ' '$(subst +, ,$(MODIFIER_COLUMN))'; \
 		$(foreach INDEX,$(call _get_indices,$(_TABLE_COLORS)), \
 			$(eval _COLOR := $(word $(INDEX),$(_TABLE_COLORS))) \
 			$(eval _WIDTH := $(word $(INDEX),$(_COLOR_COLUMN_WIDTHS))) \
 			$(eval _TEXT := $(call text,$(_COLOR),$(_COLOR),$(subst +, ,$(MODIFIER_COLUMN)))) \
-			$(PRINTF) '%-*b ' $(_WIDTH) '$(_TEXT)'; \
+			printf '%-*b ' $(_WIDTH) '$(_TEXT)'; \
 		) \
-		$(PRINTF) '\n'; \
+		printf '\n'; \
 	)
 
-#-- helpers
+#--- helpers
 
 #**
-# Recursively repeats a string a specified number of times.
-#
-# usage:
-#  $(call _str_repeat,string,count)
-# parameters:
-#  string: string
-#  count: int<1, max>
-# returns: string
-#**
+#* Repeats a string a given number of times.
+#*
+#* parameters:
+#*   string: string
+#*   count: positive-int
+#*
+#* returns: string
+#*
 define _str_repeat
-$(if $(filter 1,$2),$1,$1$(call _str_repeat,$1,$(shell $(PRINTF) $$(($2 - 1)))))
+$(if $(filter 1,$2),$1,$1$(call _str_repeat,$1,$(shell printf $$(($2 - 1)))))
 endef
 
 #**
-# Recursively enumerates the indices of each word in a list.
-#
-# usage:
-#  $(call _get_indices_internal,list)
-# parameters:
-#  list: List<1>
-# returns: List<int<1,max>>
-#**
+#* Enumerates the indices of each word in a list, from the back. Only the length is read.
+#*
+#* parameters:
+#*   list: list<string>
+#*
+#* returns: list<positive-int>
+#*
 define _get_indices_internal
 $(if $1,$(words $1) $(call _get_indices_internal,$(wordlist 2,$(words $1),$1)))
 endef
 
 #**
-# Returns a list of the 1-based indices of all words in a list.
-#
-# usage:
-#  $(call _get_indices,list)
-# parameters:
-#  list: List<string>
-# returns: List<int<1,max>>
-#**
+#* The 1-based indices of every word in a list.
+#*
+#* parameters:
+#*   list: list
+#*
+#* returns: list<positive-int>
+#*
 define _get_indices
 $(sort $(call _get_indices_internal,$1))
 endef

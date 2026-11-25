@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/hadolint/hadolint/master/contrib/hadolint.json
+
+failure-threshold: style
+
+ignored:
+  - DL3008 # apt installs from the live mirror, which keeps only each package's newest version
+
+trustedRegistries:
+  - docker.io
+  - ghcr.io
+
+strict-labels: true
+
+label-schema:
+  org.opencontainers.image.authors: text
+  org.opencontainers.image.description: text
+  org.opencontainers.image.documentation: url
+  org.opencontainers.image.licenses: spdx
+  org.opencontainers.image.source: url
+  org.opencontainers.image.title: text
+  org.opencontainers.image.url: url
+  org.opencontainers.image.vendor: text

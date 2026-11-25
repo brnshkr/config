@@ -1,0 +1,16 @@
+{
+  "files": {
+    "a.php": {
+      "messages": [
+        {
+          "message": "Offset 'x' does not exist on array{a: int}.",
+          "identifier": "acme.shape"
+        },
+        {
+          "message": "Offset 'y' does not exist on array{b: array{c: int}}.",
+          "identifier": "acme.shape"
+        }
+      ]
+    }
+  }
+}

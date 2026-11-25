@@ -1,25 +1,55 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <phpunit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
-  backupGlobals="false"
-  colors="true"
+  bootstrap="../vendor/autoload.php"
   cacheDirectory="../.cache/phpunit.cache"
+  colors="true"
+  displayDetailsOnAllIssues="true"
+  executionOrder="random"
+  shortenArraysForExportThreshold="20"
+  beStrictAboutChangesToGlobalState="true"
+  beStrictAboutCoverageMetadata="true"
+  beStrictAboutOutputDuringTests="true"
+  requireCoverageMetadata="true"
+  failOnDeprecation="true"
+  failOnEmptyTestSuite="true"
+  failOnIncomplete="true"
+  failOnNotice="true"
+  failOnPhpunitDeprecation="true"
+  failOnPhpunitNotice="true"
+  failOnRisky="true"
+  failOnSkipped="true"
+  failOnWarning="true"
 >
   <php>
     <ini name="display_errors" value="1"/>
     <ini name="error_reporting" value="-1"/>
+    <ini name="memory_limit" value="512M"/>
   </php>
 
   <testsuites>
+    <testsuite name="App\Tests">
+      <directory>../tests</directory>
+    </testsuite>
+
     <testsuite name="Brnshkr\Config">
-      <directory>../tests/php</directory>
+      <directory>../vendor/brnshkr/config/src/php/Testing</directory>
     </testsuite>
   </testsuites>
 
-  <source>
+  <source
+    restrictNotices="true"
+    restrictWarnings="true"
+    ignoreSuppressionOfDeprecations="true"
+    ignoreSuppressionOfErrors="true"
+    ignoreSuppressionOfNotices="true"
+    ignoreSuppressionOfPhpDeprecations="true"
+    ignoreSuppressionOfPhpNotices="true"
+    ignoreSuppressionOfPhpWarnings="true"
+    ignoreSuppressionOfWarnings="true"
+  >
     <include>
-      <directory suffix=".php">../src/php</directory>
+      <directory suffix=".php">../src</directory>
     </include>
   </source>
 </phpunit>

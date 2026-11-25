@@ -1,6 +1,10 @@
-import { MODULES, PACKAGES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/stylelint
+ */
 
-import type { Config } from '../types/config';
+import { MODULES, PACKAGES, resolvePackages } from '#stylelint/utils/module.ts';
+
+import type { Config } from '#stylelint/types/config.ts';
 
 export const order = (): Config[] => {
   const {

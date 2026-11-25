@@ -1,9 +1,13 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_SCRIPT_FILES } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Config } from '../types/config';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { getScriptFileGlobs, GLOB_PHP_REGEXP_BLOCKS } from '#eslint/utils/globs.ts';
+import { MODULES, resolvePackages } from '#eslint/utils/module.ts';
+
+import type { Config } from '#eslint/types/config.ts';
 
 export const regexp = async (): Promise<Config[]> => {
   const {
@@ -23,16 +27,17 @@ export const regexp = async (): Promise<Config[]> => {
     },
     {
       name: buildConfigName(MAIN_SCOPES.REGEXP, SUB_SCOPES.RULES),
-      files: GLOB_SCRIPT_FILES,
+      files: [
+        ...getScriptFileGlobs(),
+        GLOB_PHP_REGEXP_BLOCKS,
+      ],
       rules: {
         ...pluginRegExp.configs.recommended.rules,
         'regexp/confusing-quantifier': 'error',
         'regexp/grapheme-string-literal': 'error',
         'regexp/letter-case': ['error', {
-          caseInsensitive: 'lowercase',
-          unicodeEscape: 'lowercase',
-          hexadecimalEscape: 'lowercase',
-          controlEscape: 'uppercase',
+          unicodeEscape: 'uppercase',
+          hexadecimalEscape: 'uppercase',
         }],
         'regexp/no-control-character': 'error',
         'regexp/no-empty-alternative': 'error',
@@ -57,7 +62,6 @@ export const regexp = async (): Promise<Config[]> => {
         'regexp/sort-character-class-elements': 'error',
         'regexp/unicode-escape': 'error',
         'regexp/unicode-property': ['error', {
-          generalCategory: 'never',
           key: 'short',
           property: 'long',
         }],

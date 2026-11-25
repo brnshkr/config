@@ -1,0 +1,17 @@
+{
+  "files": [
+    {
+      "name": "a.php",
+      "appliedFixers": [
+        "acme_first",
+        "acme_second"
+      ]
+    },
+    {
+      "name": "b.php",
+      "appliedFixers": [
+        "acme_second"
+      ]
+    }
+  ]
+}

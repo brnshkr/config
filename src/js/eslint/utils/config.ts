@@ -1,11 +1,22 @@
-import { objectEntries } from '../../shared/utils/object';
-import { packageOrganization } from '../../shared/utils/package-json';
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { Awaitable, Maybe } from '../../shared/types/core';
-import type { Config, ResolvableConfig } from '../types/config';
-import type { ResolvedOptions } from '../types/options';
-import type { MainScope, SubScope } from '../types/scopes';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+
+import {
+  objectEntries,
+  objectFromEntries,
+  objectKeys,
+  pickKeys,
+} from '#shared/utils/object.ts';
+
+import { packageOrganization } from '#shared/utils/package-json.ts';
+
+import type { Config, ResolvableConfig } from '#eslint/types/config.ts';
+import type { ResolvedOptions } from '#eslint/types/options.ts';
+import type { MainScope, SubScope } from '#eslint/types/scopes.ts';
+import type { Awaitable, Maybe } from '#shared/types/core.ts';
 
 export const buildConfigName = (
   mainScope: MainScope,
@@ -18,9 +29,9 @@ export const buildConfigName = (
 export const renameRules = (
   rules: Maybe<Record<string, any>>,
   map: Record<string, string>,
-): Record<string, any> => Object.fromEntries(
-  Object.entries(rules ?? {}).map(([key, value]) => {
-    for (const [from, to] of Object.entries(map)) {
+): Record<string, any> => objectFromEntries(
+  objectEntries(rules ?? {}).map(([key, value]) => {
+    for (const [from, to] of objectEntries(map)) {
       if (key.startsWith(`${from}/`)) {
         return [to + key.slice(from.length), value];
       }
@@ -29,11 +40,9 @@ export const renameRules = (
     return [key, value];
   }),
 );
-/* eslint-enable ts/no-explicit-any -- Restore rule */
+/* eslint-enable ts/no-explicit-any */
 
-const isValidGlobalAdditionalConfigKey = (
-  key: string,
-): key is keyof Omit<Config, 'ignores' | 'files'> => (<const>[
+const GLOBAL_ADDITIONAL_CONFIG_KEYS = <const>[
   'name',
   'languageOptions',
   'linterOptions',
@@ -41,23 +50,14 @@ const isValidGlobalAdditionalConfigKey = (
   'plugins',
   'rules',
   'settings',
-] satisfies (keyof Omit<Config, 'ignores' | 'files'>)[]).includes(key);
+] satisfies (keyof Omit<Config, 'ignores' | 'files'>)[];
 
 const getGlobalAdditionalConfig = (options: ResolvedOptions): Maybe<Config> => {
-  const config: Config = {};
+  const config = pickKeys(options, GLOBAL_ADDITIONAL_CONFIG_KEYS);
 
-  for (const [key, value] of objectEntries(options)) {
-    if (isValidGlobalAdditionalConfigKey(key)) {
-      // eslint-disable-next-line ts/no-explicit-any, ts/no-unsafe-assignment -- The type of the value is not important here, just pass it through
-      config[key] = <any>value;
-    }
+  if (config !== undefined) {
+    config.name ??= buildConfigName(MAIN_SCOPES.USERLAND, SUB_SCOPES.GLOBAL);
   }
-
-  if (Object.keys(config).length === 0) {
-    return undefined;
-  }
-
-  config.name ??= buildConfigName(MAIN_SCOPES.USERLAND, SUB_SCOPES.GLOBAL);
 
   return config;
 };
@@ -76,7 +76,7 @@ const ensureNamesForSyncAdditionalConfigs = (
       continue;
     }
 
-    validConfigs.push(Object.keys(config).length > 0 ? config : undefined);
+    validConfigs.push(objectKeys(config).length > 0 ? config : undefined);
 
     config.name = buildConfigName(MAIN_SCOPES.USERLAND, `${SUB_SCOPES.UNNAMED}-${String(currentIndex)}`);
     currentIndex += 1;

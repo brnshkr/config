@@ -1,55 +1,62 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName, renameRules } from '../utils/config';
-import { GLOB_MD, GLOB_SCRIPT_FILES, GLOB_TS } from '../utils/globs';
-import { isModuleEnabled, MODULES, resolvePackages } from '../utils/module';
-import { doesTsConfigExist, resolveTsConfigPath } from '../utils/tsconfig';
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName, renameRules } from '#eslint/utils/config.ts';
+import { GLOB_SCRIPT_FILES, GLOB_TS } from '#eslint/utils/globs.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { doesTsConfigExist, resolveTsConfigPath } from '#eslint/utils/tsconfig.ts';
+import { GLOB_MD } from '#shared/utils/globs.ts';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
 import type { ESLint } from 'eslint';
-import type { Maybe } from '../../shared/types/core';
-import type { Config, TsEslintConfigArray, TsEslintParser } from '../types/config';
-import type { TypeAwareOptions, TypescriptOptions } from '../types/options';
+import type { Config, TsEslintConfigArray, TsEslintParser } from '#eslint/types/config.ts';
+import type { TypeAwareOptions, TypescriptOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 const DEFAULT_TYPE_AWARE_IGNORES = [
   `${GLOB_MD}/**`,
 ];
 
+export const getTypeAwareIgnores = (options?: Partial<TypescriptOptions>): string[] => [...new Set([
+  ...typeof options?.typeAware === 'object' ? (options.typeAware.ignores ?? []) : DEFAULT_TYPE_AWARE_IGNORES,
+  ...options?.ignores ?? [],
+])];
+
 export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>> => {
-  const isTypescriptModuleEnabled = isModuleEnabled(MODULES.typescript);
-  let parser = undefined;
-
-  if (isTypescriptModuleEnabled) {
-    const {
-      requiredAll: [, tsEslint],
-    } = await resolvePackages(MODULES.typescript);
-
-    if (tsEslint) {
-      ({ parser } = tsEslint);
-    }
+  if (!isModuleEnabled(MODULES.typescript)) {
+    return undefined;
   }
 
-  return parser;
+  const {
+    requiredAll: [, tsEslint],
+  } = await resolvePackages(MODULES.typescript);
+
+  return tsEslint?.parser;
 };
 
 const resolveTypeAwareOptions = (
   resolvedOptions: TypescriptOptions,
   files: NonNullable<TypeAwareOptions['files']>,
-  ignores: NonNullable<TypeAwareOptions['ignores']>,
 ): TypeAwareOptions => {
   const typeAwareOptions: TypeAwareOptions = typeof resolvedOptions.typeAware === 'object'
     ? resolvedOptions.typeAware
     : {
-      ignores: DEFAULT_TYPE_AWARE_IGNORES,
       tsconfig: typeof resolvedOptions.typeAware === 'string'
         ? resolvedOptions.typeAware
         : undefined,
     };
 
   typeAwareOptions.files = [...new Set([...(typeAwareOptions.files ?? []), ...files])];
-  typeAwareOptions.ignores = [...new Set([...(typeAwareOptions.ignores ?? []), ...ignores])];
+  typeAwareOptions.ignores = getTypeAwareIgnores(resolvedOptions);
 
   return typeAwareOptions;
 };
 
+/**
+ * @throws {Error}
+ */
 const extractRelevantRules = (configs: TsEslintConfigArray, key: string): NonNullable<Config['rules']> => {
   for (const config of configs) {
     if (config.name === `typescript-eslint/${key}` && config.rules) {
@@ -60,94 +67,74 @@ const extractRelevantRules = (configs: TsEslintConfigArray, key: string): NonNul
   throw new Error(`Expected key "${key}" to be contained in given config.`);
 };
 
-const getNamingConvention = (isTypeAware: boolean): NonNullable<Config['rules']>['ts/naming-convention'] => {
-  const ruleOptions: NonNullable<Config['rules']>['ts/naming-convention'] = [
-    'error',
-    {
-      selector: 'default',
-      format: ['strictCamelCase', 'StrictPascalCase', 'UPPER_CASE'],
-      leadingUnderscore: 'forbid',
-      trailingUnderscore: 'forbid',
+const getNamingConvention = (): NonNullable<Config['rules']>['ts/naming-convention'] => [
+  'error',
+  {
+    selector: 'default',
+    format: ['strictCamelCase', 'StrictPascalCase', 'UPPER_CASE'],
+    leadingUnderscore: 'forbid',
+    trailingUnderscore: 'forbid',
+  },
+  {
+    selector: ['objectLiteralProperty', 'variable'],
+    format: ['strictCamelCase', 'UPPER_CASE'],
+  },
+  {
+    selector: 'variable',
+    // eslint-disable-next-line unicorn/no-null -- Null is required here
+    format: null,
+    modifiers: ['destructured'],
+  },
+  {
+    selector: 'typeLike',
+    format: ['StrictPascalCase'],
+  },
+  {
+    selector: 'parameter',
+    // eslint-disable-next-line unicorn/no-null -- Null is required here
+    format: null,
+    filter: {
+      regex: '^_+$',
+      match: false,
     },
-    {
-      selector: ['objectLiteralProperty', 'variable'],
-      format: ['strictCamelCase', 'UPPER_CASE'],
+  },
+  {
+    selector: [
+      'classProperty',
+      'objectLiteralProperty',
+      'typeProperty',
+      'classMethod',
+      'objectLiteralMethod',
+      'typeMethod',
+      'accessor',
+      'enumMember',
+    ],
+    // eslint-disable-next-line unicorn/no-null -- Null is required here
+    format: null,
+    modifiers: ['requiresQuotes'],
+  },
+  {
+    selector: 'typeParameter',
+    format: ['StrictPascalCase'],
+    prefix: ['T'],
+    custom: {
+      regex: '^[A-Z]',
+      match: true,
     },
-    {
-      selector: 'variable',
-      // eslint-disable-next-line unicorn/no-null -- Null is required here
-      format: null,
-      modifiers: ['destructured'],
+  },
+  {
+    selector: 'interface',
+    format: ['StrictPascalCase'],
+    custom: {
+      regex: '^I[A-Z]',
+      match: false,
     },
-    {
-      selector: 'typeLike',
-      format: ['StrictPascalCase'],
-    },
-    {
-      selector: 'parameter',
-      // eslint-disable-next-line unicorn/no-null -- Null is required here
-      format: null,
-      filter: {
-        regex: '^_+$',
-        match: false,
-      },
-    },
-    {
-      selector: [
-        'classProperty',
-        'objectLiteralProperty',
-        'typeProperty',
-        'classMethod',
-        'objectLiteralMethod',
-        'typeMethod',
-        'accessor',
-        'enumMember',
-      ],
-      // eslint-disable-next-line unicorn/no-null -- Null is required here
-      format: null,
-      modifiers: ['requiresQuotes'],
-    },
-    {
-      selector: 'typeParameter',
-      format: ['StrictPascalCase'],
-      prefix: ['T'],
-      custom: {
-        regex: '^[A-Z]',
-        match: true,
-      },
-    },
-    {
-      selector: 'interface',
-      format: ['StrictPascalCase'],
-      custom: {
-        regex: '^I[A-Z]',
-        match: false,
-      },
-    },
-  ];
+  },
+];
 
-  if (isTypeAware) {
-    ruleOptions.push({
-      selector: 'variable',
-      types: ['boolean'],
-      format: ['StrictPascalCase'],
-      // NOTICE: Keep in sync with boolishPrefix phpstan rule
-      prefix: [
-        'as',
-        'is',
-        'does',
-        'do',
-        'did',
-        'has',
-        'was',
-        'can',
-      ],
-    });
-  }
-
-  return ruleOptions;
-};
-
+/**
+ * @rejects {Error}
+ */
 export const typescript = async (options?: Partial<TypescriptOptions>): Promise<Config[]> => {
   const {
     requiredAll: [isTypescriptInstalled, tsEslint],
@@ -171,7 +158,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
     ...options,
   } satisfies TypescriptOptions;
 
-  const ignores = resolvedOptions.ignores ?? [];
+  const ignoredGlobs = resolvedOptions.ignores ?? [];
 
   const files = [...new Set([
     ...resolvedOptions.extraFileExtensions.map((extension) => `**/*.${extension}`),
@@ -181,13 +168,13 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
   const hasEnabledTypeAwareness = resolvedOptions.typeAware !== false;
 
   const typeAwareOptions = hasEnabledTypeAwareness
-    ? resolveTypeAwareOptions(resolvedOptions, files, ignores)
+    ? resolveTypeAwareOptions(resolvedOptions, files)
     : {};
 
   const createParserConfig = (isTypeAware: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.PARSER}${isTypeAware ? '-type-aware' : ''}`),
     files: isTypeAware ? typeAwareOptions.files : files,
-    ignores: isTypeAware ? typeAwareOptions.ignores : ignores,
+    ignores: isTypeAware ? typeAwareOptions.ignores : ignoredGlobs,
     languageOptions: {
       parser: tsEslint.parser,
       parserOptions: {
@@ -205,12 +192,15 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
     },
   });
 
+  /**
+   * @throws {Error}
+   */
   const createRulesConfig = (isTypeAware: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.RULES}${isTypeAware ? '-type-aware' : ''}`),
     files: isTypeAware ? typeAwareOptions.files : files,
-    ignores: isTypeAware ? typeAwareOptions.ignores : ignores,
+    ignores: isTypeAware ? typeAwareOptions.ignores : ignoredGlobs,
     rules: {
-      'ts/naming-convention': getNamingConvention(isTypeAware),
+      'ts/naming-convention': getNamingConvention(),
       ...(isTypeAware
         ? {
           ...extractRelevantRules(tsEslint.configs.recommendedTypeCheckedOnly, 'recommended-type-checked-only'),
@@ -222,11 +212,29 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
           'ts/no-unnecessary-qualifier': 'error',
           'prefer-destructuring': 'off',
           'ts/prefer-destructuring': 'error',
-          'ts/no-unnecessary-type-conversion': 'error',
           'ts/promise-function-async': 'error',
           'ts/prefer-readonly': 'error',
           'ts/require-array-sort-compare': 'error',
-          'ts/strict-boolean-expressions': 'error',
+          'ts/no-base-to-string': ['error', {
+            checkUnknown: true,
+          }],
+          'ts/no-floating-promises': ['error', {
+            checkThenables: true,
+          }],
+          'ts/no-unnecessary-condition': ['error', {
+            checkTypePredicates: true,
+          }],
+          'ts/only-throw-error': ['error', {
+            allowThrowingUnknown: false,
+          }],
+          'ts/prefer-nullish-coalescing': ['error', {
+            ignoreConditionalTests: false,
+          }],
+          'ts/return-await': ['error', 'in-try-catch'],
+          'ts/strict-boolean-expressions': ['error', {
+            allowNumber: false,
+            allowString: false,
+          }],
           'ts/strict-void-return': 'error',
           'ts/switch-exhaustiveness-check': ['error', {
             requireDefaultForNonUnion: true,
@@ -248,7 +256,22 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
             },
           ],
           'ts/consistent-type-imports': 'error',
-          'ts/member-ordering': 'error',
+          'ts/member-ordering': ['error', {
+            default: [
+              'signature',
+              'call-signature',
+              ['public-field', 'public-accessor'],
+              ['protected-field', 'protected-accessor'],
+              ['private-field', 'private-accessor'],
+              ['#private-field', '#private-accessor'],
+              'static-initialization',
+              'constructor',
+              ['public-get', 'public-set', 'public-method'],
+              ['protected-get', 'protected-set', 'protected-method'],
+              ['private-get', 'private-set', 'private-method'],
+              ['#private-get', '#private-set', '#private-method'],
+            ],
+          }],
           'ts/method-signature-style': 'error',
           'ts/no-import-type-side-effects': 'error',
           'no-redeclare': 'off',
@@ -261,6 +284,11 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
         }),
     },
   });
+
+  const coreRulesCoveredByTypescript = objectFromEntries(
+    objectEntries(extractRelevantRules(tsEslint.configs.recommended, 'eslint-recommended'))
+      .filter(([, severity]) => severity === 'off'),
+  );
 
   return [
     {
@@ -276,8 +304,9 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
     {
       name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.RULES}-typescript`),
       files: [GLOB_TS],
-      ignores: typeAwareOptions.ignores ?? ignores,
+      ignores: typeAwareOptions.ignores ?? ignoredGlobs,
       rules: {
+        ...coreRulesCoveredByTypescript,
         'ts/explicit-function-return-type': 'error',
         'ts/explicit-member-accessibility': 'error',
       },

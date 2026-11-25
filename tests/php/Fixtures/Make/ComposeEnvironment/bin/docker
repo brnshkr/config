@@ -1,0 +1,2 @@
+#!/bin/sh
+printf 'services:\n  app:\n    working_dir: %s\n' "$COMPOSE_FIXTURE_DIRECTORY"

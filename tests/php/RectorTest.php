@@ -4,64 +4,137 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\EditorUrl;
+use Brnshkr\Config\FileFinder;
 use Brnshkr\Config\Json;
-use JsonException;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
+use Brnshkr\Config\ProjectDirectory;
+use Brnshkr\Config\Rector;
+use Brnshkr\Config\Str;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Rector\CodeQuality\Rector\If_\SimplifyIfReturnBoolRector;
 use Rector\Configuration\RectorConfigBuilder;
-use ReflectionClass;
-use RuntimeException;
-use Spatie\Snapshots\MatchesSnapshots;
-use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
-
-use function array_map;
-use function getcwd;
-use function is_iterable;
-use function is_object;
-use function iterator_to_array;
-use function preg_quote;
-use function sprintf;
-use function Symfony\Component\String\s;
+use ReflectionProperty;
+use Symfony\Component\Finder\Finder;
 
 /**
  * @internal
  */
-#[CoversNothing]
+#[CoversClass(Rector::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(EditorUrl::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(ProjectDirectory::class)]
+#[UsesClass(Str::class)]
 final class RectorTest extends TestCase
 {
-    use MatchesSnapshots;
+    public function testRulesAreAddedOnTopOfThePreparedSets(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()
+            ->addRules([SimplifyIfReturnBoolRector::class])
+            ->build()
+        ;
+
+        self::assertSame([SimplifyIfReturnBoolRector::class], self::readRectorState($rectorConfigBuilder, 'rules'));
+    }
+
+    public function testSetRulesReplacesWhatWasAdded(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()
+            ->addRules([SimplifyIfReturnBoolRector::class])
+            ->setRules([])
+            ->build()
+        ;
+
+        self::assertSame([], self::readRectorState($rectorConfigBuilder, 'rules'));
+    }
+
+    public function testSkipsAreAddedToTheBaseline(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()->addSkips(['src/legacy'])->build();
+
+        self::assertContains('src/legacy', self::readRectorState($rectorConfigBuilder, 'skip'));
+    }
+
+    public function testSkipsAreReplacedAndDropped(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()
+            ->setSkips(['only/this'])
+            ->removeSkips(['only/this'])
+            ->build()
+        ;
+
+        self::assertNotContains('only/this', self::readRectorState($rectorConfigBuilder, 'skip'));
+    }
+
+    public function testRemoveRulesSkipsInstead(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()->removeRules([SimplifyIfReturnBoolRector::class])->build();
+
+        self::assertContains(SimplifyIfReturnBoolRector::class, self::readRectorState($rectorConfigBuilder, 'skip'));
+        self::assertNotContains(SimplifyIfReturnBoolRector::class, self::readRectorState($rectorConfigBuilder, 'rules'));
+    }
+
+    public function testPathsAreReplacedAppendedAndDropped(): void
+    {
+        $rectorConfigBuilder = Rector::getBuilder()
+            ->setPaths(['src', 'tests'])
+            ->addPaths(['stubs', 'src'])
+            ->removePaths(['tests'])
+            ->build()
+        ;
+
+        self::assertSame(['src', 'stubs'], self::readRectorState($rectorConfigBuilder, 'paths'));
+    }
+
+    public function testTheFinderArgumentNarrowsThePaths(): void
+    {
+        $rectorConfigBuilder = Rector::getConfig((new Finder())->in(__DIR__ . '/../../src/php/Composer'));
+
+        $paths = self::readRectorState($rectorConfigBuilder, 'paths');
+
+        self::assertNotSame([], $paths);
+
+        foreach ($paths as $path) {
+            self::assertIsString($path);
+            self::assertStringContainsString('/src/php/Composer/', $path);
+        }
+    }
+
+    public function testFromAddsToAConfigAnotherFileBuilt(): void
+    {
+        $baseline = Rector::getConfig();
+        $paths    = self::readRectorState($baseline, 'paths');
+
+        $rectorConfigBuilder = Rector::from($baseline)->addSkips(['src/legacy'])->build();
+
+        self::assertContains('src/legacy', self::readRectorState($rectorConfigBuilder, 'skip'));
+        self::assertSame($paths, self::readRectorState($rectorConfigBuilder, 'paths'));
+    }
+
+    public function testBuildHandsOverOnlyOnce(): void
+    {
+        $rector = Rector::getBuilder()->addRules([SimplifyIfReturnBoolRector::class]);
+
+        $rector->build();
+
+        self::assertCount(1, self::readRectorState($rector->build(), 'rules'));
+    }
 
     /**
-     * @throws DirectoryNotFoundException
-     * @throws JsonException
-     * @throws RuntimeException
+     * @return array<array-key, mixed>
      */
-    public function testExpectedRectorConfig(): void
+    private static function readRectorState(RectorConfigBuilder $rectorConfigBuilder, string $name): array
     {
-        $rectorConfigBuilder = include __DIR__ . '/../../conf/rector.dist.php';
+        $reflectionProperty = new ReflectionProperty(RectorConfigBuilder::class, $name);
 
-        self::assertInstanceOf(RectorConfigBuilder::class, $rectorConfigBuilder);
-
-        $reflectionClass = new ReflectionClass($rectorConfigBuilder);
-        $configArray     = [];
-
-        foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $value        = $reflectionProperty->getValue($rectorConfigBuilder);
-            $propertyName = $reflectionProperty->getName();
-
-            if (is_iterable($value)) {
-                $value = array_map(
-                    static fn ($item) => is_object($item) ? $item::class : $item,
-                    iterator_to_array($value),
-                );
-            }
-
-            $configArray[$propertyName] = $propertyName === 'editorUrl' ? null : $value;
-        }
-
-        $result = Json::encode($configArray);
-        $result = s($result)->replaceMatches(sprintf('/%s/', preg_quote(getcwd() ?: '.', '/')), '.')->toString();
-
-        $this->assertMatchesJsonSnapshot($result);
+        return (array) $reflectionProperty->getValue($rectorConfigBuilder);
     }
 }

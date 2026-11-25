@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "docker $* ACME_IMAGE=$ACME_IMAGE ACME_TITLE=$ACME_TITLE"

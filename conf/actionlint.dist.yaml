@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://www.schemastore.org/actionlint.json
+
+self-hosted-runner:
+  labels: []
+
+config-variables:
+  - RUNNER_IMAGE
+
+paths:
+  .github/workflows/*.{yaml,yml}:
+    ignore:
+      - property "workflow_repository" is not defined
+      - property "workflow_sha" is not defined

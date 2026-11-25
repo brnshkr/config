@@ -1,0 +1,21 @@
+{
+  ///////////
+  /// PHP ///
+  ///////////
+
+  // Formatters
+  "[php]": {
+    "editor.defaultFormatter": "junstyle.php-cs-fixer"
+  },
+  "[twig]": {
+    "editor.defaultFormatter": "mblode.twig-language-2"
+  },
+
+  // Telemetry
+  "intelephense.telemetry.enabled": false,
+
+  // Analysis
+  "phpstan.enableStatusBar": false,
+  "phpstan.showTypeOnHover": true
+  // "phpstan.singleFileMode": true, // Turn single file mode on if you are encountering performance issues
+}

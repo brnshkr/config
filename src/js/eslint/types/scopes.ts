@@ -1,9 +1,14 @@
-import { packageOrganizationUpper } from '../../shared/utils/package-json';
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
+import { packageOrganizationUpper } from '#shared/utils/package-json.ts';
 
 export const MAIN_SCOPES = <const>{
   [packageOrganizationUpper]: 'builtin',
   COMMENTS: 'comments',
   CSS: 'css',
+  HTML: 'html',
   IGNORES: 'ignores',
   IMPORT: 'import',
   JAVASCRIPT: 'javascript',
@@ -13,9 +18,12 @@ export const MAIN_SCOPES = <const>{
   NODE: 'node',
   OVERRIDES: 'overrides',
   PERFECTIONIST: 'perfectionist',
+  PHP: 'php',
   REGEXP: 'regexp',
+  SECURITY: 'security',
   STYLE: 'style',
   SVELTE: 'svelte',
+  TAILWIND: 'tailwind',
   TEST: 'test',
   TOML: 'toml',
   TYPESCRIPT: 'typescript',
@@ -30,7 +38,7 @@ export const SUB_SCOPES = <const>{
   BASE: 'base',
   DEVELOPMENT: 'development',
   EXAMPLES: 'examples',
-  GIT: 'git',
+  FILES: 'files',
   GLOBAL: 'global',
   PARSER: 'parser',
   PROCESSOR: 'processor',
@@ -49,4 +57,5 @@ type SuffixableSubScope = typeof SUB_SCOPES.SETUP
 export type SubScope = Exclude<SubScopeRaw, typeof SUB_SCOPES.UNNAMED>
   | `${SuffixableSubScope}-${string}`
   | `${Exclude<MainScope, typeof MAIN_SCOPES.OVERRIDES>}/${string}`
+  | `${typeof SUB_SCOPES.DEVELOPMENT}/${string}`
   | `${typeof SUB_SCOPES.EXAMPLES}/${typeof SUB_SCOPES.SETUP | typeof SUB_SCOPES.PROCESSOR}`;

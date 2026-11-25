@@ -1,9 +1,14 @@
-import { GLOB_IGNORES } from '../../shared/utils/globs';
+/**
+ * @internal @brnshkr/config/stylelint
+ */
 
-import type { Config } from '../types/config';
+import { GLOB_IGNORES } from '#shared/utils/globs.ts';
 
+import type { Config } from '#stylelint/types/config.ts';
+
+// eslint-disable-next-line brnshkr/boolish-prefix -- Config builders are named after the config section they build
 export const ignores = (): Config[] => [
   {
-    ignoreFiles: GLOB_IGNORES.map((glob) => glob.replace(/^\*\*/v, process.cwd())),
+    ignoreFiles: GLOB_IGNORES.map((glob) => glob.replace(/^\*\*/v, () => `${process.cwd()}/**`)),
   },
 ];

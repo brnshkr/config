@@ -1,0 +1,270 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Brnshkr\Config\Tests;
+
+use Brnshkr\Config\Composer\Command\BrnshkrConfigCommand;
+use Brnshkr\Config\Composer\Command\CommandProvider;
+use Brnshkr\Config\Composer\Command\ExtractPharCommand;
+use Brnshkr\Config\Composer\Command\PrintModuleConfigCommand;
+use Brnshkr\Config\Composer\Command\SetupCommand;
+use Brnshkr\Config\Composer\Command\UpdatePhpExtensionsCommand;
+use Brnshkr\Config\Composer\Console;
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\EditorUrl;
+use Brnshkr\Config\FileFinder;
+use Brnshkr\Config\Json;
+use Brnshkr\Config\Module;
+use Brnshkr\Config\Package;
+use Brnshkr\Config\PhpCsFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\FencedCodeFixer;
+use Brnshkr\Config\PhpCsFixer\Fixer\MarkdownSafeFixer;
+use Brnshkr\Config\PhpStan;
+use Brnshkr\Config\PhpStan\ProjectKernel;
+use Brnshkr\Config\PhpStan\Rule\Trait\RuleTrait;
+use Brnshkr\Config\ProjectDirectory;
+use Brnshkr\Config\Rector;
+use Brnshkr\Config\Str;
+use Brnshkr\Config\Testing\JsonSnapshotDriver;
+use Brnshkr\Config\TwigCsFixer;
+use Composer\Console\Application;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesTrait;
+use PHPUnit\Framework\TestCase;
+use Spatie\Snapshots\MatchesSnapshots;
+use stdClass;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Process\Process;
+
+use function array_unique;
+use function array_values;
+use function get_object_vars;
+use function getcwd;
+use function in_array;
+use function is_array;
+use function is_string;
+use function sprintf;
+use function Symfony\Component\String\s;
+
+/**
+ * @internal
+ */
+#[CoversClass(PrintModuleConfigCommand::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(ProjectDirectory::class)]
+#[UsesClass(BrnshkrConfigCommand::class)]
+#[UsesClass(CommandProvider::class)]
+#[UsesClass(ExtractPharCommand::class)]
+#[UsesClass(SetupCommand::class)]
+#[UsesClass(UpdatePhpExtensionsCommand::class)]
+#[UsesClass(Console::class)]
+#[UsesClass(EditorUrl::class)]
+#[UsesClass(FileFinder::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Module::class)]
+#[UsesClass(Package::class)]
+#[UsesClass(PhpCsFixer::class)]
+#[UsesClass(PhpStan::class)]
+#[UsesClass(ProjectKernel::class)]
+#[UsesClass(Rector::class)]
+#[UsesClass(Str::class)]
+#[UsesClass(JsonSnapshotDriver::class)]
+#[UsesClass(TwigCsFixer::class)]
+#[UsesClass(FencedCodeFixer::class)]
+#[UsesClass(MarkdownSafeFixer::class)]
+#[UsesTrait(RuleTrait::class)]
+final class PrintModuleConfigCommandTest extends TestCase
+{
+    use MatchesSnapshots;
+
+    private const array DEPENDENCY_DIRECTORIES = [
+        './node_modules/',
+        './vendor/',
+    ];
+
+    /**
+     * @var ?list<string>
+     */
+    private static ?array $unignoredPaths = null;
+
+    public function testPrintsExpectedPhpCsFixerConfig(): void
+    {
+        $this->assertMatchesSnapshot($this->runForModule(Module::PhpCsFixer), new JsonSnapshotDriver());
+    }
+
+    public function testPrintsExpectedPhpStanConfig(): void
+    {
+        $this->assertMatchesSnapshot($this->runForModule(Module::PhpStan), new JsonSnapshotDriver());
+    }
+
+    public function testPrintsExpectedRectorConfig(): void
+    {
+        $this->assertMatchesSnapshot($this->runForModule(Module::Rector), new JsonSnapshotDriver());
+    }
+
+    public function testPrintsExpectedTwigCsFixerConfig(): void
+    {
+        $this->assertMatchesSnapshot($this->runForModule(Module::TwigCsFixer), new JsonSnapshotDriver());
+    }
+
+    public function testAutoDetectsModuleFromPath(): void
+    {
+        self::assertSame(
+            $this->runForModule(Module::PhpCsFixer),
+            $this->runCommand(['--path' => 'conf/php-cs-fixer.dist.php']),
+        );
+    }
+
+    public function testErrorsWhenModuleAndPathBothOmitted(): void
+    {
+        $output = $this->runCommand([], isSuccessExpected: false);
+
+        self::assertStringContainsString(
+            'Either the "module" argument or the --path option must be provided.',
+            $output,
+        );
+    }
+
+    public function testErrorsOnUnknownModule(): void
+    {
+        $output = $this->runCommand(['module' => 'unknown-tool'], isSuccessExpected: false);
+
+        self::assertStringContainsString('Unknown module "unknown-tool"', $output);
+    }
+
+    public function testErrorsOnTypeMismatch(): void
+    {
+        $output = $this->runCommand(
+            [
+                'module' => Module::PhpStan->value,
+                '--path' => 'conf/php-cs-fixer.dist.php',
+            ],
+            isSuccessExpected: false,
+        );
+
+        self::assertStringContainsString(
+            sprintf('but module "%s" expects', Module::PhpStan->value),
+            $output,
+        );
+    }
+
+    public function testErrorsOnMissingConfigPath(): void
+    {
+        $output = $this->runCommand(
+            ['--path' => 'conf/does-not-exist.dist.php'],
+            isSuccessExpected: false,
+        );
+
+        self::assertStringContainsString('does not exist', $output);
+    }
+
+    private function runForModule(Module $module): string
+    {
+        return $this->runCommand(['module' => $module->value]);
+    }
+
+    private static function removeIgnoredPaths(mixed $config): mixed
+    {
+        if ($config instanceof stdClass) {
+            $keptProperties = [];
+
+            foreach (get_object_vars($config) as $name => $value) {
+                if (Str::isNonDecimalIntString((string) $name)) {
+                    $keptProperties[$name] = self::removeIgnoredPaths($value);
+                }
+            }
+
+            return (object) $keptProperties;
+        }
+
+        if (!is_array($config)) {
+            return $config;
+        }
+
+        $keptValues = [];
+
+        foreach ($config as $value) {
+            if (!is_string($value) || !self::isIgnoredProjectPath($value)) {
+                $keptValues[] = self::removeIgnoredPaths($value);
+            }
+        }
+
+        return $keptValues;
+    }
+
+    private static function isIgnoredProjectPath(string $value): bool
+    {
+        if (!Str::startsWith($value, './') || Str::startsWithAny($value, self::DEPENDENCY_DIRECTORIES)) {
+            return false;
+        }
+
+        return !in_array(Str::trimSuffix($value, '/'), self::getUnignoredPaths(), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function getUnignoredPaths(): array
+    {
+        if (self::$unignoredPaths !== null) {
+            return self::$unignoredPaths;
+        }
+
+        $process = new Process(['git', 'ls-files', '--cached', '--others', '--exclude-standard']);
+
+        $process->mustRun();
+
+        $unignoredPaths = [];
+
+        foreach (Str::split(Str::trim($process->getOutput()), "\n") as $unignoredFile) {
+            $path = $unignoredFile;
+
+            while ($path !== '') {
+                $unignoredPaths[] = './' . $path;
+                $path             = Path::getDirectory($path);
+            }
+        }
+
+        self::$unignoredPaths = array_values(array_unique($unignoredPaths));
+
+        return self::$unignoredPaths;
+    }
+
+    /**
+     * @param array<string, string> $arguments
+     */
+    private function runCommand(array $arguments, bool $isSuccessExpected = true): string
+    {
+        $application = new Application();
+
+        $application->setAutoExit(false);
+        $application->addCommands((new CommandProvider())->getCommands());
+
+        $arrayInput = new ArrayInput([
+            'command' => (new PrintModuleConfigCommand())->getName(),
+            ...$arguments,
+        ]);
+
+        $bufferedOutput = new BufferedOutput();
+        $exitCode       = $application->run($arrayInput, $bufferedOutput);
+
+        $output = s($bufferedOutput->fetch())
+            ->replaceMatches(sprintf('/%s/', Str::quoteRegex(getcwd() ?: '.')), '.')
+            ->toString()
+        ;
+
+        if (!$isSuccessExpected) {
+            self::assertNotSame(0, $exitCode);
+
+            return $output;
+        }
+
+        self::assertSame(0, $exitCode);
+
+        return Json::encode(self::removeIgnoredPaths(Json::decode($output, isAssociative: false)));
+    }
+}

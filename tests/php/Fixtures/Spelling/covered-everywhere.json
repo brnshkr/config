@@ -1,0 +1,10 @@
+{
+  "allowlist": {
+    "*": [
+      "analyse"
+    ],
+    "tests/php/Fixtures/Spelling/prose.md": [
+      "analyse"
+    ]
+  }
+}

@@ -1,12 +1,20 @@
-import { MAIN_SCOPES, SUB_SCOPES } from '../types/scopes';
-import { buildConfigName } from '../utils/config';
-import { GLOB_MD } from '../utils/globs';
-import { MODULES, resolvePackages } from '../utils/module';
+/**
+ * @internal @brnshkr/config/eslint
+ */
 
-import type { ESLint } from 'eslint';
-import type { Config } from '../types/config';
-import type { MarkdownOptions } from '../types/options';
+import { MAIN_SCOPES, SUB_SCOPES } from '#eslint/types/scopes.ts';
+import { buildConfigName } from '#eslint/utils/config.ts';
+import { isModuleEnabled, MODULES, resolvePackages } from '#eslint/utils/module.ts';
+import { SKIP_MARKER } from '#shared/utils/fenced-code.ts';
+import { GLOB_MD } from '#shared/utils/globs.ts';
+import { readOwnValue } from '#shared/utils/object.ts';
 
+import type { Config } from '#eslint/types/config.ts';
+import type { MarkdownOptions } from '#eslint/types/options.ts';
+
+/**
+ * @throws {Error}
+ */
 const extractRelevantValues = <
   TIdentifier extends keyof TConfig,
   TConfig extends Config,
@@ -16,16 +24,19 @@ const extractRelevantValues = <
   key: string,
 ): NonNullable<TConfig[TIdentifier]> => {
   for (const config of configs) {
-    if (config.name === `markdown/${key}`
-      && config[identifier] !== undefined
-      && config[identifier] !== null) {
-      return config[identifier];
+    const value = readOwnValue(config, identifier) ?? undefined;
+
+    if (value !== undefined && config.name === `markdown/${key}`) {
+      return value;
     }
   }
 
   throw new Error(`Expected key "${key}" to be contained in given config.`);
 };
 
+/**
+ * @rejects {Error}
+ */
 export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Config[]> => {
   const {
     requiredAll: [pluginMarkdown, eslintMergeProcessors],
@@ -38,19 +49,27 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
   const language = options?.language ?? 'markdown/commonmark';
   const frontmatter = options?.frontmatter ?? false;
   const { mergeProcessors, processorPassThrough } = eslintMergeProcessors;
+  const markdownProcessor = pluginMarkdown.processors.markdown;
+  const eslintSkipMarker = `${'<!-- eslint-skip'.padEnd(SKIP_MARKER.length - ' -->'.length)} -->`;
 
   return [
     {
       name: buildConfigName(MAIN_SCOPES.MARKDOWN, SUB_SCOPES.SETUP),
       plugins: {
-        markdown: <ESLint.Plugin>pluginMarkdown,
+        markdown: pluginMarkdown,
       },
     },
     {
       name: buildConfigName(MAIN_SCOPES.MARKDOWN, SUB_SCOPES.PROCESSOR),
       files: [GLOB_MD],
       processor: mergeProcessors([
-        pluginMarkdown.processors.markdown,
+        {
+          ...markdownProcessor,
+          preprocess: (markdownText, filePath) => markdownProcessor.preprocess(
+            markdownText.replaceAll(SKIP_MARKER, () => eslintSkipMarker),
+            filePath,
+          ),
+        },
         processorPassThrough,
       ]),
     },
@@ -93,6 +112,17 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
             'var',
           ],
         }],
+        'markdown/no-space-in-emphasis': ['error', {
+          checkStrikethrough: true,
+        }],
+        'markdown/table-column-count': ['error', {
+          checkMissingCells: true,
+        }],
+        ...(isModuleEnabled(MODULES.unicorn)
+          ? {
+            'unicorn/no-missing-local-resource': 'error',
+          }
+          : undefined),
       },
     },
     {
@@ -106,12 +136,18 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
         'no-inline-comments': 'off',
         'no-magic-numbers': 'off',
         'import/no-default-export': 'off',
+        'import/no-extraneous-dependencies': 'off',
         'import/unambiguous': 'off',
-        'node/no-missing-import': 'off',
         'ts/no-redeclare': 'off',
         'ts/no-unused-vars': 'off',
+        'unicorn/no-barrel-files': 'off',
         'unused/no-unused-imports': 'off',
         'unused/no-unused-vars': 'off',
+        ...(isModuleEnabled(MODULES.import)
+          ? {
+            'node/no-missing-import': 'off',
+          }
+          : undefined),
       },
     },
   ];

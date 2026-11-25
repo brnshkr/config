@@ -1,0 +1,30 @@
+# 📚 Documentation
+
+Reference documentation for the tooling shipped by **@brnshkr/config**, organized by stack and tool.
+Installation and the ways to run each tool live in the [README](../README.md)
+— these pages focus on the @brnshkr-specific decisions and custom behavior.
+
+- [☕ JS](./js/index.md)
+  - [commitlint](./js/commitlint.md)
+  - [ESLint](./js/eslint/index.md) — including the [custom rules](./js/eslint/rules/index.md)
+  - [markdownlint](./js/markdownlint/index.md) — including the [custom rules](./js/markdownlint/rules/index.md)
+  - [Stylelint](./js/stylelint/index.md) — including the [custom rules](./js/stylelint/rules/index.md)
+  - [TypeScript](./js/typescript.md)
+  - [Vitest](./js/vitest.md)
+  - [Makefile](./js/Makefile.md)
+- [🐘 PHP](./php/index.md)
+  - [PHPStan](./php/phpstan/index.md) — including the [custom rules](./php/phpstan/rules/index.md)
+  - [PHP-CS-Fixer](./php/php-cs-fixer/index.md) — including the [custom rules](./php/php-cs-fixer/rules/index.md)
+  - [Rector](./php/rector/index.md) — including the [custom rules](./php/rector/rules/index.md)
+  - [Twig-CS-Fixer](./php/TwigCsFixer.md)
+  - [PHPUnit](./php/PhpUnit.md)
+  - [FileFinder](./php/FileFinder.md)
+  - [EditorUrl](./php/EditorUrl.md)
+  - [Composer plugin](./php/Composer.md)
+  - [Makefile](./php/Makefile.md)
+- [🛠 Makefile](./Makefile.md) — the shared task-runner foundation both stacks include
+- [🐳 hadolint](./hadolint.md) — the Dockerfile linter
+- [⚙️ actionlint](./actionlint.md) — the workflow linter
+- [🔎 semgrep](./semgrep.md) — the registry rulesets that fit the repository
+- [🔤 Spelling](./spelling.md) — the shared spelling check both stacks run
+- [💻 Development](./development.md) — working on @brnshkr/config itself

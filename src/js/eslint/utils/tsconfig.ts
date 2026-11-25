@@ -1,17 +1,24 @@
+/**
+ * @internal @brnshkr/config/eslint
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { objectEntries, objectFromEntries } from '../../shared/utils/object';
+import { readTextFile } from '#shared/utils/filesystem.ts';
+import { objectEntries, objectFromEntries } from '#shared/utils/object.ts';
 
-import type { Maybe } from '../../shared/types/core';
-import type { TypescriptOptions } from '../types/options';
+import type { TypescriptOptions } from '#eslint/types/options.ts';
+import type { Maybe } from '#shared/types/core.ts';
 
 export type TsConfigPaths = Record<string, string[]>;
 
 interface ParsedTsConfig {
+  // eslint-disable-next-line brnshkr/boolish-prefix -- Mirrors the `extends` key of `tsconfig.json`
   extends?: string | string[];
   compilerOptions?: {
     baseUrl?: string;
+    customConditions?: string[];
     paths?: Record<string, string[]>;
   };
 }
@@ -25,24 +32,27 @@ const stripJsonc = (input: string): string => input
   .replaceAll(TRAILING_COMMA_PATTERN, '');
 
 const parseTsConfigFile = (filePath: string): Maybe<ParsedTsConfig> => {
-  try {
-    // eslint-disable-next-line node/no-sync -- Sync read keeps the rule create() function synchronous as ESLint requires
-    const content = fs.readFileSync(filePath, 'utf-8');
+  const content = readTextFile(filePath);
 
+  if (content === undefined) {
+    return undefined;
+  }
+
+  try {
     return <ParsedTsConfig>JSON.parse(stripJsonc(content));
   } catch {
     return undefined;
   }
 };
 
-const resolveExtends = (extendsValue: string, fromDirectory: string): string => {
-  if (extendsValue.startsWith('.') || path.isAbsolute(extendsValue)) {
-    const resolved = path.resolve(fromDirectory, extendsValue);
+const resolveExtends = (parentConfig: string, fromDirectory: string): string => {
+  if (parentConfig.startsWith('.') || path.isAbsolute(parentConfig)) {
+    const resolved = path.resolve(fromDirectory, parentConfig);
 
     return path.extname(resolved) === '' ? `${resolved}.json` : resolved;
   }
 
-  return path.resolve(fromDirectory, 'node_modules', extendsValue);
+  return path.resolve(fromDirectory, 'node_modules', parentConfig);
 };
 
 const normalizeExtends = (raw: ParsedTsConfig): string[] => {
@@ -85,6 +95,7 @@ const loadInternal = (filePath: string, visitedPaths: Set<string>): Maybe<Parsed
 };
 
 const cache = new Map<string, Maybe<TsConfigPaths>>();
+const customConditionsCache = new Map<string, string[]>();
 const toPosix = (filePath: string): string => filePath.replaceAll('\\', '/');
 
 export const loadTsConfigPaths = (tsConfigPath: string): Maybe<TsConfigPaths> => {
@@ -115,8 +126,24 @@ export const loadTsConfigPaths = (tsConfigPath: string): Maybe<TsConfigPaths> =>
   return result;
 };
 
+export const loadTsConfigCustomConditions = (tsConfigPath: string): string[] => {
+  const absolutePath = path.resolve(tsConfigPath);
+  const cachedConditions = customConditionsCache.get(absolutePath);
+
+  if (cachedConditions !== undefined) {
+    return cachedConditions;
+  }
+
+  const customConditions = loadInternal(absolutePath, new Set())?.compilerOptions?.customConditions ?? [];
+
+  customConditionsCache.set(absolutePath, customConditions);
+
+  return customConditions;
+};
+
 export const clearTsConfigPathsCache = (): void => {
   cache.clear();
+  customConditionsCache.clear();
 };
 
 export const doesTsConfigExist = (tsConfigPath: string): boolean => {

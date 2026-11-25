@@ -4,53 +4,87 @@ declare(strict_types=1);
 
 namespace Brnshkr\Config\Tests\PhpStan\Rule;
 
+use Brnshkr\Config\ComposerJson;
+use Brnshkr\Config\Json;
 use Brnshkr\Config\PhpStan\Rule\BoolishPrefixRule;
+use Brnshkr\Config\Str;
+use DaveLiddament\PhpstanRuleTestHelper\AbstractRuleTestCase;
+use DaveLiddament\PhpstanRuleTestHelper\ErrorMessageFormatter;
 use Override;
 use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 
-use function implode;
+use function in_array;
 use function sprintf;
 
 /**
  * @internal
  *
- * @extends RuleTestCase<BoolishPrefixRule>
+ * @extends AbstractRuleTestCase<BoolishPrefixRule>
  */
-#[CoversNothing]
-final class BoolishPrefixRuleTest extends RuleTestCase
+#[CoversClass(BoolishPrefixRule::class)]
+#[UsesClass(ComposerJson::class)]
+#[UsesClass(Json::class)]
+#[UsesClass(Str::class)]
+final class BoolishPrefixRuleTest extends AbstractRuleTestCase
 {
     public function testRule(): void
     {
-        $prefixList = implode(', ', BoolishPrefixRule::BOOLISH_PREFIXES);
+        $this->assertIssuesReported(
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/MainClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/InterfaceImpl.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/OverrideClass.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/TraitUser.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/MagicMethods.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/ExternalImpl.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Functions.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/NonBoolean.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Types.php',
+            __DIR__ . '/../../Fixtures/PhpStan/Rule/BoolishPrefix/Callables.php',
+        );
+    }
 
-        $this->analyse([__DIR__ . '/../../Fixtures/Rule/BoolishPrefixRuleFixture.php'], [
-            [sprintf('Constant name `%s` must have one of the following prefixes: %s', 'ENABLED', $prefixList), 16],
-            [sprintf('Property name `%s` must have one of the following prefixes: %s', 'active', $prefixList), 20],
-            [sprintf('Property name `%s` must have one of the following prefixes: %s', 'ready', $prefixList), 24],
-            [sprintf('Parameter name `%s` must have one of the following prefixes: %s', 'enabled', $prefixList), 26],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'validate', $prefixList), 34],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'checkItems', $prefixList), 44],
-            [sprintf('Parameter name `%s` must have one of the following prefixes: %s', 'forced', $prefixList), 84],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'compute', $prefixList), 92],
-            [sprintf('Property name `%s` must have one of the following prefixes: %s', 'value', $prefixList), 111],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'getResult', $prefixList), 113],
-            [sprintf('Parameter name `%s` must have one of the following prefixes: %s', 'forced', $prefixList), 113],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'compute', $prefixList), 124],
-            [sprintf('Property name `%s` must have one of the following prefixes: %s', 'value', $prefixList), 135],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'getResult', $prefixList), 140],
-            [sprintf('Parameter name `%s` must have one of the following prefixes: %s', 'forced', $prefixList), 141],
-            [sprintf('Variable name `%s` must have one of the following prefixes: %s', 'result', $prefixList), 143],
-            [sprintf('Method name `%s` must have one of the following prefixes: %s', 'evaluate', $prefixList), 156],
-            [sprintf('Parameter name `%s` must have one of the following prefixes: %s', 'magic', $prefixList), 172],
-            [sprintf('Function name `%s` must have one of the following prefixes: %s', 'checkEnabled', $prefixList), 208],
-        ]);
+    #[Override]
+    protected function getErrorFormatter(): ErrorMessageFormatter
+    {
+        return new class extends ErrorMessageFormatter {
+            #[Override]
+            public function getErrorMessage(string $errorContext): string
+            {
+                $parts = Str::split($errorContext, '|');
+
+                $type   = $parts[0];
+                $kind   = $parts[1] ?? '';
+                $name   = $parts[2] ?? '';
+                $prefix = $parts[3] ?? '';
+
+                if ($type === 'reserved') {
+                    return sprintf(
+                        '%s name `%s` must not start with the boolish prefix `%s` because it is not boolean.',
+                        $kind,
+                        $name,
+                        $prefix,
+                    );
+                }
+
+                $prefixes = $type === 'missing-predicate' || in_array($kind, ['Method', 'Function'], true)
+                    ? BoolishPrefixRule::PREDICATE_PREFIXES
+                    : BoolishPrefixRule::FLAG_PREFIXES;
+
+                return sprintf(
+                    '%s name `%s` must have one of the following prefixes: %s.',
+                    $kind,
+                    $name,
+                    Str::join($prefixes, ', '),
+                );
+            }
+        };
     }
 
     #[Override]
     protected function getRule(): Rule
     {
-        return new BoolishPrefixRule();
+        return new BoolishPrefixRule(self::createReflectionProvider());
     }
 }

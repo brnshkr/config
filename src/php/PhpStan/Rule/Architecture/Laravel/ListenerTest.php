@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Brnshkr\Config\PhpStan\Rule\Architecture\Laravel;
+
+use Brnshkr\Config\PhpStan\Rule\Trait\ArchitectureRuleTrait;
+use PHPat\Test\Attributes\TestRule;
+use PHPat\Test\Builder\BuildStep;
+
+/**
+ * Enforce Laravel event listener placement.
+ *
+ * Classes named `*Listener` must live under `<root>\Listeners`.
+ *
+ * @api
+ *
+ * @no-named-arguments
+ *
+ * @example
+ * ```php
+ * use Brnshkr\Config\PhpStan;
+ *
+ * PhpStan::configurePhpAtTest(ListenerTest::class, ['root' => 'Acme']);
+ * ```
+ */
+final readonly class ListenerTest
+{
+    use ArchitectureRuleTrait;
+
+    /**
+     * @internal invoked by PHPat
+     *
+     * @param non-empty-list<non-empty-string> $roots - root namespaces, one per module
+     */
+    public function __construct(
+        private array $roots,
+    ) {}
+
+    /**
+     * @internal
+     *
+     * @return iterable<BuildStep>
+     */
+    #[TestRule]
+    public function getRules(): iterable
+    {
+        foreach ($this->roots as $root) {
+            yield self::buildPlacementRule(
+                $root,
+                [self::selectByClassnameSuffix('Listener')],
+                'Listeners',
+                'Event listeners',
+            );
+        }
+    }
+}
