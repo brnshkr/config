@@ -1,7 +1,13 @@
 import path from 'node:path';
 
 import { ESLint } from 'eslint';
-import { expect, test } from 'vitest';
+
+import {
+  expect,
+  onTestFinished,
+  test,
+  vi,
+} from 'vitest';
 
 import { createTwigProcessor, getTwigFunctions } from '#eslint/configs/twig.ts';
 import { getConfig } from '#eslint/index.ts';
@@ -110,6 +116,12 @@ test('rejects a twig function name that is no identifier', () => {
 });
 
 test('twig function classes', async () => {
+  vi.stubEnv('CI', '');
+
+  onTestFinished(() => {
+    vi.unstubAllEnvs();
+  });
+
   const [linter, fixingLinter] = await Promise.all([
     createLinter(false),
     createLinter(true),
