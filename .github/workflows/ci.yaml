@@ -24,6 +24,8 @@ jobs:
       pages: write
       security-events: write
     uses: brnshkr/forge/.github/workflows/ci.yaml@876b158ac263123cc0830dbe4751034d07e27a57 # v0.0.1-alpha.1
+    with:
+      skip: '["fragments"]'
     secrets:
       BOT_CLIENT_ID: ${{ secrets.BOT_CLIENT_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
