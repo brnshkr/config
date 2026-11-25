@@ -25213,7 +25213,7 @@ exports[`expected eslint config > diff: 21.css (from 20.toml) 1`] = `
 exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
 {
   "+processor": "merged-processor:@eslint/markdown/markdown+pass-through",
-  "language": "markdown/commonmark",
+  "language": "markdown/gfm",
   "languageOptions": {
     "addedValues": {
       "frontmatter": false,
@@ -25235,6 +25235,9 @@ exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
         {
           "frontmatterTitle": "^(?!\\s*['"]title[:=]['"])\\s*\\{?\\s*['"]?title['"]?\\s*[:=]",
         },
+      ],
+      "markdown/no-bare-urls": [
+        2,
       ],
       "markdown/no-duplicate-definitions": [
         2,
@@ -25350,6 +25353,12 @@ exports[`expected eslint config > diff: 22.md (from 20.toml) 1`] = `
       ],
       "markdown/require-alt-text": [
         2,
+      ],
+      "markdown/table-column-count": [
+        2,
+        {
+          "checkMissingCells": true,
+        },
       ],
       "unicorn/no-missing-local-resource": [
         2,

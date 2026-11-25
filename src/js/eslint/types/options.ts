@@ -84,7 +84,7 @@ export interface MarkdownOptions {
   /**
    * The language to use for parsing Markdown files.
    *
-   * @default 'markdown/commonmark'
+   * @default 'markdown/gfm'
    */
   language: `markdown/${'commonmark' | 'gfm'}`;
 

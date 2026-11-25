@@ -46,7 +46,7 @@ export const markdown = async (options?: Partial<MarkdownOptions>): Promise<Conf
     return [];
   }
 
-  const language = options?.language ?? 'markdown/commonmark';
+  const language = options?.language ?? 'markdown/gfm';
   const frontmatter = options?.frontmatter ?? false;
   const { mergeProcessors, processorPassThrough } = eslintMergeProcessors;
   const markdownProcessor = pluginMarkdown.processors.markdown;
