@@ -11,7 +11,7 @@ export interface SpellingSettings {
   britishSpellings: Record<string, string>;
   britishStems: string[];
   stemSuffixes: string[];
-  allowlist?: Record<string, string[]>;
+  allowlist: Record<string, string[]>;
 }
 
 export interface AllowlistMergeOptions {

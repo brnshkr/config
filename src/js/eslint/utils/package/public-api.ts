@@ -51,10 +51,8 @@ export const loadPublicApiResolution = (
   const resolution = packageJsonPath === undefined
     ? undefined
     : resolvePackageApiSources({
+      ...options,
       packageJsonPath,
-      distRoot: options.distRoot,
-      srcRoot: options.srcRoot,
-      srcExtensions: options.srcExtensions,
     });
 
   resolutionCache.set(cacheKey, {

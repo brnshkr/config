@@ -37,19 +37,27 @@ const buildDialectSyntax = (
 
   return {
     atrules: objectFromEntries(objectEntries(dialect.atRules).map(
-      ([name, { prelude, descriptors, isDeclarationBlock }]) => <const>[
-        name,
-        {
-          // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
-          prelude: prelude ?? null,
-          descriptors: isDeclarationBlock === true
-            ? {
-              ...declarations,
-              ...descriptors,
-            }
-            : descriptors,
-        },
-      ],
+      ([name, { prelude, descriptors, isDeclarationBlock }]) => {
+        const resolvedDescriptors = isDeclarationBlock === true
+          ? {
+            ...declarations,
+            ...descriptors,
+          }
+          : descriptors;
+
+        return <const>[
+          name,
+          {
+            // eslint-disable-next-line unicorn/no-null -- The CSS syntax definition requires an explicit null to mark an at-rule as prelude-less
+            prelude: prelude ?? null,
+            ...(resolvedDescriptors === undefined
+              ? undefined
+              : {
+                descriptors: resolvedDescriptors,
+              }),
+          },
+        ];
+      },
     )),
     properties: dialect.properties,
     types: {

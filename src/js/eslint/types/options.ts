@@ -102,7 +102,7 @@ export interface IgnoresAndFiles {
    *
    * @default []
    */
-  files?: Linter.Config['files'];
+  files?: NonNullable<Linter.Config['files']>;
 
   /**
    * An array of glob patterns indicating files to exclude from the linting process.
@@ -110,7 +110,7 @@ export interface IgnoresAndFiles {
    * @default []
    */
   // eslint-disable-next-line brnshkr/boolish-prefix -- Mirrors ESLint's own `ignores` config key
-  ignores?: Linter.Config['ignores'];
+  ignores?: NonNullable<Linter.Config['ignores']>;
 }
 
 export interface TypeAwareOptions extends IgnoresAndFiles {

@@ -37,7 +37,7 @@ const STYLISTIC_RULES = {
   'value-list-comma-space-before': 'never-single-line',
 } satisfies Config['rules'];
 
-const getStylisticRules = (namespace?: string): Config['rules'] => objectFromEntries(
+const getStylisticRules = (namespace?: string): NonNullable<Config['rules']> => objectFromEntries(
   objectEntries(STYLISTIC_RULES).map(([ruleName, setting]) => <const>[
     namespace === undefined
       ? `@stylistic/${ruleName}`

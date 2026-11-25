@@ -42,28 +42,31 @@ export const getTsEslintParserIfExists = async (): Promise<Maybe<TsEslintParser>
   return tsEslint?.parser;
 };
 
+type ResolvedTypeAwareOptions = TypeAwareOptions & Required<Pick<TypeAwareOptions, 'files' | 'ignores'>>;
+
 const resolveTypeAwareOptions = (
   resolvedOptions: TypescriptOptions,
   files: NonNullable<TypeAwareOptions['files']>,
-): TypeAwareOptions => {
+): ResolvedTypeAwareOptions => {
   const typeAwareOptions: TypeAwareOptions = typeof resolvedOptions.typeAware === 'object'
     ? resolvedOptions.typeAware
-    : {
-      tsconfig: typeof resolvedOptions.typeAware === 'string'
-        ? resolvedOptions.typeAware
-        : undefined,
-    };
+    : {};
 
-  typeAwareOptions.files = [
-    ...new Set([
-      ...(typeAwareOptions.files ?? []),
-      ...files,
-    ]),
-  ];
-
-  typeAwareOptions.ignores = getTypeAwareIgnores(resolvedOptions);
-
-  return typeAwareOptions;
+  return {
+    ...typeAwareOptions,
+    ...(typeof resolvedOptions.typeAware === 'string'
+      ? {
+        tsconfig: resolvedOptions.typeAware,
+      }
+      : undefined),
+    files: [
+      ...new Set([
+        ...(typeAwareOptions.files ?? []),
+        ...files,
+      ]),
+    ],
+    ignores: getTypeAwareIgnores(resolvedOptions),
+  };
 };
 
 /**
@@ -79,7 +82,7 @@ const extractRelevantRules = (configs: TsEslintConfigArray, key: string): NonNul
   throw new Error(`Key "${key}" not found in config.`);
 };
 
-const getNamingConvention = (): NonNullable<Config['rules']>['ts/naming-convention'] => [
+const getNamingConvention = (): NonNullable<NonNullable<Config['rules']>['ts/naming-convention']> => [
   'error',
   {
     selector: 'default',
@@ -181,9 +184,12 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
 
   const hasEnabledTypeAwareness = resolvedOptions.typeAware !== false;
 
-  const typeAwareOptions = hasEnabledTypeAwareness
+  const typeAwareOptions: ResolvedTypeAwareOptions = hasEnabledTypeAwareness
     ? resolveTypeAwareOptions(resolvedOptions, files)
-    : {};
+    : {
+      files,
+      ignores: ignoredGlobs,
+    };
 
   const createParserConfig = (isTypeAware: boolean): Config => ({
     name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.PARSER}${isTypeAware ? '-type-aware' : ''}`),
@@ -351,7 +357,7 @@ export const typescript = async (options?: Partial<TypescriptOptions>): Promise<
     {
       name: buildConfigName(MAIN_SCOPES.TYPESCRIPT, `${SUB_SCOPES.RULES}-typescript`),
       files: [GLOB_TS],
-      ignores: typeAwareOptions.ignores ?? ignoredGlobs,
+      ignores: typeAwareOptions.ignores,
       rules: {
         ...coreRulesCoveredByTypescript,
         'ts/explicit-function-return-type': 'error',

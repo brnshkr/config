@@ -232,9 +232,11 @@ const walkNew = (walkContext: WalkContext, node: TSESTree.NewExpression, state: 
     walkContext.walk(walkContext, executor.body, {
       isAsync: true,
       isCaught: false,
-      rejectName: rejectParameter?.type === 'Identifier'
-        ? rejectParameter.name
-        : undefined,
+      ...(rejectParameter?.type === 'Identifier'
+        ? {
+          rejectName: rejectParameter.name,
+        }
+        : undefined),
     });
   }
 };

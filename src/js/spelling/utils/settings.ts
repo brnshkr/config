@@ -286,7 +286,7 @@ const rejectCoveredLiterals = (allowlist: Allowlist): void => {
  */
 export const readAllowlist = (settings: SpellingSettings): Allowlist => {
   const allowlist: Allowlist = {};
-  const allowlistEntries = objectEntries(settings.allowlist ?? {});
+  const allowlistEntries = objectEntries(settings.allowlist);
 
   for (const [allowedPath, declaredLiterals] of allowlistEntries) {
     writeOwnValue(
