@@ -254,11 +254,16 @@ final class ArgumentsTest extends TestCase
 
     public function testUnknownCommandIsReported(): void
     {
-        $result = $this->runMake(['no-such-command'], directory: self::CONSUMER_DIRECTORY, doExpectFailure: true);
+        $process = self::createMakeProcess(['no-such-command'], [], self::CONSUMER_DIRECTORY, isMergingStreams: false);
 
-        self::assertStringContainsString('Unknown command', $result);
-        self::assertStringContainsString('no-such-command', $result);
-        self::assertStringContainsString('to see available commands', $result);
+        $process->run();
+
+        $errorOutput = $this->normalizeOutput($process->getErrorOutput());
+
+        self::assertSame('', $process->getOutput());
+        self::assertStringContainsString('Unknown command', $errorOutput);
+        self::assertStringContainsString('no-such-command', $errorOutput);
+        self::assertStringContainsString('to see available commands', $errorOutput);
     }
 
     public function testAStageTypoIsOfferedItsStageGoalOverANearerLookingTarget(): void

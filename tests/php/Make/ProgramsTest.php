@@ -248,7 +248,7 @@ final class ProgramsTest extends TestCase
             '--eval',
             self::DUMP_GOAL . ': ; @printf "%s" "$$_DUMP"',
             self::DUMP_GOAL,
-        ], [], $directory);
+        ], [], $directory, isMergingStreams: false);
 
         $process->mustRun();
 

@@ -560,7 +560,7 @@ _IS_TRACE     = $(filter-out $(_FALSE),$(TRACE))
 ANNOUNCEMENT       ?= Running `%s`#v #~~ message before each target a verb runs, `%s` the target
 _ANNOUNCED_GOAL     = $(_GOAL)
 _IS_UNANNOUNCED     = $(and $(_IS_ANNOUNCING),$(ANNOUNCEMENT),$(filter-out _% %-group $(_ANNOUNCED),$(_ANNOUNCED_GOAL)))
-_ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_ANNOUNCED_GOAL))$(info $(shell $(_ANNOUNCEMENT_LOG))))
+_ANNOUNCE           = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_ANNOUNCED_GOAL))$(shell $(_ANNOUNCEMENT_LOG)))
 _ANNOUNCE_IN_SHELL  = $(if $(_IS_UNANNOUNCED),$(eval _ANNOUNCED += $(_ANNOUNCED_GOAL))$(_ANNOUNCEMENT_LOG);)
 _ANNOUNCEMENT_LOG   = $(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$(_ANNOUNCED_GOAL)))
 
@@ -1502,8 +1502,8 @@ $1: | _$(_TARGET_PREFIX)environment-gate-$1
 .PHONY: _$(_TARGET_PREFIX)environment-gate-$1
 _$(_TARGET_PREFIX)environment-gate-$1:
 	@case '|$2|' in *'|$$(_CURRENT_ENV)|'*) ;; *) \
-		$$(call log,`%s` is not available in `%s`.,$$(COLOR_ERROR),'$1' '$$(_CURRENT_ENV)') >&2; \
-		$$(call log,Run it with %s.,$$(COLOR_NOTICE),$$(call _quoted,$$(call _join_as_quoted_list,$$(addprefix $$(DOTENV_ENV_KEY)=,$(subst |, ,$2)),disjunction))) >&2; \
+		$$(call log,`%s` is not available in `%s`.,$$(COLOR_ERROR),'$1' '$$(_CURRENT_ENV)'); \
+		$$(call log,Run it with %s.,$$(COLOR_NOTICE),$$(call _quoted,$$(call _join_as_quoted_list,$$(addprefix $$(DOTENV_ENV_KEY)=,$(subst |, ,$2)),disjunction))); \
 		exit $$(BRNSHKR_CONFIG_ERROR_CODE);; esac
 endef
 
@@ -2427,7 +2427,7 @@ $(call _target,startup): $(_STARTUP) #~~ installs everything and writes missing 
 
 $(call _target,install-hooks): #~~ installs this project's git hooks, replacing any that exist #v
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
-		$(call log,`install-hooks` needs a git checkout.,$(COLOR_ERROR)) >&2; \
+		$(call log,`install-hooks` needs a git checkout.,$(COLOR_ERROR)); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 	$(TRACE_PREFIX)$(call _install_git_hooks,yes)
@@ -2510,7 +2510,7 @@ $(call _target,configs): #~~ writes the files this project is missing
 	done
 	$(TRACE_PREFIX)minimum_release_age='$(MINIMUM_RELEASE_AGE)'; \
 	case "$$minimum_release_age" in 0?*|*[!0-9]*) \
-		$(call log,Invalid `MINIMUM_RELEASE_AGE` `%s`. Write a number of seconds or nothing.,$(COLOR_ERROR),"$$minimum_release_age") >&2; \
+		$(call log,Invalid `MINIMUM_RELEASE_AGE` `%s`. Write a number of seconds or nothing.,$(COLOR_ERROR),"$$minimum_release_age"); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE);; \
 	esac
 	$(TRACE_PREFIX)body_path="$$($(MKTEMP))" || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
@@ -2593,7 +2593,7 @@ $(call _target,trust): #~~ makes this machine's browsers trust the project's cer
 		'$(SUDO)' $(CP) '$(TRUST_CERTIFICATE)' '/usr/local/share/ca-certificates/$(_TRUST_NAME).crt' \
 			&& '$(SUDO)' '$(UPDATE_CA_CERTS)'; \
 	else \
-		$(call log,No trust store found: neither `%s`$(_COMMA) `%s` nor `%s` exists.,$(COLOR_ERROR),'$(CERTUTIL_EXE)' '$(SECURITY)' '$(UPDATE_CA_CERTS)') >&2; \
+		$(call log,No trust store found: neither `%s`$(_COMMA) `%s` nor `%s` exists.,$(COLOR_ERROR),'$(CERTUTIL_EXE)' '$(SECURITY)' '$(UPDATE_CA_CERTS)'); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	fi || exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	if command -v '$(CERTUTIL)' >/dev/null 2>&1 && [ -d "$$HOME/.pki/nssdb" ]; then \
@@ -2632,11 +2632,11 @@ $(call _target,fresh): export _FRESH_ESCAPE_AWK = $(_FRESH_ESCAPE_AWK_SOURCE)
 $(call _target,fresh): export _FRESH_KEPT_AWK   = $(_FRESH_KEPT_AWK_SOURCE)
 $(call _target,fresh): #~~ deletes ignored files and runs `startup` again
 	$(TRACE_PREFIX)$(GIT) rev-parse --is-inside-work-tree >/dev/null 2>&1 || { \
-		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)) >&2; \
+		$(call log,`fresh` needs a git checkout.,$(COLOR_ERROR)); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 	$(TRACE_PREFIX)$(GIT) rev-parse --verify --quiet HEAD >/dev/null || { \
-		$(call log,`fresh` needs a commit to reset to.,$(COLOR_ERROR)) >&2; \
+		$(call log,`fresh` needs a commit to reset to.,$(COLOR_ERROR)); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 	$(TRACE_PREFIX)$(if $(_IS_FRESH_ALL),:,$(call _capture,$(_FRESH_KEPT)) | $(AWK) "$$_FRESH_KEPT_AWK" \
@@ -2935,7 +2935,7 @@ endef
 define _stage_rule
 $1-%: _SUGGESTED_FOR = $$*
 $1-%:
-	$$(TRACE_PREFIX)$$(if $$(filter $$@,$$(_STAGE_COLLISION_GOAL)),$$(call log,`%s` is both a stage and a service. `%s-<target>` runs the stage and `%s-%s-<target>` the service.,$$(COLOR_WARNING),'$1' '$1' '$1' '$1') >&2,:)
+	$$(TRACE_PREFIX)$$(if $$(filter $$@,$$(_STAGE_COLLISION_GOAL)),$$(call log,`%s` is both a stage and a service. `%s-<target>` runs the stage and `%s-%s-<target>` the service.,$$(COLOR_WARNING),'$1' '$1' '$1' '$1'),:)
 	$$(TRACE_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),:,$$(call log,Unknown command `%s`.,$$(COLOR_ERROR),$$(call _quoted,$$@)); \
 		$$(call _suggest,$1-))
 	+$$(DEBUG_PREFIX)$$(if $$(or $$(call _get_goal,$$*),$$(call _get_service_goal,$$*)),$$(call _run_in_stage,$1,$$*),:)
@@ -3000,7 +3000,7 @@ ifneq ($(_TARGETED_SERVICES),) # services
 
 $(call _service_targets,exec,$(_TARGETED_SERVICES)): $(_TARGET_PREFIX)%-exec:
 	$(TRACE_PREFIX)$(if $(_SERVICE_ARGS),:,{ \
-		$(call log,`%s` needs a command. Pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))) >&2; \
+		$(call log,`%s` needs a command. Pass one as an argument.,$(COLOR_ERROR),$(call _quoted,$(_GOAL))); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	})
 	$(DEBUG_PREFIX)$(call _enter_service,$*,,$(if $(filter $*,$(_THROWAWAY_SERVICES)),run)) $(_SERVICE_ARGS)
@@ -3363,8 +3363,8 @@ _LAYERED_CONFIGS += $(if $(wildcard $(CURDIR)/tests),$(call _when_in_project,$(c
 
 _$(_TARGET_PREFIX)assert-pest:
 	$(TRACE_PREFIX)test -x '$(call _host_path,$(_PEST_BINARY))' || { \
-		$(call log,`pest` is not installed.,$(COLOR_ERROR)) >&2; \
-		$(call log,Require `pestphp/pest` or run `make $(call _target,phpunit)` to use the runner this project has.,$(COLOR_NOTICE)) >&2; \
+		$(call log,`pest` is not installed.,$(COLOR_ERROR)); \
+		$(call log,Require `pestphp/pest` or run `make $(call _target,phpunit)` to use the runner this project has.,$(COLOR_NOTICE)); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}
 
@@ -4301,7 +4301,7 @@ $(call _ansi,$2 $3)$1$(_ANSI_RESET)
 endef
 
 #**
-#* Prints a message behind the `<VENDOR>/<PACKAGE>` label.
+#* Prints a message behind the `<VENDOR>/<PACKAGE>` label to stderr.
 #* Anything in backticks renders as inline code, and keeps its backticks where color is off.
 #* The message is a `printf` format, so a value goes in as an argument rather than being pasted in.
 #* A literal comma has to be written as `$(_COMMA)`.
@@ -4318,7 +4318,7 @@ endef
 #*
 define log
 printf '$(call text,[$(_LABEL)],$2) $1\n' $3$(if $(findstring `,$1$3), \
-	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes)))
+	| $(call _render_inline_code,print,$(if $(filter no-autolink,$4),,yes))) >&2
 endef
 
 #**
@@ -4666,7 +4666,7 @@ endef
 define _refuse_links
 for checked_path in $1; do \
 	[ ! -L "$$checked_path" ] || { \
-		$(call log,`%s` is a symbolic link. `configs` does not follow it.,$(COLOR_ERROR),"./$${checked_path#$(CURDIR)/}") >&2; \
+		$(call log,`%s` is a symbolic link. `configs` does not follow it.,$(COLOR_ERROR),"./$${checked_path#$(CURDIR)/}"); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
 done
@@ -4747,7 +4747,7 @@ else \
 		_MANAGED_BLOCK_DEDUPLICATION="$$deduplication_mode" \
 		_MANAGED_BLOCK_BODY="$$body_path" \
 		$(AWK) "$$_MANAGED_BLOCK_AWK" "$$config_path")" || { \
-		$(call log,`%s` has unpaired or extra markers$(_COMMA) or no place for the block.,$(COLOR_ERROR),"./$${config_path#$(CURDIR)/}") >&2; \
+		$(call log,`%s` has unpaired or extra markers$(_COMMA) or no place for the block.,$(COLOR_ERROR),"./$${config_path#$(CURDIR)/}"); \
 		exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 	}; \
 	[ "$$updated_contents" = "$$($(CAT) "$$config_path")" ] || { \
@@ -5050,7 +5050,7 @@ endef
 #*
 define _require_file_argument
 $(if $(call _has_positional_arg,$(_ARGS),$2),:,{ \
-	$(call log,`%s` needs a file. Pass one as an argument.,$(COLOR_ERROR),'$1') >&2; \
+	$(call log,`%s` needs a file. Pass one as an argument.,$(COLOR_ERROR),'$1'); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 })
 endef
@@ -5096,7 +5096,7 @@ endef
 #* returns: void
 #*
 define _group
-$(call _echo_command,$(or $5,$1))label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)))); \
+$(call _echo_command,$(or $5,$1))label=$(if $(_HAS_GROUP_LABEL),$$($(call log,$(ANNOUNCEMENT),$(COLOR_NOTICE),$(call _quoted,$@)) 2>&1)); \
 has_spinner=; $(if $(or $(_IS_GROUP_PARALLEL),$(_IS_NO_COLOR)),,[ -t 1 ] && has_spinner=1;) \
 $(if $(_IS_GROUP_PARALLEL),,[ -z "$$label" ] || printf '%s\n' "$$label"; \
 	[ -z "$$has_spinner" ] || { \
@@ -5244,7 +5244,7 @@ endef
 define _require_coverage
 $(TRACE_PREFIX)$(call _require_file,$1,$4)
 $(TRACE_PREFIX)$(AWK) -v _METRIC='$2' -v _MINIMUM='$3' '$$0 ~ _METRIC && !found { if (match($$0, /[0-9]+(\.[0-9]+)?%/)) { reached_percentage = substr($$0, RSTART, RLENGTH - 1) + 0; found = 1 } } END { exit reached_percentage < _MINIMUM + 0 }' '$1' || { \
-	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3') >&2; \
+	$(call log,`%s` coverage is below `%s%%`.,$(COLOR_ERROR),'$2' '$3'); \
 	exit $(BRNSHKR_CONFIG_ERROR_CODE); \
 }
 endef

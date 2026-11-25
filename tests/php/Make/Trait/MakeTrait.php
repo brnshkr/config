@@ -217,9 +217,14 @@ trait MakeTrait
      * @param list<string> $args
      * @param array<string, string> $env
      */
-    private static function createMakeProcess(array $args, array $env, ?string $directory): Process
-    {
+    private static function createMakeProcess(
+        array $args,
+        array $env,
+        ?string $directory,
+        bool $isMergingStreams = true,
+    ): Process {
         return new Process([
+            ...($isMergingStreams ? ['sh', '-c', 'exec "$@" 2>&1', 'sh'] : []),
             'make',
             '--no-print-directory',
             ...($directory === null ? ['-f', self::MAKEFILE_PATH] : []),
